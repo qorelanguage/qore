@@ -140,6 +140,8 @@ public class ConnectionSchemeCache {
 
             "netsuite": "NetSuiteRestClient",
 
+            "openai": "OpenAiRestClient",
+
             "pop3": "Pop3Client",
             "pop3s": "Pop3Client",
 

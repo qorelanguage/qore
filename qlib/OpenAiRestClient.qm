@@ -1,0 +1,298 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file OpenAiRestClient.qm Qore user module for calling OpenAi REST services
+
+/*  OpenAiRestClient.qm Copyright (C) 2020 - 2024 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum qore version
+%requires qore >= 2.0
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+# don't use "$" for vars, members, and methods, assume local variable scope
+%new-style
+
+# do not ignore argument errors
+%strict-args
+
+%requires(reexport) Mime >= 1.3
+%requires(reexport) RestClient >= 1.3.1
+%requires(reexport) ConnectionProvider >= 1.4
+
+module OpenAiRestClient {
+    version = "1.0";
+    desc = "user module for calling OpenAi REST API services";
+    author = "David Nichols <david@qore.org>";
+    url = "https://qore.org";
+    license = "MIT";
+    init = sub () {
+        ConnectionSchemeCache::registerScheme("openai", OpenAiRestConnection::ConnectionScheme);
+    };
+}
+
+/** @mainpage OpenAiRestClient Module
+
+    @tableofcontents
+
+    @section openairestclientintro OpenAiRestClient Introduction
+
+    The %OpenAiRestClient module provides an API for calling OpenAi REST API services.
+
+    To use this module, use \c "%requires OpenAiRestClient" in your code.
+
+    All the public symbols in the module are defined in the OpenAiRestClient namespace.
+
+    The main classes are:
+    - @ref OpenAiRestClient::OpenAiRestClient "OpenAiRestClient":
+      this class provides the REST client API for communuication with the OpenAi REST
+      API; it also automates authentication and authorization to the target
+    - @ref OpenAiRestClient::OpenAiRestConnection "OpenAiRestConnection":
+      provides a REST connection object to OpenAi cloud services (based on the
+      @ref connectionproviderintro "ConnectionProvider" module)
+
+    @par Example:
+    @code{.py}
+#!/usr/bin/env qore
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%requires OpenAiRestClient
+%requires ConnectionProvider
+
+OpenAiRestClient rest = get_connection("my-openai-connection");
+hash<auto> ans = rest.get("/calendar/users/me/calendarList");
+printf("%N\n", ans.body);
+    @endcode
+
+    @section OpenAirestclientrelnotes Release Notes
+
+    @subsection OpenAirestclientv1_0 OpenAiRestClient v1.0
+    - the initial version of the %OpenAiRestClient module
+*/
+
+#! the OpenAiRestClient namespace contains all the objects in the OpenAiRestClient module
+public namespace OpenAiRestClient {
+#! this class provides the REST client API for communication with OpenAi servers
+/** You must use an API key in the 'token' option to call OpenAi APIs
+*/
+public class OpenAiRestClient inherits RestClient::RestClient {
+    public {
+        #! Default OpenAi REST API URL
+        const DefaultUrl = "openai://api.openai.com";
+
+        #! Default OpenAi API version
+        const DefaultApiVersion = "v1";
+
+        #! Default constructor options
+        const DefaultOptions = {
+            "url": DefaultUrl,
+            "api": DefaultApiVersion,
+            "data": "json",
+        };
+    }
+
+    private {
+        #! The API version in use
+        string api;
+    }
+
+    #! creates the object with the given options
+    /**
+        @par Example:
+        @code{.py}
+OpenAiRestClient rest(opts);
+        @endcode
+
+        @param opts valid options are all the options for the @ref RestClient::RestClient "RestClient" class; note
+        that the URL is set by default if not provided (see @ref DefaultUrl)
+        @param do_not_connect if \c False (the default), then a connection will be immediately established to the
+        remote server
+
+        @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
+    */
+    constructor(hash<auto> opts, *softbool do_not_connect)
+            : RestClient(OpenAiRestClient::getOptions(opts), True) {
+        if (opts.api.val() && !validator) {
+            api = getString(opts, "api");
+            setConnectionPath(api);
+        }
+    }
+
+    #! returns options for @ref OpenAiRestClient::OpenAiRestClient::constructor()
+    static hash<auto> getOptions(hash<auto> opts) {
+        if (!opts.swagger && !opts.validator) {
+            string path = dirname(get_module_hash().OpenAiRestClient.filename)
+                + "/OpenAiDataProvider/openai-swagger-2.0.yaml";
+            if (is_file(path)) {
+                opts.swagger = path;
+            }
+        }
+        return DefaultOptions + opts;
+    }
+}
+
+#! Class for OpenAi REST connections; returns @ref OpenAiRestClient objects
+/** This class implements all options of @ref RestClient::RestClientConnection "RestClientConnection"
+
+    @see @ref OpenAiRestClient::OpenAiRestClient::constructor() for more information on the above options
+*/
+public class OpenAiRestConnection inherits RestClient::RestConnection {
+    public {
+        #! Connection entry info
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "OpenAi REST Connection",
+            "short_desc": "A connection to the OpenAi REST API",
+            "desc": "A connection to the OpenAi REST API",
+            "cls": Class::forName("OpenAiRestConnection"),
+            "auto_url": True,
+            "schemes": {
+                "openai": True,
+            },
+            "base_scheme_map": {
+                "https": "openai",
+            },
+            "options": RestConnection::ConnectionScheme.options + {
+                "api": <ConnectionOptionInfo>{
+                    "display_name": "API Version",
+                    "short_desc": "The API version to use",
+                    "desc": "The API version to use",
+                    "type": "string",
+                    "default_value": OpenAiRestClient::DefaultApiVersion,
+                },
+                "data": RestConnection::ConnectionScheme.options."data" + <ConnectionOptionInfo>{
+                    "default_value": "json",
+                },
+                "ping_headers": RestConnection::ConnectionScheme.options.ping_headers + <ConnectionOptionInfo>{
+                    "default_value": DefaultPingHeaders,
+                },
+                "ping_method": RestConnection::ConnectionScheme.options.ping_method + <ConnectionOptionInfo>{
+                    "default_value": DefaultPingMethod,
+                },
+                "ping_path": RestConnection::ConnectionScheme.options.ping_path + <ConnectionOptionInfo>{
+                    "default_value": DefaultPingPath,
+                },
+            },
+            "required_options": "token",
+        };
+
+        #! Default OpenAi ping method
+        const DefaultPingMethod= "GET";
+
+        #! Default OpenAi ping headers
+        const DefaultPingHeaders = {
+            "Accept": MimeTypeJson,
+        };
+
+        #! Default OpenAi ping path
+        const DefaultPingPath = "models";
+    }
+
+    #! creates the OpenAiRestConnection object
+    /** @param name the name of the connection
+        @param description connection description
+        @param url connection URL (potentially with password info)
+        @param attributes various attributes. See below
+        @param options connection options
+
+        See @ref ConnectionProvider::AbstractConnection::constructor() for \c attributes and \c options reference.
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+    */
+    constructor(string name, string description, string url = OpenAiRestClient::DefaultUrl,
+            hash<auto> attributes = {}, hash<auto> options = {})
+            : RestConnection(name, description, url, attributes, options) {
+    }
+
+    #! creates the OpenAiRestConnection object
+    /** @param config with the following keys:
+        - name (required string): the connection name
+        - display_name (optional string): the display name
+        - short_desc (optional string): a short description in plain text
+        - desc (optional string): a long description with markdown formatting
+        - url (required string): the connection URL
+        - opts (optional hash): connection options
+        - logger (optional LoggerInterface object): logger for the connection
+        @param attr optional connection attributes
+        - monitor (optional bool): should the connection be monitored? Default: True
+        - enabled (optional bool): is the connection enabled? Default: True
+        - locked (optional bool): is the connection locked? Default: False
+        - debug_data (optional bool): debug data? Default: False
+        - tags (optional hash): tags for the connection; no default value
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
+    */
+    constructor(hash<auto> config, *hash<auto> attr) : RestConnection(config, attr) {
+    }
+
+    #! returns \c "openai"
+    string getType() {
+        return "openai";
+    }
+
+    #! returns @ref True as this connection returns a data provider with the @ref getDataProvider() method
+    /** @return @ref True as this connection returns a data provider with the @ref getDataProvider() method
+
+        @see @ref getDataProvider()
+    */
+    bool hasDataProvider() {
+        return True;
+    }
+
+    #! returns a data provider object for this connection
+    /** @param constructor_options any additional constructor options for the data provider
+
+        @return a data provider object for this connection
+    */
+    DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
+        # to avoid circular dependencies, this object loads the OpenAiDataProvider and creates the data provider
+        # object dynamically
+        load_module("OpenAiDataProvider");
+        return create_object("OpenAiDataProvider", get());
+    }
+
+    #! Sets child data provider capabilities
+    private setChildCapabilities() {
+        children_can_support_apis = True;
+    }
+
+    #! returns a @ref OpenAiRestClient object
+    /** @param connect if @ref True "True", then the connection is returned already connected
+        @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
+
+        @return a @ref OpenAiRestClient object
+    */
+    private OpenAiRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        return new OpenAiRestClient(getConnectionOptions(), !connect);
+    }
+
+    #! Returns the ConnectionSchemeInfo hash for this object
+    private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
+        return ConnectionScheme;
+    }
+}
+}

@@ -888,6 +888,9 @@ class SchemaBase {
     /** @return True if the value is OK, False if not
     */
     static bool checkValueType(reference<auto> value, string type) {
+        if (type == "any") {
+            return True;
+        }
         int vt = value.typeCode();
 
         # check for string values
@@ -904,6 +907,12 @@ class SchemaBase {
                 value = value.toInt();
                 return True;
             }
+        }
+
+        # check for number values
+        if (vt == NT_INT && type == "number") {
+            value = value.toFloat();
+            return True;
         }
 
         if ((vt == NT_BOOLEAN && type != "boolean") ||
@@ -3409,6 +3418,7 @@ public class AbstractParameterObject inherits ObjectBase {
 
     #! gets a concrete instance of an AbstractParameterObject
     static AbstractParameterObject newParameter(string name, hash<auto> oh, SwaggerSchema swagger) {
+        on_error rethrow $1.err, sprintf("%s (while processing parameter %y)", $1.desc, name);
         if (oh.hasKey("$ref"))
             return swagger.resolveParameter(name, oh."$ref", oh);
 
@@ -3542,10 +3552,13 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
     public constructor(string name, hash<auto> oh, SwaggerSchema swagger)
             : AbstractParameterObject(oh, swagger.getParseFlags()), SchemaBase("Parameter", oh) {
         string objType = "Parameter";
-        required_field(objType, oh, "type", NT_STRING, \type);
-        if (!ParameterTypes{type})
+        optional_field(objType, oh, "type", NT_STRING, \type);
+        if (!exists type) {
+            type = "any";
+        } else if (!ParameterTypes{type}) {
             throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid parameter type value passed: %y, "
                 "expecting one of: %y", name, type, keys ParameterTypes);
+        }
         if (type != "array" && oh.collectionFormat && (swagger.getParseFlags() & LM_LAX_COLLECTIONFORMAT)) {
             format = type;
             type = "array";
@@ -4386,8 +4399,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             SchemaObject::checkValueType(\value[0], items.type, items.items, loc + "[0]");
         }
         if (!SchemaBase::checkValueType(\value, type)) {
-            throw "INVALID-FIELD-TYPE", sprintf("Schema Object: 'default' value%s has invalid type %y (expecting "
-                "schema type %y)", loc, value.type(), type);
+            throw "INVALID-FIELD-TYPE", sprintf("Schema Object: 'default' value%s has invalid type %y (val: %y) "
+                "(expecting schema type %y)", loc, value.type(), value, type);
         }
     }
 
@@ -4735,8 +4748,8 @@ namespace Priv {
         auto val = oh{name};
 
         if (!typeCodes{val.typeCode()})
-            throw "INVALID-FIELD-TYPE", sprintf("%s Object%s: %y field has invalid type %y", objType,
-                oh.name ? sprintf(" %y", oh.name) : "", name, val.type());
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object%s: %y field has invalid type %y (val: %y)", objType,
+                oh.name ? sprintf(" %y", oh.name) : "", name, val.type(), val);
         get_value(objType, name, val.typeCode(), val, \target);
     }
 
@@ -4782,8 +4795,8 @@ namespace Priv {
             return False;
         auto val = oh{name};
         if (!typeCodes{val.typeCode()})
-            throw "INVALID-FIELD-TYPE", sprintf("%s Object%s: %y field has invalid type %y", objType,
-                oh.name ? sprintf(" %y", oh.name) : "", name, val.type());
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object%s: %y field has invalid type %y (val: %y)", objType,
+                oh.name ? sprintf(" %y", oh.name) : "", name, val.type(), val);
         get_value(objType, name, val.typeCode(), val, \target);
         return True;
     }
@@ -4798,8 +4811,8 @@ namespace Priv {
             if (name == "required" && (opt_flags & LM_IGNORE_INVALID_REQUIRED)) {
                 return True;
             }
-            throw "INVALID-FIELD-TYPE", sprintf("%s Object%s: %y field has invalid type %y; expecting %y", objType,
-                oh.name ? sprintf(" %y", oh.name) : "", name, val.type(), TypeMap{typeCode});
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object%s: %y field has invalid type %y (val: %y); expecting %y",
+                objType, oh.name ? sprintf(" %y", oh.name) : "", name, val.type(), val, TypeMap{typeCode});
         }
     }
 
@@ -4808,8 +4821,8 @@ namespace Priv {
         if (typeCode == SwaggerListToStringSet) {
             foreach auto v in (val) {
                 if (v.typeCode() != NT_STRING)
-                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in list value has type %y; "
-                        "expecting \"string\"", objType, name, $# + 1, val.size(), v.type());
+                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in list value has type %y "
+                        "(val: %y); expecting \"string\"", objType, name, $# + 1, val.size(), v.type(), v);
                 target{v} = True;
             }
         } else if (typeCode == SwaggerListToAnySet) {

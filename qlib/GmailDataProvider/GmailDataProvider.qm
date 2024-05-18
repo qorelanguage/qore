@@ -180,9 +180,10 @@ module GmailDataProvider {
             "app": GmailDataProvider::AppName,
             "path": "/watch",
             "action": "watch",
-            "display_name": "New Emails",
+            "display_name": "New Email",
             "short_desc": "React to new emails",
-            "desc": "React to new emails",
+            "desc": "React to new emails; when a new email arrives, all the message information including the "
+                "message body is returned as output data",
             "action_code": DPAT_EVENT,
             "action_val": EVENT_EMAIL_MATCHED,
             "convenience_options": {

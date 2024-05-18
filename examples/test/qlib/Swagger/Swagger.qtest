@@ -1241,8 +1241,6 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("INVALID-FIELD-TYPE", "required", loadyaml, my_make_yaml(base + {"parameters": p}));
 
         # type checks
-        p = base.parameters + {"a": {"name": "a", "in": "query"}};
-        assertThrows("REQUIRED-FIELD-MISSING", "\"type\".*missing", loadyaml, my_make_yaml(base + {"parameters": p}));
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": 5}};
         assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, my_make_yaml(base + {"parameters": p}));
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "a"}};

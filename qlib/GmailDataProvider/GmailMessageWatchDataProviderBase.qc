@@ -258,7 +258,8 @@ public class GmailMessageWatchDataProviderBase inherits GoogleDataProvider::Goog
                             msg.attachments += getAttachment(att, hdr);
                         }
                     }
-                    LoggerWrapper::info("Gmail: matched message %y attachments: %d", minfo.id, msg.attachments.size());
+                    LoggerWrapper::info("Gmail: matched message %y attachments: %d", minfo.id,
+                        msg.attachments.size());
                 } else {
                     LoggerWrapper::info("Gmail: matched message %y", minfo.id);
                 }

@@ -61,6 +61,7 @@ public class DataProvider {
             # provided by the jni module
             "mqtt": "MqttDataProvider",
 
+            "openai": "OpenAiDataProvider",
             "pop3": "Pop3ClientDataProvider",
             "restclient": "RestClientDataProvider",
             "salesforcerest": "SalesforceRestDataProvider",
