@@ -74,22 +74,21 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
     }
 
     #! Creates the object
-    constructor() {
-    }
-
-    #! Creates the object
     constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
     #! Creates the object from constructor options
-    constructor(hash<auto> options) {
+    constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         if (copts.restclient) {
             rest = copts.restclient;
         }
 
         if (!rest) {
+            if (!copts.api_key) {
+                throw "CONSTRUCTOR-ERROR", "missing 'api_key' argument for OpenAI API communication";
+            }
             hash<auto> opts;
             opts += copts.restclient_options + {
                 "api": copts.api_version,

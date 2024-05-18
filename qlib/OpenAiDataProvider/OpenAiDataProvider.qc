@@ -52,7 +52,7 @@ public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
     }
 
     #! Creates the object from constructor options
-    constructor(hash<auto> options) : OpenAiDataProviderCommon(options) {
+    constructor(*hash<auto> options) : OpenAiDataProviderCommon(options) {
     }
 
     #! Returns the data provider name

@@ -761,6 +761,13 @@ public class DataProviderActionCatalog {
             *hash<auto> additional_fields) {
         hash<string, hash<ActionOptionInfo>> rv;
         foreach hash<auto> i in (fields.pairIterator()) {
+            if (i.value instanceof AbstractDataField) {
+                hash<DataFieldInfo> info = i.value.getInfo();
+                i.value = info{"display_name", "short_desc", "desc", "default_value", "example_value",
+                    "allowed_values"} + {
+                    "type": i.value.getType(),
+                };
+            }
             hash<ActionOptionInfo> info = <ActionOptionInfo>{
                 "display_name": i.value.display_name ?? AbstractDataField::getDisplayName(i.key),
                 "short_desc": i.value.short_desc ?? AbstractDataField::getShortDescription(i.value.desc),

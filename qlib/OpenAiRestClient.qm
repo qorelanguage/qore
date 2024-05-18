@@ -103,7 +103,7 @@ public namespace OpenAiRestClient {
 public class OpenAiRestClient inherits RestClient::RestClient {
     public {
         #! Default OpenAi REST API URL
-        const DefaultUrl = "openai://api.openai.com";
+        const DefaultUrl = "https://api.openai.com";
 
         #! Default OpenAi API version
         const DefaultApiVersion = "v1";
@@ -162,6 +162,9 @@ OpenAiRestClient rest(opts);
 */
 public class OpenAiRestConnection inherits RestClient::RestConnection {
     public {
+        #! Default OpenAi REST API URL
+        const DefaultUrl = "openai://api.openai.com";
+
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "display_name": "OpenAi REST Connection",
@@ -219,7 +222,7 @@ public class OpenAiRestConnection inherits RestClient::RestConnection {
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    constructor(string name, string description, string url = OpenAiRestClient::DefaultUrl,
+    constructor(string name, string description, string url = DefaultUrl,
             hash<auto> attributes = {}, hash<auto> options = {})
             : RestConnection(name, description, url, attributes, options) {
     }
