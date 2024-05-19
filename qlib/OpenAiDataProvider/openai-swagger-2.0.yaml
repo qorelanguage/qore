@@ -11944,15 +11944,18 @@ definitions:
       first_id:
         example: asst_abc123
         type: string
+        x-nullable: true
       has_more:
         example: false
         type: boolean
       last_id:
         example: asst_abc456
         type: string
+        x-nullable: true
       object:
         example: list
         type: string
+        x-nullable: true
     required:
       - object
       - data

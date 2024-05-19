@@ -1,10 +1,10 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore OpenAiDataProvider module definition
 
-/** OpenAiDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
+/** OpenAiDataAssistantsProvider.qc Copyright 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the "Software"),
+    copy of this software and associated documentation assistants (the "Software"),
     to deal in the Software without restriction, including without limitation
     the rights to use, copy, modify, merge, publish, distribute, sublicense,
     and/or sell copies of the Software, and to permit persons to whom the
@@ -25,31 +25,21 @@
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! The OpenAi data provider class
-public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
+public class OpenAiAssistantsDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "openai",
-            "type": "OpenAiDataProvider",
+            "name": "assistants",
+            "type": "OpenAiAssistantsDataProvider",
             "supports_children": True,
             "constructor_options": ConstructorOptions,
             "children_can_support_apis": True,
         };
-    }
 
-    private {
-        #! Child data providers
-        const ChildMap = {
-            "assistants": Class::forName("OpenAiDataProvider::OpenAiAssistantsDataProvider"),
-            "create-assistant": Class::forName("OpenAiDataProvider::OpenAiAssistantCreateDataProvider"),
-            "files": Class::forName("OpenAiDataProvider::OpenAiFilesDataProvider"),
-            "models": Class::forName("OpenAiDataProvider::OpenAiModelsDataProvider"),
-            "multi-chat": Class::forName("OpenAiDataProvider::OpenAiChatCompletionDataProvider"),
-            "simple-chat": Class::forName("OpenAiDataProvider::OpenAiSimpleChatCompletionDataProvider"),
-            "upload-file": Class::forName("OpenAiDataProvider::OpenAiFileUploadDataProvider"),
-            "upload-file-from-location":
-                Class::forName("OpenAiDataProvider::OpenAiFileUploadFromLocationDataProvider"),
-        };
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
     }
 
     #! Creates the object from the arguments
@@ -57,7 +47,7 @@ public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
     }
 
     #! Creates the object from constructor options
-    constructor(*hash<auto> options) : OpenAiDataProviderCommon(options) {
+    constructor(hash<auto> options) : OpenAiDataProviderCommon(options) {
     }
 
     #! Returns the data provider name
@@ -67,14 +57,16 @@ public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
 
     #! Return data provider summary info
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
+        return map <DataProviderSummaryInfo>{
+            "name": $1.id,
+        } + OpenAiAssistantDataProvider::ProviderSummaryInfo, getAssistants();
     }
 
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
-        return keys ChildMap;
+        return map $1.id, getAssistants();
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -83,11 +75,16 @@ public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
         @see getChildProviderEx()
     */
     private *AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = ChildMap{name};
-        if (!cls) {
-            return;
+        foreach hash<auto> m in (getAssistants()) {
+            if (m.id == name) {
+                return new OpenAiAssistantDataProvider(rest, m);
+            }
         }
-        return cls.newObject(rest);
+    }
+
+    #! Returns supported assistants
+    private *list<hash<auto>> getAssistants() {
+        return doRestCommand("GET", "assistants", NOTHING, AssistantApiHdr).body."data";
     }
 
     #! Returns data provider static info

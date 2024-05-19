@@ -74,7 +74,6 @@ module OpenAiDataProvider {
                 OpenAiChatCompletionRequestType.getFields(){"model", "messages"}, {
                     "preselected": True,
                     "required": True,
-                    "loc": "constructor",
                 }
             ),
             "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
@@ -94,7 +93,6 @@ module OpenAiDataProvider {
                 OpenAiSimpleChatCompletionRequestType.getFields(){"model", "role", "content"}, {
                     "preselected": True,
                     "required": True,
-                    "loc": "constructor",
                 }
             ),
             "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
@@ -114,7 +112,6 @@ module OpenAiDataProvider {
                 OpenAiFileUploadFromLocationRequestType.getFields(){"purpose", "location"}, {
                     "preselected": True,
                     "required": True,
-                    "loc": "constructor",
                 }
             ),
             "output_type": OpenAiFileUploadFromLocationDataProvider::ResponseType,
@@ -133,6 +130,64 @@ module OpenAiDataProvider {
                     "short_desc": "The ID or OpenAI file name of the file to delete",
                     "desc": "The ID or OpenAI file name of the file to delete",
                     "example_value": "file-XlKc5wjQpWHfXbKwhCZeAuul",
+                },
+            },
+            "output_type": OpenAiDeleteResponseType,
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": OpenAiDataProvider::AppName,
+            "path": "/create-assistant",
+            "action": "create-assistant",
+            "display_name": "Create an Assistant",
+            "short_desc": "Create an assistant",
+            "desc": "Create an assistant with a model and instructions",
+            "action_code": DPAT_API,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                OpenAiAssistantCreateRequestType.getFields(){"model",}, {
+                    "preselected": True,
+                    "required": True,
+                }
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                OpenAiAssistantCreateRequestType.getFields() - ("model",)
+            ),
+            "output_type": OpenAiFileUploadFromLocationDataProvider::ResponseType,
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": OpenAiDataProvider::AppName,
+            "path": "/assistants/{assistant}/update",
+            "action": "update-assistant",
+            "display_name": "Update Assistant",
+            "short_desc": "Update an assistant",
+            "desc": "Update an assistant",
+            "action_code": DPAT_API,
+            "path_vars": {
+                "assistant": <DataProviderPathVarInfo>{
+                    "display_name": "Assistant",
+                    "short_desc": "The ID of the assistant to update",
+                    "desc": "The ID of the assistant to update",
+                    "example_value": "asst_pOVJLN6z0hTsW1UKpALakcLA",
+                },
+            },
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                OpenAiAssistantUpdateRequestType.getFields()
+            ),
+            "output_type": OpenAiDeleteResponseType,
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": OpenAiDataProvider::AppName,
+            "path": "/assistants/{assistant}/delete",
+            "action": "delete-assistant",
+            "display_name": "Delete Assistant",
+            "short_desc": "Delete an assistant",
+            "desc": "Delete an assistant",
+            "action_code": DPAT_API,
+            "path_vars": {
+                "assistant": <DataProviderPathVarInfo>{
+                    "display_name": "Assistant",
+                    "short_desc": "The ID of the assistant to delete",
+                    "desc": "The ID of the assistant to delete",
+                    "example_value": "asst_pOVJLN6z0hTsW1UKpALakcLA",
                 },
             },
             "output_type": OpenAiDeleteResponseType,

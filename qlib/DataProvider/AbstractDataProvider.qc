@@ -88,6 +88,9 @@ public hashdecl DataProviderOptionInfo {
         in the available DataProvider when resolving application actions if this attribute is set
     */
     *string ref_data;
+
+    #! Should this option be preselected?
+    *bool preselected;
 }
 
 #! Data provider summary info

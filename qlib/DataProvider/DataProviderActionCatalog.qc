@@ -777,6 +777,9 @@ public class DataProviderActionCatalog {
                 if (info.attr.ref_data.val()) {
                     i.value.ref_data = info.attr.ref_data;
                 }
+                if (info.attr.preselected) {
+                    i.value.preselected = True;
+                }
             }
             hash<ActionOptionInfo> info = <ActionOptionInfo>{
                 "display_name": i.value.display_name ?? AbstractDataField::getDisplayName(i.key),
@@ -803,7 +806,8 @@ public class DataProviderActionCatalog {
                 default:
                     throw "OPTION-ERROR", sprintf("Cannot set option type from \"type\" option with type %y", type);
             }
-            info += i.value{"default_value", "required", "sensitive", "example_value", "ref_data"} + additional_fields;
+            info += i.value{"default_value", "required", "sensitive", "example_value", "ref_data", "preselected"}
+                + additional_fields;
             if (i.value.allowed_values) {
                 if (i.value.allowed_values instanceof list<hash<AllowedValueInfo>>
                     || i.value.allowed_values instanceof hash<AllowedValueInfo>) {

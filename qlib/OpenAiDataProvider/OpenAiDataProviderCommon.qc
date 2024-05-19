@@ -75,6 +75,11 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
 
         #! Max retries
         const MaxIoRetries = 5;
+
+        #! Headers required for the OpenAI assistant API
+        const AssistantApiHdr = {
+            "OpenAI-Beta": "assistants=v2",
+        };
     }
 
     private {
@@ -151,12 +156,13 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
     }
 
     #! Makes a REST call and returns the response; handles rate limit responses
-    private hash<auto> doRestCommand(string method, string path, auto body, *reference<hash<auto>> info) {
+    private hash<auto> doRestCommand(string method, string path, auto body, *hash<auto> hdr,
+            *reference<hash<auto>> info) {
         int retries = 0;
         while (True) {
             try {
                 debug("REST %y %y (%y) body: %y", method, rest.getURL(), path, body);
-                return rest.doRequest(method, path, body, \info);
+                return rest.doRequest(method, path, body, \info, NOTHING, hdr);
             } catch (hash<ExceptionInfo> ex) {
                 if (retry(ex, \retries)) {
                     continue;

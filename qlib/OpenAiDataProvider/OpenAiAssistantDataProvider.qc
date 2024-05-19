@@ -1,10 +1,10 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore OpenAiDataProvider module definition
 
-/** OpenAiDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
+/** OpenAiDataAssistantProvider.qc Copyright 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the "Software"),
+    copy of this software and associated documentation assistants (the "Software"),
     to deal in the Software without restriction, including without limitation
     the rights to use, copy, modify, merge, publish, distribute, sublicense,
     and/or sell copies of the Software, and to permit persons to whom the
@@ -25,44 +25,73 @@
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! The OpenAi data provider class
-public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
+public class OpenAiAssistantDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "openai",
-            "type": "OpenAiDataProvider",
-            "supports_children": True,
+            "type": "OpenAiAssistantDataProvider",
             "constructor_options": ConstructorOptions,
+            "supports_request": True,
+            "supports_children": True,
             "children_can_support_apis": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
+
+        #! Request type
+        const RequestType = AbstractDataProviderTypeMap."nothing";
+
+        #! Response type
+        const ResponseType = OpenAiAssistantDataType;
     }
 
     private {
+        #! The assistant info
+        hash<auto> assistant;
+
         #! Child data providers
         const ChildMap = {
-            "assistants": Class::forName("OpenAiDataProvider::OpenAiAssistantsDataProvider"),
-            "create-assistant": Class::forName("OpenAiDataProvider::OpenAiAssistantCreateDataProvider"),
-            "files": Class::forName("OpenAiDataProvider::OpenAiFilesDataProvider"),
-            "models": Class::forName("OpenAiDataProvider::OpenAiModelsDataProvider"),
-            "multi-chat": Class::forName("OpenAiDataProvider::OpenAiChatCompletionDataProvider"),
-            "simple-chat": Class::forName("OpenAiDataProvider::OpenAiSimpleChatCompletionDataProvider"),
-            "upload-file": Class::forName("OpenAiDataProvider::OpenAiFileUploadDataProvider"),
-            "upload-file-from-location":
-                Class::forName("OpenAiDataProvider::OpenAiFileUploadFromLocationDataProvider"),
+            "delete": Class::forName("OpenAiDataProvider::OpenAiAssistantDeleteDataProvider"),
+            "update": Class::forName("OpenAiDataProvider::OpenAiAssistantUpdateDataProvider"),
         };
     }
 
     #! Creates the object from the arguments
-    constructor(*RestClient rest) : OpenAiDataProviderCommon(rest) {
-    }
-
-    #! Creates the object from constructor options
-    constructor(*hash<auto> options) : OpenAiDataProviderCommon(options) {
+    constructor(*RestClient rest, hash<auto> assistant) : OpenAiDataProviderCommon(rest) {
+        self.assistant = assistant;
+        assistant.created_at = localtime(assistant.created_at);
     }
 
     #! Returns the data provider name
     string getName() {
-        return ProviderInfo.name;
+        return assistant.id;
+    }
+
+    #! Makes a request and returns the response
+    /** @param req the request to serialize and make according to the request type
+        @param request_options the request options; will be processed by validateRequestOptions()
+
+        @return the response to the request
+    */
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        return assistant;
+    }
+
+    #! Returns the description of a successful request message, if any
+    /** @return the request type for this provider
+    */
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
+        return RequestType;
+    }
+
+    #! Returns the description of a response message, if this object represents a response message
+    /** @return the response type for this response message
+    */
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
+        return ResponseType;
     }
 
     #! Return data provider summary info
@@ -87,12 +116,14 @@ public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
         if (!cls) {
             return;
         }
-        return cls.newObject(rest);
+        return cls.newObject(rest, assistant);
     }
 
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
-        return ProviderInfo;
+        return cast<hash<DataProviderInfo>>({
+            "name": assistant.id,
+        }) + ProviderInfo;
     }
 }
 }

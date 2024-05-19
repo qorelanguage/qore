@@ -280,6 +280,15 @@ public class OpenAiToolDataType inherits HashDataType {
                 "short_desc": "The type of the tool",
                 "desc": "The type of the tool. Currently, only `function` is supported",
                 "type": AbstractDataProviderTypeMap."string",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "display_name": "Function",
+                        "short_desc": "For a function",
+                        "desc": "For a function",
+                        "value": "function",
+                    },
+                ),
+                "default_value": "function",
             },
             "function": {
                 "display_name": "Function",
