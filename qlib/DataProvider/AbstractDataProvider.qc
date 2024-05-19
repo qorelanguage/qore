@@ -81,6 +81,13 @@ public hashdecl DataProviderOptionInfo {
     /** This value must be in the one of the types in the \c type list
     */
     auto example_value;
+
+    #! A tag allowing allowed values to be returned dynamically as reference data
+    /** The value is the name of the reference data; if allowed_values are not present, calls will be made to
+        @ref DataProvider::AbstractDataProvider::resolveReferenceData() "AbstractDataProvider::resolveReferenceData()"
+        in the available DataProvider when resolving application actions if this attribute is set
+    */
+    *string ref_data;
 }
 
 #! Data provider summary info
@@ -2328,6 +2335,21 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         return rv;
     }
 
+    #! Returns reference data of the given kind if available
+    /** @param type the unique type name of the reference data
+
+        @return a list of allowed values for this data
+
+        @since DataProvider 3.0
+    */
+    *list<hash<AllowedValueInfo>> getReferenceData(string type) {
+        try {
+            return getReferenceDataImpl(type);
+        } catch (hash<ExceptionInfo> ex) {
+            error("Failed to retrieve reference data of type %y: %s: %s", type, ex.err, ex.desc);
+        }
+    }
+
     #! Returns an argument for an expression
     /**
         @since DataProvider 2.3
@@ -3584,6 +3606,17 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             error("Failed to retrieve example row: %s: %s; returning generated data", ex.err, ex.desc);
         }
         return generateExampleData(getRecordTypeImpl());
+    }
+
+    #! Returns reference data of the given kind if available
+    /** @param type the unique type name of the reference data
+
+        @return a list of allowed values for this data
+
+        @since DataProvider 3.0
+    */
+    private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type) {
+        # intentionally empty
     }
 
     #! Returns the data provider name

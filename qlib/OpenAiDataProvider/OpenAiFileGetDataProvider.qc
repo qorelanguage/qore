@@ -69,7 +69,7 @@ public class OpenAiFileGetDataProvider inherits OpenAiDataProviderCommon {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return rest.get("files/" + file.id + "/content").body;
+        return doRestCommand("GET", "files/" + file.id + "/content").body;
     }
 
     #! Returns the description of a successful request message, if any

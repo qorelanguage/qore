@@ -35,6 +35,7 @@
 
 %requires(reexport) DataProvider
 %requires(reexport) OpenAiRestClient
+%requires FileLocationHandler
 
 module OpenAiDataProvider {
     version = "1.3";
@@ -61,11 +62,13 @@ module OpenAiDataProvider {
         # register all supported actions
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": OpenAiDataProvider::AppName,
-            "path": "/chat",
-            "action": "chat",
-            "display_name": "Chat",
-            "short_desc": "Chat with an AI Model",
-            "desc": "Chat with an AI Model",
+            "path": "/multi-chat",
+            "action": "multi-chat",
+            "display_name": "Multi Chat",
+            "short_desc": "Chat with an AI model by sending multiple messages at once and potentially getting "
+                "multiple replies",
+            "desc": "Chat with an AI model by sending multiple messages at once and potentially getting multiple "
+                "replies",
             "action_code": DPAT_API,
             "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiChatCompletionRequestType.getFields(){"model", "messages"}, {
@@ -78,6 +81,61 @@ module OpenAiDataProvider {
                 OpenAiChatCompletionRequestType.getFields() - ("model", "messages")
             ),
             "output_type": OpenAiChatCompletionDataProvider::ResponseType,
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": OpenAiDataProvider::AppName,
+            "path": "/simple-chat",
+            "action": "simple-chat",
+            "display_name": "Simple Chat",
+            "short_desc": "Chat with an AI model by sending a single message and receiving a single reply",
+            "desc": "Chat with an AI model by sending a single message and receiving a single reply",
+            "action_code": DPAT_API,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                OpenAiSimpleChatCompletionRequestType.getFields(){"model", "role", "content"}, {
+                    "preselected": True,
+                    "required": True,
+                    "loc": "constructor",
+                }
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                OpenAiSimpleChatCompletionRequestType.getFields() - ("model", "role", "content")
+            ),
+            "output_type": OpenAiChatCompletionDataProvider::ResponseType,
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": OpenAiDataProvider::AppName,
+            "path": "/upload-file-from-location",
+            "action": "upload-file",
+            "display_name": "Upload File",
+            "short_desc": "Upload a file for an assistant, for fine tuning, or for batch processing",
+            "desc": "Upload a file for an assistant, for fine tuning, or for batch processing",
+            "action_code": DPAT_API,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                OpenAiFileUploadFromLocationRequestType.getFields(){"purpose", "location"}, {
+                    "preselected": True,
+                    "required": True,
+                    "loc": "constructor",
+                }
+            ),
+            "output_type": OpenAiFileUploadFromLocationDataProvider::ResponseType,
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": OpenAiDataProvider::AppName,
+            "path": "/files/{file}/delete",
+            "action": "delete-file",
+            "display_name": "Delete File",
+            "short_desc": "Delete a file stored on OpenAI",
+            "desc": "Delete a file stored on OpenAI",
+            "action_code": DPAT_API,
+            "path_vars": {
+                "file": <DataProviderPathVarInfo>{
+                    "display_name": "File",
+                    "short_desc": "The ID or OpenAI file name of the file to delete",
+                    "desc": "The ID or OpenAI file name of the file to delete",
+                    "example_value": "file-XlKc5wjQpWHfXbKwhCZeAuul",
+                },
+            },
+            "output_type": OpenAiDeleteResponseType,
         });
     };
 }

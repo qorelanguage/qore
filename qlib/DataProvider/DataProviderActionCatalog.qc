@@ -155,6 +155,13 @@ public hashdecl ActionOptionInfo {
     #! An optional example value for the option
     *auto example_value;
 
+    #! A tag allowing allowed values to be returned dynamically as reference data
+    /** The value is the name of the reference data; if allowed_values are not present, calls will be made to
+        @ref DataProvider::AbstractDataProvider::resolveReferenceData() "AbstractDataProvider::resolveReferenceData()"
+        in the available DataProvider when resolving application actions if this attribute is set
+    */
+    *string ref_data;
+
     #! If the option should be preselected
     bool preselected;
 
@@ -767,6 +774,9 @@ public class DataProviderActionCatalog {
                     "allowed_values"} + {
                     "type": i.value.getType(),
                 };
+                if (info.attr.ref_data.val()) {
+                    i.value.ref_data = info.attr.ref_data;
+                }
             }
             hash<ActionOptionInfo> info = <ActionOptionInfo>{
                 "display_name": i.value.display_name ?? AbstractDataField::getDisplayName(i.key),
@@ -793,7 +803,7 @@ public class DataProviderActionCatalog {
                 default:
                     throw "OPTION-ERROR", sprintf("Cannot set option type from \"type\" option with type %y", type);
             }
-            info += i.value{"default_value", "required", "sensitive", "example_value"} + additional_fields;
+            info += i.value{"default_value", "required", "sensitive", "example_value", "ref_data"} + additional_fields;
             if (i.value.allowed_values) {
                 if (i.value.allowed_values instanceof list<hash<AllowedValueInfo>>
                     || i.value.allowed_values instanceof hash<AllowedValueInfo>) {

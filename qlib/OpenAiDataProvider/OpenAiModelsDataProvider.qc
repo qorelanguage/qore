@@ -84,7 +84,7 @@ public class OpenAiModelsDataProvider inherits OpenAiDataProviderCommon {
 
     #! Returns supported models
     private *list<hash<auto>> getModels() {
-        return rest.get("models").body."data";
+        return doRestCommand("GET", "models").body."data";
     }
 
     #! Returns data provider static info

@@ -287,7 +287,7 @@ class QdpCmd {
         if (!exists event) {
             QdpCmd::error("missing required event argument; valid events: %y", keys provider.getEventTypes());
         }
-        QdpCmd::showType(event, provider.getEventInfo(event));
+        QdpCmd::showType(provider, event, provider.getEventInfo(event));
     }
 
     static exampleEvent(AbstractDataProvider provider) {
@@ -306,14 +306,14 @@ class QdpCmd {
             if (!type) {
                 QdpCmd::error("unknown error code %y; known error codes: %y", err, keys errs);
             }
-            QdpCmd::showType(type);
+            QdpCmd::showType(provider, type);
             return;
         }
 
         if (!opts.verbose) {
             printf("%y\n", keys errs);
         } else {
-            map (printf("%s:\n", $1.key), QdpCmd::showType($1.value, "  ")), errs.pairIterator();
+            map (printf("%s:\n", $1.key), QdpCmd::showType(provider, $1.value, "  ")), errs.pairIterator();
         }
     }
 
@@ -527,7 +527,7 @@ class QdpCmd {
         if (!exists message) {
             QdpCmd::error("missing required message argument; valid messages: %y", keys provider.getMessageTypes());
         }
-        QdpCmd::showType(message, provider.getMessageInfo(message));
+        QdpCmd::showType(provider, message, provider.getMessageInfo(message));
     }
 
     static listen(AbstractDataProvider provider) {
@@ -564,15 +564,16 @@ class QdpCmd {
         if (opts.verbose > 1) {
             printf("%N\n", (map {$1.key: $1.value.getInfo()}, rec.pairIterator()));
         } else {
-            QdpCmd::showRecord(rec);
+            QdpCmd::showRecord(provider, rec);
         }
     }
 
-    static showRecord(*hash<string, AbstractDataField> rec, string offset = "") {
-        QdpCmd::showRecord({}, rec, offset);
+    static showRecord(AbstractDataProvider prov, *hash<string, AbstractDataField> rec, string offset = "") {
+        QdpCmd::showRecord(prov, {}, rec, offset);
     }
 
-    static showRecord(hash<auto> rmap, *hash<string, AbstractDataField> rec, string offset = "") {
+    static showRecord(AbstractDataProvider prov, hash<auto> rmap, *hash<string, AbstractDataField> rec,
+            string offset = "") {
         foreach hash<auto> i in (rec.pairIterator()) {
             {
                 string u = i.value.uniqueHash();
@@ -592,25 +593,44 @@ class QdpCmd {
                     if (info) {
                         info += " ";
                     }
-                    info += sprintf(" default_value: %y", val);
+                    info += sprintf("default_value: %y", val);
+                }
+                if (*list<auto> l = i.value.getAllowedValues()) {
+                    if (info) {
+                        info += " ";
+                    }
+                    info += sprintf("allowed_values: %y", (map $1.value ?? $1, l));
+                } else if ((*string ref_data = i.value.getAttributes().ref_data).val()) {
+                    if (info) {
+                        info += " ";
+                    }
+                    l = prov.getReferenceData(ref_data);
+                    info += sprintf("allowed_values: %y", (map $1.value ?? $1, l));
                 }
                 if (info) {
                     txt += " (" + info + ")";
                 }
                 print(txt);
             } else {
-                printf("%s%s %s", offset, type.getName(), i.key);
+                string info;
+                if (*list<auto> l = i.value.getAllowedValues()) {
+                    info += sprintf(" (one of: %y)", (map $1.value ?? $1, l));
+                } else if ((*string ref_data = i.value.getAttributes().ref_data).val()) {
+                    l = prov.getReferenceData(ref_data);
+                    info += sprintf(" (one of: %y)", (map $1.value ?? $1, l));
+                }
+                printf("%s%s %s%s", offset, type.getName(), i.key, info);
             }
             if (type.getBaseTypeCode() == NT_LIST && (*AbstractDataProviderType element_type = type.getElementType())
                 && (*hash<string, AbstractDataField> element_rec = element_type.getFields())) {
                 printf(": elements ->\n");
-                QdpCmd::showRecord(rmap, element_rec, offset + "  ");
+                QdpCmd::showRecord(prov, rmap, element_rec, offset + "  ");
             } else {
                 print("\n");
             }
             *hash<string, AbstractDataField> fields = type.getFields();
             if (fields) {
-                QdpCmd::showRecord(rmap, fields, offset + "  ");
+                QdpCmd::showRecord(prov, rmap, fields, offset + "  ");
             }
         }
     }
@@ -691,20 +711,20 @@ class QdpCmd {
     }
 
     static request(AbstractDataProvider provider) {
-        QdpCmd::showType(provider.getRequestType());
+        QdpCmd::showType(provider, provider.getRequestType());
         if (opts.verbose) {
             *hash<string, hash<DataProviderOptionInfo>> opts = provider.getRequestOptions();
             if (opts) {
-                QdpCmd::showOptionHash(opts);
+                QdpCmd::showOptionHash(provider, opts);
             }
         }
     }
 
     static response(AbstractDataProvider provider) {
-        QdpCmd::showType(provider.getResponseType());
+        QdpCmd::showType(provider, provider.getResponseType());
     }
 
-    static showOptionHash(*hash<auto> req, string offset = "") {
+    static showOptionHash(AbstractDataProvider prov, *hash<auto> req, string offset = "") {
         foreach hash<auto> i in (req.pairIterator()) {
             foreach AbstractDataProviderType type in (i.value.type) {
                 if (i.value.type.lsize() > 1) {
@@ -714,34 +734,34 @@ class QdpCmd {
                 }
                 *hash<string, AbstractDataField> fields = type.getFields();
                 if (fields) {
-                    QdpCmd::showRecord(fields, offset + "  ");
+                    QdpCmd::showRecord(prov, fields, offset + "  ");
                 }
             }
         }
     }
 
-    static showType() {
-        # this method intentionally left empty
+    static showType(AbstractDataProvider prov) {
+        # intentionally empty
     }
 
-    static showType(string msg, hash<DataProviderMessageInfo> info) {
+    static showType(AbstractDataProvider prov, string msg, hash<DataProviderMessageInfo> info) {
         printf("%s: %s\n", msg, QdpCmd::getDesc(0, info));
-        QdpCmd::showType(info.type);
+        QdpCmd::showType(prov, info.type);
     }
 
-    static showType(AbstractDataProviderType type, *string offset) {
-        QdpCmd::showType({}, type, offset);
+    static showType(AbstractDataProvider prov, AbstractDataProviderType type, *string offset) {
+        QdpCmd::showType(prov, {}, type, offset);
     }
 
-    static showType(hash<auto> rmap, AbstractDataProviderType type, *string offset) {
+    static showType(AbstractDataProvider prov, hash<auto> rmap, AbstractDataProviderType type, *string offset) {
         *hash<string, AbstractDataField> fields = type.getFields();
         if (fields) {
-            QdpCmd::showRecord(rmap, fields, offset);
+            QdpCmd::showRecord(prov, rmap, fields, offset);
         } else {
             if (type.getBaseTypeCode() == NT_LIST && (*AbstractDataProviderType element_type = type.getElementType())
                 && (*hash<string, AbstractDataField> element_rec = element_type.getFields())) {
                 printf("%s%s elements ->\n", type.getName(), offset);
-                QdpCmd::showRecord(rmap, element_rec, offset + "  ");
+                QdpCmd::showRecord(prov, rmap, element_rec, offset + "  ");
             } else {
                 printf("%s%s%s (%s)\n", offset, type.getName());
             }

@@ -84,7 +84,7 @@ public class OpenAiFilesDataProvider inherits OpenAiDataProviderCommon {
 
     #! Returns supported files
     private *list<hash<auto>> getFiles() {
-        return rest.get("files").body."data";
+        return doRestCommand("GET", "files").body."data";
     }
 
     #! Returns data provider static info

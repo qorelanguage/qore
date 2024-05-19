@@ -170,17 +170,6 @@ public class QoreDataField inherits AbstractDataField {
         desc += new_desc;
     }
 
-    #! returns information about the field
-    hash<DataFieldInfo> getInfo() {
-        return <DataFieldInfo>{
-            "name": name,
-            "desc": desc,
-            "default_value": default_value,
-            "allowed_values": allowed_values,
-            "type": type.getInfo(),
-        };
-    }
-
     #! returns a field with a "soft" type equivalent to the current type
     /** @return a field with a "soft" type equivalent to the current type
     */

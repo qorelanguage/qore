@@ -29,7 +29,7 @@ public class OpenAiFileUploadDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "upload",
+            "name": "upload-file",
             "type": "OpenAiFileUploadDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_request": True,
@@ -63,14 +63,7 @@ public class OpenAiFileUploadDataProvider inherits OpenAiDataProviderCommon {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        hash<auto> info;
-        on_error {
-            if (info."request-body".typeCode() == NT_BINARY) {
-                info."request-body" = info."request-body".toString();
-            }
-            printf("info: %N\n", info);
-        }
-        return rest.post("files", req, \info).body;
+        return doRestCommand("POST", "files", req).body;
     }
 
     #! Returns the description of a successful request message, if any

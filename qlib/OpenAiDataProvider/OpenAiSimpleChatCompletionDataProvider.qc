@@ -1,10 +1,10 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore OpenAiDataProvider module definition
 
-/** OpenAiModelDeleteDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
+/** OpenAiSimpleChatCompletionDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the "Software"),
+    copy of this software and associated documentation s (the "Software"),
     to deal in the Software without restriction, including without limitation
     the rights to use, copy, modify, merge, publish, distribute, sublicense,
     and/or sell copies of the Software, and to permit persons to whom the
@@ -25,12 +25,12 @@
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! The OpenAi data provider class
-public class OpenAiModelDeleteDataProvider inherits OpenAiDataProviderCommon {
+public class OpenAiSimpleChatCompletionDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "delete",
-            "type": "OpenAiModelDeleteDataProvider",
+            "name": "chat",
+            "type": "OpenAiSimpleChatCompletionDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_request": True,
         };
@@ -41,20 +41,14 @@ public class OpenAiModelDeleteDataProvider inherits OpenAiDataProviderCommon {
         });
 
         #! Request type
-        const RequestType = AbstractDataProviderTypeMap."nothing";
+        const RequestType = OpenAiSimpleChatCompletionRequestType;
 
         #! Response type
-        const ResponseType = OpenAiDeleteResponseType;
-    }
-
-    private {
-        #! The model info
-        hash<auto> model;
+        const ResponseType = OpenAiSimpleChatCompletionResponseType;
     }
 
     #! Creates the object from the arguments
-    constructor(*RestClient rest, hash<auto> model) : OpenAiDataProviderCommon(rest) {
-        self.model = model;
+    constructor(*RestClient rest) : OpenAiDataProviderCommon(rest) {
     }
 
     #! Returns the data provider name
@@ -69,7 +63,14 @@ public class OpenAiModelDeleteDataProvider inherits OpenAiDataProviderCommon {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return doRestCommand("DELETE", "models/" + model.id).body;
+        req.messages = ({
+            "role": remove req.role,
+            "content": remove req.content,
+            "name": remove req.name,
+        },);
+        hash<auto> rv = rest.post("chat/completions", req).body;
+        rv.choice = remove rv.choice[0];
+        return rv;
     }
 
     #! Returns the description of a successful request message, if any
@@ -92,38 +93,43 @@ public class OpenAiModelDeleteDataProvider inherits OpenAiDataProviderCommon {
     }
 }
 
-#! The delete response type
-public class OpenAiDeleteResponseType inherits HashDataType {
+#! The chat completion request type
+public class OpenAiSimpleChatCompletionRequestType inherits HashDataType {
     public {
         #! fields
-        const Fields = {
-             "id": {
-                "display_name": "Model ID",
-                "short_desc": "Model ID",
-                "desc": "Model ID",
-                "type": AbstractDataProviderTypeMap."string",
-            },
-            "object": {
-                "display_name": "Object Type",
-                "short_desc": "The type of object",
-                "desc": "The type of object",
-                "type": AbstractDataProviderTypeMap."string",
-            },
-            "deleted": {
-                "display_name": "Deleted?",
-                "short_desc": "Indicates if the model was actually deleted",
-                "desc": "Indicates if the model was actually deleted",
-                "type": AbstractDataProviderTypeMap."bool",
+        const Fields = OpenAiMessageDataType::Fields{"role", "content", "name"} +
+            OpenAiChatCompletionRequestType::Fields - ("messages", "n");
+    }
+
+    #! Creates the type
+    constructor() : HashDataType("OpenAiSimpleChatCompletionRequest") {
+        addQoreFields(Fields);
+    }
+}
+
+#! The chat completion request type constant
+public const OpenAiSimpleChatCompletionRequestType = new OpenAiSimpleChatCompletionRequestType();
+
+#! The chat completion response type
+public class OpenAiSimpleChatCompletionResponseType inherits HashDataType {
+    public {
+        #! fields
+        const Fields = OpenAiChatCompletionResponseType::Fields - "choices" + {
+            "choice": {
+                "display_name": "Choice",
+                "short_desc": "The single chat completion choice returned by the server",
+                "desc": "The single chat completion choice returned by the server",
+                "type": OpenAiChoiceDataType,
             },
         };
     }
 
     #! Creates the type
-    constructor() : HashDataType("OpenAiDeletionResponse") {
+    constructor() : HashDataType("OpenAiSimpleChatCompletionRequest") {
         addQoreFields(Fields);
     }
 }
 
-#! Model type constant
-public const OpenAiDeleteResponseType = new OpenAiDeleteResponseType();
+#! The chat completion response type
+public const OpenAiSimpleChatCompletionResponseType = new OpenAiSimpleChatCompletionResponseType();
 }

@@ -69,7 +69,7 @@ public class OpenAiFileDeleteDataProvider inherits OpenAiDataProviderCommon {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return rest.del("files/" + file.id).body;
+        return doRestCommand("DELETE", "files/" + file.id).body;
     }
 
     #! Returns the description of a successful request message, if any

@@ -40,10 +40,13 @@ public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
     private {
         #! Child data providers
         const ChildMap = {
-            "chat": Class::forName("OpenAiDataProvider::OpenAiChatCompletionDataProvider"),
             "files": Class::forName("OpenAiDataProvider::OpenAiFilesDataProvider"),
             "models": Class::forName("OpenAiDataProvider::OpenAiModelsDataProvider"),
+            "multi-chat": Class::forName("OpenAiDataProvider::OpenAiChatCompletionDataProvider"),
+            "simple-chat": Class::forName("OpenAiDataProvider::OpenAiSimpleChatCompletionDataProvider"),
             "upload-file": Class::forName("OpenAiDataProvider::OpenAiFileUploadDataProvider"),
+            "upload-file-from-location":
+                Class::forName("OpenAiDataProvider::OpenAiFileUploadFromLocationDataProvider"),
         };
     }
 

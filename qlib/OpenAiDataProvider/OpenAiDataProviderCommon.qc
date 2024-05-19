@@ -66,11 +66,26 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
                 "default_value": DefaultOpenAiApiVersion,
             },
         };
+
+        #! IO errors for REST retries
+        const RetrySet = {
+            "SOCKET-SSL-ERROR": True,
+            "SOCKET-CLOSED": True,
+        };
+
+        #! Max retries
+        const MaxIoRetries = 5;
     }
 
     private {
         #! The REST client object for API calls
         *RestClient::RestClient rest;
+
+        #! first time initialization
+        static bool init;
+
+        #! lock for first time initialization
+        static Mutex m();
     }
 
     #! Creates the object
@@ -104,6 +119,64 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
             rest.setLogger(logger);
         }
         LoggerWrapper::setLogger(logger);
+    }
+
+    #! Returns reference data of the given kind if available
+    /** @param type the unique type name of the reference data
+
+        @return a list of allowed values for this data
+
+        @since DataProvider 3.0
+    */
+    private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type) {
+        switch (type) {
+            case "models": return getReferenceModels();
+        }
+        throw "UNKNOWN-REF-DATA", sprintf("Reference data type %y is unknown", type);
+    }
+
+    #! Returns available models
+    private *list<hash<AllowedValueInfo>> getReferenceModels() {
+        list<hash<AllowedValueInfo>> rv;
+        foreach hash<auto> model in (doRestCommand("GET", "models").body."data") {
+            string desc = sprintf("Model created on %y, owned by %y", localtime(model.created), model.owned_by);
+            rv += <AllowedValueInfo>{
+                "display_name": model.id,
+                "short_desc": desc,
+                "desc": desc,
+                "value": model.id,
+            };
+        }
+        return rv;
+    }
+
+    #! Makes a REST call and returns the response; handles rate limit responses
+    private hash<auto> doRestCommand(string method, string path, auto body, *reference<hash<auto>> info) {
+        int retries = 0;
+        while (True) {
+            try {
+                debug("REST %y %y (%y) body: %y", method, rest.getURL(), path, body);
+                return rest.doRequest(method, path, body, \info);
+            } catch (hash<ExceptionInfo> ex) {
+                if (retry(ex, \retries)) {
+                    continue;
+                }
+                rethrow ex.err, sprintf("%s (HTTP response code: %y)", ex.desc, info."response-headers".status_code);
+            }
+        }
+    }
+
+    #! Returns True if the error indicates that the operation should be retried
+    private bool retry(hash<ExceptionInfo> ex, reference<int> retries) {
+        if (RetrySet{ex.err}) {
+            if (++retries == MaxIoRetries) {
+                error("Maximum retries exceeded (%d)", retries);
+                return False;
+            }
+            warn("Technical error making REST call: %s: %s; retrying", ex.err, ex.desc);
+            return True;
+        }
+        return False;
     }
 }
 }

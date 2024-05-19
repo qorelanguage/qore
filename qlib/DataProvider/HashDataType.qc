@@ -308,9 +308,6 @@ public class HashDataType inherits QoreDataType {
         # recursively return "or nothing" typed fields in any case
         HashDataType rv = QoreDataType::getOrNothingType();
         map rv.fields{$1.key} = $1.value.getOrNothingType(), fields.pairIterator();
-        if (name !~ /^\*/) {
-            rv.name = "*" + name;
-        }
         return rv;
     }
 

@@ -47,7 +47,7 @@ public hashdecl DataFieldInfo {
     auto example_value;
 
     #! for enum fields; allowed values
-    *list<auto> allowed_values;
+    *list<hash<AllowedValueInfo>> allowed_values;
 
     #! type info
     hash<DataTypeInfo> type;
@@ -63,7 +63,7 @@ public class AbstractDataField inherits Qore::Serializable {
         auto default_value;
 
         #! for enum fields; raw allowed values
-        list<auto> allowed_values;
+        list<hash<AllowedValueInfo>> allowed_values;
 
         #! for enum fields; allowed values
         /** only supported for types that convert to a string
@@ -139,12 +139,18 @@ public class AbstractDataField inherits Qore::Serializable {
     AbstractDataField setAllowedValues(list<auto> allowed_values) {
         AbstractDataProviderType type = getType();
         if (allowed_values[0] instanceof hash<AllowedValueInfo>) {
-            allowed_values = map $1.value, allowed_values;
+            self.allowed_values = allowed_values;
+        } else {
+            self.allowed_values = map <AllowedValueInfo>{
+                "display_name": $1.toString(),
+                "value": $1,
+            }, allowed_values;
         }
+        on_error rethrow $1.err, sprintf("%s (allowed_values: %y)", $1.desc, allowed_values);
         # check that the value can be assigned to the type
-        self.allowed_values = map type.acceptsValue($1), allowed_values;
+        map self.allowed_values[$#].value = type.acceptsValue($1.value), self.allowed_values.iterator();
         # NOTE: requires that values can be converted to a string hash key to simulate a set
-        allowed_values_map = map {$1: True}, self.allowed_values;
+        allowed_values_map = map {$1.value: True}, self.allowed_values;
         return self;
     }
 
@@ -161,7 +167,7 @@ public class AbstractDataField inherits Qore::Serializable {
     }
 
     #! Get allowed values
-    *list<auto> getAllowedValues() {
+    *list<hash<AllowedValueInfo>> getAllowedValues() {
         return allowed_values;
     }
 
@@ -190,7 +196,7 @@ public class AbstractDataField inherits Qore::Serializable {
                 value = getType().acceptsValue(value);
                 if (!allowed_values_map{value}) {
                     throw "FIELD-VALUE-ERROR", sprintf("field %y does not accept value %y; allowed values: %y", getName(),
-                        value, allowed_values);
+                        value, (map $1.value, allowed_values));
                 }
                 return value;
             }
@@ -211,7 +217,7 @@ public class AbstractDataField inherits Qore::Serializable {
             "short_desc": getShortDescription(),
             "desc": getDescription(),
             "type": getType().getInputInfo(),
-            "attr": getAttributes(),
+            "attr": attr,
         };
     }
 
@@ -226,7 +232,7 @@ public class AbstractDataField inherits Qore::Serializable {
             "example_value": getExampleValue(),
             "allowed_values": allowed_values,
             "type": getType().getInfo(),
-            "attr": getAttributes(),
+            "attr": attr,
         };
     }
 

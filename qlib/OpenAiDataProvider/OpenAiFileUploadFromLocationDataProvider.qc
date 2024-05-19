@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore OpenAiDataProvider module definition
 
-/** OpenAiModelDeleteDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
+/** OpenAiFileUploadFromLocationDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,12 +25,12 @@
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! The OpenAi data provider class
-public class OpenAiModelDeleteDataProvider inherits OpenAiDataProviderCommon {
+public class OpenAiFileUploadFromLocationDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "delete",
-            "type": "OpenAiModelDeleteDataProvider",
+            "name": "upload-file-from-location",
+            "type": "OpenAiFileUploadFromLocationDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_request": True,
         };
@@ -41,20 +41,14 @@ public class OpenAiModelDeleteDataProvider inherits OpenAiDataProviderCommon {
         });
 
         #! Request type
-        const RequestType = AbstractDataProviderTypeMap."nothing";
+        const RequestType = OpenAiFileUploadFromLocationRequestType;
 
         #! Response type
-        const ResponseType = OpenAiDeleteResponseType;
-    }
-
-    private {
-        #! The model info
-        hash<auto> model;
+        const ResponseType = OpenAiFileDataType;
     }
 
     #! Creates the object from the arguments
-    constructor(*RestClient rest, hash<auto> model) : OpenAiDataProviderCommon(rest) {
-        self.model = model;
+    constructor(*RestClient rest) : OpenAiDataProviderCommon(rest) {
     }
 
     #! Returns the data provider name
@@ -69,7 +63,11 @@ public class OpenAiModelDeleteDataProvider inherits OpenAiDataProviderCommon {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return doRestCommand("DELETE", "models/" + model.id).body;
+        hash<auto> h = {
+            "purpose": req.purpose,
+            "file": FileLocationHandler::getBinaryFileFromLocation(req.location),
+        };
+        return doRestCommand("POST", "files", h).body;
     }
 
     #! Returns the description of a successful request message, if any
@@ -92,38 +90,27 @@ public class OpenAiModelDeleteDataProvider inherits OpenAiDataProviderCommon {
     }
 }
 
-#! The delete response type
-public class OpenAiDeleteResponseType inherits HashDataType {
+#! The file upload request type
+public class OpenAiFileUploadFromLocationRequestType inherits HashDataType {
     public {
         #! fields
-        const Fields = {
-             "id": {
-                "display_name": "Model ID",
-                "short_desc": "Model ID",
-                "desc": "Model ID",
+        const Fields = OpenAiFileUploadRequestType::Fields{"purpose",} + {
+            "location": {
+                "display_name": "File Location",
+                "short_desc": "The location of the file",
+                "desc": "The location of the file as provided by the [FileLocationHandler]"
+                    "(https://docs.qore.org/current/modules/FileLocationHandler/html/index.html) module",
                 "type": AbstractDataProviderTypeMap."string",
-            },
-            "object": {
-                "display_name": "Object Type",
-                "short_desc": "The type of object",
-                "desc": "The type of object",
-                "type": AbstractDataProviderTypeMap."string",
-            },
-            "deleted": {
-                "display_name": "Deleted?",
-                "short_desc": "Indicates if the model was actually deleted",
-                "desc": "Indicates if the model was actually deleted",
-                "type": AbstractDataProviderTypeMap."bool",
             },
         };
     }
 
     #! Creates the type
-    constructor() : HashDataType("OpenAiDeletionResponse") {
+    constructor() : HashDataType("OpenAiFileUploadFromLocationRequest") {
         addQoreFields(Fields);
     }
 }
 
-#! Model type constant
-public const OpenAiDeleteResponseType = new OpenAiDeleteResponseType();
+#! File upload request type constant
+public const OpenAiFileUploadFromLocationRequestType = new OpenAiFileUploadFromLocationRequestType();
 }

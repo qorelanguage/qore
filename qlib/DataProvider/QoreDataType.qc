@@ -300,6 +300,12 @@ public class QoreDataType inherits AbstractDataProviderType {
     AbstractDataProviderType getOrNothingType() {
         if (!or_nothing_type) {
             QoreDataType rv = self.copy();
+            if (rv.name !~ /^\*/) {
+                rv.name = "*" + name;
+            }
+            if (rv.display_name !~ /^\*/) {
+                rv.display_name = "*" + display_name;
+            }
             rv.or_nothing_type = True;
             rv.accept_type_hash_simple{Type::NothingType} = rv.accept_type_hash{Type::NothingType} = True;
             rv.return_type_hash_simple{Type::NothingType} = rv.return_type_hash{Type::NothingType} = True;
