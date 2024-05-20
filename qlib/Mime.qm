@@ -1128,7 +1128,7 @@ public namespace Mime {
 
         #! returns a string embedded with the current timestamp designed to be used as MultiPart boundary string
         static string getBoundary() {
-            return "------Qore-MIME-Boundary" + now_us().format("YYYYMMDDHHmmSS.uuuZ") + "------";
+            return "------Qore-MIME-Boundary" + now_us().format("YYYYMMDDHHmmSS.usZ") + "------";
         }
 
         #! returns a string of random characters
@@ -1225,7 +1225,8 @@ hash: (2 members)
             # find end
             int j = mbin.rfind("\r\n--" + boundary + "--");
             if (j == -1)
-                throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot find closing boundary %y in body", "--" + boundary + "--");
+                throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot find closing boundary %y in body", "--" + boundary
+                    + "--");
 
             # remove multipart string from body
             splice body, i, j + boundary.size() * 2 + 8 + so;
@@ -1243,7 +1244,8 @@ hash: (2 members)
             foreach data pstr in (l) {
                 i = pstr.find("\r\n\r\n");
                 if (i == -1)
-                    throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d; could not find content boundary", $# + 1, l.size());
+                    throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d; could not find content "
+                        "boundary", $# + 1, l.size());
 
                 # get header string
                 string phdr = pstr.substr(0, i).toString();
@@ -1254,10 +1256,12 @@ hash: (2 members)
                     string phl = pl[k];
                     (*string hdr, *string val) = (phl =~ x/([^:]+):\s*(.*)$/);
                     if (!hdr) {
-                        throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d header line: %y", $# + 1, l.size(), phl);
+                        throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d header line: %y",
+                            $# + 1, l.size(), phl);
                     }
 
-                    # see if the following line is a long header field as defined in RFC 2822 section 2.2.3: http://tools.ietf.org/html/rfc2822#section-2.2.3
+                    # see if the following line is a long header field as defined in RFC 2822 section 2.2.3:
+                    # http://tools.ietf.org/html/rfc2822#section-2.2.3
                     while (pl[k + 1] =~ /^[ \t]/)
                         val += " " + trim(pl[++k]);
 
@@ -1295,7 +1299,8 @@ hash: (2 members)
                     if (pct =~ /multipart\//i) {
                         *string part_boundary = (pct =~ x/[Bb]oundary="?([^"]+)"?/)[0];
                         if (!exists part_boundary)
-                            throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse part %d Content-Type: %y; could not find message boundary", $#, pct);
+                            throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse part %d Content-Type: %y; could "
+                                "not find message boundary", $#, pct);
 
                         hash<MessageInfo> ph = MultiPartMessage::parseBody(part_boundary, pstr, True);
                         pstr = ph.body;
@@ -1314,10 +1319,10 @@ hash: (2 members)
                 plist += pi;
             }
 
-            return new hash<MessageInfo>((
+            return <MessageInfo>{
                 "body": binary_to_string(body),
                 "part": plist,
-            ));
+            };
         }
 
         #! returns a hash of the message
@@ -1835,7 +1840,8 @@ hash: (2 members)
         static hash<string, hash<FormDataMessageInfo>> parseMessage(string content, string body) {
             *string boundary = (content =~ x/[Bb]oundary="?([^"]+)"?/)[0];
             if (!exists boundary)
-                throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("cannot parse form-data Content-Type: %y; could not find message boundary", content);
+                throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("cannot parse form-data Content-Type: %y; could "
+                    "not find message boundary", content);
 
             hash<MessageInfo> mh = MultiPartMessage::parseBody(boundary, body);
 
@@ -1845,10 +1851,12 @@ hash: (2 members)
                 # parse Content-Disposition header
                 *string cd = h.hdr."content-disposition" ?? h.hdr."Content-Disposition";
                 if (!cd.val())
-                    throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("the Content-Disposion part header is missing in part %d/%d", $# + 1, mh.part.size());
+                    throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("the Content-Disposion part header is missing "
+                        "in part %d/%d", $# + 1, mh.part.size());
                 *string name = (cd =~ x/name="([^"]+)"/)[0];
                 if (!name.val())
-                    throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("the Content-Disposion part header is missing the part name in part %d/%d", $# + 1, mh.part.size());
+                    throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("the Content-Disposion part header is missing "
+                        "the part name in part %d/%d", $# + 1, mh.part.size());
                 *string filename = (cd =~ x/filename="([^"]+)"/)[0];
                 rv{name} = new hash<FormDataMessageInfo>((
                     "name": name,
@@ -1900,6 +1908,8 @@ hash: (2 members)
                         "(%y) is given", filename);
                 }
                 cd += sprintf("; filename=%y", filename);
+            }
+            if (content_type) {
                 hdr."Content-Type" = content_type;
             }
             hdr."Content-Disposition" = cd;

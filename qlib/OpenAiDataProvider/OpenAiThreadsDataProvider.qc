@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore OpenAiDataProvider module definition
 
-/** OpenAiDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
+/** OpenAiDataThreadsProvider.qc Copyright 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,31 +25,32 @@
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! The OpenAi data provider class
-public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
+public class OpenAiThreadsDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "openai",
-            "type": "OpenAiDataProvider",
+            "name": "threads",
+            "type": "OpenAiThreadsDataProvider",
             "supports_children": True,
             "constructor_options": ConstructorOptions,
             "children_can_support_apis": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
     }
 
     private {
         #! Child data providers
         const ChildMap = {
-            "assistants": Class::forName("OpenAiDataProvider::OpenAiAssistantsDataProvider"),
-            "create-assistant": Class::forName("OpenAiDataProvider::OpenAiAssistantCreateDataProvider"),
-            "files": Class::forName("OpenAiDataProvider::OpenAiFilesDataProvider"),
-            "models": Class::forName("OpenAiDataProvider::OpenAiModelsDataProvider"),
-            "multi-chat": Class::forName("OpenAiDataProvider::OpenAiChatCompletionDataProvider"),
-            "simple-chat": Class::forName("OpenAiDataProvider::OpenAiSimpleChatCompletionDataProvider"),
-            "threads": Class::forName("OpenAiDataProvider::OpenAiThreadsDataProvider"),
-            "upload-file": Class::forName("OpenAiDataProvider::OpenAiFileUploadDataProvider"),
-            "upload-file-from-location":
-                Class::forName("OpenAiDataProvider::OpenAiFileUploadFromLocationDataProvider"),
+            "create": Class::forName("OpenAiDataProvider::OpenAiThreadCreateDataProvider"),
+            "create-run": Class::forName("OpenAiDataProvider::OpenAiRunCreateDataProvider"),
+            "delete": Class::forName("OpenAiDataProvider::OpenAiThreadDeleteDataProvider"),
+            "get": Class::forName("OpenAiDataProvider::OpenAiThreadGetDataProvider"),
+            "runs": Class::forName("OpenAiDataProvider::OpenAiRunsDataProvider"),
+            "update": Class::forName("OpenAiDataProvider::OpenAiThreadUpdateDataProvider"),
         };
     }
 
@@ -58,7 +59,7 @@ public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
     }
 
     #! Creates the object from constructor options
-    constructor(*hash<auto> options) : OpenAiDataProviderCommon(options) {
+    constructor(hash<auto> options) : OpenAiDataProviderCommon(options) {
     }
 
     #! Returns the data provider name

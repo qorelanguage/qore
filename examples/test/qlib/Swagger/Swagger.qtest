@@ -1809,9 +1809,9 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("INVALID-FIELD-TYPE", "additionalProperties", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
 
         # "required" checks
-        s = {"type": "string", "required": ("a",)};
+        s = {"type": "object", "properties": {"a": {"type": "string"}}, "required": ("a",)};
         assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"a": s}})));
-        s = {"type": "string", "required": list()};
+        s = {"type": "string", "required": ()};
         assertThrows("INVALID-FIELD-FORMAT", "required", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
         s = {"type": "string", "required": (5, 3)};
         assertThrows("INVALID-FIELD-TYPE", "required", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
@@ -1819,9 +1819,9 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("INVALID-FIELD-TYPE", "required", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
 
         # discriminator checks
-        s = {"type": "string", "discriminator": "a", "required": ("a", "b")};
+        s = {"type": "object", "properties": {"a": {"type": "string"}, "b": {}}, "discriminator": "a", "required": ("a", "b")};
         assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"a": s}})));
-        s = {"type": "string", "discriminator": "x", "required": ("a", "b")};
+        s = {"type": "object", "properties": {"a": {"type": "string"}, "b": {}}, "discriminator": "x", "required": ("a", "b")};
         assertThrows("INVALID-FIELD-VALUE", "discriminator", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
         s = {"type": "string", "discriminator": 5};
         assertThrows("INVALID-FIELD-TYPE", "discriminator", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
@@ -2208,9 +2208,11 @@ public class SwaggerTest inherits QUnit::Test {
             }
 
             # test for issue #2365
-            assertThrows("SCHEMA-VALIDATION-ERROR", "Parameter \"a\".*invalid type", \so.processRequest(), ("post", "/api/smtg", ("a": 1)));
+            assertThrows("SCHEMA-VALIDATION-ERROR", "Parameter \"a\".*invalid type", \so.processRequest(), ("post",
+                "/api/smtg", ("a": 1)));
 
-            assertThrows("SERIALIZATION-ERROR", "application/octet-stream", \so.processRequest(), ("post", "/api/smtg", ("a": "a"), NOTHING, MimeTypeOctetStream));
+            assertThrows("SERIALIZATION-ERROR", "application/octet-stream", \so.processRequest(), ("post",
+                "/api/smtg", ("a": "a"), NOTHING, MimeTypeOctetStream));
 
             h = so.processRequest("post", "/api/smtg", ("a": "a"), NOTHING, MimeTypeMultipartFormData);
             assertEq("/api/smtg", h.uri_path);

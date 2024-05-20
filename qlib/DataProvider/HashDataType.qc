@@ -298,10 +298,10 @@ public class HashDataType inherits QoreDataType {
         return rv;
     }
 
-    #! Returns an "or nothing" type equivalent to the current type
-    /** @return an "or nothing" type equivalent to the current type
+    #! Returns an "or nothing" type equivalent to the current type as well as all fields
+    /** @return an "or nothing" type equivalent to the current type as well as all fields
     */
-    AbstractDataProviderType getOrNothingType() {
+    AbstractDataProviderType getDeepOrNothingType() {
         if (or_nothing_type) {
             return self;
         }

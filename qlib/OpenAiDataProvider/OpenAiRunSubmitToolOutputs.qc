@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore OpenAiDataProvider module definition
 
-/** OpenAiAssistantUpdateDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
+/** OpenAiRunSubmitToolOutputsDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,12 +25,12 @@
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! The OpenAi data provider class
-public class OpenAiAssistantUpdateDataProvider inherits OpenAiDataProviderCommon {
+public class OpenAiRunSubmitToolOutputsDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "update",
-            "type": "OpenAiAssistantUpdateDataProvider",
+            "name": "submittooloutputs",
+            "type": "OpenAiRunSubmitToolOutputsDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_request": True,
         };
@@ -41,20 +41,24 @@ public class OpenAiAssistantUpdateDataProvider inherits OpenAiDataProviderCommon
         });
 
         #! Request type
-        const RequestType = OpenAiAssistantUpdateRequestType;
+        const RequestType = OpenAiRunSubmitToolOutputsRequestType;
 
         #! Response type
-        const ResponseType = OpenAiAssistantDataType;
+        const ResponseType = OpenAiRunDataType;
     }
 
     private {
-        #! The assistant info
-        hash<auto> assistant;
+        #! The thread ID
+        string thread_id;
+
+        #! The run info
+        hash<auto> run;
     }
 
     #! Creates the object from the arguments
-    constructor(*RestClient rest, hash<auto> assistant) : OpenAiDataProviderCommon(rest) {
-        self.assistant = assistant;
+    constructor(*RestClient rest, string thread_id, hash<auto> run) : OpenAiDataProviderCommon(rest) {
+        self.thread_id = thread_id;
+        self.run = run;
     }
 
     #! Returns the data provider name
@@ -69,8 +73,11 @@ public class OpenAiAssistantUpdateDataProvider inherits OpenAiDataProviderCommon
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        hash<auto> rv = doRestCommand("PUT", "assistants/" + assistant.id, req, AssistantApiHdr).body;
+        hash<auto> rv = doRestCommand("PUT", "threads/" + thread_id + "/runs/" + run.id + "/submit_tool_outputs",
+            req, AssistantApiHdr).body;
         rv.created_at = localtime(rv.created_at);
+        map run{$1.key} = localtime($1.value), run{OpenAiRunCreateDataProvider::OptDateFields}.pairIterator(),
+            $1.value;
         return rv;
     }
 
@@ -94,20 +101,58 @@ public class OpenAiAssistantUpdateDataProvider inherits OpenAiDataProviderCommon
     }
 }
 
-#! The assistant tool data type
-public class OpenAiAssistantUpdateRequestType inherits HashDataType {
+#! Tool output data type
+public class OpenAiToolOutputDataType inherits HashDataType {
     public {
         #! fields
-        const Fields = map {$1.key: $1.value + {"type": $1.value.type.getOrNothingType()}},
-            OpenAiAssistantDataType::Fields.pairIterator(), $1.key != "id";
+        const Fields = {
+            "tool_call_id": {
+                "display_name": "Tool Call ID",
+                "short_desc": "The ID of the tool call in the 'required_action' object within the run object the "
+                    "output is being submitted for",
+                "desc": "The ID of the tool call in the `required_action` object within the run object the output is "
+                    "being submitted for",
+                "type": AbstractDataProviderTypeMap."string",
+            },
+            "output": {
+                "display_name": "Output",
+                "short_desc": "The output of the tool call to be submitted to continue the run",
+                "desc": "The output of the tool call to be submitted to continue the run",
+                "type": AbstractDataProviderTypeMap."string",
+            },
+        };
     }
 
     #! Creates the type
-    constructor() : HashDataType("OpenAiAssistantUpdateRequest") {
+    constructor() : HashDataType("OpenAiToolOutput") {
         addQoreFields(Fields);
     }
 }
 
-#! Constant for the assistant tool data type
-public const OpenAiAssistantUpdateRequestType = new OpenAiAssistantUpdateRequestType();
+#! Tool output type constant
+public const OpenAiToolOutputDataType = new OpenAiToolOutputDataType();
+
+#! The run tool data type
+public class OpenAiRunSubmitToolOutputsRequestType inherits HashDataType {
+    public {
+        #! fields
+        const Fields = {
+            "tool_outputs": {
+                "display_name": "Tool Outputs",
+                "short_desc": "A list of tools for which the outputs are being submitted",
+                "desc": "A list of tools for which the outputs are being submitted",
+                "type": new ListDataType("OpenAiToolOutputs", OpenAiToolOutputDataType),
+            },
+            "stream": OpenAiChatCompletionRequestType::Fields.stream,
+        };
+    }
+
+    #! Creates the type
+    constructor() : HashDataType("OpenAiRunSubmitToolOutputsRequest") {
+        addQoreFields(Fields);
+    }
+}
+
+#! Constant for the run tool data type
+public const OpenAiRunSubmitToolOutputsRequestType = new OpenAiRunSubmitToolOutputsRequestType();
 }

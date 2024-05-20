@@ -136,6 +136,7 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
     private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type) {
         switch (type) {
             case "models": return getReferenceModels();
+            case "assistants": return getReferenceAssistants();
         }
         throw "UNKNOWN-REF-DATA", sprintf("Reference data type %y is unknown", type);
     }
@@ -150,6 +151,21 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
                 "short_desc": desc,
                 "desc": desc,
                 "value": model.id,
+            };
+        }
+        return rv;
+    }
+
+    #! Returns available assistants
+    private *list<hash<AllowedValueInfo>> getReferenceAssistants() {
+        list<hash<AllowedValueInfo>> rv;
+        foreach hash<auto> assistant in (doRestCommand("GET", "assistants", NOTHING, AssistantApiHdr).body."data") {
+            string desc = assistant.desc ?? "no description available";
+            rv += <AllowedValueInfo>{
+                "display_name": assistant.id,
+                "short_desc": desc,
+                "desc": desc,
+                "value": assistant.id,
             };
         }
         return rv;

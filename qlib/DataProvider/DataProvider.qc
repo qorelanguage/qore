@@ -564,6 +564,7 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{datasourc
                     p.loadModule(mod);
                 } catch (hash<ExceptionInfo> ex) {
                     stderr.printf("ERROR: invalid QORE_DATA_PROVIDERS module %y %s: %s\n", mod, ex.err, ex.desc);
+                    continue;
                 }
                 try {
                     hash<string, string> dmap = p.callFunction(func);

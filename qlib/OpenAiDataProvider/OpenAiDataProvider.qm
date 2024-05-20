@@ -192,6 +192,60 @@ module OpenAiDataProvider {
             },
             "output_type": OpenAiDeleteResponseType,
         });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": OpenAiDataProvider::AppName,
+            "path": "/threads/create",
+            "action": "create-thread",
+            "display_name": "Create a Thread",
+            "short_desc": "Create a thread",
+            "desc": "Create a thread with the given messages",
+            "action_code": DPAT_API,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                OpenAiThreadCreateRequestType.getFields(){"messages",}, {
+                    "preselected": True,
+                    "required": True,
+                }
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                OpenAiThreadCreateRequestType.getFields() - ("messages",)
+            ),
+            "output_type": OpenAiFileUploadFromLocationDataProvider::ResponseType,
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": OpenAiDataProvider::AppName,
+            "path": "/threads/update",
+            "action": "update-thread",
+            "display_name": "Update Thread",
+            "short_desc": "Update a thread",
+            "desc": "Update a thread",
+            "action_code": DPAT_API,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                OpenAiThreadUpdateRequestType.getFields(){"thread_id",}, {
+                    "preselected": True,
+                    "required": True,
+                }
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                OpenAiThreadUpdateRequestType.getFields() - "thread_id"
+            ),
+            "output_type": OpenAiDeleteResponseType,
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": OpenAiDataProvider::AppName,
+            "path": "/threads/delete",
+            "action": "delete-thread",
+            "display_name": "Delete Thread",
+            "short_desc": "Delete a thread",
+            "desc": "Delete a thread",
+            "action_code": DPAT_API,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                OpenAiThreadIdRequestType.getFields(){"thread_id",}, {
+                    "preselected": True,
+                    "required": True,
+                }
+            ),
+            "output_type": OpenAiDeleteResponseType,
+        });
     };
 }
 

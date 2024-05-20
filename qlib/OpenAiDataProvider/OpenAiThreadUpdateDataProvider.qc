@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore OpenAiDataProvider module definition
 
-/** OpenAiAssistantUpdateDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
+/** OpenAiThreadUpdateDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,12 +25,12 @@
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! The OpenAi data provider class
-public class OpenAiAssistantUpdateDataProvider inherits OpenAiDataProviderCommon {
+public class OpenAiThreadUpdateDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "update",
-            "type": "OpenAiAssistantUpdateDataProvider",
+            "type": "OpenAiThreadUpdateDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_request": True,
         };
@@ -41,20 +41,14 @@ public class OpenAiAssistantUpdateDataProvider inherits OpenAiDataProviderCommon
         });
 
         #! Request type
-        const RequestType = OpenAiAssistantUpdateRequestType;
+        const RequestType = OpenAiThreadUpdateRequestType;
 
         #! Response type
-        const ResponseType = OpenAiAssistantDataType;
-    }
-
-    private {
-        #! The assistant info
-        hash<auto> assistant;
+        const ResponseType = OpenAiThreadDataType;
     }
 
     #! Creates the object from the arguments
-    constructor(*RestClient rest, hash<auto> assistant) : OpenAiDataProviderCommon(rest) {
-        self.assistant = assistant;
+    constructor(*RestClient rest) : OpenAiDataProviderCommon(rest) {
     }
 
     #! Returns the data provider name
@@ -69,7 +63,7 @@ public class OpenAiAssistantUpdateDataProvider inherits OpenAiDataProviderCommon
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        hash<auto> rv = doRestCommand("PUT", "assistants/" + assistant.id, req, AssistantApiHdr).body;
+        hash<auto> rv = doRestCommand("PUT", "threads/" + req.thread_id, req - "id", AssistantApiHdr).body;
         rv.created_at = localtime(rv.created_at);
         return rv;
     }
@@ -94,20 +88,21 @@ public class OpenAiAssistantUpdateDataProvider inherits OpenAiDataProviderCommon
     }
 }
 
-#! The assistant tool data type
-public class OpenAiAssistantUpdateRequestType inherits HashDataType {
+#! The thread update data type
+public class OpenAiThreadUpdateRequestType inherits HashDataType {
     public {
         #! fields
-        const Fields = map {$1.key: $1.value + {"type": $1.value.type.getOrNothingType()}},
-            OpenAiAssistantDataType::Fields.pairIterator(), $1.key != "id";
+        const Fields = OpenAiThreadIdRequestType::Fields{"thread_id",} + (map {$1.key: $1.value + {
+            "type": $1.value.type.getOrNothingType(),
+        }}, OpenAiThreadDataType::Fields.pairIterator(), $1.key != "id");
     }
 
     #! Creates the type
-    constructor() : HashDataType("OpenAiAssistantUpdateRequest") {
+    constructor() : HashDataType("OpenAiThreadUpdateRequest") {
         addQoreFields(Fields);
     }
 }
 
-#! Constant for the assistant tool data type
-public const OpenAiAssistantUpdateRequestType = new OpenAiAssistantUpdateRequestType();
+#! Constant for the thread update data type
+public const OpenAiThreadUpdateRequestType = new OpenAiThreadUpdateRequestType();
 }

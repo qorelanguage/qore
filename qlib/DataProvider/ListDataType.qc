@@ -94,21 +94,6 @@ public class ListDataType inherits QoreDataType {
         # this method intentionally left blank
     }
 
-    #! Returns an "or nothing" type equivalent to the current type
-    /** @return an "or nothing" type equivalent to the current type
-    */
-    AbstractDataProviderType getOrNothingType() {
-        if (or_nothing_type) {
-            return self;
-        }
-        # recursively return "or nothing" typed fields in any case
-        ListDataType rv = QoreDataType::getOrNothingType();
-        if (name !~ /^\*/) {
-            rv.name = "*" + name;
-        }
-        return rv;
-    }
-
     #! returns the value if the value can be assigned to the type
     /** @param value the value to assign to the type
 

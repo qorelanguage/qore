@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore OpenAiDataProvider module definition
 
-/** OpenAiDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
+/** OpenAiDataRunsProvider.qc Copyright 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,40 +25,35 @@
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! The OpenAi data provider class
-public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
+public class OpenAiRunsDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "openai",
-            "type": "OpenAiDataProvider",
+            "name": "runs",
+            "type": "OpenAiRunsDataProvider",
             "supports_children": True,
             "constructor_options": ConstructorOptions,
             "children_can_support_apis": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
     }
 
     private {
-        #! Child data providers
-        const ChildMap = {
-            "assistants": Class::forName("OpenAiDataProvider::OpenAiAssistantsDataProvider"),
-            "create-assistant": Class::forName("OpenAiDataProvider::OpenAiAssistantCreateDataProvider"),
-            "files": Class::forName("OpenAiDataProvider::OpenAiFilesDataProvider"),
-            "models": Class::forName("OpenAiDataProvider::OpenAiModelsDataProvider"),
-            "multi-chat": Class::forName("OpenAiDataProvider::OpenAiChatCompletionDataProvider"),
-            "simple-chat": Class::forName("OpenAiDataProvider::OpenAiSimpleChatCompletionDataProvider"),
-            "threads": Class::forName("OpenAiDataProvider::OpenAiThreadsDataProvider"),
-            "upload-file": Class::forName("OpenAiDataProvider::OpenAiFileUploadDataProvider"),
-            "upload-file-from-location":
-                Class::forName("OpenAiDataProvider::OpenAiFileUploadFromLocationDataProvider"),
-        };
+        #! Thread ID
+        string thread_id;
     }
 
     #! Creates the object from the arguments
     constructor(*RestClient rest) : OpenAiDataProviderCommon(rest) {
-    }
-
-    #! Creates the object from constructor options
-    constructor(*hash<auto> options) : OpenAiDataProviderCommon(options) {
+        *string thread_id = ImpliedArgumentHelper::get().thread_id;
+        if (!thread_id) {
+            throw "CONSTRUCTOR-ERROR", sprintf("Missing 'thread_id' in implied arguments");
+        }
+        self.thread_id = thread_id;
     }
 
     #! Returns the data provider name
@@ -68,14 +63,16 @@ public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
 
     #! Return data provider summary info
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
+        return map <DataProviderSummaryInfo>{
+            "name": $1.id,
+        } + OpenAiRunDataProvider::ProviderSummaryInfo, getRuns();
     }
 
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
-        return keys ChildMap;
+        return map $1.id, getRuns();
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -84,11 +81,15 @@ public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
         @see getChildProviderEx()
     */
     private *AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = ChildMap{name};
-        if (!cls) {
-            return;
+        if (*hash<auto> run = doRestCommand("GET", "threads/" + thread_id + "/runs/" + name, NOTHING, AssistantApiHdr)
+            .body) {
+            return new OpenAiRunDataProvider(rest, thread_id, run);
         }
-        return cls.newObject(rest);
+    }
+
+    #! Returns supported runs
+    private *list<hash<auto>> getRuns() {
+        return doRestCommand("GET", "threads/" + thread_id + "/runs", NOTHING, AssistantApiHdr).body."data";
     }
 
     #! Returns data provider static info

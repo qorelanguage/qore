@@ -8936,7 +8936,7 @@ definitions:
             - finish_reason
             - index
             - message
-            - logprobs
+            #- logprobs
           type: object
         type: array
       created:
@@ -10400,9 +10400,9 @@ definitions:
                 x-oaiExpandable: true
               type: array
           type: object
-        required:
-          - file_id
-          - tools
+          required:
+            - file_id
+            - tools
         type: array
         x-nullable: true
       content:
@@ -10771,7 +10771,6 @@ definitions:
         $ref: '#/definitions/TruncationObject'
         x-nullable: true
     required:
-      - thread_id
       - assistant_id
     type: object
   CreateSpeechRequest:
@@ -10968,7 +10967,7 @@ definitions:
         $ref: '#/definitions/TruncationObject'
         x-nullable: true
     required:
-      - thread_id
+      - thread
       - assistant_id
     type: object
   CreateThreadRequest:
@@ -13191,6 +13190,7 @@ definitions:
           The instructions that the [assistant](/docs/api-reference/assistants)
           used for this run.
         type: string
+        x-nullable: true
       last_error:
         description: >-
           The last error associated with this run. Will be `null` if there are
@@ -13304,6 +13304,9 @@ definitions:
         type: string
       tool_choice:
         $ref: '#/definitions/AssistantsApiToolChoiceOption'
+        x-nullable: true
+      tool_resources:
+        type: object
         x-nullable: true
       tools:
         default: []

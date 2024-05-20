@@ -57,6 +57,6 @@ public class ImplicitModuleTransaction {
 
 #! Private definitions
 namespace Priv {
-# holds and optionally executes rollback code
+# Holds and optionally executes rollback code
 thread_local ImplicitModuleTransaction rb;
 }

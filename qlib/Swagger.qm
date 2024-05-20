@@ -1485,14 +1485,17 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         if (refstr !~ /^#\//)
             return AbstractParameterObject::newParameter(name, getExternalReference(refstr), self);
         if (refstr !~ /^#\/parameters\//)
-            throw "INVALID-REFERENCE", sprintf("cannot resolve ParameterObject %y reference %y; expecting \"#/parameters/...\"", name, refstr);
+            throw "INVALID-REFERENCE", sprintf("cannot resolve ParameterObject %y reference %y; expecting "
+                "\"#/parameters/...\"", name, refstr);
         string rstr = (refstr =~ x/^#\/parameters\/(.*)$/)[0];
         *AbstractParameterObject ref = parameters{rstr};
         if (!ref)
-            throw "INVALID-REFERENCE", sprintf("cannot resolve ParameterObject %y reference %y; known parameter references: %y", name, refstr, keys parameters);
+            throw "INVALID-REFERENCE", sprintf("cannot resolve ParameterObject %y reference %y; known parameter "
+                "references: %y", name, refstr, keys parameters);
         int size = foldl $1 + $2, (map 1, keys oh, $1 !~ /^x-/);
         if (size > 1)
-            throw "INVALID-REFERENCE", sprintf("Invalid attribute(s) in reference: %y", (map $1, keys oh, $1 !~ /^x-/));
+            throw "INVALID-REFERENCE", sprintf("Invalid attribute(s) in reference: %y", (map $1, keys oh,
+                $1 !~ /^x-/));
         return ref;
     }
 
@@ -1968,16 +1971,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             if (!mime_types{content})
                 continue;
             if (content == MimeTypeMultipartFormData) {
-                /*
-                hash<string, hash<FormDataMessageInfo>> parts =
-                    cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>({
-                        "name": $1.key,
-                        "filename": $1.key,
-                        "hdr": {"Content-Type": MimeTypeText},
-                        "body": $1.value,
-                    })}, body.pairIterator());
-                */
-
+                # only send binary values with a "filename" attribute
                 hash<string, hash<FormDataMessageInfo>> parts =
                     cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>({
                         "name": $1.key,
@@ -2607,11 +2601,12 @@ public class PathItemObject inherits ObjectBase {
                 );
                 if (p.inLoc == "body") {
                     if (body)
-                        throw "INVALID-FIELD-VALUE", sprintf("path %y: more than one \"body\" parameter provided", path);
+                        throw "INVALID-FIELD-VALUE", sprintf("path %y: more than one \"body\" parameter provided",
+                            path);
                     body = p;
-                }
-                else
+                } else {
                     parameters{p.name} = p;
+                }
             }
         }
     }
@@ -3670,6 +3665,9 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                     }
                     break;
             }
+        } else if (inLoc == "path" && !value && path) {
+            # if we have a path and a missing value then ignore the missing value
+            return;
         }
         SchemaBase::check(serialize, request, type, format, items, path, method, name, \value);
         switch (value.typeCode()) {
@@ -4195,6 +4193,11 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         if (optional_field(objType, oh, "required", SwaggerListToStringSet, \required, opt_flags)) {
             if (!required)
                 throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: field 'required' is an empty list", name);
+            # make sure all required properties are defined
+            if (!additionalProperties && (*list<string> missing = keys (required - keys properties))) {
+                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: the following required properties are not "
+                    "defined: %y", name, missing);
+            }
         }
 
         if (optional_field(objType, oh, "discriminator", NT_STRING, \discriminator)) {
@@ -4389,10 +4392,9 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             }
         }
         # check for missing required properties
-        foreach string prop in (keys required) {
-            if (!value.hasKey(prop)) {
-                throw "SCHEMA-VALIDATION-ERROR", sprintf("object %y: missing required property %y", name, prop);
-            }
+        if (*list<string> missing = keys (required - keys value)) {
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("object %y: missing required properties: %y (have: %y)", name,
+                missing, keys (required - missing));
         }
         #printf("SchemaObject::checkIntern() %y type: %y val: %y self: %N\n", name, type, value, self);
     }
