@@ -67,6 +67,7 @@ QoreValue StaticClassVarRefNode::evalImpl(bool& needs_deref, ExceptionSink* xsin
 
 int StaticClassVarRefNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     printd(5, "StaticClassVarRefNode::parseInit() '%s::%s'\n", qc.getName(), str.c_str());
+    ClassOnlySubstitutionHelper cosh(qore_class_private::get(qc));
     vi.parseInit(str.c_str());
     parse_context.typeInfo = vi.getTypeInfo();
     return 0;
