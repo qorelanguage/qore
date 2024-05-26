@@ -676,6 +676,15 @@ private:
     bool subst;
 };
 
+class ClassOnlySubstitutionHelper {
+public:
+    DLLLOCAL ClassOnlySubstitutionHelper(const qore_class_private* qc);
+    DLLLOCAL ~ClassOnlySubstitutionHelper();
+
+private:
+    const qore_class_private* old_class;
+};
+
 class OptionalClassOnlySubstitutionHelper {
 public:
     DLLLOCAL OptionalClassOnlySubstitutionHelper(const qore_class_private* qc);

@@ -5727,13 +5727,17 @@ QoreParseClassHelper::QoreParseClassHelper(QoreClass* new_cls, qore_ns_private* 
     }
     thread_set_class_and_ns(new_cls_priv, new_ns, cls, ns);
     restore = (cls != new_cls_priv || ns != new_ns);
-    //printd(5, "QoreParseClassHelper() this: %p '%s' nc: %p nn: %p oc: %p on: %p\n", this, new_cls ? new_cls->getName() : "n/a", new_cls_priv, new_ns, cls, ns);
+    //printd(5, "QoreParseClassHelper() this: %p '%s' nc: %p nn: %p oc: %p on: %p\n", this,
+    //    new_cls ? new_cls->getName() : "n/a", new_cls_priv, new_ns, cls, ns);
 }
 
 QoreParseClassHelper::~QoreParseClassHelper() {
     if (restore) {
         thread_set_class_and_ns(cls, ns);
-        //printd(5, "~QoreParseClassHelper() this: %p restoring c: %p n: %p\n", this, cls, ns);
+        //printd(5, "~QoreParseClassHelper() this: %p restoring c: %p '%s' n: %p\n", this, cls,
+        //    cls ? cls->name.c_str() : "n/a", ns);
+    } else {
+        //printd(5, "~QoreParseClassHelper() this: %p no restore necessary\n", this);
     }
 }
 

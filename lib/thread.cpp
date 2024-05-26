@@ -1827,6 +1827,17 @@ QoreObjectContextHelper::~QoreObjectContextHelper() {
     delete priv;
 }
 
+ClassOnlySubstitutionHelper::ClassOnlySubstitutionHelper(const qore_class_private* qc) {
+    ThreadData* td = thread_data.get();
+    old_class = td->current_class;
+    td->current_class = qc;
+}
+
+ClassOnlySubstitutionHelper::~ClassOnlySubstitutionHelper() {
+    ThreadData* td = thread_data.get();
+    td->current_class = old_class;
+}
+
 OptionalClassOnlySubstitutionHelper::OptionalClassOnlySubstitutionHelper(const qore_class_private* qc)
         : subst(qc ? true : false) {
     if (qc) {

@@ -1335,6 +1335,8 @@ QoreValue qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLoca
             assert(qc);
             typeInfo = vi->getTypeInfo();
             found = true;
+            //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() resolved '%s' -> static var of class "
+            //    "'%s'\n", bword, pc->getName());
             return new StaticClassVarRefNode(loc, bword, *qc, *vi);
         }
     }
