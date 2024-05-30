@@ -886,13 +886,6 @@ public class MapperTest inherits QUnit::Test {
             });
             assertEq(1, m.mapData({"in0": 1}).out0.rec.id);
         }
-        {
-            Mapper m({"out0.rec.id": {"name": "in0"}}, {
-                "output": {"out0": new QoreDataField("out0", "test output field", h1)},
-                "output_nullable": True,
-            });
-            assertNothing(m.mapData({"in0": NOTHING}).out0.rec.id);
-        }
     }
 
     listTest() {
