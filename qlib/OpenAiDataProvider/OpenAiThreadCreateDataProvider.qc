@@ -29,7 +29,7 @@ public class OpenAiThreadCreateDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "create-thread",
+            "name": "create",
             "type": "OpenAiThreadCreateDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_request": True,
@@ -44,7 +44,7 @@ public class OpenAiThreadCreateDataProvider inherits OpenAiDataProviderCommon {
         const RequestType = OpenAiThreadCreateRequestType;
 
         #! Response type
-        const ResponseType = OpenAiThreadDataType;
+        const ResponseType = OpenAiThreadCreateResponseDataType;
     }
 
     #! Creates the object from the arguments
@@ -114,7 +114,7 @@ public class OpenAiThreadCreateRequestType inherits HashDataType {
                     "storing additional information about the object in a structured format. Keys can be a "
                     "maximum of 64 characters long and values can be a maxium of 512 characters long",
                 "type": AbstractDataProviderTypeMap."*hash",
-            }
+            },
         };
     }
 
@@ -128,7 +128,7 @@ public class OpenAiThreadCreateRequestType inherits HashDataType {
 public const OpenAiThreadCreateRequestType = new OpenAiThreadCreateRequestType();
 
 #! Thread type
-public class OpenAiThreadDataType inherits HashDataType {
+public class OpenAiThreadCreateResponseDataType inherits HashDataType {
     public {
         #! fields
         const Fields = {
@@ -161,5 +161,5 @@ public class OpenAiThreadDataType inherits HashDataType {
 }
 
 #! Thread type constant
-public const OpenAiThreadDataType = new OpenAiThreadDataType();
+public const OpenAiThreadCreateResponseDataType = new OpenAiThreadDataType();
 }

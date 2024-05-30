@@ -162,6 +162,10 @@ public class OpenAiRunCreateRequestType inherits HashDataType {
                     "override the model associated with the assistant. If not, the model associated with the "
                     "assistant will be used",
                 "type": AbstractDataProviderTypeMap."*string",
+                # for dynamic lookups of allowed values
+                "attr": {
+                    "ref_data": "models",
+                },
             },
             "instructions": OpenAiAssistantCreateRequestType::Fields.instructions + {
                 "short_desc": "Overrides the instructions of the assistant",
@@ -382,8 +386,8 @@ public class OpenAiIncompleteDetails inherits HashDataType {
         const Fields = {
             "reason": {
                 "display_name": "Reason",
-                "short_desc": "The reason why the run is incomplete",
-                "desc": "The reason why the run is incomplete. This will point to which specific token limit was "
+                "short_desc": "The reason why the data is incomplete",
+                "desc": "The reason why the data is incomplete. This will point to which specific token limit was "
                     "reached over the course of the run",
                 "type": AbstractDataProviderTypeMap."string",
             },

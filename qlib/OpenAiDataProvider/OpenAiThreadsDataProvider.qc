@@ -49,6 +49,7 @@ public class OpenAiThreadsDataProvider inherits OpenAiDataProviderCommon {
             "create-run": Class::forName("OpenAiDataProvider::OpenAiRunCreateDataProvider"),
             "delete": Class::forName("OpenAiDataProvider::OpenAiThreadDeleteDataProvider"),
             "get": Class::forName("OpenAiDataProvider::OpenAiThreadGetDataProvider"),
+            "get-messages": Class::forName("OpenAiDataProvider::OpenAiThreadMessagesGetDataProvider"),
             "runs": Class::forName("OpenAiDataProvider::OpenAiRunsDataProvider"),
             "update": Class::forName("OpenAiDataProvider::OpenAiThreadUpdateDataProvider"),
         };

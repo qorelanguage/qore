@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore OpenAiDataProvider module definition
 
-/** OpenAiDataAssistantProvider.qc Copyright 2024 Qore Technologies, s.r.o.
+/** OpenAiThreadCreateRunDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,15 +25,14 @@
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! The OpenAi data provider class
-public class OpenAiAssistantDataProvider inherits OpenAiDataProviderCommon {
+public class OpenAiThreadCreateRunDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "OpenAiAssistantDataProvider",
+            "name": "create-and-run",
+            "type": "OpenAiThreadCreateRunDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_request": True,
-            "supports_children": True,
-            "children_can_support_apis": True,
         };
 
         #! Provider summary info
@@ -42,33 +41,25 @@ public class OpenAiAssistantDataProvider inherits OpenAiDataProviderCommon {
         });
 
         #! Request type
-        const RequestType = AbstractDataProviderTypeMap."nothing";
+        const RequestType = OpenAiThreadCreateRunRequestType;
 
         #! Response type
-        const ResponseType = OpenAiAssistantDataType;
+        const ResponseType = OpenAiRunDataType;
     }
 
     private {
-        #! The assistant info
+        #! The assistant
         hash<auto> assistant;
-
-        #! Child data providers
-        const ChildMap = {
-            "create-run-thread": Class::forName("OpenAiDataProvider::OpenAiThreadCreateRunDataProvider"),
-            "delete": Class::forName("OpenAiDataProvider::OpenAiAssistantDeleteDataProvider"),
-            "update": Class::forName("OpenAiDataProvider::OpenAiAssistantUpdateDataProvider"),
-        };
     }
 
     #! Creates the object from the arguments
     constructor(*RestClient rest, hash<auto> assistant) : OpenAiDataProviderCommon(rest) {
         self.assistant = assistant;
-        assistant.created_at = localtime(assistant.created_at);
     }
 
     #! Returns the data provider name
     string getName() {
-        return assistant.id;
+        return ProviderInfo.name;
     }
 
     #! Makes a request and returns the response
@@ -78,7 +69,9 @@ public class OpenAiAssistantDataProvider inherits OpenAiDataProviderCommon {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return assistant;
+        hash<auto> rv = doRestCommand("POST", "threads/runs", {"assistant_id": assistant.id} + req,
+            AssistantApiHdr).body;
+        return rv;
     }
 
     #! Returns the description of a successful request message, if any
@@ -95,36 +88,52 @@ public class OpenAiAssistantDataProvider inherits OpenAiDataProviderCommon {
         return ResponseType;
     }
 
-    #! Return data provider summary info
-    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
-    }
-
-    #! Returns a list of child data provider names, if any
-    /** @return a list of child data provider names, if any
-    */
-    private *list<string> getChildProviderNamesImpl() {
-        return keys ChildMap;
-    }
-
-    #! Returns the given child provider or @ref nothing if the given child is unknown
-    /** @return the given child provider or @ref nothing if the given child is unknown
-
-        @see getChildProviderEx()
-    */
-    private *AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = ChildMap{name};
-        if (!cls) {
-            return;
-        }
-        return cls.newObject(rest, assistant);
-    }
-
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
-        return cast<hash<DataProviderInfo>>({
-            "name": assistant.id,
-        }) + ProviderInfo;
+        return ProviderInfo;
     }
 }
+
+#! The thread data type
+public class OpenAiThreadDataType inherits HashDataType {
+    public {
+        #! fields
+        const Fields = OpenAiThreadCreateRequestType::Fields;
+    }
+
+    #! Creates the type
+    constructor() : HashDataType("OpenAiThread") {
+        addQoreFields(Fields);
+    }
+}
+
+#! The thread data type constant
+public const OpenAiThreadDataType = new OpenAiThreadDataType();
+
+#! The file upload request type
+public class OpenAiThreadCreateRunRequestType inherits HashDataType {
+    public {
+        #! fields
+        const Fields = {
+            "thread": {
+                "display_name": "Thread",
+                "short_desc": "Information about the thread to create",
+                "desc": "Information about the thread to create",
+                "type": OpenAiThreadDataType,
+            },
+        } + OpenAiRunCreateRequestType::Fields{"model", "instructions", "tools"}
+        + OpenAiThreadCreateRequestType::Fields{"tool_resources", "metadata"}
+        + OpenAiChatCompletionRequestType::Fields{"temperature", "top_p", "stream", }
+        + OpenAiRunCreateRequestType::Fields{"max_prompt_tokens", "max_completion_tokens", "truncation_strategy", }
+        + OpenAiChatCompletionRequestType::Fields{"tool_choice", "response_format"};
+    }
+
+    #! Creates the type
+    constructor() : HashDataType("OpenAiThreadCreateRequest") {
+        addQoreFields(Fields);
+    }
+}
+
+#! File upload request type constant
+public const OpenAiThreadCreateRunRequestType = new OpenAiThreadCreateRunRequestType();
 }
