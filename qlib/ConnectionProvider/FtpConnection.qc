@@ -184,7 +184,9 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
                 "subtypes: %y", subtype, keys getDataProviderSubtypes());
         }
         checkSubtypeInfo();
-        hash<auto> opts = getSubtypeOptions(subtype_info{subtype}, constructor_options);
+        hash<auto> opts = {
+            "url": url,
+        } + getSubtypeOptions(subtype_info{subtype}, constructor_options);
         return create_object(conf."class", opts);
     }
 

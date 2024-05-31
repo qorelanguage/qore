@@ -67,9 +67,9 @@ public class OpenAiRunDataProvider inherits OpenAiDataProviderCommon {
     constructor(*RestClient rest, string thread_id, hash<auto> run) : OpenAiDataProviderCommon(rest) {
         self.thread_id = thread_id;
         self.run = run;
-        run.created_at = localtime(run.created_at);
-        map run{$1.key} = localtime($1.value), run{OpenAiRunCreateDataProvider::OptDateFields}.pairIterator(),
-            $1.value;
+        if (run.size() > 1) {
+            fixRun();
+        }
     }
 
     #! Returns the data provider name
@@ -84,6 +84,10 @@ public class OpenAiRunDataProvider inherits OpenAiDataProviderCommon {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        if (run.size() == 1) {
+            run = doRestCommand("GET", "threads/" + thread_id + "/runs/" + run.id, NOTHING, AssistantApiHdr).body;
+            fixRun();
+        }
         return run;
     }
 
@@ -131,6 +135,13 @@ public class OpenAiRunDataProvider inherits OpenAiDataProviderCommon {
         return cast<hash<DataProviderInfo>>({
             "name": run.id,
         }) + ProviderInfo;
+    }
+
+    #! Updates run data
+    private fixRun() {
+        run.created_at = localtime(run.created_at);
+        map run{$1.key} = localtime($1.value), run{OpenAiRunCreateDataProvider::OptDateFields}.pairIterator(),
+            $1.value;
     }
 }
 }

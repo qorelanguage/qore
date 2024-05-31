@@ -61,6 +61,15 @@ module FilePoller {
             "action_code": DPAT_EVENT,
             "action_val": EVENT_FILE,
             "output_type": FilePollerFileEventInfoDataType,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                FilePollerDataProviderBase::ConstructorOptions{"mask",} - ("path"), {
+                    "preselected": True,
+                    "required": True,
+                },
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                FilePollerDataProviderBase::ConstructorOptions - ("mask", "path")
+            ),
         });
     };
 }
@@ -901,37 +910,175 @@ public class FileDelayedPollerDataProvider inherits FilePollerDataProviderBase, 
 public class FilePollerFileEventInfoDataType inherits HashDataType {
     public {
         #! Markdown descriptions for hashdecl members
-        const FieldDescriptions = {
-            "dev": "The device inode number the file is on",
-            "inode": "The inode of the file",
-            "mode": "The file protection mode; a bitfield of file permissions",
-            "nlink": "The number of hard links to this file",
-            "uid": "The UID of the owner of the file",
-            "gid": "The GID of the owner of the file",
-            "rdev": "The device type number",
-            "size": "the size of the file in bytes",
-            "atime": "the last accessed date/time of the file",
-            "mtime": "the last modified date/time of the file",
-            "ctime": "the created date/time of the file",
-            "blksize": "Block size; is zero if the file is zero length or if the platform's internal `stat()` (2) "
-                "function does not provide this info",
-            "blocks": "Blocks allocated for the file; is zero if the file is zero length or if the platform's "
-                "internal `stat()` (2) function does not provide this info",
-            "type": "the type of file; one of:\n- `REGULAR`\n- `DIRECTORY`\n- `SYMBOLIC-LINK`\n"
-                "- `BLOCK-DEVICE`\n- `CHARACTER-DEVICE`\n- `FIFO`\n- `SYMBOLIC-LINK`\n- `SOCKET`\n"
-                "- `UNKNOWN`",
-            "perm": "a string giving UNIX-style permissions for the file (ex: `-rwxr-xr-x`)",
-            "name": "the name of the file, link, or directory",
-            "filepath": "the remote filepath relative to SFILE root directory",
-            "link": "symbolic link target (if present)",
+        const Fields = {
+            "dev": {
+                "display_name": "Device",
+                "short_desc": "The device inode number the file is on",
+                "desc": "The device inode number the file is on",
+                "example_value": 16777232,
+            },
+            "inode": {
+                "display_name": "INode",
+                "short_desc": "The inode of the file",
+                "desc": "The inode of the file",
+                "example_value": 817324,
+            },
+            "mode": {
+                "display_name": "Mode",
+                "short_desc": "The file protection mode",
+                "desc": "The file protection mode; a bitfield of file permissions",
+                "example_value": 33261,
+            },
+            "nlink": {
+                "display_name": "Number of Links",
+                "short_desc": "The number of hard links to this file",
+                "desc": "The number of hard links to this file",
+                "example_value": 1,
+            },
+            "uid": {
+                "display_name": "User ID",
+                "short_desc": "The UID of the owner of the file",
+                "desc": "The UID of the owner of the file",
+                "example_value": 1000,
+            },
+            "gid": {
+                "display_name": "Group ID",
+                "short_desc": "The GID of the owner of the file",
+                "desc": "The GID of the owner of the file",
+                "example_value": 20,
+            },
+            "rdev": {
+                "display_name": "Device Number",
+                "short_desc": "The device number",
+                "desc": "The device number for character and block device special files",
+                "example_value": 0,
+            },
+            "size": {
+                "display_name": "Size",
+                "short_desc": "The size of the file in bytes",
+                "desc": "The size of the file in bytes",
+                "example_value": 903,
+            },
+            "atime": {
+                "display_name": "Access Timestamp",
+                "short_desc": "The last accessed date/time of the file",
+                "desc": "The last accessed date/time of the file",
+                "example_value": now_us(),
+            },
+            "mtime": {
+                "display_name": "Modified Timestamp",
+                "short_desc": "The last modified date/time of the file",
+                "desc": "The last modified date/time of the file",
+                "example_value": now_us(),
+            },
+            "ctime": {
+                "display_name": "Creation Timestamp",
+                "short_desc": "The created date/time of the file",
+                "desc": "The created date/time of the file",
+                "example_value": now_us(),
+            },
+            "blksize": {
+                "display_name": "Block Size",
+                "short_desc": "Block size",
+                "desc": "Block size; is zero if the file is zero length or if the platform's internal `stat()` (2) "
+                    "function does not provide this info",
+                "example_value": 0,
+            },
+            "blocks": {
+                "display_name": "Blocks",
+                "short_desc": "Blocks allocated for the file",
+                "desc": "Blocks allocated for the file; is zero if the file is zero length or if the platform's "
+                    "internal `stat()` (2) function does not provide this info",
+                "example_value": 0,
+            },
+            "type": {
+                "display_name": "Type",
+                "short_desc": "The type of file",
+                "desc": "The type of file",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "display_name": "REGULAR",
+                        "short_desc": "Regular file",
+                        "desc": "Regular file",
+                        "value": "REGULAR",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "DIRECTORY",
+                        "short_desc": "Directory",
+                        "desc": "Directory",
+                        "value": "DIRECTORY",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "SYMBOLIC-LINK",
+                        "short_desc": "Symbolic link",
+                        "desc": "Symbolic link",
+                        "value": "SYMBOLIC-LINK",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "BLOCK-DEVICE",
+                        "short_desc": "Block device file",
+                        "desc": "Block device file",
+                        "value": "BLOCK-DEVICE",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "CHARACTER-DEVICE",
+                        "short_desc": "Character device file",
+                        "desc": "Character device file",
+                        "value": "CHARACTER-DEVICE",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "FIFO",
+                        "short_desc": "FIFO file",
+                        "desc": "FIFO file",
+                        "value": "FIFO",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "SOCKET",
+                        "short_desc": "UNIX socket file",
+                        "desc": "UNIX socket file",
+                        "value": "SOCKET",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "UNKNOWN",
+                        "short_desc": "Unknown file type",
+                        "desc": "Unknown file type",
+                        "value": "UNKNOWN",
+                    },
+                ),
+                "example_value": "REGULAR",
+            },
+            "perm": {
+                "display_name": "Permissions",
+                "short_desc": "A string giving UNIX-style permissions for the file",
+                "desc": "A string giving UNIX-style permissions for the file (ex: `-rwxr-xr-x`)",
+                "example_value": "-rwxr-x-r-x",
+            },
+            "name": {
+                "display_name": "Name",
+                "short_desc": "The name of the file, link, or directory",
+                "desc": "The name of the file, link, or directory",
+                "example_value": "example-file.txt",
+            },
+            "filepath":  {
+                "display_name": "File Path",
+                "short_desc": "The remote filepath relative to the root directory",
+                "desc": "The remote filepath relative to the root directory",
+                "example_value": "./example-file.txt",
+            },
+            "link": {
+                "display_name": "Symbolic Link",
+                "short_desc": "Symbolic link target (if present)",
+                "desc": "Symbolic link target (if present)",
+                "example_value": NOTHING,
+            },
         };
     }
 
     #! Creates the type
     constructor() {
-        # add members for base hashdecl
-        map addField(new QoreDataField($1.getName(), FieldDescriptions{$1.getName()}, $1.getType(),
-            $1.getDefaultValue())), TypedHash::forName("FilePoller::FilePollerFileEventInfo").getMembers();
+        addQoreFields(map {$1.getName(): Fields{$1.getName()} + {
+            "type": $1.getType(),
+        }}, TypedHash::forName("FilePoller::FilePollerFileEventInfo").getMembers());
     }
 }
 

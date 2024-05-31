@@ -119,6 +119,9 @@ public class OpenAiAssistantToolDataType inherits HashDataType {
                     },
                 ),
             },
+            "function": OpenAiToolDataType::Fields.function + {
+                "type": OpenAiFunctionDataType.getOrNothingType(),
+            },
         };
     }
 

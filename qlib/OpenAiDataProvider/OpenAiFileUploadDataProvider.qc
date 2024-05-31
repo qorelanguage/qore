@@ -96,6 +96,32 @@ public class OpenAiFileUploadRequestType inherits HashDataType {
                 "short_desc": "The purpose of the file",
                 "desc": "The purpose of the file",
                 "type": AbstractDataProviderTypeMap."string",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "display_name": "Assistants",
+                        "short_desc": "For assistants and message files",
+                        "desc": "For assistants and message files",
+                        "value": "assistants",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "Vision",
+                        "short_desc": "For assistants for image file inputs",
+                        "desc": "For assistants for image file inputs",
+                        "value": "vision",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "Batch",
+                        "short_desc": "For the batch API",
+                        "desc": "For the batch API",
+                        "value": "batch",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "Fine-Tune",
+                        "short_desc": "For fine tuning",
+                        "desc": "For fine tuning",
+                        "value": "fine-tune",
+                    },
+                ),
                 "default_value": "fine-tune",
             },
             "file": {

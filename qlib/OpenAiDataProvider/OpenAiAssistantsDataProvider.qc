@@ -83,7 +83,7 @@ public class OpenAiAssistantsDataProvider inherits OpenAiDataProviderCommon {
     }
 
     #! Returns supported assistants
-    private *list<hash<auto>> getAssistants() {
+    *list<hash<auto>> getAssistants() {
         return doRestCommand("GET", "assistants", NOTHING, AssistantApiHdr).body."data";
     }
 

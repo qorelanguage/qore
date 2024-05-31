@@ -65,25 +65,57 @@ public namespace FtpPoller {
 public class FtpPollerFileEventInfoDataType inherits HashDataType {
     public {
         #! Markdown descriptions for hashdecl members
-        const FieldDescriptions = {
-            "name": "The name of the file, link, or directory",
-            "size": "The size of the file in bytes",
-            "mtime": "The last modified date/time of the file",
-            "data": "The file's data if `local_dir` is not set; this will be a string unless the `binary` option is "
-                "set to `True`, in which case this key is assigned to the file's binary data; when `local_dir` is "
-                "set, file data is not included in the event but is rather transferred to the local directory",
-            "filepath": "The remote filepath relative to SFTP root directory",
-            "transfer_time": "The relative date/time value giving the time taken to transfer the file",
-            "local_path": "Only included when `local_dir` is set; the target path for the file where the file will "
-                "be moved to in the post event action",
+        const Fields = {
+            "name": {
+                "display_name": "Name",
+                "short_desc": "The name of the file, link, or directory",
+                "desc": "The name of the file, link, or directory",
+                "example_value": "example-file.txt",
+            },
+            "size":  {
+                "display_name": "Size",
+                "short_desc": "The size of the file in bytes",
+                "desc": "The size of the file in bytes",
+                "example_value": 915,
+            },
+            "mtime":  {
+                "display_name": "Modified Timestamp",
+                "short_desc": "The last modified date/time of the file",
+                "desc": "The last modified date/time of the file",
+            },
+            "data":  {
+                "display_name": "File Data",
+                "short_desc": "The file data if present and applicable",
+                "desc": "The file's data if `local_dir` is not set; this will be a string unless the `binary` option is "
+                  "set to `True`, in which case this key is assigned to the file's binary data; when `local_dir` is "
+                    "set, file data is not included in the event but is rather transferred to the local directory",
+            },
+            "filepath":  {
+                "display_name": "File Path",
+                "short_desc": "The remote filepath relative to the remote root directory",
+                "desc": "The remote filepath relative to the remote root directory",
+                "example_value": "./example-file.txt",
+            },
+            "transfer_time":  {
+                "display_name": "Transfer Time",
+                "short_desc": "The relative date/time value giving the time taken to transfer the file",
+                "desc": "The relative date/time value giving the time taken to transfer the file",
+                "example_value": 0.154947s,
+            },
+            "local_path":  {
+                "display_name": "Local Path",
+                "short_desc": "The target path for the file if applicable",
+                "desc": "Only included when `local_dir` is set; the target path for the file where the file will "
+                    "be moved to in the post event action",
+            },
         };
     }
 
     #! Creates the type
     constructor() {
-        # add members for base hashdecl
-        map addField(new QoreDataField($1.getName(), FieldDescriptions{$1.getName()}, $1.getType(),
-            $1.getDefaultValue())), TypedHash::forName("FtpPoller::FtpPollerFileEventInfo").getMembers();
+        addQoreFields(map {$1.getName(): Fields{$1.getName()} + {
+            "type": $1.getType(),
+        }}, TypedHash::forName("FtpPoller::FtpPollerFileEventInfo").getMembers());
     }
 
     #! Returns the description
