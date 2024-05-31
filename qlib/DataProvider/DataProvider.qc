@@ -67,6 +67,11 @@ public class DataProvider {
             "salesforcerest": "SalesforceRestDataProvider",
             "sax": "SaxDataProvider",
             "servicenowrest": "ServiceNowRestDataProvider",
+
+            # provided by the ssh2 module
+            "sftpclient": "SftpClientDataProvider",
+            "sftppoller": "SftpPoller",
+
             "smtpclient": "SmtpClient",
 
             # provided by the xml module

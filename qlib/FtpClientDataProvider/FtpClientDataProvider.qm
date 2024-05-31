@@ -34,6 +34,7 @@
 %enable-all-warnings
 
 %requires(reexport) DataProvider
+%requires FileLocationHandler
 
 module FtpClientDataProvider {
     version = "2.0";
@@ -61,24 +62,59 @@ module FtpClientDataProvider {
         # register all supported actions
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": FtpClientDataProvider::AppName,
-            "path": "/get-file",
+            "path": "/get-file-location",
             "action": "get-file",
             "display_name": "Retrieve File With FTP",
             "short_desc": "Get a file from an FTP server",
             "desc": "Retrieve a file from an FTP server",
             "action_code": DPAT_API,
             "output_type": FtpClientGetFileResponseDataType,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                FtpClientGetFileRequestDataType::Fields{"path", "location"}, {
+                    "preselected": True,
+                    "required": True,
+                },
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                FtpClientGetFileRequestDataType::Fields - ("path", "location")
+            ),
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": FtpClientDataProvider::AppName,
-            "path": "/create-file",
+            "path": "/create-file-location",
             "action": "send-file",
             "display_name": "Send File With FTP",
             "short_desc": "Sends a file to an FTP server",
             "desc": "Sends a file to an FTP server",
             "action_code": DPAT_API,
             "output_type": FtpClientPathDataType,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                FtpClientGetFileRequestDataType::Fields{"path", "location"}, {
+                    "preselected": True,
+                    "required": True,
+                },
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                FtpClientGetFileRequestDataType::Fields - ("path", "location")
+            ),
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": FtpClientDataProvider::AppName,
+            "path": "/delete",
+            "action": "delete-file",
+            "display_name": "Delete File With FTP",
+            "short_desc": "Deletes a file on an FTP server",
+            "desc": "Deletes a file on an FTP server",
+            "action_code": DPAT_API,
+            "output_type": FtpClientPathDataType,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                FtpClientGetFileRequestDataType::Fields{"path",}, {
+                    "preselected": True,
+                    "required": True,
+                },
+            ),
         });
     };
 }

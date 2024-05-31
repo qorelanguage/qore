@@ -1049,8 +1049,8 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
                 "short_desc": "Use an atomic file transfer mechanism",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "Use an atomic transfer mechanism with `local_dir` where remote files are first moved to a "
-                    "temporary location and then moved to the final location when they have been fully "
-                    "transferred.\n\n"
+                    "temporary location (specified by `tempfile_template`) and then moved to the final location when "
+                    "they have been fully transferred.\n\n"
                     "This ensures that files will never be read until they are fully transferred",
                 "default_value": True,
             },
@@ -1125,6 +1125,14 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
                 "short_desc": "Field to sort files on",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "Either `name` or `date` for the data to use for sorting",
+            },
+
+            "tempfile_template":  <DataProviderOptionInfo>{
+                "display_name": "Temporary Filename Template",
+                "short_desc": "The template for temporary filenames",
+                "desc": "The template for temporary filenames; use `%%s` for the original filename",
+                "type": AbstractDataProviderTypeMap."string",
+                "default_value": ".tmp.%s.part",
             },
 
             "url": <DataProviderOptionInfo>{
@@ -1289,7 +1297,7 @@ public class FtpDelayedPollerDataProvider inherits FtpPollerDataProviderBase, Da
 public class FtpPollerDataProviderFactory inherits AbstractDataProviderFactory {
     private {
         #! Data provider type info
-        static Class cls = new Class("FtpPollerDataProvider");
+        static Class cls = new Class("FtpDelayedPollerDataProvider");
 
         #! Factory info
         const FactoryInfo = <DataProviderFactoryInfo>{

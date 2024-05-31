@@ -62,7 +62,7 @@ module FilePoller {
             "action_val": EVENT_FILE,
             "output_type": FilePollerFileEventInfoDataType,
             "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
-                FilePollerDataProviderBase::ConstructorOptions{"mask",} - ("path"), {
+                FilePollerDataProviderBase::ConstructorOptions{"mask",}, {
                     "preselected": True,
                     "required": True,
                 },

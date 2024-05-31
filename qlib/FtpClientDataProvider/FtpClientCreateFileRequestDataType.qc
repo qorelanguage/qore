@@ -25,12 +25,12 @@
 public namespace FtpClientDataProvider {
 #! Data type for FTP client create file request calls
 public class FtpClientCreateFileRequestDataType inherits HashDataType {
-    private {
+    public {
         #! Field descriptions
         const Fields = {
             "path": {
                 "type": StringType,
-                "desc": "The ftp path",
+                "desc": "The remote path on the FTP server",
             },
             "data": {
                 "type": DataType,
@@ -41,8 +41,7 @@ public class FtpClientCreateFileRequestDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }
