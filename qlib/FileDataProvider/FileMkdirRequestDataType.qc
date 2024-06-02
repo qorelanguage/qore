@@ -25,7 +25,7 @@
 public namespace FileDataProvider {
 #! Data type for mkdir file request calls
 public class FileMkdirRequestDataType inherits HashDataType {
-    private {
+    public {
         #! Field descriptions
         const Fields = {
             "mode": {
@@ -42,8 +42,7 @@ public class FileMkdirRequestDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

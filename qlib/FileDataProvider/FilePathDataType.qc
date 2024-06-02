@@ -25,7 +25,7 @@
 public namespace FileDataProvider {
 #! Data type for delete file request calls
 public class FilePathDataType inherits HashDataType {
-    private {
+    public {
         #! Field descriptions
         const Fields = {
             "path": {

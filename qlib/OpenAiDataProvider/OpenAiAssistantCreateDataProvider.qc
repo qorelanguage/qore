@@ -351,8 +351,8 @@ public class OpenAiAssistantDataType inherits HashDataType {
                 "desc": "The date and time the assistant was created",
                 "type": AbstractDataProviderTypeMap."date",
             },
-        } + OpenAiAssistantCreateRequestType::Fields{"model", "name", "description", "tools", "tool_resources",
-            "metadata", "temperature", "top_p", "response_format"};
+        } + OpenAiAssistantCreateRequestType::Fields{"model", "name", "description", "instructions", "tools",
+            "tool_resources", "metadata", "temperature", "top_p", "response_format"};
     }
 
     #! Creates the type

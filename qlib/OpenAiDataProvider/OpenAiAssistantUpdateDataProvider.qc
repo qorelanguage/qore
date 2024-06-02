@@ -69,7 +69,7 @@ public class OpenAiAssistantUpdateDataProvider inherits OpenAiDataProviderCommon
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        hash<auto> rv = doRestCommand("PUT", "assistants/" + assistant.id, req, AssistantApiHdr).body;
+        hash<auto> rv = doRestCommand("POST", "assistants/" + assistant.id, req, AssistantApiHdr).body;
         rv.created_at = localtime(rv.created_at);
         return rv;
     }

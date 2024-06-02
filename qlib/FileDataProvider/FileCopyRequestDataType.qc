@@ -24,10 +24,10 @@
 #! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
 #! Data type for copy file request calls
-public class FileCopyRequestDataType inherits FileMoveRequestDataType {
-    private {
+public class FileCopyRequestDataType inherits HashDataType {
+    public {
         #! Field descriptions
-        const Fields = {
+        const Fields = FileMoveRequestDataType::Fields + {
             "follow_symlinks": {
                 "type": BoolType,
                 "desc": "Should symbolic links be followed?",
@@ -38,8 +38,7 @@ public class FileCopyRequestDataType inherits FileMoveRequestDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }
