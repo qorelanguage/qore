@@ -65,7 +65,9 @@ module FtpPoller {
             "display_name": "FTP File Received",
             "subtype": "ftppoller",
             "short_desc": "A file is uploaded to an FTP server",
-            "desc": "React to files uploaded to an FTP server",
+            "desc": "React to files uploaded to an FTP server; the action configuration determines if the event "
+                "contains the file data itself or a link to the location of the file on the local filesystem. In any "
+                "case, the event indicates that the file data has already been downloaded and is available locally",
             "action_code": DPAT_EVENT,
             "action_val": EVENT_FTP_FILE,
             "output_type": FtpPollerFileEventInfoDataType,
