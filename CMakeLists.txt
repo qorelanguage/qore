@@ -952,6 +952,7 @@ qore_user_module("qlib/GoogleRestClient.qm" "ConnectionProvider;Mime;RestClient"
 qore_user_module("qlib/HueRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/MewsRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/NetSuiteRestClient.qm" "ConnectionProvider;Mime;RestClient")
+qore_user_module("qlib/OpenAiRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/ServiceNowRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/AwsRestClient.qm" "ConnectionProvider;RestClient;RestSchemaValidator")
 qore_user_module("qlib/SwaggerDataProvider" "Swagger;RestClient;RestSchemaValidator;DataProvider")
@@ -967,6 +968,7 @@ qore_user_module("qlib/AwsRestClientDataProvider" "RestClient;DataProvider;RestC
 qore_user_module("qlib/GoogleDataProvider" "GoogleRestClient;RestClient;DataProvider")
 qore_user_module("qlib/DiscordDataProvider" "DiscordRestClient;RestClient;DataProvider")
 qore_user_module("qlib/MewsRestDataProvider" "MewsRestClient;RestClient;DataProvider;SwaggerDataProvider" "mews-logo-white.svg")
+qore_user_module("qlib/OpenAiDataProvider" "OpenAiRestClient;ConnectionProvider;Mime;RestClient")
 
 # base 9 modules
 qore_user_module("qlib/GoogleCalendarDataProvider" "GoogleDataProvider;GoogleRestClient;RestClient;DataProvider")
