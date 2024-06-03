@@ -69,7 +69,7 @@ public class OpenAiSimpleChatCompletionDataProvider inherits OpenAiDataProviderC
             "name": remove req.name,
         },);
         hash<auto> rv = rest.post("chat/completions", req).body;
-        rv.choice = remove rv.choice[0];
+        rv.choice = remove rv.choices[0];
         return rv;
     }
 
