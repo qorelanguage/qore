@@ -1530,10 +1530,14 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                     MultiPartFormDataMessage::parseMessage(headers."content-type", http_body.toString());
                 body = map {$1.key: $1.value.body}, h.pairIterator();
             } else {
-                *code ds = MimeDataTypes{headers."content-type"}.deserialize;
-                if (!ds) {
+                *hash<auto> conf = MimeDataTypes{headers."content-type"};
+                if (!conf) {
                     body = http_body;
                 } else {
+                    *code ds = conf.deserialize;
+                    if ((conf."module" == "json" || conf."module" == "yaml") && http_body.encoding() != "UTF-8") {
+                        http_body = force_encoding(http_body, "UTF-8");
+                    }
                     try {
                         auto any_body = ds(http_body);
                         if (exists any_body) {
@@ -1628,10 +1632,14 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                 rv.body = map {$1.key: $1.value.body}, h.pairIterator();
                 content = MimeTypeMultipartFormData;
             } else {
-                *code ds = MimeDataTypes{content}.deserialize;
+                *hash<auto> conf = MimeDataTypes{content};
+                *code ds = conf.deserialize;
                 # if the content-type is unknown, then assume it is a type that cannot be deserialized
                 # the validity of the type is checked below in any case
                 try {
+                    if ((conf."module" == "json" || conf."module" == "yaml") && response_body.encoding() != "UTF-8") {
+                        response_body = force_encoding(response_body, "UTF-8");
+                    }
                     rv.body = ds ? ds(response_body) : response_body;
                 } catch (hash<ExceptionInfo> ex) {
                     rethrow "DESERIALIZATION-ERROR", sprintf("%s: %s", ex.err, ex.desc), ex.arg + {
