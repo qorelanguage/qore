@@ -154,7 +154,9 @@ public class OpenAiRunCreateRequestType inherits HashDataType {
                 "short_desc": "The ID of the assistant to use to execute this run",
                 "desc": "The ID of the assistant to use to execute this run",
                 "type": AbstractDataProviderTypeMap."string",
-                "ref_data": "assistants",
+                "attr": {
+                    "ref_data": "assistants",
+                },
             },
             "model": OpenAiChatCompletionRequestType::Fields.model + {
                 "short_desc": "The model to override on the assistant to execute this run",

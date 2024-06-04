@@ -84,7 +84,7 @@ public hashdecl DataProviderOptionInfo {
 
     #! A tag allowing allowed values to be returned dynamically as reference data
     /** The value is the name of the reference data; if allowed_values are not present, calls will be made to
-        @ref DataProvider::AbstractDataProvider::resolveReferenceData() "AbstractDataProvider::resolveReferenceData()"
+        @ref DataProvider::AbstractDataProvider::getReferenceData() "AbstractDataProvider::getReferenceData()"
         in the available DataProvider when resolving application actions if this attribute is set
     */
     *string ref_data;
