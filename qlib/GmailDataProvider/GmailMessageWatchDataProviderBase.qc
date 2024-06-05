@@ -264,6 +264,12 @@ public class GmailMessageWatchDataProviderBase inherits GoogleDataProvider::Goog
                     LoggerWrapper::info("Gmail: matched message %y", minfo.id);
                 }
 
+                # try to decode body as base64 if there is a Content-Transfer-Encoding header
+                processBody(msg.payload.headers, \msg.payload.body);
+                foreach hash<auto> part in (\msg.payload.parts) {
+                    processBody(part.headers, \part.body);
+                }
+
                 if (setup.test_mode) {
                     return msg;
                 }
@@ -289,6 +295,32 @@ public class GmailMessageWatchDataProviderBase inherits GoogleDataProvider::Goog
 
             LoggerWrapper::error("Gmail error retrieving emails: %s; polling again in %ds", get_exception_string(ex),
                 poll_secs);
+        }
+    }
+
+    #! Process headers and body
+    private processBody(*list<auto> headers, *reference<hash<auto>> body) {
+        if (headers && body.size) {
+            *hash<string, string> hdr = map {$1.name: $1.value}, headers;
+            if (hdr."Content-Type".val()) {
+                bool text = is_mime_text(hdr."Content-Type");
+                if (body."data".typeCode() == NT_BINARY) {
+                    if (text) {
+                        body."data" = body."data".toString();
+                    }
+                } else {
+                    if (hdr."Content-Transfer-Encoding".val()) {
+                        try {
+                            body."data" = text
+                                ? parse_base64_string_to_string(body."data")
+                                : parse_base64_string(body."data");
+                        } catch (hash<ExceptionInfo> ex) {
+                            LoggerWrapper::error("Failed to parse message body with Content-Type: %y as base64, "
+                                "leaving as is: %s: %s", hdr."Content-Type", ex.err, ex.desc);
+                        }
+                    }
+                }
+            }
         }
     }
 

@@ -45,6 +45,10 @@ public class GmailMessageWatchDataProvider inherits GmailMessageWatchDataProvide
         });
     }
 
+    private {
+        static GmailMessageEventDataType gmailMessageEventDataType;
+    }
+
     #! Creates the object from a REST connection
     constructor(GoogleRestClient::GoogleRestClient rest, *hash<auto> options)
             : GmailMessageWatchDataProviderBase(rest, ConstructorOptions, options) {
@@ -69,7 +73,7 @@ public class GmailMessageWatchDataProvider inherits GmailMessageWatchDataProvide
         return {
             EVENT_EMAIL_MATCHED: <DataProviderMessageInfo>{
                 "desc": "A email has been matched",
-                "type": new GmailMessageEventDataType(),
+                "type": gmailMessageEventDataType ?? (gmailMessageEventDataType = new GmailMessageEventDataType()),
             },
         };
     }
