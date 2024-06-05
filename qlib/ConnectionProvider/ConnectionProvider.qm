@@ -115,6 +115,8 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @section connectionproviderrelnotes Release Notes
 
     @subsection connectionprovider_2_0 ConnectionProvider 2.0
+    - fixed a bug where the I/O thread could stall and no longer ping any connection
+      (<a href="https://github.com/qorelanguage/qore/issues/4896">issue 4896</a>)
     - fixed a bug where control characters in URLs were silently accepted
       (<a href="https://github.com/qorelanguage/qore/issues/4866">issue 4866</a>)
     - added support for returning data provider subtypes

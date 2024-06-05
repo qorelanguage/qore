@@ -114,8 +114,11 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
     hash<auto> getInfo() {
         return {
             "autostart": autostart,
-            "connections": keys cache,
+            "connections": (map {
+                $1.key: ($1.value.spop ? "I/O" : $1.value.start),
+            }, cache.pairIterator()),
             "io_tid": tid,
+            "cmdq": cmdq.size(),
         };
     }
 
@@ -315,12 +318,15 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
                     date now = now_us();
                     # process poll info hashes
                     *date min;
-                    foreach string key in (keys cache) {
+                    # take the first key that has not already been processed on this run
+                    hash<string, bool> dmap;
+                    while ((*string key = (cache - keys dmap).firstKey()).val()) {
                         *hash<auto> value = cache{key};
                         if (!value) {
                             # removed from cache while the lock was unlocked
                             continue;
                         }
+                        dmap{key} = True;
                         date delta = value.spop ? ping_timeout : ping_repeat;
                         date trigger = value.start + delta;
                         AbstractConnection c = value.conn;
@@ -328,6 +334,7 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
                             c.last_check = value.start;
                             c.up = False;
                             handlePingTimeout(key, delta);
+                            remove dmap{key};
                             continue;
                         } else if (value.spop) {
                             try {
@@ -340,7 +347,8 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
                                     info = value.spop.continuePoll();
                                 }
                                 if (value != cache{key}) {
-                                    # removed / redefined in cache, ignore
+                                    # removed / redefined in cache, reprocess
+                                    remove dmap{key};
                                     continue;
                                 }
                                 log(LoggerLevel::DEBUG, "%y: state: %y: got ping info: %y", key,
@@ -353,12 +361,14 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
                                     *bool oldok = c.last_check ? c.up : NOTHING;
                                     c.last_check = value.start;
                                     handlePingSuccess(key, now_us() - value.start, oldok);
+                                    remove dmap{key};
                                 } else {
                                     poll_list += info;
                                 }
                             } catch (hash<ExceptionInfo> ex) {
                                 c.last_check = value.start;
                                 handlePingFailed(key, now_us() - value.start, ex);
+                                remove dmap{key};
                             }
                         }
                         if (!min || trigger < min) {
