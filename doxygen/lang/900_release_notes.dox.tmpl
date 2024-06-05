@@ -18,6 +18,9 @@
     Bugfix release; see below for more information
 
     @subsection qore_1_19_4_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - fixed a bug where the I/O thread could stall and no longer ping any connection
+        (<a href="https://github.com/qorelanguage/qore/issues/4896">issue 4896</a>)
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
       - fixed a deadlock due to lock starvation in the HttpServer regarding reloading HTTP certificate info
         (<a href="https://github.com/qorelanguage/qore/issues/4887">issue 4887</a>)
