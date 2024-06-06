@@ -1813,7 +1813,7 @@ auto v = c.name;
             foreach string i in (options.tables) {
                 ds.select(sql,  ds.getUserName(),
                                 i,
-                                options.partname ?? NU
+                                options.partname ?? NULL,
                                 options.estimate_percent ?? "dbms_stats.auto_sample_size",
                                 options.block_sample ? "true" : "false",
                                 options.method_opt ?? "for all columns size auto",
@@ -1833,7 +1833,7 @@ auto v = c.name;
 
             # first enable row movement
             string sql = "alter table %s enable row movement";
-            map ds.select(sql, $1, tables);
+            map ds.select(sql, $1), tables;
 
             # now shrink space
             sql = "alter table %s shrink space cascade";
