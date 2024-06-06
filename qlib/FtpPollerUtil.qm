@@ -108,6 +108,31 @@ public class FtpPollerFileEventInfoDataType inherits HashDataType {
                 "desc": "Only included when `local_dir` is set; the target path for the file where the file will "
                     "be moved to in the post event action",
             },
+            "remote_status":  {
+                "display_name": "Remote Status",
+                "short_desc": "The status of the remote file after processing",
+                "desc": "The status of the remote file after processing",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "display_name": RS_DELETED,
+                        "short_desc": "The remote file was deleted",
+                        "desc": "The remote file was deleted",
+                        "value": RS_DELETED,
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": RS_MOVED,
+                        "short_desc": "The remote file was moved",
+                        "desc": "The remote file was moved",
+                        "value": RS_MOVED,
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": RS_NONE,
+                        "short_desc": "The remote file was not moved or deleted",
+                        "desc": "The remote file was not moved or deleted",
+                        "value": RS_NONE,
+                    },
+                ),
+            },
         };
     }
 
@@ -123,6 +148,19 @@ public class FtpPollerFileEventInfoDataType inherits HashDataType {
         return "FTP polling event data type";
     }
 }
+
+/** @defgroup ftp_remote_status_constants FTP Remote Status Constants
+*/
+#/@{
+#! remote status: deleted
+public const RS_DELETED = "DELETED";
+
+#! remote status: moved
+public const RS_MOVED = "MOVED";
+
+#! remote status: none
+public const RS_NONE = "NONE";
+#/@}
 
 #! Constant providing the single file event data type
 public const FtpPollerFileEventInfoDataType = new FtpPollerFileEventInfoDataType();
@@ -152,5 +190,8 @@ public hashdecl FtpPollerFileEventInfo {
 
     #! Only included when `local_dir` is set; the target path for the file
     *string local_path;
+
+    #! Remote status; one of @ref ftp_remote_status_constants
+    string remote_status;
 }
 }

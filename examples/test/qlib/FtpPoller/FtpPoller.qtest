@@ -145,6 +145,7 @@ class FtpPollerTest inherits QUnit::Test {
             "url": sprintf("ftp://user:pass@127.0.0.1:%d%s", port, tmp_dir.path),
             "poll_interval": 1,
             "local_dir": local_dir.path,
+            "remote_file_disposition": "NONE",
         });
         prov.setLogger(logger);
         prov.registerObserver(observer);

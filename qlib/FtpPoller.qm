@@ -183,6 +183,14 @@ public const AppName = "FTP";
 public const EVENT_FTP_FILE = "ftp-file-event";
 
 #! FtpPoller client class implementation
+/** See the @ref constructor options for information on how to configure this object; note that either
+    - \c delete_remote_file or
+    - \c move_remote_file
+    must be set, or FTP files polled will remain where they are in the remote FTP server, unless they are removed or
+    moved during polling processing.
+
+    Only one of these options may be set at one time; setting both will result in an error
+*/
 public class FtpPoller {
     public {
         #! ascending sort order
@@ -222,8 +230,8 @@ public class FtpPoller {
 
         #! optional constructor hash keys
         const OptionalKeys = (
-            "path", "user", "pass", "regex_mask", "minage",
-            "log_info", "log_detail", "log_debug", "local_dir",
+            "path", "user", "pass", "regex_mask", "minage", "log_info", "log_detail", "log_debug", "local_dir",
+            "delete_remote_file", "move_remote_file",
 %ifndef PO_NO_PROCESS_CONTROL
             "sleep",
 %endif
@@ -282,6 +290,16 @@ public class FtpPoller {
         #! Atomic transfer flag for use with \c local_dir
         bool atomic_transfer;
 
+        #! Delete file on remote FTP server after processing?
+        /** This cannot be True while move_remote_file is set
+        */
+        bool delete_remote_file;
+
+        #! Remote target directory for moving the file on the remote FTP server after processing
+        /** This cannot be True while delete_remote_file is set
+        */
+        *string move_remote_file;
+
         #! run flag
         bool runflag = False;
 
@@ -336,6 +354,8 @@ public class FtpPoller {
         @param nconf a hash with the following optional keys:
         - \c atomic_transfer: if @ref True and \c local_dir is set, then \c tempfile_template is used to write FTP
           files to a temporary filename during transfer
+        - \c delete_remote_file: if @ref True then the remote file is deleted on the FTP server after processing.
+          Cannot be set if \c move_remote_file is also set
         - \c local_dir: a local directory to use to transfer remote files so large file data does not appear in events
         - \c log_debug: a @ref closure "closure" or @ref call_reference "call reference" for logging verbose
           debgugging information; must accept a single string giving the log message
@@ -345,6 +365,8 @@ public class FtpPoller {
           information; must accept a single string giving the log message
         - \c mask: the file glob mask to use (default: \c "*", ignored if \c "regex_mask" is also present)
         - \c minage: the minimum file age in seconds before a file will be acquired (default: 0)
+        - \c move_remote_file: the remote target directory on the FTP server where files will be moved to after
+          processing; cannot be set if \c delete_remote_file is also set
         - \c path: the remote path(s) for retrieving the files; if a list of strings is given then each path will be
           polled for matching files according to the \c "mask" or \c "regex_mask" option
         - \c poll_interval: the integer polling interval in seconds (default: 10 seconds; must be > 0 if given)
@@ -360,13 +382,14 @@ public class FtpPoller {
           to use when transferring files to the local directory specified by \c local_dir; use \c "%s" as the
           placeholder for the target filename
 
-        @throw FTPPOLLER-CONSTRUCTOR-ERROR missing required key, invalid port or poll_interval given
+        @note Either \c delete_remote_file or \c move_remote_file must be set, or FTP files polled will remain where
+        they are in the remote FTP server, unless they are removed or moved during polling processing. Only one of
+        these options may be set at one time; setting both will result in an error
+
+        @throw FTPPOLLER-CONSTRUCTOR-ARG-ERROR error with poller options
         @throw FTPCLIENT-PARAMETER-ERROR empty hostname passed
         @throw SOCKET-CONNECT-ERROR error establishing socket connection (no listener, port blocked, etc); timeout
         establishing socket connection
-        @throw SSH2CLIENT-CONNECT-ERROR no user name set; ssh2 or libssh2 error
-        @throw SSH2-ERROR error initializing or establishing ssh2 session
-        @throw SSH2CLIENT-AUTH-ERROR no proper authentication method found
         @throw FTPCLIENT-CONNECT-ERROR error initializing ftp session or getting remote path
     */
     constructor(Qore::FtpClient n_ftp, hash<auto> nconf) {
@@ -375,20 +398,26 @@ public class FtpPoller {
 
         foreach string k in (RequiredKeys) {
             if (!exists conf{k}) {
-                throw "FTPPOLLER-CONSTRUCTOR-ERROR", sprintf("required key %y missing from constructor hash argument)",
-                    k);
+                throw "FTPPOLLER-CONSTRUCTOR-ARG-ERROR", sprintf("required key %y missing from constructor hash "
+                    "argument)", k);
             }
         }
 
         if (exists conf.local_dir && (!is_dir(conf.local_dir) || !is_writable(conf.local_dir))) {
-            throw "FTPPOLLER-CONSTRUCTOR-ERROR", sprintf("invalid local directory %y; directory does not exist or "
+            throw "FTPPOLLER-CONSTRUCTOR-ARG-ERROR", sprintf("invalid local directory %y; directory does not exist or "
                 "cannot be written to", conf.local_dir);
         }
 
         conf.poll_interval = int(conf.poll_interval);
 
         if (conf.poll_interval <= 0) {
-            throw "FTPPOLLER-CONSTRUCTOR-ERROR", sprintf("poll_interval cannot be <= 0 (val: %d)", conf.poll_interval);
+            throw "FTPPOLLER-CONSTRUCTOR-ARG-ERROR", sprintf("poll_interval cannot be <= 0 (val: %d)",
+                conf.poll_interval);
+        }
+
+        if (conf.delete_remote_file && conf.move_remote_file.val()) {
+            throw "FTPPOLLER-CONSTRUCTOR-ARG-ERROR", sprintf("delete_remote_file is set along with move_remote_file "
+                "(%y); only one of these can be set at one time", conf.move_remote_file);
         }
 
         bool re = False;
@@ -433,6 +462,12 @@ public class FtpPoller {
 
         logInfo("%s: root path: %y", url, rootFtpPath);
 
+        if (conf.delete_remote_file) {
+            logDetail("%s: remote files will be deleted after processing", url);
+        } else if (conf.move_remote_file.val()) {
+            logDetail("%s: remote files will be moved using %y after processing", url, conf.move_remote_file);
+        }
+
         logInfo("%s: polling path is %y", url, path);
         if (path && path.size() == 1 && !path[0].empty() && path[0] != ".") {
             logInfo("%s: changing directory to %y", url, path[0]);
@@ -445,6 +480,8 @@ public class FtpPoller {
     /** @param nconf a hash with the following keys:
         - \c atomic_transfer: if @ref True and \c local_dir is set, then \c tempfile_template is used to write FTP
           files to a temporary filename during transfer
+        - \c delete_remote_file: if @ref True then the remote file is deleted on the FTP server after processing.
+          Cannot be set if \c move_remote_file is also set
         - \c host: (required) the hostname or address to connect to
         - \c local_dir: a local directory to use to transfer remote files so large file data does not appear in events
         - \c log_debug: a @ref closure "closure" or @ref call_reference "call reference" for logging verbose
@@ -455,6 +492,8 @@ public class FtpPoller {
           information; must accept a single string giving the log message
         - \c mask: the file glob mask to use (default: \c "*", ignored if \c "regex_mask" is also present)
         - \c minage: the minimum file age in seconds before a file will be acquired (default: 0)
+        - \c move_remote_file: the remote target directory on the FTP server where files will be moved to after
+          processing; cannot be set if \c delete_remote_file is also set
         - \c pass: the password to use for the connection
         - \c path: the remote path(s) for retrieving the files
         - \c poll_interval: the integer polling interval in seconds (default: 10 seconds; must be > 0 if given)
@@ -473,12 +512,9 @@ public class FtpPoller {
           placeholder for the target filename
         - \c user: the username to use for the connection
 
-        @throw FTPPOLLER-CONSTRUCTOR-ERROR missing required key, invalid port, poll_interval, or protocol given
+        @throw FTPPOLLER-CONSTRUCTOR-ARG-ERROR missing required key, invalid port, poll_interval, or protocol given
         @throw FTPCLIENT-PARAMETER-ERROR empty hostname passed
         @throw SOCKET-CONNECT-ERROR error establishing socket connection (no listener, port blocked, etc)
-        @throw SSH2CLIENT-CONNECT-ERROR no user name set; ssh2 or libssh2 error
-        @throw SSH2-ERROR error initializing or establishing ssh2 session
-        @throw SSH2CLIENT-AUTH-ERROR no proper authentication method found
         @throw FTPCLIENT-CONNECT-ERROR error initializing ftp session or getting remote path
     */
     constructor(hash<auto> nconf) {
@@ -513,6 +549,11 @@ public class FtpPoller {
             throw "FTPPOLLER-CONSTRUCTOR-ERROR", sprintf("port cannot be <= 0 (val: %d)", conf.port);
         }
 
+        if (conf.delete_remote_file && conf.move_remote_file.val()) {
+            throw "FTPPOLLER-CONSTRUCTOR-ARG-ERROR", sprintf("delete_remote_file is set along with move_remote_file "
+                "(%y); only one of these can be set at one time", conf.move_remote_file);
+        }
+
         bool re = False;
         if (conf.regex_mask) {
             mask = remove conf.regex_mask;
@@ -541,6 +582,12 @@ public class FtpPoller {
 
         if (mask) {
             logDetail("%s: file regex mask: %s", url, mask);
+        }
+
+        if (conf.delete_remote_file) {
+            logDetail("%s: remote files will be deleted after processing", url);
+        } else if (conf.move_remote_file.val()) {
+            logDetail("%s: remote files will be moved using %y after processing", url, conf.move_remote_file);
         }
 
         logDetail("%s: logging in", url);
@@ -628,11 +675,13 @@ public class FtpPoller {
     #! renames a file on the server
     rename(string old, string nnew) {
         ftp.rename(old, nnew);
+        logInfo("Renamed %y -> %y on the remote host", old, nnew);
     }
 
     #! deletes a file on the server
     removeFile(string fn) {
         ftp.del(fn);
+        logInfo("%y: deleted on the remote host", fn);
     }
 
     #! returns a list of regular file hashes matching any file name mask set for the object
@@ -860,6 +909,17 @@ public class FtpPoller {
                         # set the "fatal" flag if an exception is thrown in postSingleFileEvent()
                         on_error fatal = True;
 
+                        if (delete_remote_file) {
+                            removeFile(event.name);
+                            event.remote_status = RS_DELETED;
+                        } else if (move_remote_file.val()) {
+                            string remote_target = sprintf(move_remote_file, event.name);
+                            rename(event.name, remote_target);
+                            event.remote_status = RS_MOVED;
+                        } else {
+                            event.remote_status = RS_NONE;
+                        }
+
                         postSingleFileEvent(event);
                     }
                 }
@@ -1060,7 +1120,10 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
             "local_dir": <DataProviderOptionInfo>{
                 "display_name": "Local Directory",
                 "short_desc": "A local directory that will be used to retrieve files",
-                "type": AbstractDataProviderTypeMap."*string",
+                "type": AbstractDataProviderType::get(StringType, NOTHING, {
+                    DTT_FromFile: True,
+                    DTT_FromLocation: True,
+                }),
                 "desc": "A local directory that will be used to retrieve files",
             },
 
@@ -1107,6 +1170,46 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
                 "desc": "If `true` then `mask` is treated as a regular expression instead of a glob pattern",
             },
 
+            "remote_file_disposition": <DataProviderOptionInfo>{
+                "display_name": "Remote File Disposition",
+                "short_desc": "Delete or move remote file after processing?",
+                "desc": "Delete or move remote file after processing? If `MOVE`, `remote_file_move_target` must also "
+                    "be set",
+                "type": AbstractDataProviderTypeMap."string",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "display_name": "DELETE",
+                        "short_desc": "Delete the remote file after processing",
+                        "desc": "Delete the remote file after processing",
+                        "value": "DELETE",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "MOVE",
+                        "short_desc": "Move the remote file after processing",
+                        "desc": "Move the remote file after processing; in this case `remote_file_move_target` must "
+                            "be set",
+                        "value": "MOVE",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "NONE",
+                        "short_desc": "Leave the file untouched after processing",
+                        "desc": "Leave the file untouched after processing; the file must be moved or deleted "
+                            "manually during post-processing, or the file will appear in subsequent polls as well",
+                        "value": "NONE",
+                    },
+                ),
+                "default_value": "DELETE",
+            },
+
+            "remote_file_move_target": <DataProviderOptionInfo>{
+                "display_name": "Remote File Move Target",
+                "short_desc": "The target template for the remote file after processing",
+                "desc": "The target template for the remote file after processing; use `%s` for the original file "
+                    "name. This option is only used when `remote_file_disposition` is `MOVE`, otherwise it is "
+                    "ignored",
+                "type": AbstractDataProviderTypeMap."*string",
+            },
+
             "reopt": <DataProviderOptionInfo>{
                 "display_name": "Regular Expression Options",
                 "short_desc": "A bitfield of regular expression options",
@@ -1132,7 +1235,7 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
             "tempfile_template":  <DataProviderOptionInfo>{
                 "display_name": "Temporary Filename Template",
                 "short_desc": "The template for temporary filenames",
-                "desc": "The template for temporary filenames; use `%%s` for the original filename",
+                "desc": "The template for temporary filenames; use `%s` for the original filename",
                 "type": AbstractDataProviderTypeMap."string",
                 "default_value": ".tmp.%s.part",
             },
@@ -1192,6 +1295,19 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
             }
         } else {
             remove copts.sort_desc;
+        }
+        *string move_target = remove copts.remote_file_move_target;
+        switch (remove copts.remote_file_disposition) {
+            case "DELETE":
+                copts.delete_remote_file = True;
+                break;
+            case "MOVE":
+                if (!move_target.val()) {
+                    throw "CONSTRUCTOR-ERROR", "If \"remote_file_disposition\" is \"MOVE\", "
+                        "\"remote_file_move_target\" must be set as well";
+                }
+                copts.move_remote_file = move_target;
+                break;
         }
 
         if (regex) {
