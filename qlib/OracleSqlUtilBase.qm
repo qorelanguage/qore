@@ -276,6 +276,8 @@ hash schema = (
     @section ora_relnotes Release Notes
 
     @subsection oracle16 OracleSqlUtilBase v1.6
+    - fixed space management on Oracle
+      (<a href="https://github.com/qorelanguage/qore/issues/4897">issue 4897</a>)
     - reintroduced as the base module for all Oracle SqlUtil modules
 
     @subsection oracle15 OracleSqlUtilBase v1.5
@@ -1811,7 +1813,7 @@ auto v = c.name;
             foreach string i in (options.tables) {
                 ds.select(sql,  ds.getUserName(),
                                 i,
-                                options.partname ?? NULL,
+                                options.partname ?? NU
                                 options.estimate_percent ?? "dbms_stats.auto_sample_size",
                                 options.block_sample ? "true" : "false",
                                 options.method_opt ?? "for all columns size auto",
@@ -1827,12 +1829,15 @@ auto v = c.name;
 
         #! reclaim space implementation. See @ref SqlUtil::AbstractDatabase::reclaimSpace()
         private reclaimSpaceImpl(*hash options) {
-            string sql = "alter table %s shrink space cascade";
-            softlist tables = options.tables ? options.tables : listTables();
+            softlist tables = options.tables ?? listTables();
 
-            foreach string i in (tables.iterator()) {
-                ds.select(sql, i);
-            }
+            # first enable row movement
+            string sql = "alter table %s enable row movement";
+            map ds.select(sql, $1, tables);
+
+            # now shrink space
+            sql = "alter table %s shrink space cascade";
+            map ds.select(sql, $1), tables;
         }
 
         #! @ref SqlUtil::AbstractDatabase.getPhysicalSize()
