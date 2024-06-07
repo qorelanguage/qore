@@ -136,15 +136,14 @@ OpenAiRestClient rest(opts);
     */
     constructor(hash<auto> opts, *softbool do_not_connect)
             : RestClient(OpenAiRestClient::getOptions(opts), True) {
-        if (opts.api.val() && !validator) {
-            api = getString(opts, "api");
-            setConnectionPath(api);
+        if (validator instanceof NullRestSchemaValidator) {
+            setConnectionPath(getString(opts, "api") ?? DefaultApiVersion);
         }
     }
 
     #! returns options for @ref OpenAiRestClient::OpenAiRestClient::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
-        if (!opts.swagger && !opts.validator) {
+        if (!opts.swagger && !opts.validator && opts.use_schema) {
             string path = dirname(get_module_hash().OpenAiRestClient.filename)
                 + "/OpenAiDataProvider/openai-swagger-2.0.yaml";
             if (is_file(path)) {
@@ -185,6 +184,14 @@ public class OpenAiRestConnection inherits RestClient::RestConnection {
                     "desc": "The API version to use",
                     "type": "string",
                     "default_value": OpenAiRestClient::DefaultApiVersion,
+                },
+                "use_schema": <ConnectionOptionInfo>{
+                    "display_name": "Use OpenAPI Schema",
+                    "short_desc": "Use the OpenAPI schema for API validation",
+                    "desc": "Use the OpenAPI schema for API validation; OpenAI can change the schema at any time, so "
+                        "the schema may be out of date and may cause valid API calls to fail",
+                    "type": "bool",
+                    "default_value": False,
                 },
                 "ping_headers": RestConnection::ConnectionScheme.options.ping_headers + <ConnectionOptionInfo>{
                     "default_value": DefaultPingHeaders,

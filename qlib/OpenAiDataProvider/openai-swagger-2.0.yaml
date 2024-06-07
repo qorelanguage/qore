@@ -13240,6 +13240,9 @@ definitions:
         enum:
           - thread.run
         type: string
+      parallel_tool_calls:
+        type: boolean
+        x-nullable: true
       required_action:
         description: >-
           Details on the action required to continue the run. Will be `null` if

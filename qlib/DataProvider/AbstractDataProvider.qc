@@ -2349,7 +2349,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         try {
             return getReferenceDataImpl(type);
         } catch (hash<ExceptionInfo> ex) {
-            error("Failed to retrieve reference data of type %y: %s: %s", type, ex.err, ex.desc);
+            error("REFERENCE-DATA-ERROR", "Failed to retrieve reference data of type %y: %s: %s", type, ex.err,
+                ex.desc);
         }
     }
 
@@ -3606,7 +3607,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         try {
             return searchFirstRecord({});
         } catch (hash<ExceptionInfo> ex) {
-            error("Failed to retrieve example row: %s: %s; returning generated data", ex.err, ex.desc);
+            error("EXAMPLE-RECORD-ERROR", "Failed to retrieve example row: %s: %s; returning generated data", ex.err,
+                ex.desc);
         }
         return generateExampleData(getRecordTypeImpl());
     }
