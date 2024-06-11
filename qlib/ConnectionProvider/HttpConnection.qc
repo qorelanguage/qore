@@ -36,22 +36,26 @@ public namespace ConnectionProvider {
     - \c "assume_encoding": assumes the given encoding if the server does not send a charset value
     - \c "connect_timeout": connection timeout to use in milliseconds (default: 45 seconds)
     - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
-        \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the
-        caller like any other response
+      \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the
+      caller like any other response
     - \c "headers": headers to add in each outgoing request
     - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
     - \c "max_redirects": maximum redirects to support
+    - \c "password": The password for authentication; only used if no username or password is set in the URL and if
+      the \c username option is also used
     - \c "pre_encoded_urls": If @ref True "True" then all URI paths in URLs are assumed to be already
       <a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoded</a>; if this flag is set and any
       unencoded characters are sent in a URL with a new request, an exception is raised
     - \c "proxy": proxy URL to use
     - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
-        processed
+      processed
     - \c "ssl_cert_path": a path to an X.509 client certificate file in PEM format
     - \c "ssl_key_path": a path to a private key file in PEM format for the X.509 client certificate
     - \c "ssl_key_password": the password to the private key given with \c "ssl_key_path"
     - \c "ssl_verify_cert": if @ref True "True" then the server's certificate will only be accepted if it's verified
     - \c "timeout": transfer timeout to use in milliseconds (default: 45 seconds)
+    - \c "username": The username for HTTP basic authentication; only used if no username or password is set in the
+      URL and if the \c password option is also used
 
     @see @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient::constructor(hash<auto> opts)" for more
     information on the above options
@@ -132,6 +136,14 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                     "type": "int",
                     "desc": "Sets the maximum HTTP redirects to support in a single request",
                 },
+                "password": <ConnectionOptionInfo>{
+                    "display_name": "Password",
+                    "short_desc": "The password for HTTP basic authentication",
+                    "type": "string",
+                    "desc": "The password for HTTP basic authentication; only used if no username or password is set "
+                        "in the URL and if the `username` option is also used",
+                    "sensitive": True,
+                },
                 "pre_encoded_urls": <ConnectionOptionInfo>{
                     "display_name": "Pre-Encoded URLs",
                     "short_desc": "If true then URLs are assumed to be preencoded",
@@ -201,6 +213,13 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                     "type": "int",
                     "desc": "The transfer timeout to use in milliseconds (default: 45 seconds)",
                     "default_value": 45000,
+                },
+                "username": <ConnectionOptionInfo>{
+                    "display_name": "Username",
+                    "short_desc": "Sets the username for HTTP basic authentication",
+                    "type": "string",
+                    "desc": "The username for authentication; only used if no username or password is set in the URL "
+                        "and if the `password` option is also used",
                 },
             },
         };

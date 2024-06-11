@@ -195,6 +195,8 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - \c http_version: Either \c "1.0" or \c "1.1" for the claimed HTTP protocol version compliancy in outgoing
       message headers
     - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+    - \c password: The password for HTTP basic authentication; only used if no username or password is set in the URL
+      and if the \c username option is also used
     - \c pre_encoded_urls: If @ref True "True" then all URI paths in URLs are assumed to be already
       <a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoded</a>; if this flag is set and any
       unencoded characters are sent in a URL with a new request, an exception is raised.  Characters that must require
@@ -220,6 +222,8 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - \c timeout: The timeout value in milliseconds (also can be a @ref relative_dates "relative date-time value" for
       clarity, ex: \c 5m)
     - \c url: A string giving the URL to connect to
+    - \c username: The username for HTTP basic authentication; only used if no username or password is set in the
+      URL and if the \c password option is also used
 
     @throw HTTP-CLIENT-OPTION-ERROR invalid or unknown option passed in option hash
     @throw HTTP-CLIENT-URL-ERROR invalid URL string
@@ -261,7 +265,10 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
       - \c pre_encoded_urls
     - %Qore 1.19 added the following option:
       - \c encode_chars
- */
+    - %Qore 2.0 added the following option:
+      - \c username
+      - \c password
+*/
 HTTPClient::constructor(hash<auto> opts) {
     ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
     if (client->setOptions(opts, xsink)) {

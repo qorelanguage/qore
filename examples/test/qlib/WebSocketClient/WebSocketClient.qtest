@@ -262,6 +262,15 @@ class WebSocketClientTest inherits QUnit::Test {
         conn = new WebSocketConnectionObject("test", "test", url, {"monitor": False});
         client = conn.get(False);
         assertEq(url, client.getUrl());
+
+        conn = new WebSocketConnectionObject("test", "test", url, {"monitor": False}, {
+            "username": "user",
+            "password": "pass",
+        });
+        client = conn.get(False);
+        assertEq(url, client.getUrl());
+        assertEq("user", client.getUsername());
+        assertEq("pass", client.getPassword());
     }
 }
 

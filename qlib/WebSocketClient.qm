@@ -95,7 +95,13 @@ module WebSocketClient {
             "short_desc": "Send a WebSocket data message",
             "desc": "Send a WebSocket data message to a WebSocket server; the message is serialized for sending",
             "action_code": DPAT_SEND_MESSAGE,
-            "action_val": MESSAGE_WS_DATA,
+            "action_val": MESSAGE_WS_COMPLEX_DATA,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                WebSocketComplexDataMessageType::Fields, {
+                    "preselected": True,
+                    "required": True,
+                }
+            ),
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -106,7 +112,13 @@ module WebSocketClient {
             "short_desc": "Send a raw WebSocket message",
             "desc": "Send a raw WebSocket message to a WebSocket server",
             "action_code": DPAT_SEND_MESSAGE,
-            "action_val": MESSAGE_WS_RAW,
+            "action_val": MESSAGE_WS_COMPLEX_RAW,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                WebSocketComplexRawDataMessageType::Fields, {
+                    "preselected": True,
+                    "required": True,
+                }
+            ),
         });
     };
 }
@@ -319,11 +331,22 @@ public const EVENT_WS_CLOSED = "ws-closed-event";
 */
 public const EVENT_WS_CONNECTED = "ws-connected-event";
 
+#! WebSocket complex data message type
+/** Sends a WebSocket message to the remote end; the message will be serialized according to the serialization option
+    on the WebSocketClient object
+*/
+public const MESSAGE_WS_COMPLEX_DATA = "complex-data";
+
 #! WebSocket data message type
 /** Sends a WebSocket message to the remote end; the message will be serialized according to the serialization option
     on the WebSocketClient object
 */
 public const MESSAGE_WS_DATA = "data";
+
+#! WebSocket complex raw data message type
+/** Sends a raw message to the remote end; the message is sent as-is
+*/
+public const MESSAGE_WS_COMPLEX_RAW = "complex-raw";
 
 #! WebSocket raw data message type
 /** Sends a raw message to the remote end; the message is sent as-is
@@ -636,6 +659,20 @@ ws.connect();
             # ignore exceptions when not connected and return NOTHING
         }
         return rv;
+    }
+
+    #! Returns any username set for the connection
+    /** @return any username set for the connection
+    */
+    *string getUsername() {
+        return hc.getUsername();
+    }
+
+    #! Returns any password set for the connection
+    /** @return any password set for the connection
+    */
+    *string getPassword() {
+        return hc.getPassword();
     }
 
     #! Connects to the websocket server
@@ -1821,7 +1858,9 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
         @see hasDataProvider()
     */
     DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
-        return new WebSocketClientDataProvider({"url": url, "token": opts.token, "token_type": opts.token_type});
+        return new WebSocketClientDataProvider({
+            "url": url,
+     } + opts{"token", "token_type", "username", "password"});
     }
 
     #! returns @ref True, as the connection returns a data provider with the @ref getDataProvider() method
@@ -1945,6 +1984,14 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "Maximum HTTP redirects to support",
             },
+            "password": <DataProviderOptionInfo>{
+                "display_name": "Password",
+                "short_desc": "The password for HTTP basic authentication",
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "The password for HTTP basic authentication; only used if no username or password is set "
+                    "in the URL and if the `username` option is also used",
+                "sensitive": True,
+            },
             "proxy": <DataProviderOptionInfo>{
                 "display_name": "HTTP Proxy",
                 "short_desc": "The HTTP proxy to use",
@@ -1987,6 +2034,13 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                 "short_desc": "The URL to connect to",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "A URL for a WebSocket connection; either this or the `wsclient` option must be provided",
+            },
+            "username": <DataProviderOptionInfo>{
+                "display_name": "Username",
+                "short_desc": "Sets the username for HTTP basic authentication",
+                "desc": "The username for HTTP basic authentication; only used if no username or password is set in "
+                    "the URL and if the `password` option is also used",
+                "type": AbstractDataProviderTypeMap."string",
             },
             "wsclient": <DataProviderOptionInfo>{
                 "display_name": "WebSocket Client",
@@ -2179,6 +2233,10 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
     */
     private hash<string, hash<DataProviderMessageInfo>> getMessageTypesImpl() {
         return {
+            MESSAGE_WS_COMPLEX_DATA: <DataProviderMessageInfo>{
+                "desc": "An outgoing WebSocket message that will be serialized according to the serialization option",
+                "type": WebSocketComplexDataMessageType,
+            },
             MESSAGE_WS_DATA: <DataProviderMessageInfo>{
                 "desc": "An outgoing WebSocket message that will be serialized according to the serialization option",
                 "type": client.getSerialization() == "none"
@@ -2192,6 +2250,10 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
             MESSAGE_WS_PONG: <DataProviderMessageInfo>{
                 "desc": "A WebSocket `PONG` message; sent in reply to a `PING` message",
                 "type": AbstractDataProviderTypeMap."*data",
+            },
+            MESSAGE_WS_COMPLEX_RAW: <DataProviderMessageInfo>{
+                "desc": "A raw WebSocket message to be sent to the remote end (without serialization)",
+                "type": WebSocketComplexRawDataMessageType,
             },
             MESSAGE_WS_RAW: <DataProviderMessageInfo>{
                 "desc": "A raw WebSocket message to be sent to the remote end (without serialization)",
@@ -2245,6 +2307,50 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         return template_options + options;
     }
 }
+
+#! Complex serialized data message type
+public class WebSocketComplexDataMessageType inherits HashDataType {
+    public {
+        #! Type fields
+        const Fields = {
+            "data": {
+                "display_name": "Data",
+                "short_desc": "The data to send; will be serialized according to the serialization option",
+                "desc": "The data to send; will be serialized according to the serialization option",
+                "type": AbstractDataProviderTypeMap."any",
+            },
+        };
+    }
+
+    constructor() : HashDataType("WebSocketComplexDataMessage") {
+        addQoreFields(Fields);
+    }
+}
+
+#! Complex serialized data message type constant
+public const WebSocketComplexDataMessageType = new WebSocketComplexDataMessageType();
+
+#! Complex raw data message type
+public class WebSocketComplexRawDataMessageType inherits HashDataType {
+    public {
+        #! Type fields
+        const Fields = {
+            "data": {
+                "display_name": "Data",
+                "short_desc": "The data to send",
+                "desc": "The data to send; the data will be sent as-is, no data serialization will be performed",
+                "type": AbstractDataProviderTypeMap."data",
+            },
+        };
+    }
+
+    constructor() : HashDataType("WebSocketComplexRawDataMessage") {
+        addQoreFields(Fields);
+    }
+}
+
+#! Complex raw data message type constant
+public const WebSocketComplexRawDataMessageType = new WebSocketComplexRawDataMessageType();
 
 #! Event-based data provider for WebSocket messaging
 /**

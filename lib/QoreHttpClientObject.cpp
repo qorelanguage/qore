@@ -2523,10 +2523,11 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
         http_priv->max_redirects = (int)n.getAsBigInt();
 
     n = opts->getKeyValue("default_port");
-    if (!n.isNothing())
+    if (!n.isNothing()) {
         http_priv->default_port = (int)n.getAsBigInt();
-    else
+    } else {
         http_priv->default_port = HTTPCLIENT_DEFAULT_PORT;
+    }
 
     // check if proxy is true
     n = opts->getKeyValue("proxy");
@@ -2540,14 +2541,28 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
         return -1;
     }
 
+    // set username and password, if applicable
+    if (http_priv->connection.username.empty() && http_priv->connection.password.empty()) {
+        n = opts->getKeyValue("username");
+        if (n.getType() == NT_STRING) {
+            const QoreValue p = opts->getKeyValue("password");
+            if (p.getType() == NT_STRING) {
+                http_priv->setUserPassword(n.get<const QoreStringNode>()->c_str(),
+                    p.get<const QoreStringNode>()->c_str());
+            }
+        }
+    }
+
     n = opts->getKeyValue("default_path");
-    if (n.getType() == NT_STRING)
+    if (n.getType() == NT_STRING) {
         http_priv->default_path = (n.get<const QoreStringNode>())->c_str();
+    }
 
     // set default timeout if given in option hash - accept relative date/time values as well as integers
     n = opts->getKeyValue("timeout");
-    if (!n.isNothing())
+    if (!n.isNothing()) {
         http_priv->timeout = get_ms_zero(n);
+    }
 
     n = opts->getKeyValue("http_version");
     if (!n.isNothing()) {

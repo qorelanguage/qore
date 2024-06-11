@@ -72,7 +72,7 @@ module FtpPoller {
             "action_val": EVENT_FTP_FILE,
             "output_type": FtpPollerFileEventInfoDataType,
             "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
-                FtpPollerDataProviderBase::ConstructorOptions{"mask",} - ("url", "username", "password"), {
+                FtpPollerDataProviderBase::ConstructorOptions{"mask",}, {
                     "preselected": True,
                     "required": True,
                 },
