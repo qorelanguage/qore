@@ -512,6 +512,8 @@ void QoreModuleManager::init(bool se) {
     if (moduleDirList.empty()) {
         QoreModuleManager::addStandardModulePaths();
     }
+
+    mutex = new QoreRecursiveThreadLock;
 }
 
 /* this internal helper function solves an issue with modules
@@ -1652,9 +1654,9 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromDesc(ExceptionSink& x
     }
 
     // get initialization function
-    if (!mod_info.init) {
+    if (!mod_info.init && !mod_info.init_info) {
         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing " \
-            "module init method", path, name);
+            "module init and init_info methods (at least one must be present)", path, name);
         return nullptr;
     }
 
@@ -1780,17 +1782,25 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromDesc(ExceptionSink& x
         return nullptr;
     }
 
-    printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init@%p\n", path,
-        name, *mod_info.init);
-
     // this is needed for backwards-compatibility for modules that add builtin functions in the module initialization code
     QoreModuleContextHelper qmc(name, pgm, xsink);
     try {
-        printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init@%p (tid: %d)\n", path,
-            name, *mod_info.init, q_gettid());
         assert(q_gettid());
 
-        QoreStringNode* str = (*mod_info.init)();
+        QoreStringNode* str;
+        if (mod_info.init_info) {
+            printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init_info@%p\n", path,
+                name, *mod_info.init_info);
+            qore_module_init_info info;
+            info.path = path;
+            str = (*mod_info.init_info)(info);
+        } else {
+            assert(mod_info.init);
+            printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init@%p\n", path,
+                name, *mod_info.init);
+            str = (*mod_info.init)();
+        }
+
         if (str) {
             // rollback all module changes
             qmc.rollback();
@@ -2040,11 +2050,11 @@ ModuleLoadMapHelper::ModuleLoadMapHelper(const char* feature) {
     i = QMM.module_load_map.insert(QoreModuleManager::module_load_map_t::value_type(feature, q_gettid())).first;
 
     // run initialization unlocked
-    QMM.mutex.unlock();
+    QMM.mutex->unlock();
 }
 
 ModuleLoadMapHelper::~ModuleLoadMapHelper() {
-    QMM.mutex.lock();
+    QMM.mutex->lock();
 
     // remove module feature from map
     QMM.module_load_map.erase(i);

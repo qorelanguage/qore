@@ -65,8 +65,17 @@ class QoreStringNode;
 class QoreListNode;
 class ExceptionSink;
 
+//! Module info for the init_info method
+struct qore_module_init_info {
+    //! path to the module itself
+    std::string path;
+};
+
 //! signature of the module constructor/initialization function
 typedef QoreStringNode* (*qore_module_init_t)();
+
+//! signature of the module constructor/initialization function with info
+typedef QoreStringNode* (*qore_module_init_info_t)(qore_module_init_info& info);
 
 //! signature of the module namespace change/delta function
 typedef void (*qore_module_ns_init_t)(QoreNamespace* root_ns, QoreNamespace* qore_ns);
@@ -94,6 +103,7 @@ struct QoreModuleInfo {
     int api_major = -1;
     int api_minor = -1;
     qore_module_init_t init = nullptr;
+    qore_module_init_info_t init_info = nullptr;
     qore_module_ns_init_t ns_init = nullptr;
     qore_module_delete_t del = nullptr;
     qore_module_parse_cmd_t parse_cmd = nullptr;
