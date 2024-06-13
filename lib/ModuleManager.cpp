@@ -512,8 +512,6 @@ void QoreModuleManager::init(bool se) {
     if (moduleDirList.empty()) {
         QoreModuleManager::addStandardModulePaths();
     }
-
-    mutex = new QoreRecursiveThreadLock;
 }
 
 /* this internal helper function solves an issue with modules
@@ -2050,11 +2048,11 @@ ModuleLoadMapHelper::ModuleLoadMapHelper(const char* feature) {
     i = QMM.module_load_map.insert(QoreModuleManager::module_load_map_t::value_type(feature, q_gettid())).first;
 
     // run initialization unlocked
-    QMM.mutex->unlock();
+    QMM.mutex.unlock();
 }
 
 ModuleLoadMapHelper::~ModuleLoadMapHelper() {
-    QMM.mutex->lock();
+    QMM.mutex.lock();
 
     // remove module feature from map
     QMM.module_load_map.erase(i);

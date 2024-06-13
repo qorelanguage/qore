@@ -425,7 +425,6 @@ public:
     }
 
     DLLLOCAL ~QoreModuleManager() {
-        delete mutex;
     }
 
     DLLLOCAL void init(bool se);
@@ -578,7 +577,7 @@ private:
 
 protected:
     // mutex for atomicity
-    QoreRecursiveThreadLock* mutex = nullptr;
+    QoreThreadLock mutex;
 
     // user module dependency map: module -> dependents
     ModMap md_map;
