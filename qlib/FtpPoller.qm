@@ -347,6 +347,9 @@ public class FtpPoller {
 
         #! optional sleep closure
         *code sleep;
+
+        #! Connection to update while polling
+        FtpClient new_ftp;
     }
 
     #! creates the FtpPoller object from the @ref Qore::FtpClient "FtpClient" argument and configuration hash argument passed
@@ -435,45 +438,13 @@ public class FtpPoller {
             setMask();
         }
 
-        # assign FtpClient object
-        ftp = n_ftp;
-        rootFtpPath = ftp.pwd();
-
-        {
-            *string str = ftp.getUserName();
-            if (str) {
-                user = str;
-            }
-            str = ftp.getPassword();
-            if (str) {
-                pass = str;
-            }
-        }
-
-        port = ftp.getPort();
-
-        url = sprintf("%s://%s@%s:%d", protocol, user ?? "<none>", ftp.getHostName(), port);
-
-        urlh = parse_url(ftp.getURL());
-
-        if (mask) {
-            logDetail("%s: file regex mask: %s", url, mask);
-        }
-
-        logInfo("%s: root path: %y", url, rootFtpPath);
-
         if (conf.delete_remote_file) {
             logDetail("%s: remote files will be deleted after processing", url);
         } else if (conf.move_remote_file.val()) {
             logDetail("%s: remote files will be moved using %y after processing", url, conf.move_remote_file);
         }
 
-        logInfo("%s: polling path is %y", url, path);
-        if (path && path.size() == 1 && !path[0].empty() && path[0] != ".") {
-            logInfo("%s: changing directory to %y", url, path[0]);
-            # change to the target directory
-            ftp.cwd(path[0]);
-        }
+        setup(n_ftp);
     }
 
     #! creates the FtpPoller object from the configuration hash argument passed
@@ -569,6 +540,12 @@ public class FtpPoller {
             setMask();
         }
 
+        if (conf.delete_remote_file) {
+            logDetail("%s: remote files will be deleted after processing", url);
+        } else if (conf.move_remote_file.val()) {
+            logDetail("%s: remote files will be moved using %y after processing", url, conf.move_remote_file);
+        }
+
         # create FtpClient object
         ftp = new FtpClient(sprintf("%s://%s:%d", protocol, host, port));
         if (user) {
@@ -578,22 +555,56 @@ public class FtpPoller {
             ftp.setPassword(pass);
         }
 
-        url = sprintf("%s://%s@%s:%d", protocol, user ? user : "<none>", host, port);
+        setup(ftp);
+    }
+
+    #! stops the polling operation if in progress and destroys the object
+    destructor() {
+        stop();
+    }
+
+    #! Updates options
+    updateOptions(FtpClient ftp) {
+        new_ftp = ftp;
+    }
+
+    #! returns the current poll count
+    int getPollCount() {
+        return pollcnt;
+    }
+
+    private setup(FtpClient ftp) {
+        # assign FtpClient object
+        self.ftp = ftp;
+
+        if (!ftp.isConnected()) {
+            logDetail("%s: logging in", url);
+            # connect to the remote system
+            ftp.connect();
+        }
+
+        rootFtpPath = ftp.pwd();
+
+        {
+            *string str = ftp.getUserName();
+            if (str) {
+                user = str;
+            }
+            str = ftp.getPassword();
+            if (str) {
+                pass = str;
+            }
+        }
+
+        port = ftp.getPort();
+
+        url = sprintf("%s://%s@%s:%d", protocol, user ?? "<none>", ftp.getHostName(), port);
+
+        urlh = parse_url(ftp.getURL());
 
         if (mask) {
             logDetail("%s: file regex mask: %s", url, mask);
         }
-
-        if (conf.delete_remote_file) {
-            logDetail("%s: remote files will be deleted after processing", url);
-        } else if (conf.move_remote_file.val()) {
-            logDetail("%s: remote files will be moved using %y after processing", url, conf.move_remote_file);
-        }
-
-        logDetail("%s: logging in", url);
-        # connect to the remote system
-        ftp.connect();
-        rootFtpPath = ftp.pwd();
 
         logInfo("%s: root path: %y", url, rootFtpPath);
 
@@ -605,16 +616,6 @@ public class FtpPoller {
         } else {
             logInfo("%s: connected", url);
         }
-    }
-
-    #! stops the polling operation if in progress and destroys the object
-    destructor() {
-        stop();
-    }
-
-    #! returns the current poll count
-    int getPollCount() {
-        return pollcnt;
     }
 
     #! calls the \c "log_info" @ref closure "closure" or @ref call_reference "call reference" with important information
@@ -1030,6 +1031,9 @@ public class FtpPoller {
 
         while (runflag) {
             try {
+                if (new_ftp.val()) {
+                    setup(remove new_ftp);
+                }
                 runOnce();
                 ftpSleep(poll_interval);
             } catch (hash<ExceptionInfo> ex) {
@@ -1338,6 +1342,18 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
     #! Returns the data provider description
     *string getDesc() {
         return "Provides an event-based FTP polling source";
+    }
+
+    #! Update any connection used by the data provider
+    /** @param conn the new connection object
+    */
+    updateConnectionObject(object conn) {
+        if (!(conn instanceof FtpClient)) {
+            throw "UPDATE-CONNECTION-ERROR", sprintf("Data provider %y requires a \"FtpClient\" object; got "
+                "%y instead", self.className(), conn.className());
+        }
+        FtpClient ftp = cast<FtpClient>(conn);
+        poller.updateOptions(ftp);
     }
 
     #! Returns a hash of all supported event types

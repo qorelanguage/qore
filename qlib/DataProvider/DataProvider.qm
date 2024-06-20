@@ -121,17 +121,17 @@ public hash<string, string> sub get_type_provider_map() { ... }
 
     @par Unix Example
     @verbatim
-export QORE_DATA_PROVIDERS=MyConnectionProvider:OtherConnectionProvider
+export QORE_DATA_PROVIDERS=MyDataProvider:OtherDataProvider
     @endverbatim
 
     @par Windows CMD.EXE Example
     @verbatim
-set QORE_DATA_PROVIDERS=MyConnectionProvider;OtherConnectionProvider
+set QORE_DATA_PROVIDERS=MyDataProvider;OtherDataProvider
     @endverbatim
 
     @par Windows PowerShell Example
     @verbatim
-$env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
+$env:QORE_DATA_PROVIDERS="MyDataProvider;OtherDataProvider"
     @endverbatim
 
     @section dataprovider_pipelines Data Provider Pipelines

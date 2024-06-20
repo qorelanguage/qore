@@ -88,6 +88,19 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         return prepareRequestIntern(request_type, req, implicit_path_args, backfill_request_body);
     }
 
+    #! Update any connection used by the data provider
+    /** @param conn the new connection object
+    */
+    updateConnectionObject(object conn) {
+        if (!(conn instanceof GoogleRestClient)) {
+            throw "UPDATE-CONNECTION-ERROR", sprintf("Data provider %y requires a \"GoogleRestClient\" object; got "
+                "%y instead", self.className(), conn.className());
+        }
+        rest = cast<GoogleRestClient>(conn);
+        rest.setConnectionPath("/");
+        rest.setLogger(logger);
+    }
+
     #! If the request body should be populated with missing values
     private bool needsBackfillRequestBody() {
         return False;

@@ -335,6 +335,13 @@ public:
     */
     DLLEXPORT bool isDataSecure() const;
 
+    //! Returns the socket connection status
+    /** @return the socket connection status
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT bool isConnected() const;
+
     //! returns the name of the SSL Cipher for the currently-connected control connection, or 0 if there is none
     /**
          @return the name of the SSL Cipher for the currently-connected control connection, or 0 if there is none

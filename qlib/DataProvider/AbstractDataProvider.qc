@@ -2354,6 +2354,19 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         }
     }
 
+    #! Update any connection used by the data provider
+    /** @param conn the new connection object
+
+        This is useful for event-driven providers that require a connection object to generate events.
+
+        Subclasses should implement appropriate logic
+
+        @since DataProvider 3.0
+    */
+    updateConnectionObject(object conn) {
+        # intentially blank
+    }
+
     #! Returns an argument for an expression
     /**
         @since DataProvider 2.3

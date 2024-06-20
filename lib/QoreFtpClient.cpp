@@ -1601,6 +1601,10 @@ bool QoreFtpClient::isDataSecure() const {
     return priv->secure_data;
 }
 
+bool QoreFtpClient::isConnected() const {
+    return priv->control_connected;
+}
+
 const char* QoreFtpClient::getSSLCipherName() const {
     return priv->control.getSSLCipherName();
 }

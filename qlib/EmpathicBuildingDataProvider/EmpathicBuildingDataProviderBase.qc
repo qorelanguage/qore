@@ -60,6 +60,18 @@ public class EmpathicBuildingDataProviderBase inherits DataProvider::AbstractDat
         LoggerWrapper::setLogger(logger);
     }
 
+    #! Update any connection used by the data provider
+    /** @param conn the new connection object
+    */
+    updateConnectionObject(object conn) {
+        if (!(conn instanceof RestClient)) {
+            throw "UPDATE-CONNECTION-ERROR", sprintf("Data provider %y requires a \"RestClient\" object; got "
+                "%y instead", self.className(), conn.className());
+        }
+        rest = cast<RestClient>(conn);
+        rest.setLogger(logger);
+    }
+
     #! Converts a Haltian ms epoch offset to a date/time value
     static date getTimestamp(int epoch_ms) {
         int epoch = epoch_ms / 1000;

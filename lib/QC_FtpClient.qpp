@@ -1283,3 +1283,12 @@ FtpClient::setTimeout(timeout timeout_ms) {
 hash<FtpResponseInfo> FtpClient::sendControlMessage(string cmd, string arg) {
     return f->sendControlMessage(cmd->c_str(), arg->c_str(), xsink);
 }
+
+//! Returns @ref True if the client is connected to the server
+/** @return @ref True if the client is connected to the server
+
+    @since %Qore 2.0.0
+*/
+bool FtpClient::isConnected() {
+    return f->isConnected();
+}
