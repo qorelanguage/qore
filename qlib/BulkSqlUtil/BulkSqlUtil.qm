@@ -24,7 +24,7 @@
 %strict-args
 
 # minimum required Qore version
-%requires qore >= 0.9.0
+%requires qore >= 1.19
 
 # require type definitions everywhere
 %require-types
@@ -39,7 +39,7 @@
 %requires(reexport) SqlUtil
 
 module BulkSqlUtil {
-    version = "1.3";
+    version = "1.3.1";
     desc = "user module performing bulk DML operations with SqlUtil";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -67,8 +67,13 @@ module BulkSqlUtil {
 
     @section bulksqlutil_relnotes Release Notes
 
+    @subsection bulksqlutil_v1_3_1 BulkSqlUtil v1.3.1
+    - fixed a bug executing bulk upsert operations with constant data
+      (<a href="https://github.com/qorelanguage/qore/issues/4902">issue 4902</a>)
+
     @subsection bulksqlutil_v1_3 BulkSqlUtil v1.3
-    - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement"
+    - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the
+      @ref Qore::SQL::SQLStatement "SQLStatement"
 
     @subsection bulksqlutil_v1_2 BulkSqlUtil v1.2
     - updated the module to support drivers without bulk DML

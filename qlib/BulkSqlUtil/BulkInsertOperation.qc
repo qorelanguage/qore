@@ -21,19 +21,6 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 */
-%strict-args
-
-# minimum required Qore version
-%requires qore >= 0.9.0
-
-# require type definitions everywhere
-%require-types
-
-# enable all warnings
-%enable-all-warnings
-
-# assume local scope for variables, do not use "$" signs
-%new-style
 
 #! the BulkSqlUtil namespace. All classes used in the BulkSqlUtil module should be inside this namespace
 public namespace BulkSqlUtil {
