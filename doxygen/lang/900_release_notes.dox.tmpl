@@ -65,6 +65,9 @@
       @ref NOTHING
 
     @subsection qore_2_0_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module
+      - fixed a bug executing bulk upsert operations with constant data
+        (<a href="https://github.com/qorelanguage/qore/issues/4902">issue 4902</a>)
     - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
       - fixed a bug where the I/O thread could stall and no longer ping any connection
         (<a href="https://github.com/qorelanguage/qore/issues/4896">issue 4896</a>)
@@ -76,6 +79,8 @@
       - fixed a bug where the HTTP server did not disconnect idle connections
         (<a href="https://github.com/qorelanguage/qore/issues/4878">issue 4878</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module
+      - fixed a bug in the IN operator
+        (<a href="https://github.com/qorelanguage/qore/issues/4901">issue 4901</a>)
       - fixed space management on Oracle
         (<a href="https://github.com/qorelanguage/qore/issues/4897">issue 4897</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module

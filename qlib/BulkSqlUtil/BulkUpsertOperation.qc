@@ -21,19 +21,6 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 */
-%strict-args
-
-# minimum required Qore version
-%requires qore >= 0.9.0
-
-# require type definitions everywhere
-%require-types
-
-# enable all warnings
-%enable-all-warnings
-
-# assume local scope for variables, do not use "$" signs
-%new-style
 
 #! the BulkSqlUtil namespace. All classes used in the BulkSqlUtil module should be inside this namespace
 public namespace BulkSqlUtil {
@@ -96,42 +83,49 @@ on_error ds.rollback();
         /** @param target the target table object
             @param opts an optional hash of options for the object as follows:
             - \c "block_size": the number of rows executed at once (default: 1000)
-            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
-            - \c "upsert_strategy": the upsert strategy to use; default SqlUtil::AbstractTable::UpsertAuto; see @ref upsert_options for possible values for the upsert strategy
+            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-
+              style arguments
+            - \c "upsert_strategy": the upsert strategy to use; default SqlUtil::AbstractTable::UpsertAuto; see
+              @ref upsert_options for possible values for the upsert strategy
         */
-        constructor(SqlUtil::Table target, *hash opts) : AbstractBulkOperation("upsert", target, opts) {
+        constructor(SqlUtil::Table target, *hash<auto> opts) : AbstractBulkOperation("upsert", target, opts) {
         }
 
         #! creates the object from the supplied arguments
         /** @param target the target table object
             @param opts an optional hash of options for the object as follows:
             - \c "block_size": the number of rows executed at once (default: 1000)
-            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
-            - \c "upsert_strategy": the upsert strategy to use; default SqlUtil::AbstractTable::UpsertAuto; see @ref upsert_options for possible values for the upsert strategy
+            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-
+              style arguments
+            - \c "upsert_strategy": the upsert strategy to use; default SqlUtil::AbstractTable::UpsertAuto; see
+              @ref upsert_options for possible values for the upsert strategy
         */
-        constructor(SqlUtil::AbstractTable target, *hash opts) : AbstractBulkOperation("upsert", target, opts) {
+        constructor(SqlUtil::AbstractTable target, *hash<auto> opts) : AbstractBulkOperation("upsert", target, opts) {
         }
 
         #! common constructor initialization
-        private init(*hash opts) {
+        private init(*hash<auto> opts) {
             if (opts.upsert_strategy) {
                 upsert_strategy = opts.upsert_strategy.toInt();
-                if (!AbstractTable::UpsertStrategyMap{upsert_strategy})
-                    throw "BULK-UPSERT-ERROR", sprintf("invalid upsert strategy code %y, expecting one of: %y", opts.upsert_strategy, AbstractTable::UpsertStrategyDescriptionMap.values());
-            }
-            else
+                if (!AbstractTable::UpsertStrategyMap{upsert_strategy}) {
+                    throw "BULK-UPSERT-ERROR", sprintf("invalid upsert strategy code %y, expecting one of: %y",
+                        opts.upsert_strategy, AbstractTable::UpsertStrategyDescriptionMap.values());
+                }
+            } else {
                 upsert_strategy = AbstractTable::UpsertAuto;
+            }
 
             AbstractBulkOperation::init(opts);
         }
 
         #! executes bulk DML upserts in the database with internally queued data
         private flushImpl() {
-            if (!upsert)
+            if (!upsert) {
                 upsert = table.getBulkUpsertClosure(hbuf + cval, upsert_strategy);
+            }
 
             # execute the statement on the args
-            upsert(hbuf);
+            upsert(hbuf + cval);
         }
     } # BulkUpsertOperation class
 } # BulkSqlUtil namespace

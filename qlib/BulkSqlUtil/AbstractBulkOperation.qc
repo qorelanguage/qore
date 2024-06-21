@@ -21,19 +21,6 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 */
-%strict-args
-
-# minimum required Qore version
-%requires qore >= 0.9.0
-
-# require type definitions everywhere
-%require-types
-
-# enable all warnings
-%enable-all-warnings
-
-# assume local scope for variables, do not use "$" signs
-%new-style
 
 #! the BulkSqlUtil namespace. All classes used in the BulkSqlUtil module should be inside this namespace
 public namespace BulkSqlUtil {
@@ -90,15 +77,16 @@ on_error ds.rollback();
     public class AbstractBulkOperation {
         public {
             #! option keys for this object
-            const OptionKeys = (
-                "block_size": sprintf("the row block size used for bulk DML / batch operations; default: %y", OptionDefaults.block_size),
+            const OptionKeys = {
+                "block_size": sprintf("the row block size used for bulk DML / batch operations; default: %y",
+                    OptionDefaults.block_size),
                 "info_log": "a call reference / closure for informational logging",
-                );
+            };
 
             #! default option values
-            const OptionDefaults = (
+            const OptionDefaults = {
                 "block_size": 1000,
-                );
+            };
         }
 
         private {
@@ -135,7 +123,8 @@ on_error ds.rollback();
             @param target the target table object
             @param opts an optional hash of options for the object as follows:
             - \c "block_size": the number of rows executed at once (default: 1000)
-            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
+            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-
+              style arguments
         */
         constructor(string name, SqlUtil::Table target, *hash opts) {
             opname = name;
@@ -148,7 +137,8 @@ on_error ds.rollback();
             @param target the target table object
             @param opts an optional hash of options for the object as follows:
             - \c "block_size": the number of rows executed at once (default: 1000)
-            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
+            - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-
+              style arguments
         */
         constructor(string name, SqlUtil::AbstractTable target, *hash opts) {
             opname = name;
@@ -157,7 +147,8 @@ on_error ds.rollback();
         }
 
         #! throws an exception if there is data pending in the internal row data cache; make sure to call flush() or discard() before destroying the object
-        /** @throw BLOCK-ERROR there is unflushed data in the internal row data cache; make sure to call flush() or discard() before destroying the object
+        /** @throw BLOCK-ERROR there is unflushed data in the internal row data cache; make sure to call flush() or
+            discard() before destroying the object
         */
         destructor() {
             if (hbuf.firstValue())
@@ -187,13 +178,21 @@ on_error ds.rollback();
 }
             @endcode
 
-            @param data the input record or record set in case a hash of lists is passed; each hash represents a row (keys are column names and values are column values); when inserting, @ref sql_iop_funcs can also be used.  If at least one hash value is a list, then any non-hash (indicating an @ref sql_iop_funcs "insert opertor hash") and non-list values will be assumed to be constant values for every row and therefore future calls of this method (and overloaded variants) will ignore any values given for such keys and use the values given in the first call.
+            @param data the input record or record set in case a hash of lists is passed; each hash represents a row
+            (keys are column names and values are column values); when inserting, @ref sql_iop_funcs can also be used.
+            If at least one hash value is a list, then any non-hash (indicating an
+            @ref sql_iop_funcs "insert opertor hash") and non-list values will be assumed to be constant values for
+            every row and therefore future calls of this method (and overloaded variants) will ignore any values given
+            for such keys and use the values given in the first call.
 
             @note
-            - the first row passed is taken as a template row; every other row must always have the same keys in the same order, otherwise the results are unpredictable
+            - the first row passed is taken as a template row; every other row must always have the same keys in the
+              same order, otherwise the results are unpredictable
             - if any @ref sql_iop_funcs are used, then they are assumed to be identical in every row
-            - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
-            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource
+            - make sure to call flush() before committing the transaction or discard() before rolling back the
+              transaction or destroying the object when using this method
+            - flush() or discard() needs to be executed individually for each bulk operation object used in the block
+              whereas the DB transaction needs to be committed or rolled back once per datasource
 
             @see
             - flush()
@@ -269,7 +268,7 @@ on_error ds.rollback();
             - flush()
             - discard()
         */
-        queueData(list l) {
+        queueData(list<auto> l) {
             if (l.empty())
                 return;
 
@@ -293,7 +292,7 @@ on_error ds.rollback();
                 flushIntern();
             }
 
-            foreach hash row in (l) {
+            foreach hash<auto> row in (l) {
                 # add row data to block buffer
                 map hbuf.$1 += row.$1, keys hbuf;
             }
@@ -316,18 +315,19 @@ on_error ds.rollback();
         }
 
         #! common constructor initialization
-        private init(*hash opts) {
+        private init(*hash<auto> opts) {
             block_size = opts.block_size ?? OptionDefaults.block_size;
 
             if (block_size < 1)
-                throw "BULK-SQL-OPERATION-ERROR", sprintf("the block_size option is set to %d; this value must be >= 1", block_size);
+                throw "BULK-SQL-OPERATION-ERROR", sprintf("the block_size option is set to %d; this value must "
+                    "be >= 1", block_size);
 
             if (opts.info_log)
                 info_log = opts.info_log;
         }
 
         #! sets up the block buffer given the initial template hash of lists for inserting
-        private setupInitialRowColumns(hash row) {
+        private setupInitialRowColumns(hash<auto> row) {
             # ensure we have at least one list of columns values
             bool has_list;
             foreach auto val in (row.iterator()) {
@@ -348,7 +348,7 @@ on_error ds.rollback();
         }
 
         #! sets up the block buffer given the initial template row for inserting
-        private setupInitialRow(hash row) {
+        private setupInitialRow(hash<auto> row) {
             map hbuf.$1 = (), keys row;
         }
 
@@ -376,8 +376,10 @@ on_error ds.rollback();
             @endcode
 
             @note
-            - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
-            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource
+            - make sure to call flush() before committing the transaction or discard() before rolling back the
+              transaction or destroying the object when using this method
+            - flush() or discard() needs to be executed individually for each bulk operation object used in the block
+              whereas the DB transaction needs to be committed or rolled back once per datasource
 
             @see
             - queueData()
@@ -396,7 +398,8 @@ on_error ds.rollback();
             int bs = hbuf.firstValue().lsize();
             row_count += bs;
             if (info_log)
-                info_log("%s (%s): %d row%s flushed (total %d)", table.getSqlName(), opname, bs, bs == 1 ? "" : "s", row_count);
+                info_log("%s (%s): %d row%s flushed (total %d)", table.getSqlName(), opname, bs, bs == 1 ? "" : "s",
+                    row_count);
             # reset internal buffer
             map hbuf.$1 = (), keys hbuf;
         }
@@ -425,8 +428,10 @@ on_error ds.rollback();
             @endcode
 
             @note
-            - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
-            - flush() or discard() needs to be executed individually for each bulk operation object used in the block whereas the DB transaction needs to be committed or rolled back once per datasource
+            - make sure to call flush() before committing the transaction or discard() before rolling back the
+              transaction or destroying the object when using this method
+            - flush() or discard() needs to be executed individually for each bulk operation object used in the block
+              whereas the DB transaction needs to be committed or rolled back once per datasource
 
             @see
             - queueData()
