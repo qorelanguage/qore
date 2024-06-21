@@ -2230,6 +2230,19 @@ auto v = c.name;
                             }
                         }
 
+                        # make a copy of "info" before modifying
+                        hash<QueryInfo> info0 = info;
+
+                        # add column argument first
+                        string exp0;
+                        if (val.typeCode() == NT_STRING) {
+                            # assume column name
+                            exp0 = val;
+                        } else {
+                            exp0 = info.table.getExpressionArg(\info, role, val,
+                                AbstractDataProviderTypeMap."any");
+                        }
+
                         # Split long array to chunks of no more than 32767 elements due to Oracle limitation
                         # "ORA-22165: OCI-22165: given index [32767] must be in the range of [0] to [32766]"
                         int count;
@@ -2253,11 +2266,12 @@ auto v = c.name;
                         }
 
                         if (count) {
-                            string exp0 = info.table.getExpressionArg(\info, role, val,
-                                AbstractDataProviderTypeMap."date");
                             return exp0 + " in (" + (map "select column_value from table(%v)",
                                 xrange(count)).join(" union all ") + ")";
                         }
+                        # restore original info
+                        info = info0;
+                        # return an expression that returns false
                         return "1 != 1";
 %else
                         throw "MISSING-ORACLE-DRIVER", "requires the oracle driver";
