@@ -102,8 +102,8 @@ struct QoreModuleInfo {
     QoreString url;
     int api_major = -1;
     int api_minor = -1;
+    //! either init or init_info can be set
     qore_module_init_t init = nullptr;
-    qore_module_init_info_t init_info = nullptr;
     qore_module_ns_init_t ns_init = nullptr;
     qore_module_delete_t del = nullptr;
     qore_module_parse_cmd_t parse_cmd = nullptr;
@@ -116,6 +116,9 @@ struct QoreModuleInfo {
 
     //! extra information to appear in the module info hash
     QoreHashNode* info = nullptr;
+
+    //! either init or init_info can be set
+    qore_module_init_info_t init_info = nullptr;
 };
 
 //! Module description function
