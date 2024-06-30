@@ -38,8 +38,11 @@ public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
     }
 
     private {
+        #! Dynamic child data providers
+        static hash<string, Reflection::Class> childMap = DefaultChildMap;
+
         #! Child data providers
-        const ChildMap = {
+        const DefaultChildMap = {
             "assistants": Class::forName("OpenAiDataProvider::OpenAiAssistantsDataProvider"),
             "create-assistant": Class::forName("OpenAiDataProvider::OpenAiAssistantCreateDataProvider"),
             "files": Class::forName("OpenAiDataProvider::OpenAiFilesDataProvider"),
@@ -66,16 +69,25 @@ public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
         return ProviderInfo.name;
     }
 
+    #! Register a new child data provider for Discord guilds
+    static registerChild(string pathname, Reflection::Class cls) {
+        if (childMap{pathname}) {
+            throw "OPENAI-CHILD-ERROR", sprintf("child %y already registered", pathname);
+        }
+
+        childMap{pathname} = cls;
+    }
+
     #! Return data provider summary info
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
+        return map $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator();
     }
 
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
-        return keys ChildMap;
+        return keys childMap;
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -84,7 +96,7 @@ public class OpenAiDataProvider inherits OpenAiDataProviderCommon {
         @see getChildProviderEx()
     */
     private *AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = ChildMap{name};
+        *Class cls = childMap{name};
         if (!cls) {
             return;
         }

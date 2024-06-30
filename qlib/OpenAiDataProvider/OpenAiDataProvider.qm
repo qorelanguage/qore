@@ -266,7 +266,7 @@ module OpenAiDataProvider {
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! OpenAI app name
-const AppName = "OpenAI";
+public const AppName = "OpenAI";
 
 #! Logo file
 const OpenAiLogo = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>
