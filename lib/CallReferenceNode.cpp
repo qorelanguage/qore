@@ -38,6 +38,14 @@
 #include <cstdlib>
 #include <cstring>
 
+OptionalCallReferenceAccessHelper::OptionalCallReferenceAccessHelper(ExceptionSink* xsink,
+        AbstractCallReferenceNode* ref) : xsink(xsink), ref(ref) {
+    if (!ref->optRef()) {
+        xsink->raiseException("CALL-REFERENCE-ERROR", "Cannot access a call reference that has already been deleted");
+        ref = nullptr;
+    }
+}
+
 CallReferenceCallNode::CallReferenceCallNode(const QoreProgramLocation* loc, QoreValue n_exp,
         QoreParseListNode* n_args) : ParseNode(loc, NT_FUNCREFCALL), exp(n_exp), parse_args(n_args) {
 }
@@ -137,6 +145,11 @@ AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval, bool n_t
 }
 
 AbstractCallReferenceNode::~AbstractCallReferenceNode() {
+}
+
+bool AbstractCallReferenceNode::derefImpl(ExceptionSink* xsink) {
+    weakDeref();
+    return false;
 }
 
 // parse types should never be copied

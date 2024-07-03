@@ -68,3 +68,13 @@ bool QoreReferenceCounter::ROdereference() const {
 #endif
    return references.fetch_sub(1) == 1 ? true : false;
 }
+
+bool QoreReferenceCounter::optRef() {
+    int old_value = references.load();
+    do {
+        if (!old_value) {
+            return false;
+        }
+    } while (!references.compare_exchange_weak(old_value, old_value + 1));
+    return true;
+}

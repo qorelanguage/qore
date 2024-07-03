@@ -74,35 +74,34 @@ static void break_deref() {}
 void AbstractQoreNode::ref() const {
 #ifdef DEBUG
 /*
-   if (test(this)) {
-      printd(0, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), reference_count(), reference_count() + 1);
-      break_ref();
-   }
+    if (test(this)) {
+        printd(0, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), reference_count(), reference_count() + 1);
+        break_ref();
+    }
 */
 #if TRACK_REFS
-   if (type == NT_OBJECT) {
-      const QoreObject *o = reinterpret_cast<const QoreObject*>(this);
-      printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d object (%d->%d) object: %p, class: %s\n", this, type, references.load(), references.load() + 1, o, o->getClass()->getName());
-   }
-   else
-      printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references.load(), references.load() + 1);
+    if (type == NT_OBJECT) {
+        const QoreObject *o = reinterpret_cast<const QoreObject*>(this);
+        printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d object (%d->%d) object: %p, class: %s\n", this, type, references.load(), references.load() + 1, o, o->getClass()->getName());
+    } else
+        printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references.load(), references.load() + 1);
 #endif
 #endif
-   if (!there_can_be_only_one) {
-      if (custom_reference_handlers)
-         customRef();
-      else
-         ROreference();
-   }
+    if (!there_can_be_only_one) {
+        if (custom_reference_handlers)
+            customRef();
+        else
+            ROreference();
+    }
 }
 
 AbstractQoreNode* AbstractQoreNode::refSelf() const {
-   ref();
-   return const_cast<AbstractQoreNode*>(this);
+    ref();
+    return const_cast<AbstractQoreNode*>(this);
 }
 
 bool AbstractQoreNode::derefImpl(ExceptionSink* xsink) {
-   return true;
+    return true;
 }
 
 void AbstractQoreNode::customRef() const {
@@ -114,7 +113,7 @@ void AbstractQoreNode::customDeref(ExceptionSink* xsink) {
 }
 
 void AbstractQoreNode::deref(ExceptionSink* xsink) {
-   //QORE_TRACE("AbstractQoreNode::deref()");
+    //QORE_TRACE("AbstractQoreNode::deref()");
 #ifdef DEBUG
 /*
     if (test(this)) {

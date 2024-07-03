@@ -40,44 +40,54 @@
 
 class QoreThreadLock;
 
-//! provides atomic reference counting to Qore objects
+//! Provides atomic reference counting to Qore objects
 class QoreReferenceCounter {
-protected:
-   mutable std::atomic_int references;
-
 public:
-   //! creates the reference counter object
-   DLLEXPORT QoreReferenceCounter();
+    //! Creates the reference counter object
+    DLLEXPORT QoreReferenceCounter();
 
-   //! creates a new object with a reference count of 1
-   /** @since %Qore 0.8.12.9
+    //! Creates a new object with a reference count of 1
+    /** @since %Qore 0.8.12.9
     */
-   DLLEXPORT QoreReferenceCounter(const QoreReferenceCounter& old);
+    DLLEXPORT QoreReferenceCounter(const QoreReferenceCounter& old);
 
-   //! destroys the reference counter object
-   DLLEXPORT ~QoreReferenceCounter();
+    //! destroys the reference counter object
+    DLLEXPORT ~QoreReferenceCounter();
 
-   //! gets the reference count
-   /**
-      @return returns the current reference count
-   */
-   DLLEXPORT int reference_count() const;
+    //! Gets the reference count
+    /**
+        @return returns the current reference count
+    */
+    DLLEXPORT int reference_count() const;
 
-   //! returns true if the reference count is 1
-   /**
-      @return returns true if the reference count is 1
-   */
-   DLLEXPORT bool is_unique() const;
+    //! Returns true if the reference count is 1
+    /**
+        @return returns true if the reference count is 1
+    */
+    DLLEXPORT bool is_unique() const;
 
-   //! atomically increments the reference count
-   DLLEXPORT void ROreference() const;
+    //! Atomically increments the reference count
+    DLLEXPORT void ROreference() const;
 
-   //! atomically decrements the reference count
-   /**
-      returns true if the reference count is now zero
-      @return true if the reference count is now zero
-   */
-   DLLEXPORT bool ROdereference() const;
+    //! Atomically decrements the reference count
+    /**
+        returns true if the reference count is now zero
+
+        @return true if the reference count is now zero
+    */
+    DLLEXPORT bool ROdereference() const;
+
+    //! Make a strong reference only if the object is valid
+    /** @return true if the reference was made (current reference count > 0), in which case a ROdereference()
+        operation must also be made when releasing the object
+
+        @note This function only makes sense in case this class is used for a strong reference count and there is a
+        valid (externally-tracked) weak reference count for the object
+    */
+    DLLEXPORT bool optRef();
+
+protected:
+    mutable std::atomic_int references;
 };
 
 #endif // _QORE_QOREREFERENCECOUNTER_H

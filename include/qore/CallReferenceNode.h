@@ -37,32 +37,6 @@
 /** cannot be a ParseNode or SimpleQoreNode because we require deref(xsink)
  */
 class AbstractCallReferenceNode : public AbstractQoreNode {
-private:
-    //! this function will never be executed for parse types; this function should never be called directly
-    /** in debug mode this function calls assert(false)
-        */
-    DLLLOCAL virtual AbstractQoreNode* realCopy() const;
-
-    //! this function will never be executed for parse types; this function should never be called directly
-    /** in debug mode this function calls assert(false)
-        */
-    DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const;
-
-    //! this function will never be executed for parse types; this function should never be called directly
-    /** in debug mode this function calls assert(false)
-        */
-    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
-
-protected:
-    //! this function should never be called for function references; this function should never be called directly
-    /** in debug mode this function calls assert(false)
-        */
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-    //! protected constructor for subclasses that are not reference-counted
-    DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one,
-            qore_type_t n_type = NT_FUNCREF);
-
 public:
     DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval = false, qore_type_t n_type = NT_FUNCREF);
 
@@ -70,7 +44,7 @@ public:
 
     //! returns false unless perl-boolean-evaluation is enabled, in which case it returns true
     /** @return false unless perl-boolean-evaluation is enabled, in which case it returns true
-        */
+    */
     DLLEXPORT virtual bool getAsBoolImpl() const;
 
     //! concatenate the verbose string representation of the value to an existing QoreString
@@ -98,9 +72,93 @@ public:
     //! returns the type name as a c string
     DLLLOCAL virtual const char* getTypeName() const;
 
+    //! Returns a non-const ptr to the same object after increasing the reference count
+    DLLLOCAL AbstractCallReferenceNode* refSelf() const {
+        ref();
+        return const_cast<AbstractCallReferenceNode*>(this);
+    }
+
     DLLLOCAL static const char* getStaticTypeName() {
         return "call reference";
     }
+
+    //! Decrements the reference count
+    /** Called when the strong reference count reaches zero; must free all memory owned by the object; the weak
+        reference count is decremented, and if it reaches zero, then the object is deleted
+
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return always returns false
+    */
+    DLLEXPORT virtual bool derefImpl(ExceptionSink* xsink);
+
+    //! Increments the weak reference count
+    DLLLOCAL void weakRef() {
+        weak_refs.ROreference();
+    }
+
+    //! Decrements the weak reference count
+    DLLLOCAL void weakDeref() {
+        if (weak_refs.ROdereference()) {
+            delete this;
+        }
+    }
+
+protected:
+    //! weak references
+    QoreReferenceCounter weak_refs;
+
+    //! this function should never be called for function references; this function should never be called directly
+    /** in debug mode this function calls assert(false)
+    */
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    //! protected constructor for subclasses that are not reference-counted
+    DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one,
+            qore_type_t n_type = NT_FUNCREF);
+
+private:
+    //! this function will never be executed for parse types; this function should never be called directly
+    /** in debug mode this function calls assert(false)
+    */
+    DLLLOCAL virtual AbstractQoreNode* realCopy() const;
+
+    //! this function will never be executed for parse types; this function should never be called directly
+    /** in debug mode this function calls assert(false)
+    */
+    DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const;
+
+    //! this function will never be executed for parse types; this function should never be called directly
+    /** in debug mode this function calls assert(false)
+    */
+    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
+};
+
+class OptionalCallReferenceAccessHelper {
+public:
+    DLLLOCAL OptionalCallReferenceAccessHelper(ExceptionSink* xsink, AbstractCallReferenceNode* ref);
+
+    DLLLOCAL ~OptionalCallReferenceAccessHelper() {
+        if (ref) {
+            ref->deref(xsink);
+        }
+    }
+
+    DLLLOCAL operator bool() const {
+        return ref ? true : false;
+    }
+
+    DLLLOCAL const AbstractCallReferenceNode* operator*() const {
+        return ref;
+    }
+
+    DLLLOCAL AbstractCallReferenceNode* operator*() {
+        return ref;
+    }
+
+protected:
+    ExceptionSink* xsink;
+    AbstractCallReferenceNode* ref;
 };
 
 class QoreFunction;
@@ -119,8 +177,10 @@ public:
 
     //! pure virtual function for executing the function reference
     /** executes the function reference and returns the value returned
+
         @param args the arguments to the function
         @param xsink any Qore-language exception thrown (and not handled) will be added here
+
         @return a pointer to an AbstractQoreNode, the caller owns the reference count returned (can also be nullptr)
     */
     DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const = 0;
