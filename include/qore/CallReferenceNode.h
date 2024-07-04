@@ -82,32 +82,7 @@ public:
         return "call reference";
     }
 
-    //! Decrements the reference count
-    /** Called when the strong reference count reaches zero; must free all memory owned by the object; the weak
-        reference count is decremented, and if it reaches zero, then the object is deleted
-
-        @param xsink if an error occurs, the Qore-language exception information will be added here
-
-        @return always returns false
-    */
-    DLLEXPORT virtual bool derefImpl(ExceptionSink* xsink);
-
-    //! Increments the weak reference count
-    DLLLOCAL void weakRef() {
-        weak_refs.ROreference();
-    }
-
-    //! Decrements the weak reference count
-    DLLLOCAL void weakDeref() {
-        if (weak_refs.ROdereference()) {
-            delete this;
-        }
-    }
-
 protected:
-    //! weak references
-    QoreReferenceCounter weak_refs;
-
     //! this function should never be called for function references; this function should never be called directly
     /** in debug mode this function calls assert(false)
     */
@@ -136,7 +111,7 @@ private:
 
 class OptionalCallReferenceAccessHelper {
 public:
-    DLLLOCAL OptionalCallReferenceAccessHelper(ExceptionSink* xsink, AbstractCallReferenceNode* ref);
+    DLLEXPORT OptionalCallReferenceAccessHelper(ExceptionSink* xsink, AbstractCallReferenceNode* ref);
 
     DLLLOCAL ~OptionalCallReferenceAccessHelper() {
         if (ref) {
@@ -214,6 +189,32 @@ public:
 
     // the following function must be defined, but is never called
     DLLEXPORT virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    //! Increments the weak reference count
+    DLLLOCAL void weakRef() {
+        weak_refs.ROreference();
+    }
+
+    //! Decrements the weak reference count
+    DLLLOCAL void weakDeref() {
+        if (weak_refs.ROdereference()) {
+            delete this;
+        }
+    }
+
+protected:
+    //! weak references
+    QoreReferenceCounter weak_refs;
+
+    //! Called when the strong reference count reaches zero
+    /** This function must free all memory owned by the object; the weak reference count is decremented, and if it
+        reaches zero, the object is deleted
+
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return always returns false
+    */
+    DLLEXPORT virtual bool derefImpl(ExceptionSink* xsink);
 };
 
 #endif

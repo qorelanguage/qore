@@ -122,7 +122,8 @@ protected:
     DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-    DLLLOCAL StaticMethodCallReferenceNode(const QoreProgramLocation* loc, const QoreMethod *n_method, QoreProgram *n_pgm, const qore_class_private* n_class_ctx);
+    DLLLOCAL StaticMethodCallReferenceNode(const QoreProgramLocation* loc, const QoreMethod *n_method,
+            QoreProgram *n_pgm, const qore_class_private* n_class_ctx);
 
     DLLLOCAL ~StaticMethodCallReferenceNode() {
         assert(!pgm);

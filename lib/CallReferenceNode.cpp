@@ -147,11 +147,6 @@ AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval, bool n_t
 AbstractCallReferenceNode::~AbstractCallReferenceNode() {
 }
 
-bool AbstractCallReferenceNode::derefImpl(ExceptionSink* xsink) {
-    weakDeref();
-    return false;
-}
-
 // parse types should never be copied
 AbstractQoreNode* AbstractCallReferenceNode::realCopy() const {
     assert(false);
@@ -200,6 +195,11 @@ bool AbstractCallReferenceNode::getAsBoolImpl() const {
     if (runtime_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
         return false;
     return true;
+}
+
+bool ResolvedCallReferenceNode::derefImpl(ExceptionSink* xsink) {
+    weakDeref();
+    return false;
 }
 
 ParseObjectMethodReferenceNode::ParseObjectMethodReferenceNode(const QoreProgramLocation* loc, QoreValue n_exp,
