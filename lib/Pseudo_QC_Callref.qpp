@@ -92,3 +92,18 @@ if (n.callp())
 bool <callref>::callp() [flags=CONSTANT] {
     return true;
 }
+
+//! Return a unique string for the call reference or closure independent of the target
+/** @return a unique string for the call reference or closure independent of the target
+
+    @note an SHA1 hash is created with a random salt created when the %Qore library is initialized and the internal
+    pointer address
+
+    @since %Qore 2.0
+ */
+string <callref>::uniqueHash() [flags=CONSTANT] {
+    QoreStringNode* rv = new QoreStringNode;
+    qore_get_ptr_hash(*rv, c);
+    return rv;
+}
+

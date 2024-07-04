@@ -59,7 +59,7 @@ switch (o.typeCode()) {
     @endcode
  */
 int <object>::typeCode() [flags=CONSTANT] {
-   return NT_OBJECT;
+    return NT_OBJECT;
 }
 
 //! returns @ref True in all cases for objects
@@ -76,7 +76,7 @@ bool b = n.complexType();
     @since %Qore 0.8.13
 */
 bool <object>::complexType() [flags=CONSTANT] {
-   return true;
+    return true;
 }
 
 //! Returns a list of member names of the object; if called from outside the object, only public members are returned
@@ -89,7 +89,7 @@ list<string> l = o.keys();
     @endcode
  */
 list<string> <object>::keys() [flags=RET_VALUE_ONLY] {
-   return obj->getMemberList(xsink);
+    return obj->getMemberList(xsink);
 }
 
 //! Returns the first member name in the object or @ref nothing if the object has no members; if called from outside the object, the first public member name is returned (if any)
@@ -104,7 +104,7 @@ list<string> <object>::keys() [flags=RET_VALUE_ONLY] {
     @see <object>::lastKey()
  */
 *string <object>::firstKey() [flags=RET_VALUE_ONLY] {
-   return qore_object_private::firstKey(obj, xsink);
+    return qore_object_private::firstKey(obj, xsink);
 }
 
 //! Returns the last member name in the object or @ref nothing if the object has no members; if called from outside the object, the last public member name is returned (if any)
@@ -119,7 +119,7 @@ list<string> <object>::keys() [flags=RET_VALUE_ONLY] {
     @see <object>::firstKey()
  */
 *string <object>::lastKey() [flags=RET_VALUE_ONLY] {
-   return qore_object_private::lastKey(obj, xsink);
+    return qore_object_private::lastKey(obj, xsink);
 }
 
 //! Returns @ref True if the object has no public or private members, @ref False if it does
@@ -133,7 +133,7 @@ bool b = o.empty();
     @endcode
  */
 bool <object>::empty() [flags=RET_VALUE_ONLY] {
-   return !obj->size(xsink);
+    return !obj->size(xsink);
 }
 
 //! Returns the number of members in the object, public and private
@@ -148,7 +148,7 @@ int num = o.size();
     @see <object>::sizep()
  */
 int <object>::size() [flags=RET_VALUE_ONLY] {
-   return obj->size(xsink);
+    return obj->size(xsink);
 }
 
 //! Returns the class name of the object
@@ -163,7 +163,7 @@ string cn = o.className();
     @note equivalent to get_class_name()
  */
 string <object>::className() [flags=CONSTANT] {
-   return new QoreStringNode(obj->getClassName());
+    return new QoreStringNode(obj->getClassName());
 }
 
 //! Returns @ref True if the object is a system object (ie a constant object like @ref stdin, etc), @ref False if not
@@ -176,7 +176,7 @@ bool b = i.isSystem();
     @endcode
  */
 bool <object>::isSystem() [flags=CONSTANT] {
-   return obj->isSystemObject();
+    return obj->isSystemObject();
 }
 
 //! Returns @ref False if the object has no public or private members, @ref True if it does
@@ -194,7 +194,7 @@ bool b = o.val();
     - @ref strict-bool-eval "%strict-bool-eval"
  */
 bool <object>::val() [flags=RET_VALUE_ONLY] {
-   return (bool)obj->size(xsink);
+    return (bool)obj->size(xsink);
 }
 
 // bool <object>::hasKey(softstring key) [flags=RET_VALUE_ONLY] {}
@@ -211,7 +211,7 @@ map printf("+ %y\n", $1), obj.iterator();
     @since %Qore 0.8.6
  */
 AbstractIterator <object>::iterator() [flags=CONSTANT] {
-   return new QoreObject(QC_OBJECTITERATOR, 0, new QoreObjectIterator(obj));
+    return new QoreObject(QC_OBJECTITERATOR, 0, new QoreObjectIterator(obj));
 }
 
 //! Returns a @ref Qore::ObjectKeyIterator "ObjectKeyIterator" object for the object, iterating the object's members
@@ -225,7 +225,7 @@ map printf("+ %s\n", $1), obj.keyIterator();
     @since %Qore 0.8.6.2
  */
 ObjectKeyIterator <object>::keyIterator() [flags=CONSTANT] {
-   return new QoreObject(QC_OBJECTKEYITERATOR, 0, new QoreObjectIterator(obj));
+    return new QoreObject(QC_OBJECTKEYITERATOR, 0, new QoreObjectIterator(obj));
 }
 
 //! Returns a @ref Qore::ObjectPairIterator "ObjectPairIterator" object for the object's members
@@ -262,7 +262,7 @@ bool b = obj.hasCallableMethod("getStatus");
     @since %Qore 0.8.8
  */
 bool <object>::hasCallableMethod(string name) [flags=CONSTANT] {
-   return qore_class_private::runtimeHasCallableMethod(*(obj->getClass()), name->getBuffer());
+    return qore_class_private::runtimeHasCallableMethod(*(obj->getClass()), name->getBuffer());
 }
 
 //! Returns @ref True "True" if the given non-static method exists and is callable from the current context
@@ -285,7 +285,7 @@ bool b = obj.hasCallableNormalMethod("getStatus");
     @since %Qore 0.8.8
  */
 bool <object>::hasCallableNormalMethod(string name) [flags=CONSTANT] {
-   return qore_class_private::runtimeHasCallableNormalMethod(*(obj->getClass()), name->getBuffer());
+    return qore_class_private::runtimeHasCallableNormalMethod(*(obj->getClass()), name->getBuffer());
 }
 
 //! Returns @ref True "True" if the given static method exists and is callable from the current context
@@ -307,7 +307,7 @@ bool b = obj.hasCallableStaticMethod("getStatus");
     @since %Qore 0.8.8
  */
 bool <object>::hasCallableStaticMethod(string name) [flags=CONSTANT] {
-   return qore_class_private::runtimeHasCallableStaticMethod(*(obj->getClass()), name->getBuffer());
+    return qore_class_private::runtimeHasCallableStaticMethod(*(obj->getClass()), name->getBuffer());
 }
 
 //! Returns @ref True since objects can return a non-zero size
@@ -318,7 +318,7 @@ bool <object>::hasCallableStaticMethod(string name) [flags=CONSTANT] {
     @since %Qore 0.8.9
 */
 bool <object>::sizep() [flags=CONSTANT] {
-   return true;
+    return true;
 }
 
 //! Return a unique string for the data independent of the content
@@ -329,9 +329,9 @@ bool <object>::sizep() [flags=CONSTANT] {
     @since %Qore 0.8.12
  */
 string <object>::uniqueHash() [flags=CONSTANT] {
-   QoreStringNode* rv = new QoreStringNode;
-   qore_get_ptr_hash(*rv, obj);
-   return rv;
+    QoreStringNode* rv = new QoreStringNode;
+    qore_get_ptr_hash(*rv, obj);
+    return rv;
 }
 
 //! resolve the string as a call reference
