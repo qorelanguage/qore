@@ -39,10 +39,10 @@
 #include <cstring>
 
 OptionalCallReferenceAccessHelper::OptionalCallReferenceAccessHelper(ExceptionSink* xsink,
-        AbstractCallReferenceNode* ref) : xsink(xsink), ref(ref) {
+        ResolvedCallReferenceNode* ref) : xsink(xsink), ref(ref) {
     if (!ref->optRef()) {
         xsink->raiseException("CALL-REFERENCE-ERROR", "Cannot access a call reference that has already been deleted");
-        ref = nullptr;
+        this->ref = nullptr;
     }
 }
 
@@ -529,7 +529,7 @@ bool StaticMethodCallReferenceNode::derefImpl(ExceptionSink* xsink) {
 #ifdef DEBUG
     pgm = nullptr;
 #endif
-    return true;
+    return ResolvedCallReferenceNode::derefImpl(xsink);
 }
 
 QoreValue StaticMethodCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
@@ -554,7 +554,7 @@ bool MethodCallReferenceNode::derefImpl(ExceptionSink* xsink) {
     //printd(5, "MethodCallReferenceNode::deref() this: %p pgm: %p refs: %d -> %d\n", this, pgm, reference_count(),
     //  reference_count() - 1);
     obj->tDeref();
-    return true;
+    return ResolvedCallReferenceNode::derefImpl(xsink);
 }
 
 QoreValue MethodCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
@@ -671,7 +671,7 @@ bool FunctionCallReferenceNode::derefImpl(ExceptionSink* xsink) {
     //printd(5, "FunctionCallReferenceNode::deref() this: %p pgm: %p refs: %d -> %d\n", this, pgm, reference_count(),
     //  reference_count() - 1);
     pgm->depDeref();
-    return true;
+    return ResolvedCallReferenceNode::derefImpl(xsink);
 }
 
 QoreValue FunctionCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {

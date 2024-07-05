@@ -109,33 +109,6 @@ private:
     DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
 };
 
-class OptionalCallReferenceAccessHelper {
-public:
-    DLLEXPORT OptionalCallReferenceAccessHelper(ExceptionSink* xsink, AbstractCallReferenceNode* ref);
-
-    DLLLOCAL ~OptionalCallReferenceAccessHelper() {
-        if (ref) {
-            ref->deref(xsink);
-        }
-    }
-
-    DLLLOCAL operator bool() const {
-        return ref ? true : false;
-    }
-
-    DLLLOCAL const AbstractCallReferenceNode* operator*() const {
-        return ref;
-    }
-
-    DLLLOCAL AbstractCallReferenceNode* operator*() {
-        return ref;
-    }
-
-protected:
-    ExceptionSink* xsink;
-    AbstractCallReferenceNode* ref;
-};
-
 class QoreFunction;
 
 //! base class for resolved call references
@@ -215,6 +188,33 @@ protected:
         @return always returns false
     */
     DLLEXPORT virtual bool derefImpl(ExceptionSink* xsink);
+};
+
+class OptionalCallReferenceAccessHelper {
+public:
+    DLLEXPORT OptionalCallReferenceAccessHelper(ExceptionSink* xsink, ResolvedCallReferenceNode* ref);
+
+    DLLLOCAL ~OptionalCallReferenceAccessHelper() {
+        if (ref) {
+            ref->deref(xsink);
+        }
+    }
+
+    DLLLOCAL operator bool() const {
+        return ref ? true : false;
+    }
+
+    DLLLOCAL const AbstractCallReferenceNode* operator*() const {
+        return ref;
+    }
+
+    DLLLOCAL AbstractCallReferenceNode* operator*() {
+        return ref;
+    }
+
+protected:
+    ExceptionSink* xsink;
+    ResolvedCallReferenceNode* ref;
 };
 
 #endif
