@@ -139,7 +139,7 @@ public class GoogleApiDataProvider inherits GoogleDataProviderBase {
                 api, resource_action, keys requests);
         }
 
-        AbstractDataProviderType request_type = path_args ? getRequestTypeImpl() : info.request_type;
+        AbstractDataProviderType request_type = path_args ? getGoogleRequestType() : info.request_type;
 
         *hash<auto> req_info = prepareRequestIntern(request_type, req, path_args,
             in_backfill ? False : needsBackfillRequestBody());
@@ -161,6 +161,11 @@ public class GoogleApiDataProvider inherits GoogleDataProviderBase {
         return req_info + {
             "pathstr": info_map{api}.basePath + path,
         };
+    }
+
+    #! Returns the Google request type for the operation
+    private AbstractDataProviderType getGoogleRequestType() {
+        return getRequestTypeImpl();
     }
 
     #! Returns data provider static info

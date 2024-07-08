@@ -78,6 +78,15 @@ module SmtpClient {
             "short_desc": "Send an email through a generic SMTP server",
             "desc": "Send an email through a generic SMTP server",
             "action_code": DPAT_API,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                SmtpSendEmailRequestDataType::Fields{"sender", "to", "subject", "body"}, {
+                    "preselected": True,
+                    "required": True,
+                }
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                SmtpSendEmailRequestDataType::Fields - ("to", "subject", "body")
+            ),
             "output_type": SmtpSendEmailResponseDataType,
         });
     };
@@ -1698,16 +1707,19 @@ public class SmtpClientSendEmailDataProvider inherits AbstractDataProvider {
 
 #! SMTP attachment type
 public class SmtpSendEmailAttachmentDataType inherits HashDataType {
-    private {
+    public {
         #! Field descriptions
         const Fields = {
             "data": {
+                "display_name": "Attachment Data",
                 "type": DataType,
+                "short_desc": "The data for the attachment",
                 "desc": "The data for the attachment",
-                "required": True,
             },
             "encoding": {
+                "display_name": "Attachment Encoding",
                 "type": StringType,
+                "short_desc": "The encoding to use for the attachment",
                 "desc": "The encoding to use for the attachment:\n"
                     "- `default`: `quoted-printable` for string data, `base64` for binary data\n"
                     "- `none`: no content encoding (not recommended)\n"
@@ -1716,48 +1728,62 @@ public class SmtpSendEmailAttachmentDataType inherits HashDataType {
                 "default_value": "default",
             },
             "hdr": {
+                "display_name": "Headers",
                 "type": HashOrNothingType,
+                "short_desc": "Optional headers to send with the attachment",
                 "desc": "Optional headers to send with the attachment",
             },
             "mime-type": {
+                "display_name": "Mime Type",
                 "type": StringType,
+                "short_desc": "The MIME type of the attachment",
                 "desc": "The MIME type of the attachment",
-                "required": True,
             },
             "name": {
+                "display_name": "Name",
                 "type": StringType,
+                "short_desc": "The name or filename of the attachment",
                 "desc": "The name or filename of the attachment",
-                "required": True,
             },
         };
     }
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 
+#! SMTP attachment type
+public const SmtpSendEmailAttachmentDataType = new SmtpSendEmailAttachmentDataType();
+
 #! SMTP send email request type
 public class SmtpSendEmailRequestDataType inherits HashDataType {
-    private {
+    public {
         #! Field descriptions
         const Fields = {
             "attachments": {
-                "type": new SoftListDataType(new SmtpSendEmailAttachmentDataType(), True),
+                "display_name": "Attachments",
+                "type": new SoftListDataType(SmtpSendEmailAttachmentDataType, True),
+                "short_desc": "Message attachments",
                 "desc": "Any attachments for the message",
             },
             "bcc": {
+                "display_name": "BCC",
                 "type": new SoftListDataType(StringType, True),
+                "short_desc": "Blind carbon copy addresses",
                 "desc": "One or more `Bcc:` addresses for the email",
             },
             "body": {
+                "display_name": "Message Body",
                 "type": DataType,
+                "short_desc": "The message body",
                 "desc": "The message body",
             },
             "body-encoding": {
+                "display_name": "Body Encoding",
                 "type": StringType,
+                "short_desc": "The encoding to use for the attachment",
                 "desc": "The encoding to use for the attachment:\n"
                     "- `default`: `quoted-printable` for string data, `base64` for binary data\n"
                     "- `none`: no content encoding (not recommended)\n"
@@ -1766,24 +1792,33 @@ public class SmtpSendEmailRequestDataType inherits HashDataType {
                 "default_value": "default",
             },
             "body-mime-type": {
+                "display_name": "Body Mime Type",
                 "type": StringOrNothingType,
+                "short_desc": "The MIME type of the message body",
                 "desc": "The MIME type of the message body",
             },
             "cc": {
+                "display_name": "CC",
                 "type": new SoftListDataType(StringType, True),
+                "short_desc": "Carbon copy addresses",
                 "desc": "One or more `Cc:` addresses for the email",
             },
             "sender": {
+                "display_name": "Sender",
                 "type": StringType,
-                "desc": "The sender address for the email",
-                "required": True,
+                "short_desc": "The sender's address for the email",
+                "desc": "The sender's address for the email",
             },
             "subject": {
+                "display_name": "Subject",
                 "type": StringType,
+                "short_desc": "The subject for the email",
                 "desc": "The subject for the email",
             },
             "to": {
+                "display_name": "To",
                 "type": new SoftListDataType(StringType, True),
+                "short_desc": "Message recipient addresses",
                 "desc": "One or more `To:` addresses for the email",
             },
         };
@@ -1791,10 +1826,12 @@ public class SmtpSendEmailRequestDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
+
+#! SMTP send email request type
+public const SmtpSendEmailRequestDataType = new SmtpSendEmailRequestDataType();
 
 #! SMTP send email response info type
 public class SmtpSendEmailResponseInfoDataType inherits HashDataType {

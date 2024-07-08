@@ -79,7 +79,7 @@ module EmpathicBuildingDataProvider {
                     "display_name": "Measurement Data",
                     "short_desc": "Measurement data to post in EmpathicBuilding",
                     "desc": "Measurement data to post in EmpathicBuilding",
-                    "type": "list",
+                    "type": EmpathicBuildingMeasurementsCreateDataProvider::RequestType,
                     "example_value": ({
                         "type": "reservation",
                         "vendor_id": "9977",
@@ -129,7 +129,7 @@ module EmpathicBuildingDataProvider {
                     "display_name": "Poll Interval",
                     "short_desc": "The poll interval as an integer in milliseconds",
                     "desc": "The poll interval as an integer in milliseconds",
-                    "type": "int",
+                    "type": AbstractDataProviderTypeMap."int",
                     "default_value": 10000,
                 },
             },

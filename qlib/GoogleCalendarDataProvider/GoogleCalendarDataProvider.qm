@@ -82,7 +82,7 @@ module GoogleCalendarDataProvider {
                     "short_desc": "The text describing the event to be created",
                     "desc": "The text describing the event to be created; ex: `Appointment at Somewhere on June 3rd "
                         "10am-10:25am`",
-                    "type": "string",
+                    "type": AbstractDataProviderTypeMap."string",
                     "example_value": "Lunch tomorrow at the Burger Bar from 12:30-13:30",
                     "required": True,
                     "preselected": True,
@@ -92,7 +92,7 @@ module GoogleCalendarDataProvider {
                 "sendUpdates": <ActionOptionInfo>{
                     "display_name": "Send Updates",
                     "short_desc": "Guests who should receive notifications about the event update",
-                    "type": "string",
+                    "type": AbstractDataProviderTypeMap."string",
                     "desc": "Guests who should receive notifications about the event update (for example, title changes, "
                         "etc.).\n"
                         "Acceptable values are:\n"

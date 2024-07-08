@@ -129,7 +129,7 @@ public const ActionNameMap = {
 #! Data provider action option definition
 public hashdecl ActionOptionInfo {
     #! Data type of the option
-    string type;
+    AbstractDataProviderType type;
 
     #! Display name of the option
     string display_name;
@@ -793,14 +793,20 @@ public class DataProviderActionCatalog {
             switch (type.typeCode()) {
                 case NT_OBJECT:
                     if (type instanceof AbstractDataProviderType) {
-                        info.type = type.getOptions()."qore.external_name" ?? type.getBaseTypeName();
+                        info.type = type;
+                        #type.getOptions()."qore.external_name" ?? type.getBaseTypeName();
                     } else {
-                        info.type = type.getName();
+                        info.type = AbstractDataProviderType::get(type);
+                        #type.getName();
                     }
                     break;
 
                 case NT_STRING:
-                    info.type = type;
+                    *AbstractDataProviderType datatype = AbstractDataProviderTypeMap{type};
+                    if (!datatype) {
+                        throw "OPTION-ERROR", sprintf("Cannot set option type from unknown type %y", type);
+                    }
+                    info.type = datatype;
                     break;
 
                 default:

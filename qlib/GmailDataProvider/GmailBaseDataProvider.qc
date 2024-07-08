@@ -46,6 +46,7 @@ public class GmailBaseDataProvider inherits GoogleDataProvider::GoogleApiParentD
 
     private {
         const ChildMap = {
+            "send-message": Class::forName("GmailDataProvider::GmailMessageSendDataProvider"),
             "watch": Class::forName("GmailDataProvider::GmailMessageWatchDataProvider"),
             "watch-attachment": Class::forName("GmailDataProvider::GmailAttachmentWatchDataProvider"),
         };

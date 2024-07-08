@@ -204,4 +204,36 @@ public class SoftDateDataProviderStringType inherits DataProvider::QoreSoftStrin
         return exists value ? date(value).format("YYYY-MM-DD") : NOTHING;
     }
 }
+
+#! Data provider type for output types using base64 URL encoding
+public class Base64UrlBinaryOutputType inherits DataProvider::QoreDataType {
+    #! Creates the object
+    constructor() : QoreDataType(DataType) {
+    }
+
+    #! Returns the value after any conversions by the type
+    auto acceptsValue(auto value) {
+        value = QoreDataType::acceptsValue(value);
+        return make_base64_url_string(value);
+    }
+}
+
+#! Constant for output types using base64 URL encoding
+public const Base64UrlBinaryOutputType = new Base64UrlBinaryOutputType();
+
+#! Data provider type for output types using base64 URL encoding
+public class Base64UrlBinaryOutputOrNothingType inherits DataProvider::QoreDataType {
+    #! Creates the object
+    constructor() : QoreDataType(DataOrNothingType) {
+    }
+
+    #! Returns the value after any conversions by the type
+    auto acceptsValue(auto value) {
+        value = QoreDataType::acceptsValue(value);
+        return value ? make_base64_url_string(value) : NOTHING;
+    }
+}
+
+#! Constant for output types using base64 URL encoding
+public const Base64UrlBinaryOutputOrNothingType = new Base64UrlBinaryOutputOrNothingType();
 }

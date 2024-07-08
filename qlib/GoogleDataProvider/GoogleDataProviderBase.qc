@@ -499,9 +499,15 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
                             : AbstractDataProviderTypeMap."softdate";
 
                     case "byte":
-                        return !info.required
-                            ? AbstractDataProviderTypeMap."*base64urlbinary"
-                            : AbstractDataProviderTypeMap."base64urlbinary";
+                        if (for_input) {
+                            return !info.required
+                                ? AbstractDataProviderTypeMap."*base64urlbinary"
+                                : AbstractDataProviderTypeMap."base64urlbinary";
+                        } else {
+                            return !info.required
+                                ? Base64UrlBinaryOutputOrNothingType
+                                : Base64UrlBinaryOutputType;
+                        }
 
                     case "google-duration":
                     case "google-fieldmask":
@@ -516,13 +522,13 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
             case "boolean":
                 return for_input ? (
                         !info.required
-                        ? SoftBoolOrNothingDataProviderStringType
-                        : SoftBoolDataProviderStringType
+                            ? SoftBoolOrNothingDataProviderStringType
+                            : SoftBoolDataProviderStringType
                     )
                     : (
                         !info.required
-                        ? SoftBoolOrNothingDataProviderInputType
-                        : SoftBoolDataProviderInputType
+                            ? SoftBoolOrNothingDataProviderInputType
+                            : SoftBoolDataProviderInputType
                     );
 
             case "number": {

@@ -36,6 +36,7 @@
 %requires(reexport) DataProvider
 %requires(reexport) GoogleDataProvider
 %requires(reexport) GoogleRestClient
+%requires MailMessage
 
 module GmailDataProvider {
     version = "1.0";
@@ -73,7 +74,7 @@ module GmailDataProvider {
                     "short_desc": "The gmail search criteria for retrieving the messages",
                     "desc": "The gmail search criteria for retrieving the messages; ex: `in:inbox to:me@gmail.com "
                         "subject:hello is:unread`",
-                    "type": "string",
+                    "type": AbstractDataProviderTypeMap."string",
                     "example_value": "in:inbox to:me@gmail.com subject:hello is:unread",
                     "required": True,
                     "preselected": True,
@@ -84,14 +85,14 @@ module GmailDataProvider {
                     "display_name": "Max Results",
                     "short_desc": "The maximum number of results to return",
                     "desc": "The maximum number of results to return",
-                    "type": "int",
+                    "type": AbstractDataProviderTypeMap."int",
                     "example_value": 20,
                 },
                 "includeSpamTrash": <ActionOptionInfo>{
                     "display_name": "Include Spam and Trash?",
                     "short_desc": "Include the spam and trash folders in the search?",
                     "desc": "Include the spam and trash folders in the search?",
-                    "type": "bool",
+                    "type": AbstractDataProviderTypeMap."bool",
                     "example_value": False,
                 },
                 "labelIds": <ActionOptionInfo>{
@@ -99,14 +100,14 @@ module GmailDataProvider {
                     "short_desc": "Only return messages with labels that match all of the specified label IDs",
                     "desc": "Only return messages with labels that match all of the specified label IDs. Messages in "
                         "a thread might have labels that other messages in the same thread don't have",
-                    "type": "string",
+                    "type": AbstractDataProviderTypeMap."string",
                     "example_value": "my-label1,my-label2",
                 },
                 "pageToken": <ActionOptionInfo>{
                     "display_name": "Page Token",
                     "short_desc": "Page token to retrieve a specific page of results in the list",
                     "desc": "Page token to retrieve a specific page of results in the list",
-                    "type": "string",
+                    "type": AbstractDataProviderTypeMap."string",
                     "example_value": "07142542234962330268",
                 },
             },
@@ -128,7 +129,7 @@ module GmailDataProvider {
                     "display_name": "Message ID",
                     "short_desc": "The ID of the message to retrieve",
                     "desc": "The ID of the message to retrieve",
-                    "type": "string",
+                    "type": AbstractDataProviderTypeMap."string",
                     "example_value": "18c6b13f059fc0bd",
                     "required": True,
                     "preselected": True,
@@ -152,7 +153,7 @@ module GmailDataProvider {
                     "display_name": "Message ID",
                     "short_desc": "The ID of the message with the attachment to retrieve",
                     "desc": "The ID of the message with the attachment to retrieve",
-                    "type": "string",
+                    "type": AbstractDataProviderTypeMap."string",
                     "example_value": "18c6b13f059fc0bd",
                     "required": True,
                     "preselected": True,
@@ -161,7 +162,7 @@ module GmailDataProvider {
                     "display_name": "Attachment ID",
                     "short_desc": "The ID of the attachment to retrieve",
                     "desc": "The ID of the attachment to retrieve",
-                    "type": "string",
+                    "type": AbstractDataProviderTypeMap."string",
                     "example_value": "ANGjdJ_XaqhOlujI0Ii_qoqoUvEtPHEBxk8i7wBtFzfrwzlD8XJjboMO8-UEOI5tnD6LNzwECuhU2Kr"
                         "ihlcUhcfbtA826OgdiAUKVcvPUmxwdldsvrse9SSYTD7U4iyFRUHBp-xguVPKWe7_HggoFiNq8Ei__K-ioSedzakTb1S"
                         "X929xEfy8HKAfdcsKCvr2D0trir4b1beYCSJFiOGiq1lOhBlii_fPoQQYYU_VIn2JyHk-yguNc5NPtvVq0qQle0zWXfy"
@@ -192,7 +193,7 @@ module GmailDataProvider {
                     "short_desc": "The gmail search criteria for matching messages",
                     "desc": "The gmail search criteria for matching messages; ex: `in:inbox to:me@gmail.com "
                         "subject:hello is:unread`",
-                    "type": "string",
+                    "type": AbstractDataProviderTypeMap."string",
                     "example_value": "in:inbox to:me@gmail.com subject:hello is:unread",
                     "required": True,
                     "preselected": True,
@@ -203,7 +204,7 @@ module GmailDataProvider {
                     "display_name": "Delete Messages?",
                     "short_desc": "Delete messages matched?",
                     "desc": "Delete messages matched?",
-                    "type": "bool",
+                    "type": AbstractDataProviderTypeMap."bool",
                 },
                 "poll_interval": <ActionOptionInfo>{
                     "display_name": "Poll Interval",
@@ -211,19 +212,19 @@ module GmailDataProvider {
                     "desc": "How often to check for matching emails in seconds; lower bound 30; lower numbers will "
                         "set the minimum polling period",
                     "default_value": 120,
-                    "type": "int",
+                    "type": AbstractDataProviderTypeMap."int",
                 },
                 "retrieve_attachments": <ActionOptionInfo>{
                     "display_name": "Retrieve Attachments?",
                     "short_desc": "Retrieve attachment data automatically?",
                     "desc": "Retrieve attachment data automatically?",
-                    "type": "bool",
+                    "type": AbstractDataProviderTypeMap."bool",
                 },
                 "start_date": <ActionOptionInfo>{
                     "display_name": "Start Date",
                     "short_desc": "Sets the start date and time for matching messages",
                     "desc": "Sets the start date and time for matching messages",
-                    "type": "date",
+                    "type": AbstractDataProviderTypeMap."date",
                 },
             },
             "get_output_type": AbstractDataProviderType sub () {
@@ -245,7 +246,7 @@ module GmailDataProvider {
                     "short_desc": "The gmail search criteria for matching messages",
                     "desc": "The gmail search criteria for matching messages; ex: `in:inbox to:me@gmail.com "
                         "subject:hello is:unread`",
-                    "type": "string",
+                    "type": AbstractDataProviderTypeMap."string",
                     "example_value": "in:inbox to:me@gmail.com subject:hello is:unread",
                     "required": True,
                     "preselected": True,
@@ -259,7 +260,7 @@ module GmailDataProvider {
                         "attachments are reported; if set, then only attachments matching the pattern are reported; "
                         "by default, the glob pattern is case-insensitive; to make it case-sensitive, set the "
                         "`ignore_case` option to `false`",
-                    "type": "string",
+                    "type": AbstractDataProviderTypeMap."string",
                     "example_value": "*.csv",
                 },
                 "delete_messages": <ActionOptionInfo>{
@@ -267,13 +268,13 @@ module GmailDataProvider {
                     "short_desc": "Delete messages matched?",
                     "desc": "Delete messages matched? Note that all matched messages will be deleted, even if no "
                         "attachments match the attachment criteria",
-                    "type": "bool",
+                    "type": AbstractDataProviderTypeMap."bool",
                 },
                 "ignore_case": <ActionOptionInfo>{
                     "display_name": "Ignore Glob Case?",
                     "short_desc": "Ignore case in globs",
                     "desc": "Ignore case in globs; ignored if `attachment_glob` is not set",
-                    "type": "bool",
+                    "type": AbstractDataProviderTypeMap."bool",
                     "default_value": True,
                 },
                 "poll_interval": <ActionOptionInfo>{
@@ -281,17 +282,39 @@ module GmailDataProvider {
                     "short_desc": "How often to check for matching emails in seconds",
                     "desc": "How often to check for matching emails in seconds; lower bound 30; lower numbers will "
                         "set the minimum polling period",
-                    "type": "int",
+                    "type": AbstractDataProviderTypeMap."int",
                     "default_value": 120,
                 },
                 "start_date": <ActionOptionInfo>{
                     "display_name": "Start Date",
                     "short_desc": "Sets the start date and time for matching messages",
                     "desc": "Sets the start date and time for matching messages",
-                    "type": "date",
+                    "type": AbstractDataProviderTypeMap."date",
                 },
             },
             "output_type": GmailAttachmentEventDataType,
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": GmailDataProvider::AppName,
+            "path": "/send-message",
+            "action": "send-message",
+            "display_name": "Send a Message",
+            "short_desc": "Send a message",
+            "desc": "Send a message",
+            "action_code": DPAT_API,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                GmailSendMessageRequestDataType::Fields{"to", "subject", "body"}, {
+                    "preselected": True,
+                    "required": True,
+                }
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                GmailSendMessageRequestDataType::Fields - ("to", "subject", "body")
+            ),
+            "get_output_type": AbstractDataProviderType sub () {
+                return GoogleDataProviderBase::getResponseTypeForSchema(GoogleDiscoveryGmailApiName,
+                    GmailMessageSendDataProvider::ResourceAction);
+            },
         });
     };
 }
