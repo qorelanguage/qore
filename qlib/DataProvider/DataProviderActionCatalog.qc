@@ -393,11 +393,12 @@ public class DataProviderActionCatalog {
         }
         if (*hash<DataProviderActionInfo> act = app_actionmap{action.app}{action.action}) {
             # ignore duplicates to cover injection scenarios
-            if (action == act) {
+            if (!DataProviderActionCatalog::compareActions(action, act)) {
                 return;
             }
-            throw "ACTION-ERROR", sprintf("action with application %y, action %y already registered: %y", act.app,
-                act.action, act);
+            list<string> diff = map $1.key, act.pairIterator(), $1.value != action{$1.key};
+            throw "ACTION-ERROR", sprintf("action with application %y, action %y already registered; diff: %y",
+                act.app, act.action, diff);
         }
         # add to caches
         top_actionmap{key} = action;
@@ -412,6 +413,67 @@ public class DataProviderActionCatalog {
         if (action.get_output_type) {
             resolve_output_types{action.app}{action.action} = True;
         }
+    }
+
+    #! Compares two actions for equality
+    /** @return 0 for equal, -1 for not equal
+    */
+    static int compareActions(hash<DataProviderActionInfo> act0, hash<DataProviderActionInfo> act1) {
+        *hash<string, hash<ActionOptionInfo>> co0 = remove act0.convenience_options;
+        *hash<string, hash<ActionOptionInfo>> co1 = remove act1.convenience_options;
+
+        *hash<string, hash<ActionOptionInfo>> ao0 = remove act0.advanced_options;
+        *hash<string, hash<ActionOptionInfo>> ao1 = remove act1.advanced_options;
+
+        if (act0 != act1) {
+            return -1;
+        }
+
+        if (DataProviderActionCatalog::compareOptions(co0, co1)
+            || DataProviderActionCatalog::compareOptions(ao0, ao1)) {
+            return -1;
+        }
+
+        return 0;
+    }
+
+    #! Compares two option hashes for equality
+    /** @return 0 for equal, -1 for not equal
+    */
+    static int compareOptions(*hash<string, hash<ActionOptionInfo>> opt0,
+            *hash<string, hash<ActionOptionInfo>> opt1) {
+        if (opt0.size() != opt1.size()) {
+            return -1;
+        }
+        if (!opt0 && !opt1) {
+            return 0;
+        }
+        foreach hash<auto> i in (opt0.pairIterator()) {
+            *hash<ActionOptionInfo> opt = opt1{i.key};
+            if (!opt) {
+                return -1;
+            }
+            *Type t0 = (remove i.value.type).getValueType();
+            *Type t1 = (remove opt.type).getValueType();
+            if (DataProviderActionCatalog::compareBaseTypes(t0, t1)) {
+                return -1;
+            }
+            if (i.value != opt) {
+                return -1;
+            }
+        }
+        return 0;
+    }
+
+    #! Compares two types for equality
+    static int compareBaseTypes(*Type t0, *Type t1) {
+        if (!t0) {
+            return !t1 ? 0 : -1;
+        }
+        if (!t1) {
+            return -1;
+        }
+        return t0.isEqual(t1) ? 0 : -1;
     }
 
     #! Returns all applications in the cache

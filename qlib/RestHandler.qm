@@ -1154,6 +1154,11 @@ public namespace RestHandler {
             validator.setLogger(logger);
         }
 
+        #! Returns any REST schema validator set for the handler
+        *AbstractRestSchemaValidator getRestSchemaValidator() {
+            return validator;
+        }
+
         #! processes REST API calls outside the HTTP server
         /** Requests will be dispatched to REST classes registered with this object
 

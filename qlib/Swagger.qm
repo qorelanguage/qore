@@ -1872,9 +1872,13 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         hash<auto> h = SwaggerLoader::parseSchemaContent(ext_ref, content);
         if (int_ref) {
             if (!h.hasKey(int_ref))
-                throw "INVALID-REFERENCE", sprintf("%y: external reference %y loaded (%d bytes) and parsed, but internal reference %y is not available; known internal references: %y", refstr, ext_ref, content.size(), int_ref, keys h);
+                throw "INVALID-REFERENCE", sprintf("%y: external reference %y loaded (%d bytes) and parsed, but "
+                    "internal reference %y is not available; known internal references: %y", refstr, ext_ref,
+                    content.size(), int_ref, keys h);
             if (h{int_ref}.typeCode() != NT_HASH)
-                throw "INVALID-REFERENCE", sprintf("%y: external reference %y loaded (%d bytes) and parsed, but internal reference %y is not a hash; got type %y instead", refstr, ext_ref, content.size(), int_ref, h{int_ref}.type());
+                throw "INVALID-REFERENCE", sprintf("%y: external reference %y loaded (%d bytes) and parsed, but "
+                    "internal reference %y is not a hash; got type %y instead", refstr, ext_ref, content.size(),
+                    int_ref, h{int_ref}.type());
             return h{int_ref};
         }
         return h;

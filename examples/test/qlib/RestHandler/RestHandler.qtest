@@ -132,6 +132,16 @@ class B3427RestClass inherits AbstractRestClass {
     }
 }
 
+class B2543RestClass inherits AbstractRestClass {
+    string name() {
+        return "b2543";
+    }
+
+    hash<auto> post(hash<auto> cx, *hash<auto> ah) {
+        return RestHandler::makeResponse(200, ah);
+    }
+}
+
 class MyRestHandler inherits RestHandler {
     constructor() {
         addClass(new TestRestClass());
@@ -158,6 +168,7 @@ class SwaggerRestHandler inherits RestHandler {
     constructor(AbstractRestSchemaValidator validator) : RestHandler(NOTHING, validator) {
         addClass(new TestRestClass());
         addClass(new B2893RestClass());
+        addClass(new B2543RestClass());
     }
 }
 
@@ -262,7 +273,12 @@ public class RestHandlerTest inherits QUnit::Test {
                             },
                         ),
                         "responses": (
-                            "200": ("description": "success",),
+                            "200": (
+                                "description": "",
+                                "schema": (
+                                    "$ref": "#/definitions/Any",
+                                ),
+                            ),
                         ),
                     ),
                 ),
@@ -679,7 +695,9 @@ public class RestHandlerTest inherits QUnit::Test {
 
         hash<ExceptionInfo> ex;
         try {
-            hc.send(<01ff008001020304>, "PUT", "test?action=echo", ("Content-Type": MimeTypeFormUrlEncoded + ";charset=UTF-8"), False, \info);
+            hc.send(<01ff008001020304>, "PUT", "test?action=echo", {
+                "Content-Type": MimeTypeFormUrlEncoded + ";charset=UTF-8",
+            }, False, \info);
         } catch (hash<ExceptionInfo> ex1) {
             #printf("%s", get_exception_string(ex1));
             ex = ex1;
@@ -693,38 +711,40 @@ public class RestHandlerTest inherits QUnit::Test {
         testSkip("no json module present");
 %endif
 
+        SwaggerSchema schema = swaggerHandler.getRestSchemaValidator();
+
         # dummy HttpListenerInterface object
         DummyListenerInterface listener();
         # socket object needed for call; will not be used
         Socket s();
 
-        hash hdr = {
-            "http_version" : "1.1",
-            "method" : "POST",
-            "path" : "b2543",
-            "host" : "localhost:8200",
-            "user-agent" : "curl/7.52.1",
-            "accept" : "*/*",
-            "content-type" : "application/json",
-            "content-length" : "24",
-            "_qore_orig_content_type" : "application/json",
+        hash<auto> hdr = {
+            "http_version": "1.1",
+            "method": "POST",
+            "path": "b2543",
+            "host": "localhost:8200",
+            "user-agent": "curl/7.52.1",
+            "accept": "*/*",
+            "content-type": "application/json",
+            "content-length": "24",
+            "_qore_orig_content_type": "application/json",
         };
 
         string body_str = convert_encoding('{"a":"\u017dil\u00e1k"}', "iso-8859-1");
 
-        hash cx = {
-            "raw_path" : "/b2543",
-            "char_encoding" : "ISO-8859-1",
-            "response-encoding" : "utf8",
-            "url" : {"path" : "b2543"},
-            "rest_action_method" : "post",
-            "hdr" : hdr,
-            "aih" : {"*/*" : True},
+        hash<auto> cx = {
+            "raw_path": "/b2543",
+            "char_encoding": "ISO-8859-1",
+            "response-encoding": "utf8",
+            "url": {"path": "b2543"},
+            "rest_action_method": "post",
+            "hdr": hdr,
+            "aih": {"*/*": True},
         };
 
         # this would throw exception before fix
         auto result = swaggerHandler.handleRequest(listener, s, cx, hdr, body_str);
-        assertEq(400, result.code);
+        assertEq(200, result."code");
     }
 
     issue2893() {
