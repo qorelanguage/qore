@@ -52,8 +52,11 @@ extern QoreClass* QC_TRANSFORM;
 
 // NOTE: the trailing null ('\0') is not included when encrypting strings or calculating digests
 
-// default initialization vector
-static unsigned char def_iv[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+// default 8-byte initialization vector
+DLLLOCAL unsigned char def_iv_8[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+// default 16-byte initialization vector
+DLLLOCAL unsigned char def_iv_16[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 /*
 */
@@ -580,8 +583,11 @@ const CRYPTO_ALG_AES_192 = "aes192";
 const CRYPTO_ALG_AES_256 = "aes256";
 ///@}
 
-//! @qppinit: SimpleRefHolder<BinaryNode> DefaultIV(new BinaryNode); DefaultIV->append(def_iv, 8);
+//! @qppinit: SimpleRefHolder<BinaryNode> DefaultIV(new BinaryNode); DefaultIV->append(def_iv_8, sizeof(def_iv_8));
 //! @qppval: Qore::DefaultIV=DefaultIV->refSelf()
+
+//! @qppinit: SimpleRefHolder<BinaryNode> DefaultIV16(new BinaryNode); DefaultIV16->append(def_iv_16, sizeof(def_iv_16));
+//! @qppval: Qore::DefaultIV16=DefaultIV16->refSelf()
 
 /** @defgroup cryptographic_constants Cryptographic Contants
     Other generic cryptographic constants
@@ -589,8 +595,11 @@ const CRYPTO_ALG_AES_256 = "aes256";
     @see @ref crypto_transformations for constants related to cryptographic algorithms
  */
 ///@{
-//! The default initialization vector is simply a 8-byte string of nulls
+//! The default 8-byte initialization vector is simply a 8-byte string of nulls
 const DefaultIV = <0000000000000000>;
+
+//! The default 16-byte initialization vector is simply a 16-byte string of nulls
+const DefaultIV16 = <00000000000000000000000000000000>;
 ///@}
 
 /** @defgroup digest_algorithms Crytographic Digest Algorithms
@@ -3237,15 +3246,19 @@ Transform get_encryptor(string alg, data key, data iv = Qore::DefaultIV, *refere
     size_t iv_len;
     q_get_data(iv, ivstr, iv_len);
 
-    if (check_mac(mac, mac_size, xsink))
+    if (check_mac(mac, mac_size, xsink)) {
         return QoreValue();
+    }
 
     const char* aadstr = nullptr;
     size_t aad_len = 0;
-    if (aad)
+    if (aad) {
         q_get_data(aad, aadstr, aad_len);
+    }
 
-    SimpleRefHolder<Transform> t(EncryptionTransforms::getCryptoTransform(alg->c_str(), true, keystr, (unsigned)key_len, ivstr, (unsigned)iv_len, nullptr, 0, (unsigned)mac_size, mac, aadstr, (unsigned)aad_len, xsink));
+    SimpleRefHolder<Transform> t(EncryptionTransforms::getCryptoTransform(alg->c_str(), true, keystr,
+        (unsigned)key_len, ivstr, (unsigned)iv_len, nullptr, 0, (unsigned)mac_size, mac, aadstr, (unsigned)aad_len,
+        xsink));
     return *xsink ? nullptr : new QoreObject(QC_TRANSFORM, getProgram(), t.release());
 }
 

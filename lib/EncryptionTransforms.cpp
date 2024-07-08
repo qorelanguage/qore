@@ -169,7 +169,10 @@ public:
 
         EVP_CipherInit_ex(*ctx, ce.cipher_type, nullptr, nullptr, nullptr, do_crypt);
 
-        if (iv && ce.gcm) {
+        if (iv && ce.iv_len == -1) {
+        //if (iv && ce.gcm) {
+            //printd(5, "CryptoTransform::CryptoTransform() %s: setting iv_len: %d\n", cipher, iv_len);
+            assert(iv_len);
             if (!EVP_CIPHER_CTX_ctrl(*ctx, EVP_CTRL_GCM_SET_IVLEN, iv_len, nullptr)) {
                 xsink->raiseException(err, "error setting %s initialization vector length: %d", cipher, iv_len);
                 state = STATE_ERROR;
@@ -289,6 +292,8 @@ public:
             state = STATE_ERROR;
             return std::make_pair(0, 0);
         }
+        //printd(5, "CryptoTransform::apply() %s: OK\n", cipher);
+
         // issue #3111: make sure we did not overwrite our meemory buffer
         assert(outlen <= dstLen);
 
@@ -341,6 +346,7 @@ private:
             int len = EVP_CIPHER_get_iv_length(ce.cipher_type);
             ce.iv_len = len ? len : -1;
         }
+        ce.cts = flags & EVP_CIPH_FLAG_CTS ? true : false;
         ce.key_len = EVP_CIPHER_get_key_length(ce.cipher_type);
         return 0;
 #else
@@ -488,6 +494,7 @@ QoreHashNode* q_get_cipher_hash(const EVP_CIPHER* c) {
         int len = EVP_CIPHER_get_iv_length(c);
         priv->setKeyValueIntern("iv_len", len ? len : -1);
     }
+    priv->setKeyValueIntern("cts", flags & EVP_CIPH_FLAG_CTS ? true : false);
 
     return rv.release();
 }

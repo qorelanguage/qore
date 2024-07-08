@@ -53,6 +53,8 @@ struct CryptoEntry {
     int iv_len;
     // does the algorithm use Galois Counter Mode (GCM)?
     bool gcm;
+    // dos the algorithm support CTS?
+    bool cts;
 
 #ifndef OPENSSL_3_PLUS
     DLLLOCAL QoreHashNode* getInfo() const;

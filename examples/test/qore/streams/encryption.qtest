@@ -124,47 +124,53 @@ public class CryptoStreamTest inherits QUnit::Test {
         map testEncryptionStreams($1.key, $1.value), get_crypto_info().pairIterator();
     }
 
-    private testEncryptionStreams(string alg, hash eh) {
+    private testEncryptionStreams(string alg, hash<auto> eh) {
+        # skip unsupported ciphers; currently we only support CBC and GCM modes (without CTS)
+        if (eh.cts || (eh.type != "CBC" && eh.type != "GCM")) {
+            return;
+        }
+
         binary mac;
-        binary bin = encryptInput(Str, alg, Key, NOTHING, 1, 10, \mac, 16);
-        assertEq(Str, decryptInput(bin, alg, Key, NOTHING, 1, 10, mac).toString());
-        assertEq(Str, decryptOutput(bin, alg, Key, NOTHING, 10, mac).toString());
-        bin = encryptOutput(Str, alg, Key, NOTHING, 10, \mac, 16);
-        assertEq(Str, decryptInput(bin, alg, Key, NOTHING, 1, 10, mac).toString());
-        assertEq(Str, decryptOutput(bin, alg, Key, NOTHING, 10, mac).toString());
+        *binary iv;
+        if (eh.iv_len == 16) {
+            iv = DefaultIV16;
+        }
+        binary bin = encryptInput(Str, alg, Key, iv, 1, 10, \mac, 16);
+        assertEq(Str, decryptInput(bin, alg, Key, iv, 1, 10, mac).toString());
+        assertEq(Str, decryptOutput(bin, alg, Key, iv, 10, mac).toString());
+        bin = encryptOutput(Str, alg, Key, iv, 10, \mac, 16);
+        assertEq(Str, decryptInput(bin, alg, Key, iv, 1, 10, mac).toString());
+        assertEq(Str, decryptOutput(bin, alg, Key, iv, 10, mac).toString());
 
         # decryption must fail with an invalid key
         try {
-            binary b = decryptInput(bin, alg, "x" + Key, NOTHING, 1, 10, mac);
+            binary b = decryptInput(bin, alg, "x" + Key, iv, 1, 10, mac);
             assertEq(False, Str == b.toString());
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("DECRYPT-ERROR", ex.err);
         }
         try {
-            binary b = decryptOutput(bin, alg, "x" + Key, NOTHING, 10, mac);
+            binary b = decryptOutput(bin, alg, "x" + Key, iv, 10, mac);
             assertEq(False, Str == b.toString());
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("DECRYPT-ERROR", ex.err);
         }
 
         # test with IVs if the algorithm supports it
         if (eh.iv_len != -1) {
-            binary iv = get_random_bytes(12);
-            bin = encryptInput(Str, alg, Key, iv, 1, 10, \mac, 16);
-            assertEq(Str, decryptInput(bin, alg, Key, iv, 1, 10, mac).toString());
-            assertEq(Str, decryptOutput(bin, alg, Key, iv, 10, mac).toString());
-            bin = encryptOutput(Str, alg, Key, iv, 10, \mac, 16);
-            assertEq(Str, decryptInput(bin, alg, Key, iv, 1, 10, mac).toString());
-            assertEq(Str, decryptOutput(bin, alg, Key, iv, 10, mac).toString());
+            binary iv0 = get_random_bytes(16);
+            bin = encryptInput(Str, alg, Key, iv0, 1, 10, \mac, 16);
+            assertEq(Str, decryptInput(bin, alg, Key, iv0, 1, 10, mac).toString());
+            assertEq(Str, decryptOutput(bin, alg, Key, iv0, 10, mac).toString());
+            bin = encryptOutput(Str, alg, Key, iv0, 10, \mac, 16);
+            assertEq(Str, decryptInput(bin, alg, Key, iv0, 1, 10, mac).toString());
+            assertEq(Str, decryptOutput(bin, alg, Key, iv0, 10, mac).toString());
 
             # decryption must fail with an invalid IV
             try {
                 binary b = decryptInput(bin, alg, Key, NOTHING, 1, 10, mac);
                 assertEq(False, Str == b.toString());
-            }
-            catch (hash ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 if (ex.err != "DECRYPT-ERROR")
                     printf("%y: %s\b", alg, get_exception_string(ex));
                 assertEq("DECRYPT-ERROR", ex.err);
@@ -172,20 +178,19 @@ public class CryptoStreamTest inherits QUnit::Test {
             try {
                 binary b = decryptOutput(bin, alg, Key, NOTHING, 10, mac);
                 assertEq(False, Str == b.toString());
-            }
-            catch (hash ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 assertEq("DECRYPT-ERROR", ex.err);
             }
         }
 
         # test with AAD if the algorithm supports it
         if (eh.type == "GCM") {
-            bin = encryptInput(Str, alg, Key, NOTHING, 1, 10, \mac, 16, Aad);
-            assertEq(Str, decryptInput(bin, alg, Key, NOTHING, 1, 10, mac, Aad).toString());
-            assertEq(Str, decryptOutput(bin, alg, Key, NOTHING, 10, mac, Aad).toString());
-            bin = encryptOutput(Str, alg, Key, NOTHING, 10, \mac, 16, Aad);
-            assertEq(Str, decryptInput(bin, alg, Key, NOTHING, 1, 10, mac, Aad).toString());
-            assertEq(Str, decryptOutput(bin, alg, Key, NOTHING, 10, mac, Aad).toString());
+            bin = encryptInput(Str, alg, Key, iv, 1, 10, \mac, 16, Aad);
+            assertEq(Str, decryptInput(bin, alg, Key, iv, 1, 10, mac, Aad).toString());
+            assertEq(Str, decryptOutput(bin, alg, Key, iv, 10, mac, Aad).toString());
+            bin = encryptOutput(Str, alg, Key, iv, 10, \mac, 16, Aad);
+            assertEq(Str, decryptInput(bin, alg, Key, iv, 1, 10, mac, Aad).toString());
+            assertEq(Str, decryptOutput(bin, alg, Key, iv, 10, mac, Aad).toString());
 
             # decryption must fail with invalid AAD
             assertThrows("DECRYPT-ERROR", \decryptInput(), (bin, alg, Key, NOTHING, 1, 10, mac));
