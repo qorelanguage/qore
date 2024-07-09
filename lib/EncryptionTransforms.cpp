@@ -346,7 +346,11 @@ private:
             int len = EVP_CIPHER_get_iv_length(ce.cipher_type);
             ce.iv_len = len ? len : -1;
         }
+        ce.aead = flags & EVP_CIPH_FLAG_AEAD_CIPHER ? true : false;
         ce.cts = flags & EVP_CIPH_FLAG_CTS ? true : false;
+        ce.tls_multi = flags & EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK ? true : false;
+        ce.randkey = flags & EVP_CIPH_RAND_KEY ? true : false;
+
         ce.key_len = EVP_CIPHER_get_key_length(ce.cipher_type);
         return 0;
 #else
@@ -494,7 +498,10 @@ QoreHashNode* q_get_cipher_hash(const EVP_CIPHER* c) {
         int len = EVP_CIPHER_get_iv_length(c);
         priv->setKeyValueIntern("iv_len", len ? len : -1);
     }
+    priv->setKeyValueIntern("aead", flags & EVP_CIPH_FLAG_AEAD_CIPHER ? true : false);
     priv->setKeyValueIntern("cts", flags & EVP_CIPH_FLAG_CTS ? true : false);
+    priv->setKeyValueIntern("tls_multi", flags & EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK ? true : false);
+    priv->setKeyValueIntern("randkey", flags & EVP_CIPH_RAND_KEY ? true : false);
 
     return rv.release();
 }

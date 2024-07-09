@@ -53,8 +53,14 @@ struct CryptoEntry {
     int iv_len;
     // does the algorithm use Galois Counter Mode (GCM)?
     bool gcm;
-    // dos the algorithm support CTS?
+    // is the algorithm an AEAD cipher?
+    bool aead;
+    // does the algorithm support CTS?
     bool cts;
+    // does the algorithm support TLS 1.1 multiblock operations?
+    bool tls_multi;
+    // does the algorithm support a random key?
+    bool randkey;
 
 #ifndef OPENSSL_3_PLUS
     DLLLOCAL QoreHashNode* getInfo() const;
