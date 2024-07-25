@@ -83,14 +83,14 @@ module RestSchemaValidator {
     - parse and report path arguments when processing REST requests on the server side
       (<a href="https://github.com/qorelanguage/qore/issues/4661">issue 4661</a>)
 
-    @subsection restschemavalidator_2_1.3 RestSchemaValidator v2.1.3
+    @subsection restschemavalidator_2_1_3 RestSchemaValidator v2.1.3
     - REST handlers must throw a \c DESERIALIZATION-ERROR when deserialization errors occur, so that a
       <tt>400 Bad Request</tt> response is returned
       (<a href="https://github.com/qorelanguage/qore/issues/4647">issue 4647</a>)
     - allow for the client's time zone locale to be set for data serialization / deserialization
       (<a href="https://github.com/qorelanguage/qore/issues/4639">issue 4639</a>)
 
-    @subsection restschemavalidator_2_1.2 RestSchemaValidator v2.1.2
+    @subsection restschemavalidator_2_1_2 RestSchemaValidator v2.1.2
     - allow a logger to be set in validators
       (<a href="https://github.com/qorelanguage/qore/issues/4509">issue 4509</a>)
 

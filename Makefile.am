@@ -58,6 +58,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/HueRestClient.qm \
 	qlib/MewsRestClient.qm \
 	qlib/NetSuiteRestClient.qm \
+	qlib/OpenAiRestClient.qm \
 	qlib/ServiceNowRestClient.qm \
 	qlib/FilePoller.qm \
 	qlib/FreetdsSqlUtil.qm \
@@ -106,6 +107,7 @@ DOX_SPLIT_MODULES = \
     qlib/GmailDataProvider \
     qlib/GoogleCalendarDataProvider \
     qlib/MewsRestDataProvider \
+    qlib/OpenAiDataProvider \
     qlib/Pop3ClientDataProvider \
     qlib/SalesforceRestDataProvider \
     qlib/ServiceNowRestDataProvider \
@@ -135,6 +137,7 @@ HttpClientDataProvider_modverdir = $(modverdir)/HttpClientDataProvider
 ElasticSearchDataProvider_modverdir = $(modverdir)/ElasticSearchDataProvider
 EmpathicBuildingDataProvider_modverdir = $(modverdir)/EmpathicBuildingDataProvider
 MewsRestDataProvider_modverdir = $(modverdir)/MewsRestDataProvider
+OpenAiDataProvider_modverdir = $(modverdir)/OpenAiDataProvider
 Pop3ClientDataProvider_modverdir = $(modverdir)/Pop3ClientDataProvider
 
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
@@ -160,8 +163,9 @@ dist_GoogleCalendarDataProvider_modver_DATA = $(wildcard qlib/GoogleCalendarData
 dist_HttpClientDataProvider_modver_DATA = $(wildcard qlib/HttpClientDataProvider/*.q[cm])
 dist_ElasticSearchDataProvider_modver_DATA = $(wildcard qlib/ElasticSearchDataProvider/*.q[cm])
 dist_EmpathicBuildingDataProvider_modver_DATA = $(wildcard qlib/EmpathicBuildingDataProvider/*.q[cm])
-dist_MewsRestDataProvider_modver_DATA = $(wildcard qlib/MewsRestDataProvider/*.{q[cm],yaml})
-dist_Pop3ClientDataProvider_modver_DATA = $(wildcard qlib/Pop3ClientDataProvider/*.{q[cm],yaml})
+dist_MewsRestDataProvider_modver_DATA = $(wildcard qlib/MewsRestDataProvider/*.q[cm]) $(wildcard qlib/MewsRestDataProvider/*.yaml)
+dist_OpenAiDataProvider_modver_DATA = $(wildcard qlib/OpenAiDataProvider/*.q[cm]) $(wildcard qlib/OpenAiDataProvider/*-swagger-2.0.yaml)
+dist_Pop3ClientDataProvider_modver_DATA = $(wildcard qlib/Pop3ClientDataProvider/*.q[cm])
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
@@ -524,30 +528,30 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
     modules/logger_bin/src/QC_LoggerFilter.h \
     modules/logger_bin/src/QC_LoggerLayout.qpp \
     modules/logger_bin/src/QC_LoggerLayout.h \
-    modules/logger_bin/src/QoreLoggerLayoutPattern.qpp \
+    modules/logger_bin/src/QoreLoggerLayoutPattern.cpp \
     modules/logger_bin/src/QoreLoggerLayoutPattern.h \
     modules/logger_bin/src/QC_LoggerLayoutPattern.qpp \
     modules/logger_bin/src/QC_LoggerLayoutPattern.h \
-    modules/logger_bin/src/QoreLoggerAppender.qpp \
+    modules/logger_bin/src/QoreLoggerAppender.cpp \
     modules/logger_bin/src/QoreLoggerAppender.h \
     modules/logger_bin/src/QC_LoggerAppender.qpp \
     modules/logger_bin/src/QC_LoggerAppender.h \
-    modules/logger_bin/src/QoreLoggerAppenderQueue.qpp \
+    modules/logger_bin/src/QoreLoggerAppenderQueue.cpp \
     modules/logger_bin/src/QoreLoggerAppenderQueue.h \
     modules/logger_bin/src/QC_LoggerAppenderQueue.qpp \
     modules/logger_bin/src/QC_LoggerAppenderQueue.h \
-    modules/logger_bin/src/QoreLoggerAppenderWithLayout.qpp \
+    modules/logger_bin/src/QoreLoggerAppenderWithLayout.cpp \
     modules/logger_bin/src/QoreLoggerAppenderWithLayout.h \
     modules/logger_bin/src/QC_LoggerAppenderWithLayout.qpp \
     modules/logger_bin/src/QC_LoggerAppenderWithLayout.h \
-    modules/logger_bin/src/QoreLoggerAppenderFile.qpp \
+    modules/logger_bin/src/QoreLoggerAppenderFile.cpp \
     modules/logger_bin/src/QoreLoggerAppenderFile.h \
     modules/logger_bin/src/QC_LoggerAppenderFile.qpp \
     modules/logger_bin/src/QC_LoggerAppenderFile.h \
     modules/logger_bin/src/QoreLoggerInterface.h \
     modules/logger_bin/src/QC_LoggerInterface.qpp \
     modules/logger_bin/src/QC_LoggerInterface.h \
-    modules/logger_bin/src/QoreLogger.qpp \
+    modules/logger_bin/src/QoreLogger.cpp \
     modules/logger_bin/src/QoreLogger.h \
     modules/logger_bin/src/QC_Logger.qpp \
     modules/logger_bin/src/QC_Logger.h
@@ -1064,6 +1068,9 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	modules/reflection/docs/mainpage.dox.tmpl \
 	modules/reflection/CMakeLists.txt \
 	modules/reflection/cmake/cmake_uninstall.cmake.in \
+	modules/logger_bin/docs/mainpage.dox.tmpl \
+	modules/logger_bin/CMakeLists.txt \
+	modules/logger_bin/cmake/cmake_uninstall.cmake.in \
     doxygen/lang/mainpage.dox.tmpl \
 	doxygen/lang/Doxyfile.in \
 	doxygen/qlib/Doxyfile.in \
@@ -1113,7 +1120,7 @@ dist-hook:
 	$(RM) -rf `find $(distdir)/examples/test -type f -a \! -name \*.qtest -a \! -name \*.qm -a \! -name Europe_Vienna`
 
 if COND_DOXYGEN
-MOD_OUTPUT = $(addprefix docs/modules/,$(addsuffix /html,$(USER_MODS) $(USER_SPLIT_MODS) astparser reflection))
+MOD_OUTPUT = $(addprefix docs/modules/,$(addsuffix /html,$(USER_MODS) $(USER_SPLIT_MODS) astparser reflection logger_bin))
 DOXYGEN_OUTPUT = docs/library/html docs/lang/html $(MOD_OUTPUT)
 
 LIB_TMP_DOXYFILES_SRC = \
@@ -1267,6 +1274,16 @@ doxygen/modules/Doxyfile.reflection: doxygen/modules/Doxyfile.in
         -e "s/@CMAKE_BINARY_DIR@/$(top_srcdir)/" \
         -e "s/@CMAKE_SOURCE_DIR@/$(top_srcdir)/" $< > $@
 
+doxygen/modules/Doxyfile.logger_bin: doxygen/modules/Doxyfile.in
+	sed -e s/@QORE_MOD_NAME@/logger_bin/ \
+        -e "s/@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_SUB@/${PACKAGE_VERSION}/" \
+        -e 's/@_dox_input@/modules\/logger_bin\/src modules\/logger_bin\/docs\/mainpage.dox/' \
+        -e 's/@_dox_output@/docs\/modules\/logger_bin\//' \
+        -e 's/@_dox_src@/modules\/logger_bin\/docs/' \
+        -e 's/@CMAKE_CURRENT_BINARY_DIR@/modules\/logger_bin\/src/' \
+        -e "s/@CMAKE_BINARY_DIR@/$(top_srcdir)/" \
+        -e "s/@CMAKE_SOURCE_DIR@/$(top_srcdir)/" $< > $@
+
 DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_MODS))
 $(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/$*.qm:doxygen/qlib/$*.qm $(QDX_MTAG_ARGS) $< $@
@@ -1319,6 +1336,15 @@ docs/modules/reflection/html: modules/reflection doxygen/modules/Doxyfile.reflec
 	${MAKE} -C modules/reflection
 	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/modules/Doxyfile.reflection
+	$(top_srcdir)/doxygen/pdox $@ $@/search
+
+modules/logger_bin/docs/mainpage.dox: modules/logger_bin/docs/mainpage.dox.tmpl $(QPP) modules/logger_bin
+	$(QPP) -t $< -o $@
+
+docs/modules/logger_bin/html: modules/logger_bin doxygen/modules/Doxyfile.logger_bin modules/logger_bin/docs/mainpage.dox
+	${MAKE} -C modules/logger_bin
+	$(MKDIR_P) $@
+	$(DOXYGEN_CMD) doxygen/modules/Doxyfile.logger_bin
 	$(top_srcdir)/doxygen/pdox $@ $@/search
 
 doxygen-doc: $(DOXYGEN_OUTPUT)

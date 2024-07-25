@@ -13,6 +13,7 @@ Source0: https://github.com/qorelanguage/qore/releases/download/release-%{versio
 
 Requires: libqore%{?_isa} = %{version}-%{release}
 Requires: %{name}-stdlib%{?_isa} = %{version}-%{release}
+BuildRequires: cmake >= 3.5
 BuildRequires: gcc-c++
 BuildRequires: flex >= 2.5.31
 BuildRequires: bison
@@ -44,7 +45,7 @@ This package provides the qore library required for all clients using qore
 functionality.
 
 %files -n libqore
-%{_libdir}/libqore.so.12.4.2
+%{_libdir}/libqore.so.12.5.0
 %{_libdir}/libqore.so.12
 %license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 %doc README.md README-MODULES RELEASE-NOTES AUTHORS ABOUT
@@ -153,14 +154,15 @@ This package contains tool for working with:
 find examples -type f -exec chmod -x {} \;
 
 %build
-export CXXFLAGS="%{optflags}"
-%configure --disable-debug --disable-dependency-tracking
+%undefine _hardened_build
+export CXXFLAGS="%{?optflags}"
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_BUILD_TYPE=RELWITHDEBINFO -DCMAKE_SKIP_RPATH=1 -DCMAKE_SKIP_INSTALL_RPATH=1 -DCMAKE_SKIP_BUILD_RPATH=1 -DCMAKE_PREFIX_PATH=${_prefix}/lib64/cmake/Qore -DSINGLE_COMPILATION_UNIT=1.
 %make_build
 
 %install
-%make_install -p
+%make_install
 mkdir -p $RPM_BUILD_ROOT%{module_dir}
-rm $RPM_BUILD_ROOT%{_libdir}/libqore.la
+rm -f $RPM_BUILD_ROOT%{_libdir}/libqore.la
 
 %check
 export QORE_MODULE_DIR=qlib

@@ -229,8 +229,8 @@ public hashdecl DataProviderActionInfo {
 
     #! Message or event type
     /** if \c action_code is:
-        - @ref DPAT_EVENT: this is the event type
-        - @ref DPAT_SEND_MESSAGE: this is the message type
+        - @ref DPAT_EVENT "DPAT_EVENT": this is the event type
+        - @ref DPAT_SEND_MESSAGE "DPAT_SEND_MESSAGE": this is the message type
     */
     *string action_val;
 

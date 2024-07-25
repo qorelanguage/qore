@@ -118,7 +118,7 @@ module MysqlSqlUtil {
     - added support for the DataProvider module
       (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
 
-    @subsection mysqlsqlutilv131 MysqlSqlUtil v1.3.2
+    @subsection mysqlsqlutilv132 MysqlSqlUtil v1.3.2
     - updated to work also with newer versions of MySQL / MariaDB that support sequences
       (<a href="https://github.com/qorelanguage/qore/issues/3747">issue 3747</a>)
     - fixed a bug where the sequence table name was not respected in
