@@ -766,6 +766,9 @@ int qore_program_private::internParseCommit(bool standard_parse) {
             // commit pending statements
             sb.parseCommit(pgm);
 
+            initDeferredCode();
+            assert(dset.empty());
+
             // commit pending domain
             dom |= pend_dom;
             pend_dom = 0;
@@ -1390,12 +1393,15 @@ QoreListNode* qore_program_private::runtimeFindCallVariants(const char* name, Ex
 
 int qore_program_private::initDeferredCode() {
     int err = 0;
-    for (auto& i : dset) {
-        if (i->parseInitDeferred() && !err) {
-            err = -1;
+    while (!dset.empty()) {
+        dset_t dset0 = std::move(dset);
+        dset.clear();
+        for (auto& i : dset0) {
+            if (i->parseInitDeferred() && !err) {
+                err = -1;
+            }
         }
     }
-    dset.clear();
     return err;
 }
 

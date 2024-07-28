@@ -1940,7 +1940,8 @@ void UserVariantBase::parseInitPopLocalVars() {
 }
 
 // instantiates arguments and sets up the argv variable
-int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreListNode> &argv, ExceptionSink* xsink) const {
+int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreListNode>& argv, ExceptionSink* xsink)
+        const {
     QoreListNodeEvalOptionalRefHolder* args = ceh ? &ceh->getArgHolder() : nullptr;
 
     unsigned num_args = args ? args->size() : 0;
@@ -1951,6 +1952,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
         QoreValue np;
         if (args && *args) {
             if (args->canEdit()) {
+                assert(**args);
                 signature.lv[i]->instantiate(qore_list_private::get(***args)->takeExists(i));
             } else {
                 signature.lv[i]->instantiate((*args)->retrieveEntry(i).refSelf());
@@ -1958,7 +1960,8 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
             continue;
         }
 
-        //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), np.getType(), np.getTypeName());
+        //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d '%s')\n",
+        //    i, signature.lv[i], signature.lv[i]->getName(), np.getType(), np.getTypeName());
 
         signature.lv[i]->instantiate(QoreValue());
     }

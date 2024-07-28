@@ -68,6 +68,8 @@ public:
 
 class QoreClosureNode;
 class QoreObjectClosureNode;
+class qore_class_private;
+class qore_ns_private;
 
 class QoreClosureParseNode : public ParseNode, public DeferredCodeObject {
     friend class QoreClosureParseNodeBackground;
@@ -76,14 +78,7 @@ public:
 
     DLLLOCAL ~QoreClosureParseNode();
 
-    DLLLOCAL virtual int parseInitDeferred() {
-        assert(is_deferred);
-        assert(uf);
-        is_deferred = false;
-        int rc = uf->parseInit(nullptr);
-        uf->parseCommit();
-        return rc;
-    }
+    DLLLOCAL virtual int parseInitDeferred();
 
     DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -119,6 +114,8 @@ public:
 
 private:
     UserClosureFunction* uf;
+    qore_class_private* parse_qc = nullptr;
+    qore_ns_private* parse_ns = nullptr;
     bool lambda, in_method,
         is_deferred = false;
 

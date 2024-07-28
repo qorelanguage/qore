@@ -1012,9 +1012,6 @@ public:
 
         // finalize parsing, back out or commit all changes
         int rc = internParseCommit();
-        if (initDeferredCode() && !rc) {
-            rc = -1;
-        }
 
 #ifdef DEBUG
         parseSink = nullptr;

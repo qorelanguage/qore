@@ -83,6 +83,10 @@ int QoreClosureParseNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
     if (parse_context.pflag & PF_CONST_EXPRESSION) {
         qore_program_private::get(*parse_context.pgm)->deferCodeInitialization(this);
         is_deferred = true;
+
+        parse_qc = parse_get_class_priv();
+        parse_ns = parse_get_ns();
+        //printd(5, "QoreClosureParseNode::parseInitImpl() this: %p set deferred\n", this);
     } else {
         err = uf->parseInit(nullptr);
         uf->parseCommit();
@@ -91,12 +95,31 @@ int QoreClosureParseNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
     return err;
 }
 
+int QoreClosureParseNode::parseInitDeferred() {
+    assert(is_deferred);
+    assert(uf);
+    is_deferred = false;
+    int rc;
+    {
+        const qore_class_private* old_qc;
+        qore_ns_private* old_ns;
+        thread_set_class_and_ns(parse_qc, parse_ns, old_qc, old_ns);
+        rc = uf->parseInit(nullptr);
+        thread_set_class_and_ns(old_qc, old_ns);
+    }
+    uf->parseCommit();
+    //printd(5, "QoreClosureParseNode::parseInitDeferred() this: %p\n", this);
+    return rc;
+}
+
 const char* QoreClosureParseNode::getTypeName() const {
     return getStaticTypeName();
 }
 
 QoreValue QoreClosureParseNode::exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args,
         QoreObject* self, const qore_class_private* class_ctx, ExceptionSink* xsink) const {
+    assert(!is_deferred);
+    assert(uf);
     return uf->evalClosure(closure_base, pgm, args, self, class_ctx, xsink);
 }
 
