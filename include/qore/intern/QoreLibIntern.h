@@ -580,6 +580,11 @@ protected:
 
 class QoreParseListNode;
 
+class DeferredCodeObject {
+public:
+    DLLLOCAL virtual int parseInitDeferred() = 0;
+};
+
 #include "qore/intern/NamedScope.h"
 #include "qore/intern/QoreTypeInfo.h"
 #include "qore/intern/ParseNode.h"

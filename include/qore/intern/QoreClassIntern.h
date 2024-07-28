@@ -1857,6 +1857,7 @@ public:
         static_init : 1,                  // has static initialization been called for the class?
         parse_init_called : 1,            // has parseInit() been called? (performed once for each parseCommit())
         parse_init_partial_called : 1,    // has parseInitPartial() been called? (performed once for each parseCommit())
+        parse_init_constants_called : 1,  // has parseInitConstants() been called? (performed once for each parseCommit())
         has_public_memdecl : 1,           // has a public member declaration somewhere in the hierarchy?
         pending_has_public_memdecl : 1,   // has a pending public member declaration in this class?
         owns_typeinfo : 1,                // do we own the typeInfo data or not?
@@ -2197,6 +2198,8 @@ public:
     DLLLOCAL int parseInitPartial();
     DLLLOCAL int parseInitPartialIntern();
 
+    DLLLOCAL int parseInitConstants();
+
     DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation* loc, const char* mem,
             const QoreTypeInfo*& memberTypeInfo, int pflag) const {
         const_cast<qore_class_private*>(this)->parseInitPartial();
@@ -2529,7 +2532,7 @@ public:
     }
 
     DLLLOCAL QoreValue parseFindLocalConstantValue(const char* cname, const QoreTypeInfo*& cTypeInfo, bool& found) {
-        parseInitPartial();
+        parseInitConstants();
 
         // first check committed constants
         ClassAccess access = Public;
@@ -2558,7 +2561,7 @@ public:
 
     DLLLOCAL QoreValue parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& cTypeInfo, bool& found,
             const qore_class_private* class_ctx) {
-        parseInitPartial();
+        parseInitConstants();
 
         // check constant list
         ClassAccess access = Public;

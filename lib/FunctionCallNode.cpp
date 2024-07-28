@@ -173,7 +173,13 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, QoreParse
         // expressions for immediate evaluation)
         const QoreClass* qc = func->getClass();
         if (qc) {
-            if (qore_class_private::get(*const_cast<QoreClass*>(qc))->parseInit() && !err) {
+            if (qore_class_private::get(*const_cast<QoreClass*>(qc))->parseInitPartial() && !err) {
+                err = -1;
+            }
+            qore_ns_private* clsns = qore_class_private::get(*qc)->ns;
+            NamespaceParseContextHelper nspch(clsns);
+            QoreParseClassHelper qpch(const_cast<QoreClass*>(qc));
+            if (func->parseInit(clsns) && !err) {
                 err = -1;
             }
         } else {

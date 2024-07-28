@@ -69,27 +69,20 @@ public:
 class QoreClosureNode;
 class QoreObjectClosureNode;
 
-class QoreClosureParseNode : public ParseNode {
+class QoreClosureParseNode : public ParseNode, public DeferredCodeObject {
     friend class QoreClosureParseNodeBackground;
-private:
-    UserClosureFunction* uf;
-    bool lambda, in_method;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
-    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-        return runTimeClosureTypeInfo;
-    }
-
-    DLLLOCAL QoreClosureNode* evalClosure() const;
-    DLLLOCAL QoreObjectClosureNode* evalObjectClosure() const;
-
 public:
     DLLLOCAL QoreClosureParseNode(const QoreProgramLocation* loc, UserClosureFunction* n_uf, bool n_lambda = false);
 
-    DLLLOCAL ~QoreClosureParseNode() {
-        delete uf;
+    DLLLOCAL ~QoreClosureParseNode();
+
+    DLLLOCAL virtual int parseInitDeferred() {
+        assert(is_deferred);
+        assert(uf);
+        is_deferred = false;
+        int rc = uf->parseInit(nullptr);
+        uf->parseCommit();
+        return rc;
     }
 
     DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
@@ -123,6 +116,21 @@ public:
         ref();
         return const_cast<QoreClosureParseNode*>(this);
     }
+
+private:
+    UserClosureFunction* uf;
+    bool lambda, in_method,
+        is_deferred = false;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return runTimeClosureTypeInfo;
+    }
+
+    DLLLOCAL QoreClosureNode* evalClosure() const;
+    DLLLOCAL QoreObjectClosureNode* evalObjectClosure() const;
 };
 
 #endif

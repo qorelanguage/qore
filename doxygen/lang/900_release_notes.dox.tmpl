@@ -98,6 +98,9 @@
         (<a href="https://github.com/qorelanguage/qore/issues/4825">issue 4825</a>)
       - fixed a bug where any additionalProperties would cause all properties to be accepted
         (<a href="https://github.com/qorelanguage/qore/issues/4823">issue 4823</a>)
+    - fixed a bug where %Qore would raise recusive constant exceptions when parsing in cases where values were not in
+      a reference loop
+      (<a href="https://github.com/qorelanguage/qore/issues/4903">issue 4903</a>)
     - fixed a bug resolving static class variables that could cause spurious errors
       (<a href="https://github.com/qorelanguage/qore/issues/4894">issue 4894</a>)
     - allow the persistent flag to be cleared without disconnecting in the @ref Qore::HTTPClient "HTTPClient" class

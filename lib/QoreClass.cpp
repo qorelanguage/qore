@@ -489,6 +489,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, std:
         static_init(false),
         parse_init_called(false),
         parse_init_partial_called(false),
+        parse_init_constants_called(false),
         has_public_memdecl(false),
         pending_has_public_memdecl(false),
         owns_typeinfo(n_typeInfo ? false : true),
@@ -564,6 +565,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
         static_init(old.static_init),
         parse_init_called(old.parse_init_called),
         parse_init_partial_called(old.parse_init_partial_called),
+        parse_init_constants_called(old.parse_init_constants_called),
         has_public_memdecl(old.has_public_memdecl),
         pending_has_public_memdecl(old.pending_has_public_memdecl),
         owns_typeinfo(false),
@@ -670,6 +672,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
         static_init(true),
         parse_init_called(false),
         parse_init_partial_called(false),
+        parse_init_constants_called(false),
         has_public_memdecl(old.has_public_memdecl),
         pending_has_public_memdecl(false),
         owns_typeinfo(false),
@@ -987,7 +990,7 @@ int qore_class_private::initializeIntern() {
 
     QoreProgram* pgm = getProgram();
     if (pgm && !sys && (qore_program_private::parseAddDomain(pgm, domain))) {
-        parseException(*loc, "ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that " \
+        parseException(*loc, "ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that "
             "is restricted by current parse options", name.c_str());
         err = -1;
     }
@@ -3543,7 +3546,7 @@ const QoreExternalMethodFunction* QoreMethod::getFunction() const {
 
 const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc, ClassAccess& n_access) const {
     n_access = Public;
-    const_cast<qore_class_private*>(this)->initialize();
+    const_cast<qore_class_private*>(this)->parseResolveHierarchy();
     if (parseEqual(qc))
         return (QoreClass*)cls;
     return scl ? scl->parseGetClass(qc, n_access, true) : nullptr;
@@ -4275,7 +4278,7 @@ int qore_class_private::parseInitPartialIntern() {
     if (scl) {
         for (bclist_t::iterator i = scl->begin(), e = scl->end(); i != e; ++i) {
             if ((*i)->sclass) {
-                if ((*i)->sclass->priv->parseInit() && !err) {
+                if ((*i)->sclass->priv->parseInitPartial() && !err) {
                     err = -1;
                 }
 
@@ -4317,6 +4320,22 @@ int qore_class_private::parseInitPartialIntern() {
     return err;
 }
 
+int qore_class_private::parseInitConstants() {
+    if (parse_init_constants_called || sys) {
+        return 0;
+    }
+    parse_init_constants_called = true;
+
+    if (has_new_user_changes) {
+        // initialize constants
+        if (constlist.parseInit()) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
 int qore_class_private::parseInit() {
     // make sure initialize() is called first
     int err = initialize();
@@ -4339,11 +4358,6 @@ int qore_class_private::parseInit() {
             err = -1;
         }
 
-        // initialize constants
-        if (constlist.parseInit() && !err) {
-            err = -1;
-        }
-
         // initialize methods
         for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
             if (i->second->priv->parseInit() && !err) {
@@ -4357,6 +4371,10 @@ int qore_class_private::parseInit() {
                 err = -1;
             }
         }
+    }
+
+    if (parseInitConstants() && !err) {
+        err = -1;
     }
 
     //printd(5, "qore_class_private::parseInit() this: %p cls: %p %s scl: %p\n", this, cls, name.c_str(), scl);

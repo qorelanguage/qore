@@ -56,6 +56,7 @@ extern QoreHashNode* ENV;
 #include <cstdarg>
 #include <map>
 #include <vector>
+#include <set>
 
 typedef vector_map_t<int, unsigned> ptid_map_t;
 //typedef std::map<int, unsigned> ptid_map_t;
@@ -1011,6 +1012,9 @@ public:
 
         // finalize parsing, back out or commit all changes
         int rc = internParseCommit();
+        if (initDeferredCode() && !rc) {
+            rc = -1;
+        }
 
 #ifdef DEBUG
         parseSink = nullptr;
@@ -2543,6 +2547,19 @@ public:
     DLLLOCAL int serialize(ExceptionSink* xsink, StreamWriter& sw);
     DLLLOCAL int deserialize(ExceptionSink* xsink, StreamReader& sr);
 
+    DLLLOCAL void deferCodeInitialization(DeferredCodeObject* o) {
+        dset.insert(o);
+    }
+
+    DLLLOCAL void removeDeferredCode(DeferredCodeObject* o) {
+        dset_t::iterator i = dset.find(o);
+        if (i != dset.end()) {
+            dset.erase(i);
+        }
+    }
+
+    DLLLOCAL int initDeferredCode();
+
     DLLLOCAL static QoreObject* getQoreObject(QoreProgram* pgm) {
         QoreAutoRWWriteLocker al(&lck_programMap);
         qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
@@ -2610,6 +2627,10 @@ private:
     // to get statementId
     typedef std::map<AbstractStatement*, unsigned long> ReverseStatementIdMap_t;
     ReverseStatementIdMap_t reverseStatementIds;
+
+    // for deferred code initialization while parsing constants
+    typedef std::set<DeferredCodeObject*> dset_t;
+    dset_t dset;
 
     /**
         get safely debug program pointer. The debug program instance itself must exist. It's not a matter of

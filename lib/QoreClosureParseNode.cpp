@@ -30,10 +30,21 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/qore_program_private.h"
 
 QoreClosureParseNode::QoreClosureParseNode(const QoreProgramLocation* loc, UserClosureFunction* n_uf, bool n_lambda)
         : ParseNode(loc, NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
     set_effect_as_root(false);
+}
+
+QoreClosureParseNode::~QoreClosureParseNode() {
+    if (is_deferred) {
+        QoreProgram* pgm = getProgram();
+        if (pgm) {
+            qore_program_private::get(*pgm)->removeDeferredCode(this);
+        }
+    }
+    delete uf;
 }
 
 QoreClosureNode* QoreClosureParseNode::evalClosure() const {
@@ -68,8 +79,14 @@ int QoreClosureParseNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
         in_method = true;
         uf->setClassType(parse_context.oflag->getTypeInfo());
     }
-    int err = uf->parseInit(nullptr);
-    uf->parseCommit();
+    int err = 0;
+    if (parse_context.pflag & PF_CONST_EXPRESSION) {
+        qore_program_private::get(*parse_context.pgm)->deferCodeInitialization(this);
+        is_deferred = true;
+    } else {
+        err = uf->parseInit(nullptr);
+        uf->parseCommit();
+    }
     parse_context.typeInfo = runTimeClosureTypeInfo;
     return err;
 }
@@ -78,7 +95,8 @@ const char* QoreClosureParseNode::getTypeName() const {
     return getStaticTypeName();
 }
 
-QoreValue QoreClosureParseNode::exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, const qore_class_private* class_ctx, ExceptionSink* xsink) const {
+QoreValue QoreClosureParseNode::exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args,
+        QoreObject* self, const qore_class_private* class_ctx, ExceptionSink* xsink) const {
     return uf->evalClosure(closure_base, pgm, args, self, class_ctx, xsink);
 }
 

@@ -1388,6 +1388,17 @@ QoreListNode* qore_program_private::runtimeFindCallVariants(const char* name, Ex
     return qore_root_ns_private::get(*RootNS)->runtimeFindCallVariants(name, xsink);
 }
 
+int qore_program_private::initDeferredCode() {
+    int err = 0;
+    for (auto& i : dset) {
+        if (i->parseInitDeferred() && !err) {
+            err = -1;
+        }
+    }
+    dset.clear();
+    return err;
+}
+
 /*
     When a debug handler is invoked then current stack frame/node is not visible in get_thread_call_stack()
     as a statement is injected (not real function call). The statment information are passed as handler parameters
