@@ -146,7 +146,6 @@ public class QoreDataType inherits AbstractDataProviderType {
         if (tags) {
             self.tags = tags;
         }
-
         if (self.options."qore.no_null") {
             accept_type_hash -= "null";
             accept_type_hash_simple -= "null";

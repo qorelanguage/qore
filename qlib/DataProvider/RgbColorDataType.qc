@@ -56,7 +56,7 @@ public class RgbColorDataTypeBase inherits HashDataType {
         };
     }
 
-    constructor(Type base_type, string name) : HashDataType(base_type, name, {"qore.external_name": "rgbcolor"}) {
+    constructor(Type base_type, string name) : HashDataType(base_type, name, NOTHING, {"qore.external_name": "rgbcolor"}) {
         addQoreFields(Fields);
     }
 }

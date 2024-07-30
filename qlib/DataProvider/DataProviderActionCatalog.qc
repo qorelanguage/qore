@@ -856,10 +856,8 @@ public class DataProviderActionCatalog {
                 case NT_OBJECT:
                     if (type instanceof AbstractDataProviderType) {
                         info.type = type;
-                        #type.getOptions()."qore.external_name" ?? type.getBaseTypeName();
                     } else {
                         info.type = AbstractDataProviderType::get(type);
-                        #type.getName();
                     }
                     break;
 
