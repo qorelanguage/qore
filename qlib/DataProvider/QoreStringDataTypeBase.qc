@@ -89,8 +89,8 @@ public class QoreStringDataTypeBase inherits QoreDataType {
         if (exists value && value !== NULL) {
             if (value.typeCode() != NT_STRING) {
                 if (!accept_type_hash_simple{value.type()}) {
-                    throw "RUNTIME-TYPE-ERROR", sprintf("value of type %y cannot be converted to type %y",
-                        value.type(), getName());
+                    throw "RUNTIME-TYPE-ERROR", sprintf("value of type %y cannot be converted to type %y (val: %y)",
+                        value.type(), getName(), value);
                 }
                 value = string(value, options."string.encoding");
             } else if (options."string.encoding" && (value.encoding() != options."string.encoding")) {

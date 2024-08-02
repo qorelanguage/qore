@@ -1,7 +1,7 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QC_AbstractSmartLock.h
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2023 David Nichols
@@ -33,7 +33,7 @@
 
 #define _QORE_CLASS_ABSTRACTSMARTLOCK_H
 
-#include "qore/intern/AbstractSmartLock.h"
+#include <qore/AbstractSmartLock.h>
 
 DLLEXPORT extern qore_classid_t CID_ABSTRACTSMARTLOCK;
 DLLLOCAL extern QoreClass* QC_ABSTRACTSMARTLOCK;

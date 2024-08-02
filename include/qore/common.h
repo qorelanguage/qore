@@ -51,6 +51,12 @@
 #include <strings.h>
 #include <vector>
 
+#ifdef __GNUC__
+#define PACK __attribute__ ((packed))
+#else
+#define PACK
+#endif
+
 //! Qore's base type info class
 class QoreTypeInfo;
 

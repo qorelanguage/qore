@@ -115,7 +115,7 @@ public:
     //! the actual value is stored here
     qore_value_u v;
     //! indicates the value that the union is holding
-    valtype_t type;
+    valtype_t type : 2;
 
     //! assigns an integer value to the object; any current value is overwritten
     DLLLOCAL void set(int64 i) {

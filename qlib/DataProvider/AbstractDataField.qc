@@ -140,6 +140,9 @@ public class AbstractDataField inherits Qore::Serializable {
         AbstractDataProviderType type = getType();
         if (allowed_values[0] instanceof hash<AllowedValueInfo>) {
             self.allowed_values = allowed_values;
+        } else if (allowed_values[0].typeCode() == NT_HASH && allowed_values[0].hasKey("value")
+            && type.getBaseTypeCode() != NT_HASH) {
+            self.allowed_values = map cast<hash<AllowedValueInfo>>($1), allowed_values;
         } else {
             self.allowed_values = map <AllowedValueInfo>{
                 "display_name": $1.toString(),

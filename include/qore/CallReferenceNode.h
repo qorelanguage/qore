@@ -38,9 +38,9 @@
  */
 class AbstractCallReferenceNode : public AbstractQoreNode {
 public:
-    DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval = false, qore_type_t n_type = NT_FUNCREF);
+    DLLEXPORT AbstractCallReferenceNode(bool n_needs_eval = false, qore_type_t n_type = NT_FUNCREF);
 
-    DLLLOCAL virtual ~AbstractCallReferenceNode();
+    DLLEXPORT virtual ~AbstractCallReferenceNode();
 
     //! returns false unless perl-boolean-evaluation is enabled, in which case it returns true
     /** @return false unless perl-boolean-evaluation is enabled, in which case it returns true
@@ -54,7 +54,7 @@ public:
         @param xsink not used by this implementation of the function
         @return -1 for exception raised, 0 = OK
     */
-    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
+    DLLEXPORT virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
     //! returns a QoreString giving the verbose string representation of the value
     /** used for %n and %N printf formatting
@@ -67,10 +67,10 @@ public:
 
         @see QoreNodeAsStringHelper
     */
-    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
+    DLLEXPORT virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
     //! returns the type name as a c string
-    DLLLOCAL virtual const char* getTypeName() const;
+    DLLEXPORT virtual const char* getTypeName() const;
 
     //! Returns a non-const ptr to the same object after increasing the reference count
     DLLLOCAL AbstractCallReferenceNode* refSelf() const {
