@@ -33,58 +33,56 @@
 
 #include <cassert>
 
-#ifdef DEBUG
 SmartMutex::~SmartMutex() {
-   assert(cmap.empty());
+    assert(cmap.empty());
 }
-#endif
 
 int SmartMutex::releaseImpl() {
-   if (tid < 0)
-      return -1;
-   return 0;
+    if (tid < 0)
+        return -1;
+    return 0;
 }
 
 int SmartMutex::grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_ms) {
-   if (tid == mtid) {
-      // getName() for possible inheritance
-      xsink->raiseException("LOCK-ERROR", "TID %d called %s::lock() twice without an intervening %s::unlock()", tid, getName(), getName());
-      return -1;
-   }
-   while (tid >= 0) {
-      waiting++;
-      int rc =  nvl->waitOn((AbstractSmartLock *)this, vl, xsink, timeout_ms);
-      waiting--;
-      if (rc)
-	 return -1;
-   }
-   if (tid == Lock_Deleted) {
-      // getName() for possible inheritance
-      xsink->raiseException("LOCK-ERROR", "%s has been deleted in another thread", getName());
-      return -1;
-   }
-   return 0;
+    if (tid == mtid) {
+        // getName() for possible inheritance
+        xsink->raiseException("LOCK-ERROR", "TID %d called %s::lock() twice without an intervening %s::unlock()", tid, getName(), getName());
+        return -1;
+    }
+    while (tid >= 0) {
+        waiting++;
+        int rc =  nvl->waitOn((AbstractSmartLock *)this, vl, xsink, timeout_ms);
+        waiting--;
+        if (rc)
+            return -1;
+    }
+    if (tid == Lock_Deleted) {
+        // getName() for possible inheritance
+        xsink->raiseException("LOCK-ERROR", "%s has been deleted in another thread", getName());
+        return -1;
+    }
+    return 0;
 }
 
 int SmartMutex::releaseImpl(ExceptionSink *xsink) {
-   int mtid = q_gettid();
-   if (tid < 0) {
-      // getName() for possible inheritance
-      xsink->raiseException("LOCK-ERROR", "TID %d called %s::unlock() while the lock was already unlocked", mtid, getName());
-      return -1;
-   }
-   if (tid != mtid) {
-      // getName() for possible inheritance
-      xsink->raiseException("LOCK-ERROR", "TID %d called %s::unlock() while the lock is held by tid %d", mtid, getName(), tid);
-      return -1;
-   }
-   return 0;
+    int mtid = q_gettid();
+    if (tid < 0) {
+        // getName() for possible inheritance
+        xsink->raiseException("LOCK-ERROR", "TID %d called %s::unlock() while the lock was already unlocked", mtid, getName());
+        return -1;
+    }
+    if (tid != mtid) {
+        // getName() for possible inheritance
+        xsink->raiseException("LOCK-ERROR", "TID %d called %s::unlock() while the lock is held by tid %d", mtid, getName(), tid);
+        return -1;
+    }
+    return 0;
 }
 
 int SmartMutex::tryGrabImpl(int mtid, VLock *nvl) {
-   if (tid != Lock_Unlocked)
-      return -1;
-   return 0;
+    if (tid != Lock_Unlocked)
+        return -1;
+    return 0;
 }
 
 int SmartMutex::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int64 timeout_ms) {
@@ -122,17 +120,17 @@ int SmartMutex::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsi
 }
 
 void SmartMutex::destructorImpl(ExceptionSink *xsink) {
-   cond_map_t::iterator i = cmap.begin(), e = cmap.end();
-   if (i != e) {
-      xsink->raiseException("LOCK-ERROR", "%s object deleted in TID %d while one or more Condition variables were waiting on it",
-			    getName(), q_gettid());
-      // wake up all condition variables waiting on this mutex
-      for (; i != e; i++)
-	 i->first->broadcast();
-   }
+    cond_map_t::iterator i = cmap.begin(), e = cmap.end();
+    if (i != e) {
+        xsink->raiseException("LOCK-ERROR", "%s object deleted in TID %d while one or more Condition variables were "
+            "waiting on it", getName(), q_gettid());
+        // wake up all condition variables waiting on this mutex
+        for (; i != e; i++)
+        i->first->broadcast();
+    }
 }
 
 bool SmartMutex::owns_lock() {
-   AutoLocker al(&asl_lock);
-   return tid == q_gettid() ? true : false;
+    AutoLocker al(&asl_lock);
+    return tid == q_gettid() ? true : false;
 }

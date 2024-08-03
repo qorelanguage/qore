@@ -475,9 +475,6 @@ typedef std::pair<enum obe_type_e, StatementBlock*> qore_conditional_block_exit_
 
 typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 
-// for maps of thread condition variables to TIDs
-typedef std::map<QoreCondition*, int> cond_map_t;
-
 #if defined(HAVE_CHECK_STACK_POS)
 #define QORE_MANAGE_STACK
 #endif

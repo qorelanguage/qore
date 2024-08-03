@@ -42,6 +42,7 @@ class BuiltinNormalMethodVariantBase;
 class BuiltinCopyVariantBase;
 class QoreExternalMethodVariant;
 class QoreProgram;
+class ReferenceNode;
 
 //! the implementation of Qore's object data type, reference counted, dynamically-allocated only
 /** objects in Qore are unique unless copied explicitly (similar to Java)
@@ -240,6 +241,15 @@ public:
         @return the value of the given member with the reference count incremented, the caller owns any reference returned
     */
     DLLEXPORT QoreValue getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const;
+
+    //! Returns a reference to the given member, if the member is valid and accessible
+    /**
+        @param mem the name member to retrieve the reference for
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return a reference to the given member; the caller owns any reference returned
+    */
+    DLLEXPORT ReferenceNode* getReferenceToMember(const char* mem, ExceptionSink* xsink);
 
     //! returns the value of the given member as an int64
     /**

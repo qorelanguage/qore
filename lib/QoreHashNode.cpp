@@ -406,7 +406,7 @@ QoreHashNode::~QoreHashNode() {
     delete priv;
 }
 
-AbstractQoreNode* QoreHashNode::realCopy() const {
+QoreHashNode* QoreHashNode::realCopy() const {
     return copy();
 }
 

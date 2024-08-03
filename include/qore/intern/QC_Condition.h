@@ -39,7 +39,7 @@
 #include <qore/SmartMutex.h>
 
 DLLEXPORT extern qore_classid_t CID_CONDITION;
-DLLLOCAL extern QoreClass* QC_CONDITION;
+DLLEXPORT extern QoreClass* QC_CONDITION;
 
 DLLLOCAL QoreClass* initConditionClass(QoreNamespace& ns);
 

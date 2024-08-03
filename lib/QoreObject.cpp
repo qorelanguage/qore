@@ -731,8 +731,9 @@ QoreValue qore_object_private::getReferencedMemberNoMethod(const char* mem, Exce
 void qore_object_private::setValue(const char* key, QoreValue val, ExceptionSink* xsink) {
     // get the current class context
     const qore_class_private* class_ctx = runtime_get_class();
-    if (class_ctx && (!qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx) || !class_ctx->runtimeIsMemberInternal(key))) {
-        class_ctx = 0;
+    if (class_ctx && (!qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx)
+        || !class_ctx->runtimeIsMemberInternal(key))) {
+        class_ctx = nullptr;
     }
 
     setValueIntern(class_ctx, key, val, xsink);
@@ -1378,6 +1379,11 @@ QoreValue QoreObject::getMemberValueNoMethod(const char* key, AutoVLock *vl, Exc
 QoreValue QoreObject::getReferencedMemberNoMethod(const char* key, const QoreClass* cls, ExceptionSink* xsink) const {
     ObjectSubstitutionHelper osh(const_cast<QoreObject*>(this), qore_class_private::get(*cls));
     return priv->getReferencedMemberNoMethod(key, xsink);
+}
+
+ReferenceNode* QoreObject::getReferenceToMember(const char* mem, ExceptionSink* xsink) {
+    return new ReferenceNode(new SelfVarrefNode(get_runtime_location(), strdup(mem)), referenceTypeInfo, this, this,
+        qore_class_private::get(*priv->theclass));
 }
 
 int QoreObject::setMemberValue(const char* key, const QoreClass* cls, const QoreValue val, ExceptionSink* xsink) {

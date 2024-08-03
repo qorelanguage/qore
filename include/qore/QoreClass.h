@@ -84,11 +84,14 @@ DLLEXPORT extern QoreClass* QC_SERIALIZABLE;
 DLLEXPORT extern QoreClass* QC_ABSTRACTPOLLABLEIOOBJECT;
 DLLEXPORT extern QoreClass* QC_ABSTRACTPOLLABLEIOOBJECTBASE;
 DLLEXPORT extern QoreClass* QC_ABSTRACTPOLLOPERATION;
+DLLEXPORT extern QoreClass* QC_CONDITION;
 DLLEXPORT extern QoreClass* QC_SOCKETPOLLOPERATIONBASE;
 DLLEXPORT extern QoreClass* QC_SOCKETPOLLOPERATION;
 DLLEXPORT extern QoreClass* QC_FILEPOLLOPERATIONBASE;
 DLLEXPORT extern QoreClass* QC_FILEPOLLOPERATION;
 DLLEXPORT extern QoreClass* QC_MUTEX;
+
+#define QC_SMARTMUTEX QC_MUTEX
 
 class BCList;
 class BCSMList;
@@ -1094,6 +1097,11 @@ public:
 
     //! returns true if the class has any publicly-declared members
     DLLEXPORT bool hasPublicMembersInHierarchy() const;
+
+    //! Returns an expression that can be used to create a new object when executed
+    /** @oaram args the arguments to the call; may be nullptr; the call takes over ownership of the reference
+    */
+    DLLEXPORT AbstractQoreNode* getNewObjectExpression(QoreListNode* args = nullptr) const;
 
 protected:
     //! Deletes the object and frees all memory

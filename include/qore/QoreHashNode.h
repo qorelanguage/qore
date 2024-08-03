@@ -97,8 +97,8 @@ public:
 
     //! performs a copy of the hash and returns the new hash
     /** @return a copy of the QoreHashNode
-        */
-    DLLEXPORT virtual AbstractQoreNode* realCopy() const;
+    */
+    DLLEXPORT virtual QoreHashNode* realCopy() const;
 
     //! tests for equality ("deep compare" including all contained values) with possible type conversion (soft compare)
     /**

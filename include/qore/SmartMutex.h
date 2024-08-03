@@ -44,21 +44,19 @@
 
 class SmartMutex : public AbstractSmartLock {
 private:
-    DLLLOCAL virtual int releaseImpl();
-    DLLLOCAL virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_ms = 0);
-    DLLLOCAL virtual int releaseImpl(ExceptionSink *xsink);
-    DLLLOCAL virtual int tryGrabImpl(int mtid, VLock *nvl);
-    DLLLOCAL virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int64 timeout = 0);
-    DLLLOCAL virtual void destructorImpl(ExceptionSink *xsink);
+    DLLEXPORT virtual int releaseImpl();
+    DLLEXPORT virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_ms = 0);
+    DLLEXPORT virtual int releaseImpl(ExceptionSink *xsink);
+    DLLEXPORT virtual int tryGrabImpl(int mtid, VLock *nvl);
+    DLLEXPORT virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int64 timeout = 0);
+    DLLEXPORT virtual void destructorImpl(ExceptionSink *xsink);
 
 public:
-    DLLLOCAL SmartMutex() {}
-#ifdef DEBUG
-    DLLLOCAL virtual ~SmartMutex();
-#endif
+    DLLEXPORT SmartMutex() {}
+    DLLEXPORT virtual ~SmartMutex();
 
-    DLLLOCAL bool owns_lock();
-    DLLLOCAL virtual const char *getName() const { return "Mutex"; }
+    DLLEXPORT bool owns_lock();
+    DLLEXPORT virtual const char* getName() const { return "Mutex"; }
 };
 
 #endif // _QORE_SMARTMUTEX
