@@ -142,18 +142,23 @@ QoreListNode* split_intern(const char* pattern, size_t pl, const char* str, size
 }
 
 // count how many consecutive quotes
-static size_t count_quotes(const char*& str, size_t& len, const QoreString& quote) {
+static size_t count_quotes(const char*& str, size_t& len, const char* quote, size_t quotelen) {
     size_t rv = 0;
-    while (len && len >= quote.size()) {
-        if (!memcmp(quote.c_str(), str, quote.size())) {
-            str += quote.size();
-            len -= quote.size();
+    while (len && len >= quotelen) {
+        if (!memcmp(quote, str, quotelen)) {
+            str += quotelen;
+            len -= quotelen;
             ++rv;
             continue;
         }
         break;
     }
     return rv;
+}
+
+// count how many consecutive quotes
+static size_t count_quotes(const char*& str, size_t& len, const QoreString& quote) {
+    return count_quotes(str, len, quote.c_str(), quote.size());
 }
 
 QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, const QoreString* str,
@@ -168,6 +173,12 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
     if (*xsink)
         return nullptr;
 
+    return split_with_quote(xsink, pat->c_str(), pat->size(), str, tquote->c_str(), tquote->size(), trim_unquoted, h,
+        eol);
+}
+
+QoreListNode* split_with_quote(ExceptionSink* xsink, const char* pat, size_t patlen, const QoreString* str,
+        const char* quote, size_t quotelen, bool trim_unquoted, AbstractIteratorHelper* h, const QoreString* eol) {
     // in case the eol string needs encoding conversion
     TempEncodingHelper teol;
 
@@ -176,14 +187,15 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
 
     //printd(5, "split_with_quote() sep: %s str: %s quote: %s trim_unquoted: %d\n", pat->c_str(), str->c_str(), tquote->c_str(), trim_unquoted);
 
-    if (!tquote->strlen() || tquote->strlen() > sep->strlen())
-        return split_intern(pat->c_str(), pat->strlen(), str->c_str(), str->strlen(), str->getEncoding());
+    if (!quotelen || quotelen > patlen) {
+        return split_intern(pat, patlen, str->c_str(), str->strlen(), str->getEncoding());
+    }
 
     ReferenceHolder<QoreListNode> l(new QoreListNode(stringTypeInfo), xsink);
     const char* ostr = str->c_str();
     size_t sl = str->strlen();
-    const char* tpattern = pat->c_str();
-    size_t pl = pat->strlen();
+    const char* tpattern = pat;
+    size_t pl = patlen;
 
     const char* ststr = ostr;
 
@@ -196,7 +208,7 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
         // make sure len is always calculated correctly
         assert(len == (str->size() - (ststr - ostr)));
 
-        size_t num_quotes = count_quotes(ststr, len, **tquote);
+        size_t num_quotes = count_quotes(ststr, len, quote, quotelen);
         if (num_quotes) {
             // see if we have empty quotes & we're at the end of the field
             if (num_quotes == 2 && (!len || (len >= pl && !memcmp(tpattern, ststr, pl)))) {
@@ -221,7 +233,7 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
 
             // process double quotes to single quote
             while (num_quotes >= 2) {
-                field->concat(*tquote, xsink);
+                field->concat(quote);
                 assert(!*xsink);
                 num_quotes -= 2;
             }
@@ -234,7 +246,7 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
                 // make sure len is always calculated correctly
                 assert(len == (str->size() - (ststr - ostr)));
 
-                p = memstr(ststr, tquote->c_str(), tquote->strlen(), len);
+                p = memstr(ststr, quote, quotelen, len);
                 if (!p) {
                     // retrieve another line and add it to the current one if possible
                     if (h) {
@@ -242,7 +254,7 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
                         if (!h->next(xsink)) {
                             if (!*xsink) {
                                 xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field " QSD
-                                    " (starting with 1); no more line content in iterator", tquote->c_str(), l->size() + 1);
+                                    " (starting with 1); no more line content in iterator", quote, l->size() + 1);
                             }
                         }
                         if (*xsink) {
@@ -288,17 +300,21 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
                         str = *buf;
                         ostr = buf->c_str();
                         ststr = ostr + offset;
-                        //printd(5, "split_with_quote() got new line %p (" QLLD "): '%s' eol: '%s' (%d) ststr: '%s'\n", new_line, new_line->size(), new_line->c_str(), teol ? teol->c_str() : "<nl>", (int)eol_len, ststr);
+                        //printd(5, "split_with_quote() got new line %p (" QLLD "): '%s' eol: '%s' (%d) ststr: "
+                        //    "'%s'\n", new_line, new_line->size(), new_line->c_str(), teol ? teol->c_str() : "<nl>",
+                        //    (int)eol_len, ststr);
                         assert((size_t)(ststr - ostr) == offset);
                         // make sure len is always calculated correctly
                         assert(len == (str->size() - (ststr - ostr)));
                         continue;
                     }
 
-                    xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field " QSD " (starting with 1)", tquote->c_str(), l->size() + 1);
+                    xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field " QSD " (starting "
+                        "with 1)", quote, l->size() + 1);
                     return nullptr;
                 }
-                //printd(5, "f " QSD " found closing quote in pos " QSD " (len " QSD ") str: '%s' ('%s')\n", l->size() + 1, p - ststr, len, ststr, field->c_str());
+                //printd(5, "f " QSD " found closing quote in pos " QSD " (len " QSD ") str: '%s' ('%s')\n",
+                //    l->size() + 1, p - ststr, len, ststr, field->c_str());
 
                 assert(p != ststr);
 
@@ -316,13 +332,13 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
                 }
 
                 // skip the quote in the source string
-                text_len += tquote->size();
+                text_len += quotelen;
                 ststr += text_len;
                 len -= text_len;
 
                 // add escaped quote to field and keep searching
                 if (*(p - 1) == '\\') {
-                    field->concat(*tquote, xsink);
+                    field->concat(quote);
                     //printd(5, "f " QSD " adding escaped quote: %s ('%s')\n", l->size() + 1, tquote->c_str(), field->c_str());
 
                     assert(!*xsink);
@@ -333,13 +349,13 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
                 }
 
                 // if we have an odd number of quotes, then we have found the end of the field
-                num_quotes = count_quotes(ststr, len, **tquote) + 1;
+                num_quotes = count_quotes(ststr, len, quote, quotelen) + 1;
 
                 //printd(5, "f " QSD " found " QSD " quote(s) ('%s')\n", l->size() + 1, num_quotes, field->c_str());
 
                 // process double quotes to single quote
                 while (num_quotes >= 2) {
-                    field->concat(*tquote, xsink);
+                    field->concat(quote);
                     //printd(5, "f " QSD " adding quote: %s ('%s')\n", l->size() + 1, tquote->c_str(), field->c_str());
                     assert(!*xsink);
                     num_quotes -= 2;
@@ -1575,7 +1591,7 @@ chomp(\str);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();
 
-   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique());
    if (*xsink)
       return QoreValue();
 
@@ -1627,7 +1643,7 @@ trim(\str);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();
 
-   QoreStringNode* rv = reinterpret_cast<QoreStringNode*>(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode*>(ref.getUnique());
    if (*xsink)
       return QoreValue();
 
@@ -1679,7 +1695,7 @@ ltrim(\str);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();
 
-   QoreStringNode* rv = reinterpret_cast<QoreStringNode*>(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode*>(ref.getUnique());
    if (*xsink)
       return QoreValue();
 
@@ -1729,7 +1745,7 @@ rtrim(\str);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();
 
-   QoreStringNode* rv = reinterpret_cast<QoreStringNode*>(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode*>(ref.getUnique());
    if (*xsink)
       return QoreValue();
 

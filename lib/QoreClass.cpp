@@ -5842,6 +5842,10 @@ QoreBuiltinClass::QoreBuiltinClass(const QoreBuiltinClass& old) : QoreClass(old)
 QoreBuiltinClass::QoreBuiltinClass() {
 }
 
+void QoreBuiltinClass::setModulePublic(bool v) {
+    priv->pub = v;
+}
+
 QoreParseClass::QoreParseClass(const QoreProgramLocation* loc) {
     std::string path;
     std::string name = parse_pop_name(path);

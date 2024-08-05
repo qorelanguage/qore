@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-    QC_HTTPClient.h
+    qore_type_safe_ref_helper_priv.h
 
     Qore Programming Language
 
-    Copyright (C) 2006 - 2024 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -29,48 +29,51 @@
     information.
 */
 
-#ifndef QC_HTTP_CLIENT_H_
-#define QC_HTTP_CLIENT_H_
+#ifndef _QORE_INTERN_QORETYPESAFEREFERENCEHELPER_H
 
-DLLEXPORT extern qore_classid_t CID_HTTPCLIENT;
-DLLEXPORT extern QoreClass *QC_HTTPCLIENT;
-DLLEXPORT extern QoreClass *QC_SOCKET;
-DLLLOCAL QoreClass *initHTTPClientClass(QoreNamespace& ns);
+#define _QORE_INTERN_QORETYPESAFEREFERENCEHELPER_H
 
-class HTTPInfoRefHelper {
-protected:
-    const ReferenceNode *ref;
-    ExceptionSink *xsink;
-    ReferenceHolder<QoreHashNode> info;
+#include "qore/intern/Variable.h"
 
-public:
-    DLLLOCAL HTTPInfoRefHelper(const ReferenceNode *n_ref, QoreStringNode *msg, ExceptionSink *n_xsink) : ref(n_ref), xsink(n_xsink), info(new QoreHashNode(autoTypeInfo), xsink) {
-        info->setKeyValue("request", msg, xsink);
+struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
+    DLLLOCAL qore_type_safe_ref_helper_priv_t(const ReferenceNode* ref, ExceptionSink* xsink)
+            : LValueHelper(*ref, xsink) {
     }
 
-    DLLLOCAL ~HTTPInfoRefHelper() {
-        // we have to create a temporary ExceptionSink if there is
-        // an active exception, otherwise writing back the reference will fail
-        assert(xsink);
-        ExceptionSink *txsink = *xsink ? new ExceptionSink : xsink;
-
-        // write info hash to reference
-        QoreTypeSafeReferenceHelper rh(ref, txsink);
-        if (!rh)
-            return;
-
-        if (rh.assign(info.release()))
-            return;
-
-        if (txsink != xsink)
-            xsink->assimilate(txsink);
+    DLLLOCAL qore_type_safe_ref_helper_priv_t(const AbstractQoreNode* exp, ExceptionSink* xsink)
+            : LValueHelper(exp, xsink) {
     }
 
-    DLLLOCAL QoreHashNode *operator*() {
-        return *info;
+    DLLLOCAL qore_type_safe_ref_helper_priv_t(ExceptionSink* xsink) : LValueHelper(xsink) {
+    }
+
+    DLLLOCAL ~qore_type_safe_ref_helper_priv_t() {
+    }
+
+    DLLLOCAL AbstractQoreNode* getUnique(ExceptionSink *xsink) {
+        ensureUnique();
+        return LValueHelper::getNodeValue();
+    }
+
+    DLLLOCAL int assign(QoreValue val) {
+        return LValueHelper::assign(val, "<reference>");
+    }
+
+    DLLLOCAL const QoreValue getValue() const {
+        return LValueHelper::getValue();
+    }
+
+    DLLLOCAL qore_type_t getType() const {
+        return LValueHelper::getType();
+    }
+
+    DLLLOCAL const char* getTypeName() const {
+        return LValueHelper::getTypeName();
+    }
+
+    DLLLOCAL static LValueHelper& get(QoreTypeSafeReferenceHelper& ref) {
+        return *ref.priv;
     }
 };
 
 #endif
-
-// EOF

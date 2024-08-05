@@ -43,6 +43,7 @@ class BuiltinCopyVariantBase;
 class QoreExternalMethodVariant;
 class QoreProgram;
 class ReferenceNode;
+class QoreTypeSafeReferenceHelper;
 
 //! the implementation of Qore's object data type, reference counted, dynamically-allocated only
 /** objects in Qore are unique unless copied explicitly (similar to Java)
@@ -340,6 +341,21 @@ public:
     */
     DLLEXPORT QoreValue evalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
 
+    //! evaluates the given method with the given class context and arguments passed and returns the return value
+    /** The caller owns the AbstractQoreNode (reference) returned
+
+        @param method the method to evaluate
+        @param class_ctx the class context for the method evaluation for evaluating private:internal methods
+        @param args the arguments for the method (may be 0)
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return the value returned by the method; the caller owns any reference returned
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT QoreValue evalMethod(const char* name, const QoreClass* class_ctx, const QoreListNode* args,
+            ExceptionSink* xsink);
+
     //! evaluates the given method with the given class context and arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
     /**
         @param method the method to evaluate
@@ -475,6 +491,31 @@ public:
     */
     DLLEXPORT QoreValue getMemberValueNoMethod(const char* key, AutoVLock* vl, ExceptionSink* xsink) const;
 
+    //! returns the pointer to the value of the member
+    /**
+        NOTE: the value returned is not referenced by this function, but rather the object is locked
+        @param key the name of the member, assumed to be in the default encoding (QCS_DEFAULT)
+        @param cls the class context for private:internal members; may be nullptr
+        @param vl the AutoVLock container for nested locking
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT QoreValue getMemberValueNoMethod(const char* key, const QoreClass* cls, AutoVLock* vl,
+            ExceptionSink* xsink) const;
+
+    //! Sets the reference helper for editing the member and leaves the object locked
+    /**
+        NOTE: the value returned is not referenced by this function, but rather the object is locked
+        @param key the name of the member, assumed to be in the default encoding (QCS_DEFAULT)
+        @param cls the class context for private:internal members; may be nullptr
+        @param ref the type safe object for editing the object
+        @param for_remove if true then no member will be created if it does not already exist
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT int editMemberValue(const char* key, const QoreClass* cls, QoreTypeSafeReferenceHelper& ref, bool for_remove = false) const;
+
     //! returns the value of the given member as accessed from the given class; caller owns any reference returned
     /** @param key the name of the member, assumed to be in the default encoding (QCS_DEFAULT)
         @param cls the class context for private:internal members; may be nullptr
@@ -496,6 +537,19 @@ public:
     */
     DLLEXPORT int setMemberValue(const char* key, const QoreClass* cls, const QoreValue val, ExceptionSink* xsink);
 
+    //! sets the value of the given member as accessed from the given class and leaves the object locked
+    /** @param key the name of the member, assumed to be in the default encoding (QCS_DEFAULT)
+        @param cls the class context for private:internal members; may be nullptr
+        @param val the value to set
+        @param ref the type safe reference helper for making safe assignments and managing lvalue locks
+
+        @return 0 = no errors, -1 = Qore-language exception raised
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT int setMemberValue(const char* key, const QoreClass* cls, const QoreValue val,
+            QoreTypeSafeReferenceHelper& ref);
+
     //! call this function when an object's private data is deleted externally
     /** this function will clear the private data and delete the object
         @param key the class ID of the class that owns the private data
@@ -504,12 +558,14 @@ public:
     DLLEXPORT void externalDelete(qore_classid_t key, ExceptionSink* xsink);
 
     //! executes a normal object method variant
-    DLLEXPORT QoreValue evalMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
+    DLLEXPORT QoreValue evalMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant,
+            const QoreListNode* args, ExceptionSink* xsink);
 
     //! executes a normal object method variant
     /** @since %Qore 0.9
     */
-    DLLEXPORT QoreValue evalMethodVariant(const QoreMethod& method, const QoreClass* class_ctx, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
+    DLLEXPORT QoreValue evalMethodVariant(const QoreMethod& method, const QoreClass* class_ctx,
+                const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
 
     //! executes a static method
     /** @since %Qore 0.9
@@ -519,17 +575,20 @@ public:
     //! executes a static method with the given class context to access private:internal methods
     /** @since %Qore 0.9
     */
-    DLLEXPORT static QoreValue evalStaticMethod(const QoreMethod& method, const QoreClass* class_ctx, const QoreListNode* args, ExceptionSink* xsink);
+    DLLEXPORT static QoreValue evalStaticMethod(const QoreMethod& method, const QoreClass* class_ctx,
+            const QoreListNode* args, ExceptionSink* xsink);
 
     //! executes a static method variant
     /** @since %Qore 0.9
     */
-    DLLEXPORT static QoreValue evalStaticMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
+    DLLEXPORT static QoreValue evalStaticMethodVariant(const QoreMethod& method,
+            const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
 
     //! executes a static method variant with the given class context to access private:internal methods
     /** @since %Qore 0.9
     */
-    DLLEXPORT static QoreValue evalStaticMethodVariant(const QoreMethod& method, const QoreClass* class_ctx, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
+    DLLEXPORT static QoreValue evalStaticMethodVariant(const QoreMethod& method, const QoreClass* class_ctx,
+            const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
 
     //! returns the value of the member with an incremented reference count, or executes the memberGate() method and returns the value
     /**

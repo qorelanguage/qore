@@ -161,6 +161,7 @@ protected:
 
     DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
         assert(false);
+        return 0;
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {

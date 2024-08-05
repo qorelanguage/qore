@@ -385,6 +385,17 @@ LValueHelper::~LValueHelper() {
     }
 }
 
+int LValueHelper::set(const ReferenceNode& ref, bool for_remove) {
+    assert(!val);
+    assert(!qv);
+    assert(!typeInfo);
+    RuntimeReferenceHelper rh(ref, vl.xsink);
+    if (!*vl.xsink) {
+        doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
+    }
+    return *vl.xsink ? -1 : 0;
+}
+
 void LValueHelper::saveTemp(QoreValue val) {
     if (!val.isReferenceCounted()) {
         return;

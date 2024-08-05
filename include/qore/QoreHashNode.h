@@ -39,6 +39,7 @@
 class LocalVar;
 class QoreString;
 class TypedHashDecl;
+class QoreTypeSafeReferenceHelper;
 
 //! This is the hash or associative list container type in Qore, dynamically allocated only, reference counted
 /**
@@ -266,6 +267,17 @@ public:
     */
     DLLEXPORT int setKeyValue(const QoreString& key, QoreValue value, ExceptionSink* xsink);
 
+    //! Sets the reference helper for editing the member and leaves the object locked
+    /**
+        NOTE: the value returned is not referenced by this function, but rather the object is locked
+        @param key the name of the member, assumed to be in the default encoding (QCS_DEFAULT)
+        @param ref the type safe object for editing the object
+        @param for_remove if true then no key will be created if it does not already exist
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT int editKeyValue(const char* key, QoreTypeSafeReferenceHelper& ref, bool for_remove = false) const;
+
     //! performs a delete operation on the value of the given key
     /** The delete operation means a simple dereference for all types except QoreObject, on this type the destructor will be run immediately.
         A Qore-language exception could occur eitherin converting the key string's encoding to QCS_DEFAULT, or in the destructor of a deleted object.
@@ -486,6 +498,9 @@ public:
     //! returns a QoreString for the current key, the caller owns QoreString returned
     DLLEXPORT QoreString* getKeyString() const;
 
+    //! returns a QoreStringNode for the current key, the caller owns QoreString returned
+    DLLEXPORT QoreStringNode* getKeyStringNode() const;
+
     //! returns the value of the current key
     DLLEXPORT QoreValue get() const;
 
@@ -625,6 +640,9 @@ public:
 
     //! returns a QoreString for the current key, the caller owns QoreString returned
     DLLEXPORT QoreString* getKeyString() const;
+
+    //! returns a QoreStringNode for the current key, the caller owns QoreString returned
+    DLLEXPORT QoreStringNode* getKeyStringNode() const;
 
     //! returns the value of the current key
     DLLEXPORT const QoreValue get() const;

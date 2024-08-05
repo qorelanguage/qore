@@ -91,8 +91,6 @@ DLLEXPORT extern QoreClass* QC_FILEPOLLOPERATIONBASE;
 DLLEXPORT extern QoreClass* QC_FILEPOLLOPERATION;
 DLLEXPORT extern QoreClass* QC_MUTEX;
 
-#define QC_SMARTMUTEX QC_MUTEX
-
 class BCList;
 class BCSMList;
 class BCAList;
@@ -1186,6 +1184,9 @@ public:
 
     //! copies the object
     DLLEXPORT QoreBuiltinClass(const QoreBuiltinClass& old);
+
+    //! Sets the module public flag (default true)
+    DLLEXPORT void setModulePublic(bool v);
 
 protected:
     //! for use with QoreClass::copyImport()
