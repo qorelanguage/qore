@@ -2171,7 +2171,7 @@ public class DataProviderTest inherits QUnit::Test {
         {
             RgbColorDataType rgb();
             assertEq("rgbcolor", rgb.getName());
-            assertEq({"qore.external_name": "rgbcolor"}, rgb.getOptions());
+            assertEq({"qore.external_name": "rgbcolor"}, rgb.getTags());
             hash<auto> h = {"r": 1, "b": 2, "g": 3, "a": 4};
             assertEq(h, rgb.acceptsValue(h));
             h.x = 3;

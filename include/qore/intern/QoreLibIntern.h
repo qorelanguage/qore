@@ -475,9 +475,6 @@ typedef std::pair<enum obe_type_e, StatementBlock*> qore_conditional_block_exit_
 
 typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 
-// for maps of thread condition variables to TIDs
-typedef std::map<QoreCondition*, int> cond_map_t;
-
 #if defined(HAVE_CHECK_STACK_POS)
 #define QORE_MANAGE_STACK
 #endif
@@ -1084,6 +1081,9 @@ DLLLOCAL QoreListNode* split_intern(const char* pattern, size_t pl, const char* 
     const QoreEncoding* enc, bool with_separator = false);
 DLLLOCAL QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset,
     ExceptionSink* xsink);
+DLLLOCAL QoreListNode* split_with_quote(ExceptionSink* xsink, const char* sep, size_t seplen, const QoreString* str,
+    const char* quote, size_t quotelen, bool trim_unquoted, AbstractIteratorHelper* h = nullptr,
+    const QoreString* eol = nullptr);
 DLLLOCAL QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, const QoreString* str,
     const QoreString* quote, bool trim_unquoted, AbstractIteratorHelper* h = nullptr,
     const QoreString* eol = nullptr);

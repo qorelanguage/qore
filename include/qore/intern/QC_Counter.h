@@ -37,16 +37,8 @@
 #include <qore/AbstractPrivateData.h>
 
 DLLEXPORT extern qore_classid_t CID_COUNTER;
-DLLLOCAL extern QoreClass* QC_COUNTER;
+DLLEXPORT extern QoreClass* QC_COUNTER;
 
-DLLLOCAL QoreClass *initCounterClass(QoreNamespace& ns);
-
-class Counter : public AbstractPrivateData, public QoreCounter {
-   protected:
-      DLLLOCAL virtual ~Counter() {}
-
-   public:
-      DLLLOCAL Counter(int nc = 0) : QoreCounter(nc) {}
-};
+DLLLOCAL QoreClass* initCounterClass(QoreNamespace& ns);
 
 #endif // _QORE_CLASS_COUNTER_H

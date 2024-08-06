@@ -590,6 +590,33 @@ AbstractQoreNode* ProgramFunctionCallNode::makeReferenceNodeAndDerefImpl() {
     return new UnresolvedProgramCallReferenceNode(loc, takeName());
 }
 
+//DLLEXPORT AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false, bool n_custom_reference_handlers = false);
+
+NewObjectCallNode::NewObjectCallNode(const QoreClass* qc, QoreListNode* args)
+        : AbstractQoreNode(NT_NEW_OBJECT, false, true),
+        FunctionCallBase(nullptr, args), qc(qc) {
+    const QoreMethod* constructor = qc->getConstructor();
+    if (!constructor) {
+        if (args && !args->empty()) {
+            parse_error(QoreProgramLocation(), "Cannot call class '%s' with no constructor with arguments", qc->getName());
+        }
+        return;
+    }
+    ExceptionSink xsink;
+    variant = qore_method_private::get(*constructor)->getFunction()->runtimeFindVariant(&xsink, args, false, nullptr);
+
+    ExceptionSink* pxs = getProgram()->getParseExceptionSink();
+    if (pxs) {
+        pxs->assimilate(xsink);
+    } else {
+        xsink.clear();
+    }
+}
+
+QoreValue NewObjectCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    return qore_class_private::execConstructor(*qc, variant, args, xsink);
+}
+
 int ScopedObjectCallNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     assert(!parse_context.typeInfo);
     int err = 0;

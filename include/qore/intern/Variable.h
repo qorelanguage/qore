@@ -391,6 +391,8 @@ public:
 
     DLLLOCAL ~LValueHelper();
 
+    DLLLOCAL int set(const ReferenceNode& ref, bool for_remove = false);
+
     DLLLOCAL void setClosure(RObject* c) {
         robj = c;
     }
