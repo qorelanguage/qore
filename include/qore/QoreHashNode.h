@@ -38,6 +38,7 @@
 
 class LocalVar;
 class QoreString;
+class QoreStringNode;
 class TypedHashDecl;
 class QoreTypeSafeReferenceHelper;
 
