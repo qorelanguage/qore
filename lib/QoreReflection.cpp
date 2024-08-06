@@ -266,6 +266,10 @@ QoreValue QoreExternalConstant::getReferencedValue() const {
     return reinterpret_cast<const ConstantEntry*>(this)->getReferencedValue();
 }
 
+const QoreValue QoreExternalConstant::getValue() const {
+    return reinterpret_cast<const ConstantEntry*>(this)->getValue();
+}
+
 const QoreExternalProgramLocation* QoreExternalConstant::getSourceLocation() const {
     const QoreProgramLocation* loc = reinterpret_cast<const ConstantEntry*>(this)->loc;
     return reinterpret_cast<const QoreExternalProgramLocation*>(loc ? loc : &loc_builtin);

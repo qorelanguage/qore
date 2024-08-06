@@ -223,6 +223,14 @@ QoreValue ConstantEntry::getReferencedValue() const {
     }
 }
 
+const QoreValue ConstantEntry::getValue() const {
+    if (val.getType() == NT_RTCONSTREF) {
+        return val.get<const RuntimeConstantRefNode>()->getConstantEntry()->saved_val;
+    } else {
+        return val;
+    }
+}
+
 ConstantList::ConstantList(const ConstantList& old, int64 po, ClassNs p) : ptr(p) {
     //printd(5, "ConstantList::ConstantList(old: %p, p: %s %s) this: %p cls: %p ns: %p\n", &old, p.getType(),
     //  p.getName(), this, ptr.getClass(), ptr.getNs());

@@ -32,11 +32,13 @@
 */
 
 #include <qore/Qore.h>
+#include "qore/QoreTypeSafeReferenceHelper.h"
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/QoreClosureNode.h"
 #include "qore/intern/QoreQueueIntern.h"
+#include "qore/intern/qore_type_safe_ref_helper_priv.h"
 
 qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc, QoreProgram* p, QoreHashNode* n_data) :
     RObject(n_obj->references, true),
@@ -46,7 +48,8 @@ qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc,
     obj(n_obj) {
     //printd(5, "qore_object_private::qore_object_private() this: %p obj: %p '%s'\n", this, obj, oc->getName());
 #ifdef QORE_DEBUG_OBJ_REFS
-    printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() this: %p obj: %p, pgm: %p, class: %s, references 0->1\n", this, obj, p, oc->getName());
+    printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() this: %p obj: %p pgm: %p class: %s "
+        "references 0->1\n", this, obj, p, oc->getName());
 #endif
     /* instead of referencing the class, we reference the program, because the
         program contains the namespace that contains the class, and the class's
@@ -695,8 +698,7 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
         m = odata->priv->findMember(key);
         if (!m)
             return -1;
-    }
-    else
+    } else
         m = odata->priv->findCreateMember(key);
 
     lvh.setValue(m->val, mti);
@@ -729,8 +731,9 @@ QoreValue qore_object_private::getReferencedMemberNoMethod(const char* mem, Exce
 void qore_object_private::setValue(const char* key, QoreValue val, ExceptionSink* xsink) {
     // get the current class context
     const qore_class_private* class_ctx = runtime_get_class();
-    if (class_ctx && (!qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx) || !class_ctx->runtimeIsMemberInternal(key))) {
-        class_ctx = 0;
+    if (class_ctx && (!qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx)
+        || !class_ctx->runtimeIsMemberInternal(key))) {
+        class_ctx = nullptr;
     }
 
     setValueIntern(class_ctx, key, val, xsink);
@@ -1149,6 +1152,12 @@ QoreValue QoreObject::evalMethod(const char* name, const QoreListNode* args, Exc
     return qore_class_private::get(*priv->theclass)->evalMethod(this, name, args, runtime_get_class(), xsink);
 }
 
+QoreValue QoreObject::evalMethod(const char* name, const QoreClass* class_ctx, const QoreListNode* args,
+        ExceptionSink* xsink) {
+    return qore_class_private::get(*priv->theclass)->evalMethod(this, name, args, qore_class_private::get(*class_ctx),
+        xsink);
+}
+
 QoreValue QoreObject::evalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
     return qore_method_private::eval(method, xsink, this, args);
 }
@@ -1373,9 +1382,80 @@ QoreValue QoreObject::getMemberValueNoMethod(const char* key, AutoVLock *vl, Exc
     return rv;
 }
 
+// unlocking the lock is managed with the AutoVLock object
+QoreValue QoreObject::getMemberValueNoMethod(const char* key, const QoreClass* cls, AutoVLock *vl,
+        ExceptionSink* xsink) const {
+    // get the current class context
+    const qore_class_private* class_ctx;
+    const qore_class_private* member_class_ctx = nullptr;
+    if (cls) {
+        class_ctx = qore_class_private::get(*cls);
+        if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*priv->theclass, class_ctx))
+            class_ctx = nullptr;
+
+        member_class_ctx = nullptr;
+        // check for illegal access
+        if (priv->checkMemberAccess(key, class_ctx, member_class_ctx, xsink)) {
+            return false;
+        }
+    } else {
+        class_ctx = qore_class_private::get(*priv->theclass);
+    }
+
+    // do lock handoff
+    qore_object_lock_handoff_helper qolhm(const_cast<qore_object_private*>(priv), *vl);
+
+    if (priv->status == OS_DELETED) {
+        makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
+        return QoreValue();
+    }
+
+    QoreHashNode* odata = member_class_ctx ? priv->getInternalData(member_class_ctx) : priv->data;
+    QoreValue rv = odata ? odata->getKeyValue(key) : QoreValue();
+
+    if (rv && rv.isReferenceCounted()) {
+        qolhm.stayLocked();
+    }
+    return rv;
+}
+
+// unlocking the lock is managed with the AutoVLock object
+int QoreObject::editMemberValue(const char* key, const QoreClass* cls, QoreTypeSafeReferenceHelper& ref,
+        bool for_remove) const {
+    LValueHelper& lvh = qore_type_safe_ref_helper_priv_t::get(ref);
+
+    // get the current class context
+    const qore_class_private* class_ctx;
+    const qore_class_private* member_class_ctx = nullptr;
+    if (cls) {
+        class_ctx = qore_class_private::get(*cls);
+        if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*priv->theclass, class_ctx))
+            class_ctx = nullptr;
+
+        member_class_ctx = nullptr;
+        // check for illegal access
+        if (priv->checkMemberAccess(key, class_ctx, member_class_ctx, lvh.vl.xsink)) {
+            return false;
+        }
+    } else {
+        class_ctx = qore_class_private::get(*priv->theclass);
+    }
+
+    ExceptionSink* xsink = ref.getExceptionSink();
+    if (priv->getLValue(key, lvh, qore_class_private::get(*(cls ? cls : priv->theclass)), for_remove, xsink)) {
+        return -1;
+    }
+    return 0;
+}
+
 QoreValue QoreObject::getReferencedMemberNoMethod(const char* key, const QoreClass* cls, ExceptionSink* xsink) const {
-    ObjectSubstitutionHelper osh(const_cast<QoreObject*>(this), qore_class_private::get(*cls));
+    ObjectSubstitutionHelper osh(const_cast<QoreObject*>(this), qore_class_private::get(*(cls ? cls : priv->theclass)));
     return priv->getReferencedMemberNoMethod(key, xsink);
+}
+
+ReferenceNode* QoreObject::getReferenceToMember(const char* mem, ExceptionSink* xsink) {
+    return new ReferenceNode(new SelfVarrefNode(get_runtime_location(), strdup(mem)), referenceTypeInfo, this, this,
+        qore_class_private::get(*priv->theclass));
 }
 
 int QoreObject::setMemberValue(const char* key, const QoreClass* cls, const QoreValue val, ExceptionSink* xsink) {
@@ -1385,6 +1465,17 @@ int QoreObject::setMemberValue(const char* key, const QoreClass* cls, const Qore
     }
     LValueHelper lvh(xsink);
     if (priv->getLValue(key, lvh, qore_class_private::get(*cls), false, xsink)) {
+        return -1;
+    }
+    lvh.assign(val.refSelf(), "<set normal class member value>");
+    return *xsink ? -1 : 0;
+}
+
+int QoreObject::setMemberValue(const char* key, const QoreClass* cls, const QoreValue val,
+        QoreTypeSafeReferenceHelper& ref) {
+    LValueHelper& lvh = qore_type_safe_ref_helper_priv_t::get(ref);
+    ExceptionSink* xsink = ref.getExceptionSink();
+    if (priv->getLValue(key, lvh, qore_class_private::get(*(cls ? cls : priv->theclass)), false, xsink)) {
         return -1;
     }
     lvh.assign(val.refSelf(), "<set normal class member value>");

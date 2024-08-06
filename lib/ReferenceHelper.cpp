@@ -29,69 +29,74 @@
 */
 
 #include <qore/Qore.h>
+#include "qore/intern/qore_type_safe_ref_helper_priv.h"
 
-struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
-    DLLLOCAL qore_type_safe_ref_helper_priv_t(const ReferenceNode* ref, ExceptionSink* xsink) : LValueHelper(*ref, xsink) {
-    }
-
-    DLLLOCAL qore_type_safe_ref_helper_priv_t(const AbstractQoreNode* exp, ExceptionSink* xsink) : LValueHelper(exp, xsink) {
-    }
-
-    DLLLOCAL ~qore_type_safe_ref_helper_priv_t() {
-    }
-
-    DLLLOCAL AbstractQoreNode* getUnique(ExceptionSink *xsink) {
-        ensureUnique();
-        return LValueHelper::getNodeValue();
-    }
-
-    DLLLOCAL int assign(QoreValue val) {
-        return LValueHelper::assign(val, "<reference>");
-    }
-
-    DLLLOCAL const QoreValue getValue() const {
-        return LValueHelper::getValue();
-    }
-
-    DLLLOCAL qore_type_t getType() const {
-        return LValueHelper::getType();
-    }
-
-    DLLLOCAL const char* getTypeName() const {
-        return LValueHelper::getTypeName();
-    }
-};
-
-QoreTypeSafeReferenceHelper::QoreTypeSafeReferenceHelper(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink) : priv(new qore_type_safe_ref_helper_priv_t(ref, xsink)) {
+QoreTypeSafeReferenceHelper::QoreTypeSafeReferenceHelper(ExceptionSink* xsink)
+        : priv(new qore_type_safe_ref_helper_priv_t(xsink)) {
 }
 
-QoreTypeSafeReferenceHelper::QoreTypeSafeReferenceHelper(const ReferenceNode *ref, ExceptionSink *xsink) : priv(new qore_type_safe_ref_helper_priv_t(ref, xsink)) {
+QoreTypeSafeReferenceHelper::QoreTypeSafeReferenceHelper(const ReferenceNode* ref, ExceptionSink* xsink)
+        : priv(new qore_type_safe_ref_helper_priv_t(ref, xsink)) {
 }
 
 QoreTypeSafeReferenceHelper::~QoreTypeSafeReferenceHelper() {
-   delete priv;
+    delete priv;
 }
 
-AbstractQoreNode *QoreTypeSafeReferenceHelper::getUnique(ExceptionSink *xsink) {
-   return priv->getUnique(xsink);
+int QoreTypeSafeReferenceHelper::set(const ReferenceNode* ref) {
+    return priv->set(*ref);
+}
+
+int QoreTypeSafeReferenceHelper::reset(const ReferenceNode* ref, ExceptionSink* xsink) {
+    if (priv) {
+        delete priv;
+    }
+    priv = new qore_type_safe_ref_helper_priv_t(ref, xsink);
+    return *xsink ? -1 : 0;
+}
+
+AbstractQoreNode* QoreTypeSafeReferenceHelper::getUnique() {
+    return priv->getUnique(priv->vl.xsink);
 }
 
 int QoreTypeSafeReferenceHelper::assign(QoreValue val) {
-   return priv->assign(val);
+    return priv->assign(val);
 }
 
 const QoreValue QoreTypeSafeReferenceHelper::getValue() const {
-   return priv->getValue();
+    return priv->getValue();
 }
 
 QoreTypeSafeReferenceHelper::operator bool() const {
-   return *priv;
+    return *priv;
 }
 
 qore_type_t QoreTypeSafeReferenceHelper::getType() const {
-   return priv->getType();
+    return priv->getType();
 }
 
 const char* QoreTypeSafeReferenceHelper::getTypeName() const {
-   return priv->getTypeName();
+    return priv->getTypeName();
+}
+
+AutoVLock& QoreTypeSafeReferenceHelper::getVLock() const {
+    return priv->vl;
+}
+
+void QoreTypeSafeReferenceHelper::close() {
+    delete priv;
+    priv = nullptr;
+}
+
+ExceptionSink* QoreTypeSafeReferenceHelper::getExceptionSink() const {
+    return priv->vl.xsink;
+}
+
+QoreValue QoreTypeSafeReferenceHelper::remove() const {
+    bool static_assignment = false;
+    QoreValue rv = priv->remove(static_assignment);
+    if (static_assignment) {
+        rv.ref();
+    }
+    return QoreValue();
 }

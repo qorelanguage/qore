@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/* 
+/*
   QC_Mutex.h
 
   Qore Programming Language
@@ -38,8 +38,8 @@
 #include <qore/safe_dslist>
 
 DLLEXPORT extern qore_classid_t CID_MUTEX;
-DLLLOCAL extern QoreClass* QC_MUTEX;
+DLLEXPORT extern QoreClass* QC_MUTEX;
 
-DLLLOCAL QoreClass *initMutexClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initMutexClass(QoreNamespace& ns);
 
 #endif // _QORE_CLASS_MUTEX

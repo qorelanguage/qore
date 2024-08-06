@@ -534,6 +534,7 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
     modules/logger_bin/src/QC_Logger.h
 
 include_HEADERS = \
+	include/qore/AbstractSmartLock.h \
 	include/qore/QoreValue.h \
 	include/qore/ReferenceArgumentHelper.h \
 	include/qore/QoreTypeSafeReferenceHelper.h \
@@ -572,6 +573,8 @@ include_HEADERS = \
 	include/qore/ModuleManager.h \
 	include/qore/QoreNamespace.h \
 	include/qore/QoreObject.h \
+	include/qore/RWLock.h \
+	include/qore/SmartMutex.h \
 	include/qore/macros.h \
 	include/qore/macros-i386.h \
 	include/qore/macros-x86_64.h \
@@ -670,10 +673,8 @@ noinst_HEADERS = \
 	include/qore/intern/ComplexContextrefNode.h \
 	include/qore/intern/FunctionCallNode.h \
 	include/qore/intern/ScopedRefNode.h \
-	include/qore/intern/SmartMutex.h \
 	include/qore/intern/ScopedObjectCallNode.h \
 	include/qore/intern/NewComplexTypeNode.h \
-	include/qore/intern/RWLock.h \
 	include/qore/intern/SSLSocketHelper.h \
 	include/qore/intern/QoreSignal.h \
 	include/qore/intern/QoreRegexSubst.h \
@@ -728,7 +729,6 @@ noinst_HEADERS = \
 	include/qore/intern/SwitchStatement.h \
 	include/qore/intern/QoreClassIntern.h \
 	include/qore/intern/QoreException.h \
-	include/qore/intern/AbstractSmartLock.h \
 	include/qore/intern/VLock.h \
 	include/qore/intern/CallReferenceNode.h \
 	include/qore/intern/CallReferenceCallNode.h \

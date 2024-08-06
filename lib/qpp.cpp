@@ -151,8 +151,10 @@ struct Param {
         val,                    // param default value
         qore;                   // param Qore class name (for objects)
 
-    Param(const std::string& t, const std::string& n, const std::string& v, const std::string& q)
-            : type(t), name(n), val(v), qore(q) {
+    bool is_static;
+
+    Param(const std::string& t, const std::string& n, const std::string& v, const std::string& q, bool is_static = false)
+            : type(t), name(n), val(v), qore(q), is_static(is_static) {
     }
 };
 
@@ -385,7 +387,8 @@ static void strip_leading_spaces(std::string& str) {
     }
 }
 
-static void get_string_list(strlist_t& l, const std::string& str, char separator = ',') {
+static int get_string_list(strlist_t& l, const std::string& str, char separator = ',',
+        bool respect_angle_brackets = false) {
     size_t start = 0;
     while (true) {
         size_t sep = str.find(separator, start);
@@ -395,6 +398,44 @@ static void get_string_list(strlist_t& l, const std::string& str, char separator
         std::string element(str, start, sep - start);
         // remove leading whitespace from strings
         strip_leading_spaces(element);
+
+        if (respect_angle_brackets) {
+            // angle bracket count
+            unsigned ac = 0;
+
+            std::string::difference_type open = std::count(element.begin(), element.end(), '<');
+            std::string::difference_type close = std::count(element.begin(), element.end(), '>');
+
+            if (close > open) {
+                error("unbalanced angle brackets in '%s'\n", element.c_str());
+                return -1;
+            }
+            ac += open - close;
+            if (ac) {
+                element += ',';
+                while (true) {
+                    if (++sep == str.size()) {
+                        error("unbalanced angle brackets in '%s'\n", element.c_str());
+                        return -1;
+                    }
+                    char c = str[sep];
+                    element += c;
+                    if (c == '<') {
+                        ++ac;
+                    } else if (c == '>') {
+                        if (!ac) {
+                            error("unbalanced angle brackets in '%s'\n", element.c_str());
+                            return -1;
+                        }
+                        --ac;
+                    } else if (c == ',') {
+                        element.pop_back();
+                        break;
+                    }
+                }
+            }
+        }
+
         l.push_back(element);
         start = sep + 1;
     }
@@ -405,6 +446,7 @@ static void get_string_list(strlist_t& l, const std::string& str, char separator
     l.push_back(element);
     //for (unsigned i = 0; i < l.size(); ++i)
     //   printf("DBG: list %u/%lu: %s\n", i, l.size(), l[i].c_str());
+    return 0;
 }
 
 static void get_string_list(strlist_t& l, const std::string& str, const char* separator) {
@@ -533,14 +575,14 @@ static int add_element(const char* fileName, unsigned lineNumber, const std::str
     size_t eq = propstr.find('=', start);
     if (eq == std::string::npos || eq >= end)
         return 0;
-    while (start < eq && propstr[start] == ' ')
+    while (start < eq && (propstr[start] == ' ' || propstr[start] == '\n'))
         ++start;
     if (start == eq) {
         error("%s:%d: missing property name in property string '%s'\n", fileName, lineNumber, propstr.c_str());
         return -1;
     }
     size_t tend = end;
-    while (tend > eq && propstr[tend] == ' ')
+    while (tend > eq && (propstr[tend] == ' ' || propstr[tend] == '\n'))
         --tend;
 
     if (tend == eq)
@@ -553,6 +595,9 @@ static int add_element(const char* fileName, unsigned lineNumber, const std::str
         return -1;
     }
     std::string value(propstr, eq + 1, end - eq - 1);
+
+    value.erase(std::remove(value.begin(), value.end(), '\n'), value.cend());
+
     props[key] = value;
     return 0;
 }
@@ -628,9 +673,16 @@ int parse_params_and_flags(const char* fileName, unsigned &lineNumber, strmap_t&
                     continue;
                 }
 
+                bool is_static = false;
+                if (pl[xi].rfind("static ", 0) == 0) {
+                    is_static = true;
+                    pl[xi].erase(0, 7);
+                }
+
                 i = pl[xi].find(' ');
                 if (i == std::string::npos) {
-                    error("%s:%d: %s(): cannot find type for parameter '%s'\n", fileName, lineNumber, dn.c_str(), pl[xi].c_str());
+                    error("%s:%d: %s(): cannot find type for parameter '%s'\n", fileName, lineNumber, dn.c_str(),
+                        pl[xi].c_str());
                     return -1;
                 }
                 std::string type(pl[xi], 0, i);
@@ -654,7 +706,8 @@ int parse_params_and_flags(const char* fileName, unsigned &lineNumber, strmap_t&
                 if (type[type.size() - 1] == ']') {
                     i = type.find('[');
                     if (i == std::string::npos) {
-                        error("%s:%d: %s(): cannot find open square bracket '[' in type name '%s' in parameter '%s'\n", fileName, lineNumber, dn.c_str(), type.c_str(), param.c_str());
+                        error("%s:%d: %s(): cannot find open square bracket '[' in type name '%s' in parameter "
+                            "'%s'\n", fileName, lineNumber, dn.c_str(), type.c_str(), param.c_str());
                         return -1;
                     }
                     type.erase(type.size() - 1);
@@ -662,8 +715,9 @@ int parse_params_and_flags(const char* fileName, unsigned &lineNumber, strmap_t&
                     type.erase(i);
                 }
 
-                log(LL_DEBUG, "+ %s() param %d type '%s' name '%s' default value '%s'\n", dn.c_str(), xi, type.c_str(), param.c_str(), val.c_str());
-                params.push_back(Param(type, param, val, qore));
+                log(LL_DEBUG, "+ %s() param %d type '%s' name '%s' default value '%s'\n", dn.c_str(), xi,
+                    type.c_str(), param.c_str(), val.c_str());
+                params.push_back(Param(type, param, val, qore, is_static));
             }
         }
     }
@@ -800,8 +854,7 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
                     else
                         qc = "qore_get_complex_hash_type(" + subtype_qt + ")";
                     log(LL_DEBUG, "registering complex hash return type '%s': '%s'\n", qt.c_str(), qc.c_str());
-                }
-                else {
+                } else {
                     log(LL_CRITICAL, "unsupported complex hash type found: '%s'\n", qt.c_str());
                     assert(false);
                 }
@@ -2070,7 +2123,10 @@ protected:
     }
 
 public:
-    CodeBase(const std::string& fn, const std::string& n_name, attr_t n_attr, const paramlist_t& n_params, const std::string& n_docs, const std::string& n_return_type, const strlist_t& n_flags, const strlist_t& n_dom, const std::string& n_code, unsigned n_line, bool n_doconly):fileName(fn), name(n_name), vname(name), docs(n_docs),
+    CodeBase(const std::string& fn, const std::string& n_name, attr_t n_attr, const paramlist_t& n_params,
+            const std::string& n_docs, const std::string& n_return_type, const strlist_t& n_flags,
+            const strlist_t& n_dom, const std::string& n_code, unsigned n_line, bool n_doconly)
+            : fileName(fn), name(n_name), vname(name), docs(n_docs),
         return_type(n_return_type), code(n_code), flags(n_flags),
         dom(n_dom), attr(n_attr), params(n_params), rt(RT_ANY),
         line(n_line), has_return(false), doconly(n_doconly), valid(true) {
@@ -2888,7 +2944,8 @@ struct HashDeclInfo {
             if (get_qore_value(value, valexp))
                 return -1;
         }
-        fprintf(fp, "    hd->addMember(\"%s\", %s, QoreValue(%s));\n", name, qtype.c_str(), valexp.empty() ? "" : valexp.c_str());
+        fprintf(fp, "    hd->addMember(\"%s\", %s, QoreValue(%s));\n", name, qtype.c_str(),
+            valexp.empty() ? "" : valexp.c_str());
         return 0;
     }
 
@@ -3660,9 +3717,11 @@ protected:
     mmap_t normal_mmap,            // normal method map
         static_mmap;               // static method map
 
-    bool valid,
-        upm,                       // unset public member flag
-        is_pseudo, is_final;
+    bool valid = true,
+        upm = false,               // unset public member flag
+        is_pseudo = false,
+        is_final = false,
+        module_public = true;
 
     void addElement(strlist_t& l, const std::string& str, size_t start, size_t end = std::string::npos) {
         std::string se(str, start, end);
@@ -3672,10 +3731,26 @@ protected:
 
     void parseMembers(ClassAccess access, const std::string& x) {
         strlist_t pml;
-        get_string_list(pml, x);
+        if (get_string_list(pml, x, ',', true)) {
+            valid = false;
+            return;
+        }
 
         for (unsigned i = 0; i < pml.size(); ++i) {
-            size_t p = pml[i].find(' ');
+            bool is_static = false;
+            if (pml[i].rfind("static ", 0) == 0) {
+                is_static = true;
+                pml[i].erase(0, 7);
+            }
+
+            size_t ab = pml[i].rfind('>');
+            if (ab == std::string::npos) {
+                ab = 0;
+            } else {
+                ++ab;
+            }
+
+            size_t p = pml[i].find(' ', ab);
             if (p == std::string::npos) {
                 error("class '%s' has member without type: '%s'\n", name.c_str(), pml[i].c_str());
                 valid = false;
@@ -3685,18 +3760,18 @@ protected:
             std::string name(pml[i], p + 1);
 
             if (access == Public) {
-                public_members.push_back(Param(type, name, "", ""));
+                public_members.push_back(Param(type, name, "", "", is_static));
             } else if (access == Private) {
-                private_members.push_back(Param(type, name, "", ""));
+                private_members.push_back(Param(type, name, "", "", is_static));
             } else {
-                internal_members.push_back(Param(type, name, "", ""));
+                internal_members.push_back(Param(type, name, "", "", is_static));
             }
         }
     }
 
 public:
     ClassElement(const char* fn, const std::string& n_name, const strmap_t& props, const std::string& n_doc) :
-        fileName(fn), name(n_name), doc(n_doc), valid(true), upm(false), is_pseudo(false), is_final(false) {
+        fileName(fn), name(n_name), doc(n_doc) {
         log(LL_DETAIL, "parsing Qore class '%s'\n", name.c_str());
 
         if (name.size() && name[0] == '<' && name[name.size() - 1] == '>')
@@ -3799,6 +3874,15 @@ public:
             if (i->first == "deserializer") {
                 deserializer = i->second;
                 log(LL_DEBUG, "+ deserializer function: %s\n", deserializer.c_str());
+                continue;
+            }
+
+            if (i->first == "module_public") {
+                if (i->second == "false") {
+                    module_public = false;
+                } else if (i->second != "true") {
+                    error("prop: '%s': '%s' - must be \"true\" or \"false\"\n", i->first.c_str(), i->second.c_str());
+                }
                 continue;
             }
 
@@ -3991,11 +4075,15 @@ public:
             i->second->serializeStaticCppMethod(fp, lname.c_str(), arg.c_str());
         }
 
-        fprintf(fp, "DLLLOCAL void preinit%sClass() {\n    QC_%s = new QoreClass(\"%s\", \"%s\", ", lname.c_str(),
+        fprintf(fp, "DLLLOCAL void preinit%sClass() {\n    QC_%s = new QoreBuiltinClass(\"%s\", \"%s\", ", lname.c_str(),
             UC.c_str(), name.c_str(), ns_path.c_str());
         dom_output_cpp(fp, dom);
         fprintf(fp, ");\n    CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
-        fprintf(fp, "    QC_%s->setSystem();\n}\n\n", UC.c_str());
+        fprintf(fp, "    QC_%s->setSystem();\n", UC.c_str());
+        if (!module_public) {
+            fprintf(fp, "    reinterpret_cast<QoreBuiltinClass*>(QC_%s)->setModulePublic(false);\n", UC.c_str());
+        }
+        fprintf(fp, "}\n\n");
 
         if (is_pseudo)
             fprintf(fp, "DLLLOCAL QoreClass* init%sClass() {\n", lname.c_str());
@@ -4004,7 +4092,8 @@ public:
         fprintf(fp, "    if (!QC_%s)\n        preinit%sClass();\n", UC.c_str(), lname.c_str());
 
         if (!defbase.empty()) {
-            fprintf(fp, "\n    // set default builtin base class\n    assert(%s);\n    QC_%s->addDefaultBuiltinBaseClass(%s);\n", defbase.c_str(), UC.c_str(), defbase.c_str());
+            fprintf(fp, "\n    // set default builtin base class\n    assert(%s);\n    "
+                "QC_%s->addDefaultBuiltinBaseClass(%s);\n", defbase.c_str(), UC.c_str(), defbase.c_str());
         }
 
         if (!serializer.empty()) {
@@ -4039,7 +4128,11 @@ public:
             for (paramlist_t::iterator i = public_members.begin(), e = public_members.end(); i != e; ++i) {
                 std::string mt;
                 get_qore_type((*i).type, mt);
-                fprintf(fp, "    QC_%s->addMember(\"%s\", Public, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+                if ((*i).is_static) {
+                    fprintf(fp, "    QC_%s->addBuiltinStaticVar(\"%s\", QoreValue(), Public, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+                } else {
+                    fprintf(fp, "    QC_%s->addMember(\"%s\", Public, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+                }
             }
         }
         // output private members if any
@@ -4048,7 +4141,11 @@ public:
             for (paramlist_t::iterator i = private_members.begin(), e = private_members.end(); i != e; ++i) {
                 std::string mt;
                 get_qore_type((*i).type, mt);
-                fprintf(fp, "    QC_%s->addMember(\"%s\", Private, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+                if ((*i).is_static) {
+                    fprintf(fp, "    QC_%s->addBuiltinStaticVar(\"%s\", QoreValue(), Private, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+                } else {
+                    fprintf(fp, "    QC_%s->addMember(\"%s\", Private, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+                }
             }
         }
         // output internal members if any
@@ -4057,7 +4154,11 @@ public:
             for (paramlist_t::iterator i = internal_members.begin(), e = internal_members.end(); i != e; ++i) {
                 std::string mt;
                 get_qore_type((*i).type, mt);
-                fprintf(fp, "    QC_%s->addMember(\"%s\", Internal, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+                if ((*i).is_static) {
+                    fprintf(fp, "    QC_%s->addBuiltinStaticVar(\"%s\", QoreValue(), Internal, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+                } else {
+                    fprintf(fp, "    QC_%s->addMember(\"%s\", Internal, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+                }
             }
         }
 
@@ -4283,7 +4384,31 @@ protected:
 
                     // get class properties
                     p = strchr(sc.c_str(), '[');
-                    p1 = p ? strchr(p + 1, ']') : 0;
+                    if (p) {
+                        size_t start = p - sc.c_str();
+                        const char* p0 = p;
+                        p1 = strchr(p0 + 1, ']');
+                        while (true) {
+                            if (p1) {
+                                break;
+                            }
+                            size_t offset = sc.size();
+                            if (read_line(lineNumber, sc, fp)) {
+                                error("%s:%d: premature EOF reading class header line\n", fileName, lineNumber);
+                                rc = -1;
+                                break;
+                            }
+                            // reset '[' position in potentially reallocated buffer
+                            p = sc.c_str() + start;
+                            p1 = strchr(sc.c_str() + offset, ']');
+                        }
+                        if (rc == -1) {
+                            break;
+                        }
+                    } else {
+                        p1 = nullptr;
+                    }
+                    //p1 = p ? strchr(p + 1, ']') : 0;
                     if (!p1) {
                         error("%s:%d: missing class properties ('[...]') reading class header line\n", fileName, lineNumber);
                         rc = -1;

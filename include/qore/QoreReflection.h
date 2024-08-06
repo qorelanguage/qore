@@ -219,6 +219,9 @@ public:
     //! returns the value of the constant; caller owns any reference returned
     DLLEXPORT QoreValue getReferencedValue() const;
 
+    //! returns the value of the constant
+    DLLEXPORT const QoreValue getValue() const;
+
     //! returns the source code location of the constant's definition
     DLLEXPORT const QoreExternalProgramLocation* getSourceLocation() const;
 

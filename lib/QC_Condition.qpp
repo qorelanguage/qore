@@ -42,7 +42,11 @@
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
  */
-qclass Condition [dom=THREAD_CLASS; arg=Condition* c; ns=Qore::Thread];
+qclass Condition [
+    dom=THREAD_CLASS;
+    arg=Condition* c;
+    ns=Qore::Thread
+];
 
 //! Creates the Condition object
 /**

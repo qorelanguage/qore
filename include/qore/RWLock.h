@@ -35,8 +35,7 @@
 
 #define _QORE_CLASS_RWLOCK
 
-#include "qore/intern/AbstractSmartLock.h"
-#include "qore/intern/VLock.h"
+#include "qore/AbstractSmartLock.h"
 
 #include <map>
 
@@ -48,20 +47,21 @@ typedef std::map<int, int> tid_map_t;
 // waiting: waiting write requests
 // tid: write TID
 
+// forward references
+class VLock;
+typedef std::map<int, VLock*> vlock_map_t;
+
 class RWLock : public AbstractSmartLock {
 public:
-    DLLLOCAL RWLock(bool p = false);
+    DLLEXPORT RWLock(bool p = false);
 
-#ifdef DEBUG
-    DLLLOCAL virtual ~RWLock();
-#endif
+    DLLEXPORT virtual ~RWLock();
 
-    DLLLOCAL int readLock(ExceptionSink *xsink, int64 timeout_ms = 0);
-    DLLLOCAL int readUnlock(ExceptionSink *xsink);
-    DLLLOCAL int tryReadLock();
-    //DLLLOCAL void writeToRead(ExceptionSink *xsink);
+    DLLEXPORT int readLock(ExceptionSink *xsink, int64 timeout_ms = 0);
+    DLLEXPORT int readUnlock(ExceptionSink *xsink);
+    DLLEXPORT int tryReadLock();
 
-    DLLLOCAL int numReaders();
+    DLLEXPORT int numReaders();
 
     DLLLOCAL int getReadWaiting() const {
         return readRequests;
@@ -92,7 +92,9 @@ public:
         return tmap.find(mtid) == tmap.end() ? false : true;
     }
 
-    DLLLOCAL virtual const char *getName() const { return "RWLock"; }
+    DLLLOCAL virtual const char* getName() const {
+        return "RWLock";
+    }
 
 private:
     int readRequests;

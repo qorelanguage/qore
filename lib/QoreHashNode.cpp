@@ -38,6 +38,7 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/typed_hash_decl_private.h"
 #include "qore/intern/qore_list_private.h"
+#include "qore/intern/qore_type_safe_ref_helper_priv.h"
 
 #include <cassert>
 #include <cstdio>
@@ -403,7 +404,7 @@ QoreHashNode::~QoreHashNode() {
     delete priv;
 }
 
-AbstractQoreNode* QoreHashNode::realCopy() const {
+QoreHashNode* QoreHashNode::realCopy() const {
     return copy();
 }
 
@@ -516,6 +517,15 @@ int QoreHashNode::setKeyValue(const QoreString& key, QoreValue value, ExceptionS
     }
 
     return setKeyValue(tmp->c_str(), value, xsink);
+}
+
+int QoreHashNode::editKeyValue(const char* key, QoreTypeSafeReferenceHelper& ref, bool for_remove) const {
+    LValueHelper& lvh = qore_type_safe_ref_helper_priv_t::get(ref);
+    ExceptionSink* xsink = ref.getExceptionSink();
+    if (priv->getLValue(key, lvh, for_remove, xsink)) {
+        return -1;
+    }
+    return 0;
 }
 
 QoreValue& QoreHashNode::getKeyValueReference(const char* key) {
@@ -782,6 +792,10 @@ QoreString* HashIterator::getKeyString() const {
     return !priv->valid() ? nullptr : new QoreString((*(priv->i))->key);
 }
 
+QoreStringNode* HashIterator::getKeyStringNode() const {
+    return !priv->valid() ? nullptr : new QoreStringNode((*(priv->i))->key);
+}
+
 bool HashIterator::next() {
     return h ? priv->next(h->priv->member_list) : false;
 }
@@ -946,6 +960,10 @@ QoreValue ConstHashIterator::getReferenced() const {
 
 QoreString* ConstHashIterator::getKeyString() const {
    return !priv->valid() ? nullptr : new QoreString((*(priv->i))->key);
+}
+
+QoreStringNode* ConstHashIterator::getKeyStringNode() const {
+    return !priv->valid() ? nullptr : new QoreStringNode((*(priv->i))->key);
 }
 
 bool ConstHashIterator::next() {

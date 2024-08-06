@@ -315,7 +315,7 @@ hash<auto> GetOpt::parse(reference<list<string>> pgm_args) {
     if (ref.getType() != NT_LIST)
         return new QoreHashNode(autoTypeInfo);
 
-    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
+    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique());
     if (*xsink)
         return QoreValue();
 
@@ -373,7 +373,7 @@ hash<auto> GetOpt::parse2(reference<list<string>> pgm_args) {
     if (ref.getType() != NT_LIST)
         return new QoreHashNode(autoTypeInfo);
 
-    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
+    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique());
     if (*xsink)
         return QoreValue();
 
@@ -429,7 +429,7 @@ hash<auto> GetOpt::parse3(reference<list<string>> pgm_args) [dom=PROCESS] {
     if (ref.getType() != NT_LIST)
         return new QoreHashNode(autoTypeInfo);
 
-    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
+    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique());
     if (*xsink)
         return QoreValue();
 
@@ -520,7 +520,7 @@ static hash<auto> GetOpt::parse(hash<auto> opts, reference<list<string>> pgm_arg
         return new QoreHashNode(autoTypeInfo);
     }
 
-    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
+    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique());
     if (*xsink) {
         return QoreValue();
     }
@@ -586,7 +586,7 @@ static hash<auto> GetOpt::parseEx(hash<auto> opts, reference<list<string>> pgm_a
         return new QoreHashNode(autoTypeInfo);
     }
 
-    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
+    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique());
     if (*xsink) {
         return QoreValue();
     }
@@ -650,7 +650,7 @@ static hash<auto> GetOpt::parseExit(hash<auto> opts, reference<list<string>> pgm
         return new QoreHashNode(autoTypeInfo);
     }
 
-    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
+    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique());
     if (*xsink) {
         return QoreValue();
     }

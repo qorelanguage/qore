@@ -178,7 +178,7 @@ public:
 
     //! concatenates a string and encodes it according to the encoding argument passed
     /** @param xsink Qore-language exceptions (in this case character encoding conversion errors) are raised here
-         @param str the source string for the concatenation; it is converted to the target character encoding (of 'this') unless CE_NONASCII is given in the \a code argument
+        @param str the source string for the concatenation; it is converted to the target character encoding (of 'this') unless CE_NONASCII is given in the \a code argument
         @param code an encoding bitfield argument; see @ref StringConcatEncoding for more information
 
         @return -1 if a Qore-language exception was thrown, 0 if not
@@ -191,7 +191,7 @@ public:
 
     //! concatenates a string and decodes HTML, XML, and numeric character references as per the supplied arguments
     /** @param xsink Qore-language exceptions (in this case character encoding conversion errors) are raised here
-         @param str the string to concentenate; it is converted to the target character encoding (of 'this') unless CD_NUM_REF is given in the \a code argument
+        @param str the string to concentenate; it is converted to the target character encoding (of 'this') unless CD_NUM_REF is given in the \a code argument
         @param code a decoding bitfield arguments; see @ref StringConcatDecoding for more information
 
         @return -1 if a Qore-language exception was thrown, 0 if not
@@ -206,25 +206,25 @@ public:
 
     //! concatenates HTML-encoded version of the c-string passed
     /**
-         @deprecated does not do any character encoding conversions; use concatEncode() instead
+        @deprecated does not do any character encoding conversions; use concatEncode() instead
         */
     DLLEXPORT void concatAndHTMLEncode(const char* str);
 
     //! concatenates HTML-decoded version of the c-string passed
     /**
-         @deprecated does not do any character encoding conversions; use concatDecode() instead
+        @deprecated does not do any character encoding conversions; use concatDecode() instead
     */
     DLLEXPORT void concatAndHTMLDecode(const QoreString* str);
 
     //! concatenates HTML-decoded version of the c-string passed with the given length
     /**
-         @deprecated does not do any character encoding conversions; use concatDecode() instead
+        @deprecated does not do any character encoding conversions; use concatDecode() instead
     */
     DLLEXPORT void concatAndHTMLDecode(const char* str, size_t slen);
 
     //! concatenates HTML-decoded version of the c-string passed
     /**
-         @deprecated does not do any character encoding conversions; use concatDecode() instead
+        @deprecated does not do any character encoding conversions; use concatDecode() instead
     */
     DLLEXPORT void concatAndHTMLDecode(const char* str);
 
@@ -245,13 +245,13 @@ public:
 
     //! concatenates a URI-decoded version of the c-string passed
     /**
-         @since %Qore 0.8.12
+        @since %Qore 0.8.12
     */
     DLLEXPORT int concatDecodeUriRequest(const QoreString& url, ExceptionSink* xsink);
 
     //! concatenates a URI-encoded version of the c-string passed
     /** @param xsink Qore-language exceptions (in this case character encoding conversion errors) are raised here
-         @param url the url to encode and concatentate to the current string
+        @param url the url to encode and concatentate to the current string
 
         @since %Qore 0.8.12
     */
@@ -277,7 +277,7 @@ public:
 
     //! concatenates a string and converts encodings if necessary
     /** @param str the string to concatenate to the current string (this)
-         @param pos the starting character position (not byte) for concatenation (negative values are from the end)
+        @param pos the starting character position (not byte) for concatenation (negative values are from the end)
         @param xsink if an error occurs converting character encodings, it will be raised here
 
         @return 0 for OK, -1 for exception raised
@@ -286,7 +286,7 @@ public:
 
     //! concatenates a string and converts encodings if necessary
     /** @param str the string to concatenate to the current string (this)
-         @param pos the starting character (not byte) position for concatenation (negative values are from the end)
+        @param pos the starting character (not byte) position for concatenation (negative values are from the end)
         @param len the number of characters (not bytes) to concatenate from the starting position (negative values indicate all except that many characters from the end)
         @param xsink if an error occurs converting character encodings, it will be raised here
 
@@ -296,7 +296,7 @@ public:
 
     //! concatenates a QoreString up to character "len"
     /** An exception could be thrown if the string to concatenate requires character set encoding conversion and the conversion fails
-         @param str the QoreString to concatenate
+        @param str the QoreString to concatenate
         @param size the number of characters to copy (not bytes)
         @param xsink if an error occurs, the Qore-language exception information will be added here
     */
@@ -343,7 +343,7 @@ public:
 
     //! parses the current string data as base64-encoded data and returns it as a BinaryNode pointer (caller owns the reference count), throws a qore-language exception if any errors are encountered
     /**
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @return a pointer to a BinaryNode object of the decoded data, the caller owns the reference count of the object returned (0 if an exception occurs)
     */
     DLLEXPORT BinaryNode* parseBase64(ExceptionSink* xsink) const;
@@ -410,7 +410,7 @@ public:
 
     //! parses the current string data as hexadecimal-encoded data and returns it as a BinaryNode pointer (caller owns the reference count), throws a qore-language exception if any errors are encountered
     /**
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @return a pointer to a BinaryNode object of the decoded data, the caller owns the reference count of the object returned (0 if an exception occurs)
     */
     DLLEXPORT BinaryNode* parseHex(ExceptionSink* xsink) const;
@@ -435,7 +435,7 @@ public:
 
     //! compares the string with another string, performing character set encoding conversion if necessary
     /**
-         @param str the string to compare
+        @param str the string to compare
         @param xsink if an error occurs, the Qore-language exception information will be added here
         @return -1, 0, or 1 if "this" is less than, equal to, or greater than "str" respectively
     */
@@ -443,14 +443,14 @@ public:
 
     //! compares two strings without converting encodings (if the encodings do not match then "this" is deemed automatically less than the argument)
     /**
-         @param str the string to compare
+        @param str the string to compare
         @return -1, 0, or 1 if "this" is less than, equal to, or greater than "str" respectively
     */
     DLLEXPORT int compare(const QoreString* str) const;
 
     //! compares the string with a c-string, which is assumed to be in the same encoding as the string
     /**
-         @param str the string to compare
+        @param str the string to compare
         @return -1, 0, or 1 if "this" is less than, equal to, or greater than "str" respectively
     */
     DLLEXPORT int compare(const char* str) const;
@@ -467,7 +467,7 @@ public:
 
     //! returns true if the strings are equal, false if not, if the character encodings are different, then the encoding of the argument string is temporarily converted to the encoding of the current string to do the comparison
     /** @param str the string to compare
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @return true if the strings are equal, false if not
 
         @since Qore 0.8.8
@@ -486,7 +486,7 @@ public:
 
     //! returns true if the beginning of the current string matches the argument string, false if not, if the character encodings are different, then the encoding of the argument string is temporarily converted to the encoding of the current string to do the comparison
     /** @param str the string to compare
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @return true if the beginning of the current string matches the argument string, false if not
 
         @since Qore 0.8.8
@@ -495,7 +495,7 @@ public:
 
     //! returns true if the begining of the current string matches the argument string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, false if not, if the character encodings are different, then the encoding of the argument string is temporarily converted to the encoding of the current string to do the comparison
     /** @param str the string to compare
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @return true if the beginning of the current string matches the argument string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, false if not
 
         @since Qore 0.8.8
@@ -562,7 +562,7 @@ public:
 
     //! converts the encoding of the string to the specified encoding, returns 0 if an error occurs, the caller owns the pointer returned
     /** if the encoding is the same as the current encoding, a copy of the string is returned
-         @param nccs the encoding for the new string
+        @param nccs the encoding for the new string
         @param xsink if an error occurs, the Qore-language exception information will be added here
         @return the new string with the desired encoding or 0 if an error occured
     */
@@ -570,7 +570,7 @@ public:
 
     //! returns the character buffer and leaves the QoreString empty, the caller owns the memory returned (must be manually freed)
     /** note that after this call the string buffer memory is 0 (i.e. QoreString::getBuffer() will return NULL)
-         @return the character buffer for the string, the caller owns the memory returned (must be manually freed)
+        @return the character buffer for the string, the caller owns the memory returned (must be manually freed)
     */
     DLLEXPORT char* giveBuffer();
 
@@ -604,14 +604,14 @@ public:
 
     //! removes characters from the string starting at position "offset"
     /** values are for characters, not bytes
-         @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
+        @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
         @param xsink is ignored
     */
     DLLEXPORT void splice(qore_offset_t offset, ExceptionSink* xsink);
 
     //! removes "length" characters from the string starting at position "offset"
     /** values are for characters, not bytes
-         @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
+        @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
         @param length the number of characters (not bytes) to remove (negative length means all but that many characters from the end of the string)
         @param xsink invalid multi-byte encodings can cause an exception to be thrown
     */
@@ -619,7 +619,7 @@ public:
 
     //! removes "length" characters from the string starting at position "offset" and replaces them with the string passed
     /** values are for characters, not bytes
-         @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
+        @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
         @param length the number of characters (not bytes) to remove (negative length means all but that many characters from the end of the string)
         @param strn the string to insert at character position "offset" after "length" characters are removed
         @param xsink invalid multi-byte encodings can cause an exception to be thrown
@@ -628,7 +628,7 @@ public:
 
     //! removes "length" characters from the string starting at position "offset" and replaces them with the string passed
     /** values are for characters, not bytes
-         @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
+        @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
         @param length the number of characters (not bytes) to remove (negative length means all but that many characters from the end of the string)
         @param str the string to insert at character position "offset" after "length" characters are removed
         @param xsink invalid multi-byte encodings can cause an exception to be thrown
@@ -637,7 +637,7 @@ public:
 
     //! removes characters from the string starting at position "offset" and returns a string of the characters removed
     /** values are for characters, not bytes.  If no characters a removed, an empty string is returned
-         @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
+        @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
         @param xsink is ignored
         @return a string of the characters removed; if no characters a removed, an empty string is returned
     */
@@ -645,7 +645,7 @@ public:
 
     //! removes "length" characters from the string starting at position "offset" and returns a string of the characters removed
     /** values are for characters, not bytes.  If no characters a removed, an empty string is returned
-         @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
+        @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
         @param length the number of characters (not bytes) to remove (negative length means all but that many characters from the end of the string)
         @param xsink invalid multi-byte encodings can cause an exception to be thrown
         @return a string of the characters removed; if no characters a removed, an empty string is returned, however if an exception is raised converting encodings, then 0 is returned
@@ -654,7 +654,7 @@ public:
 
     //! removes "length" characters from the string starting at position "offset" and replaces them with the string passed, then returns a string of the characters removed
     /** values are for characters, not bytes.  If no characters a removed, an empty string is returned
-         @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
+        @param offset character position to start (rest of the string is removed) (offset starts with 0, negative offset means that many positions from the end of the string)
         @param length the number of characters (not bytes) to remove (negative length means all but that many characters from the end of the string)
         @param strn the string to insert at character position "offset" after "length" characters are removed
         @param xsink invalid multi-byte encodings can cause an exception to be thrown
@@ -664,7 +664,7 @@ public:
 
     //! returns a new string consisting of all the characters from the current string starting with character position "offset"
     /** offset is a character offset (not a byte offset)
-         @param offset the offset in characters from the beginning of the string (starting with 0)
+        @param offset the offset in characters from the beginning of the string (starting with 0)
         @param xsink invalid multi-byte encodings can cause an exception to be thrown
         @return the new string; an empty string is returned if the arguments cannot be satisfied; 0 is returned only if a Qore-language exception is thrown due to character encoding conversion errors
     */
@@ -719,6 +719,38 @@ public:
         @since %Qore 1.1.0
     */
     DLLEXPORT int regexSubstInPlace(QoreString& match, QoreString& subst, int opts, ExceptionSink* xsink) const;
+
+    //! Splits a string into a list of components based on a separator string
+    /**
+        @param xsink invalid multi-byte encodings can cause an exception to be thrown
+        @param sep the separator string; if the separator string is not found in the string to split, then a list with
+        only one element containing the entire string argument is returned'
+        @param with_separator include the separator string in every element
+
+        @return a list of each component of a string separated by a separator string, with the separator removed; the
+        separator pattern will not be included in the elements of the list returned unless the
+        \a with_separator argument is @ref True
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT QoreListNode* split(const char* sep, bool with_separator = false);
+
+    //! Splits a string into a list of components based on a separator string
+    /**
+        @param xsink invalid multi-byte encodings can cause an exception to be thrown
+        @param sep the separator string; if the separator string is not found in the string to split, then a list with
+        only one element containing the entire string argument is returned'
+        @param quote the quote character
+        @param trim_unquoted remove leading and trailing whitespace from unquoted fields
+
+        @return a list of each component of a string separated by a separator string, with the separator removed; the
+        separator pattern will not be included in the elements of the list returned unless the
+        \a with_separator argument is @ref True
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT QoreListNode* split(ExceptionSink* xsink, const char* sep, const char* quote,
+            bool trim_unquoted = false);
 
     //! removes a single \\n\\r or \\n from the end of the string and returns the number of characters removed
     DLLEXPORT size_t chomp();

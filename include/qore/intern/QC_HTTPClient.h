@@ -55,8 +55,7 @@ public:
         ExceptionSink *txsink = *xsink ? new ExceptionSink : xsink;
 
         // write info hash to reference
-        AutoVLock vl(txsink);
-        QoreTypeSafeReferenceHelper rh(ref, vl, txsink);
+        QoreTypeSafeReferenceHelper rh(ref, txsink);
         if (!rh)
             return;
 

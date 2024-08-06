@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/AbstractSmartLock.h"
+#include "qore/AbstractSmartLock.h"
 
 int AbstractSmartLock::cleanupImpl() {
     if (tid == q_gettid()) {

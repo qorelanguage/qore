@@ -38,38 +38,43 @@
 #include <qore/QoreCondition.h>
 #include <qore/AbstractThreadResource.h>
 
+#include <map>
+
 class VLock;
 
 class QoreCondition;
+
+// for maps of thread condition variables to TIDs
+typedef std::map<QoreCondition*, int> cond_map_t;
 
 class AbstractSmartLock : public AbstractThreadResource {
 public:
     mutable QoreThreadLock asl_lock;
     QoreCondition asl_cond;
 
-    DLLLOCAL AbstractSmartLock() : vl(NULL), tid(-1), waiting(0)  {}
-    DLLLOCAL virtual ~AbstractSmartLock() {}
-    DLLLOCAL void destructor(ExceptionSink *xsink);
-    DLLLOCAL virtual void cleanup(ExceptionSink *xsink);
+    DLLEXPORT AbstractSmartLock() {}
+    DLLEXPORT virtual ~AbstractSmartLock() {}
+    DLLEXPORT void destructor(ExceptionSink* xsink);
+    DLLEXPORT virtual void cleanup(ExceptionSink* xsink);
 
-    DLLLOCAL int grab(ExceptionSink *xsink, int64 timeout_ms = 0);
-    DLLLOCAL int tryGrab();
-    DLLLOCAL int release();
-    DLLLOCAL int release(ExceptionSink *xsink);
+    DLLEXPORT int grab(ExceptionSink* xsink, int64 timeout_ms = 0);
+    DLLEXPORT int tryGrab();
+    DLLEXPORT int release();
+    DLLEXPORT int release(ExceptionSink* xsink);
 
     DLLLOCAL int self_wait(int64 timeout_ms) {
         return timeout_ms ? asl_cond.wait(&asl_lock, timeout_ms) : asl_cond.wait(&asl_lock);
     }
 
-    DLLLOCAL int self_wait(QoreCondition *cond, int64 timeout_ms = 0) {
+    DLLLOCAL int self_wait(QoreCondition* cond, int64 timeout_ms = 0) {
         return timeout_ms ? cond->wait(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
     }
 
-    DLLLOCAL int extern_wait(QoreCondition *cond, ExceptionSink *xsink, int64 timeout_ms = 0);
+    DLLEXPORT int extern_wait(QoreCondition* cond, ExceptionSink* xsink, int64 timeout_ms = 0);
 
-    DLLLOCAL int get_tid() const { return tid; }
-    DLLLOCAL int get_waiting() const { return waiting; }
-    DLLLOCAL virtual const char *getName() const = 0;
+    DLLEXPORT int get_tid() const { return tid; }
+    DLLEXPORT int get_waiting() const { return waiting; }
+    DLLEXPORT virtual const char* getName() const = 0;
     DLLLOCAL int cond_count(QoreCondition *cond) const {
         AutoLocker al(&asl_lock);
         cond_map_t::const_iterator i = cmap.find(cond);
@@ -79,27 +84,27 @@ public:
 protected:
     enum lock_status_e { Lock_Deleted = -2, Lock_Unlocked = -1 };
 
-    VLock *vl;
-    int tid, waiting;
+    VLock* vl = nullptr;
+    int tid = -1, waiting = 0;
     cond_map_t cmap;       // map of condition variables to wait counts
 
     virtual int releaseImpl() = 0;
-    virtual int releaseImpl(ExceptionSink *xsink) = 0;
-    virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_ms = 0) = 0;
+    virtual int releaseImpl(ExceptionSink* xsink) = 0;
+    virtual int grabImpl(int mtid, VLock* nvl, ExceptionSink* xsink, int64 timeout_ms = 0) = 0;
     virtual int tryGrabImpl(int mtid, VLock *nvl) = 0;
 
-    DLLLOCAL virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int64 timeout_ms = 0);
-    DLLLOCAL virtual void destructorImpl(ExceptionSink *xsink);
-    DLLLOCAL virtual void signalAllImpl();
-    DLLLOCAL virtual void signalImpl();
+    DLLEXPORT virtual int externWaitImpl(int mtid, QoreCondition* cond, ExceptionSink* xsink, int64 timeout_ms = 0);
+    DLLEXPORT virtual void destructorImpl(ExceptionSink* xsink);
+    DLLEXPORT virtual void signalAllImpl();
+    DLLEXPORT virtual void signalImpl();
     // returns 0 = OK, -1 = lock released, throw exception
-    DLLLOCAL virtual int cleanupImpl();
+    DLLEXPORT virtual int cleanupImpl();
 
-    DLLLOCAL void mark_and_push(int mtid, VLock *nvl);
-    DLLLOCAL void release_and_signal();
-    DLLLOCAL void grab_intern(int mtid, VLock *nvl);
-    DLLLOCAL void release_intern();
-    DLLLOCAL int verify_wait_unlocked(int mtid, ExceptionSink *xsink);
+    DLLEXPORT void mark_and_push(int mtid, VLock* nvl);
+    DLLEXPORT void release_and_signal();
+    DLLEXPORT void grab_intern(int mtid, VLock* nvl);
+    DLLEXPORT void release_intern();
+    DLLEXPORT int verify_wait_unlocked(int mtid, ExceptionSink* xsink);
 };
 
 #endif

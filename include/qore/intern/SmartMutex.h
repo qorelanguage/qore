@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/* 
+/*
   SmartMutex.h
 
   Qore Programming Language
@@ -34,7 +34,7 @@
 #define _QORE_SMARTMUTEX
 
 #include <qore/Qore.h>
-#include "qore/intern/AbstractSmartLock.h"
+#include "qore/AbstractSmartLock.h"
 #include <qore/QoreCondition.h>
 
 #include <map>
@@ -44,21 +44,19 @@
 
 class SmartMutex : public AbstractSmartLock {
 private:
-   DLLLOCAL virtual int releaseImpl();
-   DLLLOCAL virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_ms = 0);
-   DLLLOCAL virtual int releaseImpl(ExceptionSink *xsink);
-   DLLLOCAL virtual int tryGrabImpl(int mtid, VLock *nvl);
-   DLLLOCAL virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int64 timeout = 0);
-   DLLLOCAL virtual void destructorImpl(ExceptionSink *xsink);
-   
+    DLLEXPORT virtual int releaseImpl();
+    DLLEXPORT virtual int grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_ms = 0);
+    DLLEXPORT virtual int releaseImpl(ExceptionSink *xsink);
+    DLLEXPORT virtual int tryGrabImpl(int mtid, VLock *nvl);
+    DLLEXPORT virtual int externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int64 timeout = 0);
+    DLLEXPORT virtual void destructorImpl(ExceptionSink *xsink);
+
 public:
-   DLLLOCAL SmartMutex() {}
-#ifdef DEBUG
-   DLLLOCAL virtual ~SmartMutex();
-#endif
-   
-   DLLLOCAL bool owns_lock();
-   DLLLOCAL virtual const char *getName() const { return "Mutex"; }
+    DLLEXPORT SmartMutex() {}
+    DLLEXPORT virtual ~SmartMutex();
+
+    DLLEXPORT bool owns_lock();
+    DLLLOCAL virtual const char* getName() const { return "Mutex"; }
 };
 
 #endif // _QORE_SMARTMUTEX

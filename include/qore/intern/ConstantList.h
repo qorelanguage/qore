@@ -134,6 +134,8 @@ public:
 
     DLLLOCAL QoreValue getReferencedValue() const;
 
+    DLLLOCAL const QoreValue getValue() const;
+
     DLLLOCAL int parseInit(ClassNs ptr);
 
     DLLLOCAL int parseCommitRuntimeInit();

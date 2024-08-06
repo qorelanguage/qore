@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-    QC_Condition.h
+    qore_type_safe_ref_helper_priv.h
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2023 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -29,43 +29,51 @@
     information.
 */
 
-#ifndef _QORE_CLASS_CONDITION_H
+#ifndef _QORE_INTERN_QORETYPESAFEREFERENCEHELPER_H
 
-#define _QORE_CLASS_CONDITION_H
+#define _QORE_INTERN_QORETYPESAFEREFERENCEHELPER_H
 
-#include <qore/Qore.h>
-#include <qore/QoreCondition.h>
-#include "qore/AbstractSmartLock.h"
-#include "qore/intern/SmartMutex.h"
+#include "qore/intern/Variable.h"
 
-DLLEXPORT extern qore_classid_t CID_CONDITION;
-DLLEXPORT extern QoreClass* QC_CONDITION;
-
-DLLLOCAL QoreClass* initConditionClass(QoreNamespace& ns);
-
-class Condition : public AbstractPrivateData {
-public:
-    DLLLOCAL int wait(AbstractSmartLock *m, int64 timeout, ExceptionSink *xsink) {
-        return m->extern_wait(&cond, xsink, timeout);
-    }
-    DLLLOCAL int wait(AbstractSmartLock *m, ExceptionSink *xsink) {
-        return m->extern_wait(&cond, xsink);
-    }
-    DLLLOCAL int signal() {
-        return cond.signal();
-    }
-    DLLLOCAL int broadcast() {
-        return cond.broadcast();
-    }
-    DLLLOCAL int wait_count(AbstractSmartLock *m) {
-        return m->cond_count(&cond);
+struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
+    DLLLOCAL qore_type_safe_ref_helper_priv_t(const ReferenceNode* ref, ExceptionSink* xsink)
+            : LValueHelper(*ref, xsink) {
     }
 
-protected:
-    DLLLOCAL virtual ~Condition() {}
+    DLLLOCAL qore_type_safe_ref_helper_priv_t(const AbstractQoreNode* exp, ExceptionSink* xsink)
+            : LValueHelper(exp, xsink) {
+    }
 
-private:
-    QoreCondition cond;
+    DLLLOCAL qore_type_safe_ref_helper_priv_t(ExceptionSink* xsink) : LValueHelper(xsink) {
+    }
+
+    DLLLOCAL ~qore_type_safe_ref_helper_priv_t() {
+    }
+
+    DLLLOCAL AbstractQoreNode* getUnique(ExceptionSink *xsink) {
+        ensureUnique();
+        return LValueHelper::getNodeValue();
+    }
+
+    DLLLOCAL int assign(QoreValue val) {
+        return LValueHelper::assign(val, "<reference>");
+    }
+
+    DLLLOCAL const QoreValue getValue() const {
+        return LValueHelper::getValue();
+    }
+
+    DLLLOCAL qore_type_t getType() const {
+        return LValueHelper::getType();
+    }
+
+    DLLLOCAL const char* getTypeName() const {
+        return LValueHelper::getTypeName();
+    }
+
+    DLLLOCAL static LValueHelper& get(QoreTypeSafeReferenceHelper& ref) {
+        return *ref.priv;
+    }
 };
 
-#endif // _QORE_CLASS_CONDITION_H
+#endif

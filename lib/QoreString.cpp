@@ -1687,6 +1687,15 @@ QoreString::~QoreString() {
     delete priv;
 }
 
+QoreListNode* QoreString::split(const char* sep, bool with_separator) {
+    return split_intern(sep, ::strlen(sep), priv->buf, priv->len, priv->encoding, with_separator);
+}
+
+QoreListNode* QoreString::split(ExceptionSink* xsink, const char* sep, const char* quote,
+        bool trim_unquoted) {
+    return split_with_quote(xsink, sep, ::strlen(sep), this, quote, ::strlen(quote), trim_unquoted);
+}
+
 // NULL values sorted at end
 int QoreString::compare(const QoreString* str) const {
     // empty strings are always equal even if the character encoding is different

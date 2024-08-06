@@ -4826,6 +4826,10 @@ QoreValue QoreClass::getReferencedKeyValue(const std::string& key) const {
     return priv->getReferencedKeyValue(key);
 }
 
+AbstractQoreNode* QoreClass::getNewObjectExpression(QoreListNode* args) const {
+    return new NewObjectCallNode(this, args);
+}
+
 int MethodFunctionBase::parseInit() {
     return QoreFunction::parseInit(qore_class_private::get(*qc)->ns);
 }
@@ -5818,6 +5822,10 @@ QoreBuiltinClass::QoreBuiltinClass(const QoreBuiltinClass& old) : QoreClass(old)
 }
 
 QoreBuiltinClass::QoreBuiltinClass() {
+}
+
+void QoreBuiltinClass::setModulePublic(bool v) {
+    priv->pub = v;
 }
 
 QoreParseClass::QoreParseClass(const QoreProgramLocation* loc) {
