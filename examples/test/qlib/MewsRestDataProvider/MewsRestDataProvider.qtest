@@ -77,7 +77,17 @@ public class MewsRestClientDataProviderTest inherits QUnit::Test {
                 2021-11-01,
             ),
         };
-        *hash<auto> rec = orderitems.searchSingleRecord(where_cond, {"limit": 1});
+        *hash<auto> rec;
+        try {
+            rec = orderitems.searchSingleRecord(where_cond, {"limit": 1});
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.arg."response-code" == 408 || ex.arg."response-code" == 429) {
+                delete mews;
+                testSkip(sprintf("timeout (%d %s); assuming no connection", ex.arg."response-code",
+                    ex.arg."response-headers".status_message));
+            }
+            rethrow;
+        }
         assertEq(Type::Hash, rec.type());
 
         AbstractDataProviderBulkRecordInterface i = orderitems.searchRecordsBulk(1000, where_cond, {"limit": 1});
