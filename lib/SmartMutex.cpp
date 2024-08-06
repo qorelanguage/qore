@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/SmartMutex.h"
+#include "qore/SmartMutex.h"
 
 #include <cassert>
 

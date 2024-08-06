@@ -36,7 +36,7 @@
 #include <qore/Qore.h>
 #include <qore/QoreCondition.h>
 #include "qore/AbstractSmartLock.h"
-#include "qore/intern/SmartMutex.h"
+#include "qore/SmartMutex.h"
 
 DLLEXPORT extern qore_classid_t CID_CONDITION;
 DLLEXPORT extern QoreClass* QC_CONDITION;
