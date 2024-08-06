@@ -309,7 +309,13 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
                     *date min;
                     # take the first key that has not already been processed on this run
                     hash<string, bool> dmap;
-                    while ((*string key = (cache - keys dmap).firstKey()).val()) {
+                    while (True) {
+                        *string key = dmap
+                            ? (cache - keys dmap).firstKey()
+                            : cache.firstKey();
+                        if (!exists key) {
+                            break;
+                        }
                         *hash<auto> value = cache{key};
                         if (!value) {
                             # removed from cache while the lock was unlocked
