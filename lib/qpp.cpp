@@ -571,19 +571,29 @@ static int missing_value_error(const char* fileName, unsigned lineNumber, const 
     return -1;
 }
 
-static int add_element(const char* fileName, unsigned lineNumber, const std::string& propstr, strmap_t& props, size_t start, size_t end) {
+static int add_element(const char* fileName, unsigned lineNumber, const std::string& propstr, strmap_t& props,
+        size_t start, size_t end) {
     size_t eq = propstr.find('=', start);
-    if (eq == std::string::npos || eq >= end)
+    if (eq == std::string::npos || eq >= end) {
         return 0;
-    while (start < eq && (propstr[start] == ' ' || propstr[start] == '\n'))
+    }
+    while (start < eq && (propstr[start] == ' ' || propstr[start] == '\n')) {
+        if (propstr[start] == '\n') {
+            ++lineNumber;
+        }
         ++start;
+    }
     if (start == eq) {
         error("%s:%d: missing property name in property string '%s'\n", fileName, lineNumber, propstr.c_str());
         return -1;
     }
     size_t tend = end;
-    while (tend > eq && (propstr[tend] == ' ' || propstr[tend] == '\n'))
+    while (tend > eq && (propstr[tend] == ' ' || propstr[tend] == '\n')) {
+        if (propstr[tend] == '\n') {
+            ++lineNumber;
+        }
         --tend;
+    }
 
     if (tend == eq)
         return missing_value_error(fileName, lineNumber, propstr);
@@ -596,7 +606,24 @@ static int add_element(const char* fileName, unsigned lineNumber, const std::str
     }
     std::string value(propstr, eq + 1, end - eq - 1);
 
-    value.erase(std::remove(value.begin(), value.end(), '\n'), value.cend());
+    //value.erase(std::remove(value.begin(), value.end(), '\n'), value.cend());
+    std::string::size_type i = 0;
+    while (i < value.length()) {
+        i = value.find("  ", i);
+        if (i == std::string::npos) {
+            break;
+        }
+        value.erase(i, 1);
+    }
+    i = 0;
+    while (i < value.length()) {
+        i = value.find('\n', i);
+        if (i == std::string::npos) {
+            break;
+        }
+        ++lineNumber;
+        value.erase(i, 1);
+    }
 
     props[key] = value;
     return 0;
