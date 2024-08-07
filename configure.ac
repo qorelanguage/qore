@@ -222,10 +222,10 @@ AC_SUBST(QPP_CPPFLAGS)
 
 AC_PROG_LEX
 
-# test for C++11
-AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
-if test "$HAVE_CXX11" = "1"; then
-    AM_CXXFLAGS=-std=gnu++11
+# test for C++17
+AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
+if test "$HAVE_CXX17" = "1"; then
+    AM_CXXFLAGS=-std=gnu++17
 fi
 
 # test for flex & flex version
