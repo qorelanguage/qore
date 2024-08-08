@@ -29,7 +29,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/minitest.hpp>
 #include "qore/intern/QException.h"
 
 #include <cassert>
@@ -50,12 +49,12 @@ public:
   //----------------------------------------------------------------------------
   QExceptionImpl(const char* exception_type, const char* problem,
     const char* cause, const char* solution, const char* details)
-  : m_type(exception_type ? exception_type : "<ERROR - no exception type (like MODULE-FUNCTION-INCIDENT) specified>"),    
+  : m_type(exception_type ? exception_type : "<ERROR - no exception type (like MODULE-FUNCTION-INCIDENT) specified>"),
     m_counter(1)
   {
     if (!problem || !problem[0]) {
       assert(false);
-      m_problem = "<ERROR - 'problem' field not specified>"; 
+      m_problem = "<ERROR - 'problem' field not specified>";
     } else {
       m_problem = problem;
     }
@@ -74,7 +73,7 @@ public:
   void release() {
     assert(m_counter > 0);
     if (m_counter <= 1) {
-      delete this; 
+      delete this;
     }
   }
   //----------------------------------------------------------------------------
@@ -92,7 +91,7 @@ public:
 };
 
 //------------------------------------------------------------------------------
-QException::QException(const char* exception_type, const char* problem, 
+QException::QException(const char* exception_type, const char* problem,
   const char* cause, const char* solution, const char* details)
 : pImpl(new QExceptionImpl(exception_type, problem, cause, solution, details))
 {
@@ -192,16 +191,12 @@ std::string QException::getAllDetails() const
     sprintf(aux, "%d. ", details.size() - i);
     result += (const char*)aux;
     result += s;
-    if (*result.rend() != '\n') { 
+    if (*result.rend() != '\n') {
       result += "\n";
     }
   }
   return result;
 }
-
-#ifdef DEBUG_TESTS
-#  include "tests/QException_tests.cpp"
-#endif
 
 // EOF
 

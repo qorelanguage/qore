@@ -70,6 +70,7 @@ void ParseOptionMap::static_init() {
     DO_MAP("no-thread-info",           PO_NO_THREAD_INFO);
     DO_MAP("no-locale-control",        PO_NO_LOCALE_CONTROL);
     DO_MAP("no-io",                    PO_NO_IO);
+    DO_MAP("strict-args",              PO_STRICT_ARGS);
     DO_MAP("no-modules",               PO_NO_MODULES);
     DO_MAP("lockdown",                 PO_LOCKDOWN);
     DO_MAP("no-embedded-logic",        PO_NO_EMBEDDED_LOGIC);

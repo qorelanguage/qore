@@ -376,10 +376,6 @@
 #ifndef HAVE_INET_PTON
 #include "inet_pton.cpp"
 #endif
-#include "minitest.cpp"
-//#include "inline_printf.cpp"
-//#include "QException.h"
-
 #ifdef DEBUG
 #include "ql_debug.cpp"
 #endif

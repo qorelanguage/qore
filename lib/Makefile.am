@@ -339,7 +339,6 @@ libqore_la_SOURCES = \
 	EncryptionTransforms.cpp \
 	Transform.cpp \
 	xxhash.cpp \
-	minitest.cpp \
 	FunctionalOperatorInterface.cpp \
 	FunctionalOperator.cpp \
 	QoreSerializable.cpp \

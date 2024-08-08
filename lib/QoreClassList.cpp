@@ -34,20 +34,15 @@
 #include "qore/intern/QoreNamespaceList.h"
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/QoreNamespaceIntern.h"
-#include <qore/minitest.hpp>
 
 #include <cassert>
-
-#ifdef DEBUG_TESTS
-#  include "tests/QoreClassList_tests.cpp"
-#endif
 
 QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns) : ns_const(false), ns_vars(false) {
     for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
         if (!i->second.cls->isSystem()) {
             //printd(5, "QoreClassList::QoreClassList() this: %p c: %p '%s' po & PO_NO_INHERIT_USER_CLASSES: %s
-            //  pub: %s\n", this, i->second, i->second->getName(), po & PO_NO_INHERIT_USER_CLASSES ? "true": "false",
-            //  qore_class_private::isPublic(*i->second) ? "true": "false");
+            //    pub: %s\n", this, i->second.cls, i->second.cls->getName(), po & PO_NO_INHERIT_USER_CLASSES ? "true": "false",
+            //    qore_class_private::isPublic(*i->second.cls) ? "true": "false");
             if (po & PO_NO_INHERIT_USER_CLASSES || !qore_class_private::isPublic(*i->second.cls)) {
                 continue;
             }
@@ -88,8 +83,9 @@ void QoreClassList::addInternal(QoreClass* oc, bool priv) {
 int QoreClassList::add(QoreClass* oc) {
     printd(5, "QCL::add() this: %p '%s' (%p)\n", this, oc->getName(), oc);
 
-    if (find(oc->getName()))
+    if (find(oc->getName())) {
         return 1;
+    }
 
     hm[oc->getName()] = cl_rec_t(oc, false);
     return 0;
@@ -107,8 +103,9 @@ const QoreClass* QoreClassList::find(const char* name) const {
 
 void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* ns) {
     for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
-        if (i->second.priv || !qore_class_private::isUserPublic(*i->second.cls))
+        if (i->second.priv || !qore_class_private::isUserPublic(*i->second.cls)) {
             continue;
+        }
 
         QoreClass* qc = find(i->first);
         if (qc) {

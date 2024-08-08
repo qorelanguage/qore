@@ -719,6 +719,7 @@ static int qore_check_load_module_intern(QoreAbstractModule* mi, mod_op_e op, ve
 
     if (pgm) {
         mi->addToProgram(pgm, xsink);
+    } else {
     }
     return 0;
 }
@@ -913,6 +914,7 @@ QoreAbstractModule* QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, Ex
                 "with the reinject flag set to True", name);
             return nullptr;
         }
+
         //printd(5, "QoreModuleManager::loadModuleIntern() name: %s inject: %d, reinject: %d found: %p (%s, %s) "
         //    "injected: %d reinjected: %d\n", name, load_opt & QMLO_INJECT, load_opt & QMLO_REINJECT, mi,
         //    mi->getName(), mi->getFileName(), mi->isInjected(), mi->isReInjected());

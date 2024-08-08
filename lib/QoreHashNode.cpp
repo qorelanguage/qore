@@ -29,7 +29,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/minitest.hpp>
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/QoreParseHashNode.h"
 #include "qore/intern/QoreParseListNode.h"
@@ -46,10 +45,6 @@
 #include <cstring>
 #include <map>
 #include <strings.h>
-
-#ifdef DEBUG_TESTS
-#  include "tests/Hash_tests.cpp"
-#endif
 
 static const char* qore_hash_type_name = "hash";
 

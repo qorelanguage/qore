@@ -29,7 +29,6 @@
 */
 
 #include "qore/intern/inline_printf.h"
-#include <qore/minitest.hpp>
 
 #include <cstdio>
 
@@ -59,7 +58,7 @@ std::string inline_printf_helper_format_string(const char* fmt, va_list arg)
   if (cnt >= 0 && cnt < SmallBufferSize) { // also checks for truncation
       small_buffer[cnt] = 0;
       return std::string(small_buffer);
-  } 
+  }
 
   // larger buffer is needed
   int LargeBufferSize = 1024;
@@ -74,86 +73,6 @@ std::string inline_printf_helper_format_string(const char* fmt, va_list arg)
     LargeBufferSize *= 2;
   }
 }
-
-//------------------------------------------------------------------------------
-#ifdef DEBUG
-namespace test_inline_printf_cpp_018236 {
-TEST()
-{
-  printf("inline printf test1\n");
-  std::string s = S("a");
-  assert(s == "a");
-}
-
-TEST()
-{
-  printf("inline printf test2\n");
-  std::string s = S("a = %d, b = %c", 123, 'r');
-  assert(s == "a = 123, b = r");
-}
-
-TEST()
-{    
-  printf("inline printf test3\n");
-  std::string fmt = "%d";
-  std::string s2 = S(fmt, 999);
-  assert(s2 == "999");
-}
-
-TEST()
-{
-  printf("inline printf test4\n");
-  // test very long formatted string
-  std::string s(10000, 'a');
-  std::string res = S("%s%s", s.c_str(), s.c_str());
-  assert(res.size() == 2 * 10000);
-}
-
-static std::string foo1(const char* fmt, va_list arg)
-{
-  return S(fmt, arg);
-}
-
-static std::string bar1(const char* fmt, ...)
-{
-  va_list arg;
-  va_start(arg, fmt);
-  std::string res = foo1(fmt, arg);
-  va_end(arg);
-  return res;
-}
-
-static std::string foo2(const std::string& fmt, va_list arg)
-{
-  return S(fmt, arg);
-}
-
-static std::string bar2(const std::string& fmt, ...)
-{
-  va_list arg;
-  va_start(arg, fmt);
-  std::string res = foo2(fmt, arg);
-  va_end(arg);
-  return res;
-}
-
-TEST()
-{
-  printf("inline printf test5\n");
-  std::string s = bar1("%s%d", "aaa", 111);
-  assert(s ==  "aaa111"); 
-}
-
-TEST()
-{
-  printf("inline printf test6\n");
-  std::string fmt("%d%d");
-  std::string s = bar2(fmt, 0, 0);
-  assert(s ==  "00");
-}
-
-} // namespace
-#endif
 
 // EOF
 

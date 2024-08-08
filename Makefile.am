@@ -658,7 +658,6 @@ include_HEADERS = \
     include/qore/QoreRegexInterface.h
 
 noinst_HEADERS = \
-	include/qore/minitest.hpp \
 	include/qore/macros-none.h \
 	include/qore/intern/QoreThreadList.h \
 	include/qore/intern/QoreHttpClientObjectIntern.h \

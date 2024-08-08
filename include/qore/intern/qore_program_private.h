@@ -888,6 +888,9 @@ public:
         for (auto& i : featureList) {
             l->push(new QoreStringNode(i), nullptr);
         }
+        for (auto& i : userFeatureList) {
+            l->push(new QoreStringNode(i), nullptr);
+        }
         return l;
     }
 

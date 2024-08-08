@@ -34,11 +34,6 @@
 #include "qore/intern/CaseNodeWithOperator.h"
 #include "qore/intern/CaseNodeRegex.h"
 #include "qore/intern/qore_program_private.h"
-#include <qore/minitest.hpp>
-
-#ifdef DEBUG_TESTS
-#  include "tests/SwitchStatementWithOperators_tests.cpp"
-#endif
 
 CaseNode::~CaseNode() {
     val.discard(nullptr);

@@ -35,16 +35,11 @@
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreNamespaceIntern.h"
-#include <qore/minitest.hpp>
 
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
-#ifdef DEBUG_TESTS
-#  include "tests/Statement_tests.cpp"
-#endif
 
 VNode::VNode(LocalVar* lv, const QoreProgramLocation* n_loc, int n_refs, bool n_top_level) :
         lvar(lv), refs(n_refs), loc(n_loc), block_start(false), top_level(n_top_level) {

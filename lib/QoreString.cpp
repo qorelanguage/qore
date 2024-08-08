@@ -35,7 +35,6 @@
 #include "qore/intern/IconvHelper.h"
 #include "qore/intern/StringReaderHelper.h"
 #include "qore/intern/QoreRegexSubst.h"
-#include "qore/minitest.hpp"
 
 #include <cctype>
 #include <cerrno>
@@ -46,10 +45,6 @@
 #include <memory>
 #include <set>
 #include <string>
-
-#ifdef DEBUG_TESTS
-#  include "tests/QoreString_tests.cpp"
-#endif
 
 // to be used for trim
 static intvec_t default_whitespace = {

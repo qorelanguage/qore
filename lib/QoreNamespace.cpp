@@ -41,8 +41,6 @@
 #include "qore/intern/typed_hash_decl_private.h"
 #include "qore/intern/QoreRegex.h"
 
-#include <qore/minitest.hpp>
-
 // include files for default object classes
 #include "qore/intern/QC_Socket.h"
 #include "qore/intern/QC_SSLCertificate.h"
@@ -94,11 +92,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
-
-#ifdef DEBUG_TESTS
-// the #include "test/Namespace_tests.cpp" is on the bottom
-#  include "tests/builtin_inheritance_tests.cpp"
-#endif
 
 DLLLOCAL QoreClass* initReadOnlyFileClass(QoreNamespace& ns);
 
@@ -1180,29 +1173,6 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     qns.addSystemClass(initTreeMapClass(qns));
     qns.addSystemClass(initSerializableClass(qns));
 
-#ifdef DEBUG_TESTS
-    { // tests
-        QoreClass* base = initBuiltinInheritanceTestBaseClass();
-        qns.addSystemClass(base);
-        qns.addSystemClass(initBuiltinInheritanceTestDescendant1(base));
-        // hierarchy with 3 levels
-        QoreClass* desc2 = initBuiltinInheritanceTestDescendant2(base);
-        qns.addSystemClass(desc2);
-        QoreClass* desc3 = initBuiltinInheritanceTestDescendant3(desc2);
-        qns.addSystemClass(desc3);
-        // BUGBUG : this fails. When desc2 is placed in the next line all is OK
-        QoreClass* desc4 = initBuiltinInheritanceTestDescendant4(desc3);
-        qns.addSystemClass(desc4);
-
-        QoreClass* base2 = initBuiltinInheritanceTestBase2Class();
-        qns.addSystemClass(base2);
-       // BUGBUG - the function actually fails to deal with two base classes, see the
-        // code in tests/builtin_inheritance_tests.cpp
-        QoreClass* desc_multi = initBuiltinInheritanceTestDescendantMulti(base2, base);
-        qns.addSystemClass(desc_multi);
-    }
-#endif
-
     init_qore_constants(qns);
 
     // set up Option namespace for Qore options
@@ -1271,11 +1241,6 @@ StaticSystemNamespace::~StaticSystemNamespace() {
     priv->deleteData(true, &xsink);
     priv->purge();
 }
-
-#ifdef DEBUG_TESTS
-// moved down to allow to test internal classes
-#  include "tests/Namespace_tests.cpp"
-#endif
 
 // returns 0 for success, non-zero return value means error
 int qore_root_ns_private::parseAddMethodToClassIntern(const QoreProgramLocation* loc, const NamedScope& scname, MethodVariantBase* qcmethod, bool static_flag) {
@@ -2813,7 +2778,8 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
         FunctionEntry* fe = func_list.findNode(i->first);
         if (fe && !fe->getFunction()->injected())
             qmc.error("duplicate function %s::%s()", name.c_str(), i->first);
-        //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' looking for function '%s' (%d)\n", this, name.c_str(), i->first, func_list.findNode(i->first));
+        //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' looking for function '%s' (%d)\n",
+        //    this, name.c_str(), i->first, func_list.findNode(i->first));
     }
 
     // check user variables
@@ -2849,17 +2815,22 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
         // see if a subnamespace with the same name exists
         const QoreNamespace* cns = nsl.find(i->first);
 
-        //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' checking %p '%s::' (pub: %d) cns: %p (pub: %d)\n", this, name.c_str(), i->second, i->second->getName(), i->second->priv->pub, cns, cns ? cns->priv->pub : false);
+        //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' checking %p '%s::' (pub: %d) "
+        //    "cns: %p (pub: %d)\n", this, name.c_str(), i->second, i->second->getName(), i->second->priv->pub, cns,
+        //    cns ? cns->priv->pub : false);
         if (!i->second->priv->pub) {
             if (in_mod && cns && cns->priv->pub)
-                qmc.error("cannot merge existing public namespace '%s' with new private namespace of the same name; namespace '%s::%s' is declared both with and without the 'public' keyword", cns->getName(), name.c_str(), i->first.c_str());
+                qmc.error("cannot merge existing public namespace '%s' with new private namespace of the same name; "
+                    "namespace '%s::%s' is declared both with and without the 'public' keyword", cns->getName(),
+                    name.c_str(), i->first.c_str());
 
             continue;
         }
 
         // see if a class with the same name is present
         if (classList.find(i->first.c_str())) {
-            qmc.error("namespace '%s::%s' clashes with an existing class of the same name", name.c_str(), i->first.c_str());
+            qmc.error("namespace '%s::%s' clashes with an existing class of the same name", name.c_str(),
+                i->first.c_str());
             continue;
         }
         if (cns) {
@@ -2890,7 +2861,9 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
     // add sub namespaces
     for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
         if (!qore_ns_private::isUserPublic(*i->second)) {
-            //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p (%p) '%s::' skipping %p (%p) '%s::' pub: %d builtin: %d\n", this, ns, name.c_str(), i->second->priv, i->second, i->second->getName(), i->second->priv->pub, i->second->priv->builtin);
+            printd(0, "qore_ns_private::copyMergeCommittedNamespace() this: %p (%p) '%s::' skipping %p (%p) '%s::' "
+                "pub: %d builtin: %d\n", this, ns, name.c_str(), i->second->priv, i->second, i->second->getName(),
+                i->second->priv->pub, i->second->priv->builtin);
             continue;
         }
 
@@ -2900,12 +2873,14 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
             nns = npns->ns;
             nns->priv->imported = true;
 
-            //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::' pub: %d\n", this, name.c_str(), nns, nns->getName(), nns->priv->pub);
+            //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::' pub: %d\n",
+            //    this, name.c_str(), nns, nns->getName(), nns->priv->pub);
             nns = nsl.runtimeAdd(nns, this)->ns;
         }
 
         nns->priv->copyMergeCommittedNamespace(*i->second->priv);
-        //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::'\n", this, name.c_str(), nns, nns->getName());
+        //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::'\n", this,
+        //    name.c_str(), nns, nns->getName());
     }
     //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s' done\n", this, name.c_str());
 }

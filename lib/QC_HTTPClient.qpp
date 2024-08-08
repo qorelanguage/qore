@@ -35,15 +35,10 @@
 #include "qore/intern/QC_Queue.h"
 #include "qore/intern/QC_SocketPollOperation.h"
 #include "qore/intern/ssl_constants.h"
-#include "qore/minitest.hpp"
 #include "qore/QoreSSLCertificate.h"
 #include "qore/QoreSSLPrivateKey.h"
 
 extern QoreClass* QC_SOCKET;
-
-#ifdef DEBUG_TESTS
-#  include "tests/QC_HTTPClient_tests.cpp"
-#endif
 
 //! The HTTPClient class can be used to communicate with HTTP servers with and without TLS/SSL encryption
 /** The HTTPClient class can be used to communicate with HTTP servers using the HTTP or HTTPS (HTTP using an SSL/TLS

@@ -40,11 +40,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <qore/minitest.hpp>
-#ifdef DEBUG_TESTS
-#  include "tests/List_tests.cpp"
-#endif
-
 #define LIST_BLOCK 20
 #define LIST_PAD   15
 

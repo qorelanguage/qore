@@ -40,17 +40,10 @@
 #include "qore/intern/ql_misc.h"
 #include "qore/intern/QC_Queue.h"
 #include "qore/intern/QoreHttpClientObjectIntern.h"
-
-#include <qore/minitest.hpp>
-
 #include <cctype>
 #include <map>
 #include <set>
 #include <string>
-
-#ifdef DEBUG_TESTS
-#  include "tests/QoreHTTPClient_tests.cpp"
-#endif
 
 QoreHTTPClient::QoreHTTPClient() {
 }

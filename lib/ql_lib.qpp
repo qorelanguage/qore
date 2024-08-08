@@ -34,7 +34,6 @@
 #include "qore/intern/ExecArgList.h"
 #include "qore/intern/QoreSignal.h"
 #include "qore/intern/QoreHashNodeIntern.h"
-#include <qore/minitest.hpp>
 
 #include <cerrno>
 #include <csignal>
@@ -83,11 +82,6 @@
 
 extern bool threads_initialized;
 
-#ifdef DEBUG_TESTS
-// Unsorted unit tests are put here
-#  include "tests/ReferenceHolder_tests.cpp"
-#endif
-
 AbstractQoreNode* missing_function_error(const char* func, ExceptionSink* xsink) {
    QoreString have(func);
    have.toupr();
@@ -97,35 +91,6 @@ AbstractQoreNode* missing_function_error(const char* func, ExceptionSink* xsink)
 AbstractQoreNode* missing_function_error(const char* func, const char* opt, ExceptionSink* xsink) {
    return xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement %s(); for maximum portability use the constant Option::HAVE_%s to check if this function is implemented before calling", func, opt);
 }
-
-#ifdef DEBUG_X
-static AbstractQoreNode* runQoreTests(const QoreListNode* args, ExceptionSink* xsink) {
-   minitest::result res = minitest::execute_all_tests();
-   if (res.all_tests_succeeded) {
-      printf("Qore runtime: %d tests succeeded\n", res.sucessful_tests_count);
-      return 0;
-   }
-
-   return xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
-                                res.failed_test_file, res.failed_test_line);
-}
-
-static AbstractQoreNode* runRecentQoreTests(const QoreListNode* args, ExceptionSink* xsink) {
-   minitest::result res = minitest::test_last_changed_files(3); // 3 last modified files
-   if (res.all_tests_succeeded) {
-      printf("Qore runtime: %d recent tests succeeded\n", res.sucessful_tests_count);
-      return 0;
-   }
-
-   return xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
-                                res.failed_test_file, res.failed_test_line);
-}
-namespace {
-TEST() {
-  // just an example of empty test
-}
-}
-#endif
 
 /** @defgroup library_option_constants Qore Library Option Constants
 
