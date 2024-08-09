@@ -302,7 +302,9 @@ const QoreClass* QoreExternalFunction::getClass() const {
 const QoreExternalVariant* QoreExternalFunction::findVariant(const type_vec_t& type_vec, ExceptionSink* xsink) const {
     const QoreClass* cls = getClass();
     const qore_class_private* qc = cls ? qore_class_private::get(*cls) : nullptr;
-    return reinterpret_cast<const QoreExternalVariant*>(reinterpret_cast<const QoreFunction*>(this)->runtimeFindVariant(xsink, type_vec, qc));
+    return reinterpret_cast<const QoreExternalVariant*>(
+        reinterpret_cast<const QoreFunction*>(this)->runtimeFindVariant(xsink, type_vec, qc)
+    );
 }
 
 bool QoreExternalFunction::isBuiltin() const {
@@ -317,8 +319,11 @@ unsigned QoreExternalFunction::numVariants() const {
     return reinterpret_cast<const QoreFunction*>(this)->numVariants();
 }
 
-QoreValue QoreExternalFunction::evalFunction(const QoreExternalVariant* variant, const QoreListNode* args, QoreProgram* pgm, ExceptionSink* xsink) const {
-    return reinterpret_cast<const QoreFunction*>(this)->evalFunction(reinterpret_cast<const AbstractQoreFunctionVariant*>(variant), args, pgm, xsink);
+QoreValue QoreExternalFunction::evalFunction(const QoreExternalVariant* variant, const QoreListNode* args,
+        QoreProgram* pgm, ExceptionSink* xsink) const {
+    return reinterpret_cast<const QoreFunction*>(this)->evalFunction(
+        reinterpret_cast<const AbstractQoreFunctionVariant*>(variant), args, pgm, xsink
+    );
 }
 
 const QoreExternalVariant* QoreExternalFunction::getFirstVariant() const {
@@ -335,7 +340,8 @@ int64 QoreExternalFunction::getCodeFlags() const {
 
 class qore_external_function_iterator_private {
 public:
-    DLLLOCAL qore_external_function_iterator_private(const QoreExternalFunction& func) : f(reinterpret_cast<const QoreFunction&>(func)) {
+    DLLLOCAL qore_external_function_iterator_private(const QoreExternalFunction& func)
+            : f(reinterpret_cast<const QoreFunction&>(func)) {
         i = f.vlist.end();
     }
 
@@ -358,7 +364,8 @@ private:
     VList::const_iterator i;
 };
 
-QoreExternalFunctionIterator::QoreExternalFunctionIterator(const QoreExternalFunction& f) : priv(new qore_external_function_iterator_private(f)) {
+QoreExternalFunctionIterator::QoreExternalFunctionIterator(const QoreExternalFunction& f)
+        : priv(new qore_external_function_iterator_private(f)) {
 }
 
 QoreExternalFunctionIterator::~QoreExternalFunctionIterator() {
@@ -387,6 +394,36 @@ const QoreMethod* QoreExternalMethodFunction::getMethod() const {
 
 bool QoreExternalMethodFunction::isStatic() const {
     return reinterpret_cast<const MethodFunctionBase*>(this)->isStatic();
+}
+
+QoreValue QoreExternalMethodFunction::evalNormalMethod(QoreObject* obj, const QoreExternalMethodVariant* variant,
+        const QoreListNode* args, QoreProgram* pgm, ExceptionSink* xsink) const {
+    ProgramThreadCountContextHelper tch(xsink, pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    const QoreMethod* m = getMethod();
+    if (variant) {
+        return obj->evalMethodVariant(*m, variant, args, xsink);
+    } else {
+        return obj->evalMethod(*m, args, xsink);
+    }
+}
+
+QoreValue QoreExternalMethodFunction::evalStaticMethod(const QoreExternalMethodVariant* variant,
+        const QoreListNode* args, QoreProgram* pgm, ExceptionSink* xsink) const {
+    ProgramThreadCountContextHelper tch(xsink, pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    const QoreMethod* m = getMethod();
+    if (variant) {
+        return QoreObject::evalStaticMethodVariant(*m, m->getClass(), variant, args, xsink);
+    } else {
+        return QoreObject::evalStaticMethod(*m, args, xsink);
+    }
 }
 
 const char* QoreExternalGlobalVar::getName() const {

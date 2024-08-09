@@ -243,6 +243,11 @@ void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunc
     //printd(5, "CodeEvaluationHelper::init() this: %p '%s()' file: %s line: %d variant: %p cctx: %p (%s)\n", this,
     //    func->getName(), loc->getFile(), loc->start_line, variant, cctx, cctx ? cctx->name.c_str() : "n/a");
 
+    ProgramThreadCountContextHelper tch(xsink, self ? self->getProgram() : nullptr, true);
+    if (*xsink) {
+        return;
+    }
+
     if (!variant) {
         const qore_class_private* class_ctx = qc ? (cctx ? cctx : runtime_get_class()) : nullptr;
         if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*qc->cls, class_ctx)) {

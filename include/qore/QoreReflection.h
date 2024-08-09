@@ -259,7 +259,10 @@ public:
     DLLEXPORT unsigned numVariants() const;
 
     //! evaluates the function with the given variant (which must belong to the function) and program (where the function must be defined) and returns the result
-    DLLEXPORT QoreValue evalFunction(const QoreExternalVariant* variant, const QoreListNode* args, QoreProgram* pgm, ExceptionSink* xsink) const;
+    /** @note Do not use this function with class methods
+    */
+    DLLEXPORT QoreValue evalFunction(const QoreExternalVariant* variant, const QoreListNode* args, QoreProgram* pgm,
+            ExceptionSink* xsink) const;
 
     //! returns the first declared variant in the variant list
     DLLEXPORT const QoreExternalVariant* getFirstVariant() const;
@@ -301,6 +304,14 @@ class QoreExternalMethodFunction : public QoreExternalFunction {
 public:
     //! returns the method for the function if the function belongs to a class method or nullptr if not
     DLLEXPORT const QoreMethod* getMethod() const;
+
+    //! evaluates the function with the given variant (which must belong to the method) and program (where the method must be defined) and returns the result
+    DLLEXPORT QoreValue evalNormalMethod(QoreObject* obj, const QoreExternalMethodVariant* variant,
+            const QoreListNode* args, QoreProgram* pgm, ExceptionSink* xsink) const;
+
+    //! evaluates the method as a static method with the given variant (which must belong to the method) and program (where the method must be defined) and returns the result
+    DLLEXPORT QoreValue evalStaticMethod(const QoreExternalMethodVariant* variant, const QoreListNode* args,
+            QoreProgram* pgm, ExceptionSink* xsink) const;
 
     //! returns true if the method is static
     DLLEXPORT bool isStatic() const;
