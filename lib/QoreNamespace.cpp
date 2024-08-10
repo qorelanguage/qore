@@ -2861,9 +2861,9 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
     // add sub namespaces
     for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
         if (!qore_ns_private::isUserPublic(*i->second)) {
-            printd(0, "qore_ns_private::copyMergeCommittedNamespace() this: %p (%p) '%s::' skipping %p (%p) '%s::' "
-                "pub: %d builtin: %d\n", this, ns, name.c_str(), i->second->priv, i->second, i->second->getName(),
-                i->second->priv->pub, i->second->priv->builtin);
+            //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p (%p) '%s::' skipping %p (%p) '%s::' "
+            //    "pub: %d builtin: %d\n", this, ns, name.c_str(), i->second->priv, i->second, i->second->getName(),
+            //    i->second->priv->pub, i->second->priv->builtin);
             continue;
         }
 
