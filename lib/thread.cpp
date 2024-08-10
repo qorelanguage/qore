@@ -2003,49 +2003,7 @@ void runtime_get_object_and_class(QoreObject*& obj, const qore_class_private*& q
 
 ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm,
         bool runtime) {
-    if (!pgm)
-        return;
-
-    ThreadData* td = thread_data.get();
-    old_pgm = td->current_pgm;
-    old_tlpd = td->tlpd;
-    old_frameCount = old_tlpd ? old_tlpd->lvstack.getFrameCount() : -1;
-    old_ctx = td->current_pgm_ctx;
-
-    if (pgm != td->current_pgm) {
-        printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() this:%p current_pgm:%p "
-            "pgmid:%d new_pgm: %p new_pgmid:%d cur_tlpd:%p cur_ctx:%p fc:%d\n", this, old_pgm,
-            old_pgm ? old_pgm->getProgramId() : -1, pgm, pgm?pgm->getProgramId():-1, old_tlpd, old_ctx,
-            old_frameCount);
-        qore_program_private* pp = qore_program_private::get(*pgm);
-        // try to increment thread count
-        if (pp->incThreadCount(xsink)) {
-            printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() failed\n");
-            return;
-        }
-
-        // set up thread stacks
-        restore = true;
-        td->current_pgm = pgm;
-        init_tlpd = td->tpd->saveProgram(runtime, xsink); // set new td->tlpd
-        td->current_pgm_ctx = this;
-        save_frameCount = td->tlpd->lvstack.getFrameCount();
-
-        printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() this:%p tlpd:%p savefc:%d oldfc:%d init_tlpd:%d\n",
-            this, td->tlpd, save_frameCount, old_frameCount, init_tlpd
-        );
-
-        if (!td->tlpd->dbgIsAttached()) {
-            // find if tlpd is in lower context and if not then notify dbgAttach()
-            if (isFirstThreadLocalProgramData(td->tlpd)) {
-                td->tlpd->dbgAttach(xsink);
-            }
-        }
-    } else {
-        printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() this:%p current_pgm:%p pgmid:%d old_tlpd:%p cur_ctx:%p fc:%d follow\n",
-            this, old_pgm, old_pgm?old_pgm->getProgramId():-1, old_tlpd, old_ctx, old_frameCount
-        );
-    }
+    set(xsink, pgm, runtime);
 }
 
 ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
@@ -2072,6 +2030,51 @@ ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
     td->current_pgm_ctx = old_ctx;
 
     qore_program_private::decThreadCount(*pgm, td->tid);
+}
+
+void ProgramThreadCountContextHelper::set(ExceptionSink* xsink, QoreProgram* pgm, bool runtime) {
+    if (!pgm) {
+        return;
+    }
+    assert(!old_pgm);
+
+    ThreadData* td = thread_data.get();
+    if (pgm == td->current_pgm) {
+        return;
+    }
+    old_pgm = td->current_pgm;
+    old_tlpd = td->tlpd;
+    old_frameCount = old_tlpd ? old_tlpd->lvstack.getFrameCount() : -1;
+    old_ctx = td->current_pgm_ctx;
+
+    printd(5, "ProgramThreadCountContextHelper::set() this:%p current_pgm:%p "
+        "pgmid:%d new_pgm: %p new_pgmid:%d cur_tlpd:%p cur_ctx:%p fc:%d\n", this, old_pgm,
+        old_pgm ? old_pgm->getProgramId() : -1, pgm, pgm?pgm->getProgramId():-1, old_tlpd, old_ctx,
+        old_frameCount);
+    qore_program_private* pp = qore_program_private::get(*pgm);
+    // try to increment thread count
+    if (pp->incThreadCount(xsink)) {
+        printd(5, "ProgramThreadCountContextHelper::set() failed\n");
+        return;
+    }
+
+    // set up thread stacks
+    restore = true;
+    td->current_pgm = pgm;
+    init_tlpd = td->tpd->saveProgram(runtime, xsink); // set new td->tlpd
+    td->current_pgm_ctx = this;
+    save_frameCount = td->tlpd->lvstack.getFrameCount();
+
+    printd(5, "ProgramThreadCountContextHelper::set() this:%p tlpd:%p savefc:%d oldfc:%d "
+        "init_tlpd:%d\n", this, td->tlpd, save_frameCount, old_frameCount, init_tlpd
+    );
+
+    if (!td->tlpd->dbgIsAttached()) {
+        // find if tlpd is in lower context and if not then notify dbgAttach()
+        if (isFirstThreadLocalProgramData(td->tlpd)) {
+            td->tlpd->dbgAttach(xsink);
+        }
+    }
 }
 
 bool ProgramThreadCountContextHelper::isFirstThreadLocalProgramData(const ThreadLocalProgramData* tlpd) const{

@@ -175,7 +175,8 @@ static void add_args(QoreStringNode &desc, const QoreListNode* args) {
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
         const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self,
-        const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
+        const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx,
+        QoreProgram* pgm_ctx)
     : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc),
         loc(get_runtime_location()),
         tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1) {
@@ -192,12 +193,13 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
         return;
     }
 
-    init(func, variant, is_copy, cctx, self);
+    init(func, variant, is_copy, cctx, self, pgm_ctx);
 }
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
         const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self,
-        const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
+        const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx,
+        QoreProgram* pgm_ctx)
     : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc),
         loc(get_runtime_location()),
         tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1) {
@@ -214,7 +216,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
         return;
     }
 
-    init(func, variant, is_copy, cctx, self);
+    init(func, variant, is_copy, cctx, self, pgm_ctx);
 }
 
 CodeEvaluationHelper::~CodeEvaluationHelper() {
@@ -239,13 +241,16 @@ void CodeEvaluationHelper::setCallName(const QoreFunction* func) {
 }
 
 void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
-        const qore_class_private* cctx, QoreObject* self) {
+        const qore_class_private* cctx, QoreObject* self, QoreProgram* pgm_ctx) {
     //printd(5, "CodeEvaluationHelper::init() this: %p '%s()' file: %s line: %d variant: %p cctx: %p (%s)\n", this,
     //    func->getName(), loc->getFile(), loc->start_line, variant, cctx, cctx ? cctx->name.c_str() : "n/a");
 
-    ProgramThreadCountContextHelper tch(xsink, self ? self->getProgram() : nullptr, true);
-    if (*xsink) {
-        return;
+    // set the program context if necessary
+    if (pgm_ctx) {
+        set(xsink, pgm_ctx, true);
+        if (*xsink) {
+            return;
+        }
     }
 
     if (!variant) {

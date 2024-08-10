@@ -298,7 +298,7 @@ public:
 
 class AbstractQoreFunctionVariant;
 
-class CodeEvaluationHelper : public QoreStackLocation {
+class CodeEvaluationHelper : public QoreStackLocation, public ProgramThreadCountContextHelper {
 public:
     //! Creates the object for evaluating the given code (function, method, closure) with the given arguments
     /**
@@ -316,7 +316,7 @@ public:
     DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
             const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = nullptr,
             QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
-            bool is_copy = false, const qore_class_private* cctx = nullptr);
+            bool is_copy = false, const qore_class_private* cctx = nullptr, QoreProgram* pgm_ctx = nullptr);
 
     //! Creates the object for evaluating the given code (function, method, closure) with the given arguments
     /**
@@ -335,7 +335,7 @@ public:
     DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
             const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args,
             QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
-            bool is_copy = false, const qore_class_private* cctx = nullptr);
+            bool is_copy = false, const qore_class_private* cctx = nullptr, QoreProgram* pgm_ctx = nullptr);
 
     DLLLOCAL ~CodeEvaluationHelper();
 
@@ -436,7 +436,7 @@ protected:
     bool restore_stack = false;
 
     DLLLOCAL void init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
-        const qore_class_private* cctx, QoreObject* self);
+        const qore_class_private* cctx, QoreObject* self, QoreProgram* pgm_ctx);
 
     DLLLOCAL void setCallName(const QoreFunction* func);
 };
