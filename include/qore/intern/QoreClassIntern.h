@@ -666,7 +666,8 @@ protected:
 public:
     DLLLOCAL BuiltinCopyVariant(QoreClass* c, q_copy_t m) : BuiltinCopyVariantBase(c), copy(m) {
     }
-    DLLLOCAL virtual void evalImpl(const QoreClass &thisclass, QoreObject* self, QoreObject* old, AbstractPrivateData* private_data, ExceptionSink* xsink) const {
+    DLLLOCAL virtual void evalImpl(const QoreClass &thisclass, QoreObject* self, QoreObject* old,
+            AbstractPrivateData* private_data, ExceptionSink* xsink) const {
         copy(self, old, private_data, xsink);
     }
 };
@@ -677,10 +678,12 @@ protected:
     const void* ptr;
 
 public:
-    DLLLOCAL BuiltinExternalCopyVariant(const void* n_ptr, QoreClass* c, q_external_copy_t m) : BuiltinCopyVariantBase(c), copy(m), ptr(n_ptr) {
+    DLLLOCAL BuiltinExternalCopyVariant(const void* n_ptr, QoreClass* c, q_external_copy_t m)
+            : BuiltinCopyVariantBase(c), copy(m), ptr(n_ptr) {
     }
 
-    DLLLOCAL virtual void evalImpl(const QoreClass &thisclass, QoreObject* self, QoreObject* old, AbstractPrivateData* private_data, ExceptionSink* xsink) const {
+    DLLLOCAL virtual void evalImpl(const QoreClass &thisclass, QoreObject* self, QoreObject* old,
+            AbstractPrivateData* private_data, ExceptionSink* xsink) const {
         copy(thisclass, ptr, self, old, private_data, xsink);
     }
 };
@@ -691,17 +694,20 @@ public:
     DLLLOCAL NormalMethodFunction(const char* nme, const QoreClass* n_qc) : MethodFunctionBase(nme, n_qc, false) {
     }
 
-    DLLLOCAL NormalMethodFunction(const NormalMethodFunction &old, const QoreClass* n_qc) : MethodFunctionBase(old, n_qc) {
+    DLLLOCAL NormalMethodFunction(const NormalMethodFunction &old, const QoreClass* n_qc)
+            : MethodFunctionBase(old, n_qc) {
     }
 
     DLLLOCAL virtual ~NormalMethodFunction() {
     }
 
     // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-    DLLLOCAL QoreValue evalMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, const qore_class_private* cctx = nullptr) const;
+    DLLLOCAL QoreValue evalMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, QoreObject* self,
+            const QoreListNode* args, const qore_class_private* cctx = nullptr, QoreProgram* pgm_ctx = nullptr) const;
 
     // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-    DLLLOCAL QoreValue evalMethodTmpArgs(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, QoreObject* self, QoreListNode* args, const qore_class_private* cctx = nullptr) const;
+    DLLLOCAL QoreValue evalMethodTmpArgs(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
+            QoreObject* self, QoreListNode* args, const qore_class_private* cctx = nullptr) const;
 
     // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
     DLLLOCAL QoreValue evalPseudoMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
@@ -715,16 +721,19 @@ class StaticMethodFunction : public MethodFunctionBase {
 public:
     DLLLOCAL StaticMethodFunction(const char* nme, const QoreClass* n_qc) : MethodFunctionBase(nme, n_qc, true) {
     }
-    DLLLOCAL StaticMethodFunction(const StaticMethodFunction &old, const QoreClass* n_qc) : MethodFunctionBase(old, n_qc) {
+    DLLLOCAL StaticMethodFunction(const StaticMethodFunction &old, const QoreClass* n_qc)
+            : MethodFunctionBase(old, n_qc) {
     }
     DLLLOCAL virtual ~StaticMethodFunction() {
     }
 
     // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-    DLLLOCAL QoreValue evalMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, const QoreListNode* args, const qore_class_private* cctx = nullptr) const;
+    DLLLOCAL QoreValue evalMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
+            const QoreListNode* args, const qore_class_private* cctx = nullptr, QoreProgram* pgm_ctx = nullptr) const;
 
     // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-    DLLLOCAL QoreValue evalMethodTmpArgs(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, QoreListNode* args, const qore_class_private* cctx = nullptr) const;
+    DLLLOCAL QoreValue evalMethodTmpArgs(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
+            QoreListNode* args, const qore_class_private* cctx = nullptr) const;
 };
 
 #define SMETHF(f) (reinterpret_cast<StaticMethodFunction*>(f))
@@ -734,11 +743,13 @@ class ConstructorMethodFunction : public MethodFunctionBase {
 public:
     DLLLOCAL ConstructorMethodFunction(const QoreClass* n_qc) : MethodFunctionBase("constructor", n_qc, false) {
     }
-    DLLLOCAL ConstructorMethodFunction(const ConstructorMethodFunction &old, const QoreClass* n_qc) : MethodFunctionBase(old, n_qc) {
+    DLLLOCAL ConstructorMethodFunction(const ConstructorMethodFunction &old, const QoreClass* n_qc)
+            : MethodFunctionBase(old, n_qc) {
     }
 
     // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-    DLLLOCAL void evalConstructor(const AbstractQoreFunctionVariant* variant, const QoreClass &thisclass, QoreObject* self, const QoreListNode* args, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
+    DLLLOCAL void evalConstructor(const AbstractQoreFunctionVariant* variant, const QoreClass &thisclass,
+            QoreObject* self, const QoreListNode* args, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 
     DLLLOCAL virtual MethodFunctionBase* copy(const QoreClass* n_qc) const {
         return new ConstructorMethodFunction(*this, n_qc);
@@ -752,7 +763,8 @@ class DestructorMethodFunction : public MethodFunctionBase {
 public:
     DLLLOCAL DestructorMethodFunction(const QoreClass* n_qc) : MethodFunctionBase("destructor", n_qc, false) {
     }
-    DLLLOCAL DestructorMethodFunction(const DestructorMethodFunction &old, const QoreClass* n_qc) : MethodFunctionBase(old, n_qc) {
+    DLLLOCAL DestructorMethodFunction(const DestructorMethodFunction &old, const QoreClass* n_qc)
+            : MethodFunctionBase(old, n_qc) {
     }
     DLLLOCAL void evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const;
 
@@ -768,9 +780,11 @@ class CopyMethodFunction : public MethodFunctionBase {
 public:
     DLLLOCAL CopyMethodFunction(const QoreClass* n_qc) : MethodFunctionBase("copy", n_qc, false) {
     }
-    DLLLOCAL CopyMethodFunction(const CopyMethodFunction &old, const QoreClass* n_qc) : MethodFunctionBase(old, n_qc) {
+    DLLLOCAL CopyMethodFunction(const CopyMethodFunction &old, const QoreClass* n_qc)
+            : MethodFunctionBase(old, n_qc) {
     }
-    DLLLOCAL void evalCopy(const QoreClass &thisclass, QoreObject* self, QoreObject* old, BCList* scl, ExceptionSink* xsink) const;
+    DLLLOCAL void evalCopy(const QoreClass &thisclass, QoreObject* self, QoreObject* old, BCList* scl,
+            ExceptionSink* xsink) const;
 
     DLLLOCAL virtual MethodFunctionBase* copy(const QoreClass* n_qc) const {
         return new CopyMethodFunction(*this, n_qc);
@@ -3602,12 +3616,12 @@ public:
     }
 
     DLLLOCAL QoreValue eval(ExceptionSink* xsink, QoreObject* self, const QoreListNode* args,
-            const qore_class_private* cctx = nullptr) const {
+            const qore_class_private* cctx = nullptr, QoreProgram* pgm_ctx = nullptr) const {
         if (!static_flag) {
             assert(self);
-            return NMETHF(func)->evalMethod(xsink, 0, self, args, cctx);
+            return NMETHF(func)->evalMethod(xsink, 0, self, args, cctx, pgm_ctx);
         }
-        return SMETHF(func)->evalMethod(xsink, 0, args, cctx);
+        return SMETHF(func)->evalMethod(xsink, 0, args, cctx, pgm_ctx);
     }
 
     DLLLOCAL QoreValue evalTmpArgs(ExceptionSink* xsink, QoreObject* self, QoreListNode* args,
@@ -3653,8 +3667,8 @@ public:
     }
 
     DLLLOCAL static QoreValue eval(const QoreMethod& m, ExceptionSink* xsink, QoreObject* self,
-            const QoreListNode* args, const qore_class_private* cctx = nullptr) {
-        return m.priv->eval(xsink, self, args, cctx);
+            const QoreListNode* args, const qore_class_private* cctx = nullptr, QoreProgram* pgm_ctx = nullptr) {
+        return m.priv->eval(xsink, self, args, cctx, pgm_ctx);
     }
 
     DLLLOCAL static QoreValue evalTmpArgs(const QoreMethod& m, ExceptionSink* xsink, QoreObject* self,

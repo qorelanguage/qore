@@ -716,32 +716,37 @@ typedef std::set<ClosureVarValue*> cvv_set_t;
 
 class ThreadSafeLocalVarRuntimeEnvironment {
 private:
-   cvar_map_t cmap;
-   cvv_set_t cvvset;
+    cvar_map_t cmap;
+    cvv_set_t cvvset;
 
 public:
-   DLLLOCAL ThreadSafeLocalVarRuntimeEnvironment(const lvar_set_t* vlist);
-   DLLLOCAL ~ThreadSafeLocalVarRuntimeEnvironment();
-   DLLLOCAL ClosureVarValue* find(const LocalVar* id) const;
-   DLLLOCAL bool hasVar(ClosureVarValue* cvv) const;
-   DLLLOCAL void del(ExceptionSink* xsink);
+    DLLLOCAL ThreadSafeLocalVarRuntimeEnvironment(const lvar_set_t* vlist);
+    DLLLOCAL ~ThreadSafeLocalVarRuntimeEnvironment();
+    DLLLOCAL ClosureVarValue* find(const LocalVar* id) const;
+    DLLLOCAL bool hasVar(ClosureVarValue* cvv) const;
+    DLLLOCAL void del(ExceptionSink* xsink);
 
-   DLLLOCAL bool empty() {
-      return cmap.empty();
-   }
+    DLLLOCAL bool empty() {
+        return cmap.empty();
+    }
 
-   DLLLOCAL const cvar_map_t& getMap() const {
-      return cmap;
-   }
+    DLLLOCAL const cvar_map_t& getMap() const {
+        return cmap;
+    }
 };
 
 struct ThreadLocalProgramData;
 
 class ProgramThreadCountContextHelper {
 public:
+    DLLLOCAL ProgramThreadCountContextHelper() = default;
     DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
     DLLLOCAL ~ProgramThreadCountContextHelper();
-    static ThreadLocalProgramData* getContextFrame(int& frame, ExceptionSink* xsink);
+
+    DLLLOCAL void set(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
+
+    DLLLOCAL static ThreadLocalProgramData* getContextFrame(int& frame, ExceptionSink* xsink);
+
     DLLLOCAL bool isFirstThreadLocalProgramData(const ThreadLocalProgramData* tlpd) const;
 
 protected:
@@ -757,24 +762,24 @@ protected:
 
 class ProgramRuntimeParseContextHelper {
 protected:
-   QoreProgram* old_pgm;
-   bool restore;
+    QoreProgram* old_pgm;
+    bool restore;
 
 public:
-   DLLLOCAL ProgramRuntimeParseContextHelper(ExceptionSink* xsink, QoreProgram* pgm);
-   DLLLOCAL ~ProgramRuntimeParseContextHelper();
+    DLLLOCAL ProgramRuntimeParseContextHelper(ExceptionSink* xsink, QoreProgram* pgm);
+    DLLLOCAL ~ProgramRuntimeParseContextHelper();
 };
 
 // ensures the program is locked for parsing and that thread-local data is available for execution at parse commit time
 class ProgramRuntimeParseCommitContextHelper {
 protected:
-   QoreProgram* old_pgm;
-   ThreadLocalProgramData* old_tlpd;
-   bool restore;
+    QoreProgram* old_pgm;
+    ThreadLocalProgramData* old_tlpd;
+    bool restore;
 
 public:
-   DLLLOCAL ProgramRuntimeParseCommitContextHelper(ExceptionSink* xsink, QoreProgram* pgm);
-   DLLLOCAL ~ProgramRuntimeParseCommitContextHelper();
+    DLLLOCAL ProgramRuntimeParseCommitContextHelper(ExceptionSink* xsink, QoreProgram* pgm);
+    DLLLOCAL ~ProgramRuntimeParseCommitContextHelper();
 };
 
 class ProgramRuntimeParseAccessHelper {

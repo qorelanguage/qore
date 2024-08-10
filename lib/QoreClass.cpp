@@ -5303,13 +5303,13 @@ void DestructorMethodFunction::evalDestructor(const QoreClass& thisclass, QoreOb
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 QoreValue NormalMethodFunction::evalMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
-        QoreObject* self, const QoreListNode* args, const qore_class_private* cctx) const {
+        QoreObject* self, const QoreListNode* args, const qore_class_private* cctx, QoreProgram* pgm_ctx) const {
     //QORE_TRACE("NormalMethodFunction::evalMethod()");
     const char* cname = getClassName();
     const char* mname = getName();
     //printd(5, "NormalMethodFunction::evalMethod() %s::%s() v: %d\n", cname, mname, self->isValid());
     CodeEvaluationHelper ceh(xsink, this, variant, mname, args, self, qore_class_private::get(*qc), CT_UNUSED, false,
-        cctx);
+        cctx, pgm_ctx);
     if (*xsink)
         return QoreValue();
 
@@ -5375,10 +5375,10 @@ QoreValue NormalMethodFunction::evalPseudoMethod(ExceptionSink* xsink, const Abs
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified
 // at run time
 QoreValue StaticMethodFunction::evalMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
-        const QoreListNode* args, const qore_class_private* cctx) const {
+        const QoreListNode* args, const qore_class_private* cctx, QoreProgram* pgm_ctx) const {
     const char* mname = getName();
     CodeEvaluationHelper ceh(xsink, this, variant, mname, args, nullptr, qore_class_private::get(*qc), CT_UNUSED,
-        false, cctx);
+        false, cctx, pgm_ctx);
     if (*xsink)
         return QoreValue();
 

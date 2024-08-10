@@ -363,8 +363,8 @@ int ParseScopedSelfMethodReferenceNode::parseInitImpl(QoreValue& val, QoreParseC
 }
 
 RunTimeResolvedMethodReferenceNode::RunTimeResolvedMethodReferenceNode(const QoreProgramLocation* loc,
-    QoreObject* n_obj, const QoreMethod* n_method, const qore_class_private* ctx)
-    : ResolvedCallReferenceNodeIntern(loc), obj(n_obj), method(n_method), qc(ctx) {
+        QoreObject* n_obj, const QoreMethod* n_method, const qore_class_private* ctx)
+        : ResolvedCallReferenceNodeIntern(loc), obj(n_obj), method(n_method), qc(ctx) {
     printd(5, "RunTimeResolvedMethodReferenceNode::RunTimeResolvedMethodReferenceNode() this: %p obj: %p\n", this, obj);
     obj->tRef();
 }
@@ -377,7 +377,8 @@ RunTimeResolvedMethodReferenceNode::~RunTimeResolvedMethodReferenceNode() {
 QoreValue RunTimeResolvedMethodReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
     //printd(5, "RunTimeResolvedMethodReferenceNode::execValue() cpgm: %p opgm: %p\n", getProgram(), obj->getProgram());
     // issue #2145: do not set the call reference class context before arguments are evaluted
-    return qore_method_private::eval(*method, xsink, obj, args, qc);
+    // run the reference in the Program where it was originally created
+    return qore_method_private::eval(*method, xsink, obj, args, qc, pgm);
 }
 
 QoreProgram* RunTimeResolvedMethodReferenceNode::getProgram() const {
@@ -486,7 +487,7 @@ QoreValue LocalMethodCallReferenceNode::evalImpl(bool& needs_deref, ExceptionSin
 }
 
 QoreValue LocalMethodCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
-    return qore_method_private::eval(*method, xsink, runtime_get_stack_object(), args);
+    return qore_method_private::eval(*method, xsink, runtime_get_stack_object(), args, nullptr);
 }
 
 bool LocalMethodCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
@@ -523,7 +524,7 @@ QoreValue StaticMethodCallReferenceNode::execValue(const QoreListNode* args, Exc
     // set class ctx
     ObjectSubstitutionHelper osh(0, class_ctx);
     // do not set pgm context here before evaluating args
-    return qore_method_private::eval(*method, xsink, 0, args);
+    return qore_method_private::eval(*method, xsink, 0, args, nullptr, pgm);
 }
 
 MethodCallReferenceNode::MethodCallReferenceNode(const QoreProgramLocation* loc, const QoreMethod* n_method,

@@ -1954,7 +1954,14 @@ class HttpPersistentHandlerInfo {
     }
 
     destructor() {
-        clear();
+        try {
+            clear();
+        } catch (hash<ExceptionInfo> ex) {
+            # ignore PROGRAM-ERROR exceptions in the destructor
+            if (ex.err != "PROGRAM-ERROR") {
+                rethrow;
+            }
+        }
     }
 
     assign(*DynamicHandlerHelper n_dhh, HttpServer::AbstractHttpRequestHandler n_handler) {
