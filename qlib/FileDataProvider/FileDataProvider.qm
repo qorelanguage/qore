@@ -69,13 +69,12 @@ module FileDataProvider {
             "desc": "Copy a file on the local filesystem",
             "action_code": DPAT_API,
             "output_type": FileTargetResponseDataType,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FileCopyRequestDataType::Fields{"source", "target"}, {
                     "preselected": True,
                     "required": True,
                 },
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 FileCopyRequestDataType::Fields - ("source", "target")
             ),
         });
@@ -89,13 +88,12 @@ module FileDataProvider {
             "desc": "Create a file on the local filesystem",
             "action_code": DPAT_API,
             "output_type": FilePathDataType,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FileCreateRequestDataType::Fields{"path", "data"}, {
                     "preselected": True,
                     "required": True,
                 },
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 FileCreateRequestDataType::Fields - ("path", "data")
             ),
         });
@@ -109,7 +107,7 @@ module FileDataProvider {
             "desc": "Delete a file on the local filesystem",
             "action_code": DPAT_API,
             "output_type": FilePathDataType,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FilePathDataType::Fields{"path",}, {
                     "preselected": True,
                     "required": True,
@@ -126,13 +124,12 @@ module FileDataProvider {
             "desc": "Get a file on the local filesystem",
             "action_code": DPAT_API,
             "output_type": FileGetResponseDataType,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FileGetRequestDataType::Fields{"path", "text"}, {
                     "preselected": True,
                     "required": True,
                 },
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 FileGetRequestDataType::Fields - ("path", "text")
             ),
         });
@@ -146,7 +143,7 @@ module FileDataProvider {
             "desc": "List files and subdirectories in a folder on the local filesystem",
             "action_code": DPAT_API,
             "output_type": FileListResponseDataType,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FilePathDataType::Fields{"path",}, {
                     "preselected": True,
                     "required": True,
@@ -163,7 +160,7 @@ module FileDataProvider {
             "desc": "Create a directory on the local filesystem",
             "action_code": DPAT_API,
             "output_type": FilePathDataType,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FileMkdirRequestDataType::Fields{"path", "mode"}, {
                     "preselected": True,
                     "required": True,
@@ -180,13 +177,12 @@ module FileDataProvider {
             "desc": "Move a file or directory on the local filesystem",
             "action_code": DPAT_API,
             "output_type": FileTargetResponseDataType,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FileMoveRequestDataType::Fields{"source", "target"}, {
                     "preselected": True,
                     "required": True,
                 },
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 FileMoveRequestDataType::Fields - ("source", "target")
             ),
         });
@@ -200,13 +196,12 @@ module FileDataProvider {
             "desc": "Get details about a file or directory on the local filesystem",
             "action_code": DPAT_API,
             "output_type": FileStatResponseDataType,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FileStatRequestDataType::Fields{"path",}, {
                     "preselected": True,
                     "required": True,
                 },
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 FileStatRequestDataType::Fields - ("path")
             ),
         });

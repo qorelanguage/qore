@@ -69,14 +69,13 @@ module CsvUtil {
             "desc": "Read CSV file data from a specific file location",
             "action_code": DPAT_FIND,
             "cls": "CsvUtil::CsvReadDataProvider",
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 CsvReadDataProvider::ConstructorOptions{"path", "header_names"}, {
                     "preselected": True,
                     "required": True,
                     "loc": "constructor",
                 }
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 CsvReadDataProvider::ConstructorOptions - ("path", "data", "stream", "header_names"), {
                     "loc": "constructor",
                 }
@@ -92,14 +91,13 @@ module CsvUtil {
             "desc": "Read CSV inline data",
             "action_code": DPAT_FIND,
             "cls": "CsvUtil::CsvReadDataProvider",
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 CsvReadDataProvider::ConstructorOptions{"data", "header_names"}, {
                     "preselected": True,
                     "required": True,
                     "loc": "constructor",
                 }
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 CsvReadDataProvider::ConstructorOptions - ("path", "data", "strean", "header_names"), {
                     "loc": "constructor",
                 }
@@ -115,14 +113,13 @@ module CsvUtil {
             "desc": "Write CSV file data to a specific file location",
             "action_code": DPAT_CREATE,
             "cls": "CsvUtil::CsvWriteDataProvider",
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 CsvWriteDataProvider::ConstructorOptions{"path",}, {
                     "preselected": True,
                     "required": True,
                     "loc": "constructor",
                 }
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 CsvWriteDataProvider::ConstructorOptions - ("path",), {
                     "loc": "constructor",
                 }

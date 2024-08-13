@@ -61,13 +61,12 @@ module FilePoller {
             "action_code": DPAT_EVENT,
             "action_val": EVENT_FILE,
             "output_type": FilePollerFileEventInfoDataType,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FilePollerDataProviderBase::ConstructorOptions{"mask",}, {
                     "preselected": True,
                     "required": True,
                 },
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 FilePollerDataProviderBase::ConstructorOptions - ("mask", "path")
             ),
         });

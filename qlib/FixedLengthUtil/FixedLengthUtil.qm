@@ -67,14 +67,13 @@ module FixedLengthUtil {
             "desc": "Read fixed-length file data from a specific file location",
             "action_code": DPAT_FIND,
             "cls": "FixedLengthUtil::FixedLengthReadDataProvider",
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FixedLengthReadDataProvider::ConstructorOptions{"path", "spec"}, {
                     "preselected": True,
                     "required": True,
                     "loc": "constructor",
                 }
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 FixedLengthReadDataProvider::ConstructorOptions - ("path", "spec"), {
                     "loc": "constructor",
                 }
@@ -90,14 +89,13 @@ module FixedLengthUtil {
             "desc": "Write fixed-length file data to a specific file location",
             "action_code": DPAT_CREATE,
             "cls": "FixedLengthUtil::FixedLengthWriteDataProvider",
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FixedLengthWriteDataProvider::ConstructorOptions{"path", "spec"}, {
                     "preselected": True,
                     "required": True,
                     "loc": "constructor",
                 }
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 FixedLengthWriteDataProvider::ConstructorOptions - ("path", "spec"), {
                     "loc": "constructor",
                 }

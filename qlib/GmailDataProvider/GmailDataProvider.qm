@@ -68,7 +68,7 @@ module GmailDataProvider {
             "short_desc": "Search for messages",
             "desc": "Search for messages in the account",
             "action_code": DPAT_API,
-            "convenience_options": {
+            "options": {
                 "q": <ActionOptionInfo>{
                     "display_name": "Search Criteria",
                     "short_desc": "The gmail search criteria for retrieving the messages",
@@ -79,8 +79,6 @@ module GmailDataProvider {
                     "required": True,
                     "preselected": True,
                 },
-            },
-            "advanced_options": {
                 "maxResults": <ActionOptionInfo>{
                     "display_name": "Max Results",
                     "short_desc": "The maximum number of results to return",
@@ -124,7 +122,7 @@ module GmailDataProvider {
             "short_desc": "Retrieve a message",
             "desc": "Retrieve a message",
             "action_code": DPAT_API,
-            "convenience_options": {
+            "options": {
                 "id": <ActionOptionInfo>{
                     "display_name": "Message ID",
                     "short_desc": "The ID of the message to retrieve",
@@ -148,7 +146,7 @@ module GmailDataProvider {
             "short_desc": "Retrieve an attachment",
             "desc": "Retrieve an attachment",
             "action_code": DPAT_API,
-            "convenience_options": {
+            "options": {
                 "messageId": <ActionOptionInfo>{
                     "display_name": "Message ID",
                     "short_desc": "The ID of the message with the attachment to retrieve",
@@ -187,7 +185,7 @@ module GmailDataProvider {
                 "message body is returned as output data",
             "action_code": DPAT_EVENT,
             "action_val": EVENT_EMAIL_MATCHED,
-            "convenience_options": {
+            "options": {
                 "q": <ActionOptionInfo>{
                     "display_name": "Search Criteria",
                     "short_desc": "The gmail search criteria for matching messages",
@@ -198,8 +196,6 @@ module GmailDataProvider {
                     "required": True,
                     "preselected": True,
                 },
-            },
-            "advanced_options": {
                 "delete_messages": <ActionOptionInfo>{
                     "display_name": "Delete Messages?",
                     "short_desc": "Delete messages matched?",
@@ -240,7 +236,7 @@ module GmailDataProvider {
             "desc": "React to new email attachments",
             "action_code": DPAT_EVENT,
             "action_val": EVENT_ATTACHMENT_MATCHED,
-            "convenience_options": {
+            "options": {
                 "q": <ActionOptionInfo>{
                     "display_name": "Search Criteria",
                     "short_desc": "The gmail search criteria for matching messages",
@@ -251,8 +247,6 @@ module GmailDataProvider {
                     "required": True,
                     "preselected": True,
                 },
-            },
-            "advanced_options": {
                 "attachment_glob": <ActionOptionInfo>{
                     "display_name": "Attachment File Pattern",
                     "short_desc": "An optional filename pattern (glob) for matching attachments",
@@ -302,13 +296,12 @@ module GmailDataProvider {
             "short_desc": "Send a message",
             "desc": "Send a message",
             "action_code": DPAT_API,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 GmailSendMessageRequestDataType::Fields{"to", "subject", "body"}, {
                     "preselected": True,
                     "required": True,
                 }
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 GmailSendMessageRequestDataType::Fields - ("to", "subject", "body")
             ),
             "get_output_type": AbstractDataProviderType sub () {

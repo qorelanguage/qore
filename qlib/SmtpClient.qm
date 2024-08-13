@@ -78,13 +78,12 @@ module SmtpClient {
             "short_desc": "Send an email through a generic SMTP server",
             "desc": "Send an email through a generic SMTP server",
             "action_code": DPAT_API,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 SmtpSendEmailRequestDataType::Fields{"sender", "to", "subject", "body"}, {
                     "preselected": True,
                     "required": True,
                 }
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 SmtpSendEmailRequestDataType::Fields - ("to", "subject", "body")
             ),
             "output_type": SmtpSendEmailResponseDataType,

@@ -69,13 +69,12 @@ module FtpClientDataProvider {
             "desc": "Retrieve a file from an FTP server",
             "action_code": DPAT_API,
             "output_type": FtpClientGetFileResponseDataType,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FtpClientGetFileRequestDataType::Fields{"path", "location"}, {
                     "preselected": True,
                     "required": True,
                 },
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 FtpClientGetFileRequestDataType::Fields - ("path", "location")
             ),
         });
@@ -89,13 +88,12 @@ module FtpClientDataProvider {
             "desc": "Sends a file to an FTP server",
             "action_code": DPAT_API,
             "output_type": FtpClientPathDataType,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FtpClientGetFileRequestDataType::Fields{"path", "location"}, {
                     "preselected": True,
                     "required": True,
                 },
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 FtpClientGetFileRequestDataType::Fields - ("path", "location")
             ),
         });
@@ -109,7 +107,7 @@ module FtpClientDataProvider {
             "desc": "Deletes a file on an FTP server",
             "action_code": DPAT_API,
             "output_type": FtpClientPathDataType,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FtpClientGetFileRequestDataType::Fields{"path",}, {
                     "preselected": True,
                     "required": True,

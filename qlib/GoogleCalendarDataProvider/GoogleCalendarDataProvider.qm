@@ -76,7 +76,7 @@ module GoogleCalendarDataProvider {
             "desc": "Quickly add an event to a calendar from text; ex: 'Lunch at the Burger Bar from 12:30-13:30 "
                 "tomorrow'",
             "action_code": DPAT_API,
-            "convenience_options": {
+            "options": {
                 "text": <ActionOptionInfo>{
                     "display_name": "Event Description",
                     "short_desc": "The text describing the event to be created",
@@ -87,8 +87,6 @@ module GoogleCalendarDataProvider {
                     "required": True,
                     "preselected": True,
                 },
-            },
-            "advanced_options": {
                 "sendUpdates": <ActionOptionInfo>{
                     "display_name": "Send Updates",
                     "short_desc": "Guests who should receive notifications about the event update",

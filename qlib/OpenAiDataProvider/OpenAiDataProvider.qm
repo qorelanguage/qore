@@ -70,13 +70,12 @@ module OpenAiDataProvider {
             "desc": "Chat with an AI model by sending multiple messages at once and potentially getting multiple "
                 "replies",
             "action_code": DPAT_API,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiChatCompletionRequestType.getFields(){"model", "messages"}, {
                     "preselected": True,
                     "required": True,
                 }
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiChatCompletionRequestType.getFields() - ("model", "messages")
             ),
             "output_type": OpenAiChatCompletionDataProvider::ResponseType,
@@ -89,13 +88,12 @@ module OpenAiDataProvider {
             "short_desc": "Chat with an AI model by sending a single message and receiving a single reply",
             "desc": "Chat with an AI model by sending a single message and receiving a single reply",
             "action_code": DPAT_API,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiSimpleChatCompletionRequestType.getFields(){"model", "role", "content"}, {
                     "preselected": True,
                     "required": True,
                 }
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiSimpleChatCompletionRequestType.getFields() - ("model", "role", "content")
             ),
             "output_type": OpenAiChatCompletionDataProvider::ResponseType,
@@ -108,7 +106,7 @@ module OpenAiDataProvider {
             "short_desc": "Upload a file for an assistant, for fine tuning, or for batch processing",
             "desc": "Upload a file for an assistant, for fine tuning, or for batch processing",
             "action_code": DPAT_API,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiFileUploadFromLocationRequestType.getFields(){"purpose", "location"}, {
                     "preselected": True,
                     "required": True,
@@ -142,13 +140,12 @@ module OpenAiDataProvider {
             "short_desc": "Create an assistant",
             "desc": "Create an assistant with a model and instructions",
             "action_code": DPAT_API,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiAssistantCreateRequestType.getFields(){"model",}, {
                     "preselected": True,
                     "required": True,
                 }
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiAssistantCreateRequestType.getFields() - ("model",)
             ),
             "output_type": OpenAiFileUploadFromLocationDataProvider::ResponseType,
@@ -169,7 +166,7 @@ module OpenAiDataProvider {
                     "example_value": "asst_pOVJLN6z0hTsW1UKpALakcLA",
                 },
             },
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiAssistantUpdateRequestType.getFields()
             ),
             "output_type": OpenAiDeleteResponseType,
@@ -200,13 +197,12 @@ module OpenAiDataProvider {
             "short_desc": "Create a thread",
             "desc": "Create a thread with the given messages",
             "action_code": DPAT_API,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiThreadCreateRequestType.getFields(){"messages",}, {
                     "preselected": True,
                     "required": True,
                 }
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiThreadCreateRequestType.getFields() - ("messages",)
             ),
             "output_type": OpenAiFileUploadFromLocationDataProvider::ResponseType,
@@ -219,13 +215,12 @@ module OpenAiDataProvider {
             "short_desc": "Update a thread",
             "desc": "Update a thread",
             "action_code": DPAT_API,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiThreadUpdateRequestType.getFields(){"thread_id",}, {
                     "preselected": True,
                     "required": True,
                 }
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiThreadUpdateRequestType.getFields() - "thread_id"
             ),
             "output_type": OpenAiDeleteResponseType,
@@ -238,7 +233,7 @@ module OpenAiDataProvider {
             "short_desc": "Delete a thread",
             "desc": "Delete a thread",
             "action_code": DPAT_API,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 OpenAiThreadIdRequestType.getFields(){"thread_id",}, {
                     "preselected": True,
                     "required": True,

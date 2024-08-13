@@ -74,7 +74,7 @@ module EmpathicBuildingDataProvider {
             "short_desc": "Post measurements to an EmpathicBuilding instance",
             "desc": "Post measurements to an EmpathicBuilding instance",
             "action_code": DPAT_API,
-            "convenience_options": {
+            "options": {
                 "data": <ActionOptionInfo>{
                     "display_name": "Measurement Data",
                     "short_desc": "Measurement data to post in EmpathicBuilding",
@@ -124,7 +124,7 @@ module EmpathicBuildingDataProvider {
                     "example_value": "3241913",
                 },
             },
-            "convenience_options": {
+            "options": {
                 "poll_interval_ms": <ActionOptionInfo>{
                     "display_name": "Poll Interval",
                     "short_desc": "The poll interval as an integer in milliseconds",

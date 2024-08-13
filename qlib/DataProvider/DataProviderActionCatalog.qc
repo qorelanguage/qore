@@ -253,11 +253,8 @@ public hashdecl DataProviderActionInfo {
     #! Values to add to any "set" argument for record-based actions
     *hash<auto> set_add;
 
-    #! Convenience options that can be provided without a data provider
-    *hash<string, hash<ActionOptionInfo>> convenience_options;
-
-    #! Advanced options that can be provided without a data provider
-    *hash<string, hash<ActionOptionInfo>> advanced_options;
+    #! Options that can be provided without a data provider
+    *hash<string, hash<ActionOptionInfo>> options;
 
     #! Output type for the action
     *AbstractDataProviderType output_type;
@@ -422,22 +419,10 @@ public class DataProviderActionCatalog {
     /** @return 0 for equal, -1 for not equal
     */
     static int compareActions(hash<DataProviderActionInfo> act0, hash<DataProviderActionInfo> act1) {
-        *hash<string, hash<ActionOptionInfo>> co0 = remove act0.convenience_options;
-        *hash<string, hash<ActionOptionInfo>> co1 = remove act1.convenience_options;
+        *hash<string, hash<ActionOptionInfo>> co0 = remove act0.options;
+        *hash<string, hash<ActionOptionInfo>> co1 = remove act1.options;
 
-        *hash<string, hash<ActionOptionInfo>> ao0 = remove act0.advanced_options;
-        *hash<string, hash<ActionOptionInfo>> ao1 = remove act1.advanced_options;
-
-        if (act0 != act1) {
-            return -1;
-        }
-
-        if (DataProviderActionCatalog::compareOptions(co0, co1)
-            || DataProviderActionCatalog::compareOptions(ao0, ao1)) {
-            return -1;
-        }
-
-        return 0;
+        return act0 != act1 || DataProviderActionCatalog::compareOptions(co0, co1) ? -1 : 0;
     }
 
     #! Compares two option hashes for equality
@@ -698,8 +683,7 @@ public class DataProviderActionCatalog {
             DataProviderActionCatalog::resolveOutputTypes();
         }
         hash<auto> constructor_opts;
-        map constructor_opts{$1.key} = remove options{$1.key},
-            (action.convenience_options + action.advanced_options).pairIterator(),
+        map constructor_opts{$1.key} = remove options{$1.key}, action.options.pairIterator(),
             $1.value.loc == "constructor" && options.hasKey($1.key);
         return Class::forName(action.cls).newObject(constructor_opts);
     }

@@ -96,7 +96,7 @@ module WebSocketClient {
             "desc": "Send a WebSocket data message to a WebSocket server; the message is serialized for sending",
             "action_code": DPAT_SEND_MESSAGE,
             "action_val": MESSAGE_WS_COMPLEX_DATA,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 WebSocketComplexDataMessageType::Fields, {
                     "preselected": True,
                     "required": True,
@@ -113,7 +113,7 @@ module WebSocketClient {
             "desc": "Send a raw WebSocket message to a WebSocket server",
             "action_code": DPAT_SEND_MESSAGE,
             "action_val": MESSAGE_WS_COMPLEX_RAW,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 WebSocketComplexRawDataMessageType::Fields, {
                     "preselected": True,
                     "required": True,

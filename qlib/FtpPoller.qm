@@ -71,13 +71,12 @@ module FtpPoller {
             "action_code": DPAT_EVENT,
             "action_val": EVENT_FTP_FILE,
             "output_type": FtpPollerFileEventInfoDataType,
-            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
                 FtpPollerDataProviderBase::ConstructorOptions{"mask",}, {
                     "preselected": True,
                     "required": True,
                 },
-            ),
-            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
                 FtpPollerDataProviderBase::ConstructorOptions - ("mask", "url", "username", "password")
             ),
         });

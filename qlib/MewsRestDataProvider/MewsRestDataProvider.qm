@@ -69,7 +69,7 @@ module MewsRestDataProvider {
             "short_desc": "Retrieve order item information from Mews",
             "desc": "Retrieve order item information from Mews",
             "action_code": DPAT_FIND,
-            "convenience_options": {
+            "options": {
                 "ClosedUtcStart": <ActionOptionInfo>{
                     "display_name": "Closed Date Start",
                     "short_desc": "The earliest date and time of the closed date",
@@ -88,8 +88,6 @@ module MewsRestDataProvider {
                     "loc": "where",
                     "preselected": True,
                 },
-            },
-            "advanced_options": {
                 "CreatedUtcStart": <ActionOptionInfo>{
                     "display_name": "Created Date Start",
                     "short_desc": "The earliest date and time of the updated date",
@@ -253,7 +251,7 @@ module MewsRestDataProvider {
             "short_desc": "Retrieve payment information from Mews",
             "desc": "Retrieve payment information from Mews",
             "action_code": DPAT_FIND,
-            "convenience_options": {
+            "options": {
                 "ClosedUtcStart": <ActionOptionInfo>{
                     "display_name": "Closed Date Start",
                     "short_desc": "The earliest date and time of the closed date",
@@ -272,8 +270,6 @@ module MewsRestDataProvider {
                     "preselected": True,
                     "loc": "where",
                 },
-            },
-            "advanced_options": {
                 "CreatedUtcStart": <ActionOptionInfo>{
                     "display_name": "Created Date Start",
                     "short_desc": "The earliest date and time of the updated date",
@@ -414,7 +410,7 @@ module MewsRestDataProvider {
             "short_desc": "Retrieve customer information from Mews",
             "desc": "Retrieve customer information from Mews",
             "action_code": DPAT_FIND,
-            "convenience_options": {
+            "options": {
                 "CustomerId": <ActionOptionInfo>{
                     "display_name": "Customer ID",
                     "short_desc": "The customer ID(s) to find",
@@ -424,8 +420,6 @@ module MewsRestDataProvider {
                     "preselected": True,
                     "loc": "where",
                 },
-            },
-            "advanced_options": {
                 "ChainId": <ActionOptionInfo>{
                     "display_name": "Chain ID",
                     "short_desc": "Limit the search to the given chain ID(s)",
