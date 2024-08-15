@@ -34,9 +34,7 @@ public class OpenAiDataProviderFactory inherits AbstractDataProviderFactory {
         const FactoryInfo = <DataProviderFactoryInfo>{
             "name": "openai",
             "desc": "OpenAi API data provider factory",
-            "api_management": True,
             "children_can_support_apis": True,
-            "api_profiles": "rest",
         };
     }
 
