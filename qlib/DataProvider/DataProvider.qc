@@ -78,6 +78,10 @@ public class DataProvider {
             "soap": "SoapDataProvider",
 
             "swagger": "SwaggerDataProvider",
+
+            # provided by the ts-toolkit repo
+            "ts-actions": "TypeScriptActionInterface",
+
             "wsclient": "WebSocketClient",
         };
 

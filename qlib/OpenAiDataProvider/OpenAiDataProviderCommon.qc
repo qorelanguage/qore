@@ -126,6 +126,19 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
         LoggerWrapper::setLogger(logger);
     }
 
+    #! Returns information on supported reference data
+    /** @return a hash of supported reference data; keys in the hash returned are supported in calls to
+        @ref getReferenceData()
+
+        @since DataProvider 3.0
+    */
+    *hash<string, bool> getSupportedReferenceData() {
+        return {
+            "models": True,
+            "assistants": True,
+        };
+    }
+
     #! Returns reference data of the given kind if available
     /** @param type the unique type name of the reference data
         @param action_opts an optional hash of action options when called when working with an app action
@@ -139,7 +152,6 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
             case "models": return getReferenceModels();
             case "assistants": return getReferenceAssistants();
         }
-        throw "UNKNOWN-REF-DATA", sprintf("Reference data type %y is unknown", type);
     }
 
     #! Returns available models

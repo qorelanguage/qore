@@ -2338,20 +2338,50 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         return rv;
     }
 
+    #! Returns information on supported reference data
+    /** @return a hash of supported reference data; keys in the hash returned are supported in calls to
+        @ref getReferenceData()
+
+        @since DataProvider 3.0
+    */
+    *hash<string, bool> getSupportedReferenceData() {
+        # intentionally empty
+    }
+
     #! Returns reference data of the given kind if available
     /** @param type the unique type name of the reference data
         @param action_opts an optional hash of action options when called when working with an app action
 
         @return a list of allowed values for this data
 
+        @throw REFERENCE-DATA-ERROR thrown if there is an error retrieving the reference data
+
         @since DataProvider 3.0
     */
     *list<hash<AllowedValueInfo>> getReferenceData(string type, *hash<auto> action_opts) {
-        try {
-            return getReferenceDataImpl(type, action_opts);
-        } catch (hash<ExceptionInfo> ex) {
-            error("REFERENCE-DATA-ERROR", "Failed to retrieve reference data of type %y: %s: %s", type, ex.err,
-                ex.desc);
+        on_error rethrow "REFERENCE-DATA-ERROR", sprintf("Failed to retrieve reference data of type %y: %s: %s",
+            type, $1.err, $1.desc);
+        return getReferenceDataImpl(type, action_opts);
+    }
+
+    #! Returns reference data of the given kind if available
+    /** @param type the unique type name of the reference data
+        @param action_opts an optional hash of action options when called when working with an app action
+
+        @return a list of allowed values for this data
+
+        @throw REFERENCE-DATA-ERROR thrown if there is an error retrieving the reference data
+        @throw UNSUPPORTED-REFERENCE-DATA thrown if \a type is not supported as reference data
+
+        @since DataProvider 3.0
+    */
+    *list<hash<AllowedValueInfo>> getReferenceDataEx(string type, *hash<auto> action_opts) {
+        if (*list<hash<AllowedValueInfo>> rv = getReferenceData(type, action_opts)) {
+            return rv;
+        }
+        if (!(*hash<string, bool> rd = getSupportedReferenceData()){type}) {
+            throw "UNSUPPORTED-REFERENCE-DATA", sprintf("Reference data type %y is unsupported; supported "
+                "reference data types: %y", type, rd);
         }
     }
 
