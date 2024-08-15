@@ -2340,14 +2340,15 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
 
     #! Returns reference data of the given kind if available
     /** @param type the unique type name of the reference data
+        @param action_opts an optional hash of action options when called when working with an app action
 
         @return a list of allowed values for this data
 
         @since DataProvider 3.0
     */
-    *list<hash<AllowedValueInfo>> getReferenceData(string type) {
+    *list<hash<AllowedValueInfo>> getReferenceData(string type, *hash<auto> action_opts) {
         try {
-            return getReferenceDataImpl(type);
+            return getReferenceDataImpl(type, action_opts);
         } catch (hash<ExceptionInfo> ex) {
             error("REFERENCE-DATA-ERROR", "Failed to retrieve reference data of type %y: %s: %s", type, ex.err,
                 ex.desc);
@@ -3628,12 +3629,13 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
 
     #! Returns reference data of the given kind if available
     /** @param type the unique type name of the reference data
+        @param action_opts an optional hash of action options when called when working with an app action
 
         @return a list of allowed values for this data
 
         @since DataProvider 3.0
     */
-    private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type) {
+    private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type, *hash<auto> action_opts) {
         # intentionally empty
     }
 

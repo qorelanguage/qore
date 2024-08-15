@@ -128,12 +128,13 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
 
     #! Returns reference data of the given kind if available
     /** @param type the unique type name of the reference data
+        @param action_opts an optional hash of action options when called when working with an app action
 
         @return a list of allowed values for this data
 
         @since DataProvider 3.0
     */
-    private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type) {
+    private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type, *hash<auto> action_opts) {
         switch (type) {
             case "models": return getReferenceModels();
             case "assistants": return getReferenceAssistants();
