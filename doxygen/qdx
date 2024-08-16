@@ -478,7 +478,8 @@ class qdx {
             tline =~ s/"([^"]*)"/_/g;
             tline =~ s/#.*//;
             # see if we have a function or method declaration that spans multiple lines
-            bool fcall = (tline =~ /\w+\s?(\(|\))/) && tline !~ /;\s*$/ && tline !~ /^\s*_:\s*.*\),\s+$/;
+            bool fcall = (tline =~ /\w+\s?(\(|\))/) && tline !~ /;\s*$/ && tline !~ /^\s*_:\s*.*\),\s+$/
+                && tline !~ /^\s*\)/;
             if (fcall || (!fcall && tline =~ /[{}]/ && tline =~ /[\(\)]/
                 && tline !~ /(namespace|class|struct|public|private|private:internal|private:hierarchy|const) /)) {
                 # copy of line to check it without parens in quotes
