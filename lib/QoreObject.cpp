@@ -41,11 +41,11 @@
 #include "qore/intern/qore_type_safe_ref_helper_priv.h"
 
 qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc, QoreProgram* p, QoreHashNode* n_data) :
-    RObject(n_obj->references, true),
-    theclass(oc), data(n_data), pgm(p), system_object(!p),
-    in_destructor(false),
-    recursive_ref_found(false),
-    obj(n_obj) {
+        RObject(n_obj->references, true),
+        theclass(oc), data(n_data), pgm(p), system_object(!p),
+        in_destructor(false),
+        recursive_ref_found(false),
+        obj(n_obj) {
     //printd(5, "qore_object_private::qore_object_private() this: %p obj: %p '%s'\n", this, obj, oc->getName());
 #ifdef QORE_DEBUG_OBJ_REFS
     printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() this: %p obj: %p pgm: %p class: %s "
@@ -57,12 +57,16 @@ qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc,
         disappear when the program is deleted
     */
     if (p) {
-        printd(5, "qore_object_private::qore_object_private() obj: %p (%s) calling QoreProgram::ref() (%p)\n", obj, theclass->getName(), p);
-        // make a weak reference to the Program - a strong reference (QoreProgram::ref()) could cause a recursive reference
+        printd(5, "qore_object_private::qore_object_private() obj: %p (%s) calling QoreProgram::ref() (%p)\n", obj,
+            theclass->getName(), p);
+        // make a weak reference to the Program - a strong reference (QoreProgram::ref()) could cause a recursive
+        // reference
         p->depRef();
     }
 #ifdef DEBUG
-    n_data->priv->is_obj = true;
+    if (n_data) {
+        n_data->priv->is_obj = true;
+    }
 #endif
     qore_class_private::get(*oc)->ref();
 }
@@ -92,6 +96,29 @@ void qore_object_private::decScanPrivateData() {
     AutoLocker lck(rlck);
     assert(scan_private_data > 0);
     --scan_private_data;
+}
+
+int qore_object_private::copyData(ExceptionSink* xsink, const qore_object_private& old) {
+    // copy public data from source object
+    assert(!data);
+    data = old.copyData(xsink);
+    if (*xsink) {
+        return -1;
+    }
+#ifdef DEBUG
+    data->priv->is_obj = true;
+#endif
+    // issue #3901: perform a shallow copy of internal members when executing a copy method
+    assert(!cdmap);
+    if (old.cdmap) {
+        cdmap = new cdmap_t;
+        for (auto& i : *old.cdmap) {
+            cdmap->insert(cdmap_t::value_type(i.first, i.second->copy()));
+        }
+    }
+    // copy obj_count from old object
+    obj_count = old.obj_count;
+    return 0;
 }
 
 typedef vector_map_t<const qore_class_private*, QoreListNode*> slicekeymap_t;
@@ -1043,16 +1070,20 @@ void QoreObject::externalDelete(qore_classid_t key, ExceptionSink* xsink) {
 }
 
 // issue #2791: make sure that the internal data hash has type hash<auto> so that types can be stripped if necessary
-QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, new QoreHashNode(autoTypeInfo))) {
+QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p) : AbstractQoreNode(NT_OBJECT, false, false, false, true),
+        priv(new qore_object_private(this, oc, p, new QoreHashNode(autoTypeInfo))) {
 }
 
 // issue #2791: make sure that the internal data hash has type hash<auto> so that types can be stripped if necessary
-QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p, AbstractPrivateData* data) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, new QoreHashNode(autoTypeInfo))) {
+QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p, AbstractPrivateData* data)
+        : AbstractQoreNode(NT_OBJECT, false, false, false, true),
+        priv(new qore_object_private(this, oc, p, new QoreHashNode(autoTypeInfo))) {
     assert(data);
     priv->setPrivate(oc->getID(), data);
 }
 
-QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p, QoreHashNode* h) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, h)) {
+QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p, QoreHashNode* h)
+        : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, h)) {
 }
 
 QoreObject::~QoreObject() {

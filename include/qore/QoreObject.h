@@ -649,7 +649,7 @@ public:
     */
     DLLLOCAL void addPrivateDataToString(QoreString* str, ExceptionSink* xsink) const;
 
-    //! destroys all members and dereferences all private data structures
+    //! Destroys all members and dereferences all private data structures
     /**
         @param xsink if an error occurs, the Qore-language exception information will be added here
     */
@@ -700,11 +700,8 @@ private:
     //! the private implementation of the class
     class qore_object_private* priv;
 
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreObject(const QoreObject&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreObject& operator=(const QoreObject&);
+    QoreObject(const QoreObject& old) = delete;
+    QoreObject& operator=(const QoreObject&) = delete;
 };
 
 //! Convenience class for holding temporary / weak references to objects

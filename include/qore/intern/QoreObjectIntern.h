@@ -324,17 +324,10 @@ public:
     // must be called in the object write lock
     DLLLOCAL QoreHashNode* getCreateInternalData(const qore_class_private* class_ctx);
 
-    // issue #3901: perform a shallow copy of private:internal data when executing a copy method
-    DLLLOCAL void copyInternalData(const qore_object_private& old) {
-        assert(!cdmap);
-        if (!old.cdmap) {
-            return;
-        }
-        cdmap = new cdmap_t;
-        for (auto& i : *old.cdmap) {
-            cdmap->insert(cdmap_t::value_type(i.first, i.second->copy()));
-        }
-    }
+    // perform a shallow copy of all object data when executing a copy method
+    /** @return -1 for error, 0 for OK
+    */
+    DLLLOCAL int copyData(ExceptionSink* xsink, const qore_object_private& old);
 
     DLLLOCAL void setValue(const char* key, QoreValue val, ExceptionSink* xsink);
 
@@ -404,8 +397,10 @@ public:
 #endif
         }
 
-        td->clear(xsink, true);
-        td->deref(xsink);
+        if (td) {
+            td->clear(xsink, true);
+            td->deref(xsink);
+        }
 
         if (cdm) {
             for (auto& i : *cdm) {
@@ -587,9 +582,11 @@ public:
 
     DLLLOCAL void incScanCount(int dt) {
         assert(dt);
+#ifdef QORE_DEBUG_OBJ_REFS
+        printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt,
+            obj_count, obj_count + dt);
+#endif
         assert(obj_count || dt > 0);
-        //printd(5, "qore_object_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count
-        //    + dt);
         obj_count += dt;
     }
 

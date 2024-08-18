@@ -3902,6 +3902,14 @@ QoreObject* qore_class_private::execCopy(QoreObject* old, ExceptionSink* xsink) 
         return nullptr;
     }
 
+    ReferenceHolder<QoreObject> self(new QoreObject(cls, old->getProgram(), (QoreHashNode*)nullptr), xsink);
+    qore_object_private* self_priv = qore_object_private::get(**self);
+    qore_object_private* old_priv = qore_object_private::get(*old);
+    if (self_priv->copyData(xsink, *old_priv)) {
+        return nullptr;
+    }
+
+    /*
     QoreHashNode* h = old->copyData(xsink);
     if (*xsink) {
         assert(!h);
@@ -3910,12 +3918,17 @@ QoreObject* qore_class_private::execCopy(QoreObject* old, ExceptionSink* xsink) 
 
     ReferenceHolder<QoreObject> self(new QoreObject(cls, getProgram(), h), xsink);
     // issue #3901: perform a shallow copy of internal members when executing a copy method
-    qore_object_private::get(**self)->copyInternalData(*qore_object_private::get(*old));
+    qore_object_private* self_priv = qore_object_private::get(**self);
+    qore_object_private* old_priv = qore_object_private::get(*old);
+    self_priv->copyInternalData(*old_priv);
+    self_priv->obj_count = old_priv->obj_count;
+    */
 
-    if (copyMethod)
+    if (copyMethod) {
         copyMethod->priv->evalCopy(*self, old, xsink);
-    else if (scl) // execute superclass copy methods
+    } else if (scl) { // execute superclass copy methods
         scl->sml.execCopyMethods(*self, old, xsink);
+    }
 
     return *xsink ? nullptr : self.release();
 }
