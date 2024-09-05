@@ -266,6 +266,14 @@ public class DataProviderTest inherits QUnit::Test {
     actionCatalogTests() {
         # negative tests registering apps
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{});
+        assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
+            "name": "",
+            "short_desc": "",
+            "desc": "",
+            "logo": "",
+            "logo_file_name": "",
+            "logo_mime_type": "",
+        });
 
         # missing description
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
@@ -353,6 +361,14 @@ public class DataProviderTest inherits QUnit::Test {
 
         # negative tests registering actions
         assertThrows("ACTION-ERROR", \DataProviderActionCatalog::registerAction(), <DataProviderActionInfo>{});
+        assertThrows("ACTION-ERROR", \DataProviderActionCatalog::registerAction(), <DataProviderActionInfo>{
+            "app": "",
+            "action": "",
+            "path": "",
+            "display_name": "",
+            "short_desc": "",
+            "desc": "",
+        });
 
         assertEq(my_app, DataProviderActionCatalog::getAllApps()[0]);
 

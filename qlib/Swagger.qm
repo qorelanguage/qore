@@ -4181,7 +4181,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                     auto val = props{k};
                     if (val.typeCode() != NT_HASH)
                         throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'properties' field is not a hash of "
-                            "Schema Objects", name);
+                            "Schema Objects (got type %y; expecting \"hash\": %y)", name, val.fullType(), val);
                     properties{k} = SchemaObject::newSchemaObject(k, val, swagger);
                     if (!properties{k}.nullable && (val."x-nullable" || (opt_flags & LM_OPTIONAL_REF_PROPERTIES))) {
                         nullable_properties{k} = True;

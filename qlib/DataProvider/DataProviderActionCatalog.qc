@@ -267,7 +267,7 @@ public hashdecl DataProviderActionInfo {
 public class DataProviderActionCatalog {
     public {
         #! Required application key set
-        const RequiredAppKeys = (
+        const RequiredAppKeys = {
             "name": True,
             "display_name": True,
             "short_desc": True,
@@ -275,17 +275,17 @@ public class DataProviderActionCatalog {
             "logo": True,
             "logo_file_name": True,
             "logo_mime_type": True,
-        );
+        };
 
         #! Required action key set (without action_code and path_vars, which are checked separately)
-        const RequiredActionKeys = (
+        const RequiredActionKeys = {
             "app": True,
             "action": True,
             "path": True,
             "display_name": True,
             "short_desc": True,
             "desc": True,
-        );
+        };
     }
 
     private {
@@ -322,6 +322,10 @@ public class DataProviderActionCatalog {
             throw "APP-ERROR", sprintf("application is missing the following required keys: %y (app: %y)",
                 keys missing, app);
         }
+        if (*list<string> missing = (map $1.key, app{keys RequiredAppKeys}.pairIterator(), !$1.value.val())) {
+            throw "APP-ERROR", sprintf("application is missing the following required keys: %y (app: %y)",
+                missing, app);
+        }
 
         AutoLock al(lck);
         if (*hash<DataProviderAppInfo> existing_app = appcache{app.name}) {
@@ -350,6 +354,10 @@ public class DataProviderActionCatalog {
         if (*hash<auto> missing = RequiredActionKeys - keys action) {
             throw "ACTION-ERROR", sprintf("action is missing the following required keys: %y (action: %y)",
                 keys missing, action);
+        }
+        if (*list<string> missing = (map $1.key, action{keys RequiredActionKeys}.pairIterator(), !$1.value.val())) {
+            throw "ACTION-ERROR", sprintf("action is missing the following required keys: %y (action: %y)",
+                missing, action);
         }
         if (action.action_code < 1 || action.action_code > DPAT_DELETE) {
             throw "ACTION-ERROR", sprintf("invalid action code %y in action: %y", action.action_code, action);
