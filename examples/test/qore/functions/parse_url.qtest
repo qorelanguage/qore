@@ -12,6 +12,7 @@
 
 public class parseUrlTest inherits QUnit::Test {
     constructor() : Test("parse_url test", "1.0") {
+        addTestCase("case test", \caseTest());
         addTestCase("decode test", \decodeTest());
         addTestCase("slash test", \slashTest());
         addTestCase("Test 1", \test());
@@ -19,6 +20,13 @@ public class parseUrlTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    caseTest() {
+        hash<UrlInfo> h = parse_url("HTTPS://example.com", QURL_MAINTAIN_CASE);
+        assertEq("HTTPS", h.protocol);
+        h = parse_url("HTTPS://example.com");
+        assertEq("https", h.protocol);
     }
 
     decodeTest() {

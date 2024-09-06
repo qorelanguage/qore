@@ -212,6 +212,11 @@ const QURL_DECODE = QURL_DECODE;
 
 //! Decodes all fields like @ref QURL_DECODE plus also performs percent decoding on \c "path" and \c "query" fields
 const QURL_DECODE_PATH = QURL_DECODE_PATH;
+
+//! Do not convert the protocol (scheme) to lower case when parsing URLs
+/** @since %Qore 2.0
+*/
+const QURL_MAINTAIN_CASE = QURL_MAINTAIN_CASE;
 ///@}
 
 //! a hash describing a parsed URL

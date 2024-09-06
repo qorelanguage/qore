@@ -38,6 +38,7 @@
 #define QURL_KEEP_BRACKETS (1 << 0)
 #define QURL_DECODE        (1 << 1)
 #define QURL_DECODE_PATH   (1 << 2)
+#define QURL_MAINTAIN_CASE (1 << 3)
 #define QURL_DECODE_ANY    (QURL_DECODE | QURL_DECODE_PATH)
 
 //! helps with parsing URLs and provides access to URL components through Qore data structures

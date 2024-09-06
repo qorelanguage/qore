@@ -142,17 +142,27 @@ private:
         // that remains to be processed
         std::string sbuf(buf);
 
+        QoreString* protocol_lwr = nullptr;
+        QoreString tmp;
+
         // look for the scheme, move 'pos' after the scheme (protocol) specification
         size_t protocol_separator = sbuf.find("://");
         if (protocol_separator != std::string::npos) {
             protocol = new QoreStringNode(sbuf.c_str(), protocol_separator);
-            // convert to lower case
-            protocol->tolwr();
+            if (!(options & QURL_MAINTAIN_CASE)) {
+                // convert to lower case
+                protocol->tolwr();
+                protocol_lwr = protocol;
+            } else {
+                tmp.set(*protocol);
+                tmp.tolwr();
+                protocol_lwr = &tmp;
+            }
             //printd(5, "QoreURL::parse_intern protocol: %s\n", protocol->c_str());
             sbuf = sbuf.substr(protocol_separator + 3);
 
             // check for special cases with Windows paths
-            if (*protocol == "file") {
+            if (*protocol_lwr == "file") {
                 // Windows paths should also be parsed like: file:///c:/dir...
                 // https://blogs.msdn.microsoft.com/ie/2006/12/06/file-uris-in-windows/
                 // https://en.wikipedia.org/wiki/File_URI_scheme#Windows
@@ -169,7 +179,7 @@ private:
         }
 
         // if there is no scheme or the scheme is file://, see if the rest of the URL is a Windows UNC path
-        if ((!protocol || *protocol == "file")
+        if ((!protocol_lwr || *protocol_lwr == "file")
             && (sbuf.size() >= 2
             && ((isalpha(sbuf[0]) && sbuf[1] == ':' && !isdigit(sbuf[2]))
                 || (sbuf[0] == '\\' && sbuf[1] == '\\')
