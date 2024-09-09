@@ -4126,6 +4126,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                         nullable_properties{k} = True;
                     }
                 }
+            } else {
+                additionalProperties = True;
             }
         }
 
@@ -4288,9 +4290,10 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method,
             string name, nothing v, reference<nothing> value) {
-        if (type != "null" && type != "any" && !nullable)
+        if (type != "null" && type != "any" && !nullable) {
             throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is null, but the "
                 "expected type is %y", name, path, method, type);
+        }
     }
 
     #! validates a schema object against a value
@@ -4321,7 +4324,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                         throw "SCHEMA-VALIDATION-ERROR", sprintf("property %y is not valid for object %y", key, name);
                     }
                 }
-                if (exists value{key} || !nullable_properties{key}) {
+                if (exists value{key} || (required{key} && !nullable_properties{key})) {
                     nv{key} += value{key};
                     prop.check(serialize, request, path, method, key, \nv{key});
                 }
