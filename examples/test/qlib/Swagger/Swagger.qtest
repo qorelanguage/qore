@@ -2797,7 +2797,7 @@ public class SwaggerTest inherits QUnit::Test {
 
         qex = so.getQoreExampleResponse("get", "/pet/{pet}", 200);
         assertEq(True, qex.example =~ /makeResponse.200/);
-        res =  so.getExampleResponse("GET", "/pet/{pet}", 200);
+        res = so.getExampleResponse("GET", "/pet/{pet}", 200);
         assertEq(200, res.code);
         assertEq(MimeTypeJson, res.hdr."Content-Type");
         assertEq(True, res.body =~ /id/);

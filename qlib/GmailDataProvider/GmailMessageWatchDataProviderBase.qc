@@ -309,7 +309,7 @@ public class GmailMessageWatchDataProviderBase inherits GoogleDataProvider::Goog
                         body."data" = body."data".toString();
                     }
                 } else {
-                    if (hdr."Content-Transfer-Encoding".val()) {
+                    if (hdr."Content-Transfer-Encoding".val() && body."data".val()) {
                         try {
                             body."data" = text
                                 ? parse_base64_string_to_string(body."data")

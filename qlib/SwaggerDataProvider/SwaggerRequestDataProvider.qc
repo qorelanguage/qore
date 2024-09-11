@@ -277,6 +277,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         RestClient rest = getRestClient();
         # make URI path with any query args
         string uri_path = getUriPath();
+        map uri_path = replace(uri_path, "{" + $1.key + "}", $1.value.toString()), options.path_vars.pairIterator();
         if (req.query) {
             uri_path += "?" +
                 (foldl $1 + "&" + $2,
@@ -367,6 +368,13 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
                     "type": AbstractDataProviderTypeMap."hash",
                     "required": False,
                     "desc": "HTTP headers to send in each request",
+                },
+                "path_vars": hash<DataProviderOptionInfo>{
+                    "display_name": "URI Path Variables",
+                    "short_desc": "URI path variables for generic paths",
+                    "type": AbstractDataProviderTypeMap."hash",
+                    "required": False,
+                    "desc": "URI path variables for generic paths",
                 },
             },
             "search_options": {
