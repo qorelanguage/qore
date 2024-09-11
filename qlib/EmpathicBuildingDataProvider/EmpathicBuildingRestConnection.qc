@@ -57,7 +57,7 @@ public class EmpathicBuildingRestClient inherits RestClient::RestClient {
     }
 
     #! Sets up authentication info
-    private setupAuth(hash<auto> opts) {
+    private setupAuth(hash<auto> opts, *bool do_not_connect) {
         # set any token
         if (opts.token) {
             setToken(opts.token_type ?? "Bearer", opts.token, opts.refresh_token);

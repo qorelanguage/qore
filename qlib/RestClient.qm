@@ -722,7 +722,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         noCharset = opts.no_charset;
 
         # setup authentication
-        setupAuth(opts);
+        setupAuth(opts, do_not_connect);
 
         if (!do_not_connect) {
             checkLogin();
@@ -1600,7 +1600,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     #! Sets up authentication info
     /** @since %RestClient 2.0
     */
-    private setupAuth(hash<auto> opts) {
+    private setupAuth(hash<auto> opts, *bool do_not_connect) {
         # set any token
         if (opts.token) {
             setToken(opts.token_type ?? "Bearer", opts.token, opts.oauth2_refresh_token);
@@ -1620,7 +1620,9 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         }
 
         # check any OAuth2 options
-        checkOAuth2Options(opts);
+        if (!do_not_connect) {
+            checkOAuth2Options(opts);
+        }
     }
 
     #! Validates and sets any OAuth2 options
