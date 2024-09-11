@@ -34,7 +34,6 @@ public class SwaggerDataProviderCommon inherits DataProvider::AbstractDataProvid
         *RestClient::RestClient rest;
     }
 
-
     #! Creates the object
     constructor() {
     }
@@ -55,6 +54,16 @@ public class SwaggerDataProviderCommon inherits DataProvider::AbstractDataProvid
     #! Returns the Swagger schema
     SwaggerSchema getSchema() {
         return schema;
+    }
+
+    #! Returns the RestClient
+    *RestClient::RestClient tryGetRestClient() {
+        return rest;
+    }
+
+    #! Sets the RestClient
+    setRestClient(RestClient::RestClient rest) {
+        self.rest = rest;
     }
 }
 }
