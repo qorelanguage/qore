@@ -109,8 +109,10 @@ class QdpCmd {
             "rsearch": \QdpCmd::doRequestSearch(),
             "search": \QdpCmd::search(),
             "send-message": \QdpCmd::sendMessage(),
+            "show-providers": \QdpCmd::showProviders(),
             "smessage": \QdpCmd::sendMessage(),
             "smsg": \QdpCmd::sendMessage(),
+            "sp": \QdpCmd::showProviders(),
             "update": \QdpCmd::update(),
             "upsert": \QdpCmd::upsert(),
         };
@@ -659,6 +661,47 @@ class QdpCmd {
         provider.sendMessage(message_id, val, send_options);
     }
 
+    static showProviders(AbstractDataProvider provider) {
+        QdpCmd::showProviders("/", provider);
+    }
+
+    static showProviders(string path, AbstractDataProvider provider) {
+        hash<DataProviderInfo> info = provider.getInfo();
+        string type;
+        if (info.supports_request) {
+            type += "A";
+        } else {
+            type += "-";
+        }
+        if (info.supports_observable) {
+            type += "E";
+        } else {
+            type += "-";
+        }
+        if (info.supports_messages != MSG_None) {
+            type += "M";
+        } else {
+            type += "-";
+        }
+        if (info.has_record && (info.supports_read || info.supports_create || info.supports_update
+            || info.supports_upsert)) {
+            type += "R";
+        } else {
+            type += "-";
+        }
+        if (type != "----") {
+            string desc = sprintf("(%s) %s", type, path);
+            if (opts.verbose) {
+                desc += sprintf(": %s", provider.getShortDesc());
+            }
+            printf("- %s\n", desc);
+        }
+        if (path !~ /\/$/) {
+            path += "/";
+        }
+        map QdpCmd::showProviders(path + $1, provider.getChildProviderEx($1)), provider.getChildProviderNames();
+    }
+
     static update(AbstractDataProvider provider) {
         hash<auto> set = QdpCmd::getHash("update 'set'", True);
         *hash<auto> where_cond = QdpCmd::getSearchExpression("update 'where'", True);
@@ -1058,6 +1101,8 @@ class QdpCmd {
         search for record(s) matching the given criteria
     send-message|send-msg|smsg <message id> [<message payload>] [<send options>]
         sends a message
+    show-providers|sp
+        shows data provider endpoints from the given root
     update <set criteria> <match criteria> (ex update name=other id=123)
         update the given records with the given information
     upsert <record> (ex update id=123,name=\"my name\")

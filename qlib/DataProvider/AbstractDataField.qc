@@ -304,12 +304,32 @@ public class AbstractDataField inherits Qore::Serializable {
         }
         # convert backquotes to single quotes
         desc =~ s/`/'/g;
+
+        # get single-quoted strings
+        *list<string> sq = (desc =~ x/'([^\'\n]*)'/g);
+        # replace them with markers
+        if (sq) {
+            map desc = replace(desc, $1, "{{" + $# + "}}"), sq;
+        }
+        # get double-quoted strings
+        *list<string> dq = (desc =~ x/"([^\"\n]*)"/g);
+        # replace them with markers
+        if (dq) {
+            map desc = replace(desc, $1, "{{" + $# + "}}"), dq;
+        }
+
         # end after the first sentence or newline, if any
         desc =~ s/[\.;\n].*//s;
         trim desc;
+
+        # re-add quotes to what's left
+        map desc = replace(desc, "{{" + $# + "}}", $1), sq;
+        map desc = replace(desc, "{{" + $# + "}}", $1), dq;
+
         if (maxlen > 0) {
             splice desc, maxlen;
         }
+
         return desc;
     }
 

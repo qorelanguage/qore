@@ -3583,8 +3583,8 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
             type = "array";
         }
         if (type == "array") {
-            if (oh.items) {
-                items = ParameterItemsSchemaObject::newSchemaObject("items", oh.items, swagger);
+            if (exists oh.items) {
+                items = ParameterItemsSchemaObject::newSchemaObject("items", oh.items ?? {"type": "object"}, swagger);
             }
             if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
                 if (!ParameterCollectionFormats{collectionFormat})
@@ -3902,7 +3902,10 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
             throw "INVALID-FIELD-VALUE", "Header Object: invalid header type value passed: " + type;
 
         if (type == "array") {
-            items = SchemaObject::newSchemaObject("items", oh.items, swagger);
+            if (!exists oh.items) {
+                throw "INVALID-FIELD-VALUE", "Header Object: missing 'items' for array";
+            }
+            items = SchemaObject::newSchemaObject("items", oh.items ?? {"type": "object"}, swagger);
             if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
                 if (!CollectionFormats{collectionFormat})
                     throw "INVALID-FIELD-VALUE",
@@ -4137,8 +4140,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             if (!ReferenceTypes{type})
                 throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid schema type value passed: %y; "
                     "expected one of: %y", name, type, keys ReferenceTypes);
-            if (type == "array" && (require_items || oh.items)) {
-                items = newSchemaObject("items", oh.items, swagger);
+            if (type == "array" && (require_items || exists oh.items)) {
+                items = newSchemaObject("items", oh.items ?? {"type": "object"}, swagger);
             }
 
             if (oh.hasKey("default")) {
