@@ -1600,7 +1600,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     #! Sets up authentication info
     /** @since %RestClient 2.0
     */
-    private setupAuth(hash<auto> opts, *bool do_not_connect) {
+    private setupAuth(hash<auto> opts, *bool no_exceptions) {
         # set any token
         if (opts.token) {
             setToken(opts.token_type ?? "Bearer", opts.token, opts.oauth2_refresh_token);
@@ -1620,15 +1620,21 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         }
 
         # check any OAuth2 options
-        if (!do_not_connect) {
+        try {
             checkOAuth2Options(opts);
+        } catch (hash<ExceptionInfo> ex) {
+            if (no_exceptions) {
+                error("Error setting up OAuth2 options: %s: %s", ex.err, ex.desc);
+                return;
+            }
+            rethrow;
         }
     }
 
     #! Validates and sets any OAuth2 options
     /** @since %RestClient 2.0
     */
-    private checkOAuth2Options(hash<auto> opts) {
+    private checkOAuth2Options(hash<auto> opts, *bool no_exceptions) {
         *string grant_type = opts.oauth2_grant_type;
         if (!exists grant_type || grant_type == "none") {
             return;
