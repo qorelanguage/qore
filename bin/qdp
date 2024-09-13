@@ -608,6 +608,11 @@ class QdpCmd {
                     }
                     l = prov.getReferenceData(ref_data);
                     info += sprintf("allowed_values: %y", (map $1.value ?? $1, l));
+                } else if (!offset.val() && prov.getSupportedReferenceData(){i.key} && (l = prov.getReferenceDataEx(i.key))) {
+                    if (info) {
+                        info += " ";
+                    }
+                    info += sprintf("allowed_values: %y", (map $1.value ?? $1, l));
                 }
                 if (info) {
                     txt += " (" + info + ")";
