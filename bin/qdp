@@ -880,9 +880,24 @@ class QdpCmd {
         DataProvider::registerKnownFactories();
         *hash<string, hash<DataProviderActionInfo>> actions = DataProviderActionCatalog::getActionHash(app);
         if (!actions) {
-            error("Application %y is unknown; known applications: %y", app, (map $1.name, DataProviderActionCatalog::getAllApps()));
+            error("Application %y is unknown; known applications: %y", app, (map $1.name,
+                DataProviderActionCatalog::getAllApps()));
         }
-        printf("Application %y provides the following actions: %y\n", app, keys actions);
+        printf("Application %y:\n", app);
+        printf("- actions: %y\n", keys actions);
+        if (opts.verbose) {
+            hash<DataProviderAppInfo> info = DataProviderActionCatalog::getAppEx(app);
+            if (info.scheme) {
+                hash<ConnectionSchemeInfo> sinfo = ConnectionSchemeCache::getSchemeEx(info.scheme);
+                printf("- schemes: %y\n", keys sinfo.schemes);
+                *hash<auto> opts = map {$1.key: $1.value.default_value}, sinfo.options.pairIterator(),
+                    exists $1.value.default_value;
+                if (opts) {
+                    printf("- connection options:\n");
+                    map printf("  - %s: %y\n", $1.key, $1.value), opts.pairIterator();
+                }
+            }
+        }
         exit(0);
     }
 
@@ -894,7 +909,8 @@ class QdpCmd {
         }
         *hash<DataProviderActionInfo> action = actions{action_name};
         if (!action) {
-            error("Application %y does not provide action %y; available actions: %y", app_name, action_name, keys actions);
+            error("Application %y does not provide action %y; available actions: %y", app_name, action_name,
+                keys actions);
         }
         *hash<auto> options;
         if (opts) {
