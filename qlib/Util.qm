@@ -200,6 +200,18 @@ namespace Init {
 
 #! the Util namespace contains all the objects in the Util module
 public namespace Util {
+#! Message information for display to the user
+public hashdecl MessageInfo {
+    #! The title of the message
+    string title;
+
+    #! The intent of the message
+    string intent;
+
+    #! The message content itself
+    string content;
+}
+
 #! Allowed value hash
 public hashdecl AllowedValueInfo {
     #! A display name for the allowed value
@@ -208,11 +220,23 @@ public hashdecl AllowedValueInfo {
     #! A short description in plain text for the value
     *string short_desc;
 
-    #! The value
+    #! The value itself
     auto value;
 
     #! Description for the value
     string desc;
+
+    #! Any UI intent associated with the value
+    *string intent;
+
+    #! If the value is disabled
+    *bool disabled;
+
+    #! Any additional data about the value
+    *hash<auto> metadata;
+
+    #! Messages related to the value
+    *list<hash<MessageInfo>> messages;
 }
 
 #! the return value of the @ref Util::parse_uri_query() "parse_uri_query()" function
