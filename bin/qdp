@@ -589,9 +589,6 @@ class QdpCmd {
         } else {
             info += sprintf("allowed_values: %y", (map $1.value ?? $1, l));
         }
-        info += opts.verbose && l[0].typeCode() == NT_HASH
-            ? sprintf("allowed_values: %y", (map sprintf("%s (%s)", $1.display_name, $1.value), l))
-            : sprintf("allowed_values: %y", (map $1.value ?? $1, l));
     }
 
     static showRecord(AbstractDataProvider prov, hash<auto> rmap, *hash<string, AbstractDataField> rec,
