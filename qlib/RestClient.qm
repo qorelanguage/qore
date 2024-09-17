@@ -525,6 +525,8 @@ public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper, Connec
         string refresh_token;
         #! If OAuth2 tokens should be automatically refreshed
         bool oauth2_auto_refresh = True;
+        #! If HTTP basic authentication should be used with the client_id and client_secret when making token requests
+        bool oauth2_token_use_basic_auth = False;
         #! If PKCE should be used with the OAuth2 authorization_code flow
         /** To be used by external programs handling OAuth2 calls for this client
         */
@@ -574,8 +576,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
         - \c oauth2_alt_token_url: Alternate token URL; if this is set then the token request is made to this URL
           with the \c oauth2_token_url value as an argument in the request
-        - \c oauth2_auto_refresh: If OAuth2 tokens should be automatically refreshed
-          (default \c True)
+        - \c oauth2_auto_refresh: If OAuth2 tokens should be automatically refreshed (default \c True)
         - \c oauth2_auth_args: Extra arguments for OAuth2 authentication requests to \c oauth2_auth_url for the
           \c authentication_code grant type.  Note that the \c authorization_code grant type requires external user
           authorization to acquire an access token
@@ -603,6 +604,8 @@ RestClient rest({"url": "http://localhost:8001/rest"});
           set as well as \c oauth2_alt_token_url, then the \c oauth2_token_url value will be added to this as well
           when the request is made to the \c oauth2_alt_token_url
         - \c oauth2_token_url: The token URL OAuth2 flows; ignored if the \c token option is set
+        - \c oauth2_token_use_basic_auth: Use HTTP basic authentication with the client_id and client_secret when
+          making OAuth2 token requests
         - \c password: The password for authentication; only used if no username or password is set in the URL and if
           the \c username option is also used
         - \c proxy: The proxy URL for connecting through a proxy
@@ -698,7 +701,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         if (exists opts.oauth2_refresh_token) {
             refresh_token = opts.oauth2_refresh_token;
         }
-        if (exists opts.oauth2_auto_refresh) {
+        if (exists opts.oauth2_auto_refresh.val()) {
             oauth2_auto_refresh = parse_boolean(opts.oauth2_auto_refresh);
         }
         if (opts.oauth2_auth_args) {
@@ -709,6 +712,9 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         }
         if (opts.oauth2_token_args) {
             oauth2_token_args = getHash(opts, "oauth2_token_args", True);
+        }
+        if (opts.oauth2_token_use_basic_auth.val()) {
+            oauth2_token_use_basic_auth = parse_boolean(opts.oauth2_token_use_basic_auth);
         }
         if (opts.oauth2_scopes) {
             oauth2_scopes = opts.oauth2_scopes;
@@ -772,6 +778,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
             "oauth2_scopes": oauth2_scopes,
             "oauth2_token_args": oauth2_token_args,
             "oauth2_token_url": oauth2_token_url,
+            "oauth2_token_use_basic_auth": oauth2_token_use_basic_auth,
         };
     }
 
@@ -1680,13 +1687,21 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     /** @since %RestClient 2.0
     */
     private AbstractPollOperation startOAuth2AuthPoll(hash<auto> login) {
-        string request_body = mime_get_form_urlencoded_string(login);
-        # do not send a basic auth header in the request
+        # do not send a basic auth header with the username and password in the request
         clearUserPassword();
+        bool set_token_auth;
+        if (oauth2_token_use_basic_auth && oauth2_client_id.val() && oauth2_client_secret.val()) {
+            setUserPassword(oauth2_client_id, oauth2_client_secret);
+            set_token_auth = True;
+            login -= ("client_id", "client_secret");
+        }
         # restore the username and password on exit
         on_exit if (username && self.password) {
             setUserPassword(username, self.password);
+        } else if (set_token_auth) {
+            clearUserPassword();
         }
+        string request_body = mime_get_form_urlencoded_string(login);
         return startPollSendRecv("POST", oauth2_alt_token_url ?? oauth2_token_url, request_body, {
             "Content-Type": MimeTypeFormUrlEncoded,
             "Accept": MimeTypeJson + "," + MimeTypeFormUrlEncoded,
@@ -2259,6 +2274,14 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                         "`oauth2_alt_token_url`, then the `oauth2_token_url` value will be added to this as well "
                         "when the request is made to the `oauth2_alt_token_url`",
                 },
+                "oauth2_token_use_basic_auth": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Token Use Basic Auth",
+                    "short_desc": "Use basic authorization with the client ID and client secret when making token "
+                        "requests",
+                    "type": "bool",
+                    "desc": "Use basic authorization with the client ID and client secret when making token "
+                        "requests",
+                },
                 "oauth2_token_url": <ConnectionOptionInfo>{
                     "display_name": "OAuth2 Token URL",
                     "short_desc": "The token URL for OAuth2 flows",
@@ -2414,6 +2437,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
             "oauth2_scopes",
             "oauth2_token_args",
             "oauth2_token_url",
+            "oauth2_token_use_basic_auth",
             "password",
             "username",
         );
