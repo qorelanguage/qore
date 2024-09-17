@@ -2930,6 +2930,10 @@ public class OperationObject inherits ObjectBase {
         }
 
         # get content type
+        if (!consumes) {
+            throw "SERIALIZATION-ERROR", sprintf("%s %s: API supports no serialization types but a \"body\" "
+                "parameter is present", method.upr(), path);
+        }
         string ct = consumes.firstKey();
 
         if (ct == MimeTypeMultipartFormData) {
