@@ -251,6 +251,7 @@ public class DataProviderTest inherits QUnit::Test {
     constructor() : Test("DataProvider Test", "1.0") {
         DataProviderTypeEntry::setEpheremalIdStart(-1);
 
+        addTestCase("dep fields", \depFieldTest());
         addTestCase("app/action catalog tests", \actionCatalogTests());
         addTestCase("string test", \stringTest());
         addTestCase("data test", \dataTest());

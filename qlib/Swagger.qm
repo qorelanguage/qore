@@ -151,6 +151,8 @@ RestHandler handler(NOTHING, swagger);
     @section swagger_relnotes Swagger Module Release Notes
 
     @subsection swagger_2_2_2 Swagger v2.2.2
+    - fixed handling type declarations with unknown format values
+      (<a href="https://github.com/qorelanguage/qore/issues/4907">issue 4907</a>)
     - fixed validating Swagger schemas with objects that declare no properties
       (<a href="https://github.com/qorelanguage/qore/issues/4906">issue 4906</a>)
 
@@ -309,11 +311,11 @@ public const LM_ALL = (
 #/@}
 
 #! Valid integer type formats
-public const ValidIntFormats = ("int32", "int64");
+public const ValidIntFormats = ("int32", "int64", "unix-time");
 #! Valid number type formats
 public const ValidNumberFormats = ("double", "float");
 #! Valid string type formats
-public const ValidStringFormats = ("binary", "byte", "date", "date-time", "password");
+public const ValidStringFormats = ("binary", "byte", "date", "password", "unix-time");
 
 #! allowed collection formats
 public const CollectionFormats = (
@@ -502,7 +504,15 @@ class SchemaBase {
         if (enum) {
             auto rv = enum.firstKey();
             switch (type) {
-                case "integer": rv = rv.toInt(); break;
+                case "integer": {
+                    rv = rv.toInt();
+                    switch (format) {
+                        case "unix-time":
+                            rv = localtime(rv);
+                            break;
+                    }
+                    break;
+                }
                 case "number": rv = (format && ValidNumberFormatsHash{format} ? rv.toFloat() : rv.toNumber()); break;
                 case "boolean": rv = rv.toBool(); break;
                 case "string": {
@@ -510,7 +520,6 @@ class SchemaBase {
                         case "byte": return parse_base64_string(rv);
                         case "date":
                         case "date-time":
-                            return date(rv);
                         default:
                             break;
                     }
@@ -531,6 +540,9 @@ class SchemaBase {
                 }
             }
             case "integer": {
+                switch (format) {
+                    case "unix-time": return 1726733382;
+                }
                 if (exists minimum)
                     return exclusiveMin ? minimum + 1 : minimum;
                 if (exists maximum)
@@ -618,6 +630,15 @@ class SchemaBase {
         }
         if (type != "integer" && type != "any")
             throwInvalidType(name, "integer", type, v);
+
+        if (!serialize) {
+            switch (format) {
+                case "unix-time":
+                    value = localtime(v);
+                    break;
+            }
+        }
+
         if (exists maximum) {
             if (exclusiveMax) {
                 if (value >= maximum)
@@ -795,30 +816,34 @@ class SchemaBase {
         }
     }
 
-    #! converts strings to/from date/time values for supported formats
+    #! converts dates to/from string or int values for supported formats
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method,
-            string name, date v, reference value) {
-        if (type != "string" && type != "any")
+            string name, date v, reference<auto> value) {
+        if (type != "string" && type != "any" && (type != "integer" || format != "unix-time"))
             throwInvalidType(name, "string", type, v);
 
         if (serialize) {
-            switch (format) {
-                case "date":
-                    # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
-                    value = v.format("YYYY-MM-DD");
-                    break;
-                case "date-time":
-                    # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
-                    if (v.milliseconds() != 0)
-                        value = v.format("YYYY-MM-DDTHH:mm:SS.yZ");
-                    else
-                        value = v.format("YYYY-MM-DDTHH:mm:SSZ");
-                    break;
-                default:
-                    throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot serialize a date/time "
-                        "value to a string value with format %y", method.upr(), path, name, format);
+            if (type == "integer" && format == "unix-time") {
+                value = v.getEpochSeconds();
+            } else {
+                switch (format) {
+                    case "date":
+                        # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
+                        value = v.format("YYYY-MM-DD");
+                        break;
+                    case "date-time":
+                        # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
+                        if (v.milliseconds() != 0)
+                            value = v.format("YYYY-MM-DDTHH:mm:SS.yZ");
+                        else
+                            value = v.format("YYYY-MM-DDTHH:mm:SSZ");
+                        break;
+                    default:
+                        throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot serialize a date/time "
+                            "value to a string value with format %y", method.upr(), path, name, format);
+                }
+                checkStringIntern(path, method, name, value);
             }
-            checkStringIntern(path, method, name, value);
         }
     }
 
@@ -3607,12 +3632,11 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
         }
 
         if (optional_field(objType, oh, "format", NT_STRING, \format)) {
-            if (type == "integer" && !ValidIntFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid integer type format value passed: "
-                    "%y", name, format);
-            else if (type == "number" && !ValidNumberFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid number type format value passed: "
-                    "%y", name, format);
+            # unrecognized format values should be ignored
+            if (!format.val()) {
+                throw "INVALID-FIELD-VALUE", sprintf("Parameter Object: invalid %y type empty \"format\" value "
+                    "passed", type);
+            }
         }
 
         optional_field(objType, oh, "allowEmptyValue", NT_BOOLEAN, \allowEmptyValue);
@@ -3633,6 +3657,11 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                         throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type "
                             "\"integer\" is invalid; value provided: %y", name, path, method, value);
                     value = value.toInt();
+                    switch (format) {
+                        case "unix-time":
+                            value = localtime(value);
+                            break;
+                    }
                     break;
                 case "number":
                     value = value.toNumber();
@@ -3921,10 +3950,11 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
                 "\"collectionFormat\" property (%y)", type, oh.collectionFormat);
 
         if (optional_field(objType, oh, "format", NT_STRING, \format)) {
-            if (type == "integer" && !ValidIntFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", "Header Object: invalid integer type format value passed: " + format;
-            else if (type == "number" && !ValidNumberFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", "Header Object: invalid number type format value passed: " + format;
+            # unrecognized format values should be ignored
+            if (!format.val()) {
+                throw "INVALID-FIELD-VALUE", sprintf("Header Object: invalid %y type empty \"format\" value passed",
+                    type);
+            }
         }
 
         optional_field(objType, oh, "description", (NT_STRING: True, NT_NOTHING: True), \desc);
@@ -4162,12 +4192,11 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         optional_field(objType, oh, "x-nullable", NT_BOOLEAN, \nullable);
 
         if (optional_field(objType, oh, "format", NT_STRING, \format)) {
-            if (type == "integer" && !ValidIntFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid integer type format value passed: %y",
-                    name, format);
-            else if (type == "number" && !ValidNumberFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid number type format value passed: %y",
-                    name, format);
+            # unrecognized format values should be ignored
+            if (!format.val()) {
+                throw "INVALID-FIELD-VALUE", sprintf("Schema Object: invalid %y type empty \"format\" value passed",
+                    type);
+            }
         }
 
         optional_field(objType, oh, "title", NT_STRING, \title);
@@ -4898,7 +4927,13 @@ namespace Priv {
     string sub get_qore_type(string name, string type, *string format, *SchemaObject items) {
         switch (type) {
             case "array": return sprintf("list<%s>", get_qore_type(items.name, items.type, items.format, items.items));
-            case "integer": return "int";
+            case "integer": {
+                switch (format) {
+                    case "unix-time":
+                        return "date";
+                }
+                return "int";
+            }
             case "boolean": return "bool";
             case "number": return format && ValidNumberFormatsHash{format} ? "float" : "number";
             case "string": {

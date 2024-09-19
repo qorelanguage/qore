@@ -657,6 +657,10 @@ public class SwaggerTest inherits QUnit::Test {
                         "b": (
                             "type": "integer",
                         ),
+                        "c": {
+                            "type": "integer",
+                            "format": "unix-time",
+                        },
                     ),
                 ),
                 "nobj": {
@@ -702,19 +706,20 @@ public class SwaggerTest inherits QUnit::Test {
 
                 assertThrows("SCHEMA-VALIDATION-ERROR", \so.processResponse(), ("get", "/test", 200, "OK", NOTHING, MimeTypeJson));
 
-                hash body = (
+                hash<auto> body = (
                     "a": "hi",
                     "b": 2,
+                    "c": 2024-09-19T10:09:42,
                 );
                 hash<HttpResponseInfo> res = so.processResponse("get", "/test", 200, body, NOTHING, MimeTypeJson);
                 assertEq(200, res.code);
                 assertEq(MimeTypeJson, res.hdr."Content-Type");
                 assertEq(Type::String, res.body.type());
 %ifndef NoJson
-                assertEq(body, parse_json(res.body));
+                assertEq(body + {"c": body.c.getEpochSeconds()}, parse_json(res.body));
 %endif
 
-                hash<RestResponseClientInfo> cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                hash<RestResponseClientInfo> cres = so.parseResponse("get", "/test", res."code", res.body, res.hdr);
                 assertEq(200, cres.code);
                 assertEq(MimeTypeJson, cres.hdr."Content-Type");
                 assertEq(body, cres.body);
@@ -857,6 +862,14 @@ public class SwaggerTest inherits QUnit::Test {
                                     "type": "number",
                                     "format": "float",
                                 },
+                                {
+                                    "name": "dt",
+                                    "in": "query",
+                                    "description": "desc",
+                                    "required": False,
+                                    "type": "integer",
+                                    "format": "unix-time",
+                                },
                             ),
                             "responses": (
                                 "200": (
@@ -884,15 +897,17 @@ public class SwaggerTest inherits QUnit::Test {
 
             {
                 SwaggerSchema so("", soh);
-                string uri_path = "/test?float=1.1";
+                string uri_path = "/test?float=1.1&dt=1726733382";
                 hash<auto> hdr = {"Test-Header": "Test"};
                 hash<RestRequestServerInfo> req = so.parseRequest("GET", uri_path, NOTHING, \hdr);
-                assertEq(Type::Float, req.query.float.type());
+                assertEq(Type::Float, req.query."float".type());
+                assertEq(2024-09-19T10:09:42, req.query.dt);
             }
 
             {
                 soh.paths."/test".get.parameters[0].format = "xxx";
-                assertThrows("INVALID-FIELD-VALUE", sub () { SwaggerSchema so("", soh); });
+                SwaggerSchema so("", soh);
+                assertTrue(True);
             }
         }
 
@@ -1258,6 +1273,8 @@ public class SwaggerTest inherits QUnit::Test {
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "format": "unix-time"}};
+        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
 
         # format checks
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": 5}};
@@ -1268,14 +1285,14 @@ public class SwaggerTest inherits QUnit::Test {
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "format": "int64"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "format": "a"}};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
+        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
 
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number", "format": "double"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number", "format": "float"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number", "format": "a"}};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
+        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
 
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "binary"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
@@ -1385,14 +1402,14 @@ public class SwaggerTest inherits QUnit::Test {
         p = base.parameters + {"a": paramBase + {"items": {"type": "integer", "format": "int64"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
         p = base.parameters + {"a": paramBase + {"items": {"type": "integer", "format": "a"}}};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
+        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
 
         p = base.parameters + {"a": paramBase + {"items": {"type": "number", "format": "double"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
         p = base.parameters + {"a": paramBase + {"items": {"type": "number", "format": "float"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
         p = base.parameters + {"a": paramBase + {"items": {"type": "number", "format": "a"}}};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
+        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
 
         p = base.parameters + {"a": paramBase + {"items": {"type": "string", "format": "binary"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
@@ -1531,14 +1548,14 @@ public class SwaggerTest inherits QUnit::Test {
         r = {"a": {"description": "a", "headers": {"a": {"type": "integer", "format": "int64"}}}};
         assertTrue(loadyaml(my_make_yaml(base + {"responses": r})));
         r = {"a": {"description": "a", "headers": {"a": {"type": "integer", "format": "a"}}}};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"responses": r}));
+        assertTrue(loadyaml(my_make_yaml(base + {"responses": r})));
 
         r = {"a": {"description": "a", "headers": {"a": {"type": "number", "format": "double"}}}};
         assertTrue(loadyaml(my_make_yaml(base + {"responses": r})));
         r = {"a": {"description": "a", "headers": {"a": {"type": "number", "format": "float"}}}};
         assertTrue(loadyaml(my_make_yaml(base + {"responses": r})));
         r = {"a": {"description": "a", "headers": {"a": {"type": "number", "format": "a"}}}};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"responses": r}));
+        assertTrue(loadyaml(my_make_yaml(base + {"responses": r})));
 
         r = {"a": {"description": "a", "headers": {"a": {"type": "string", "format": "binary"}}}};
         assertTrue(loadyaml(my_make_yaml(base + {"responses": r})));
@@ -1667,14 +1684,14 @@ public class SwaggerTest inherits QUnit::Test {
         s = {"type": "integer", "format": "int64"};
         assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"a": s}})));
         s = {"type": "integer", "format": "a"};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
+        assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"a": s}})));
 
         s = {"type": "number", "format": "double"};
         assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"a": s}})));
         s = {"type": "number", "format": "float"};
         assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"a": s}})));
         s = {"type": "number", "format": "a"};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
+        assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"a": s}})));
 
         s = {"type": "string", "format": "binary"};
         assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"a": s}})));
