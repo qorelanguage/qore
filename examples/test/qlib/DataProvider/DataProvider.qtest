@@ -264,6 +264,42 @@ public class DataProviderTest inherits QUnit::Test {
         set_return_value(main());
     }
 
+    depFieldTest() {
+        HashDataType t1("t1");
+        hash<string, AbstractDataField> fieldsx = {
+            "x": new QoreDataField({"name": "x", "type": StringType}),
+        };
+        assertThrows("ADD-DEPENDENT-FIELDS-ERROR", \t1.addDependentFields(), ("x", fieldsx));
+        t1.addField(new QoreDataField("x", "desc", StringType));
+
+        assertEq(("x",), keys t1.getFields());
+
+        assertThrows("ADD-DEPENDENT-FIELDS-ERROR", \t1.addDependentFields(), ("x", fieldsx));
+
+        hash<string, AbstractDataField> fieldsy = {
+            "y": new QoreDataField({"name": "y", "type": IntType}),
+        };
+        assertThrows("ADD-DEPENDENT-FIELDS-ERROR", \t1.addDependentFields(), (1, fieldsy));
+        t1.addDependentFields("y", fieldsy);
+
+        hash<string, AbstractDataField> fieldsz = {
+            "z": new QoreDataField({"name": "z", "type": BoolType}),
+        };
+        t1.addDependentFields("z", fieldsz);
+
+        hash<string, AbstractDataField> f = t1.getFields({});
+        assertEq(("x",), keys f);
+
+        f = t1.getFields({"x": "y"});
+        assertEq(("x", "y"), keys f);
+
+        f = t1.getFields({"x": "z"});
+        assertEq(("x", "z"), keys f);
+
+        f = t1.getFields({"x": "1"});
+        assertEq(("x",), keys f);
+    }
+
     actionCatalogTests() {
         # negative tests registering apps
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{});

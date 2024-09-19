@@ -103,27 +103,27 @@ public class Fields inherits Serializable {
     *hash<string, AbstractDataField> getFields(hash<auto> val) {
         *hash<string, AbstractDataField> rv = fields;
         if (exists parent && val.hasKey(parent)) {
-            bool found;
             auto v = val{parent};
             foreach hash<auto> dep in (dependent_fields) {
                 if (dep.value === v) {
                     on_error rethrow $1.err, sprintf("%s (while processing parent field %y)", $1.desc, parent);
-                    rv += dep.fields.getFields(val);
-                    found = True;
+                    rv += dep.fields.getFields(val - keys rv);
                     break;
                 }
-            }
-            if (!found) {
-                throw "GET-FIELDS-ERROR", sprintf("The value for parent field %y (%y) is not a supported value",
-                    parent, v);
             }
         }
 
         if (*list<string> l = (keys (val - keys rv))) {
-            throw "GET-FIELDS-ERROR", sprintf("The value passed includes keys not found in the hash: %y", l);
+            throw "GET-FIELDS-ERROR", sprintf("The value passed includes field%s not in the type: %y (known "
+                "fields: %y)", l.size() == 1 ? "" : "s", l, keys rv);
         }
 
         return rv;
+    }
+
+    #! Returns dependent field info
+    *list<hash<DependentFields>> getDependentFields() {
+        return dependent_fields;
     }
 
     #! Add dependent fields
@@ -131,6 +131,10 @@ public class Fields inherits Serializable {
         if (!self.fields) {
             throw "ADD-DEPENDENT-FIELDS-ERROR", "Cannot add dependent fields if there is no previous field to depend "
                 "on";
+        }
+        if (*list<string> l = keys self.fields{keys fields.fields}) {
+            throw "ADD-DEPENDENT-FIELDS-ERROR", sprintf("Cannot add dependent fields %y that override already-"
+                "existing fields", l);
         }
         if (!dependent_fields) {
             parent = self.fields.lastKey();
@@ -141,6 +145,11 @@ public class Fields inherits Serializable {
                         "as fields already exist for value %y", parent, val);
                 }
             }
+        }
+        {
+            on_error rethrow "ADD-DEPENDENT-FIELDS-ERROR", sprintf("%s: %s; invalid field value type %y for field %y "
+                "while adding dependent fields", $1.err, $1.desc, val.fullType(), parent);
+            val = self.fields{parent}.acceptsValue(val);
         }
         dependent_fields += <DependentFields>{
             "value": val,
@@ -396,20 +405,20 @@ public class HashDataType inherits QoreDataType {
 
     #! Adds a field dependent on the last field's value
     HashDataType addDependentFields(auto val, hash<string, AbstractDataField> fields) {
-        fields.addDependentFields(val, fields);
+        self.fields.addDependentFields(val, fields);
         return self;
     }
 
     #! Adds a field dependent on the last field's value
     HashDataType addDependentFields(auto val, hash<string, AbstractDataField> fields,
             list<hash<DependentFields>> dependent_fields) {
-        fields.addDependentFields(val, fields, dependent_fields);
+        self.fields.addDependentFields(val, fields, dependent_fields);
         return self;
     }
 
     #! Adds a field dependent on the last field's value
     HashDataType addDependentFields(auto val, Fields fields) {
-        fields.addDependentFields(val, fields);
+        self.fields.addDependentFields(val, fields);
         return self;
     }
 
@@ -428,6 +437,11 @@ public class HashDataType inherits QoreDataType {
     */
     *hash<string, AbstractDataField> getFields(hash<auto> val) {
         return val ? fields.getFields(val) : fields.fields;
+    }
+
+    #! Returns dependent field info
+    *list<hash<DependentFields>> getDependentFields() {
+        return fields.getDependentFields();
     }
 
     #! Returns a "soft" type equivalent to the current type

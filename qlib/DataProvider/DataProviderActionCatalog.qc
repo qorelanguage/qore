@@ -193,6 +193,15 @@ public hashdecl DataProviderPathVarInfo {
     *string example_value;
 }
 
+#! DataProvider dependent option info
+public hashdecl DependentOptionInfo {
+    #! The value of the parent option that triggers these options
+    auto value;
+
+    #! Options that depend on the parent option value defined above
+    *hash<string, hash<ActionOptionInfo>> options;
+}
+
 #! DataProvider action definition
 public hashdecl DataProviderActionInfo {
     #! Name of the application that provides the action
@@ -255,6 +264,9 @@ public hashdecl DataProviderActionInfo {
 
     #! Options that can be provided without a data provider
     *hash<string, hash<ActionOptionInfo>> options;
+
+    #! Dependent options; options that depend on the value of the last option in 'options'
+    *list<hash<DependentOptionInfo>> dependent_options;
 
     #! Output type for the action
     *AbstractDataProviderType output_type;
@@ -818,6 +830,12 @@ public class DataProviderActionCatalog {
                 ($1.short_desc.upr().find(substr) >= 0) || ($1.desc.upr().find(substr) >= 0);
         }
         return map $1, top_actionmap.values(), ($1.short_desc.find(substr) >= 0) || ($1.desc.find(substr) >= 0);
+    }
+
+    #! Converts field definitions into option descriptions
+    static hash<string, hash<ActionOptionInfo>> getActionOptionFromFields(Fields fields, *hash<auto> val,
+            *hash<auto> additional_fields) {
+        return DataProviderActionCatalog::getActionOptionFromFields(fields.getFields(val), additional_fields);
     }
 
     #! Converts field definitions into option descriptions
