@@ -4139,6 +4139,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             "integer": True,
             "boolean": True,
             "array": True,
+            "file": True,
         );
 
         #! valid reference types
