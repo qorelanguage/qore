@@ -759,6 +759,26 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         }, dinfo.pairIterator());
     }
 
+    #! Returns the real URL for a connection URL
+    static string getRealUrl(string url, hash<ConnectionSchemeInfo> info, string type) {
+        string scheme = (url =~ x/^([^:]+)/)[0];
+        *hash<auto> rmap = map {$1.value: $1.key}, info.base_scheme_map.pairIterator();
+        if (*string real_scheme = rmap{scheme}) {
+            return regex_subst(url, "^" + scheme, real_scheme);
+        }
+        bool ssl;
+        # remove type if possible
+        if (url.equalPartial(type)) {
+            int len = type.length();
+            # set SSL if the scheme ends in an "s" after the expected scheme
+            ssl = url[len..len+3] == "s://";
+        } else {
+            ssl = (scheme =~ /s$/);
+        }
+        string targ = "http" + (ssl ? "s" : "");
+        return regex_subst(url, "^" + scheme, targ);
+    }
+
     #! returns a data provider object for the connection and subtype passed as an argument
     /** @param subtype the subtype of data provider supported, in case the connection can return multiple data providers
         @param constructor_options any additional constructor options required by the data provider

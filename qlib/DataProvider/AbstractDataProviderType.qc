@@ -627,16 +627,6 @@ public class AbstractDataProviderType inherits Qore::Serializable {
         return AbstractDataField::getShortDescription(getDesc());
     }
 
-    #! Returns the fields of the data structure; if any
-    /** @param val the value of the current hash, to be used to return dependent fields
-
-        @note Override in child classes to provide custom behavior
-    */
-    *hash<string, AbstractDataField> getFields(hash<auto> val) {
-        val = acceptsValue(val);
-        return getFields();
-    }
-
     #! Returns the type name
     abstract string getName();
 

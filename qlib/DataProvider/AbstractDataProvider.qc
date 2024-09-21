@@ -1817,6 +1817,22 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         return getRequestTypeImpl();
     }
 
+    #! Returns the description of a successful request message with call data, if any
+    /** @param req sample request data that can be used to determine the final type
+
+        @return the request type for this provider according to any call data passed
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+
+        @note This API is meant to provide information about request data types that can depend on the call data
+
+        @since DataProvider 3.0
+    */
+    *AbstractDataProviderType getRequestTypeWithData(auto req) {
+        checkRequest();
+        return getRequestTypeWithDataImpl(req);
+    }
+
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
 
@@ -3484,6 +3500,26 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
     */
     private *AbstractDataProviderType getRequestTypeImpl() {
         throwUnimplementedException();
+    }
+
+    #! Returns the description of a successful request message with call data, if any
+    /** @param req sample request data that can be used to determine the final type
+
+        @return the request type for this provider according to any call data passed
+
+        @note
+        - Only called if the provider supports the request / response API
+        - This API is meant to provide information about request data types that can depend on the call data
+
+        @since DataProvider 3.0
+    */
+    private *AbstractDataProviderType getRequestTypeWithDataImpl(auto req) {
+        # the default is to return the standard request data and verify the request data against it
+        *AbstractDataProviderType rv = getRequestTypeImpl();
+        if (rv) {
+            rv.acceptsValue(req);
+        }
+        return rv;
     }
 
     #! Returns the description of a response message, if this object represents a response message

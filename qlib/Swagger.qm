@@ -4161,7 +4161,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
-     */
+    */
     private constructor(string name, hash<auto> oh, SwaggerSchema swagger, *string hash_str, *bool require_items)
             : ObjectBase(oh), SchemaBase("Schema", oh) {
         self.name = name;

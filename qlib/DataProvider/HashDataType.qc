@@ -24,140 +24,6 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! Dependent field hash
-public hashdecl DependentFields {
-    #! The value of the master field that triggers this type
-    auto value;
-
-    #! Fields to add to the parent type if the master field's value is \c value
-    Fields fields;
-}
-
-#! Field class
-public class Fields inherits Serializable {
-    public {
-        #! fields
-        hash<string, AbstractDataField> fields;
-
-        #! Parent field name for dependent fields, if any
-        *string parent;
-
-        #! Dependent fields
-        list<hash<DependentFields>> dependent_fields;
-    }
-
-    #! Creates the object with no fields
-    constructor() {
-    }
-
-    #! Creates the object with the given fields
-    constructor(hash<string, AbstractDataField> fields) {
-        self.fields = fields;
-    }
-
-    #! Creates the object with the given fields and dependent fields
-    constructor(hash<string, AbstractDataField> fields, list<hash<DependentFields>> dependent_fields) {
-        self.fields = fields;
-        self.dependent_fields = dependent_fields;
-    }
-
-    #! Adds a field to the type
-    addField(AbstractDataField field) {
-        fields{field.getName()} = field;
-    }
-
-    #! Adds a field to the type from a typed hash member
-    addField(Qore::Reflection::TypedHashMember mem) {
-        fields{mem.getName()} = new QoreDataField(mem);
-    }
-
-    #! Adds a field dependent on the last field's value
-    addDependentFields(auto val, hash<string, AbstractDataField> fields) {
-        addDependentFieldsIntern(val, new Fields(fields));
-    }
-
-    #! Adds a field dependent on the last field's value
-    addDependentFields(auto val, hash<string, AbstractDataField> fields,
-            list<hash<DependentFields>> dependent_fields) {
-        addDependentFieldsIntern(val, new Fields(fields, dependent_fields));
-    }
-
-    #! Adds a field dependent on the last field's value
-    addDependentFields(auto val, Fields fields) {
-        addDependentFieldsIntern(val, fields);
-    }
-
-    #! Returns the given field, if present, or @ref nothing if not
-    *AbstractDataField getField(string name) {
-        return fields{name};
-    }
-
-    #! Returns the fields of the data structure; if any
-    *hash<string, AbstractDataField> getFields() {
-        return fields;
-    }
-
-    #! Returns the fields of the data structure; if any
-    /** @param val the value of the current hash, to be used to return dependent fields
-    */
-    *hash<string, AbstractDataField> getFields(hash<auto> val) {
-        *hash<string, AbstractDataField> rv = fields;
-        if (exists parent && val.hasKey(parent)) {
-            auto v = val{parent};
-            foreach hash<auto> dep in (dependent_fields) {
-                if (dep.value === v) {
-                    on_error rethrow $1.err, sprintf("%s (while processing parent field %y)", $1.desc, parent);
-                    rv += dep.fields.getFields(val - keys rv);
-                    break;
-                }
-            }
-        }
-
-        if (*list<string> l = (keys (val - keys rv))) {
-            throw "GET-FIELDS-ERROR", sprintf("The value passed includes field%s not in the type: %y (known "
-                "fields: %y)", l.size() == 1 ? "" : "s", l, keys rv);
-        }
-
-        return rv;
-    }
-
-    #! Returns dependent field info
-    *list<hash<DependentFields>> getDependentFields() {
-        return dependent_fields;
-    }
-
-    #! Add dependent fields
-    private addDependentFieldsIntern(auto val, Fields fields) {
-        if (!self.fields) {
-            throw "ADD-DEPENDENT-FIELDS-ERROR", "Cannot add dependent fields if there is no previous field to depend "
-                "on";
-        }
-        if (*list<string> l = keys self.fields{keys fields.fields}) {
-            throw "ADD-DEPENDENT-FIELDS-ERROR", sprintf("Cannot add dependent fields %y that override already-"
-                "existing fields", l);
-        }
-        if (!dependent_fields) {
-            parent = self.fields.lastKey();
-        } else {
-            foreach hash<DependentFields> f in (dependent_fields) {
-                if (f.value === val) {
-                    throw "ADD-DEPENDENT-FIELDS-ERROR", sprintf("Cannot add dependent fields depending on field %y "
-                        "as fields already exist for value %y", parent, val);
-                }
-            }
-        }
-        {
-            on_error rethrow "ADD-DEPENDENT-FIELDS-ERROR", sprintf("%s: %s; invalid field value type %y for field %y "
-                "while adding dependent fields", $1.err, $1.desc, val.fullType(), parent);
-            val = self.fields{parent}.acceptsValue(val);
-        }
-        dependent_fields += <DependentFields>{
-            "value": val,
-            "fields": fields,
-        };
-    }
-}
-
 #! describes a data type based on a hash
 /** @note objects of this type are only compatible if their fields are compatible; non-matching fields of other types
     are automatically considered compatible; change the default "other field type" by calling
@@ -170,7 +36,7 @@ public class Fields inherits Serializable {
 public class HashDataType inherits QoreDataType {
     private {
         #! Fields
-        Fields fields();
+        hash<string, AbstractDataField> fields;
 
         #! allow other fields
         *AbstractDataProviderType default_other_field_type =
@@ -202,7 +68,7 @@ public class HashDataType inherits QoreDataType {
             *hash<auto> tags, *hash<auto> default_value, *hash<NameDescInfo> attr)
             : QoreDataType(base_type, options, tags, default_value, attr) {
         self.name = name ?? base_type.getName();
-        self.fields.fields = fields;
+        self.fields = fields;
     }
 
     #! creates the object from the given record description and assigns the name as the type
@@ -210,7 +76,7 @@ public class HashDataType inherits QoreDataType {
             *hash<auto> tags, *hash<auto> default_value, *hash<NameDescInfo> attr)
             : QoreDataType(AutoHashType, options, tags, default_value, attr) {
         self.name = name;
-        self.fields.fields = fields;
+        self.fields = fields;
     }
 
     #! creates the object from the given TypedHash
@@ -247,7 +113,7 @@ public class HashDataType inherits QoreDataType {
         if (type.isOrNothingType()) {
             return;
         }
-        foreach AbstractDataField field in (fields.fields.iterator()) {
+        foreach AbstractDataField field in (fields.iterator()) {
             if (!field.getType().isOrNothingType() && !exists field.getDefaultValue()) {
                 return;
             }
@@ -265,15 +131,15 @@ public class HashDataType inherits QoreDataType {
     */
     auto acceptsValue(auto input_value) {
         # specific check to provide a better error message in case of a missing argument
-        on_error if (!exists input_value && fields.fields && $1.err == "RUNTIME-TYPE-ERROR") {
+        on_error if (!exists input_value && fields && $1.err == "RUNTIME-TYPE-ERROR") {
             rethrow "MISSING-VALUE-ERROR", sprintf("no input value provided for hash with defined fields: %y",
-                keys fields.fields);
+                keys fields);
         }
         # {} + ensure that the hash value is "hash<auto>"
         auto value = {} + QoreDataType::acceptsValue(input_value);
         hash<auto> value_copy = value;
         # check fields if any are defined
-        foreach AbstractDataField field in (fields.fields.iterator()) {
+        foreach AbstractDataField field in (fields.iterator()) {
             string key = field.getName();
             auto val = remove value_copy{key};
             if (!exists val) {
@@ -306,9 +172,9 @@ public class HashDataType inherits QoreDataType {
                 } else {
                     value += value_copy;
                 }
-            } else if (fields.fields) {
-                throw "RUNTIME-TYPE-ERROR", sprintf("error in type %y unsupported fields in value: %y; known fields: %y",
-                    getName(), keys value_copy, keys fields.fields);
+            } else if (fields) {
+                throw "RUNTIME-TYPE-ERROR", sprintf("error in type %y unsupported fields in value: %y; known "
+                    "fields: %y", getName(), keys value_copy, keys fields);
             }
         }
         return value;
@@ -320,8 +186,8 @@ public class HashDataType inherits QoreDataType {
     */
     bool isAssignableFrom(AbstractDataProviderType t) {
         *hash<string, AbstractDataField> other_fields = t.getFields();
-        if (fields.fields && other_fields) {
-            foreach AbstractDataField field in (fields.fields.iterator()) {
+        if (fields && other_fields) {
+            foreach AbstractDataField field in (fields.iterator()) {
                 string key = field.getName();
                 *AbstractDataField other_field = remove other_fields{key};
                 if (!other_field) {
@@ -362,10 +228,8 @@ public class HashDataType inherits QoreDataType {
         if (!new_fields) {
             return self;
         }
-        # verify that we can add fields
-        checkAddField(new_fields.firstKey());
         foreach hash<auto> i in (new_fields.pairIterator()) {
-            if (fields.fields{i.key}) {
+            if (fields{i.key}) {
                 throw "ADD-QORE-FIELDS-ERROR", sprintf("field %y already exists in hash %y", i.key, name);
             }
             if (i.value.typeCode() != NT_HASH) {
@@ -389,59 +253,24 @@ public class HashDataType inherits QoreDataType {
 
     #! Adds a field to the type
     HashDataType addField(AbstractDataField field) {
-        # verify that we can add fields
-        checkAddField(field.getName());
         addFieldIntern(field);
         return self;
     }
 
     #! Adds a field to the type from a typed hash member
     HashDataType addField(Qore::Reflection::TypedHashMember mem) {
-        # verify that we can add fields
-        checkAddField(mem.getName());
         addFieldIntern(mem);
-        return self;
-    }
-
-    #! Adds a field dependent on the last field's value
-    HashDataType addDependentFields(auto val, hash<string, AbstractDataField> fields) {
-        self.fields.addDependentFields(val, fields);
-        return self;
-    }
-
-    #! Adds a field dependent on the last field's value
-    HashDataType addDependentFields(auto val, hash<string, AbstractDataField> fields,
-            list<hash<DependentFields>> dependent_fields) {
-        self.fields.addDependentFields(val, fields, dependent_fields);
-        return self;
-    }
-
-    #! Adds a field dependent on the last field's value
-    HashDataType addDependentFields(auto val, Fields fields) {
-        self.fields.addDependentFields(val, fields);
         return self;
     }
 
     #! Returns the given field, if present, or @ref nothing if not
     *AbstractDataField getField(string name) {
-        return fields.fields{name};
+        return fields{name};
     }
 
     #! Returns the fields of the data structure; if any
     *hash<string, AbstractDataField> getFields() {
-        return fields.fields;
-    }
-
-    #! Returns the fields of the data structure; if any
-    /** @param val the value of the current hash, to be used to return dependent fields
-    */
-    *hash<string, AbstractDataField> getFields(hash<auto> val) {
-        return val ? fields.getFields(val) : fields.fields;
-    }
-
-    #! Returns dependent field info
-    *list<hash<DependentFields>> getDependentFields() {
-        return fields.getDependentFields();
+        return fields;
     }
 
     #! Returns a "soft" type equivalent to the current type
@@ -463,7 +292,7 @@ public class HashDataType inherits QoreDataType {
     #! returns a description of the type as a hash
     hash<DataTypeInfo> getInfo(*bool simple) {
         hash<DataTypeInfo> rv = QoreDataType::getInfo(simple);
-        if (!fields.fields && default_other_field_type) {
+        if (!fields && default_other_field_type) {
             rv.default_field_type_info = default_other_field_type.getInfo(simple);
         }
         return rv;
@@ -478,7 +307,7 @@ public class HashDataType inherits QoreDataType {
         }
         # recursively return "or nothing" typed fields in any case
         HashDataType rv = QoreDataType::getOrNothingType();
-        map rv.fields{$1.key} = $1.value.getOrNothingType(), fields.fields.pairIterator();
+        map rv.fields{$1.key} = $1.value.getOrNothingType(), fields.pairIterator();
         return rv;
     }
 
@@ -502,22 +331,14 @@ public class HashDataType inherits QoreDataType {
 
     #! adds a field to the type
     private addFieldIntern(AbstractDataField field) {
-        fields.addField(field);
+        fields{field.getName()} = field;
         postProcessAddedField(field);
     }
 
     #! adds a field to the type from a typed hash member
     private addFieldIntern(Qore::Reflection::TypedHashMember mem) {
-        fields.addField(mem);
-        postProcessAddedField(fields.fields{mem.getName()});
-    }
-
-    #! Checks if we can add a field
-    private checkAddField(string name) {
-        if (fields.dependent_fields) {
-            throw "ADD-FIELD-ERROR", sprintf("Cannot add field %y, because this type already has dependent fields",
-                name);
-        }
+        fields{mem.getName()} = new QoreDataField(mem);
+        postProcessAddedField(fields{mem.getName()});
     }
 }
 }

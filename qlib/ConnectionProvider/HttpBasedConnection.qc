@@ -100,25 +100,7 @@ public class HttpBasedConnection inherits AbstractConnectionWithInfo {
         sets the real HTTP URL for HTTP-based connections
     */
     private setRealUrl(string url) {
-        string scheme = (url =~ x/^([^:]+)/)[0];
-        hash<ConnectionSchemeInfo> info = getConnectionSchemeInfo();
-        *hash<auto> rmap = map {$1.value: $1.key}, info.base_scheme_map.pairIterator();
-        if (*string real_scheme = rmap{scheme}) {
-            real_url = regex_subst(url, "^" + scheme, real_scheme);
-            return;
-        }
-        bool ssl;
-        # remove type if possible
-        string type = getType();
-        if (url.equalPartial(type)) {
-            int len = type.length();
-            # set SSL if the scheme ends in an "s" after the expected scheme
-            ssl = url[len..len+3] == "s://";
-        } else {
-            ssl = (scheme =~ /s$/);
-        }
-        string targ = "http" + (ssl ? "s" : "");
-        real_url = regex_subst(url, "^" + scheme, targ);
+        real_url = getRealUrl(url, getConnectionSchemeInfo(), getType());
     }
 }
 } # ConnectionProvider namespace
