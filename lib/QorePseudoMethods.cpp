@@ -115,6 +115,12 @@ static QoreClass* pseudo_get_class(qore_type_t t) {
         if (t == NT_WEAKREF) {
             return po_list[NT_OBJECT];
         }
+        if (t == NT_WEAKREF_HASH) {
+            return po_list[NT_HASH];
+        }
+        if (t == NT_WEAKREF_LIST) {
+            return po_list[NT_LIST];
+        }
     }
 
     return QC_PSEUDOVALUE;
@@ -153,7 +159,16 @@ const QoreClass* qore_pseudo_get_class(const QoreTypeInfo* t) {
 QoreValue pseudo_classes_eval(const QoreValue n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
     switch (n.getType()) {
         case NT_WEAKREF:
-            return qore_class_private::evalPseudoMethod(po_list[NT_OBJECT], QoreValue(n.get<WeakReferenceNode>()->get()), name, args, xsink);
+            return qore_class_private::evalPseudoMethod(po_list[NT_OBJECT],
+                QoreValue(n.get<WeakReferenceNode>()->get()), name, args, xsink);
+
+        case NT_WEAKREF_HASH:
+            return qore_class_private::evalPseudoMethod(po_list[NT_HASH],
+                QoreValue(n.get<WeakHashReferenceNode>()->get()), name, args, xsink);
+
+        case NT_WEAKREF_LIST:
+            return qore_class_private::evalPseudoMethod(po_list[NT_LIST],
+                QoreValue(n.get<WeakListReferenceNode>()->get()), name, args, xsink);
 
         case NT_REFERENCE: {
             const ReferenceNode* r = n.get<const ReferenceNode>();

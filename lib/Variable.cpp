@@ -238,14 +238,24 @@ QoreValue Var::eval() const {
     if (val.type == QV_Ref)
         return val.v.getPtr()->eval();
     if (is_thread_local) {
-        if (val.getType() == NT_WEAKREF) {
-            return static_cast<WeakReferenceNode*>(val.v.n)->get()->refSelf();
+        switch (val.getType()) {
+            case NT_WEAKREF:
+                return static_cast<WeakReferenceNode*>(val.v.n)->get()->refSelf();
+            case NT_WEAKREF_HASH:
+                return static_cast<WeakHashReferenceNode*>(val.v.n)->get()->refSelf();
+            case NT_WEAKREF_LIST:
+                return static_cast<WeakListReferenceNode*>(val.v.n)->get()->refSelf();
         }
         return val.getReferencedValue();
     }
     QoreAutoVarRWReadLocker al(rwl);
-    if (val.getType() == NT_WEAKREF) {
-        return static_cast<WeakReferenceNode*>(val.v.n)->get()->refSelf();
+    switch (val.getType()) {
+        case NT_WEAKREF:
+            return static_cast<WeakReferenceNode*>(val.v.n)->get()->refSelf();
+        case NT_WEAKREF_HASH:
+            return static_cast<WeakHashReferenceNode*>(val.v.n)->get()->refSelf();
+        case NT_WEAKREF_LIST:
+            return static_cast<WeakListReferenceNode*>(val.v.n)->get()->refSelf();
     }
     return val.getReferencedValue();
 }
@@ -445,6 +455,9 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
     if (getType() == NT_LIST) {
         ensureUnique();
         l = getValue().get<QoreListNode>();
+    } else if (getType() == NT_WEAKREF_LIST) {
+        ensureUnique();
+        l = getValue().get<WeakListReferenceNode>()->get();
     } else {
         if (for_remove)
             return -1;
@@ -498,6 +511,9 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
     if (t == NT_HASH) {
         ensureUnique();
         h = getValue().get<QoreHashNode>();
+    } else if (t == NT_WEAKREF_HASH) {
+        ensureUnique();
+        h = getValue().get<WeakHashReferenceNode>()->get();
     } else {
         if (for_remove)
             return -1;
@@ -578,12 +594,13 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
 
     qore_type_t t = getType();
     QoreObject* o;
-    if (t == NT_WEAKREF)
+    if (t == NT_WEAKREF) {
         o = getValue().get<const WeakReferenceNode>()->get();
-    else if (t == NT_OBJECT)
+    } else if (t == NT_OBJECT) {
         o = getValue().get<QoreObject>();
-    else
+    } else {
         return doHashLValue(t, mem->c_str(), for_remove);
+    }
 
     //printd(5, "LValueHelper::doHashObjLValue() h: %p v: %p ('%s', refs: %d)\n", h, getTypeName(),
     //    getValue() ? getValue()->reference_count() : 0);
@@ -801,6 +818,16 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool w
             n = new WeakReferenceNode(o);
             // cannot dereference object in lock
             saveTemp(o);
+        } else if (n.getType() == NT_HASH) {
+            QoreHashNode* h = n.get<QoreHashNode>();
+            n = new WeakHashReferenceNode(h);
+            // cannot dereference a container in lock
+            saveTemp(h);
+        } else if (n.getType() == NT_LIST) {
+            QoreListNode* l = n.get<QoreListNode>();
+            n = new WeakListReferenceNode(l);
+            // cannot dereference a container in lock
+            saveTemp(l);
         }
     }
 

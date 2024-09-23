@@ -169,6 +169,8 @@ libqore_la_SOURCES = \
 	SwitchStatement.cpp \
 	Variable.cpp \
 	WeakReferenceNode.cpp \
+	WeakHashReferenceNode.cpp \
+	WeakListReferenceNode.cpp \
 	support.cpp \
 	QoreType.cpp \
 	ModuleManager.cpp \

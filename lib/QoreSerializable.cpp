@@ -300,6 +300,14 @@ QoreValue QoreSerializable::serializeValue(const QoreValue val, ReferenceHolder<
             return serializeObjectToData(*val.get<WeakReferenceNode>()->get(), index, imap, mset, xsink);
         }
 
+        case NT_WEAKREF_HASH: {
+            return serializeHashToData(*val.get<WeakHashReferenceNode>()->get(), index, imap, mset, xsink);
+        }
+
+        case NT_WEAKREF_LIST: {
+            return serializeListToData(*val.get<WeakListReferenceNode>()->get(), index, imap, mset, xsink);
+        }
+
         case NT_HASH: {
             ReferenceHolder<QoreHashNode> rv(serializeHashToData(*val.get<const QoreHashNode>(), index, imap, mset,
                 xsink), xsink);

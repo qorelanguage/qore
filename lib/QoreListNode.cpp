@@ -77,7 +77,8 @@ void QoreListNodeEvalOptionalRefHolder::evalIntern(QoreListNode* exp) {
     for (unsigned i = 0; i < exp->size(); ++i) {
         QoreValue& ev = exp->getEntryReference(i);
         QoreValue& vv = val->getEntryReference(i);
-        if (!ev.needsEval() || ev.getType() == NT_REFERENCE || ev.getType() == NT_WEAKREF) {
+        if (!ev.needsEval() || ev.getType() == NT_REFERENCE || ev.getType() == NT_WEAKREF
+            || ev.getType() == NT_WEAKREF_HASH || ev.getType() == NT_WEAKREF_LIST) {
             vv.swap(ev);
             continue;
         }
@@ -90,6 +91,10 @@ void QoreListNodeEvalOptionalRefHolder::evalIntern(QoreListNode* exp) {
 }
 
 int qore_list_private::getLValue(size_t ind, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink) {
+    if (checkValid(xsink)) {
+        return -1;
+    }
+
     if (ind >= length) {
         resize(ind + 1);
     }
@@ -385,7 +390,7 @@ int QoreListNode::getEntryAsInt(size_t num) const {
 }
 
 int QoreListNode::merge(const QoreListNode* list, ExceptionSink* xsink) {
-   return priv->merge(list, xsink);
+    return priv->merge(list, xsink);
 }
 
 int QoreListNode::setEntry(size_t index, QoreValue val, ExceptionSink* xsink) {
@@ -406,6 +411,9 @@ int QoreListNode::setEntry(size_t index, QoreValue val, ExceptionSink* xsink) {
 }
 
 int QoreListNode::push(QoreValue val, ExceptionSink* xsink) {
+    if (priv->checkValid(xsink)) {
+        return -1;
+    }
     return priv->push(val, xsink);
 }
 
@@ -857,13 +865,15 @@ QoreListNode* QoreListNode::sortStable(const ResolvedCallReferenceNode* fr, Exce
 
 // does a deep dereference
 bool QoreListNode::derefImpl(ExceptionSink* xsink) {
-    for (size_t i = 0; i < priv->length; i++) {
+    for (size_t i = 0; i < priv->length; ++i) {
         priv->entry[i].discard(xsink);
     }
 #ifdef DEBUG
     priv->length = 0;
 #endif
-    return true;
+    priv->valid = false;
+    weakDeref();
+    return false;
 }
 
 size_t QoreListNode::size() const {
@@ -1197,4 +1207,16 @@ const QoreTypeInfo* QoreListNode::getValueTypeInfo() const {
 
 const QoreTypeInfo* QoreListNode::getTypeInfo() const {
     return priv->getTypeInfo();
+}
+
+void QoreListNode::weakRef() {
+    priv->weakRef();
+}
+
+bool QoreListNode::weakDeref() {
+    bool b = priv->weakDeref();
+    if (b) {
+        delete this;
+    }
+    return b;
 }

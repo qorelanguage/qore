@@ -2423,7 +2423,6 @@ public class PathComponent {
         splice l0, offset + 1;
         pfx = l0.join("/");
         name = l[offset - 1];
-        #printf("pfx: %y name: %y\n", pfx, name);
     }
 
     #! adds a component or a Path Item Object to the tree

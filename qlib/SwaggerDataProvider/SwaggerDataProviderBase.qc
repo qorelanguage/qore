@@ -118,7 +118,7 @@ public class SwaggerDataProviderBase inherits SwaggerDataProviderCommon {
     private AbstractDataProviderType getSchemaDataType(string path, SchemaObject schema, bool required = True,
             *RestClient rest) {
         # check for recursive type definitions
-        RecursiveTypeHelper rth(self, schema.uniqueHash());
+        RecursiveTypeHelper rth(schema.uniqueHash());
         if (*AbstractDataProviderType t = rth.get()) {
             return t;
         }
@@ -239,7 +239,7 @@ const RecursiveKey = "__swagger_dp_rec_key$$";
 
 class RecursiveFieldHelper {
     private {
-        *hash<auto> tld = get_thread_data(RecursiveKey);
+        *hash<auto> tld;
         string hash_str;
         string ptype;
         string name;
@@ -247,12 +247,13 @@ class RecursiveFieldHelper {
     }
 
     constructor(object obj, string ptype, string name) {
+        tld := get_thread_data(RecursiveKey);
         # check for recursive field definitions
         hash_str = obj.uniqueHash();
         self.ptype = ptype;
         self.name = name;
 
-        f = tld.field{hash_str}{ptype}{name};
+        f := tld.field{hash_str}{ptype}{name};
     }
 
     *QoreDataField get() {
@@ -260,7 +261,7 @@ class RecursiveFieldHelper {
     }
 
     QoreDataField set(QoreDataField new_field) {
-        tld.field{hash_str}{ptype}{name} = new_field;
+        tld.field{hash_str}{ptype}{name} := new_field;
         save_thread_data(RecursiveKey, tld);
         return new_field;
     }
@@ -268,16 +269,16 @@ class RecursiveFieldHelper {
 
 class RecursiveTypeHelper {
     private {
-        *hash<auto> tld = get_thread_data(RecursiveKey);
+        *hash<auto> tld;
         string hash_str;
         *AbstractDataProviderType t;
     }
 
-    constructor(object obj, string hash_str) {
+    constructor(string hash_str) {
+        tld := get_thread_data(RecursiveKey);
         # check for recursive field definitions
         self.hash_str = hash_str;
-
-        t = tld.type{hash_str};
+        t := tld.type{hash_str};
     }
 
     *AbstractDataProviderType get() {
@@ -285,7 +286,7 @@ class RecursiveTypeHelper {
     }
 
     AbstractDataProviderType set(AbstractDataProviderType new_type) {
-        tld.type{hash_str} = new_type;
+        tld.type{hash_str} := new_type;
         save_thread_data(RecursiveKey, tld);
         return new_type;
     }

@@ -34,6 +34,8 @@
 #define _QORE_PARSENODE_H
 
 #include "qore/intern/WeakReferenceNode.h"
+#include "qore/intern/WeakHashReferenceNode.h"
+#include "qore/intern/WeakListReferenceNode.h"
 
 class ParseNode : public SimpleQoreNode {
 public:

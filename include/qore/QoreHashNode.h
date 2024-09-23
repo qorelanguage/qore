@@ -389,6 +389,18 @@ public:
 
     static const qore_type_t TYPE = NT_HASH;
 
+    //! Increments the weak reference count for this object
+    /** @since %Qore 2.0
+    */
+    DLLEXPORT void weakRef();
+
+    //! Decrements the weak reference count for this object
+    /** @return if \c true then the object was deleted
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT bool weakDeref();
+
     //! initializes during parsing
     DLLLOCAL virtual int parseInit(QoreValue& val, QoreParseContext& parse_context);
 

@@ -293,6 +293,14 @@ protected:
         u.t = t;
     }
 
+    DLLLOCAL bool acceptInputComplexHash(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, const char* arg_type,
+            bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper, QoreHashNode* h,
+            bool& err) const;
+
+    DLLLOCAL bool acceptInputComplexList(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, const char* arg_type,
+            bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper, QoreListNode* l,
+            bool& err) const;
+
 private:
     union {
         qore_type_t t;

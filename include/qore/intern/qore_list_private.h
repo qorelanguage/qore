@@ -44,10 +44,12 @@ struct qore_list_private {
     size_t allocated = 0;
     unsigned obj_count = 0;
     const QoreTypeInfo* complexTypeInfo = nullptr;
+    QoreReferenceCounter weakRefs;
     bool finalized : 1;
     bool vlist : 1;
+    bool valid : 1;
 
-    DLLLOCAL qore_list_private() : finalized(false), vlist(false) {
+    DLLLOCAL qore_list_private() : finalized(false), vlist(false), valid(true) {
     }
 
     DLLLOCAL ~qore_list_private() {
@@ -71,6 +73,14 @@ struct qore_list_private {
             str.concat(QoreTypeInfo::getName(complexTypeInfo));
         else
             str.concat("list");
+    }
+
+    DLLLOCAL int checkValid(ExceptionSink* xsink) {
+        if (!valid) {
+            xsink->raiseException("LIST-ERROR", "Cannot modify a list that has already gone out of scope");
+            return -1;
+        }
+        return 0;
     }
 
     DLLLOCAL QoreListNode* getCopy() const {
@@ -562,6 +572,17 @@ struct qore_list_private {
     }
 
     DLLLOCAL QoreListNode* eval(ExceptionSink* xsink);
+
+    DLLLOCAL void weakRef() {
+        weakRefs.ROreference();
+    }
+
+    DLLLOCAL bool weakDeref() {
+        if (weakRefs.ROdereference()) {
+            return true;
+        }
+        return false;
+    }
 
     DLLLOCAL static void setNeedsEval(QoreListNode& l) {
         l.needs_eval_flag = true;

@@ -643,28 +643,28 @@ public:
 
     //! creates the object with with no evaluation
     /** @since %Qore 0.8.13.1
-     */
+    */
     DLLEXPORT ValueEvalRefHolder(ExceptionSink* xs);
 
     //! evaluates the argument, returns -1 for error, 0 = OK
     /** @since %Qore 0.8.13.1
-     */
+    */
     DLLEXPORT int eval(const AbstractQoreNode* exp);
 
     //! evaluates the argument, returns -1 for error, 0 = OK
     /** @since %Qore 0.9
-     */
+    */
     DLLEXPORT int eval(const QoreValue exp);
 
 protected:
     //! evaluates the argument, returns -1 for error, 0 = OK
     /** @since %Qore 0.8.13.1
-     */
+    */
     DLLLOCAL int evalIntern(const AbstractQoreNode* exp);
 
     //! evaluates the argument, returns -1 for error, 0 = OK
     /** @since %Qore 0.9
-     */
+    */
     DLLLOCAL int evalIntern(const QoreValue& exp);
 };
 

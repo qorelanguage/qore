@@ -79,10 +79,11 @@ void RObject::derefRealIntern() {
 int RObject::deref(bool real, bool& do_scan, bool& rescan) {
     // the mutex ensures atomicity
     AutoLocker al(rlck);
-    if (real)
+    if (real) {
         derefRealIntern();
-    else
+    } else {
         assert(rrefs >= 0);
+    }
 
     // dereference the object and save the resulting value as the return value
     int rv_refs = --references;
@@ -91,11 +92,12 @@ int RObject::deref(bool real, bool& do_scan, bool& rescan) {
 
     if (do_scan) {
         rescan = deferred_scan;
-        if (deferred_scan)
+        if (deferred_scan) {
             deferred_scan = false;
-    }
-    else
+        }
+    } else {
         rescan = false;
+    }
 
     // mark that we have a dereference action in progress
     ++ref_inprogress;
@@ -222,7 +224,7 @@ int RSet::canDelete(int ref_copy, int rcount) {
     return 1;
 }
 
-robject_dereference_helper::robject_dereference_helper(RObject* obj, bool real) : o(obj), qo(0) {
+robject_dereference_helper::robject_dereference_helper(RObject* obj, bool real) : o(obj) {
     refs = obj->deref(real, do_scan, deferred_scan);
     del = !refs;
 }
@@ -230,8 +232,9 @@ robject_dereference_helper::robject_dereference_helper(RObject* obj, bool real) 
 robject_dereference_helper::~robject_dereference_helper() {
     o->derefDone(del);
 
-    if (del && qo)
+    if (del && qo) {
         qo->tDeref();
+    }
 }
 
 class RSectionScanHelper {

@@ -618,7 +618,9 @@ public:
     // custom dereference handler - unlocked
     /** @param real if the dereference is "real" (i.e. cannot be part of a recursive cycle) or not
     */
-    DLLLOCAL void customDeref(bool real, ExceptionSink* xsink);
+    DLLLOCAL void customDeref(ExceptionSink* xsink, bool real);
+
+    DLLLOCAL void fastDeref();
 
     DLLLOCAL int startCall(const char* mname, ExceptionSink* xsink);
 

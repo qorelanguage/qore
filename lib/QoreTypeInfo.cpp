@@ -645,8 +645,12 @@ const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n) {
             return static_cast<const WeakReferenceNode*>(n)->get()->getClass()->getTypeInfo();
         case NT_HASH:
             return static_cast<const QoreHashNode*>(n)->getTypeInfo();
+        case NT_WEAKREF_HASH:
+            return static_cast<const WeakHashReferenceNode*>(n)->get()->getTypeInfo();
         case NT_LIST:
             return static_cast<const QoreListNode*>(n)->getTypeInfo();
+        case NT_WEAKREF_LIST:
+            return static_cast<const WeakListReferenceNode*>(n)->get()->getTypeInfo();
         case NT_REFERENCE:
             return static_cast<const ReferenceNode*>(n)->getTypeInfo();
         default:
@@ -1164,6 +1168,94 @@ static bool type_spec_accept_object(const QoreClass& type_class, const QoreClass
     return false;
 }
 
+bool QoreTypeSpec::acceptInputComplexHash(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, const char* arg_type,
+        bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper, QoreHashNode* h,
+        bool& err) const {
+    assert(!err);
+    const QoreTypeInfo* ti = h->getValueTypeInfo();
+    if (QoreTypeInfo::equal(u.ti, ti)) {
+        return true;
+    }
+
+    // try to fold values into our type; value types are not identical;
+    // we have to get a new hash
+    if (!h->is_unique()) {
+        AbstractQoreNode* p = n.assign(h = qore_hash_private::get(*h)->copy(get_value_type(&typeInfo)));
+        if (lvhelper) {
+            lvhelper->saveTemp(p);
+        } else {
+            discard(p, xsink);
+            if (xsink && *xsink) {
+                err = true;
+                return true;
+            }
+        }
+    } else {
+        qore_hash_private::get(*h)->complexTypeInfo = &typeInfo;
+    }
+
+    // now we have to fold the value types into our type
+    HashIterator i(h);
+    while (i.next()) {
+        hash_assignment_priv ha(*qore_hash_private::get(*h), *qhi_priv::get(i)->i);
+        QoreValue hn(ha.swap(QoreValue()));
+        u.ti->acceptInputIntern(xsink, arg_type, obj, param_num, param_name, hn, lvhelper);
+        ha.swap(hn);
+        if (xsink && *xsink) {
+            err = true;
+            // enrich exception so that it's not confusing
+            xsink->appendLastDescription(" (while folding values into type 'hash<%s>')", QoreTypeInfo::getName(u.ti));
+            return true;
+        }
+    }
+
+    return true;
+}
+
+bool QoreTypeSpec::acceptInputComplexList(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, const char* arg_type,
+        bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper, QoreListNode* l,
+        bool& err) const {
+    const QoreTypeInfo* ti = l->getValueTypeInfo();
+    if (QoreTypeInfo::equal(u.ti, ti)) {
+        return true;
+    }
+
+    // try to fold values into our type; value types are not identical;
+    // we have to get a new list
+    qore_list_private* lp;
+    if (!l->is_unique()) {
+        AbstractQoreNode* p = n.assign(l = qore_list_private::get(*l)->copy(get_value_type(&typeInfo)));
+        if (lvhelper) {
+            lvhelper->saveTemp(p);
+        } else {
+            discard(p, xsink);
+            if (xsink && *xsink) {
+                err = true;
+                return true;
+            }
+        }
+        lp = qore_list_private::get(*l);
+    } else {
+        lp = qore_list_private::get(*l);
+        lp->complexTypeInfo = &typeInfo;
+    }
+
+    // now we have to fold the value types into our type
+    for (size_t i = 0; i < l->size(); ++i) {
+        QoreValue ln(lp->takeExists(i));
+        u.ti->acceptInputIntern(xsink, arg_type, obj, param_num, param_name, ln, lvhelper);
+        lp->swap(i, ln);
+        if (xsink && *xsink) {
+            err = true;
+            // enrich exception so that it's not confusing
+            xsink->appendLastDescription(" (while folding values into type 'list<%s>')", QoreTypeInfo::getName(u.ti));
+            return true;
+        }
+    }
+
+    return true;
+}
+
 bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map,
         const char* arg_type, bool obj, int param_num, const char* param_name, QoreValue& n,
         LValueHelper* lvhelper) const {
@@ -1172,18 +1264,25 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
 
     //printd(5, "QoreTypeInfo::acceptInput() typeInfo: %s spec: %s arg_type: %s val: %s: OK\n", QoreTypeInfo::getName(&typeInfo), getName(), arg_type, n.getFullTypeName());
 
+    qore_type_t t = n.getType();
     switch (typespec) {
         case QTS_CLASS: {
-            if (n.getType() == NT_OBJECT) {
+            if (t == NT_OBJECT) {
                 ok = type_spec_accept_object(*u.qc, *n.get<const QoreObject>()->getClass(), priv_error);
-            } else if (n.getType() == NT_WEAKREF) {
+            } else if (t == NT_WEAKREF) {
                 ok = type_spec_accept_object(*u.qc, *n.get<const WeakReferenceNode>()->get()->getClass(), priv_error);
             }
             break;
         }
         case QTS_HASHDECL: {
-            if (n.getType() == NT_HASH) {
+            if (t == NT_HASH) {
                 const TypedHashDecl* hd = n.get<const QoreHashNode>()->getHashDecl();
+                if (hd && typed_hash_decl_private::get(*hd)->equal(*typed_hash_decl_private::get(*u.hd))) {
+                    ok = true;
+                    break;
+                }
+            } else if (t == NT_WEAKREF_HASH) {
+                const TypedHashDecl* hd = n.get<const WeakHashReferenceNode>()->get()->getHashDecl();
                 if (hd && typed_hash_decl_private::get(*hd)->equal(*typed_hash_decl_private::get(*u.hd))) {
                     ok = true;
                     break;
@@ -1192,12 +1291,18 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
             break;
         }
         case QTS_COMPLEXHASH: {
-            if (n.getType() == NT_HASH) {
+            if (t == NT_HASH) {
                 if (u.ti == autoTypeInfo) {
                     ok = true;
                     break;
                 }
                 QoreHashNode* h = n.get<QoreHashNode>();
+                bool err = false;
+                ok = acceptInputComplexHash(xsink, typeInfo, arg_type, obj, param_num, param_name, n, lvhelper, h, err);
+                if (err) {
+                    return true;
+                }
+                /*
                 const QoreTypeInfo* ti = h->getValueTypeInfo();
                 if (QoreTypeInfo::equal(u.ti, ti)) {
                     ok = true;
@@ -1236,6 +1341,18 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                 }
 
                 ok = true;
+                */
+            } else if (t == NT_WEAKREF_HASH) {
+                if (u.ti == autoTypeInfo) {
+                    ok = true;
+                    break;
+                }
+                QoreHashNode* h = n.get<WeakHashReferenceNode>()->get();
+                bool err = false;
+                ok = acceptInputComplexHash(xsink, typeInfo, arg_type, obj, param_num, param_name, n, lvhelper, h, err);
+                if (err) {
+                    return true;
+                }
             }
             break;
         }
@@ -1247,6 +1364,9 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                     break;
                 }
                 QoreListNode* l = n.get<QoreListNode>();
+                bool err = false;
+                ok = acceptInputComplexList(xsink, typeInfo, arg_type, obj, param_num, param_name, n, lvhelper, l, err);
+                /*
                 const QoreTypeInfo* ti = l->getValueTypeInfo();
                 if (QoreTypeInfo::equal(u.ti, ti)) {
                     ok = true;
@@ -1286,6 +1406,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                 }
 
                 ok = true;
+                */
             } else if (typespec == QTS_COMPLEXSOFTLIST) {
                 // see if value matches
                 if (QoreTypeInfo::runtimeAcceptsValue(u.ti, n) > 0) {

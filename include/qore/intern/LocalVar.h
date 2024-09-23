@@ -39,6 +39,8 @@
 #include "qore/intern/RSet.h"
 #include "qore/ReferenceNode.h"
 #include "qore/intern/WeakReferenceNode.h"
+#include "qore/intern/WeakHashReferenceNode.h"
+#include "qore/intern/WeakListReferenceNode.h"
 
 #include <atomic>
 
@@ -184,6 +186,16 @@ public:
             return val.get<WeakReferenceNode>()->get();
         }
 
+        if (val.getType() == NT_WEAKREF_HASH) {
+            needs_deref = false;
+            return val.get<WeakHashReferenceNode>()->get();
+        }
+
+        if (val.getType() == NT_WEAKREF_LIST) {
+            needs_deref = false;
+            return val.get<WeakListReferenceNode>()->get();
+        }
+
         return val.getReferencedValue(needs_deref);
     }
 
@@ -200,6 +212,14 @@ public:
 
         if (val.getType() == NT_WEAKREF) {
             return val.get<WeakReferenceNode>()->get()->refSelf();
+        }
+
+        if (val.getType() == NT_WEAKREF_HASH) {
+            return val.get<WeakHashReferenceNode>()->get()->refSelf();
+        }
+
+        if (val.getType() == NT_WEAKREF_LIST) {
+            return val.get<WeakListReferenceNode>()->get()->refSelf();
         }
 
         return val.getReferencedValue();
@@ -275,6 +295,16 @@ public:
             return val.get<WeakReferenceNode>()->get();
         }
 
+        if (val.getType() == NT_WEAKREF_HASH) {
+            needs_deref = false;
+            return val.get<WeakHashReferenceNode>()->get();
+        }
+
+        if (val.getType() == NT_WEAKREF_LIST) {
+            needs_deref = false;
+            return val.get<WeakListReferenceNode>()->get();
+        }
+
         return val.getReferencedValue();
     }
 
@@ -289,6 +319,14 @@ public:
 
         if (val.getType() == NT_WEAKREF) {
             return val.get<WeakReferenceNode>()->get()->refSelf();
+        }
+
+        if (val.getType() == NT_WEAKREF_HASH) {
+            return val.get<WeakHashReferenceNode>()->get();
+        }
+
+        if (val.getType() == NT_WEAKREF_LIST) {
+            return val.get<WeakListReferenceNode>()->get();
         }
 
         return val.getReferencedValue();

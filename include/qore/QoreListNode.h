@@ -412,6 +412,18 @@ public:
     */
     DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
 
+    //! Increments the weak reference count for this object
+    /** @since %Qore 2.0
+    */
+    DLLEXPORT void weakRef();
+
+    //! Decrements the weak reference count for this object
+    /** @return if \c true then the object was deleted
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT bool weakDeref();
+
     // needed only while parsing
     //! this function is not exported in the qore library
     DLLLOCAL QoreListNode(bool i);

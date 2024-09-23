@@ -53,6 +53,15 @@ QoreValue QoreDotEvalOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
             return m->exec(op->get<WeakReferenceNode>()->get(), xsink);
         }
 
+        case NT_WEAKREF_HASH: {
+            // FIXME: inefficient
+            const AbstractQoreNode* ref = check_call_ref(op->get<WeakHashReferenceNode>()->get(), m->getName());
+            if (ref) {
+                return reinterpret_cast<const ResolvedCallReferenceNode*>(ref)->execValue(m->getArgs(), xsink);
+            }
+            break;
+        }
+
         case NT_OBJECT: {
             QoreObject* o = const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(op->getInternalNode()));
             // FIXME: inefficient
@@ -61,9 +70,10 @@ QoreValue QoreDotEvalOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
 
         case NT_HASH: {
             const AbstractQoreNode* ref = check_call_ref(op->getInternalNode(), m->getName());
-            if (ref)
+            if (ref) {
                 return reinterpret_cast<const ResolvedCallReferenceNode*>(ref)->execValue(m->getArgs(), xsink);
-            // drop down to default
+            }
+            break;
         }
 
         default:
@@ -71,8 +81,9 @@ QoreValue QoreDotEvalOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
     }
 
     // FIXME: inefficient
-    if (m->isPseudo())
+    if (m->isPseudo()) {
         return m->execPseudo(*op, xsink);
+    }
 
     return pseudo_classes_eval(*op, m->getName(), m->getArgs(), xsink);
 }

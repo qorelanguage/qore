@@ -507,6 +507,8 @@ set(LIBQORE_CPP_SRC
     lib/ThreadClosureVariableStack.cpp
     lib/ThreadLocalVariableData.cpp
     lib/WeakReferenceNode.cpp
+    lib/WeakListReferenceNode.cpp
+    lib/WeakHashReferenceNode.cpp
     lib/QoreProgram.cpp
     lib/QoreProgramHelper.cpp
     lib/QoreNamespace.cpp

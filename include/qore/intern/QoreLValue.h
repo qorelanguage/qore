@@ -45,8 +45,9 @@ protected:
         assert(assigned);
         assert(!old);
 
-        if (!v.n)
+        if (!v.n) {
             return reinterpret_cast<T*>(v.n = new T);
+        }
 
         if (v.n->getType() != nt) {
             t i = T::getValue(v.n);
@@ -54,8 +55,9 @@ protected:
             return reinterpret_cast<T*>(v.n = new T(i));
         }
 
-        if (v.n->is_unique())
+        if (v.n->is_unique()) {
             return reinterpret_cast<T*>(v.n);
+        }
 
         old = v.n;
         return reinterpret_cast<T*>((v.n = old->realCopy()));
@@ -118,7 +120,7 @@ public:
             case QV_Node:
                 v.n = old.v.n ? old.v.n->refSelf() : nullptr;
                 if (!is_closure)
-                    check_lvalue_object_in_out(v.n, 0);
+                    check_lvalue_object_in_out(v.n, nullptr);
                 break;
             default: assert(false);
             // no break
@@ -240,7 +242,7 @@ public:
                 v.i = i;
                 type = QV_Int;
                 if (!is_closure) {
-                    check_lvalue_object_in_out(0, rv);
+                    check_lvalue_object_in_out(nullptr, rv);
                 }
                 return rv;
             }
@@ -285,7 +287,7 @@ public:
                 v.f = f;
                 type = QV_Float;
                 if (!is_closure) {
-                    check_lvalue_object_in_out(0, rv);
+                    check_lvalue_object_in_out(nullptr, rv);
                 }
                 return rv;
             }
@@ -340,7 +342,7 @@ public:
                 v.n = n;
                 type = QV_Node;
                 if (!is_closure)
-                check_lvalue_object_in_out(0, rv);
+                check_lvalue_object_in_out(nullptr, rv);
                 return rv;
             }
 
@@ -364,7 +366,7 @@ public:
             case QV_Float: return QoreValue(v.f);
             case QV_Node:
                 if (!is_closure)
-                check_lvalue_object_in_out(0, v.n);
+                    check_lvalue_object_in_out(nullptr, v.n);
                 return QoreValue(v.n);
             default: assert(false);
             // no break
@@ -450,7 +452,7 @@ public:
 
         if (type == QV_Node && v.n) {
             if (!is_closure)
-                check_lvalue_object_in_out(0, v.n);
+                check_lvalue_object_in_out(nullptr, v.n);
             v.n->deref(xsink);
         }
         assigned = false;
@@ -509,7 +511,7 @@ public:
         if (assigned) {
             if (type == QV_Node) {
                 if (!is_closure)
-                check_lvalue_object_in_out(0, v.n);
+                    check_lvalue_object_in_out(nullptr, v.n);
                 rv = v.n;
             }
             else
@@ -543,7 +545,7 @@ public:
         if (assigned) {
             if (type == QV_Node) {
                 if (!is_closure)
-                check_lvalue_object_in_out(0, v.n);
+                    check_lvalue_object_in_out(nullptr, v.n);
                 rv = v.n;
             }
             else
@@ -577,7 +579,7 @@ public:
         if (assigned) {
             if (type == QV_Node) {
                 if (!is_closure)
-                check_lvalue_object_in_out(0, v.n);
+                    check_lvalue_object_in_out(nullptr, v.n);
                 rv = v.n;
             }
             else
@@ -743,7 +745,7 @@ public:
         type = QV_Node;
         v.n = n;
         if (!is_closure)
-            check_lvalue_object_in_out(v.n, 0);
+            check_lvalue_object_in_out(v.n, nullptr);
         return 0;
     }
 
@@ -770,14 +772,14 @@ public:
         AbstractQoreNode* rv;
         if (assigned) {
             if (type == QV_Node) {
-                if (!is_closure)
-                check_lvalue_object_in_out(0, v.n);
+                if (!is_closure) {
+                    check_lvalue_object_in_out(nullptr, v.n);
+                }
                 rv = v.n;
-            }
-            else
+            } else {
                 rv = nullptr;
-        }
-        else {
+            }
+        } else {
             assigned = true;
             rv = nullptr;
         }
@@ -788,10 +790,12 @@ public:
             case QV_Float: v.f = val.v.f; if (type != QV_Float) type = QV_Float; break;
             case QV_Node:
                 v.n = val.takeNode();
-                if (type != QV_Node)
+                if (type != QV_Node) {
                     type = QV_Node;
-                if (!is_closure)
-                    check_lvalue_object_in_out(v.n, 0);
+                }
+                if (!is_closure) {
+                    check_lvalue_object_in_out(v.n, nullptr);
+                }
                 break;
             default: assert(false);
                 // no break
@@ -849,7 +853,7 @@ public:
         if (assigned) {
             if (type == QV_Node) {
                 if (!is_closure)
-                    check_lvalue_object_in_out(0, v.n);
+                    check_lvalue_object_in_out(nullptr, v.n);
                 rv = v.n;
             }
             else
@@ -862,7 +866,7 @@ public:
 
         v.n = n;
         if (!is_closure)
-            check_lvalue_object_in_out(v.n, 0);
+            check_lvalue_object_in_out(v.n, nullptr);
         if (type != QV_Node)
             type = QV_Node;
 
@@ -1413,7 +1417,7 @@ public:
                 return v.f;
             case QV_Node:
                 if (!is_closure)
-                    check_lvalue_object_in_out(0, v.n);
+                    check_lvalue_object_in_out(nullptr, v.n);
                 return v.n;
             default:
                 assert(false);
@@ -1429,7 +1433,7 @@ public:
             if (static_assignment)
                 static_assignment = false;
             if (type == QV_Node && !is_closure)
-                check_lvalue_object_in_out(0, v.n);
+                check_lvalue_object_in_out(nullptr, v.n);
         }
     }
 
@@ -1448,7 +1452,7 @@ public:
                 return for_del ? QoreValue() : QoreValue(v.f);
             case QV_Node:
                 if (!is_closure)
-                    check_lvalue_object_in_out(0, v.n);
+                    check_lvalue_object_in_out(nullptr, v.n);
                 return v.n;
             default:
                 assert(false);

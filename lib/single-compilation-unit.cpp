@@ -79,6 +79,8 @@
 #include "SwitchStatement.cpp"
 #include "Variable.cpp"
 #include "WeakReferenceNode.cpp"
+#include "WeakHashReferenceNode.cpp"
+#include "WeakListReferenceNode.cpp"
 #include "support.cpp"
 #ifdef HAVE_SIGNAL_HANDLING
 #include "QoreSignal.cpp"

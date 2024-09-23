@@ -30,7 +30,9 @@
 */
 
 #include <qore/Qore.h>
+
 #include "qore/intern/ParseNode.h"
+#include "qore/intern/QoreObjectIntern.h"
 
 #ifndef DEBUG
 #define QOREVALUE_USE_MEMCPY 1

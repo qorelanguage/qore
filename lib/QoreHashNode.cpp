@@ -109,6 +109,10 @@ void qore_hash_private::merge(const qore_hash_private& h, SafeDerefHelper& sdh, 
 }
 
 int qore_hash_private::getLValue(const char* key, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink) {
+    if (checkValid(xsink)) {
+        return -1;
+    }
+
     const QoreTypeInfo* memTypeInfo = nullptr;
 
     if (hashdecl) {
@@ -608,7 +612,9 @@ bool QoreHashNode::compareHard(const QoreHashNode* h, ExceptionSink* xsink) cons
 }
 
 bool QoreHashNode::derefImpl(ExceptionSink* xsink) {
-    return priv->derefImpl(xsink);
+    priv->derefImpl(xsink);
+    weakDeref();
+    return false;
 }
 
 void QoreHashNode::clear(ExceptionSink* xsink, bool reverse) {
@@ -766,6 +772,18 @@ const QoreTypeInfo* QoreHashNode::getValueTypeInfo() const {
 
 const QoreTypeInfo* QoreHashNode::getTypeInfo() const {
    return priv->getTypeInfo();
+}
+
+void QoreHashNode::weakRef() {
+    priv->weakRef();
+}
+
+bool QoreHashNode::weakDeref() {
+    bool b = priv->weakDeref();
+    if (b) {
+        delete this;
+    }
+    return b;
 }
 
 HashIterator::HashIterator(QoreHashNode* qh) : h(qh), priv(new qhi_priv()) {

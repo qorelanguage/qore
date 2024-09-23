@@ -35,7 +35,8 @@
 class QoreAssignmentOperatorNode : public QoreBinaryLValueOperatorNode {
 OP_COMMON
 public:
-    DLLLOCAL QoreAssignmentOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreBinaryLValueOperatorNode(loc, left, right) {
+    DLLLOCAL QoreAssignmentOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) :
+            QoreBinaryLValueOperatorNode(loc, left, right) {
     }
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {

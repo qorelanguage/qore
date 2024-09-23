@@ -628,6 +628,8 @@ public:
 #include "qore/intern/QorePseudoMethods.h"
 #include "qore/intern/ParseReferenceNode.h"
 #include "qore/intern/WeakReferenceNode.h"
+#include "qore/intern/WeakHashReferenceNode.h"
+#include "qore/intern/WeakListReferenceNode.h"
 #include "qore/intern/QoreEllipsesNode.h"
 
 DLLLOCAL extern std::atomic<bool> qore_initialized;

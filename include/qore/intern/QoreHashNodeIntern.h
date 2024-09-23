@@ -124,9 +124,11 @@ public:
     const TypedHashDecl* hashdecl = nullptr;
     const QoreTypeInfo* complexTypeInfo = nullptr;
     unsigned obj_count = 0;
+    QoreReferenceCounter weakRefs;
 #ifdef DEBUG
     bool is_obj = false;
 #endif
+    bool valid = true;
 
     DLLLOCAL qore_hash_private() {
     }
@@ -135,6 +137,14 @@ public:
     // because object destructors need to be run...
     DLLLOCAL ~qore_hash_private() {
         assert(member_list.empty());
+    }
+
+    DLLLOCAL int checkValid(ExceptionSink* xsink) {
+        if (!valid) {
+            xsink->raiseException("HASH-ERROR", "Cannot modify a hash that has already gone out of scope");
+            return -1;
+        }
+        return 0;
     }
 
     DLLLOCAL QoreValue getKeyValueIntern(const char* key) const;
@@ -478,6 +488,7 @@ public:
         member_list.clear();
         hm.clear();
         obj_count = 0;
+        valid = false;
         return true;
     }
 
@@ -532,6 +543,17 @@ public:
 
     DLLLOCAL const TypedHashDecl* getHashDecl() const {
         return hashdecl;
+    }
+
+    DLLLOCAL void weakRef() {
+        weakRefs.ROreference();
+    }
+
+    DLLLOCAL bool weakDeref() {
+        if (weakRefs.ROdereference()) {
+            return true;
+        }
+        return false;
     }
 
     DLLLOCAL static QoreHashNode* getPlainHash(QoreHashNode* h) {

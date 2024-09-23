@@ -87,9 +87,11 @@ const qore_type_t NT_NEW_HASHDECL           = 44; //!< type value for NewHashDec
 const qore_type_t NT_WEAKREF                = 45; //!< type value for WeakReferenceNode
 const qore_type_t NT_ELLIPSES               = 46; //!< type value for QoreEllipsesNode
 const qore_type_t NT_NEW_OBJECT             = 47; //!< type value for NewObjectCallNode
+const qore_type_t NT_WEAKREF_HASH           = 48; //!< type value for WeakHashReferenceNode
+const qore_type_t NT_WEAKREF_LIST           = 49; //!< type value for WeakListReferenceNode
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 47
+#define QORE_NUM_TYPES 49
 
 //! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 8

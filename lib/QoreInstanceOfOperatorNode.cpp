@@ -54,8 +54,14 @@ QoreValue QoreInstanceOfOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
     }
 
     // treat a weak reference as the target object
-    if (v->getType() == NT_WEAKREF) {
-        return QoreTypeInfo::runtimeAcceptsValue(ti, **v->get<const WeakReferenceNode>()) ? true : false;
+    qore_type_t t = v->getType();
+    switch (t) {
+        case NT_WEAKREF:
+            return QoreTypeInfo::runtimeAcceptsValue(ti, **v->get<const WeakReferenceNode>()) ? true : false;
+        case NT_WEAKREF_HASH:
+            return QoreTypeInfo::runtimeAcceptsValue(ti, **v->get<const WeakHashReferenceNode>()) ? true : false;
+        case NT_WEAKREF_LIST:
+            return QoreTypeInfo::runtimeAcceptsValue(ti, **v->get<const WeakListReferenceNode>()) ? true : false;
     }
 
     return QoreTypeInfo::runtimeAcceptsValue(ti, *v) ? true : false;

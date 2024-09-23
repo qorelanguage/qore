@@ -170,13 +170,33 @@ QoreValue AbstractQoreNode::eval(bool& needs_deref, ExceptionSink* xsink) const 
     needs_deref = true;
     QoreValue rv = evalImpl(needs_deref, xsink);
 
-    if (rv.getType() == NT_WEAKREF) {
-        QoreObject* o = rv.get<WeakReferenceNode>()->get();
-        if (needs_deref) {
-            o->ref();
-            rv.discard(xsink);
+    switch (rv.getType()) {
+        case NT_WEAKREF: {
+            QoreObject* o = rv.get<WeakReferenceNode>()->get();
+            if (needs_deref) {
+                o->ref();
+                rv.discard(xsink);
+            }
+            return o;
         }
-        rv = o;
+
+        case NT_WEAKREF_HASH: {
+            QoreHashNode* h = rv.get<WeakHashReferenceNode>()->get();
+            if (needs_deref) {
+                h->ref();
+                rv.discard(xsink);
+            }
+            return h;
+        }
+
+        case NT_WEAKREF_LIST: {
+            QoreListNode* l = rv.get<WeakListReferenceNode>()->get();
+            if (needs_deref) {
+                l->ref();
+                rv.discard(xsink);
+            }
+            return l;
+        }
     }
 
     return rv;

@@ -574,6 +574,7 @@ QoreValue qore_object_private::takeMember(LValueHelper& lvh, const char* key) {
         makeAccessDeletedObjectException(lvh.vl.xsink, key, theclass->getName());
         return QoreValue();
     }
+    incChangeCount();
 
     QoreHashNode* odata = member_class_ctx ? getCreateInternalData(member_class_ctx) : data;
 
@@ -610,6 +611,7 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
         makeAccessDeletedObjectException(lvh.vl.xsink, theclass->getName());
         return;
     }
+    incChangeCount();
 
     unsigned old_count = getScanCount();
 
@@ -715,6 +717,7 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
         xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", key);
         return -1;
     }
+    incChangeCount();
 
     qolhh.stayLocked();
 
@@ -932,11 +935,14 @@ void qore_object_private::unsetRealReference() {
     derefRealIntern();
 }
 
-void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
+void qore_object_private::customDeref(ExceptionSink* xsink, bool real) {
     {
-        //printd(5, "qore_object_private::customDeref() this: %p '%s' references: %d->%d (trefs: %d) status: %d\n", this, getClassName(), references, references - 1, tRefs.reference_count(), status);
+        //printd(5, "qore_object_private::customDeref() this: %p '%s' references: %d->%d (trefs: %d) status: %d\n",
+        //    this, getClassName(), references, references - 1, tRefs.reference_count(), status);
 
-        printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::customDeref() this: %p '%s': references %d->%d rrefs %d->%d\n", this, status == OS_OK ? getClassName() : "<deleted>", references.load(), references.load() - 1, rrefs, rrefs - (real ? 1 : 0));
+        printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::customDeref() this: %p '%s': references %d->%d "
+            "rrefs %d->%d\n", this, status == OS_OK ? getClassName() : "<deleted>", references.load(),
+            references.load() - 1, rrefs, rrefs - (real ? 1 : 0));
 
         robject_dereference_helper qodh(this, real);
         int ref_copy = qodh.getRefs();
@@ -958,33 +964,42 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
                     // rset can be changed unless the rsection is acquired
                     sl.acquireRSection();
 
-                    printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' rset: %p (valid: %d) rcount: %d refs: %d/%d rrefs: %d (deferred: %d do_scan: %d)\n", this, getClassName(), rset, RSet::isValid(rset), rcount, ref_copy, references.load(), rrefs, deferred_scan, qodh.doScan());
+                    printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' rset: %p (valid: %d) "
+                        "rcount: %d refs: %d/%d rrefs: %d (deferred: %d do_scan: %d)\n", this, getClassName(), rset,
+                        RSet::isValid(rset), rcount, ref_copy, references.load(), rrefs, deferred_scan,
+                        qodh.doScan());
 
                     int rc;
                     RSet* rs = rset;
 
                     if (!rs) {
                         if (rcount == ref_copy) {
-                            // this must be true if we really are dealing with an object with no more valid (non-recursive) references
+                            // this must be true if we really are dealing with an object with no more valid
+                            // (non-recursive) references
                             assert(references.load() == ref_copy);
                             rc = 1;
                         } else {
                             if (qodh.deferredScan()) {
-                                printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' deferred scan set; rescanning\n", this, getClassName());
+                                printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' deferred scan set; "
+                                    "rescanning\n", this, getClassName());
                                 rc = -1;
                             } else {
-                                printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' no deferred scan\n", this, getClassName());
+                                printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' no deferred scan\n",
+                                    this, getClassName());
                                 return;
                             }
                         }
-                    } else
+                    } else {
                         rc = rs->canDelete(ref_copy, rcount);
+                    }
 
-                    if (!rc)
+                    if (!rc) {
                         return;
+                    }
 
                     if (rc == -1) {
-                        printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' invalid rset, recalculating\n", this, getClassName());
+                        printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' invalid rset, "
+                            "recalculating\n", this, getClassName());
                         recalc = true;
                     }
                 }
@@ -998,7 +1013,8 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
                     }
                 }
 
-                printd(QRO_LVL, "qore_object_private::customDeref() this: %p rcount/refs: %d/%d collecting object (%s) with only recursive references\n", this, rcount, ref_copy, getClassName());
+                printd(QRO_LVL, "qore_object_private::customDeref() this: %p rcount/refs: %d/%d collecting object "
+                    "(%s) with only recursive references\n", this, rcount, ref_copy, getClassName());
 
                 qodh.willDelete();
                 rrf = true;
@@ -1014,14 +1030,16 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
         // if the destructor has already been run, then just run tDeref() which should delete the QoreObject
         if (in_destructor || status != OS_OK) {
             sl.unlock();
-            //printd(5, "qore_object_private::customDeref() this: %p obj: %p %s deleting\n", this, obj, getClassName());
+            //printd(5, "qore_object_private::customDeref() this: %p obj: %p %s deleting\n", this, obj,
+            //    getClassName());
             qodh.finalDeref(this);
             return;
         }
 
         in_destructor = true;
 
-        //printd(5, "qore_object_private::customDeref() class: %s this: %p going out of scope\n", getClassName(), this);
+        //printd(5, "qore_object_private::customDeref() class: %s this: %p going out of scope\n", getClassName(),
+        //   this);
 
         // mark status as in destructor
         status = q_gettid();
@@ -1045,7 +1063,7 @@ int qore_object_private::startCall(const char* mname, ExceptionSink* xsink) {
 
 void qore_object_private::endCall(ExceptionSink* xsink) {
     //printd(5, "qore_object_private::endCall() this: %p obj: %p '%s' calling customDeref()\n", this, obj, theclass->getName());
-    customDeref(true, xsink);
+    customDeref(xsink, true);
 }
 
 void QoreObject::externalDelete(qore_classid_t key, ExceptionSink* xsink) {
@@ -1375,12 +1393,12 @@ void QoreObject::realRef() {
 }
 
 void QoreObject::realDeref(ExceptionSink* xsink) {
-    priv->customDeref(true, xsink);
+    priv->customDeref(xsink, true);
 }
 
 // manages the custom dereference and executes the destructor if necessary
 void QoreObject::customDeref(ExceptionSink* xsink) {
-    priv->customDeref(false, xsink);
+    priv->customDeref(xsink, false);
 }
 
 // this method is called when there is an exception in a constructor and the object should be deleted
