@@ -128,7 +128,7 @@ public class SwaggerDataProvider inherits SwaggerDataProviderCommon {
             : SwaggerDataProviderCommon(rest) {
         self.path_tree = path_tree;
         self.uri_path = uri_path;
-        self.schema = schema;
+        self.schema := schema;
 
         display_name = uri_path.split("/").last();
     }

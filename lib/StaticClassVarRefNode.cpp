@@ -73,8 +73,8 @@ int StaticClassVarRefNode::parseInitImpl(QoreValue& val, QoreParseContext& parse
     return 0;
 }
 
-void StaticClassVarRefNode::getLValue(LValueHelper& lvh) const {
-    vi.getLValue(lvh);
+int StaticClassVarRefNode::getLValue(LValueHelper& lvh) const {
+    return vi.getLValue(lvh);
 }
 
 void StaticClassVarRefNode::remove(LValueRemoveHelper& lvrh) {

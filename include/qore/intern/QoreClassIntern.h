@@ -1138,11 +1138,13 @@ public:
         return val.assignInitial(v);
     }
 
-    DLLLOCAL void getLValue(LValueHelper& lvh) {
+    DLLLOCAL int getLValue(LValueHelper& lvh) {
         lvh.setAndLock(rwl);
-        if (checkFinalized(lvh.vl.xsink))
-            return;
+        if (checkFinalized(lvh.vl.xsink)) {
+            return -1;
+        }
         lvh.setValue(val, getTypeInfo());
+        return 0;
     }
 
     DLLLOCAL void init() {

@@ -713,7 +713,26 @@ class QdpCmd {
         if (path !~ /\/$/) {
             path += "/";
         }
-        map QdpCmd::showProviders(path + $1, provider.getChildProviderEx($1)), provider.getChildProviderNames();
+        *list<string> l = QdpCmd::time(sprintf("get provider names: %y", provider.getName()),
+            \provider.getChildProviderNames());
+        foreach string child in (l) {
+            AbstractDataProvider cp = QdpCmd::time(sprintf("get child %y from %y (%s)", child, provider.getName(),
+                provider.className()),
+                \provider.getChildProviderEx(), child);
+            QdpCmd::showProviders(path + child, cp);
+        }
+
+        #map QdpCmd::showProviders(path + $1, provider.getChildProviderEx($1)), provider.getChildProviderNames();
+    }
+
+    static auto time(string label, code call, ...) {
+        date start = now_us();
+        auto rv = call_function_args(call, argv);
+        date d = now_us() - start;
+        if (d > 500ms) {
+            printf("CALL %y: %y\n", label, d);
+        }
+        return rv;
     }
 
     static update(AbstractDataProvider provider) {

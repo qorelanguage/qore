@@ -33,7 +33,7 @@
 QoreString QoreRemoveOperatorNode::remove_str("remove operator expression");
 
 // if del is true, then the returned QoreString * should be removed, if false, then it must not be
-QoreString *QoreRemoveOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+QoreString* QoreRemoveOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
     del = false;
     return &remove_str;
 }

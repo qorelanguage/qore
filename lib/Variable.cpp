@@ -652,7 +652,7 @@ int LValueHelper::doLValue(const QoreValue& n, bool for_remove) {
         vl.del();
     }
     qore_type_t ntype = n.getType();
-    //printd(5, "LValueHelper::doLValue() n: %s (%d)\n", n.getTypeName(), n.getType());
+    //printd(5, "LValueHelper::doLValue() n: %s (%d)\n", n.getFullTypeName(), n.getType());
     if (ntype == NT_VARREF) {
         const VarRefNode* v = n.get<const VarRefNode>();
 
@@ -681,7 +681,11 @@ int LValueHelper::doLValue(const QoreValue& n, bool for_remove) {
         robj = qore_object_private::get(*obj);
         ocvec.push_back(ObjCountRec(obj));
     } else if (ntype == NT_CLASS_VARREF) {
-        n.get<const StaticClassVarRefNode>()->getLValue(*this);
+        if (n.get<const StaticClassVarRefNode>()->getLValue(*this)) {
+            assert(*vl.xsink);
+            clearPtr();
+            return -1;
+        }
     } else if (ntype == NT_REFERENCE) {
         if (doLValue(n.get<const ReferenceNode>(), for_remove)) {
             // issue #2891 if the lvalue retrieval fails in a complex reference, make sure to clear the object
@@ -729,6 +733,7 @@ int LValueHelper::doLValue(const QoreValue& n, bool for_remove) {
         printd(0, "LValueHelper::doLValue() qv: %s %d\n", qv->getTypeName(), qv->getType());
     }
 #endif
+    assert(!*vl.xsink);
 
     const ReferenceNode* ref = getReference();
     //printd(5, "LValueHelper::doLValue() this: %p ref: %p\n", this, ref);
