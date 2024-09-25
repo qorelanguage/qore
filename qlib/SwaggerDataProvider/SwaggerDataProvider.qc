@@ -240,7 +240,10 @@ public class SwaggerDataProvider inherits SwaggerDataProviderCommon {
                 continue;
             }
             code do_ref = sub (reference<auto> ref, list<string> path_elements, int offset = 0) {
-                string path_element = path_elements[offset];
+                if (!path_elements) {
+                    return;
+                }
+                *string path_element = path_elements[offset];
                 # check for wildcards
                 if (path_element =~ /^{.*}$/) {
                     path_element = "*";

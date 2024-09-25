@@ -574,7 +574,6 @@ QoreValue qore_object_private::takeMember(LValueHelper& lvh, const char* key) {
         makeAccessDeletedObjectException(lvh.vl.xsink, key, theclass->getName());
         return QoreValue();
     }
-    incChangeCount();
 
     QoreHashNode* odata = member_class_ctx ? getCreateInternalData(member_class_ctx) : data;
 
@@ -611,7 +610,6 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
         makeAccessDeletedObjectException(lvh.vl.xsink, theclass->getName());
         return;
     }
-    incChangeCount();
 
     unsigned old_count = getScanCount();
 
@@ -717,7 +715,6 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
         xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", key);
         return -1;
     }
-    incChangeCount();
 
     qolhh.stayLocked();
 

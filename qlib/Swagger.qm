@@ -49,6 +49,8 @@
 %requires(reexport) RestSchemaValidator >= 1.0
 %requires(reexport) FileLocationHandler
 
+%allow-weak-references
+
 module Swagger {
     version = "2.2.2";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
@@ -3463,6 +3465,10 @@ public class AbstractParameterObject inherits ObjectBase {
         addToCache(self);
     }
 
+    copy(AbstractParameterObject old) {
+        addToCache(self);
+    }
+
     #! verifies the parameter in an actual REST API call
     abstract check(bool serialize, bool request, string path, string method, string name, reference value);
 
@@ -3880,6 +3886,10 @@ public class ResponseObject inherits ObjectBase {
         optional_field(objType, oh, "examples", NT_HASH, \examples);
         # TODO keys should be Operation 'produces' values
 
+        addToCache(self);
+    }
+
+    copy(ResponseObject old) {
         addToCache(self);
     }
 
@@ -4324,6 +4334,10 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         if (oh.hasKey("example"))
             example = oh.example;
 
+        addToCache(self);
+    }
+
+    copy(SchemaObject old) {
         addToCache(self);
     }
 

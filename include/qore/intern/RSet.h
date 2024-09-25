@@ -57,18 +57,17 @@ public:
 
     QoreCondition rcond; // condition variable (used with rlck)
 
-    int rscan,          // TID flag for starting a recursive scan
-        rcount,         // the number of unique recursive references to this object
-        rwaiting,       // the number of threads waiting for a scan of this object
-        rchanges = 0,   // change count
-        rcycle,         // the recursive cycle/transaction number to see if the object has been scanned since a transaction restart
-        ref_inprogress, // the number of dereference actions in progress
-        ref_waiting,    // the number of threads waiting on a dereference action to complete
-        rref_waiting,   // the number of threads waiting on an rset invalidation to complete
-        rrefs;          // the number of "real" refs (i.e. refs not possibly part of a recursive graph)
+    int rscan = 0,          // TID flag for starting a recursive scan
+        rcount = 0,         // the number of unique recursive references to this object
+        rwaiting = 0,       // the number of threads waiting for a scan of this object
+        rcycle = 0,         // the recursive cycle/transaction number to see if the object has been scanned since a transaction restart
+        ref_inprogress = 0, // the number of dereference actions in progress
+        ref_waiting = 0,    // the number of threads waiting on a dereference action to complete
+        rref_waiting = 0,   // the number of threads waiting on an rset invalidation to complete
+        rrefs = 0;          // the number of "real" refs (i.e. refs not possibly part of a recursive graph)
 
     // set of objects in a cyclic directed graph
-    RSet* rset;
+    RSet* rset = nullptr;
 
     // reference count
     std::atomic_int& references;
@@ -78,10 +77,7 @@ public:
         rref_wait : 1;       // rset invalidation in progress
 
     DLLLOCAL RObject(std::atomic_int& n_refs, bool niv = false) :
-        rscan(0), rcount(0), rwaiting(0), rcycle(0), ref_inprogress(0),
-        ref_waiting(0), rref_waiting(0), rrefs(0),
-        rset(0), references(n_refs),
-        deferred_scan(false), needs_is_valid(niv), rref_wait(false) {
+        references(n_refs), deferred_scan(false), needs_is_valid(niv), rref_wait(false) {
     }
 
     DLLLOCAL virtual ~RObject();
@@ -156,13 +152,6 @@ public:
 
     // returns the name of the object
     DLLLOCAL virtual const char* getName() const = 0;
-
-    DLLLOCAL void incChangeCount() {
-        ++rchanges;
-        if (rchanges < 0) {
-            rchanges = 1;
-        }
-    }
 };
 
 // use a vector set for performance
