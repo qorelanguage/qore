@@ -235,6 +235,7 @@ int HMACHelper::doHMAC(const char* err, const char* digest, const char* ptr, siz
         xsink->raiseException(err, "error creating MAC context for MAC '%s'", digest);
         return -1;
     }
+    ON_BLOCK_EXIT(EVP_MAC_CTX_free, ctx);
     OSSL_PARAM params[2];
     params[0] = OSSL_PARAM_construct_utf8_string("digest", (char*)digest, 0);
     params[1] = OSSL_PARAM_construct_end();
