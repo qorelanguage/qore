@@ -318,7 +318,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             hash<auto> resp = rest.doValidatedRequest(op.method, uri_path, body, \info, NOTHING, hdr);
             return resp + {"info": info};
         } catch (hash<ExceptionInfo> ex) {
-            error("Swagger request error: %s info: %y", get_exception_string(ex), info);
+            error("SWAGGER-REQUEST-ERROR", "%s info: %y", get_exception_string(ex), info);
             rethrow ex.err, ex.desc, info;
         }
     }
