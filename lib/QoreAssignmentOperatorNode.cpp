@@ -102,9 +102,9 @@ int QoreAssignmentOperatorNode::parseInitIntern(QoreParseContext& parse_context,
             initial_assignment);
         // issue #2106 do not set the ident flag for any other type in case runtime types are more specific (complex)
         // than parse types and require filtering
-        printd(5, "QoreAssignmentOperatorNode::parseInitImpl() '%s' <- '%s' res: %d may_not_match: %d " \
-          "may_need_filter: %d ident: %d\n", QoreTypeInfo::getName(ti), QoreTypeInfo::getName(parse_context.typeInfo),
-          res, may_not_match, may_need_filter, ident);
+        //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() '%s' <- '%s' res: %d may_not_match: %d "
+        //    "may_need_filter: %d ident: %d\n", QoreTypeInfo::getName(ti),
+        //    QoreTypeInfo::getName(parse_context.typeInfo), res, may_not_match, may_need_filter, ident);
     } else {
         res = QTI_AMBIGUOUS;
     }

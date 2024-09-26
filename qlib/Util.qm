@@ -201,7 +201,7 @@ namespace Init {
 #! the Util namespace contains all the objects in the Util module
 public namespace Util {
 #! Message information for display to the user
-public hashdecl MessageInfo {
+public hashdecl UiMessageInfo {
     #! The title of the message
     string title;
 
@@ -236,7 +236,7 @@ public hashdecl AllowedValueInfo {
     *hash<auto> metadata;
 
     #! Messages related to the value
-    *list<hash<MessageInfo>> messages;
+    *list<hash<UiMessageInfo>> messages;
 }
 
 #! the return value of the @ref Util::parse_uri_query() "parse_uri_query()" function

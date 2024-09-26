@@ -32,6 +32,8 @@
 %strict-args
 # enable all warnings
 %enable-all-warnings
+# allow the use of the weak reference assignment operator: ':='
+%allow-weak-references
 
 %requires(reexport) DataProvider
 %requires(reexport) Swagger

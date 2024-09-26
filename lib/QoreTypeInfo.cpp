@@ -1511,66 +1511,75 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
     qore_type_t ot = n.getType();
     // issue #2928 we must ensure that each typespec only access its own data in the union
     switch (typespec) {
-        case QTS_CLASS:
+        case QTS_CLASS: {
+            const QoreObject* obj = nullptr;
             if (ot == NT_OBJECT) {
-                qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*u.qc,
-                    *n.get<const QoreObject>()->getClass());
-                if (rv == QTI_NOT_EQUAL) {
-                    return rv;
-                }
-                // issue #3272: do not return a match for deleted objects
-                if (!n.get<const QoreObject>()->isValid()) {
-                    return QTI_NOT_EQUAL;
-                }
-                return (rv == QTI_IDENT && exact) ? QTI_IDENT : QTI_AMBIGUOUS;
+                obj = n.get<const QoreObject>();
             } else if (ot == NT_WEAKREF) {
-                qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*u.qc,
-                    *n.get<const WeakReferenceNode>()->get()->getClass());
+                obj = n.get<const WeakReferenceNode>()->get();
+            }
+            if (obj) {
+                qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*u.qc, *obj->getClass());
                 if (rv == QTI_NOT_EQUAL) {
                     return rv;
                 }
                 // issue #3272: do not return a match for deleted objects
-                if (!n.get<const WeakReferenceNode>()->get()->isValid()) {
+                if (!obj->isValid()) {
                     return QTI_NOT_EQUAL;
                 }
                 return (rv == QTI_IDENT && exact) ? QTI_IDENT : QTI_AMBIGUOUS;
             }
             return QTI_NOT_EQUAL;
+        }
 
-        case QTS_HASHDECL:
+        case QTS_HASHDECL: {
+            const TypedHashDecl* hd = nullptr;
             if (ot == NT_HASH) {
-                const TypedHashDecl* hd = n.get<const QoreHashNode>()->getHashDecl();
-                if (hd && typed_hash_decl_private::get(*u.hd)->equal(*typed_hash_decl_private::get(*hd)))
-                    return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+                hd = n.get<const QoreHashNode>()->getHashDecl();
+            } else if (ot == NT_WEAKREF_HASH) {
+                hd = n.get<const WeakHashReferenceNode>()->get()->getHashDecl();
+            }
+            if (hd && typed_hash_decl_private::get(*u.hd)->equal(*typed_hash_decl_private::get(*hd))) {
+                return exact ? QTI_IDENT : QTI_AMBIGUOUS;
             }
             return QTI_NOT_EQUAL;
+        }
 
-        case QTS_COMPLEXHASH:
+        case QTS_COMPLEXHASH: {
+            const QoreTypeInfo* ti = nullptr;
+            bool ok = false;
             if (ot == NT_HASH) {
-                if (u.ti == autoTypeInfo) {
-                    return QTI_NEAR;
-                }
-                const QoreTypeInfo* ti = n.get<const QoreHashNode>()->getValueTypeInfo();
-                if (QoreTypeInfo::hasType(ti)) {
-                    if (QoreTypeInfo::parseAccepts(u.ti, ti)) {
-                        return exact ? QTI_IDENT : QTI_AMBIGUOUS;
-                    }
-                }
+                ok = true;
+                ti = n.get<const QoreHashNode>()->getValueTypeInfo();
+            } else if (ot == NT_WEAKREF_HASH) {
+                ok = true;
+                ti = n.get<const WeakHashReferenceNode>()->get()->getValueTypeInfo();
+            }
+            if (ok && u.ti == autoTypeInfo) {
+                return QTI_NEAR;
+            }
+            if (ti && QoreTypeInfo::hasType(ti) && QoreTypeInfo::parseAccepts(u.ti, ti)) {
+                return exact ? QTI_IDENT : QTI_AMBIGUOUS;
             }
             return QTI_NOT_EQUAL;
+        }
 
         case QTS_COMPLEXLIST:
-        case QTS_COMPLEXSOFTLIST:
+        case QTS_COMPLEXSOFTLIST: {
+            const QoreTypeInfo* ti = nullptr;
+            bool ok = false;
             if (ot == NT_LIST) {
-                if (u.ti == autoTypeInfo) {
-                    return QTI_NEAR;
-                }
-                const QoreTypeInfo* ti = n.get<const QoreListNode>()->getValueTypeInfo();
-                if (QoreTypeInfo::hasType(ti)) {
-                    if (QoreTypeInfo::parseAccepts(u.ti, ti)) {
-                        return exact ? QTI_IDENT : QTI_AMBIGUOUS;
-                    }
-                }
+                ok = true;
+                ti = n.get<const QoreListNode>()->getValueTypeInfo();
+            } else if (ot == NT_WEAKREF_LIST) {
+                ok = true;
+                ti = n.get<const WeakListReferenceNode>()->get()->getValueTypeInfo();
+            }
+            if (ok && u.ti == autoTypeInfo) {
+                return QTI_NEAR;
+            }
+            if (ti && QoreTypeInfo::hasType(ti) && QoreTypeInfo::parseAccepts(u.ti, ti)) {
+                return exact ? QTI_IDENT : QTI_AMBIGUOUS;
             }
             if (typespec == QTS_COMPLEXSOFTLIST) {
                 qore_type_result_e rv = QoreTypeInfo::runtimeAcceptsValue(u.ti, n);
@@ -1583,11 +1592,14 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
                 }
             }
             return QTI_NOT_EQUAL;
+        }
 
         case QTS_COMPLEXREF:
             if (ot == NT_REFERENCE) {
                 const QoreTypeInfo* ti = n.get<const ReferenceNode>()->getLValueTypeInfo();
-                //printd(5, "QoreTypeSpec::runtimeAcceptsValue() cr ti: '%s' typeInfo: '%s' eq: %d ss: %d\n", QoreTypeInfo::getName(ti), QoreTypeInfo::getName(u.ti), QoreTypeInfo::equal(u.ti, ti), QoreTypeInfo::outputSuperSetOf(ti, u.ti));
+                //printd(5, "QoreTypeSpec::runtimeAcceptsValue() cr ti: '%s' typeInfo: '%s' eq: %d ss: %d\n",
+                //    QoreTypeInfo::getName(ti), QoreTypeInfo::getName(u.ti), QoreTypeInfo::equal(u.ti, ti),
+                //    QoreTypeInfo::outputSuperSetOf(ti, u.ti));
                 if (QoreTypeInfo::equal(u.ti, ti))
                     return QTI_IDENT;
                 if (QoreTypeInfo::outputSuperSetOf(ti, u.ti))
@@ -1599,17 +1611,33 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
         case QTS_EMPTYHASH:
         case QTS_TYPE:
             // check special cases
-            if (u.t == NT_HASH && ot == NT_HASH) {
-                const qore_hash_private* h = qore_hash_private::get(*n.get<const QoreHashNode>());
-                if (h->hashdecl || h->complexTypeInfo)
-                    return QTI_NEAR;
-                return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+            if (u.t == NT_HASH) {
+                const qore_hash_private* h = nullptr;
+                if (ot == NT_HASH) {
+                    h = qore_hash_private::get(*n.get<const QoreHashNode>());
+                } else if (ot == NT_WEAKREF_HASH) {
+                    h = qore_hash_private::get(*n.get<const WeakHashReferenceNode>()->get());
+                }
+                if (h) {
+                    if (h->hashdecl || h->complexTypeInfo) {
+                        return QTI_NEAR;
+                    }
+                    return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+                }
             }
-            if (u.t == NT_LIST && ot == NT_LIST) {
-                const qore_list_private* l = qore_list_private::get(*n.get<const QoreListNode>());
-                if (l->complexTypeInfo)
-                    return QTI_NEAR;
-                return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+            if (u.t == NT_LIST) {
+                const qore_list_private* l = nullptr;
+                if (ot == NT_LIST) {
+                    l = qore_list_private::get(*n.get<const QoreListNode>());
+                } else if (ot == NT_WEAKREF_LIST) {
+                    l = qore_list_private::get(*n.get<const WeakListReferenceNode>()->get());
+                }
+                if (l) {
+                    if (l->complexTypeInfo) {
+                        return QTI_NEAR;
+                    }
+                    return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+                }
             }
 
             if (u.t == NT_ALL || u.t == ot) {
