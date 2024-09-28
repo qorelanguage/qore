@@ -653,7 +653,6 @@ set(LIBQORE_CPP_SRC
     lib/Transform.cpp
     lib/QorePseudoMethods.cpp
     lib/xxhash.cpp
-    lib/minitest.cpp
     lib/FunctionalOperator.cpp
     lib/FunctionalOperatorInterface.cpp
     lib/QoreQuestionMarkOperatorNode.cpp
