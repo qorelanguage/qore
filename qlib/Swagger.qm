@@ -305,10 +305,13 @@ public const LM_OPTIONAL_REF_PROPERTIES    = (1 << 5);
 #! parse option: accept additional properties without raising an error
 public const LM_ACCEPT_ALL_PROPERTIES      = (1 << 6);
 
+#! parse option: accept object as a query parameter type (as with OpenApi 3+)
+public const LM_ACCEPT_QUERY_OBJECTS       = (1 << 7);
+
 #! parse options: all options
 public const LM_ALL = (
     LM_IGNORE_MISSING_REQUIRED | LM_LAX_COLLECTIONFORMAT | LM_IGNORE_INVALID_REQUIRED | LM_ACCEPT_INVALID_BODY_PARAMS
-    | LM_AUTO_FORM_DATA | LM_OPTIONAL_REF_PROPERTIES | LM_ACCEPT_ALL_PROPERTIES
+    | LM_AUTO_FORM_DATA | LM_OPTIONAL_REF_PROPERTIES | LM_ACCEPT_ALL_PROPERTIES | LM_ACCEPT_QUERY_OBJECTS
 );
 #/@}
 
@@ -618,7 +621,7 @@ class SchemaBase {
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method,
             string name, hash<auto> v, reference<hash> value) {
-        if (type != "file" && type != "any")
+        if (type != "file" && type != "any" && type != "object")
             throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is an object (%y), but "
                 "the expected type is %y", name, path, method, v, type);
     }
@@ -1126,8 +1129,43 @@ public class SwaggerLoader {
     }
 }
 
+#! Common class for objects that have parameters
+public class ParameterGroup inherits ObjectBase {
+    public {
+        #! A hash of parameters for this object
+        /**
+            Hash values are @ref AbstractParameterObject "AbstractParameterObjects"
+        */
+        hash<string, AbstractParameterObject> parameters();
+
+        #! Any query param with type "object"? (OpenAPI 3 compatible)
+        string query_obj;
+    }
+
+    #! Creates the object from the hash definition
+    constructor(hash<auto> oh) : ObjectBase(oh) {
+    }
+
+    #! Adds a parameter to the group
+    addParameter(AbstractParameterObject p) {
+        addParameter(p.name, p);
+    }
+
+    #! Adds a parameter to the group
+    addParameter(string key, AbstractParameterObject p) {
+        if (p.inLoc == "query" && cast<OtherParameter>(p).type == "object") {
+            if (exists query_obj) {
+                throw "SWAGGER-SCHEMA-ERROR", sprintf("Query parameter %y has already been defined with type "
+                    "\"object\"; cannot define subsequent parameter %y with the same type", query_obj, key);
+            }
+            query_obj = key;
+        }
+        parameters{key} := p;
+    }
+}
+
 #! This is the root document object for the API specification. It combines what previously was the Resource Listing and API Declaration (version 1.2 and earlier) together into one document.
-public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
+public class SwaggerSchema inherits ParameterGroup, AbstractRestSchemaValidator {
     public {
         #! <a href="https://swagger.io/">Swagger</a> Specification version being used.
         /**
@@ -1186,12 +1224,6 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             A hash of @ref SchemaObject objects. Keys are schema names.
          */
         hash<string, SchemaObject> definitions();
-
-        #! Parameter definitions that can be used across operations. This property does not define global parameters for all operations.
-        /**
-            A hash of @ref AbstractParameterObject objects. Keys are parameter names.
-         */
-        hash<string, AbstractParameterObject> parameters();
 
         #! Response definitions that can be used across operations. This property does not define global responses for all operations.
         /**
@@ -1290,7 +1322,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @throws REQUIRED-FIELD-MISSING required field is missing
         @throws SECURITY-ERROR inconsistent security information in schema
     */
-    public constructor(string schema_source, hash<auto> oh, *hash<auto> opts) : ObjectBase(oh) {
+    public constructor(string schema_source, hash<auto> oh, *hash<auto> opts) : ParameterGroup(oh) {
         constructorIntern(schema_source, oh, opts);
     }
 
@@ -1315,7 +1347,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @throws SECURITY-ERROR inconsistent security information in schema
     */
     public constructor(LoggerInterface logger, string schema_source, hash<auto> oh, *hash<auto> opts)
-            : ObjectBase(oh), AbstractRestSchemaValidator(logger)  {
+            : ParameterGroup(oh), AbstractRestSchemaValidator(logger)  {
         constructorIntern(schema_source, oh, opts);
     }
 
@@ -1362,7 +1394,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             foreach hash<auto> item in (obj.pairIterator()) {
                 if (item.value.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE", "Swagger Object: invalid parameter datatype: " + item.value.type();
-                parameters{item.key} := AbstractParameterObject::newParameter(item.key, item.value, self);
+                addParameter(item.key, AbstractParameterObject::newParameter(item.key, item.value, self));
                 if (opt_flags & LM_AUTO_FORM_DATA && parameters{item.key}.inLoc.formData
                     && !consumes{MimeTypeFormUrlEncoded}) {
                     consumes{MimeTypeFormUrlEncoded} = True;
@@ -1989,7 +2021,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         # add the basePath to the request
         if (exists basePath) {
-            rv.uri_path = basePath + (h.method =~ /^\// ? "" : "/") + h.method;
+            rv.uri_path = h.method = basePath + (h.method =~ /^\// ? "" : "/") + h.method;
         }
 
         # rebuild URI query after processing
@@ -2551,7 +2583,7 @@ public class PathsObject inherits ObjectBase {
     exposed to the documentation viewer but they will not know which operations
     and parameters are available.
  */
-public class PathItemObject inherits ObjectBase {
+public class PathItemObject inherits ParameterGroup {
     public {
         #! Allows for an external definition of this path item.
         /**
@@ -2561,19 +2593,7 @@ public class PathItemObject inherits ObjectBase {
          */
         *string ref;
 
-        #! A hash of parameters that are applicable for all the operations described under this path.
-        /**
-            Hash values are @ref AbstractParameterObject "AbstractParameterObjects"
-
-            These parameters can be overridden at the operation level, but cannot
-            be removed there. The list MUST NOT include duplicated parameters.
-            A unique parameter is defined by a combination of a
-            @ref AbstractParameterObject::name "name" and @ref AbstractParameterObject::inLoc "location".
-            There can be one \c body parameter at most.
-         */
-        hash<string, AbstractParameterObject> parameters();
-
-        #! The body parameter, if defined for this path
+        #! The body parameter, if defined
         AbstractParameterObject body;
     }
 
@@ -2602,7 +2622,7 @@ public class PathItemObject inherits ObjectBase {
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(string path, hash<auto> oh, SwaggerSchema swagger) : ObjectBase(oh) {
+    public constructor(string path, hash<auto> oh, SwaggerSchema swagger) : ParameterGroup(oh) {
         string objType = "Path Item";
         optional_field(objType, oh, "$ref", NT_STRING, \ref);
 
@@ -2650,7 +2670,7 @@ public class PathItemObject inherits ObjectBase {
                             path);
                     body := p;
                 } else {
-                    parameters{p.name} := p;
+                    addParameter(p);
                 }
             }
         }
@@ -2681,7 +2701,7 @@ public class PathItemObject inherits ObjectBase {
 }
 
 #! Describes a single API operation on a path.
-public class OperationObject inherits ObjectBase {
+public class OperationObject inherits ParameterGroup {
     public {
         #! the URI path for the operation
         string path;
@@ -2736,22 +2756,11 @@ public class OperationObject inherits ObjectBase {
          */
         hash<string, bool> produces;
 
-        #! A hash of parameters that are applicable for this operation.
-        /**
-            If a parameter is already defined at the @ref PathItemObject "Path Item",
-            the new definition will override it, but can never remove it.
-            The hash MUST NOT include duplicated parameters.
-            A unique parameter is defined by a combination of a @ref AbstractParameterObject::name "name"
-            and @ref AbstractParameterObject::inLoc "location".
-            There can be one "body" parameter at most.
-         */
-        hash<string, AbstractParameterObject> parameters();
-
-        #! body parameter; if defined for this operation, formData parameter will be excluded
-        AbstractParameterObject body;
-
         #! formData parameter; if defined for this operation, body parameter will be excluded
         hash<string, AbstractParameterObject> formData;
+
+        #! The body parameter, if defined
+        AbstractParameterObject body;
 
         #! Required. The list of possible responses as they are returned from executing this operation.
         ResponsesObject responses;
@@ -2789,7 +2798,7 @@ public class OperationObject inherits ObjectBase {
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(string path, string method, hash<auto> oh, SwaggerSchema swagger) : ObjectBase(oh) {
+    public constructor(string path, string method, hash<auto> oh, SwaggerSchema swagger) : ParameterGroup(oh) {
         self.path = path;
         self.method = method.upr();
         string objType = "Operation";
@@ -2886,7 +2895,7 @@ public class OperationObject inherits ObjectBase {
                         consumes{MimeTypeFormUrlEncoded} = True;
                     }
                 } else {
-                    parameters{param.name} := param;
+                    addParameter(param);
                 }
             }
         }
@@ -3002,12 +3011,21 @@ public class OperationObject inherits ObjectBase {
     validateRequest(bool serialize, PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<auto> body,
             reference<hash> headers, *reference<hash<string, bool>> mime_types) {
         # check query parameters
+        *string query_obj = self.query_obj ?? pio.query_obj;
+        if (exists query_obj) {
+            h.params{query_obj} = map {$1: remove h.params{$1}}, keys h.params, !parameters{$1} && !pio.parameters{$1};
+        }
+
         foreach string key in (keys h.params) {
             # find URI parameter object
             *AbstractParameterObject po = parameters{key} ?? pio.parameters{key};
             if (!po) {
-                error("SCHEMA-VALIDATION-ERROR", "No query parameter named %y defined for this path and method; "
-                    "known query parameters: %y", key, keys (parameters + pio.parameters));
+                if (exists (*string op = (query_obj ?? pio.query_obj))) {
+                    h.params{op}{key} = remove h.params{key};
+                } else {
+                    error("SCHEMA-VALIDATION-ERROR", "No query parameter named %y defined for this path and method; "
+                        "known query parameters: %y", key, keys (parameters + pio.parameters));
+                }
             }
             if (po.inLoc != "query") {
                 error("SCHEMA-VALIDATION-ERROR", "invalid parameter %y given in the URI query; expected location %y",
@@ -3015,6 +3033,11 @@ public class OperationObject inherits ObjectBase {
             }
 
             po.check(serialize, True, path, method, key, \h.params{key});
+        }
+        # when serializing query args of type hash (OpenAPI 3+ compatibility), merge the object's keys back into the
+        # hash
+        if (exists query_obj && serialize) {
+            h.params = remove h.params{query_obj};
         }
 
         # check header parameters
@@ -3414,8 +3437,7 @@ public class AbstractParameterObject inherits ObjectBase {
 
         #! Required. The location of the parameter.
         /**
-            Possible values are \c "query", \c "header", \c "path",
-            \c "formData" or \c "body".
+            Possible values are \c "query", \c "header", \c "path", \c "formData" or \c "body".
         */
         string inLoc;
 
@@ -3438,7 +3460,6 @@ public class AbstractParameterObject inherits ObjectBase {
             "query": True,
             "header": True,
             "path": True,
-            "formData": True,
         );
     }
 
@@ -3484,10 +3505,13 @@ public class AbstractParameterObject inherits ObjectBase {
 
         if (!oh.hasKey("in"))
             throw "REQUIRED-FIELD-MISSING", sprintf("Parameter Object %y: missing location parameter \"in\"", name);
-        if (oh."in" == "body")
+        if (oh."in" == "body") {
             return new BodyParameter(oh, swagger);
-        else if (OtherParameterMap{oh."in"})
+        } else if (oh."in" == "formData") {
+            return new FormDataParameter(name, oh, swagger);
+        } else if (OtherParameterMap{oh."in"}) {
             return new OtherParameter(name, oh, swagger);
+        }
         throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid location (\"in\") parameter value: %y",
             name, oh."in");
     }
@@ -3546,19 +3570,20 @@ public class BodyParameter inherits AbstractParameterObject {
     }
 }
 
-#! @ref AbstractParameterObject specialization for parameters other than \c "body".
-public class OtherParameter inherits AbstractParameterObject, SchemaBase {
+#! @ref AbstractParameterObject specialization for parameters other than \c "body"
+public class TypedParameter inherits AbstractParameterObject, SchemaBase {
     public {
         #! Required. The type of the parameter.
         /**
-            Since the parameter is not located at the request body, it is
-            limited to simple types (that is, not an object).
+            Since the parameter is not located at the request body, it is limited to simple types (that is, not an
+            object - in OpenAPI 2 / Swagger - as an extention to support Swagger 3+ schemas converted to 2, we
+            support also "object" with form-data serialization).
             The value MUST be one of \c "string", \c "number", \c "integer",
             \c "boolean", \c "array" or \c "file". If \c type is \c "file",
             the @ref OperationObject::consumes "consumes" MUST be either
             \c "multipart/form-data", \c " application/x-www-form-urlencoded" or
             both and the parameter MUST be @ref AbstractParameterObject::inLoc "in" \c "formData".
-         */
+        */
         string type;
 
         #! The extending format for the previously mentioned \c type. See Data Type Formats for further details.
@@ -3569,10 +3594,10 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
             This is valid only for either \c query or \c formData parameters and
             allows you to send a parameter with a name only or an empty value.
             Default value is \c false.
-         */
+        */
         bool allowEmptyValue = False;
 
-        #! Required if @ref OtherParameter::type "type" is \c "array". Describes the type of items in the array.
+        #! Required if @ref TypedParameter::type "type" is \c "array". Describes the type of items in the array.
         *ParameterItemsSchemaObject items;
 
         #! Determines the format of the array if type array is used.
@@ -3588,7 +3613,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                 \c "query" or \c "formData".
 
             Default value is \c "csv".
-         */
+        */
         *string collectionFormat;
 
         #! Declares the value of the parameter that the server will use if none is provided.
@@ -3598,37 +3623,16 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
             (Note: "default" has no meaning for required parameters.)
             See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.2.
             Unlike JSON Schema this value MUST conform to the defined type for this parameter.
-         */
+        */
         auto defaultVal;
-
-        #! valid parameter types
-        const ParameterTypes = SchemaObject::ScalarTypes + (
-            "file": True,
-            "object": True,
-        );
     }
 
-    #! Constructor.
-    /**
-        @param name the parameter name
-        @param oh deserialized hash from the source schema description describing general parameters (other than
-        \c "body" parameters)
-        @param swagger the REST schema for resolving references
-
-        @throws INVALID-FIELD-TYPE field has invalid type
-        @throws INVALID-FIELD-VALUE field has invalid value
-        @throws REQUIRED-FIELD-MISSING required field is missing
-     */
+    #! Creates the object
     public constructor(string name, hash<auto> oh, SwaggerSchema swagger)
             : AbstractParameterObject(oh, swagger.getParseFlags()), SchemaBase("Parameter", oh) {
         string objType = "Parameter";
         optional_field(objType, oh, "type", NT_STRING, \type);
-        if (!exists type) {
-            type = "any";
-        } else if (!ParameterTypes{type}) {
-            throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid parameter type value passed: %y, "
-                "expecting one of: %y", name, type, keys ParameterTypes);
-        }
+        setType(swagger);
         if (type != "array" && oh.collectionFormat && (swagger.getParseFlags() & LM_LAX_COLLECTIONFORMAT)) {
             format = type;
             type = "array";
@@ -3665,7 +3669,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
 
         if (oh.hasKey("default")) {
             defaultVal = oh."default";
-            OtherParameter::checkValueType(\defaultVal, type, items);
+            TypedParameter::checkValueType(\defaultVal, type, items);
         }
     }
 
@@ -3674,19 +3678,24 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
         # issue #2388 ensure that query parameters are converted to their target type first
         if (inLoc == "query") {
             switch (type) {
-                case "integer":
-                    if (value !~ /^([+-])?[0-9]+$/)
-                        throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type "
-                            "\"integer\" is invalid; value provided: %y", name, path, method, value);
-                    value = value.toInt();
-                    switch (format) {
-                        case "unix-time":
-                            value = localtime(value);
-                            break;
+                case "integer": {
+                    if (value.typeCode() == NT_STRING) {
+                        if (value =~ /[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-2][0-9]:[0-5][0-9]:[0-5][0-9])?/) {
+                            value = date(value).getEpochSeconds();
+                        } else {
+                            if (value !~ /^([+-])?[0-9]+$/) {
+                                throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of "
+                                    "type \"integer\" is invalid; value provided: %y", name, path, method, value);
+                            }
+                            value = value.toInt();
+                        }
                     }
                     break;
+                }
                 case "number":
-                    value = value.toNumber();
+                    if (value.typeCode() == NT_STRING) {
+                        value = value.toNumber();
+                    }
                     break;
                 case "string":
                     switch (format) {
@@ -3769,12 +3778,71 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
             if (vt != NT_LIST)
                 throw "INVALID-FIELD-TYPE", sprintf("Parameter Object: 'default' value%s has invalid type %y "
                     "(expecting schema type %y)", loc, value.type(), type);
-            OtherParameter::checkValueType(\value[0], items.type, items.items, loc + "[0]");
+            TypedParameter::checkValueType(\value[0], items.type, items.items, loc + "[0]");
         }
 
         if (!SchemaBase::checkValueType(\value, type)) {
             throw "INVALID-FIELD-TYPE", sprintf("Parameter Object: 'default' value%s has invalid type %y (expecting "
                 "schema type %y)", loc, value.type(), type);
+        }
+    }
+
+    #! Sets the parameter type
+    abstract private setType(SwaggerSchema swagger);
+}
+
+#! @ref AbstractParameterObject specialization for formData parameters
+public class FormDataParameter inherits TypedParameter {
+    public {
+        #! valid parameter types
+        const ParameterTypes = SchemaObject::ScalarTypes + {
+            "file": True,
+            "object": True,
+        };
+    }
+
+    public constructor(string name, hash<auto> oh, SwaggerSchema swagger) : TypedParameter(name, oh, swagger) {
+    }
+
+    #! Sets the parameter type
+    private setType(SwaggerSchema swagger) {
+        if (!exists type) {
+            type = "any";
+        } else if (!ParameterTypes{type}) {
+            throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid parameter type value passed: %y, "
+                "expecting one of: %y", name, type, keys ParameterTypes);
+        }
+    }
+}
+
+#! @ref AbstractParameterObject specialization for parameters other than \c "body" and \c "formData"
+public class OtherParameter inherits TypedParameter {
+    public {
+        #! valid parameter types
+        const ParameterTypes = SchemaObject::ScalarTypes;
+    }
+
+    #! Constructor
+    /**
+        @param name the parameter name
+        @param oh deserialized hash from the source schema description describing general parameters (other than
+        \c "body" parameters)
+        @param swagger the REST schema for resolving references
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-FIELD-VALUE field has invalid value
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(string name, hash<auto> oh, SwaggerSchema swagger) : TypedParameter(name, oh, swagger) {
+    }
+
+    #! Sets the parameter type
+    private setType(SwaggerSchema swagger) {
+        if (!exists type) {
+            type = "any";
+        } else if (!ParameterTypes{type} && (type != "object" || !(swagger.getParseFlags() & LM_ACCEPT_QUERY_OBJECTS))) {
+            throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid parameter type value passed: %y, "
+                "expecting one of: %y", name, type, keys ParameterTypes);
         }
     }
 }
@@ -4181,7 +4249,6 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             "integer": True,
             "boolean": True,
             "array": True,
-            "file": True,
         );
 
         #! valid reference types

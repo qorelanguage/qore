@@ -17,6 +17,7 @@
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/FsUtil.qm
 %requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/HttpServerUtil.qm
@@ -30,6 +31,7 @@
 
 public class SwaggerDataProviderTest inherits QUnit::Test {
     constructor() : Test("SwaggerDataProviderTest", "1.0") {
+        addTestCase("compat test", \compatTest());
         addTestCase("swagger data provider test", \testSwaggerDataProvider());
         set_return_value(main());
     }
@@ -41,6 +43,65 @@ public class SwaggerDataProviderTest inherits QUnit::Test {
 %ifdef NoYaml
         testSkip("no yaml module");
 %endif
+    }
+
+    compatTest() {
+        hash<auto> schema = {
+            "swagger": "2.0",
+            "info": {
+                "title": "test",
+                "version": "1.0"
+            },
+            "paths": {
+                "/api/query-object": {
+                    "get": {
+                        "responses": {
+                            "200": {
+                                "description": "success",
+                                "schema": {
+                                    "type": "string",
+                                }
+                            },
+                        },
+                        "produces": (MimeTypeJson,),
+                        "parameters": (
+                            {
+                                "in": "query",
+                                "name": "obj",
+                                "type": "object",
+                            },
+                        )
+                    },
+                },
+            },
+        };
+
+        TmpFile file("swagger-data-provider-test-", "yaml");
+        file.file.write(make_yaml(schema));
+        SwaggerDataProvider prov({
+            "schema": file.path,
+            "lax_parsing": True,
+        });
+        assertEq("test", prov.getName());
+
+        {
+            AbstractDataProvider p0 = prov.getChildProviderPath("api/query-object/GET");
+            AbstractDataProviderType req = p0.getRequestType();
+            AbstractDataField q = req.getField("query");
+            assertEq(NT_HASH, q.getType().getBaseTypeCode());
+            assertEq(NT_HASH, q.getType().getField("obj").getType().getBaseTypeCode());
+
+            hash<auto> obj = {
+                "a": 1,
+                "b": 2,
+            };
+            auto v = req.acceptsValue({
+                "query": {
+                    "obj": obj,
+                },
+            });
+            assertEq(obj, v.query.obj);
+        }
     }
 
     testSwaggerDataProvider() {

@@ -132,7 +132,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         if (op.formData) {
             HashDataType formData(getName() + ": request formData");
             foreach hash<auto> i in (op.formData.pairIterator()) {
-                OtherParameter formData = cast<OtherParameter>(i.value);
+                TypedParameter formData = cast<TypedParameter>(i.value);
                 rv.addField(new QoreDataField(i.key, "formData." + i.key, getType("/request/" + i.key,
                     i.value.type, i.value.format, i.value.items, i.value.required)));
                 if (!required && i.value.required) {
