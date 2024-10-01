@@ -308,10 +308,14 @@ public const LM_ACCEPT_ALL_PROPERTIES      = (1 << 6);
 #! parse option: accept object as a query parameter type (as with OpenApi 3+)
 public const LM_ACCEPT_QUERY_OBJECTS       = (1 << 7);
 
+#! parse option: ignore invalid paths
+public const LM_IGNORE_INVALID_PATHS       = (1 << 8);
+
 #! parse options: all options
 public const LM_ALL = (
     LM_IGNORE_MISSING_REQUIRED | LM_LAX_COLLECTIONFORMAT | LM_IGNORE_INVALID_REQUIRED | LM_ACCEPT_INVALID_BODY_PARAMS
     | LM_AUTO_FORM_DATA | LM_OPTIONAL_REF_PROPERTIES | LM_ACCEPT_ALL_PROPERTIES | LM_ACCEPT_QUERY_OBJECTS
+    | LM_IGNORE_INVALID_PATHS
 );
 #/@}
 
@@ -1524,10 +1528,10 @@ public class SwaggerSchema inherits ParameterGroup, AbstractRestSchemaValidator 
     #! resolves a reference to a parameter items schema object
     /** @throw INVALID-REFERENCE invalid reference
     */
-    ParameterItemsSchemaObject resolveParameterItemsSchemaObject(string name, string refstr, hash<auto> oh) {
+    ParameterItemsSchemaObject resolveParameterItemsSchemaObject(string name, string refstr, hash<auto> oh, *string inLoc) {
         # resolve external reference
         if (refstr !~ /^#\//)
-            return ParameterItemsSchemaObject::newSchemaObject(name, getExternalReference(refstr), self);
+            return ParameterItemsSchemaObject::newSchemaObject(name, getExternalReference(refstr), self, inLoc);
         if (refstr !~ /^#\/definitions\//)
             throw "INVALID-REFERENCE", sprintf("cannot resolve parameter items SchemaObject %y reference %y", name, refstr);
         string rstr = (refstr =~ x/^#\/definitions\/(.*)$/)[0];
@@ -2445,12 +2449,20 @@ public class PathComponent {
     constructor(hash<auto> oh, string pfx, SwaggerSchema swagger) {
         self.pfx = pfx;
         name = "/";
+        int parse_flags = swagger.getParseFlags();
         foreach hash<auto> h in (oh.pairIterator()) {
             if (!pfx.val() && h.key !~ /^\//)
                 throw "INVALID-FIELD-FORMAT", sprintf("Paths Object: root path %y does not begin with a slash", h.key);
             list<string> l = h.key.split("/");
             shift l;
-            add(h.key, l, 0, h.value, swagger);
+            try {
+                add(h.key, l, 0, h.value, swagger);
+            } catch (hash<ExceptionInfo> ex) {
+                if (parse_flags & LM_IGNORE_INVALID_PATHS) {
+                    continue;
+                }
+                rethrow;
+            }
         }
     }
 
@@ -3639,7 +3651,8 @@ public class TypedParameter inherits AbstractParameterObject, SchemaBase {
         }
         if (type == "array") {
             if (exists oh.items) {
-                items := ParameterItemsSchemaObject::newSchemaObject("items", oh.items ?? {"type": "object"}, swagger);
+                items := ParameterItemsSchemaObject::newSchemaObject("items", oh.items ?? {"type": "object"}, swagger,
+                    oh."in");
             }
             if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
                 if (!ParameterCollectionFormats{collectionFormat})
@@ -4667,15 +4680,17 @@ public class ParameterItemsSchemaObject inherits SchemaObject {
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    private constructor(string name, hash<auto> oh, SwaggerSchema swagger) : SchemaObject(name, oh, swagger) {
+    private constructor(string name, hash<auto> oh, SwaggerSchema swagger, *string inLoc) : SchemaObject(name, oh, swagger) {
         if (optional_field("Parameter Items Schema", oh, "collectionFormat", NT_STRING, \collectionFormat)) {
             if (!CollectionFormats{collectionFormat})
                 throw "INVALID-FIELD-VALUE",
-                    sprintf("Parameter Items Schema Object %y: invalid collectionFormat value %y; expected one of: %y", name, collectionFormat, keys CollectionFormats);
+                    sprintf("Parameter Items Schema Object %y: invalid collectionFormat value %y; expected one "
+                        "of: %y", name, collectionFormat, keys CollectionFormats);
         }
-        if (type == "object")
+        if (type == "object" && inLoc != "formData")
             throw "INVALID-FIELD-VALUE",
-                sprintf("Parameter Items Schema Object %y: invalid type value \"object\"; parameter items must be basic types and cannot be objects", name);
+                sprintf("Parameter Items Schema Object %y: invalid type value \"object\"; parameter items must be "
+                    "basic types and cannot be objects", name);
     }
 
     #! returns a SchemaObject for the schema definition; resolves references
@@ -4691,17 +4706,18 @@ public class ParameterItemsSchemaObject inherits SchemaObject {
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
     */
-    static ParameterItemsSchemaObject newSchemaObject(string name, hash<auto> oh, SwaggerSchema swagger) {
+    static ParameterItemsSchemaObject newSchemaObject(string name, hash<auto> oh, SwaggerSchema swagger,
+            *string inLoc) {
         string refstr;
         if (optional_field("Parameter Items Schema", oh, "$ref", NT_STRING, \refstr))
             return swagger.resolveParameterItemsSchemaObject(name, refstr, oh);
-        return new ParameterItemsSchemaObject(name, oh, swagger);
+        return new ParameterItemsSchemaObject(name, oh, swagger, inLoc);
     }
 
     #! throws an \c "INVALID-FIELD-TYPE" exception
     /** @throws INVALID-FIELD-TYPE due to a type error in the call
     */
-    static ParameterItemsSchemaObject newSchemaObject(string name, auto error, SwaggerSchema swagger) {
+    static ParameterItemsSchemaObject newSchemaObject(string name, auto error, SwaggerSchema swagger, *string inLoc) {
         throw "INVALID-FIELD-TYPE", sprintf("invalid field type %y for key %y; expecting \"hash\"", error.type(),
             name);
     }
