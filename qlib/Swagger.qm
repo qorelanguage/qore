@@ -2449,7 +2449,7 @@ public class PathComponent {
     constructor(hash<auto> oh, string pfx, SwaggerSchema swagger) {
         self.pfx = pfx;
         name = "/";
-        int parse_flags = swagger.getParseFlags();
+        *int parse_flags = swagger.getParseFlags();
         foreach hash<auto> h in (oh.pairIterator()) {
             if (!pfx.val() && h.key !~ /^\//)
                 throw "INVALID-FIELD-FORMAT", sprintf("Paths Object: root path %y does not begin with a slash", h.key);
