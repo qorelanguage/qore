@@ -421,9 +421,9 @@ public class ConnectionSchemeCache {
             foreach hash<auto> i in (options.pairIterator()) {
                 hash<ConnectionOptionInfo> info = scheme_info.options{i.key};
                 if (!exists i.value) {
-                    if (exists info.default_value) {
-                        options{i.key} = info.default_value;
-                    }
+                    # if an option has no value, then we assume that it should be set to no value and delete it
+                    # not including the option key will allow it to be set with the default value
+                    delete options{i.key};
                     continue;
                 }
                 string type = info.type;
