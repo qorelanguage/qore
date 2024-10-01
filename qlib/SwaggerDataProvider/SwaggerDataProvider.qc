@@ -128,7 +128,7 @@ public class SwaggerDataProvider inherits SwaggerDataProviderCommon {
             : SwaggerDataProviderCommon(rest) {
         self.path_tree = path_tree;
         self.uri_path = uri_path;
-        self.schema := schema;
+        self.schema = schema;
 
         display_name = uri_path.split("/").last();
     }
@@ -287,7 +287,10 @@ public class SwaggerDataProvider inherits SwaggerDataProviderCommon {
         }
 
         # try to match an operation
-        *PathItemObject pio = schema.paths.tryMatch(uri_path);
+        *PathItemObject pio;
+        if (schema.paths) {
+            pio = schema.paths.tryMatch(uri_path);
+        }
         if (pio) {
             try {
                 return new SwaggerRequestDataProvider(schema, rest, uri_path, pio,

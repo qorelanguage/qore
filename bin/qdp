@@ -787,8 +787,11 @@ class QdpCmd {
     }
 
     static request(AbstractDataProvider provider) {
-        *hash<auto> req = QdpCmd::getHash("request");
-        QdpCmd::showType(provider, provider.getRequestTypeWithData(req));
+        if (*hash<auto> req = QdpCmd::getHash("request")) {
+            QdpCmd::showType(provider, provider.getRequestTypeWithData(req));
+        } else {
+            QdpCmd::showType(provider, provider.getRequestType());
+        }
         if (opts.verbose) {
             *hash<string, hash<DataProviderOptionInfo>> opts = provider.getRequestOptions();
             if (opts) {

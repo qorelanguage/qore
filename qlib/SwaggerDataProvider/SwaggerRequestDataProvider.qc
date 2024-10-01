@@ -49,7 +49,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     #! Creates the object from the arguments
     constructor(SwaggerSchema schema, *RestClient rest, string uri_path, PathItemObject pio, OperationObject op)
             : SwaggerDataProviderBase(rest) {
-        self.schema := schema;
+        self.schema = schema;
         self.uri_path = uri_path;
         self.pio := pio;
         self.op := op;

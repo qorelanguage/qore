@@ -2014,7 +2014,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
       acquire an access token
     - \c "oauth2_client_id": The OAuth2 client ID; ignored if the \c token option is set
     - \c "oauth2_client_secret": the OAuth2 client secret; ignored if the \c token option is set
-    - \c "oauth2_grant_type": the OAuth2 grant type; ; ignored if the \c token option is set; possible values:
+    - \c "oauth2_grant_type": the OAuth2 grant type; ignored if the \c token option is set; possible values:
       - \c "authorization_code": requires \c oauth2_client_id, \c oauth2_client_secret, \c oauth2_auth_url, as well as
         \c oauth2_token_url; note that this grant type cannot be handled automatically but rather must be handled by
         external code that redirects the user to the authentication server and then updates the connection with token
@@ -2023,6 +2023,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         \c oauth2_token_url
       - \c "password": requires a username, password, \c oauth2_client_id, \c oauth2_client_secret, as well as
         \c oauth2_token_url
+      - \c "none": same as if this option is not set; it means that no OAuth2 grant flow will be used
     - \c "oauth2_pkce": Use PKCE (Proof Key Code Exchange) when using the OAuth2 \c authorization_code flow.  Note
       that this is a hint for external applications processing the flow.
     - \c "oauth2_redirect_url": The OAuth2 redirect URL for the \c authorization_code grant type; ignored if the
@@ -2230,6 +2231,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                             "desc": "OAuth2 2.0 legacy password grant "
                                 "([RFC 6749 password grant]"
                                 "(https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3))",
+                        }, <AllowedValueInfo>{
+                            "value": "none",
+                            "desc": "No OAuth2 grant flow will be used",
                         },
                     ),
                 },
