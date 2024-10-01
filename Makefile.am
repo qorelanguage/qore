@@ -21,6 +21,7 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/MapperUtil.qm \
 	qlib/WebSocketUtil.qm \
 	qlib/Logger.qm \
+	qlib/OpenApi3.qm \
 	qlib/RestSchemaValidator.qm \
 	qlib/Swagger.qm \
 	qlib/RestClient.qm \
@@ -121,6 +122,7 @@ DbDataProvider_modverdir = $(modverdir)/DbDataProvider
 BulkSqlUtil_modverdir = $(modverdir)/BulkSqlUtil
 CsvUtil_modverdir = $(modverdir)/CsvUtil
 FixedLengthUtil_modverdir = $(modverdir)/FixedLengthUtil
+OpenApi3DataProvider_modverdir = $(modverdir)/OpenApi3DataProvider
 SwaggerDataProvider_modverdir = $(modverdir)/SwaggerDataProvider
 SalesforceRestDataProvider_modverdir = $(modverdir)/SalesforceRestDataProvider
 CdsRestDataProvider_modverdir = $(modverdir)/CdsRestDataProvider
@@ -148,6 +150,7 @@ dist_DbDataProvider_modver_DATA = $(wildcard qlib/DbDataProvider/*.q[cm])
 dist_BulkSqlUtil_modver_DATA = $(wildcard qlib/BulkSqlUtil/*.q[cm])
 dist_CsvUtil_modver_DATA = $(wildcard qlib/CsvUtil/*.q[cm])
 dist_FixedLengthUtil_modver_DATA = $(wildcard qlib/FixedLengthUtil/*.q[cm])
+dist_OpenApi3DataProvider_modver_DATA = $(wildcard qlib/OpenApi3DataProvider/*.q[cm])
 dist_SwaggerDataProvider_modver_DATA = $(wildcard qlib/SwaggerDataProvider/*.q[cm])
 dist_SalesforceRestDataProvider_modver_DATA = $(wildcard qlib/SalesforceRestDataProvider/*.q[cm])
 dist_CdsRestDataProvider_modver_DATA = $(wildcard qlib/CdsRestDataProvider/*.q[cm])
@@ -1201,6 +1204,9 @@ doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 doxygen/qlib/Doxyfile.ConnectionProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/ConnectionProvider:doxygen/qlib/ConnectionProvider.qm -tMime.tag=../../Mime/html $< $@
 
+doxygen/qlib/Doxyfile.OpenApi3: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/OpenApi3.qm:doxygen/qlib/OpenApi3.qm -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html -tHttpServerUtil.tag=../../HttpServerUtil/html -tRestSchemaValidator.tag=../../RestSchemaValidator/html $< $@
+
 doxygen/qlib/Doxyfile.RestSchemaValidator: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/RestSchemaValidator.qm:doxygen/qlib/RestSchemaValidator.qm -tHttpServerUtil.tag=../../HttpServerUtil/html $< $@
 
@@ -1208,7 +1214,7 @@ doxygen/qlib/Doxyfile.Swagger: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Swagger.qm:doxygen/qlib/Swagger.qm -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html -tHttpServerUtil.tag=../../HttpServerUtil/html -tRestSchemaValidator.tag=../../RestSchemaValidator/html $< $@
 
 doxygen/qlib/Doxyfile.RestClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm -tDataProvider.tag=../../DataProvider/html -tMime.tag=../../Mime/html -tConnectionProvider.tag=../../ConnectionProvider/html -tRestSchemaValidator.tag=../../RestSchemaValidator/html -tSwagger.tag=../../Swagger/html $< $@
+	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm -tDataProvider.tag=../../DataProvider/html -tMime.tag=../../Mime/html -tConnectionProvider.tag=../../ConnectionProvider/html -tRestSchemaValidator.tag=../../RestSchemaValidator/html -tSwagger.tag=../../Swagger/html -tOpenApi3.tag=../../OpenApi3/html $< $@
 
 doxygen/qlib/Doxyfile.RestClientDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/RestClientDataProvider:doxygen/qlib/RestClientDataProvider.qm -tDataProvider.tag=../../DataProvider/html -tRestClient.tag=../../RestClient/html $< $@
