@@ -277,7 +277,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     }
 
     #! Makes a REST request and returns the response
-    private hash<auto> doRequestIntern(auto req, *hash<auto> options) {
+    private *hash<auto> doRequestIntern(auto req, *hash<auto> options) {
         RestClient rest = getRestClient();
         # make URI path with any query args
         string uri_path = getUriPath();
@@ -320,7 +320,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
                 uri_path = base_path + uri_path;
             }
             hash<auto> resp = rest.doValidatedRequest(op.method, uri_path, body, \info, NOTHING, hdr);
-            hash<auto> rv;
+            *hash<auto> rv;
             if (resp.body.val()) {
                 rv.body = resp.body;
             }
