@@ -42,6 +42,9 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         #! The success response code, if any
         string success_response;
 
+        #! Any headers to return in the response
+        *list<string> response_headers;
+
         #! If the request supports a list of hashes in the response and therefore the record API
         *hash<string, AbstractDataField> record_type;
     }
@@ -193,6 +196,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         if (response.headers) {
             RecursiveSearchHelper rsh();
             rv.addField(getFieldForHeaders("headers", response.headers));
+            response_headers = keys response.headers;
         }
         return rv;
     }
@@ -316,7 +320,14 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
                 uri_path = base_path + uri_path;
             }
             hash<auto> resp = rest.doValidatedRequest(op.method, uri_path, body, \info, NOTHING, hdr);
-            return resp + {"info": info};
+            hash<auto> rv;
+            if (resp.body.val()) {
+                rv.body = resp.body;
+            }
+            if (response_headers) {
+                rv.headers = map {$1: info."response-headers"{$1.lwr()}}, response_headers;
+            }
+            return rv;
         } catch (hash<ExceptionInfo> ex) {
             error("SWAGGER-REQUEST-ERROR", "%s info: %y", get_exception_string(ex), info);
             rethrow ex.err, ex.desc, info;
