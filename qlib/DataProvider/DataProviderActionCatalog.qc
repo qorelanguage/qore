@@ -831,6 +831,7 @@ public class DataProviderActionCatalog {
             *hash<auto> additional_fields) {
         hash<string, hash<ActionOptionInfo>> rv;
         foreach hash<auto> i in (fields.pairIterator()) {
+            on_error rethrow $1.err, sprintf("%s (while processing field %y)", $1.desc, i.key);
             if (i.value instanceof AbstractDataField) {
                 hash<DataFieldInfo> info = i.value.getInfo();
                 i.value = info{"display_name", "short_desc", "desc", "default_value", "example_value",

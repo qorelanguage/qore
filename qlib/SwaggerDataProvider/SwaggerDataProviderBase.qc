@@ -92,12 +92,15 @@ public class SwaggerDataProviderBase inherits SwaggerDataProviderCommon {
     #! Returns a field definition from the Swagger parameter
     private AbstractDataField getFieldFromSchemaIntern(string path, string name, *string desc, SchemaObject schema,
             bool required = True, *RestClient rest, auto default_value) {
-        if (schema.desc) {
-            if (desc) {
+        if (schema.desc.val()) {
+            if (desc.val()) {
                 desc += ": " + schema.desc;
             } else {
                 desc = schema.desc;
             }
+        }
+        if (!desc) {
+            desc = sprintf("Property %y of path %y", name, path);
         }
         if (schema.type == "object") {
             # check for recursive field definitions
