@@ -193,6 +193,9 @@ public:
     //! Removes any value stored for the lvalue location
     DLLEXPORT QoreValue remove() const;
 
+    //! Returns the type of the reference
+    DLLEXPORT const QoreTypeInfo* getReferenceTypeInfo() const;
+
 private:
     DLLLOCAL QoreTypeSafeReferenceHelper(const QoreTypeSafeReferenceHelper&) = delete;
     DLLLOCAL QoreTypeSafeReferenceHelper& operator=(const QoreTypeSafeReferenceHelper&) = delete;

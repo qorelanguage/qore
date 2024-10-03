@@ -79,6 +79,10 @@ const char* QoreTypeSafeReferenceHelper::getTypeName() const {
     return priv->getTypeName();
 }
 
+const QoreTypeInfo* QoreTypeSafeReferenceHelper::getReferenceTypeInfo() const {
+    return priv->typeInfo;
+}
+
 AutoVLock& QoreTypeSafeReferenceHelper::getVLock() const {
     return priv->vl;
 }
