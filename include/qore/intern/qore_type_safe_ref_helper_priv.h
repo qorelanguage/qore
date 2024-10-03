@@ -52,11 +52,20 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
 
     DLLLOCAL AbstractQoreNode* getUnique(ExceptionSink *xsink) {
         ensureUnique();
+        assert(!LValueHelper::getNodeValue() || (LValueHelper::getNodeValue()->reference_count() == 1));
         return LValueHelper::getNodeValue();
     }
 
     DLLLOCAL int assign(QoreValue val) {
         return LValueHelper::assign(val, "<reference>");
+    }
+
+    DLLLOCAL int doHashLValue(qore_type_t t, const char* mem, bool for_remove) {
+        return LValueHelper::doHashLValue(t, mem, for_remove);
+    }
+
+    DLLLOCAL int doObjLValue(QoreObject* obj, const char* mem, bool for_remove) {
+        return LValueHelper::doObjLValue(obj, mem, for_remove);
     }
 
     DLLLOCAL const QoreValue getValue() const {

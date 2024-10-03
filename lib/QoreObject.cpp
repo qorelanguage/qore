@@ -1467,35 +1467,6 @@ QoreValue QoreObject::getMemberValueNoMethod(const char* key, const QoreClass* c
     return rv;
 }
 
-// unlocking the lock is managed with the AutoVLock object
-int QoreObject::editMemberValue(const char* key, const QoreClass* cls, QoreTypeSafeReferenceHelper& ref,
-        bool for_remove) const {
-    LValueHelper& lvh = qore_type_safe_ref_helper_priv_t::get(ref);
-
-    // get the current class context
-    const qore_class_private* class_ctx;
-    const qore_class_private* member_class_ctx = nullptr;
-    if (cls) {
-        class_ctx = qore_class_private::get(*cls);
-        if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*priv->theclass, class_ctx))
-            class_ctx = nullptr;
-
-        member_class_ctx = nullptr;
-        // check for illegal access
-        if (priv->checkMemberAccess(key, class_ctx, member_class_ctx, lvh.vl.xsink)) {
-            return false;
-        }
-    } else {
-        class_ctx = qore_class_private::get(*priv->theclass);
-    }
-
-    ExceptionSink* xsink = ref.getExceptionSink();
-    if (priv->getLValue(key, lvh, qore_class_private::get(*(cls ? cls : priv->theclass)), for_remove, xsink)) {
-        return -1;
-    }
-    return 0;
-}
-
 QoreValue QoreObject::getReferencedMemberNoMethod(const char* key, const QoreClass* cls, ExceptionSink* xsink) const {
     ObjectSubstitutionHelper osh(const_cast<QoreObject*>(this), qore_class_private::get(*(cls ? cls : priv->theclass)));
     return priv->getReferencedMemberNoMethod(key, xsink);
@@ -1513,17 +1484,6 @@ int QoreObject::setMemberValue(const char* key, const QoreClass* cls, const Qore
     }
     LValueHelper lvh(xsink);
     if (priv->getLValue(key, lvh, qore_class_private::get(*cls), false, xsink)) {
-        return -1;
-    }
-    lvh.assign(val.refSelf(), "<set normal class member value>");
-    return *xsink ? -1 : 0;
-}
-
-int QoreObject::setMemberValue(const char* key, const QoreClass* cls, const QoreValue val,
-        QoreTypeSafeReferenceHelper& ref) {
-    LValueHelper& lvh = qore_type_safe_ref_helper_priv_t::get(ref);
-    ExceptionSink* xsink = ref.getExceptionSink();
-    if (priv->getLValue(key, lvh, qore_class_private::get(*(cls ? cls : priv->theclass)), false, xsink)) {
         return -1;
     }
     lvh.assign(val.refSelf(), "<set normal class member value>");
