@@ -343,6 +343,7 @@ protected:
 
     DLLLOCAL int doListLValue(const QoreSquareBracketsOperatorNode* op, bool for_remove);
     DLLLOCAL int doHashLValue(qore_type_t t, const char* mem, bool for_remove);
+    DLLLOCAL int doObjLValue(QoreObject* o, const char* mem, bool for_remove);
     DLLLOCAL int doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* op, bool for_remove);
 
     DLLLOCAL int makeIntQv(const char* desc);
@@ -421,7 +422,6 @@ public:
     DLLLOCAL void setValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
         //printd(5, "LValueHelper::setValue() this: %p nv: %s ti: %s\n", this, nv.getFixedTypeName(),
         //    QoreTypeInfo::getName(ti));
-
         assert(!val);
         assert(!qv);
         val = &nv;
