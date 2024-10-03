@@ -120,7 +120,9 @@ public class OpenApi3Test inherits QUnit::Test {
                         "in": "query",
                         "description": "desc",
                         "required": False,
-                        "type": "string",
+                        "schema": {
+                            "type": "string",
+                        },
                     ),
                     "enum": (
                         "name": "enum",
@@ -137,33 +139,41 @@ public class OpenApi3Test inherits QUnit::Test {
                         "in": "query",
                         "description": "desc",
                         "required": False,
-                        "type": "integer",
+                        "schema": {
+                            "type": "integer",
+                        },
                     ),
                     "date": (
                         "name": "date",
                         "in": "query",
                         "description": "desc",
                         "required": False,
-                        "type": "string",
-                        "format": "date",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                        },
                     ),
                     "byte": (
                         "name": "byte",
                         "in": "query",
                         "description": "desc",
                         "required": False,
-                        "type": "string",
-                        "format": "byte",
+                        "schema": {
+                            "type": "string",
+                            "format": "byte",
+                        },
                     ),
                     "string": (
                         "name": "string",
                         "in": "query",
                         "description": "desc",
                         "required": False,
-                        "type": "string",
-                        "minLength": 2,
-                        "maxLength": 5,
-                        "enum": ("abc", "def", "ghi"),
+                        "schema": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 5,
+                            "enum": ("abc", "def", "ghi"),
+                        },
                     ),
                 },
             },
@@ -565,7 +575,9 @@ public class OpenApi3Test inherits QUnit::Test {
                             "parameters": ({
                                 "in": "header",
                                 "name": "Test-Header",
-                                "type": "string",
+                                "schema": {
+                                    "type": "string",
+                                },
                                 "required": True,
                                 "default": "Test",
                             },),
@@ -579,10 +591,7 @@ public class OpenApi3Test inherits QUnit::Test {
                 string uri_path = "/test";
                 hash<auto> hdr = {"Test-Header": "Test"};
                 assertEq(Type::Hash, so.processRequest("get", uri_path, NOTHING, hdr).type());
-
-                hash<RestRequestClientInfo> h = so.processRequest("get", uri_path);
-                assertNothing(h);
-                #assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("get", uri_path));
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("get", uri_path));
             }
 
             {
@@ -615,8 +624,10 @@ public class OpenApi3Test inherits QUnit::Test {
                             "parameters": ((
                                 "in": "query",
                                 "name": "bin",
-                                "type": "string",
-                                "format": "byte",
+                                "schema": {
+                                    "type": "string",
+                                    "format": "byte",
+                                },
                             ),),
                             "consumes": (
                                 MimeTypeJson,
@@ -662,7 +673,7 @@ public class OpenApi3Test inherits QUnit::Test {
                 assertEq("ERR", cres.body);
             }
 
-            soh.definitions = (
+            soh.components.schemas = {
                 "robj": (
                     "type": "object",
                     "properties": (
@@ -693,26 +704,26 @@ public class OpenApi3Test inherits QUnit::Test {
                         },
                     },
                 },
-            );
+            };
             soh.paths."/test".get.responses."200".schema = {
-                "$ref": "#/definitions/robj",
+                "$ref": "#/components/schemas/robj",
             };
             soh.paths."/test".get.responses."404" = {
                 "description": "test",
                 "schema": {
-                    "$ref": "#/definitions/nobj",
+                    "$ref": "#/components/schemas/nobj",
                 },
             };
             soh.paths."/test".get.responses."500" = {
                 "description": "test",
                 "schema": {
-                    "$ref": "#/definitions/pobj",
+                    "$ref": "#/components/schemas/pobj",
                 },
             };
             soh.paths."/test".get.responses."501" = {
                 "description": "test",
                 "schema": {
-                    "$ref": "#/definitions/nullableobj",
+                    "$ref": "#/components/schemas/nullableobj",
                 },
             };
 
@@ -874,16 +885,20 @@ public class OpenApi3Test inherits QUnit::Test {
                                     "in": "query",
                                     "description": "desc",
                                     "required": False,
-                                    "type": "number",
-                                    "format": "float",
+                                    "schema": {
+                                        "type": "number",
+                                        "format": "float",
+                                    },
                                 },
                                 {
                                     "name": "dt",
                                     "in": "query",
                                     "description": "desc",
                                     "required": False,
-                                    "type": "integer",
-                                    "format": "unix-time",
+                                    "schema": {
+                                        "type": "integer",
+                                        "format": "unix-time",
+                                    },
                                 },
                             ),
                             "responses": (
@@ -938,7 +953,9 @@ public class OpenApi3Test inherits QUnit::Test {
                                     "in": "path",
                                     "description": "customer ID",
                                     "required": True,
-                                    "type": "integer",
+                                    "schema": {
+                                        "type": "integer",
+                                    },
                                 },
                             ),
                             "responses": (
@@ -1093,7 +1110,11 @@ public class OpenApi3Test inherits QUnit::Test {
         # parameters checks
         p = {"/a": {"parameters": list()}};
         assertTrue(loadyaml(my_make_yaml(base + {"paths": p})));
-        p = {"/a": {"parameters": ({"$ref": "#/parameters/a"}, {"name": "a", "in": "query", "type": "string"})}};
+        p = {"/a": {"parameters": ({"$ref": "#/components/parameters/a"}, {
+            "name": "a",
+            "in": "query",
+            "schema": {"type": "string"},
+        })}};
         assertTrue(loadyaml(my_make_yaml(base + {"paths": p})));
         p = {"/a": {"parameters": 5}};
         assertThrows("INVALID-FIELD-TYPE", "parameters", loadyaml, my_make_yaml(base + {"paths": p}));
@@ -1162,7 +1183,7 @@ public class OpenApi3Test inherits QUnit::Test {
         assertThrows("INVALID-FIELD-TYPE", "produces", loadyaml, my_make_yaml(base + {"paths": {"/a": p}}));
 
         # parameters checks
-        p = {"get": {"responses": r, "parameters": ({"$ref": "#/parameters/a"},)}};
+        p = {"get": {"responses": r, "parameters": ({"$ref": "#/components/parameters/a"},)}};
         assertTrue(loadyaml(my_make_yaml(base + {"paths": {"/a": p}})));
         p = {"get": {"responses": r, "parameters": 5}};
         assertThrows("INVALID-FIELD-TYPE", "parameters", loadyaml, my_make_yaml(base + {"paths": {"/a": p}}));
@@ -1170,16 +1191,6 @@ public class OpenApi3Test inherits QUnit::Test {
         # responses checks
         p = {"get": {"responses": 5}};
         assertThrows("INVALID-FIELD-TYPE", "responses", loadyaml, my_make_yaml(base + {"paths": {"/a": p}}));
-
-        # schemes checks
-        p = {"get": {"responses": r, "schemes": ("http", "https", "ws", "wss")}};
-        assertTrue(loadyaml(my_make_yaml(base + {"paths": {"/a": p}})));
-        p = {"get": {"responses": r, "schemes": ("a",)}};
-        assertThrows("INVALID-FIELD-VALUE", "invalid.*transfer protocol", loadyaml, my_make_yaml(base + {"paths": {"/a": p}}));
-        p = {"get": {"responses": r, "schemes": (5, 2)}};
-        assertThrows("INVALID-FIELD-TYPE", "schemes.*list value", loadyaml, my_make_yaml(base + {"paths": {"/a": p}}));
-        p = {"get": {"responses": r, "schemes": 5}};
-        assertThrows("INVALID-FIELD-TYPE", "schemes", loadyaml, my_make_yaml(base + {"paths": {"/a": p}}));
 
         # security checks
         p = {"get": {"responses": r, "security": ({"a":("b",)},)}};
@@ -1204,7 +1215,7 @@ public class OpenApi3Test inherits QUnit::Test {
         hash<auto> headers = {"header": "header"};
 
         assertThrows("SCHEMA-VALIDATION-ERROR",
-            'Parameter \"formData.upfile\".*expected type is \"file\"',
+            'Parameter \"formData.upfile\".*expected type is \"string\"',
             sub() {op.validateRequest(False, new PathItemObject("/create", {}, openapi3), \h, \body, \headers,
                 \mime_types); });
     }
@@ -1234,120 +1245,132 @@ public class OpenApi3Test inherits QUnit::Test {
         hash p;
 
         # name and in checks
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"in": "query", "type": "string"}};
-        assertThrows("REQUIRED-FIELD-MISSING", "\"name\".*missing", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = base.parameters + {"a": {"name": "a", "type": "string"}};
-        assertThrows("REQUIRED-FIELD-MISSING", loadyaml, my_make_yaml(base + {"parameters": p}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"in": "query", "schema": {"type": "string"}}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"name\".*missing", loadyaml,
+            my_make_yaml(base + {"components": {"parameters": p}}));
+        p = base.components.parameters + {"a": {"name": "a", "schema": {"type": "string"}}};
+        assertThrows("REQUIRED-FIELD-MISSING", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
 
-        p = base.parameters + {"a": {"name": 5, "in": "query", "type": "string"}};
-        assertThrows("INVALID-FIELD-TYPE", "name", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = base.parameters + {"a": {"name": "a", "in": 5, "type": "string"}};
-        assertThrows("INVALID-FIELD-VALUE", "in", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = base.parameters + {"a": {"name": "a", "in": "a", "type": "string"}};
-        assertThrows("INVALID-FIELD-VALUE", "in", loadyaml, my_make_yaml(base + {"parameters": p}));
+        p = base.components.parameters + {"a": {"name": 5, "in": "query", "schema": {"type": "string"}}};
+        assertThrows("INVALID-FIELD-TYPE", "name", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
+        p = base.components.parameters + {"a": {"name": "a", "in": 5, "schema": {"type": "string"}}};
+        assertThrows("INVALID-FIELD-TYPE", "in", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "a", "schema": {"type": "string"}}};
+        assertThrows("INVALID-FIELD-VALUE", "in", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
 
         # description checks
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "description": 5}};
-        assertThrows("INVALID-FIELD-TYPE", "description", loadyaml, my_make_yaml(base + {"parameters": p}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string"}, "description": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "description", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
 
         # TODO - body location parameter - have to do SchemaObject first
 
         # in (location) checks
-        p = base.parameters + {"a": {"name": "a", "in": "formData", "type": "string"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "header", "type": "string"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "formData", "schema": {"type": "string"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "header", "schema": {"type": "string"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
 
         # "required" checks
-        p = base.parameters + {"a": {"name": "a", "in": "path", "type": "string", "required": False}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "path", "type": "string"}};
-        assertThrows("REQUIRED-FIELD-MISSING", "\"required\".*missing", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = base.parameters + {"a": {"name": "a", "in": "path", "type": "string", "required": "a"}};
-        assertThrows("INVALID-FIELD-TYPE", "required", loadyaml, my_make_yaml(base + {"parameters": p}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "path", "schema": {"type": "string"},
+            "required": False}};
+        assertThrows("INVALID-PARAMETER", loadyaml, (my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "path", "schema": {"type": "string"}}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"required\".*missing", loadyaml,
+            my_make_yaml(base + {"components": {"parameters": p}}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "path", "schema": {"type": "string"}, "required": "a"}};
+        assertThrows("INVALID-FIELD-TYPE", "required", loadyaml,
+            my_make_yaml(base + {"components": {"parameters": p}}));
 
         # type checks
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": 5}};
-        assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "a"}};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": 5}}};
+        assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml,
+            my_make_yaml(base + {"components": {"parameters": p}}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "a"}}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
 
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "boolean"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "format": "unix-time"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "array",
+            "items": {"type": "string"}}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "boolean"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "integer"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "number"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "integer",
+            "format": "unix-time"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
 
         # format checks
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": 5}};
-        assertThrows("INVALID-FIELD-TYPE", loadyaml, my_make_yaml(base + {"parameters": p}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string", "format": 5}}};
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
 
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "format": "int32"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "format": "int64"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "format": "a"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "integer", "format": "int32"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "integer", "format": "int64"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "integer", "format": "a"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
 
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number", "format": "double"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number", "format": "float"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number", "format": "a"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "number", "format": "double"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "number", "format": "float"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "number", "format": "a"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
 
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "binary"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "byte"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "date"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "date-time"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "password"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "a"}};
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string", "format": "binary"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string", "format": "byte"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string", "format": "date"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string", "format": "date-time"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string", "format": "password"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string", "format": "a"}}};
         # issue 4203: ignore unknown string format
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
 
         # allowEmptyValue checks
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "allowEmptyValue": 5}};
-        assertThrows("INVALID-FIELD-TYPE", "allowEmptyValue", loadyaml, my_make_yaml(base + {"parameters": p}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string"}, "allowEmptyValue": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "allowEmptyValue", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
 
         # collectionFormat checks
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "csv", "items": {"type": "string"}}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "ssv", "items": {"type": "string"}}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "tsv", "items": {"type": "string"}}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "pipes", "items": {"type": "string"}}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "multi", "items": {"type": "string"}}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "style": "form", "explode": False,
+            "schema": {"type": "array", "items": {"type": "string"}}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "style": "spaceDelimited",
+            "schema": {"type": "array", "items": {"type": "string"}}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "style": "pipeDelimited",
+            "schema": {"type": "array", "items": {"type": "string"}}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "style": "form",
+            "schema": {"type": "array", "explode": True, "items": {"type": "string"}}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
 
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": 5, "items": {"type": "string"}}};
-        assertThrows("INVALID-FIELD-TYPE", "collectionFormat", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "a", "items": {"type": "string"}}};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = base.parameters + {"a": {"name": "a", "in": "header", "type": "array", "collectionFormat": "multi", "items": {"type": "string"}}};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "style": 5,
+            "schema": {"type": "array", "items": {"type": "string"}}}};
+        assertThrows("INVALID-FIELD-TYPE", "style", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "style": "a",
+            "schema": {"type": "array", "items": {"type": "string"}}}};
+        assertThrows("INVALID-STYLE", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "header", "style": "form",
+            "schema": {"type": "array", "explode": True, "items": {"type": "string"}}}};
+        assertThrows("INVALID-STYLE", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
 
         # default checks
 
-        p = base.parameters + {"a": {"name": "a", "in": "formData", "type": "file"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "formData", "schema": {"type": "string"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
 
         # TODO
         /*
@@ -1357,28 +1380,28 @@ public class OpenApi3Test inherits QUnit::Test {
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
         */
 
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "boolean", "default": "true"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "boolean", "default": 5}};
-        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "boolean", "default": "true"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "boolean", "default": 5}}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
 
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "file"}};
-        assertThrows("INVALID-FIELD-VALUE", "invalid .* type", loadyaml, my_make_yaml(base + {"parameters": p}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "file"}}};
+        assertThrows("INVALID-FIELD-VALUE", "invalid .* type", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
 
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "default": 5}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "default": "a"}};
-        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "integer", "default": 5}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "integer", "default": "a"}}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
 
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number", "default": 2.0}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number", "default": "a"}};
-        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "number", "default": 2.0}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "number", "default": "a"}}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
 
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "default": "a"}};
-        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "default": 5}};
-        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string", "default": "a"}}};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"parameters": p}})));
+        p = base.components.parameters + {"a": {"name": "a", "in": "query", "schema": {"type": "string", "default": 5}}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"components": {"parameters": p}}));
     }
 
     testItemsObject() {
@@ -1659,15 +1682,15 @@ public class OpenApi3Test inherits QUnit::Test {
         hash s;
 
         # ref checks
-        s = {"$ref": "#/definitions/x"};
-        assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}})));
+        s = {"$ref": "#/components/schemas/x"};
+        assertTrue(loadyaml(my_make_yaml(base + {"components": {"schemas": {"x": ("type": "string"), "a": s}}})));
         s = {"$ref": 5};
         assertThrows("INVALID-FIELD-TYPE", "ref.*invalid type", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
 
-        s = {"$ref": "#/definitions/y"};
+        s = {"$ref": "#/components/schemas/y"};
         assertThrows("INVALID-REFERENCE", "cannot resolve", loadyaml, my_make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}}));
         # issue #3843: sibling elements to a $ref must be ignored
-        s = {"$ref": "#/definitions/x", "a": 1};
+        s = {"$ref": "#/components/schemas/x", "a": 1};
         assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}})));
 
         # type checks
@@ -1867,7 +1890,7 @@ public class OpenApi3Test inherits QUnit::Test {
         assertThrows("INVALID-FIELD-TYPE", "readOnly", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
 
         # allOf Checks
-        s = {"type": "string", "allOf": ({"$ref": "#/definitions/x"}, {"type": "string"})};
+        s = {"type": "string", "allOf": ({"$ref": "#/components/schemas/x"}, {"type": "string"})};
         assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}})));
         s = {"type": "string", "allOf": list()};
         assertThrows("INVALID-FIELD-FORMAT", "allOf", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
@@ -2059,13 +2082,13 @@ public class OpenApi3Test inherits QUnit::Test {
                 "name": "body",
                 "required": True,
                 "schema": (
-                    "$ref": "#/definitions/a",
+                    "$ref": "#/components/schemas/a",
                 ),
             );
             b.paths."/api/smtg" += (
                 "post": (
                     "parameters": ((
-                        "$ref": "#/parameters/a",
+                        "$ref": "#/components/parameters/a",
                     ),),
                     "responses": (
                         "200": (
@@ -2093,11 +2116,11 @@ public class OpenApi3Test inherits QUnit::Test {
                 ),
                 "put": (
                     "parameters": (
-                        ("$ref": "#/parameters/enum",),
-                        ("$ref": "#/parameters/int",),
-                        ("$ref": "#/parameters/date",),
-                        ("$ref": "#/parameters/byte",),
-                        ("$ref": "#/parameters/string",),
+                        ("$ref": "#/components/parameters/enum",),
+                        ("$ref": "#/components/parameters/int",),
+                        ("$ref": "#/components/parameters/date",),
+                        ("$ref": "#/components/parameters/byte",),
+                        ("$ref": "#/components/parameters/string",),
                     ),
                     "responses": (
                         "200": (
