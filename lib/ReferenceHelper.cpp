@@ -30,6 +30,8 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/qore_type_safe_ref_helper_priv.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 QoreTypeSafeReferenceHelper::QoreTypeSafeReferenceHelper(ExceptionSink* xsink)
         : priv(new qore_type_safe_ref_helper_priv_t(xsink)) {
@@ -79,12 +81,49 @@ const char* QoreTypeSafeReferenceHelper::getTypeName() const {
     return priv->getTypeName();
 }
 
+int QoreTypeSafeReferenceHelper::setObjKey(QoreObject* obj, const char* key, bool for_remove) {
+    priv->setObjectContext(qore_object_private::get(*obj));
+    return priv->doObjLValue(obj, key, for_remove);
+}
+
+int QoreTypeSafeReferenceHelper::moveToHashObjKey(const char* key, bool for_remove) {
+    QoreValue v = priv->getValue();
+    if (v.getType() == NT_OBJECT) {
+        return priv->doObjLValue(v.get<QoreObject>(), key, for_remove);
+    }
+    return priv->doHashLValue(priv->getType(), key, for_remove);
+}
+
+QoreValue QoreTypeSafeReferenceHelper::removeHashObjKey(const char* key) {
+    QoreValue v = priv->getValue();
+    if (v.getType() == NT_OBJECT) {
+        return qore_object_private::takeMember(*v.get<QoreObject>(), *priv, key);
+    } else if (v.getType() == NT_HASH) {
+        priv->ensureUnique();
+        QoreHashNode* h = v.get<QoreHashNode>();
+        ValueHolder rv(h->takeKeyValue(key), priv->vl.xsink);
+        if (needs_scan(*rv)) {
+            if (!qore_hash_private::getScanCount(*h)) {
+                priv->setDelta(-1);
+            }
+        }
+        return rv.release();
+    }
+    priv->vl.xsink->raiseException("REMOVE-KEY-ERROR", new QoreStringNodeMaker("Cannot remove a key from type "
+        "\"%s\"; expecting \"hash\" or \"object\"", v.getFullTypeName()));
+    return QoreValue();
+}
+
 const QoreTypeInfo* QoreTypeSafeReferenceHelper::getReferenceTypeInfo() const {
     return priv->typeInfo;
 }
 
 AutoVLock& QoreTypeSafeReferenceHelper::getVLock() const {
     return priv->vl;
+}
+
+bool QoreTypeSafeReferenceHelper::isLocked() const {
+    return (bool)priv->vl;
 }
 
 void QoreTypeSafeReferenceHelper::close() {
@@ -94,13 +133,4 @@ void QoreTypeSafeReferenceHelper::close() {
 
 ExceptionSink* QoreTypeSafeReferenceHelper::getExceptionSink() const {
     return priv->vl.xsink;
-}
-
-QoreValue QoreTypeSafeReferenceHelper::remove() const {
-    bool static_assignment = false;
-    QoreValue rv = priv->remove(static_assignment);
-    if (static_assignment) {
-        rv.ref();
-    }
-    return QoreValue();
 }

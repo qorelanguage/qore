@@ -187,14 +187,23 @@ public:
     */
     DLLEXPORT void close();
 
+    //! Moves the reference to the given key of the given object
+    DLLEXPORT int setObjKey(QoreObject* obj, const char* key, bool for_remove = false);
+
+    //! Moves the reference to the given key of the hash or object of the current value
+    DLLEXPORT int moveToHashObjKey(const char* key, bool for_remove = false);
+
+    //! Removes the given key of the current hash or object
+    DLLEXPORT QoreValue removeHashObjKey(const char* key);
+
     //! Returns the ExceptionSink object
     DLLEXPORT ExceptionSink* getExceptionSink() const;
 
-    //! Removes any value stored for the lvalue location
-    DLLEXPORT QoreValue remove() const;
-
     //! Returns the type of the reference
     DLLEXPORT const QoreTypeInfo* getReferenceTypeInfo() const;
+
+    //! Returns true if managing a lock
+    DLLEXPORT bool isLocked() const;
 
 private:
     DLLLOCAL QoreTypeSafeReferenceHelper(const QoreTypeSafeReferenceHelper&) = delete;

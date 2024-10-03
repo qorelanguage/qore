@@ -519,15 +519,6 @@ int QoreHashNode::setKeyValue(const QoreString& key, QoreValue value, ExceptionS
     return setKeyValue(tmp->c_str(), value, xsink);
 }
 
-int QoreHashNode::editKeyValue(const char* key, QoreTypeSafeReferenceHelper& ref, bool for_remove) const {
-    LValueHelper& lvh = qore_type_safe_ref_helper_priv_t::get(ref);
-    ExceptionSink* xsink = ref.getExceptionSink();
-    if (priv->getLValue(key, lvh, for_remove, xsink)) {
-        return -1;
-    }
-    return 0;
-}
-
 QoreValue& QoreHashNode::getKeyValueReference(const char* key) {
     assert(reference_count() == 1);
     return priv->getValueRef(key);
