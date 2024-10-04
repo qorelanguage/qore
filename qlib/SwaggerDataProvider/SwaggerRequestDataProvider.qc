@@ -326,7 +326,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             }
 
             # prepend base path to request, if any
-            string base_path = schema.getBasePath();
+            string base_path = options.base_path ?? schema.getBasePath();
             if (base_path.val() && base_path != "/") {
                 if (uri_path !~ /^\//) {
                     base_path += "/";
@@ -388,6 +388,13 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             "supports_request": True,
             "has_record": exists record_type,
             "request_options": {
+                "base_path": hash<DataProviderOptionInfo>{
+                    "display_name": "Swagger Base Path",
+                    "short_desc": "Override the base URI path for the REST request",
+                    "type": AbstractDataProviderTypeMap."string",
+                    "required": False,
+                    "desc": "Override the base URI path for the REST request",
+                },
                 "hdr": hash<DataProviderOptionInfo>{
                     "display_name": "HTTP Headers",
                     "short_desc": "HTTP headers to send in each request",
