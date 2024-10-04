@@ -39,6 +39,12 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         #! The operation object
         OperationObject op;
 
+        #! The request type
+        AbstractDataProviderType request_type;
+
+        #! The response type
+        AbstractDataProviderType response_type;
+
         #! The success response code, if any
         string success_response;
 
@@ -116,6 +122,10 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
 
     #! Returns the description of a successful request message, if any
     private *AbstractDataProviderType getRequestTypeImpl() {
+        if (request_type) {
+            return request_type;
+        }
+
         HashDataType rv(getName() + ": request");
         bool required = False;
         *hash<string, AbstractParameterObject> params = pio.parameters + op.parameters;
@@ -144,14 +154,18 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             }
             rv.addField(new QoreDataField("formData", "REST request form data", formData));
         }
-        return required ? rv : rv.getOrNothingType();
+        return request_type = required ? rv : rv.getOrNothingType();
     }
 
     #! Returns the description of a successful response message, if any
     private *AbstractDataProviderType getResponseTypeImpl() {
+        if (response_type) {
+            return response_type;
+        }
+
         *ResponseObject response = getSuccessResponse();
         if (response) {
-            return getResponseTypeIntern(response, "success");
+            return response_type = getResponseTypeIntern(response, "success");
         }
     }
 
