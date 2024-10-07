@@ -2046,6 +2046,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
       option is set as well as \c oauth2_alt_token_url, then the \c oauth2_token_url value will be added to this as
       well when the request is made to the \c oauth2_alt_token_url
     - \c "oauth2_token_url": The token URL for OAuth2 flows; ignored if the \c token option is set
+    - \c "oauth2_token_use_basic_auth": Use basic authentication for the OAuth2 token request
     - \c "openapi3": the path to a <a href="https://swagger.io/">OpenApi 3</a> REST schema file for API
       validation; only used if \a validator not provided (see the @ref openapi3intro "OpenApi3" module)
     - \c "password": The password for authentication; only used if no username or password is set in the URL and if
@@ -2936,10 +2937,10 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
     #! Processes OAuth2 login responses and returns updated options
     private *hash<auto> processOAuth2TokenResponseImpl(hash<auto> resp) {
         hash<auto> new_opts;
-        if (resp.access_token != real_opts.token) {
+        if (resp.hasKey("access_token") && resp.access_token != real_opts.token) {
             new_opts.token = resp.access_token;
         }
-        if (resp.refresh_token && resp.refresh_token != real_opts.oauth2_refresh_token) {
+        if (resp.hasKey("refresh_token") && resp.refresh_token != real_opts.oauth2_refresh_token) {
             new_opts.oauth2_refresh_token = resp.refresh_token;
         }
         return new_opts;
