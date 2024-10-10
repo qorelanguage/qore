@@ -1548,8 +1548,8 @@ public namespace RestHandler {
             } else {
                 *AbstractRestClass c = subClass(cls, cx, args);
                 if (!c) {
-                    # issue #2994: if we are on the last class and there is no "action" argument; see if we can f
-                    # ind an action method instead
+                    # issue #2994: if we are on the last class and there is no "action" argument; see if we can find
+                    # an action method instead
                     if (!class_list && !args.action) {
                         string mname = sprintf("%s%s%s", method_name, cls[0].upr(), cls[1..]);
                         if (self.hasCallableMethod(mname)) {
