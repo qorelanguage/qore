@@ -332,6 +332,9 @@ public class DataProviderActionCatalog {
             throw "APP-ERROR", sprintf("application is missing the following required keys: %y (app: %y)",
                 missing, app);
         }
+        if (DataProviderActionCatalog::checkName(app.name)) {
+            throw "APP-ERROR", sprintf("Application name %y is illegal; only A-Za-z0-9_- are accepted", app.name);
+        }
 
         AutoLock al(lck);
         if (*hash<DataProviderAppInfo> existing_app = appcache{app.name}) {
@@ -367,6 +370,9 @@ public class DataProviderActionCatalog {
         }
         if (action.action_code < 1 || action.action_code > DPAT_DELETE) {
             throw "ACTION-ERROR", sprintf("invalid action code %y in action: %y", action.action_code, action);
+        }
+        if (DataProviderActionCatalog::checkName(action.action)) {
+            throw "APP-ERROR", sprintf("Action name %y is illegal; only A-Za-z0-9_- are accepted", action.action);
         }
         action.path = DataProviderActionCatalog::normalizePath(action.path);
 
@@ -427,6 +433,13 @@ public class DataProviderActionCatalog {
         if (action.get_output_type) {
             resolve_output_types{action.app}{action.action} = True;
         }
+    }
+
+    #! Checks for a valid name
+    /** @return -1 if the name is invalid, meaning empty or containing invalid characters
+    */
+    static *int checkName(string name) {
+        return name.val() && name =~ /^[-a-z0-9_]+$/i ? 0 : -1;
     }
 
     #! Compares two actions for equality

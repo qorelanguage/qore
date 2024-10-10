@@ -3163,7 +3163,8 @@ class DynamicHttpHandlerList inherits HttpHandlerList {
         disable_map{name} = True;
     }
 
-    *DynamicHandlerInfo findHandler(hash<auto> hdr, reference<int> score, reference<DynamicHandlerHelper> dhh, *reference<string> root_path) {
+    *DynamicHandlerInfo findHandler(hash<auto> hdr, reference<int> score, reference<DynamicHandlerHelper> dhh,
+            *reference<string> root_path) {
         dhl.readLock();
         on_exit dhl.readUnlock();
 
