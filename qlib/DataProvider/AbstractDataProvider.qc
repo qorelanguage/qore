@@ -907,7 +907,7 @@ public hashdecl DataProviderConnectionInfo {
 }
 
 #! The AbstractDataProvider class
-public class AbstractDataProvider inherits Logger::LoggerWrapper {
+public class AbstractDataProvider inherits Logger::LoggerWrapper, Qore::Serializable {
     public {
         #! Generic expression implementations for data providers without native search functionality
         const GenericExpressionImplementations = {

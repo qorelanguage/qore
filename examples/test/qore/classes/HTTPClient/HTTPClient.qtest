@@ -379,6 +379,7 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
         if (m_options.verbose) {
             verbose = m_options.verbose;
         }
+        addTestCase("serialization", \serializationTest());
         addTestCase("timeouts", \timeoutTest());
         addTestCase("pre-encoded-urls", \preEncodedUrlsTest());
         addTestCase("poll proxy test", \pollProxyTest());
@@ -399,6 +400,21 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
    private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-P,--proxy=ARG", "the proxy to use for proxy tests", OptionColumn);
+    }
+
+    serializationTest() {
+        HTTPClient hc({"url": "http://user:password@localhost:1080/some/path"});
+        assertEq("http://user:password@localhost:1080/some/path", hc.getURL());
+        HTTPClient hc2 = Serializable::deserialize(hc.serialize());
+        on_error printf("hc: %N\nhc2: %N\n", hc.getHttpConfig(), hc2.getHttpConfig());
+        assertEq(hc.getURL(), hc2.getURL());
+        assertEq(hc.getHttpConfig(), hc2.getHttpConfig());
+
+        hc.setConnectionPath();
+        assertEq("http://user:password@localhost:1080", hc.getURL());
+        hc2 = Serializable::deserialize(hc.serialize());
+        assertEq(hc.getURL(), hc2.getURL());
+        assertEq(hc.getHttpConfig(), hc2.getHttpConfig());
     }
 
     timeoutTest() {

@@ -418,6 +418,10 @@ public class SwaggerTest inherits QUnit::Test {
             so = Swagger::SwaggerLoader::fromFile(basePath + "PetStore.swagger.json");
             assertTrue(exists so);
             assertEq("/v2", so.getBasePath());
+
+            SwaggerSchema so2 = Serializable::deserialize(so.serialize());
+            assertEq("/v2", so2.getBasePath());
+
             delete so;
             so = Swagger::SwaggerLoader::fromFile(basePath + "PetStore.swagger.yaml");
             assertTrue(exists so);

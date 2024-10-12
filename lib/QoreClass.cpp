@@ -2134,7 +2134,7 @@ int BCNode::addBaseClassesToSubclass(QoreClass* child, bool is_virtual) {
         return -1;
     }
 
-    return sclass->priv->addBaseClassesToSubclass(child, is_virtual);
+    return sclass->priv->addBaseClassesToSubclass(child, is_virtual || this->is_virtual);
 }
 
 void BCNode::initializeBuiltin() {
@@ -2824,7 +2824,7 @@ int QoreClass::runtimeCheckInstantiateClass(ExceptionSink* xsink) const {
 
 void qore_class_private::addBaseClass(QoreClass* qc, bool virt) {
     assert(qc);
-    //printd(5, "adding %s as virtual base class to %s\n", qc->priv->name.c_str(), priv->name.c_str());
+    //printd(5, "adding %s as base class to %s (virt: %d)\n", qc->priv->name.c_str(), priv->name.c_str(), virt);
     if (!scl) {
         scl = new BCList;
     }
@@ -3345,7 +3345,7 @@ void BCSMList::align(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
 }
 
 int BCSMList::addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual) {
-    //printd(5, "BCSMList::addBaseClassesToSubclass(this: %s, sc: %s) size: %d\n", thisclass->getName(), sc->getName());
+    //printd(5, "BCSMList::addBaseClassesToSubclass(this: %s, sc: %s)\n", thisclass->getName(), sc->getName());
     for (class_list_t::const_iterator i = begin(), e = end(); i != e; ++i) {
         //printd(5, "BCSMList::addBaseClassesToSubclass() %s sc: %s is_virt: %d\n", thisclass->getName(), sc->getName(), is_virtual);
         if (sc->priv->scl->sml.add(thisclass, (*i).first, is_virtual || (*i).second)) {
@@ -3355,6 +3355,8 @@ int BCSMList::addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool
     }
     return 0;
 }
+
+static void breakit() {}
 
 int BCSMList::add(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
     if (thisclass->getID() == qc->getID()) {
@@ -3908,21 +3910,6 @@ QoreObject* qore_class_private::execCopy(QoreObject* old, ExceptionSink* xsink) 
     if (self_priv->copyData(xsink, *old_priv)) {
         return nullptr;
     }
-
-    /*
-    QoreHashNode* h = old->copyData(xsink);
-    if (*xsink) {
-        assert(!h);
-        return nullptr;
-    }
-
-    ReferenceHolder<QoreObject> self(new QoreObject(cls, getProgram(), h), xsink);
-    // issue #3901: perform a shallow copy of internal members when executing a copy method
-    qore_object_private* self_priv = qore_object_private::get(**self);
-    qore_object_private* old_priv = qore_object_private::get(*old);
-    self_priv->copyInternalData(*old_priv);
-    self_priv->obj_count = old_priv->obj_count;
-    */
 
     if (copyMethod) {
         copyMethod->priv->evalCopy(*self, old, xsink);

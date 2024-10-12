@@ -46,6 +46,10 @@ typedef std::map<std::string, bool, ltstrcase> method_map_t;
 typedef std::set<std::string, ltstrcase> strcase_set_t;
 typedef std::map<std::string, std::string> header_map_t;
 
+constexpr int URL_NORMAL = 0;
+constexpr int URL_MASK_PASSWORD = 1;
+constexpr int URL_NO_AUTH = 2;
+
 struct con_info {
     int port;
     std::string host,
@@ -101,7 +105,7 @@ struct con_info {
             }
         }
 
-        const QoreString *tmp = url.getPath();
+        const QoreString* tmp = url.getPath();
         path = tmp ? tmp->c_str() : "";
         tmp = url.getUserName();
         username = tmp ? tmp->c_str() : "";
@@ -135,31 +139,33 @@ struct con_info {
         return 0;
     }
 
-    DLLLOCAL QoreStringNode* get_url(bool mask_password = false) const {
+    DLLLOCAL QoreStringNode* get_url(int opts = URL_NORMAL) const {
         QoreStringNode *pstr = new QoreStringNode("http");
         if (ssl) {
             pstr->concat("s://");
         } else {
             pstr->concat("://");
         }
-        bool has_username_or_password = false;
-        if (!username.empty()) {
-            pstr->concat(username);
-            has_username_or_password = true;
-        }
-        if (!password.empty()) {
-            pstr->concat(':');
-            if (mask_password) {
-                pstr->concat("<masked>");
-            } else {
-                pstr->concat(password);
-            }
-            if (!has_username_or_password) {
+        if (opts != URL_NO_AUTH) {
+            bool has_username_or_password = false;
+            if (!username.empty()) {
+                pstr->concat(username);
                 has_username_or_password = true;
             }
-        }
-        if (has_username_or_password) {
-            pstr->concat('@');
+            if (!password.empty()) {
+                pstr->concat(':');
+                if (opts == URL_MASK_PASSWORD) {
+                    pstr->concat("<masked>");
+                } else {
+                    pstr->concat(password);
+                }
+                if (!has_username_or_password) {
+                    has_username_or_password = true;
+                }
+            }
+            if (has_username_or_password) {
+                pstr->concat('@');
+            }
         }
 
         if (!port) {

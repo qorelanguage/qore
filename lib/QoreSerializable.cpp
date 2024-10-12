@@ -330,8 +330,8 @@ QoreValue QoreSerializable::serializeValue(const QoreValue val, ReferenceHolder<
             break;
     }
 
-    xsink->raiseException("SERIALIZATION-ERROR", "cannot serialize type '%s'; type is not supported for serialization",
-        val.getTypeName());
+    xsink->raiseException("SERIALIZATION-ERROR", "Cannot serialize type '%s'; type is not supported for "
+        "serialization", val.getTypeName());
     return QoreValue();
 }
 
@@ -419,7 +419,15 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
         {
             bool priv = false;
             if (!current_cls.getClass(*QC_SERIALIZABLE, priv)) {
-                SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("cannot serialize class '%s' as it does "
+
+    QoreClassHierarchyIterator ci0(cls);
+    printd(0, "class: %s\n", cls.getName());
+    while (ci0.next()) {
+        const QoreClass& cls0 = ci0.get();
+        printd(0, "- %s virtual: %s\n", cls0.getName(), ci.isVirtual() ? "true": "false");
+    }
+
+                SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("Cannot serialize class '%s' as it does "
                     "not inherit 'Serializable' and therefore is not eligible for serialization", current_cls.getName()));
                 if (!current_cls.isSystem()) {
                     desc->sprintf("; to correct this error, declare Serializable as a parent class of '%s'",

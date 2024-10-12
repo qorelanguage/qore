@@ -31,14 +31,34 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreHttpClientObject.h>
-#include "qore/intern/QC_HTTPClient.h"
-#include "qore/intern/QC_Queue.h"
-#include "qore/intern/QC_SocketPollOperation.h"
-#include "qore/intern/ssl_constants.h"
 #include "qore/QoreSSLCertificate.h"
 #include "qore/QoreSSLPrivateKey.h"
 
+#include "qore/intern/QC_HTTPClient.h"
+#include "qore/intern/QC_Queue.h"
+#include "qore/intern/QC_SocketPollOperation.h"
+#include "qore/intern/QC_Serializable.h"
+#include "qore/intern/ssl_constants.h"
+
 extern QoreClass* QC_SOCKET;
+
+static QoreHashNode* HTTPClient_serializer(const QoreObject& self, const QoreHttpClientObject& z,
+        QoreSerializationContext& context, ExceptionSink* xsink) {
+    return z.getConfig();
+}
+
+static void HTTPClient_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context,
+        ExceptionSink* xsink) {
+    if (!sdata) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "missing serialization data for the HTTPClient class");
+        return;
+    }
+    ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
+    if (sdata && client->setOptions(sdata, xsink)) {
+        return;
+    }
+    self.setPrivate(CID_HTTPCLIENT, client.release());
+}
 
 //! The HTTPClient class can be used to communicate with HTTP servers with and without TLS/SSL encryption
 /** The HTTPClient class can be used to communicate with HTTP servers using the HTTP or HTTPS (HTTP using an SSL/TLS
@@ -153,7 +173,13 @@ reject the request.@endverbatim
 
     @since %Qore 1.0 added code to add a \c ";charset=xxx" to HTTP messages with a non-ISO-8859-1 string message body
 */
-qclass HTTPClient [dom=NETWORK; arg=QoreHttpClientObject* client; vparent=Socket];
+qclass HTTPClient [
+    dom=NETWORK;
+    arg=QoreHttpClientObject* client;
+    vparent=Socket,Serializable;
+    serializer=reinterpret_cast<q_serializer_t>(HTTPClient_serializer);
+    deserializer=HTTPClient_deserializer
+];
 
 //! Creates the HTTPClient object based on the option parameter passed
 /** To connect, call any method that requires a connection and an implicit connection is established, or call
@@ -260,7 +286,7 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
       - \c pre_encoded_urls
     - %Qore 1.19 added the following option:
       - \c encode_chars
-    - %Qore 2.0 added the following option:
+    - %Qore 2.0 added the following options:
       - \c username
       - \c password
 */
@@ -2255,4 +2281,13 @@ bool b = httpclient.getPreEncodedUrls();
 */
 bool HTTPClient::getPreEncodedUrls() [flags=CONSTANT] {
     return client->getPreEncodedUrls();
+}
+
+//! Returns the configuration of the HTTP client
+/** @return the configuration of the HTTP client
+
+    @since %Qore 2.0
+*/
+hash<auto> HTTPClient::getHttpConfig() [flags=CONSTANT] {
+    return client->getConfig();
 }

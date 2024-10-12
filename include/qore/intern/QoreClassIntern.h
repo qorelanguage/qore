@@ -3230,10 +3230,12 @@ public:
         assert(!scl);
         if (bcl) {
             scl = bcl;
-            if (!has_new_user_changes)
+            if (!has_new_user_changes) {
                 has_new_user_changes = true;
-            if (!has_sig_changes)
+            }
+            if (!has_sig_changes) {
                 has_sig_changes = true;
+            }
         }
     }
 

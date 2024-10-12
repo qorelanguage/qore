@@ -292,6 +292,7 @@ struct qore_httpclient_priv {
     int timeout = HTTPCLIENT_DEFAULT_TIMEOUT;
     std::string socketpath;
     header_map_t default_headers;
+    static header_map_t static_default_headers;
     int connect_timeout_ms = HTTPCLIENT_DEFAULT_CONNECT_TIMEOUT;
 
     method_map_t additional_methods_map;
@@ -316,14 +317,126 @@ struct qore_httpclient_priv {
         prot_map["https"] = make_protocol(443, true);
 
         // setup default headers
-        default_headers["Accept"] = "text/html";
-        default_headers["Content-Type"] = "text/html";
-        default_headers["Connection"] = "Keep-Alive";
-        default_headers["User-Agent"] = "Qore-HTTP-Client/" PACKAGE_VERSION;
-        default_headers["Accept-Encoding"] = "deflate,gzip,bzip2";
+        default_headers = static_default_headers;
     }
 
     DLLLOCAL ~qore_httpclient_priv() {
+    }
+
+    QoreHashNode* getConfig(my_socket_priv& priv) const {
+        qore_socket_private& sock = *qore_socket_private::get(*priv.socket);
+        ReferenceHolder<QoreHashNode> rv(new QoreHashNode, nullptr);
+
+        qore_hash_private* h = qore_hash_private::get(**rv);
+        if (!additional_methods_map.empty()) {
+            ReferenceHolder<QoreHashNode> amm(new QoreHashNode, nullptr);
+            qore_hash_private* hh = qore_hash_private::get(**amm);
+            for (auto& i : additional_methods_map) {
+                hh->setKeyValueIntern(i.first.c_str(), i.second);
+            }
+            h->setKeyValueIntern("additional_methods", amm.release());
+        }
+        if (sock.assume_http_encoding != "ISO-8859-1") {
+            h->setKeyValueIntern("assume_encoding", new QoreStringNode(sock.assume_http_encoding));
+        }
+        if (connect_timeout_ms != HTTPCLIENT_DEFAULT_CONNECT_TIMEOUT) {
+            h->setKeyValueIntern("connect_timeout", connect_timeout_ms);
+        }
+        if (!default_path.empty()) {
+            h->setKeyValueIntern("default_path", new QoreStringNode(default_path));
+        }
+        if (default_port != HTTPCLIENT_DEFAULT_PORT) {
+            h->setKeyValueIntern("default_port", default_port);
+        }
+        if (!local_pct_encoding_set.empty()) {
+            SimpleRefHolder<QoreStringNode> str(new QoreStringNode);
+            for (auto& i : local_pct_encoding_set) {
+                str->concat(i);
+            }
+            h->setKeyValueIntern("encode_chars", str.release());
+        }
+        if (enc) {
+            h->setKeyValueIntern("encoding", new QoreStringNode(enc->getCode()));
+        }
+        if (encoding_passthru) {
+            h->setKeyValueIntern("encoding_passthru", encoding_passthru);
+        }
+        if (error_passthru) {
+            h->setKeyValueIntern("error_passthru", error_passthru);
+        }
+        if (!default_headers.empty()) {
+            ReferenceHolder<QoreHashNode> amm(new QoreHashNode, nullptr);
+            qore_hash_private* hh = qore_hash_private::get(**amm);
+            for (auto& i : default_headers) {
+                header_map_t::const_iterator hi = static_default_headers.find(i.first);
+                if (hi != static_default_headers.end() && hi->second == i.second) {
+                    continue;
+                }
+                hh->setKeyValueIntern(i.first.c_str(), new QoreStringNode(i.second));
+            }
+            if (!amm->empty()) {
+                h->setKeyValueIntern("headers", amm.release());
+            }
+        }
+        if (!http11) {
+            h->setKeyValueIntern("http_version", new QoreStringNode("1.0"));
+        }
+        if (max_redirects != HTTPCLIENT_DEFAULT_MAX_REDIRECTS) {
+            h->setKeyValueIntern("max_redirects", max_redirects);
+        }
+        if (!connection.password.empty()) {
+            h->setKeyValueIntern("password", new QoreStringNode(connection.password));
+        }
+        if (pre_encoded_urls) {
+            h->setKeyValueIntern("pre_encoded_urls", pre_encoded_urls);
+        }
+        if (!prot_map.empty()) {
+            ReferenceHolder<QoreHashNode> amm(new QoreHashNode, nullptr);
+            qore_hash_private* hh = qore_hash_private::get(**amm);
+            for (auto& i : prot_map) {
+                // skip standard protocols always present
+                if (i.second == -443 || i.second == 80) {
+                    continue;
+                }
+                if (i.second < 0) {
+                    ReferenceHolder<QoreHashNode> v(new QoreHashNode, nullptr);
+                    qore_hash_private* vh = qore_hash_private::get(**v);
+                    vh->setKeyValueIntern("ssl", true);
+                    vh->setKeyValueIntern("port", -i.second);
+                    hh->setKeyValueIntern(i.first.c_str(), v.release());
+                } else {
+                    hh->setKeyValueIntern(i.first.c_str(), i.second);
+                }
+            }
+            if (!amm->empty()) {
+                h->setKeyValueIntern("protocols", amm.release());
+            }
+        }
+        if (proxy_connection.has_url()) {
+            h->setKeyValueIntern("proxy", proxy_connection.get_url());
+        }
+        if (redirect_passthru) {
+            h->setKeyValueIntern("redirect_passthru", redirect_passthru);
+        }
+        if (priv.cert) {
+            h->setKeyValueIntern("ssl_cert_data", priv.cert->getDER(nullptr));
+        }
+        if (priv.pk) {
+            h->setKeyValueIntern("ssl_key_data", priv.pk->getDER(nullptr));
+        }
+        if (sock.ssl_verify_mode == SSL_VERIFY_PEER) {
+            h->setKeyValueIntern("ssl_verify_cert", true);
+        }
+        if (timeout != HTTPCLIENT_DEFAULT_TIMEOUT) {
+            h->setKeyValueIntern("timeout", timeout);
+        }
+        if (connection.has_url()) {
+            h->setKeyValueIntern("url", connection.get_url(URL_NO_AUTH));
+        }
+        if (!connection.username.empty()) {
+            h->setKeyValueIntern("username", new QoreStringNode(connection.username));
+        }
+        return rv.release();
     }
 
     DLLLOCAL void setSocketPathIntern(const con_info& con) {
@@ -1203,6 +1316,15 @@ struct qore_httpclient_priv {
     DLLLOCAL static const qore_httpclient_priv* get(const QoreHttpClientObject& client) {
         return client.http_priv;
     }
+};
+
+// setup default headers
+header_map_t qore_httpclient_priv::static_default_headers = {
+    {"Accept", "text/html"},
+    {"Content-Type", "text/html"},
+    {"Connection", "Keep-Alive"},
+    {"User-Agent", "Qore-HTTP-Client/" PACKAGE_VERSION},
+    {"Accept-Encoding", "deflate,gzip,bzip2"},
 };
 
 // RFC-1738: encode space, <, >, ", #, %, {, }, |, \, ^, ~, [, ], `
@@ -2602,8 +2724,9 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
         http_priv->connect_timeout_ms = (int)get_ms_zero(n);
     }
 
-    if (http_priv->connection.path.empty())
-        http_priv->connection.path = http_priv->default_path.empty() ? "/" : http_priv->default_path;
+    if (http_priv->connection.path.empty() && !http_priv->default_path.empty()) {
+        http_priv->connection.path = http_priv->default_path;
+    }
 
     // additional HTTP methods for customized extensions like WebDAV
     n = opts->getKeyValue("additional_methods");
@@ -2845,7 +2968,7 @@ QoreStringNode* QoreHttpClientObject::getSafeURL() {
     if (!http_priv->connection.has_url())
         return nullptr;
 
-    return http_priv->connection.get_url(true);
+    return http_priv->connection.get_url(URL_MASK_PASSWORD);
 }
 
 int QoreHttpClientObject::setHTTPVersion(const char* version, ExceptionSink* xsink) {
@@ -2905,7 +3028,7 @@ QoreStringNode* QoreHttpClientObject::getSafeProxyURL()  {
         return nullptr;
     }
 
-    return http_priv->proxy_connection.get_url(true);
+    return http_priv->proxy_connection.get_url(URL_MASK_PASSWORD);
 }
 
 void QoreHttpClientObject::clearProxyURL() {
@@ -3890,4 +4013,9 @@ bool QoreHttpClientObject::setPreEncodedUrls(bool set) {
 bool QoreHttpClientObject::getPreEncodedUrls() const {
     AutoLocker al(priv->m);
     return http_priv->pre_encoded_urls;
+}
+
+QoreHashNode* QoreHttpClientObject::getConfig() const {
+    AutoLocker al(priv->m);
+    return http_priv->getConfig(*priv);
 }

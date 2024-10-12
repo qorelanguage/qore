@@ -209,7 +209,7 @@ public namespace RestSchemaValidator {
     }
 
     #! abstract REST schema validation classes
-    public class AbstractRestSchemaValidator inherits LoggerWrapper {
+    public class AbstractRestSchemaValidator inherits Logger::LoggerWrapper, Qore::Serializable {
         #! Creates the object without a logger
         constructor() {
         }

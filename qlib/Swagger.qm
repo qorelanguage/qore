@@ -402,7 +402,7 @@ public const ValidSchemes = ("http", "https", "ws", "wss");
 public const ValidSchemesHash = map {$1: True}, ValidSchemes;
 
 #! Base class for the %Swagger specification objects, wrapping the vendor extensions.
-class ObjectBase {
+class ObjectBase inherits Qore::Serializable {
     public {
         #! Allows extensions to the %Swagger Schema.
         /**
@@ -439,7 +439,7 @@ class ObjectBase {
 }
 
 #! Base used by @ref OtherParameter, @ref HeaderObject and @ref SchemaObject.
-class SchemaBase {
+class SchemaBase inherits Qore::Serializable {
     public {
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.1.2.
         *float maximum;
@@ -2427,7 +2427,7 @@ public class LicenseObject inherits ObjectBase {
 
     This class stores a tree or a component of a path for path matching, supports wildcard matching
  */
-public class PathComponent {
+public class PathComponent inherits Qore::Serializable {
     private {
         #! path prefix
         string pfx;

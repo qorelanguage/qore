@@ -52,7 +52,7 @@ public:
     }
 
     DLLLOCAL void zero() {
-        protocol = path = username = password = host = 0;
+        protocol = path = username = password = host = nullptr;
         port = 0;
     }
 
@@ -112,8 +112,9 @@ public:
             ph->setKeyValueIntern("host", host);
             host = nullptr;
         }
-        if (port)
+        if (port) {
             ph->setKeyValueIntern("port", port);
+        }
 
         return h;
     }
