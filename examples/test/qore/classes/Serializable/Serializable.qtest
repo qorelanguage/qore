@@ -283,7 +283,7 @@ class SerializableTest inherits QUnit::Test {
             T t();
             assertEq(2, t.skip);
             hash<SerializationInfo> h = t.serializeToData();
-            assertEq(3, h._index.size());
+            assertEq(6, h._index.size());
             assertEq(1, h._data.size());
             assertEq(Type::String, h._data._index.type());
             assertEq(1, h._index."0"._class_data.T.i);
@@ -407,7 +407,7 @@ class SerializableTest inherits QUnit::Test {
                 }
             }
             hash<SerializationInfo> h = Serializable::serializeToData(l);
-            #printf("%N\n", h);
+            on_error printf("%N\n", h);
             list<RTest> l1 = Serializable::deserialize(h);
             assertTrue(l1[0].l[0] == l1[1]);
             assertTrue(l1[0].l[1] == l1[2]);

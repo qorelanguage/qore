@@ -1386,7 +1386,6 @@ public class SwaggerSchema inherits ParameterGroup, AbstractRestSchemaValidator 
         optional_field(objType, oh, "consumes", SwaggerListToStringSet, \consumes);
 
         optional_field(objType, oh, "produces", SwaggerListToStringSet, \produces);
-
         {
             optional_field(objType, oh, "definitions", NT_HASH, \source_definition_hash);
             map processDefinition($1.key, $1.value), source_definition_hash.pairIterator();

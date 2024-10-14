@@ -556,6 +556,13 @@ public:
         return false;
     }
 
+    DLLLOCAL void setHashDecl(const TypedHashDecl* hd) {
+        if (complexTypeInfo) {
+            complexTypeInfo = nullptr;
+        }
+        hashdecl = hd;
+    }
+
     DLLLOCAL static QoreHashNode* getPlainHash(QoreHashNode* h) {
         if (!h->priv->hashdecl && !h->priv->complexTypeInfo)
             return h;

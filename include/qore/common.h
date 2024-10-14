@@ -268,26 +268,51 @@ typedef long long int64;
 //! runtime code execution flags
 typedef uint64_t q_rt_flags_t;
 
+//! Serialization flag: serialize weak references directly
+constexpr size_t QSF_ALLOW_WEAKREFS = (1 << 0);
+
+//! Serialization flag; include static class vars
+constexpr size_t QSF_INCLUDE_STATIC_CLASS_VARS = (1 << 1);
+
 //! serialization context object used in builtin serializer methods
 /** @since %Qore 0.9
 */
 class QoreSerializationContext {
 public:
-    //! serializes the given object and return the serialization index
+    //! Serializes the given object and returns the serialization index
+    /** Throws a Qore-language exception if there is an error serializing the object
+
+        @note When serializing weak references to objects, a strong reference to the object must also be serialized in
+        the same operation, or any weak references will be invalid after deserialization
+    */
+    DLLEXPORT int serializeObject(const QoreObject& obj, std::string& index, int64 flags, ExceptionSink* xsink);
+
+    //! Serializes the given hash and returns the serialization index
+    /** Throws a Qore-language exception if there is an error serializing the hash
+
+        @note When serializing weak references to hashes, a strong reference to the hash must also be serialized in
+        the same operation, or any weak references will be invalid after deserialization
+    */
+    DLLEXPORT int serializeHash(const QoreHashNode& h, std::string& index, int64 flags, ExceptionSink* xsink);
+
+    //! Serializes the given list and returns the serialization index
+    /** Throws a Qore-language exception if there is an error serializing the list
+
+        @note When serializing weak references to lists, a strong reference to the list must also be serialized in
+        the same operation, or any weak references will be invalid after deserialization
+    */
+    DLLEXPORT int serializeList(const QoreListNode& l, std::string& index, int64 flags, ExceptionSink* xsink);
+
+    //! Serializes the given value and returns a serialized value representing the value to be serialized
     /** throws a Qore-language exception if there is an error serializing the object
     */
-    DLLEXPORT int serializeObject(const QoreObject& obj, std::string& index, ExceptionSink* xsink);
+    DLLEXPORT QoreValue serializeValue(const QoreValue val, int64 flags, ExceptionSink* xsink);
 
-    //! serializes the given value and returns a serialized value representing the value to be serialized
-    /** throws a Qore-language exception if there is an error serializing the object
-    */
-    DLLEXPORT QoreValue serializeValue(const QoreValue val, ExceptionSink* xsink);
-
-    //! adds a module to be loaded when the data is deserialized
+    //! Adds a module to be loaded when the data is deserialized
     DLLEXPORT void addModule(const char* module);
 
 private:
-    //! this class is a wrapper class that cannot be constructed
+    //! This class is a wrapper class that cannot be constructed
     DLLLOCAL QoreSerializationContext();
 };
 
@@ -296,10 +321,10 @@ private:
 */
 class QoreDeserializationContext {
 public:
-    //! returns the object corresponding to the given object serialization index
-    /** throws a Qore-language exception if there is an error deserializing the object
+    //! returns the container corresponding to the given serialization index
+    /** throws a Qore-language exception if there is an error deserializing the value
     */
-    DLLEXPORT QoreObject* deserializeObject(const char* index, ExceptionSink* xsink);
+    DLLEXPORT QoreValue deserializeContainer(const char* index, ExceptionSink* xsink);
 
     //! deserializes the given data value and returns the deserialized value
     /** throws a Qore-language exception if there is an error deserializing the object

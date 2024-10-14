@@ -78,10 +78,12 @@ ObjectIndexMap::~ObjectIndexMap() {
     for (auto& i : *this) {
         if (*xs) {
             // in case of an exception, we need to obliterate the object before dereferencing
-            qore_object_private::get(*i.second)->obliterate(xs);
+            if (i.second.getType() == NT_OBJECT) {
+                qore_object_private::get(*i.second.get<QoreObject>())->obliterate(xs);
+            }
         } else {
             // otherwise we just need to dereference
-            i.second->deref(xs);
+            i.second.discard(xs);
         }
     }
 }
@@ -217,8 +219,8 @@ public:
             : index(index), imap(imap), mset(mset) {
     }
 
-    DLLLOCAL int serializeObject(const QoreObject& obj, std::string& index_str, ExceptionSink* xsink) {
-        imap_t::iterator i = QoreSerializable::serializeObjectToIndex(obj, index, imap, mset, xsink);
+    DLLLOCAL int serializeObject(const QoreObject& obj, std::string& index_str, int64 flags, ExceptionSink* xsink) {
+        imap_t::iterator i = QoreSerializable::serializeObjectToIndex(obj, index, flags, imap, mset, xsink);
         if (*xsink) {
             return -1;
         }
@@ -226,8 +228,26 @@ public:
         return 0;
     }
 
-    DLLLOCAL QoreValue serializeValue(const QoreValue val, ExceptionSink* xsink) {
-        return QoreSerializable::serializeValue(val, index, imap, mset, xsink);
+    DLLLOCAL int serializeHash(const QoreHashNode& h, std::string& index_str, int64 flags, ExceptionSink* xsink) {
+        imap_t::iterator i = QoreSerializable::serializeHashToIndex(h, index, flags, imap, mset, xsink);
+        if (*xsink) {
+            return -1;
+        }
+        index_str = i->first;
+        return 0;
+    }
+
+    DLLLOCAL int serializeList(const QoreListNode& l, std::string& index_str, int64 flags, ExceptionSink* xsink) {
+        imap_t::iterator i = QoreSerializable::serializeListToIndex(l, index, flags, imap, mset, xsink);
+        if (*xsink) {
+            return -1;
+        }
+        index_str = i->first;
+        return 0;
+    }
+
+    DLLLOCAL QoreValue serializeValue(const QoreValue val, int64 flags, ExceptionSink* xsink) {
+        return QoreSerializable::serializeValue(val, index, flags, imap, mset, xsink);
     }
 
     DLLLOCAL void addModule(const char* module) {
@@ -242,8 +262,8 @@ public:
     DLLLOCAL QoreInternalDeserializationContext(const oimap_t& oimap) : oimap(oimap) {
     }
 
-    DLLLOCAL QoreObject* deserializeObject(const char* index_str, ExceptionSink* xsink) {
-        return QoreSerializable::deserializeIndexedObject(index_str, oimap, xsink);
+    DLLLOCAL QoreValue deserializeContainer(const char* index_str, ExceptionSink* xsink) {
+        return QoreSerializable::deserializeIndexedContainer(index_str, oimap, xsink);
     }
 
     DLLLOCAL QoreValue deserializeValue(const QoreValue val, ExceptionSink* xsink) {
@@ -251,35 +271,43 @@ public:
     }
 };
 
-int QoreSerializationContext::serializeObject(const QoreObject& obj, std::string& index, ExceptionSink* xsink) {
-    return reinterpret_cast<QoreInternalSerializationContext*>(this)->serializeObject(obj, index, xsink);
+int QoreSerializationContext::serializeObject(const QoreObject& obj, std::string& index, int64 flags, ExceptionSink* xsink) {
+    return reinterpret_cast<QoreInternalSerializationContext*>(this)->serializeObject(obj, index, flags, xsink);
 }
 
-QoreValue QoreSerializationContext::serializeValue(const QoreValue val, ExceptionSink* xsink) {
-    return reinterpret_cast<QoreInternalSerializationContext*>(this)->serializeValue(val, xsink);
+int QoreSerializationContext::serializeHash(const QoreHashNode& h, std::string& index, int64 flags, ExceptionSink* xsink) {
+    return reinterpret_cast<QoreInternalSerializationContext*>(this)->serializeHash(h, index, flags, xsink);
+}
+
+int QoreSerializationContext::serializeList(const QoreListNode& h, std::string& index, int64 flags, ExceptionSink* xsink) {
+    return reinterpret_cast<QoreInternalSerializationContext*>(this)->serializeList(h, index, flags, xsink);
+}
+
+QoreValue QoreSerializationContext::serializeValue(const QoreValue val, int64 flags, ExceptionSink* xsink) {
+    return reinterpret_cast<QoreInternalSerializationContext*>(this)->serializeValue(val, flags, xsink);
 }
 
 void QoreSerializationContext::addModule(const char* module) {
     reinterpret_cast<QoreInternalSerializationContext*>(this)->addModule(module);
 }
 
-QoreObject* QoreDeserializationContext::deserializeObject(const char* index, ExceptionSink* xsink) {
-    return reinterpret_cast<QoreInternalDeserializationContext*>(this)->deserializeObject(index, xsink);
+QoreValue QoreDeserializationContext::deserializeContainer(const char* index, ExceptionSink* xsink) {
+    return reinterpret_cast<QoreInternalDeserializationContext*>(this)->deserializeContainer(index, xsink);
 }
 
 QoreValue QoreDeserializationContext::deserializeValue(const QoreValue val, ExceptionSink* xsink) {
     return reinterpret_cast<QoreInternalDeserializationContext*>(this)->deserializeValue(val, xsink);
 }
 
-static QoreHashNode* serialization_get_index(imap_t::iterator i) {
+static QoreHashNode* serialization_get_index(imap_t::iterator i, bool weak) {
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclIndexedObjectSerializationInfo, nullptr), nullptr);
     qore_hash_private* h = qore_hash_private::get(**rv);
-    h->setKeyValueIntern("_index", new QoreStringNode(i->second.c_str()));
+    h->setKeyValueIntern(weak ? "_weak" : "_index", new QoreStringNode(i->second.c_str()));
     return rv.release();
 }
 
-QoreValue QoreSerializable::serializeValue(const QoreValue val, ReferenceHolder<QoreHashNode>& index, imap_t& imap,
-        mset_t& mset, ExceptionSink* xsink) {
+QoreValue QoreSerializable::serializeValue(const QoreValue val, ReferenceHolder<QoreHashNode>& index, int64 flags,
+        imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
     switch (val.getType()) {
         case NT_INT:
         case NT_STRING:
@@ -293,37 +321,39 @@ QoreValue QoreSerializable::serializeValue(const QoreValue val, ReferenceHolder<
             return val.refSelf();
 
         case NT_OBJECT: {
-            return serializeObjectToData(*val.get<const QoreObject>(), index, imap, mset, xsink);
+            ValueHolder rv(serializeObjectToData(*val.get<const QoreObject>(), false, index, flags, imap, mset,
+                xsink), xsink);
+            return *xsink ? QoreValue() : rv.release();
         }
 
         case NT_WEAKREF: {
-            return serializeObjectToData(*val.get<WeakReferenceNode>()->get(), index, imap, mset, xsink);
+            ValueHolder rv(serializeObjectToData(*val.get<WeakReferenceNode>()->get(),
+                flags & QSF_ALLOW_WEAKREFS ? true : false, index, flags, imap, mset, xsink), xsink);
+            return *xsink ? QoreValue() : rv.release();
         }
 
         case NT_WEAKREF_HASH: {
-            return serializeHashToData(*val.get<WeakHashReferenceNode>()->get(), index, imap, mset, xsink);
+            ValueHolder rv(serializeHashToData(*val.get<WeakHashReferenceNode>()->get(),
+                flags & QSF_ALLOW_WEAKREFS ? true : false, index, flags, imap, mset, xsink), xsink);
+            return *xsink ? QoreValue() : rv.release();
         }
 
         case NT_WEAKREF_LIST: {
-            return serializeListToData(*val.get<WeakListReferenceNode>()->get(), index, imap, mset, xsink);
+            ValueHolder rv(serializeListToData(*val.get<WeakListReferenceNode>()->get(),
+                flags & QSF_ALLOW_WEAKREFS ? true : false, index, flags, imap, mset, xsink), xsink);
+            return *xsink ? QoreValue() : rv.release();
         }
 
         case NT_HASH: {
-            ReferenceHolder<QoreHashNode> rv(serializeHashToData(*val.get<const QoreHashNode>(), index, imap, mset,
+            ValueHolder rv(serializeHashToData(*val.get<const QoreHashNode>(), false, index, flags, imap, mset,
                 xsink), xsink);
-            if (*xsink) {
-                return QoreValue();
-            }
-            return rv.release();
+            return *xsink ? QoreValue() : rv.release();
         }
 
         case NT_LIST: {
-            ReferenceHolder<QoreHashNode> rv(serializeListToData(*val.get<const QoreListNode>(), index, imap, mset,
+            ValueHolder rv(serializeListToData(*val.get<const QoreListNode>(), false, index, flags, imap, mset,
                 xsink), xsink);
-            if (*xsink) {
-                return QoreValue();
-            }
-            return rv.release();
+            return *xsink ? QoreValue() : rv.release();
         }
 
         default:
@@ -335,14 +365,14 @@ QoreValue QoreSerializable::serializeValue(const QoreValue val, ReferenceHolder<
     return QoreValue();
 }
 
-QoreHashNode* QoreSerializable::serializeToData(const QoreValue val, ExceptionSink* xsink) {
+QoreHashNode* QoreSerializable::serializeToData(const QoreValue val, int64 flags, ExceptionSink* xsink) {
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclSerializationInfo, xsink), xsink);
     ReferenceHolder<QoreHashNode> index(xsink);
 
     imap_t imap;
     mset_t mset;
 
-    ValueHolder data(serializeValue(val, index, imap, mset, xsink), xsink);
+    ValueHolder data(serializeValue(val, index, flags, imap, mset, xsink), xsink);
     if (*xsink) {
         return nullptr;
     }
@@ -364,8 +394,8 @@ QoreHashNode* QoreSerializable::serializeToData(const QoreValue val, ExceptionSi
     return rv.release();
 }
 
-imap_t::iterator QoreSerializable::serializeObjectToIndex(const QoreObject& obj, ReferenceHolder<QoreHashNode>& index,
-        imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+imap_t::iterator QoreSerializable::serializeObjectToIndex(const QoreObject& obj,
+        ReferenceHolder<QoreHashNode>& index, int64 flags, imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
     // see if object is in index
     QoreString str;
     qore_get_ptr_hash(str, &obj);
@@ -374,17 +404,17 @@ imap_t::iterator QoreSerializable::serializeObjectToIndex(const QoreObject& obj,
 
     return i != imap.end() && i->first == str.c_str()
         ? i
-        : serializeObjectToIndexIntern(obj, index, imap, mset, str, i, xsink);
+        : serializeObjectToIndexIntern(obj, index, flags, imap, mset, str, i, xsink);
 }
 
-QoreValue QoreSerializable::serializeObjectToData(const QoreObject& obj, ReferenceHolder<QoreHashNode>& index,
-        imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
-    imap_t::iterator i = serializeObjectToIndex(obj, index, imap, mset, xsink);
-    return *xsink ? QoreValue() : serialization_get_index(i);
+QoreValue QoreSerializable::serializeObjectToData(const QoreObject& obj, bool weak,
+        ReferenceHolder<QoreHashNode>& index, int64 flags, imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+    imap_t::iterator i = serializeObjectToIndex(obj, index, flags, imap, mset, xsink);
+    return *xsink ? QoreValue() : serialization_get_index(i, weak);
 }
 
 imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject& self,
-        ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, const QoreString& str,
+        ReferenceHolder<QoreHashNode>& index, int64 flags, imap_t& imap, mset_t& mset, const QoreString& str,
         imap_t::iterator hint, ExceptionSink* xsink) {
     const QoreClass& cls = *self.getClass();
 
@@ -419,16 +449,9 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
         {
             bool priv = false;
             if (!current_cls.getClass(*QC_SERIALIZABLE, priv)) {
-
-    QoreClassHierarchyIterator ci0(cls);
-    printd(0, "class: %s\n", cls.getName());
-    while (ci0.next()) {
-        const QoreClass& cls0 = ci0.get();
-        printd(0, "- %s virtual: %s\n", cls0.getName(), ci.isVirtual() ? "true": "false");
-    }
-
                 SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("Cannot serialize class '%s' as it does "
-                    "not inherit 'Serializable' and therefore is not eligible for serialization", current_cls.getName()));
+                    "not inherit 'Serializable' and therefore is not eligible for serialization",
+                    current_cls.getName()));
                 if (!current_cls.isSystem()) {
                     desc->sprintf("; to correct this error, declare Serializable as a parent class of '%s'",
                         current_cls.getName());
@@ -449,14 +472,16 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
             assert(serializer);
 
             // get class private data for serialization call
-            ReferenceHolder<AbstractPrivateData> private_data(self.getReferencedPrivateData(current_cls.getID(), xsink), xsink);
+            ReferenceHolder<AbstractPrivateData> private_data(self.getReferencedPrivateData(current_cls.getID(),
+                xsink), xsink);
             if (*xsink) {
                 return imap.end();
             }
 
             QoreInternalSerializationContext context(index, imap, mset);
 
-            class_members = serializer(self, **private_data, reinterpret_cast<QoreSerializationContext&>(context), xsink);
+            class_members = serializer(self, **private_data, reinterpret_cast<QoreSerializationContext&>(context),
+                xsink);
             if (*xsink) {
                 return imap.end();
             }
@@ -484,7 +509,7 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
                     continue;
                 }
 
-                ValueHolder new_val(serializeValue(*val, index, imap, mset, xsink), xsink);
+                ValueHolder new_val(serializeValue(*val, index, flags, imap, mset, xsink), xsink);
                 if (*xsink) {
                     xsink->appendLastDescription(" (while serializing object member '%s::%s')", current_cls.getName(), mname);
                     return imap.end();
@@ -522,7 +547,7 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
                     ReferenceHolder<QoreHashNode> serialized_member_data(new QoreHashNode(autoTypeInfo), xsink);
                     ConstHashIterator mhi(val->get<QoreHashNode>());
                     while (mhi.next()) {
-                        ValueHolder new_val(serializeValue(mhi.get(), index, imap, mset, xsink), xsink);
+                        ValueHolder new_val(serializeValue(mhi.get(), index, flags, imap, mset, xsink), xsink);
                         if (*xsink) {
                             xsink->appendLastDescription(" (while serializing hash key '%s')", mhi.getKey());
                             return imap.end();
@@ -550,15 +575,40 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
     }
 
     if (!index) {
-        index = new QoreHashNode(hashdeclObjectSerializationInfo->getTypeInfo());
+        index = new QoreHashNode(autoTypeInfo);
     }
     index->setKeyValue(index_str.c_str(), h.release(), xsink);
 
     return i;
 }
 
-QoreHashNode* QoreSerializable::serializeHashToData(const QoreHashNode& h, ReferenceHolder<QoreHashNode>& index,
-        imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+imap_t::iterator QoreSerializable::serializeHashToIndex(const QoreHashNode& h,
+        ReferenceHolder<QoreHashNode>& index, int64 flags, imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+    // see if object is in index
+    QoreString str;
+    qore_get_ptr_hash(str, &h);
+
+    imap_t::iterator i = imap.lower_bound(str.c_str());
+
+    return i != imap.end() && i->first == str.c_str()
+        ? i
+        : serializeHashToIndexIntern(h, index, flags, imap, mset, str, i, xsink);
+}
+
+QoreValue QoreSerializable::serializeHashToData(const QoreHashNode& h, bool weak,
+        ReferenceHolder<QoreHashNode>& index, int64 flags, imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+    imap_t::iterator i = serializeHashToIndex(h, index, flags, imap, mset, xsink);
+    return *xsink ? QoreValue() : serialization_get_index(i, weak);
+}
+
+imap_t::iterator QoreSerializable::serializeHashToIndexIntern(const QoreHashNode& h,
+        ReferenceHolder<QoreHashNode>& index, int64 flags, imap_t& imap, mset_t& mset, const QoreString& str,
+        imap_t::iterator hint, ExceptionSink* xsink) {
+    // first write to imap
+    assert(imap.find(str.c_str()) == imap.end());
+    std::string index_str = std::to_string(imap.size());
+    imap_t::iterator i = imap.insert(hint, imap_t::value_type(str.c_str(), index_str));
+
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclHashSerializationInfo, xsink), xsink);
 
     const TypedHashDecl* thd = h.getHashDecl();
@@ -581,10 +631,10 @@ QoreHashNode* QoreSerializable::serializeHashToData(const QoreHashNode& h, Refer
 
     ConstHashIterator hi(h);
     while (hi.next()) {
-        ValueHolder new_val(serializeValue(hi.get(), index, imap, mset, xsink), xsink);
+        ValueHolder new_val(serializeValue(hi.get(), index, flags, imap, mset, xsink), xsink);
         if (*xsink) {
             xsink->appendLastDescription(" (while serializing hash key '%s')", hi.getKey());
-            return nullptr;
+            return imap.end();
         }
 
         if (!hash_members) {
@@ -598,11 +648,41 @@ QoreHashNode* QoreSerializable::serializeHashToData(const QoreHashNode& h, Refer
         rv->setKeyValue("_members", hash_members.release(), xsink);
     }
 
-    return rv.release();
+    if (!index) {
+        index = new QoreHashNode(autoTypeInfo);
+    }
+    index->setKeyValue(index_str.c_str(), rv.release(), xsink);
+
+    return i;
 }
 
-QoreHashNode* QoreSerializable::serializeListToData(const QoreListNode& l, ReferenceHolder<QoreHashNode>& index,
-        imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+imap_t::iterator QoreSerializable::serializeListToIndex(const QoreListNode& l,
+        ReferenceHolder<QoreHashNode>& index, int64 flags, imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+    // see if object is in index
+    QoreString str;
+    qore_get_ptr_hash(str, &l);
+
+    imap_t::iterator i = imap.lower_bound(str.c_str());
+
+    return i != imap.end() && i->first == str.c_str()
+        ? i
+        : serializeListToIndexIntern(l, index, flags, imap, mset, str, i, xsink);
+}
+
+QoreValue QoreSerializable::serializeListToData(const QoreListNode& l, bool weak,
+        ReferenceHolder<QoreHashNode>& index, int64 flags, imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+    imap_t::iterator i = serializeListToIndex(l, index, flags, imap, mset, xsink);
+    return *xsink ? QoreValue() : serialization_get_index(i, weak);
+}
+
+imap_t::iterator QoreSerializable::serializeListToIndexIntern(const QoreListNode& l,
+        ReferenceHolder<QoreHashNode>& index, int64 flags, imap_t& imap, mset_t& mset, const QoreString& str,
+        imap_t::iterator hint, ExceptionSink* xsink) {
+    // first write to imap
+    assert(imap.find(str.c_str()) == imap.end());
+    std::string index_str = std::to_string(imap.size());
+    imap_t::iterator i = imap.insert(hint, imap_t::value_type(str.c_str(), index_str));
+
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclListSerializationInfo, xsink), xsink);
 
     // issue #3318: write complex type to stream, if any
@@ -614,10 +694,10 @@ QoreHashNode* QoreSerializable::serializeListToData(const QoreListNode& l, Refer
 
     ConstListIterator li(l);
     while (li.next()) {
-        ValueHolder new_val(serializeValue(li.getValue(), index, imap, mset, xsink), xsink);
+        ValueHolder new_val(serializeValue(li.getValue(), index, flags, imap, mset, xsink), xsink);
         if (*xsink) {
             xsink->appendLastDescription(" (while serializing list element %lu)", li.index() + 1);
-            return nullptr;
+            return imap.end();
         }
 
         if (!serialized_list) {
@@ -631,7 +711,12 @@ QoreHashNode* QoreSerializable::serializeListToData(const QoreListNode& l, Refer
         rv->setKeyValue("_elements", serialized_list.release(), xsink);
     }
 
-    return rv.release();
+    if (!index) {
+        index = new QoreHashNode(autoTypeInfo);
+    }
+    index->setKeyValue(index_str.c_str(), rv.release(), xsink);
+
+    return i;
 }
 
 QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xsink) {
@@ -666,28 +751,72 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
         while (hi.next()) {
             const char* key = hi.getKey();
             const QoreHashNode* oh = hi.get().get<const QoreHashNode>();
-            assert(hashdeclObjectSerializationInfo->equal(oh->getHashDecl()));
-            QoreValue v = oh->getKeyValue("_class");
-            assert(v.getType() == NT_STRING);
-            const char* cname = v.get<const QoreStringNode>()->c_str();
-            const QoreClass* cls = pgm->findClass(cname, xsink);
-            if (!cls) {
+            if (hashdeclObjectSerializationInfo->equal(oh->getHashDecl())) {
+                QoreValue v = oh->getKeyValue("_class");
+                assert(v.getType() == NT_STRING);
+                const char* cname = v.get<const QoreStringNode>()->c_str();
+                const QoreClass* cls = pgm->findClass(cname, xsink);
+                if (!cls) {
+                    if (!*xsink) {
+                        xsink->raiseException("DESERIALIZATION-ERROR", "Cannot find class '%s' required for "
+                            "deserialization", cname);
+                    }
+                    return QoreValue();
+                }
+                QoreObject* obj = new QoreObject(cls, pgm);
+                assert(oimap.find(key) == oimap.end());
+                oimap.insert(oimap_t::value_type(key, obj));
+            } else if (hashdeclHashSerializationInfo->equal(oh->getHashDecl())) {
+                ValueHolder holder(new QoreHashNode(autoTypeInfo), xsink);
+                assert(oimap.find(key) == oimap.end());
+                oimap.insert(oimap_t::value_type(key, holder.release()));
+            } else if (hashdeclListSerializationInfo->equal(oh->getHashDecl())) {
+                ValueHolder holder(new QoreListNode(autoTypeInfo), xsink);
+                assert(oimap.find(key) == oimap.end());
+                oimap.insert(oimap_t::value_type(key, holder.release()));
+            } else {
                 if (!*xsink) {
-                    xsink->raiseException("DESERIALIZATION-ERROR", "cannot find class '%s' required for deserialization", cname);
+                    xsink->raiseException("DESERIALIZATION-ERROR", "Invalid data in container index in serialized "
+                        "data");
                 }
                 return QoreValue();
             }
-            QoreObject* obj = new QoreObject(cls, pgm);
-            assert(oimap.find(key) == oimap.end());
-            oimap.insert(oimap_t::value_type(key, obj));
         }
 
         // iterate the hash again
         while (hi.next()) {
             const char* key = hi.getKey();
-            QoreObject* obj = oimap.find(key)->second;
-
             const QoreHashNode* oh = hi.get().get<const QoreHashNode>();
+
+            if (hashdeclHashSerializationInfo->equal(oh->getHashDecl())) {
+                QoreValue v = oh->getKeyValue("_hash");
+                if (v.getType() != NT_STRING) {
+                    xsink->raiseException("DESERIALIZATION-ERROR", "'_hash' key has invalid type '%s'; expecting "
+                        "'string'", v.getTypeName());
+                    return QoreValue();
+                }
+
+                QoreHashNode* val = oimap.find(key)->second.get<QoreHashNode>();
+                // deserialize in place
+                deserializeHashData(*v.get<const QoreStringNode>(), *oh, oimap, xsink, val);
+                if (*xsink) {
+                    return QoreValue();
+                }
+                continue;
+            } else if (hashdeclListSerializationInfo->equal(oh->getHashDecl())) {
+                QoreValue v = oh->getKeyValue("_list");
+                QoreListNode* val = oimap.find(key)->second.get<QoreListNode>();
+                // deserialize in place
+                deserializeListData(v, *oh, oimap, xsink, val);
+                if (*xsink) {
+                    return QoreValue();
+                }
+                continue;
+            }
+
+            assert(hashdeclObjectSerializationInfo->equal(oh->getHashDecl()));
+            QoreObject* obj = oimap.find(key)->second.get<QoreObject>();
+
             const QoreClass& cls = *obj->getClass();
 
             // deserialize each class in the hierarchy separately
@@ -708,7 +837,8 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
 
                 const QoreClass& mcls = chi.get();
 
-                //printd(5, "iterating %p '%s' GOT CHILD %p '%s'\n", cls, cls->getName(), mcls, mcls.getNamespacePath().c_str());
+                //printd(5, "iterating %p '%s' GOT CHILD %p '%s'\n", cls, cls->getName(), mcls,
+                //    mcls.getNamespacePath().c_str());
 
                 // check if the class inherits Serializable and throw an exception if not
                 {
@@ -758,7 +888,8 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                     const QoreMethod* deserializeMembers = mcls.findLocalMethod("deserializeMembers");
 
                     // build deserialized meember hash for deserializeMembers() method if it exists
-                    ReferenceHolder<QoreHashNode> dmh(deserializeMembers ? new QoreHashNode(autoTypeInfo) : nullptr, xsink);
+                    ReferenceHolder<QoreHashNode> dmh(deserializeMembers ? new QoreHashNode(autoTypeInfo) : nullptr,
+                        xsink);
 
                     if (cmh) {
                         // deserialize members
@@ -803,7 +934,8 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                                 }
                                 // skip transient member initialization if there is no expression
                                 if (!val) {
-                                    //printd(5, "DESERIALIZE transient member %s::%s has no value\n", mcls.getName(), mi.getName());
+                                    //printd(5, "DESERIALIZE transient member %s::%s has no value\n", mcls.getName(),
+                                    //    mi.getName());
                                     continue;
                                 }
                                 // assign value to member
@@ -859,15 +991,32 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
     return deserializeData(h.getKeyValue("_data"), oimap, xsink);
 }
 
-QoreObject* QoreSerializable::deserializeIndexedObject(const char* key, const oimap_t& oimap, ExceptionSink* xsink) {
+QoreValue QoreSerializable::deserializeIndexedContainer(const char* key, const oimap_t& oimap, ExceptionSink* xsink) {
     oimap_t::const_iterator i = oimap.find(key);
     if (i == oimap.end()) {
         xsink->raiseException("DESERIALIZATION-ERROR", "'_index' value '%s' is invalid; no such index exists", key);
-        return nullptr;
+        return QoreValue();
     }
 
-    i->second->ref();
+    i->second.ref();
     return i->second;
+}
+
+QoreValue QoreSerializable::deserializeIndexedWeakReference(const char* key, const oimap_t& oimap,
+        ExceptionSink* xsink) {
+    oimap_t::const_iterator i = oimap.find(key);
+    if (i == oimap.end()) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "'_weak' value '%s' is invalid; no such index exists", key);
+        return QoreValue();
+    }
+    if (i->second.getType() == NT_OBJECT) {
+        return new WeakReferenceNode(const_cast<QoreObject*>(i->second.get<QoreObject>()));
+    } else if (i->second.getType() == NT_HASH) {
+        return new WeakHashReferenceNode(const_cast<QoreHashNode*>(i->second.get<QoreHashNode>()));
+    }
+
+    assert(i->second.getType() == NT_LIST);
+    return new WeakListReferenceNode(const_cast<QoreListNode*>(i->second.get<QoreListNode>()));
 }
 
 QoreValue QoreSerializable::deserializeData(const QoreValue val, const oimap_t& oimap, ExceptionSink* xsink) {
@@ -876,7 +1025,8 @@ QoreValue QoreSerializable::deserializeData(const QoreValue val, const oimap_t& 
         QoreValue v = h->getKeyValue("_hash");
         if (v) {
             if (v.getType() != NT_STRING) {
-                xsink->raiseException("DESERIALIZATION-ERROR", "'_hash' key has invalid type '%s'; expecting 'string'", v.getTypeName());
+                xsink->raiseException("DESERIALIZATION-ERROR", "'_hash' key has invalid type '%s'; expecting "
+                    "'string'", v.getTypeName());
                 return QoreValue();
             }
 
@@ -885,50 +1035,30 @@ QoreValue QoreSerializable::deserializeData(const QoreValue val, const oimap_t& 
         v = h->getKeyValue("_index");
         if (v) {
             if (v.getType() != NT_STRING) {
-                xsink->raiseException("DESERIALIZATION-ERROR", "'_index' key has invalid type '%s'; expecting 'string'", v.getTypeName());
+                xsink->raiseException("DESERIALIZATION-ERROR", "'_index' key has invalid type '%s'; expecting 'string'",
+                    v.getTypeName());
                 return QoreValue();
             }
             const char* key = v.get<const QoreStringNode>()->c_str();
-            return deserializeIndexedObject(key, oimap, xsink);
+            return deserializeIndexedContainer(key, oimap, xsink);
+        }
+        v = h->getKeyValue("_weak");
+        if (v) {
+            if (v.getType() != NT_STRING) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "'_index' key has invalid type '%s'; expecting 'string'",
+                    v.getTypeName());
+                return QoreValue();
+            }
+            const char* key = v.get<const QoreStringNode>()->c_str();
+            return deserializeIndexedWeakReference(key, oimap, xsink);
         }
         v = h->getKeyValue("_list");
         if (v) {
-            if (v.getType() != NT_STRING) {
-                xsink->raiseException("DESERIALIZATION-ERROR", "'_list' key has invalid type '%s'; expecting 'string'", v.getTypeName());
-                return QoreValue();
-            }
-
-            // get element type
-            const char* value_type = v.get<QoreStringNode>()->c_str();
-            const QoreTypeInfo* vti = qore_get_type_from_string_intern(value_type);
-            if (!vti) {
-                xsink->raiseException("DESERIALIZATION-ERROR", "'list has value type '%s' which cannot be matched to a " \
-                    "known type", value_type);
-                return QoreValue();
-            }
-
-            // get elements, if any
-            const QoreValue elements = h->getKeyValue("_elements");
-
-            if (elements && elements.getType() != NT_LIST) {
-                xsink->raiseException("DESERIALIZATION-ERROR", "'_elements' key has invalid type '%s'; expecting 'list' " \
-                    "or 'nothing'", elements.getTypeName());
-                return QoreValue();
-            }
-
-            if (elements.isNothing()) {
-                return new QoreListNode(vti);
-            }
-            ValueHolder rv(deserializeListData(*elements.get<const QoreListNode>(), oimap, xsink), xsink);
-            if (*xsink) {
-                return QoreValue();
-            }
-            qore_list_private* pl = qore_list_private::get(*rv->get<QoreListNode>());
-            pl->complexTypeInfo = (vti == anyTypeInfo ? nullptr : qore_get_complex_list_type(vti));
-            return rv.release();
+            return deserializeListData(v, *h, oimap, xsink);
         }
 
-        xsink->raiseException("DESERIALIZATION-ERROR", "hash hash no type information for deserialization; expecting either '_hash' or '_index' keys; neither was found");
+        xsink->raiseException("DESERIALIZATION-ERROR", "hash hash no type information for deserialization; expecting "
+            "either '_hash' or '_index' keys; neither was found");
         return QoreValue();
     }
 
@@ -940,17 +1070,25 @@ QoreValue QoreSerializable::deserializeData(const QoreValue val, const oimap_t& 
     return val.refSelf();
 }
 
-QoreValue QoreSerializable::deserializeHashData(const QoreStringNode& type, const QoreHashNode& h, const oimap_t& oimap, ExceptionSink* xsink) {
+QoreValue QoreSerializable::deserializeHashData(const QoreStringNode& type, const QoreHashNode& h,
+        const oimap_t& oimap, ExceptionSink* xsink, QoreHashNode* rval) {
     // get members, if any
     const QoreValue members = h.getKeyValue("_members");
 
     if (members && members.getType() != NT_HASH) {
-        xsink->raiseException("DESERIALIZATION-ERROR", "'_members' key has invalid type '%s'; expecting 'hash' or 'nothing'", members.getTypeName());
+        xsink->raiseException("DESERIALIZATION-ERROR", "'_members' key has invalid type '%s'; expecting 'hash' or "
+            "'nothing'", members.getTypeName());
         return QoreValue();
     }
 
     // deserialize members first, then return hash
-    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+    ReferenceHolder<QoreHashNode> rv(xsink);
+    if (rval && (type[0] == '^')) {
+        rv = rval;
+    } else {
+        rv = new QoreHashNode(autoTypeInfo);
+    }
+    qore_hash_private* ph = qore_hash_private::get(**rv);
     if (members) {
         // deserialize hash members
         ConstHashIterator mi(members.get<const QoreHashNode>());
@@ -959,7 +1097,7 @@ QoreValue QoreSerializable::deserializeHashData(const QoreStringNode& type, cons
             if (*xsink) {
                 return QoreValue();
             }
-            rv->setKeyValue(mi.getKey(), val.release(), xsink);
+            ph->setKeyValueIntern(mi.getKey(), val.release());
         }
     }
 
@@ -970,11 +1108,10 @@ QoreValue QoreSerializable::deserializeHashData(const QoreStringNode& type, cons
             const QoreTypeInfo* vti = qore_get_type_from_string_intern(value_type);
             //printd(5, "QoreSerializable::deserializeHashData() vti: '%s'\n", value_type);
             if (!vti) {
-                xsink->raiseException("DESERIALIZATION-ERROR", "'hash has value type '%s' which cannot be matched to a " \
+                xsink->raiseException("DESERIALIZATION-ERROR", "'hash has value type '%s' which cannot be matched to a "
                     "known type", value_type);
                 return QoreValue();
             }
-            qore_hash_private* ph = qore_hash_private::get(**rv);
             ph->complexTypeInfo = (vti == anyTypeInfo ? nullptr : qore_get_complex_hash_type(vti));
         }
         return rv.release();
@@ -983,16 +1120,56 @@ QoreValue QoreSerializable::deserializeHashData(const QoreStringNode& type, cons
     const QoreNamespace* pns = nullptr;
     const TypedHashDecl* hd = getProgram()->findHashDecl(type.c_str(), pns);
     if (!hd) {
-        xsink->raiseException("DESERIALIZATION-ERROR", "'_hash' key indicates that a '%s' typed hash should be deserialized, but no such typed hash (hashdecl) could be found in the current Program object", type.c_str());
+        xsink->raiseException("DESERIALIZATION-ERROR", "'_hash' key indicates that a '%s' typed hash should be "
+            "deserialized, but no such typed hash (hashdecl) could be found in the current Program object",
+            type.c_str());
         return QoreValue();
     }
 
     // do the runtime cast
-    return typed_hash_decl_private::get(*hd)->newHash(*rv, true, xsink);
+    return typed_hash_decl_private::get(*hd)->newHash(*rv, true, xsink, rval);
 }
 
-QoreValue QoreSerializable::deserializeListData(const QoreListNode& l, const oimap_t& oimap, ExceptionSink* xsink) {
-    ReferenceHolder<QoreListNode> rv(new QoreListNode(autoTypeInfo), xsink);
+QoreValue QoreSerializable::deserializeListData(QoreValue v, const QoreHashNode& h, const oimap_t& oimap,
+        ExceptionSink* xsink, QoreListNode* rval) {
+    if (v.getType() != NT_STRING) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "'_list' key has invalid type '%s'; expecting 'string'", v.getTypeName());
+        return QoreValue();
+    }
+
+    // get element type
+    const char* value_type = v.get<QoreStringNode>()->c_str();
+    const QoreTypeInfo* vti = qore_get_type_from_string_intern(value_type);
+    if (!vti) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "'list has value type '%s' which cannot be matched to a "
+            "known type", value_type);
+        return QoreValue();
+    }
+
+    // get elements, if any
+    const QoreValue elements = h.getKeyValue("_elements");
+
+    if (elements && elements.getType() != NT_LIST) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "'_elements' key has invalid type '%s'; expecting 'list' "
+            "or 'nothing'", elements.getTypeName());
+        return QoreValue();
+    }
+
+    if (elements.isNothing()) {
+        return new QoreListNode(vti);
+    }
+    ValueHolder rv(deserializeListData(*elements.get<const QoreListNode>(), oimap, xsink, rval), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    qore_list_private* pl = qore_list_private::get(*rv->get<QoreListNode>());
+    pl->complexTypeInfo = (vti == anyTypeInfo ? nullptr : qore_get_complex_list_type(vti));
+    return rv.release();
+}
+
+QoreValue QoreSerializable::deserializeListData(const QoreListNode& l, const oimap_t& oimap, ExceptionSink* xsink,
+        QoreListNode* rval) {
+    ReferenceHolder<QoreListNode> rv(rval ? rval : new QoreListNode(autoTypeInfo), xsink);
 
     ConstListIterator li(l);
     while (li.next()) {
@@ -1006,8 +1183,8 @@ QoreValue QoreSerializable::deserializeListData(const QoreListNode& l, const oim
     return rv.release();
 }
 
-void QoreSerializable::serialize(const QoreValue val, OutputStream& stream, ExceptionSink* xsink) {
-    ReferenceHolder<QoreHashNode> h(serializeToData(val, xsink), xsink);
+void QoreSerializable::serialize(const QoreValue val, OutputStream& stream, int64 flags, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> h(serializeToData(val, flags, xsink), xsink);
     if (*xsink) {
         return;
     }
@@ -1016,8 +1193,8 @@ void QoreSerializable::serialize(const QoreValue val, OutputStream& stream, Exce
 }
 
 
-void QoreSerializable::serialize(const QoreObject& self, OutputStream& stream, ExceptionSink* xsink) {
-    ReferenceHolder<QoreHashNode> h(serializeToData(&self, xsink), xsink);
+void QoreSerializable::serialize(const QoreObject& self, OutputStream& stream, int64 flags, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> h(serializeToData(&self, flags, xsink), xsink);
     if (*xsink) {
         return;
     }

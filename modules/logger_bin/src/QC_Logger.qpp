@@ -38,14 +38,14 @@ static QoreHashNode* Logger_serializer(const QoreObject& self, const QoreLogger&
     rv->setKeyValue("additivity", l.additivity, xsink);
     ValueHolder val(const_cast<QoreObject&>(self).getReferencedMemberNoMethod("currentLevel", xsink), xsink);
     if (val) {
-        rv->setKeyValue("currentLevel", context.serializeValue(*val, xsink), xsink);
+        rv->setKeyValue("currentLevel", context.serializeValue(*val, 0, xsink), xsink);
     }
     if (l.name) {
         rv->setKeyValue("name", l.name->stringRefSelf(), xsink);
     }
     val = const_cast<QoreObject&>(self).getReferencedMemberNoMethod("parent", xsink);
     if (val) {
-        rv->setKeyValue("parent", context.serializeValue(*val, xsink), xsink);
+        rv->setKeyValue("parent", context.serializeValue(*val, 0, xsink), xsink);
     }
     return rv.release();
 }
