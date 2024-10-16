@@ -735,6 +735,15 @@ target_link_libraries(qore libqore)
 #set_target_properties(qore qr PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
 set_target_properties(qore PROPERTIES INSTALL_RPATH_USE_LINK_PATH ${CMAKE_INSTALL_FULL_LIBDIR})
 
+if (DEFINED LIBJSIG AND APPLE)
+    add_custom_command(TARGET qore
+        POST_BUILD COMMAND
+        ${CMAKE_INSTALL_NAME_TOOL} -change @rpath/libjsig.dylib ${LIBJSIG} qore
+        POST_BUILD COMMAND
+        ${CMAKE_INSTALL_NAME_TOOL} -change @rpath/libjsig.dylib ${LIBJSIG} libqore.dylib
+    )
+endif()
+
 # configuration files
 message(STATUS "Generating unix-config.h")
 configure_file(${CMAKE_SOURCE_DIR}/cmake/unix-config.h.cmake
