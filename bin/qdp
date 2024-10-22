@@ -45,6 +45,10 @@
 
 class QdpCmd {
     public {
+        static string cmd;
+        static string app;
+        static string action;
+
         static bool ix;
 
         #! program options
@@ -64,6 +68,9 @@ class QdpCmd {
 
         #! commands
         const Cmds = {
+            "action-info": \QdpCmd::actionInfo(),
+            "ai": \QdpCmd::actionInfo(),
+            "ainfo": \QdpCmd::actionInfo(),
             "create": \QdpCmd::create(),
             "delete": \QdpCmd::del(),
             "dorequest": \QdpCmd::doRequest(),
@@ -199,7 +206,9 @@ class QdpCmd {
                 if (path.size() == 1) {
                     showActions(name);
                 }
-                provider = getDataProviderForAppAction(path[0], path[1], opts);
+                app = path[0];
+                action = path[1];
+                provider = getDataProviderForAppAction(app, action, opts);
             } else {
                 list<string> path = name.split("/");
                 provider = getDataProvider((shift path) + opts);
@@ -209,9 +218,9 @@ class QdpCmd {
             }
         }
 
-        string cmd = shift ARGV ?? "list";
-        *code action = Cmds{cmd};
-        if (!action) {
+        cmd = shift ARGV ?? "list";
+        *code qdp_action = Cmds{cmd};
+        if (!qdp_action) {
             # see if an abbreviation matches
             hash<string, bool> match = map {$1: True}, keys Cmds, $1.equalPartial(cmd);
             # try to disambiguate
@@ -224,19 +233,19 @@ class QdpCmd {
                     || (info{DisambiguationMap{$1}}.typeCode() == NT_STRING && info{DisambiguationMap{$1}} != "NONE");
             }
             if (match.size() == 1) {
-                action = Cmds{match.firstKey()};
+                qdp_action = Cmds{match.firstKey()};
             } else if (match) {
                 # check if all matches have the same action
                 {
                     foreach string c in (keys match) {
-                        if (!action) {
-                            action = Cmds{c};
-                        } else if (Cmds{c} != action) {
+                        if (!qdp_action) {
+                            qdp_action = Cmds{c};
+                        } else if (Cmds{c} != qdp_action) {
                             break;
                         }
                     }
                 }
-                if (!action) {
+                if (!qdp_action) {
                     error("unknown action %y; matches %y; please provide additional character(s) to ensure a unique "
                         "match", cmd, keys match);
                 }
@@ -245,7 +254,7 @@ class QdpCmd {
             }
         }
         try {
-            action(provider);
+            qdp_action(provider);
         } catch (hash<ExceptionInfo> ex) {
             if (ex.err == "INVALID-OPERATION") {
                 error("%s: %s", ex.err, ex.desc);
@@ -735,6 +744,29 @@ class QdpCmd {
         return rv;
     }
 
+    static actionInfo(AbstractDataProvider provider) {
+        if (!exists app) {
+            QdpCmd::error("Missing app and action for action info; use:\n    %s @<app>/<action> %s",
+                get_script_name(), cmd);
+        }
+        hash<DataProviderActionInfo> action = DataProviderActionCatalog::getAppActionEx(app, QdpCmd::action);
+        printf("@%s/%s (%s%s): %s\n", app, QdpCmd::action, ActionNameMap{action.action_code},
+            (action.action_val.val() ? " \"" + action.action_val + "\"" : ""), action.short_desc);
+        if (action.options) {
+            printf("Options:\n");
+            foreach hash<auto> i in (action.options.pairIterator()) {
+                printf(" - %s (%s%s): %s\n", i.key, i.value.required ? "" : "*", i.value.type.getName(),
+                    i.value.short_desc);
+            }
+        } else {
+            printf("Options: none\n");
+        }
+        if (action.output_type) {
+            printf("Output:\n");
+            QdpCmd::showType(provider, action.output_type, "  ");
+        }
+    }
+
     static update(AbstractDataProvider provider) {
         hash<auto> set = QdpCmd::getHash("update 'set'", True);
         *hash<auto> where_cond = QdpCmd::getSearchExpression("update 'where'", True);
@@ -1104,6 +1136,8 @@ class QdpCmd {
  %s [options] <factory>{<options>}[/child1/child2...] <cmd> [args...]
  %s [options] @<app>/<action>[{<options>}] [args...]
   <cmd> = create|delete|dorequest|errors|info|list|record|request|response|reply|rsearch|search|update|upsert (default=list)
+    action-info|ainfo|ai
+        show info for the given app action (must use @<app>/<action> for the data provider)
     create <new record> (ex create id=123,name=\"my name\")
         create a new record
     field-add|fadd <name> <field desc hash>
