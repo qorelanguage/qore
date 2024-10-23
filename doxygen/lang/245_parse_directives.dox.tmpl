@@ -903,7 +903,7 @@ i+ =4;
     n/a
 
     @par Description:
-    Includes a file to be parsed. If the path is not absolute (i.e. starting with \c ""/"), then files are searched first in the directory of the currently-executing script (if known), then in each path in the environment variable \c QORE_INCLUDE_DIR.\n
+    Includes a file to be parsed. If the path is not absolute (i.e. starting with \c "/"), then files are searched first in the directory of the currently-executing script (if known), then in each path in the environment variable \c QORE_INCLUDE_DIR.\n
     If the first character of the include target is \c '$', then environment variable substitution is performed on the leading environment variable
 
     @since %Qore 0.8.9 added environment variable substitution
@@ -1770,7 +1770,8 @@ if (str)
     none; this is set by calling @ref Qore::TimeZone::setRegion() or @ref Qore::TimeZone::setUTCOffset()
 
     @par Description:
-    Sets the time zone for the current program from a UTC offset (with format \c "+/-00[:00[:00]]"; \c ":"" characters are optional) or a time zone region name (ex: \c "Europe/Prague").
+    Sets the time zone for the current program from a UTC offset (with format \c "+/-00[:00[:00]]"; \c ":" characters
+    are optional) or a time zone region name (ex: \c "Europe/Prague").
 
     <hr>
     @section strict-args %strict-args
