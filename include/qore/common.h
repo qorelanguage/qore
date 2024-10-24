@@ -274,6 +274,12 @@ constexpr size_t QSF_ALLOW_WEAKREFS = (1 << 0);
 //! Serialization flag; include static class vars
 constexpr size_t QSF_INCLUDE_STATIC_CLASS_VARS = (1 << 1);
 
+//! Deserialization flag: deserialize static class vars
+constexpr size_t QDF_STATIC_CLASS_VARS = (1 << 0);
+
+//! Deserialization flag: deserialize and merge static class vars; implies QDF_STATIC_CLASS_VARS
+constexpr size_t QDF_MERGE_STATIC_CLASS_VARS = (1 << 1) | QDF_STATIC_CLASS_VARS;
+
 //! serialization context object used in builtin serializer methods
 /** @since %Qore 0.9
 */
@@ -333,6 +339,9 @@ public:
     /** throws a Qore-language exception if there is an error deserializing the object
     */
     DLLEXPORT QoreValue deserializeValue(const QoreValue val, ExceptionSink* xsink);
+
+    //! Returns the current deserialization flag bitfield
+    DLLEXPORT int64 getFlags() const;
 
 private:
     //! this class is a wrapper class that cannot be constructed

@@ -804,8 +804,11 @@ QoreAbstractModule* QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, Ex
             break;
         }
         if (i->second == q_gettid()) {
+            /*
             xsink.raiseException("LOAD-MODULE-ERROR", "module '%s' has a circular dependency back to itself",
                 name);
+            assert(false);
+            */
             return nullptr;
         }
         // otherwise wait for the load to complete in the other thread

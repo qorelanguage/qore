@@ -175,6 +175,7 @@ class Issue3515 inherits Serializable {
 class S0 inherits Serializable {
     public {
         static int i0 = 1;
+        static TimeZone tz = new TimeZone(0);
     }
 }
 
@@ -287,7 +288,9 @@ class SerializableTest inherits QUnit::Test {
         S0::i0 = S1::i1 = 0;
         assertEq(0, S0::i0);
         assertEq(0, S1::i1);
-        Serializable::deserialize(b);
+        on_error printf("%N\n", Serializable::deserializeToData(b));
+        auto x = Serializable::deserialize(b, QDF_STATIC_CLASS_VARS);
+        remove x;
         assertEq(1, S0::i0);
         assertEq(2, S1::i1);
     }
