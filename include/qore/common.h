@@ -285,7 +285,7 @@ public:
         @note When serializing weak references to objects, a strong reference to the object must also be serialized in
         the same operation, or any weak references will be invalid after deserialization
     */
-    DLLEXPORT int serializeObject(const QoreObject& obj, std::string& index, int64 flags, ExceptionSink* xsink);
+    DLLEXPORT int serializeObject(const QoreObject& obj, std::string& index, ExceptionSink* xsink);
 
     //! Serializes the given hash and returns the serialization index
     /** Throws a Qore-language exception if there is an error serializing the hash
@@ -293,7 +293,7 @@ public:
         @note When serializing weak references to hashes, a strong reference to the hash must also be serialized in
         the same operation, or any weak references will be invalid after deserialization
     */
-    DLLEXPORT int serializeHash(const QoreHashNode& h, std::string& index, int64 flags, ExceptionSink* xsink);
+    DLLEXPORT int serializeHash(const QoreHashNode& h, std::string& index, ExceptionSink* xsink);
 
     //! Serializes the given list and returns the serialization index
     /** Throws a Qore-language exception if there is an error serializing the list
@@ -301,15 +301,18 @@ public:
         @note When serializing weak references to lists, a strong reference to the list must also be serialized in
         the same operation, or any weak references will be invalid after deserialization
     */
-    DLLEXPORT int serializeList(const QoreListNode& l, std::string& index, int64 flags, ExceptionSink* xsink);
+    DLLEXPORT int serializeList(const QoreListNode& l, std::string& index, ExceptionSink* xsink);
 
     //! Serializes the given value and returns a serialized value representing the value to be serialized
     /** throws a Qore-language exception if there is an error serializing the object
     */
-    DLLEXPORT QoreValue serializeValue(const QoreValue val, int64 flags, ExceptionSink* xsink);
+    DLLEXPORT QoreValue serializeValue(const QoreValue val, ExceptionSink* xsink);
 
     //! Adds a module to be loaded when the data is deserialized
     DLLEXPORT void addModule(const char* module);
+
+    //! Returns the current serialization flag bitfield
+    DLLEXPORT int64 getFlags() const;
 
 private:
     //! This class is a wrapper class that cannot be constructed

@@ -1847,7 +1847,7 @@ public:
 
     // member list (map)
     QoreMemberMap members;
-    // member initialization list in hierarchy nitialization order
+    // member initialization list in hierarchy initialization order
     member_init_list_t member_init_list;
 
     // static var list (map)

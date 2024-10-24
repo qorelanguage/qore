@@ -314,20 +314,20 @@ DLLEXPORT int64 getMicroSecZeroInt64(QoreValue a);
 
 //! to check if an AbstractQoreNode object is NOTHING
 static inline bool is_nothing(const AbstractQoreNode* n) {
-   if (!n || n->getType() == NT_NOTHING)
-      return true;
+    if (!n || n->getType() == NT_NOTHING)
+        return true;
 
-   return false;
+    return false;
 }
 
 //! to deref an AbstractQoreNode (when the pointer may be 0)
 static inline void discard(AbstractQoreNode* n, ExceptionSink* xsink) {
-   if (n)
-      n->deref(xsink);
+    if (n)
+        n->deref(xsink);
 }
 
 static inline const char* get_type_name(const AbstractQoreNode* n) {
-   return n ? n->getTypeName() : "nothing";
+    return n ? n->getTypeName() : "nothing";
 }
 
 //! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
@@ -362,7 +362,7 @@ DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n, bool with_na
 DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces, QoreString& scratch);
 
 static inline qore_type_t get_node_type(const AbstractQoreNode* n) {
-   return n ? n->getType() : NT_NOTHING;
+    return n ? n->getType() : NT_NOTHING;
 }
 
 typedef QoreStringNode* (*qore_uncompress_to_string_t)(const BinaryNode* b, const QoreEncoding* enc,
@@ -490,10 +490,10 @@ DLLEXPORT const char* tz_get_region_name(const AbstractQoreZoneInfo* tz);
 
 //! definition of the elements in the qore_option_list
 struct qore_option_s {
-   const char* option;   //!< name of the option
-   const char* constant; //!< name of the constant for this option
-   int type;             //!< the type of the option
-   bool value;           //!< the value of the option
+    const char* option;   //!< name of the option
+    const char* constant; //!< name of the constant for this option
+    int type;             //!< the type of the option
+    bool value;           //!< the value of the option
 };
 
 //! returns the error string as a QoreStringNode

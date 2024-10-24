@@ -172,6 +172,18 @@ class Issue3515 inherits Serializable {
     }
 }
 
+class S0 inherits Serializable {
+    public {
+        static int i0 = 1;
+    }
+}
+
+class S1 inherits S0 {
+    public {
+        static int i1 = 2;
+    }
+}
+
 class SerializableTest inherits QUnit::Test {
     public {
         const Data = (
@@ -267,6 +279,17 @@ class SerializableTest inherits QUnit::Test {
         TimeZone tz0("Europe/Prague");
         Issue3515 obj(tz0);
         assertEq(tz0.region(), Serializable::deserialize(Serializable::serialize(obj)).tz.region());
+
+        S1 s();
+        binary b = s.serialize(QSF_INCLUDE_STATIC_CLASS_VARS);
+        assertEq(1, S0::i0);
+        assertEq(2, S1::i1);
+        S0::i0 = S1::i1 = 0;
+        assertEq(0, S0::i0);
+        assertEq(0, S1::i1);
+        Serializable::deserialize(b);
+        assertEq(1, S0::i0);
+        assertEq(2, S1::i1);
     }
 
     issue3395() {
