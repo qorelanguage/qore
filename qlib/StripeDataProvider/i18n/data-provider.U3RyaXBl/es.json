@@ -851,17 +851,9 @@
           "source": "Three-letter…",
           "message": "De tres letras…"
         },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente."
-        },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Cliente"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente"
         },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.YW1vdW50.desc": {
           "source": "The integer amount in **cents (or local equivalent)** to apply to the customer's credit balance.",
@@ -979,17 +971,9 @@
           "source": "Three-letter…",
           "message": "De tres letras…"
         },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente."
-        },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Cliente"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente"
         },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.YWRkX2ludm9pY2VfaXRlbXM.desc": {
           "source": "A list of prices and quantities that will generate invoice items appended to the next invoice for this subscription. You may pass up to 20 items.",
@@ -1343,17 +1327,9 @@
           "source": "A token, like the ones returned by [Stripe.js](https://stripe.com/docs/js)",
           "message": "Un token, como los devueltos por [Stripe.js](https://stripe.com/docs/js)"
         },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente."
-        },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Cliente"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente"
         },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.YWxpcGF5X2FjY291bnQ.desc": {
           "source": "A token returned by [Stripe.js](https://stripe.com/docs/js) representing the user’s Alipay account details.",
@@ -2983,17 +2959,9 @@
           "source": "Get Customer",
           "message": "Obtener cliente"
         },
-        "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente."
-        },
         "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Cliente"
-        },
-        "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente"
         },
         "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.ZXhwYW5k.desc": {
           "source": "Specifies which fields in the response should be expanded.",
@@ -3087,17 +3055,9 @@
           "source": "Specifies which fields in the response should be expanded",
           "message": "Especifica qué campos de la respuesta deben expandirse"
         },
-        "app.U3RyaXBl.action.Z2V0LWludm9pY2U.option.aW52b2ljZQ.desc": {
-          "source": "Only return transactions that are related to the specified invoice.",
-          "message": "Devolver solo las transacciones relacionadas con la factura especificada."
-        },
         "app.U3RyaXBl.action.Z2V0LWludm9pY2U.option.aW52b2ljZQ.display_name": {
           "source": "Invoice",
           "message": "Factura"
-        },
-        "app.U3RyaXBl.action.Z2V0LWludm9pY2U.option.aW52b2ljZQ.short_desc": {
-          "source": "Only return transactions that are related to the specified invoice",
-          "message": "Devolver solo las transacciones relacionadas con la factura especificada"
         },
         "app.U3RyaXBl.action.Z2V0LWludm9pY2U.short_desc": {
           "source": "Retrieve one invoice",
@@ -3135,17 +3095,9 @@
           "source": "Delete Customer",
           "message": "Eliminar cliente"
         },
-        "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente."
-        },
         "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Cliente"
-        },
-        "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente"
         },
         "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.short_desc": {
           "source": "Delete a customer",
@@ -3175,17 +3127,9 @@
           "source": "Delete Invoice",
           "message": "Eliminar factura"
         },
-        "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.option.aW52b2ljZQ.desc": {
-          "source": "Only return transactions that are related to the specified invoice.",
-          "message": "Devolver solo las transacciones relacionadas con la factura especificada."
-        },
         "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.option.aW52b2ljZQ.display_name": {
           "source": "Invoice",
           "message": "Factura"
-        },
-        "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.option.aW52b2ljZQ.short_desc": {
-          "source": "Only return transactions that are related to the specified invoice",
-          "message": "Devolver solo las transacciones relacionadas con la factura especificada"
         },
         "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.short_desc": {
           "source": "Delete a draft invoice",
@@ -3420,16 +3364,16 @@
           "message": "Listar cargos"
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado."
+          "source": "Only return charges that were created during the given date interval.",
+          "message": "Devuelve solo los cargos creados durante el intervalo de fechas indicado."
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "Creado"
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado"
+          "source": "Only return charges that were created during the given date interval",
+          "message": "Devuelve solo los cargos creados durante el intervalo de fechas indicado"
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3VzdG9tZXI.desc": {
           "source": "Only return charges for the customer specified by this customer ID.",
@@ -3528,16 +3472,16 @@
           "message": "Listar cuentas conectadas"
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado."
+          "source": "Only return connected accounts that were created during the given date interval.",
+          "message": "Devuelve solo las cuentas conectadas creadas durante el intervalo de fechas indicado."
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "Creado"
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado"
+          "source": "Only return connected accounts that were created during the given date interval",
+          "message": "Devuelve solo las cuentas conectadas creadas durante el intervalo de fechas indicado"
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -3600,28 +3544,20 @@
           "message": "Listar transacciones del saldo del cliente"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado."
+          "source": "Only return customer balance transactions that were created during the given date interval.",
+          "message": "Devuelve solo las transacciones de saldo de cliente creadas durante el intervalo de fechas indicado."
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "Creado"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente."
+          "source": "Only return customer balance transactions that were created during the given…",
+          "message": "Devuelve solo las transacciones de saldo de cliente creadas durante el…"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Cliente"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -3695,17 +3631,9 @@
           "source": "List Customer Sources",
           "message": "Listar fuentes del cliente"
         },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente."
-        },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Cliente"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -3779,17 +3707,9 @@
           "source": "List Customer Subscriptions",
           "message": "Listar suscripciones del cliente"
         },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente."
-        },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Cliente"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -3852,16 +3772,16 @@
           "message": "Listar clientes"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado."
+          "source": "Only return customers that were created during the given date interval.",
+          "message": "Devuelve solo los clientes creados durante el intervalo de fechas indicado."
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "Creado"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado"
+          "source": "Only return customers that were created during the given date interval",
+          "message": "Devuelve solo los clientes creados durante el intervalo de fechas indicado"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.ZW1haWw.desc": {
           "source": "A case-sensitive filter on the list based on the customer's `email` field. The value must be a string.",
@@ -4052,28 +3972,28 @@
           "message": "El método de cobro de la factura que se desea obtener"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado."
+          "source": "Only return invoices that were created during the given date interval.",
+          "message": "Devuelve solo las facturas creadas durante el intervalo de fechas indicado."
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "Creado"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado"
+          "source": "Only return invoices that were created during the given date interval",
+          "message": "Devuelve solo las facturas creadas durante el intervalo de fechas indicado"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente."
+          "source": "Only return invoices for the customer specified by this customer ID.",
+          "message": "Devuelve solo las facturas del cliente indicado por este identificador de cliente."
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Cliente"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente"
+          "source": "Only return invoices for the customer specified by this customer ID",
+          "message": "Devuelve solo las facturas del cliente indicado por este identificador de cliente"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXJfYWNjb3VudA.desc": {
           "source": "Only return invoices for the account representing the customer specified by this account ID.",
@@ -4196,40 +4116,40 @@
           "message": "Listar intenciones de pago"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado."
+          "source": "A filter on the list, based on the object `created` field. The value can be a string with an integer Unix timestamp or a dictionary with a number of different query options.",
+          "message": "Un filtro de la lista basado en el campo `created` del objeto. El valor puede ser una cadena con una marca de tiempo Unix entera o un diccionario con varias opciones de consulta distintas."
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "Creado"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado"
+          "source": "A filter on the list, based on the object 'created' field",
+          "message": "Un filtro de la lista basado en el campo 'created' del objeto"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente."
+          "source": "Only return PaymentIntents for the customer that this customer ID specifies.",
+          "message": "Devuelve solo los PaymentIntents del cliente indicado por este identificador de cliente."
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Cliente"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente"
+          "source": "Only return PaymentIntents for the customer that this customer ID specifies",
+          "message": "Devuelve solo los PaymentIntents del cliente indicado por este identificador de cliente"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXJfYWNjb3VudA.desc": {
-          "source": "Only return invoices for the account representing the customer specified by this account ID.",
-          "message": "Solo devolver facturas de la cuenta que representa al cliente especificado mediante este ID de cuenta."
+          "source": "Only return PaymentIntents for the account representing the customer that this ID specifies.",
+          "message": "Devuelve solo los PaymentIntents de la cuenta que representa al cliente indicado por este identificador."
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXJfYWNjb3VudA.display_name": {
           "source": "Customer Account",
           "message": "Cuenta de cliente"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXJfYWNjb3VudA.short_desc": {
-          "source": "Only return invoices for the account representing the customer specified by…",
-          "message": "Solo devuelve facturas de la cuenta que representa al cliente especificado por…"
+          "source": "Only return PaymentIntents for the account representing the customer that this…",
+          "message": "Devuelve solo los PaymentIntents de la cuenta que representa al cliente…"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -4304,16 +4224,16 @@
           "message": "Solo devolver reembolsos del cargo especificado mediante este ID de cargo"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado."
+          "source": "Only return refunds that were created during the given date interval.",
+          "message": "Devuelve solo los reembolsos creados durante el intervalo de fechas indicado."
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "Creado"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Devolver solo las transacciones creadas durante el intervalo de fechas indicado"
+          "source": "Only return refunds that were created during the given date interval",
+          "message": "Devuelve solo los reembolsos creados durante el intervalo de fechas indicado"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -4364,16 +4284,16 @@
           "message": "Un cursor para usar en la paginación"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.cGF5bWVudF9pbnRlbnQ.desc": {
-          "source": "Only return charges that were created by the PaymentIntent specified by this PaymentIntent ID.",
-          "message": "Solo devolver cargos creados por el PaymentIntent especificado mediante este ID de PaymentIntent."
+          "source": "Only return refunds for the PaymentIntent specified by this ID.",
+          "message": "Devuelve solo los reembolsos del PaymentIntent indicado por este identificador."
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.cGF5bWVudF9pbnRlbnQ.display_name": {
           "source": "Payment Intent",
           "message": "Intención de pago"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.cGF5bWVudF9pbnRlbnQ.short_desc": {
-          "source": "Only return charges that were created by the PaymentIntent specified by this…",
-          "message": "Solo devuelve cargos creados por el PaymentIntent especificado por este…"
+          "source": "Only return refunds for the PaymentIntent specified by this ID",
+          "message": "Devuelve solo los reembolsos del PaymentIntent indicado por este identificador"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.short_desc": {
           "source": "List refunds, most recent first",
@@ -4843,17 +4763,9 @@
           "source": "Balance information and default balance settings for this customer",
           "message": "Información de saldo y configuración de saldo predeterminada para este cliente"
         },
-        "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente."
-        },
         "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Cliente"
-        },
-        "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Devolver solo los cargos del cliente especificado por este ID de cliente"
         },
         "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.YWRkcmVzcw.desc": {
           "source": "The customer's address. Learn about [country-specific requirements for calculating tax](https://docs.stripe.com/invoicing/taxes?dashboard-or-api=dashboard#set-up-customer).",
@@ -5683,17 +5595,9 @@
           "source": "Footer to be displayed on the invoice",
           "message": "Pie de página que se mostrará en la factura"
         },
-        "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aW52b2ljZQ.desc": {
-          "source": "Only return transactions that are related to the specified invoice.",
-          "message": "Devolver solo las transacciones relacionadas con la factura especificada."
-        },
         "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aW52b2ljZQ.display_name": {
           "source": "Invoice",
           "message": "Factura"
-        },
-        "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aW52b2ljZQ.short_desc": {
-          "source": "Only return transactions that are related to the specified invoice",
-          "message": "Devolver solo las transacciones relacionadas con la factura especificada"
         },
         "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aXNzdWVy.desc": {
           "source": "The connected account that issues the invoice. The invoice is presented with the branding and support information of the specified account.",

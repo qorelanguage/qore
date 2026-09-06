@@ -492,16 +492,16 @@
           "message": "タスクの名前"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.desc": {
-          "source": "You can specify an individual project by appending the projectId to the endpoint",
-          "message": "エンドポイントに projectId を追加することで、個別のプロジェクトを指定できます"
+          "source": "You can create a task on a specified projectId",
+          "message": "指定した projectId にタスクを作成できます"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.display_name": {
           "source": "Project",
           "message": "プロジェクト"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.short_desc": {
-          "source": "You can specify an individual project by appending the projectId to the endpoint",
-          "message": "エンドポイントに projectId を追加することで、個別のプロジェクトを指定できます"
+          "source": "You can create a task on a specified projectId",
+          "message": "指定した projectId にタスクを作成できます"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cmF0ZQ.display_name": {
           "source": "Rate",
@@ -664,8 +664,8 @@
           "message": "並び替え基準となるフィールド（例: \"UpdatedDateUTC DESC\"）"
         },
         "app.WGVybw.action.Z2V0Q3JlZGl0Tm90ZXM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "例: page=1 - 1回のAPI呼び出しで最大100件の連絡先が返されます。"
+          "source": "e.g. page=1 – Up to 100 credit notes will be returned in a single API call with line items shown for each credit note",
+          "message": "例: page=1 – 1 回の API 呼び出しで最大 100 件のクレジットノートが返され、各ノートの明細が表示されます"
         },
         "app.WGVybw.action.Z2V0Q3JlZGl0Tm90ZXM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -808,8 +808,8 @@
           "message": "並び替え基準となるフィールド（例: \"UpdatedDateUTC DESC\"）"
         },
         "app.WGVybw.action.Z2V0QmFua1RyYW5zYWN0aW9ucw.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "例: page=1 - 1回のAPI呼び出しで最大100件の連絡先が返されます。"
+          "source": "Up to 100 bank transactions will be returned in a single API call with line items details",
+          "message": "1 回の API 呼び出しで、明細の詳細を含む最大 100 件の銀行取引が返されます"
         },
         "app.WGVybw.action.Z2V0QmFua1RyYW5zYWN0aW9ucw.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -916,8 +916,8 @@
           "message": "連絡先IDのカンマ区切りリスト"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.SURz.desc": {
-          "source": "Filter by a comma separated list of ContactIDs. Allows you to retrieve a specific set of contacts in a single call.",
-          "message": "ContactIDのカンマ区切りリストでフィルタリングします。1回の呼び出しで特定の連絡先セットを取得できます。"
+          "source": "Filter by a comma-separated list of InvoicesIDs.",
+          "message": "カンマ区切りの InvoicesIDs 一覧で絞り込みます。"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.SURz.display_name": {
           "source": "Invoice IDs",
@@ -976,16 +976,16 @@
           "message": "true に設定すると、自作アプリによって作成された請求書のみを取得します"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.desc": {
-          "source": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be included in the response",
-          "message": "例: includeArchived=true - ステータスが ARCHIVED の連絡先がレスポンスに含まれます"
+          "source": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be included in the response",
+          "message": "例: includeArchived=true – ステータスが ARCHIVED の請求書がレスポンスに含まれます"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.display_name": {
           "source": "Include Archived",
           "message": "アーカイブ済みを含める"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.short_desc": {
-          "source": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be…",
-          "message": "例: includeArchived=true - ARCHIVED状態の連絡先が…"
+          "source": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be…",
+          "message": "例: includeArchived=true – ステータスが ARCHIVED…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.b3JkZXI.desc": {
           "source": "Order by an any element",
@@ -1000,16 +1000,16 @@
           "message": "並び替え基準となるフィールド（例: \"UpdatedDateUTC DESC\"）"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.desc": {
-          "source": "Search parameter that performs a case-insensitive text search across the Name, FirstName, LastName, ContactNumber and EmailAddress fields.",
-          "message": "Name、FirstName、LastName、ContactNumber、および EmailAddress フィールドに対して大文字小文字を区別しないテキスト検索を実行する検索パラメータ。"
+          "source": "Search parameter that performs a case-insensitive text search across the fields e.g. InvoiceNumber, Reference.",
+          "message": "InvoiceNumber や Reference などのフィールドを対象に、大文字と小文字を区別しないテキスト検索を行う検索パラメーターです。"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.display_name": {
           "source": "Search Term",
           "message": "検索キーワード"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.short_desc": {
-          "source": "Search parameter that performs a case-insensitive text search across the Name,…",
-          "message": "Name等を対象に大文字小文字を区別せずテキスト検索するパラメータ…"
+          "source": "Search parameter that performs a case-insensitive text search across the…",
+          "message": "InvoiceNumber や Reference などのフィールドを対象に、大文字と小文字を区別しない…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c3VtbWFyeU9ubHk.desc": {
           "source": "Use summaryOnly=true in GET Contacts and Invoices endpoint to retrieve a smaller version of the response object. This returns only lightweight fields, excluding computation-heavy fields from the response, making the API calls quick and efficient.",
@@ -1024,8 +1024,8 @@
           "message": "GET ContactsやInvoicesでsummaryOnly=trueを使用して…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "例: page=1 - 1回のAPI呼び出しで最大100件の連絡先が返されます。"
+          "source": "e.g. page=1 – Up to 100 invoices will be returned in a single API call with line items shown for each invoice",
+          "message": "例: page=1 – 1 回の API 呼び出しで最大 100 件の請求書が返され、各請求書の明細が表示されます"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -1168,8 +1168,8 @@
           "message": "並び替え基準となるフィールド（例: \"UpdatedDateUTC DESC\"）"
         },
         "app.WGVybw.action.Z2V0UGF5bWVudHM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "例: page=1 - 1回のAPI呼び出しで最大100件の連絡先が返されます。"
+          "source": "Up to 100 payments will be returned in a single API call",
+          "message": "1 回の API 呼び出しで最大 100 件の支払いが返されます"
         },
         "app.WGVybw.action.Z2V0UGF5bWVudHM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -1404,8 +1404,8 @@
           "message": "並び替え基準となるフィールド（例: \"UpdatedDateUTC DESC\"）"
         },
         "app.WGVybw.action.Z2V0UHVyY2hhc2VPcmRlcnM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "例: page=1 - 1回のAPI呼び出しで最大100件の連絡先が返されます。"
+          "source": "To specify a page, append the page parameter to the URL e.g. ?page=1. If there are 100 records in the response you will need to check if there is any more data by fetching the next page e.g ?page=2 and continuing this process until no more results are returned.",
+          "message": "ページを指定するには、URL に page パラメーターを付加します (例: ?page=1)。レスポンスに 100 件のレコードが含まれる場合は、次のページ (例: ?page=2) を取得してさらにデータがあるか確認し、結果が返らなくなるまで繰り返してください。"
         },
         "app.WGVybw.action.Z2V0UHVyY2hhc2VPcmRlcnM.option.cGFnZQ.display_name": {
           "source": "Page",

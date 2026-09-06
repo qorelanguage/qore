@@ -92,16 +92,16 @@
           "message": "Estado de la entrada; indica si la entrada del blog se creará como…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.desc": {
-          "source": "The page will be private. Only the user who creates this page will have permission to view and edit one.",
-          "message": "La página será privada. Solo el usuario que cree esta página tendrá permiso para verla y editarla."
+          "source": "The blog post will be private. Only the user who creates this blog post will have permission to view and edit one.",
+          "message": "La entrada de blog será privada. Solo el usuario que la cree tendrá permiso para verla y editarla."
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.display_name": {
           "source": "Private",
           "message": "Privado"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.short_desc": {
-          "source": "The page will be private",
-          "message": "La página será privada"
+          "source": "The blog post will be private",
+          "message": "La entrada de blog será privada"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.dGl0bGU.desc": {
           "source": "Title of the blog post, required if creating non-draft.",
@@ -400,136 +400,136 @@
           "message": "Formatos de contenido que se devolverán en el campo «body» de la respuesta"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.desc": {
-          "source": "Retrieve the draft version of this page.",
-          "message": "Recupera la versión borrador de esta página."
+          "source": "Retrieve the draft version of this blog post.",
+          "message": "Recupera la versión de borrador de esta entrada de blog."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.display_name": {
           "source": "Get Draft",
           "message": "Obtener borrador"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.short_desc": {
-          "source": "Retrieve the draft version of this page",
-          "message": "Recupera la versión borrador de esta página"
+          "source": "Retrieve the draft version of this blog post",
+          "message": "Recupera la versión de borrador de esta entrada de blog"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.desc": {
-          "source": "Includes the current version associated with this page in the response.\nBy default this is included and can be omitted by setting the value to `false`.",
-          "message": "Incluye en la respuesta la versión actual asociada con esta página.\nDe forma predeterminada esto se incluye y se puede omitir estableciendo el valor en `false`."
+          "source": "Includes the current version associated with this blog post in the response.\nBy default this is included and can be omitted by setting the value to `false`.",
+          "message": "Incluye en la respuesta la versión actual asociada a esta entrada de blog.\nDe forma predeterminada se incluye y puede omitirse estableciendo el valor en `false`."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.display_name": {
           "source": "Include Version",
           "message": "Incluir versión"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.short_desc": {
-          "source": "Includes the current version associated with this page in the response",
-          "message": "Incluye en la respuesta la versión actual asociada con esta página"
+          "source": "Includes the current version associated with this blog post in the response",
+          "message": "Incluye en la respuesta la versión actual asociada a esta entrada de blog"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.desc": {
-          "source": "Includes versions associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Incluye en la respuesta las versiones asociadas con esta página.\nEl número de resultados estará limitado a 50 y ordenado en el orden de clasificación predeterminado.\nEstará presente una propiedad `meta` y `_links` para indicar si hay más resultados disponibles y un enlace para recuperar el resto de los resultados."
+          "source": "Includes versions associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Incluye en la respuesta las versiones asociadas a esta entrada de blog.\nEl número de resultados se limitará a 50 y se ordenará según el criterio predeterminado. \nLas propiedades `meta` y `_links` indican si hay más resultados disponibles e incluyen un enlace para obtener el resto."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.display_name": {
           "source": "Include Versions",
           "message": "Incluir versiones"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.short_desc": {
-          "source": "Includes versions associated with this page in the response",
-          "message": "Incluye en la respuesta las versiones asociadas con esta página"
+          "source": "Includes versions associated with this blog post in the response",
+          "message": "Incluye en la respuesta las versiones asociadas a esta entrada de blog"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.desc": {
-          "source": "Includes web resources that can be used to render page content on a client.",
-          "message": "Incluye recursos web que se pueden utilizar para representar el contenido de la página en un cliente."
+          "source": "Includes web resources that can be used to render blog post content on a client.",
+          "message": "Incluye recursos web que se pueden usar para representar el contenido de la entrada de blog en un cliente."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.display_name": {
           "source": "Include Webresources",
           "message": "Incluir recursos web"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.short_desc": {
-          "source": "Includes web resources that can be used to render page content on a client",
-          "message": "Incluye recursos web para renderizar el contenido de página en el cliente"
+          "source": "Includes web resources that can be used to render blog post content on a client",
+          "message": "Incluye recursos web que se pueden usar para representar el contenido de la entrada de blog en un cliente"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.desc": {
-          "source": "Includes collaborators on the page.",
-          "message": "Incluye los colaboradores en la página."
+          "source": "Includes collaborators on the blog post.",
+          "message": "Incluye los colaboradores de la entrada de blog."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.display_name": {
           "source": "Include Collaborators",
           "message": "Incluir colaboradores"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.short_desc": {
-          "source": "Includes collaborators on the page",
-          "message": "Incluye los colaboradores en la página"
+          "source": "Includes collaborators on the blog post",
+          "message": "Incluye los colaboradores de la entrada de blog"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.desc": {
-          "source": "Includes whether this page has been favorited by the current user.",
-          "message": "Incluye si el usuario actual ha marcado esta página como favorita."
+          "source": "Includes whether this blog post has been favorited by the current user.",
+          "message": "Indica si el usuario actual ha marcado esta entrada de blog como favorita."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.display_name": {
           "source": "Include Favorited by Current User Status",
           "message": "Incluir estado de favorito por el usuario actual"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.short_desc": {
-          "source": "Includes whether this page has been favorited by the current user",
-          "message": "Incluye si el usuario actual ha marcado esta página como favorita"
+          "source": "Includes whether this blog post has been favorited by the current user",
+          "message": "Indica si el usuario actual ha marcado esta entrada de blog como favorita"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.desc": {
-          "source": "Includes labels associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Incluye las etiquetas asociadas a esta página en la respuesta.\nEl número de resultados se limitará a 50 y se ordenará según el orden de clasificación predeterminado.\nEstarán presentes las propiedades `meta` y `_links` para indicar si hay más resultados disponibles y un enlace para obtener el resto de los resultados."
+          "source": "Includes labels associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Incluye en la respuesta las etiquetas asociadas a esta entrada de blog.\nEl número de resultados se limitará a 50 y se ordenará según el criterio predeterminado. \nLas propiedades `meta` y `_links` indican si hay más resultados disponibles e incluyen un enlace para obtener el resto."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.display_name": {
           "source": "Include Labels",
           "message": "Incluir etiquetas"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.short_desc": {
-          "source": "Includes labels associated with this page in the response",
-          "message": "Incluye las etiquetas asociadas a esta página en la respuesta"
+          "source": "Includes labels associated with this blog post in the response",
+          "message": "Incluye en la respuesta las etiquetas asociadas a esta entrada de blog"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.desc": {
-          "source": "Includes likes associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Incluye los me gusta asociados a esta página en la respuesta.\nEl número de resultados se limitará a 50 y se ordenará según el orden de clasificación predeterminado.\nEstarán presentes las propiedades `meta` y `_links` para indicar si hay más resultados disponibles y un enlace para obtener el resto de los resultados."
+          "source": "Includes likes associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Incluye en la respuesta los «me gusta» asociados a esta entrada de blog.\nEl número de resultados se limitará a 50 y se ordenará según el criterio predeterminado. \nLas propiedades `meta` y `_links` indican si hay más resultados disponibles e incluyen un enlace para obtener el resto."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.display_name": {
           "source": "Include Likes",
           "message": "Incluir me gusta"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.short_desc": {
-          "source": "Includes likes associated with this page in the response",
-          "message": "Incluye los me gusta asociados a esta página en la respuesta"
+          "source": "Includes likes associated with this blog post in the response",
+          "message": "Incluye en la respuesta los «me gusta» asociados a esta entrada de blog"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.desc": {
-          "source": "Includes operations associated with this page in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Incluye las operaciones asociadas a esta página en la respuesta, tal como se definen en el objeto `Operation`.\nEl número de resultados se limitará a 50 y se ordenará según el orden de clasificación predeterminado.\nEstarán presentes las propiedades `meta` y `_links` para indicar si hay más resultados disponibles y un enlace para obtener el resto de los resultados."
+          "source": "Includes operations associated with this blog post in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Incluye en la respuesta las operaciones asociadas a esta entrada de blog, según se definen en el objeto `Operation`.\nEl número de resultados se limitará a 50 y se ordenará según el criterio predeterminado. \nLas propiedades `meta` y `_links` indican si hay más resultados disponibles e incluyen un enlace para obtener el resto."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.display_name": {
           "source": "Include Operations",
           "message": "Incluir operaciones"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.short_desc": {
-          "source": "Includes operations associated with this page in the response, as defined in…",
-          "message": "Incluye en la respuesta operaciones asociadas a esta página, según…"
+          "source": "Includes operations associated with this blog post in the response, as defined…",
+          "message": "Incluye en la respuesta las operaciones asociadas a esta entrada de blog, según…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.desc": {
-          "source": "Includes content properties associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Incluye las propiedades de contenido asociadas a esta página en la respuesta.\nEl número de resultados se limitará a 50 y se ordenará según el orden de clasificación predeterminado.\nEstarán presentes las propiedades `meta` y `_links` para indicar si hay más resultados disponibles y un enlace para obtener el resto de los resultados."
+          "source": "Includes content properties associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Incluye en la respuesta las propiedades de contenido asociadas a esta entrada de blog.\nEl número de resultados se limitará a 50 y se ordenará según el criterio predeterminado. \nLas propiedades `meta` y `_links` indican si hay más resultados disponibles e incluyen un enlace para obtener el resto."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.display_name": {
           "source": "Include Properties",
           "message": "Incluir propiedades"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.short_desc": {
-          "source": "Includes content properties associated with this page in the response",
-          "message": "Incluye las propiedades de contenido asociadas a esta página en la respuesta"
+          "source": "Includes content properties associated with this blog post in the response",
+          "message": "Incluye en la respuesta las propiedades de contenido asociadas a esta entrada de blog"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "El ID de la página que se devolverá. Si no conoce el ID de la página, use Obtener páginas y filtre los resultados."
+          "source": "The ID of the blog post to be returned. If you don't know the blog post ID, use Get blog posts and filter the results.",
+          "message": "El identificador de la entrada de blog que se va a devolver. Si no conoce el identificador de la entrada de blog, use Obtener entradas de blog y filtre los resultados."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.display_name": {
           "source": "Blog Post",
           "message": "Entrada de blog"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "El ID de la página que se devolverá"
+          "source": "The ID of the blog post to be returned",
+          "message": "El identificador de la entrada de blog que se va a devolver"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.c3RhdHVz.desc": {
           "source": "Filter the blog post being retrieved by its status.",
@@ -600,8 +600,8 @@
           "message": "Formatos de contenido que se devolverán en el campo «body» de la respuesta"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.aWQ.desc": {
-          "source": "Filter the results based on page ids. Multiple page ids can be specified as a comma-separated list.",
-          "message": "Filtra los resultados según los ID de página. Se pueden especificar varios ID de página como una lista separada por comas."
+          "source": "Filter the results based on blog post ids. Multiple blog post ids can be specified as a comma-separated list.",
+          "message": "Filtrar los resultados por identificadores de entradas de blog. Se pueden indicar varios identificadores como lista separada por comas."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.aWQ.display_name": {
           "source": "Blog Posts",
@@ -684,16 +684,16 @@
           "message": "Filtra los resultados a entradas de blog según su estado"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.desc": {
-          "source": "Filter the results to pages based on their title.",
-          "message": "Filtra los resultados a páginas según su título."
+          "source": "Filter the results to blog posts based on their title.",
+          "message": "Filtrar los resultados a entradas de blog según su título"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.display_name": {
           "source": "Title",
           "message": "Título"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.short_desc": {
-          "source": "Filter the results to pages based on their title",
-          "message": "Filtra los resultados a páginas según su título"
+          "source": "Filter the results to blog posts based on their title",
+          "message": "Filtrar los resultados a entradas de blog según su título"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.short_desc": {
           "source": "List the blog posts on the site",
@@ -740,8 +740,8 @@
           "message": "Formatos de contenido que se devolverán en el campo «body» de la respuesta"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "El ID de la página que se devolverá. Si no conoce el ID de la página, use Obtener páginas y filtre los resultados."
+          "source": "The ID of the space for which blog posts should be returned.",
+          "message": "El identificador del espacio cuyas entradas de blog se deben devolver."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.aWQ.display_name": {
           "source": "Space",
@@ -812,16 +812,16 @@
           "message": "Filtra los resultados a entradas de blog según su estado"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.desc": {
-          "source": "Filter the results to pages based on their title.",
-          "message": "Filtra los resultados a páginas según su título."
+          "source": "Filter the results to blog posts based on their title.",
+          "message": "Filtrar los resultados a entradas de blog según su título"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.display_name": {
           "source": "Title",
           "message": "Título"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.short_desc": {
-          "source": "Filter the results to pages based on their title",
-          "message": "Filtra los resultados a páginas según su título"
+          "source": "Filter the results to blog posts based on their title",
+          "message": "Filtrar los resultados a entradas de blog según su título"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.short_desc": {
           "source": "List the blog posts in one space",
@@ -868,16 +868,16 @@
           "message": "Formatos de contenido que se devolverán en el campo «body» de la respuesta"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "El ID de la página que se devolverá. Si no conoce el ID de la página, use Obtener páginas y filtre los resultados."
+          "source": "The ID of the label for which blog posts should be returned.",
+          "message": "El identificador de la etiqueta cuyas entradas de blog se deben devolver."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.display_name": {
           "source": "Label",
           "message": "Etiqueta"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "El ID de la página que se devolverá"
+          "source": "The ID of the label for which blog posts should be returned",
+          "message": "El identificador de la etiqueta cuyas entradas de blog se deben devolver"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.bGltaXQ.desc": {
           "source": "How many records to return in one page.\n\nThere is no total in the response: `_links.next` is a relative URL carrying the cursor for the following page, and its absence is what says the collection is exhausted.",
@@ -984,16 +984,16 @@
           "message": "Formatos de contenido que se devolverán en el campo «body» de la respuesta"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "El ID de la página que se devolverá. Si no conoce el ID de la página, use Obtener páginas y filtre los resultados."
+          "source": "The ID of the label for which pages should be returned.",
+          "message": "El identificador de la etiqueta cuyas páginas se deben devolver."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.display_name": {
           "source": "Label",
           "message": "Etiqueta"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "El ID de la página que se devolverá"
+          "source": "The ID of the label for which pages should be returned",
+          "message": "El identificador de la etiqueta cuyas páginas se deben devolver"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.bGltaXQ.desc": {
           "source": "How many records to return in one page.\n\nThere is no total in the response: `_links.next` is a relative URL carrying the cursor for the following page, and its absence is what says the collection is exhausted.",
@@ -1180,28 +1180,28 @@
           "message": "Indica si se debe obtener o no el icono del espacio"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.desc": {
-          "source": "Includes labels associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Incluye las etiquetas asociadas a esta página en la respuesta.\nEl número de resultados se limitará a 50 y se ordenará según el orden de clasificación predeterminado.\nEstarán presentes las propiedades `meta` y `_links` para indicar si hay más resultados disponibles y un enlace para obtener el resto de los resultados."
+          "source": "Includes labels associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Incluye en la respuesta las etiquetas asociadas a este espacio.\nEl número de resultados se limitará a 50 y se ordenará según el criterio predeterminado.\nLas propiedades `meta` y `_links` indican si hay más resultados disponibles e incluyen un enlace para obtener el resto."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.display_name": {
           "source": "Include Labels",
           "message": "Incluir etiquetas"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.short_desc": {
-          "source": "Includes labels associated with this page in the response",
-          "message": "Incluye las etiquetas asociadas a esta página en la respuesta"
+          "source": "Includes labels associated with this space in the response",
+          "message": "Incluye en la respuesta las etiquetas asociadas a este espacio"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.desc": {
-          "source": "Includes operations associated with this page in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Incluye las operaciones asociadas a esta página en la respuesta, tal como se definen en el objeto `Operation`.\nEl número de resultados se limitará a 50 y se ordenará según el orden de clasificación predeterminado.\nEstarán presentes las propiedades `meta` y `_links` para indicar si hay más resultados disponibles y un enlace para obtener el resto de los resultados."
+          "source": "Includes operations associated with this space in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Incluye en la respuesta las operaciones asociadas a este espacio, según se definen en el objeto `Operation`.\nEl número de resultados se limitará a 50 y se ordenará según el criterio predeterminado.\nLas propiedades `meta` y `_links` indican si hay más resultados disponibles e incluyen un enlace para obtener el resto."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.display_name": {
           "source": "Include Operations",
           "message": "Incluir operaciones"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.short_desc": {
-          "source": "Includes operations associated with this page in the response, as defined in…",
-          "message": "Incluye en la respuesta operaciones asociadas a esta página, según…"
+          "source": "Includes operations associated with this space in the response, as defined in…",
+          "message": "Incluye en la respuesta las operaciones asociadas a este espacio, según se…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wZXJtaXNzaW9ucw.desc": {
           "source": "Includes space permissions associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
@@ -1216,16 +1216,16 @@
           "message": "Incluye los permisos de espacio asociados a este espacio en la respuesta"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.desc": {
-          "source": "Includes content properties associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Incluye las propiedades de contenido asociadas a esta página en la respuesta.\nEl número de resultados se limitará a 50 y se ordenará según el orden de clasificación predeterminado.\nEstarán presentes las propiedades `meta` y `_links` para indicar si hay más resultados disponibles y un enlace para obtener el resto de los resultados."
+          "source": "Includes space properties associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Incluye en la respuesta las propiedades de espacio asociadas a este espacio.\nEl número de resultados se limitará a 50 y se ordenará según el criterio predeterminado.\nLas propiedades `meta` y `_links` indican si hay más resultados disponibles e incluyen un enlace para obtener el resto."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.display_name": {
           "source": "Include Properties",
           "message": "Incluir propiedades"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.short_desc": {
-          "source": "Includes content properties associated with this page in the response",
-          "message": "Incluye las propiedades de contenido asociadas a esta página en la respuesta"
+          "source": "Includes space properties associated with this space in the response",
+          "message": "Incluye en la respuesta las propiedades de espacio asociadas a este espacio"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1yb2xlLWFzc2lnbm1lbnRz.desc": {
           "source": "Includes role assignments associated with this space in the response. This parameter is only accepted for EAP sites.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
@@ -1240,8 +1240,8 @@
           "message": "Incluye las asignaciones de roles asociadas a este espacio en la respuesta"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "El ID de la página que se devolverá. Si no conoce el ID de la página, use Obtener páginas y filtre los resultados."
+          "source": "The ID of the space to be returned.",
+          "message": "El identificador del espacio que se va a devolver."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aWQ.display_name": {
           "source": "Space",
@@ -1928,8 +1928,8 @@
           "message": "Filtra páginas en la raíz del espacio o todas las páginas de…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0UGFnZXNJblNwYWNl.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "El ID de la página que se devolverá. Si no conoce el ID de la página, use Obtener páginas y filtre los resultados."
+          "source": "The ID of the space for which pages should be returned.",
+          "message": "El identificador del espacio cuyas páginas se deben devolver."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0UGFnZXNJblNwYWNl.option.aWQ.display_name": {
           "source": "Space",
@@ -2052,16 +2052,16 @@
           "message": "Formatos de contenido que se devolverán en el campo «body» de la respuesta"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "El ID de la página que se devolverá. Si no conoce el ID de la página, use Obtener páginas y filtre los resultados."
+          "source": "The ID of the task to be returned. If you don't know the task ID, use Get tasks and filter the results.",
+          "message": "El identificador de la tarea que se va a devolver. Si no conoce el identificador de la tarea, use Obtener tareas y filtre los resultados."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.display_name": {
           "source": "Task",
           "message": "Tarea"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "El ID de la página que se devolverá"
+          "source": "The ID of the task to be returned",
+          "message": "El identificador de la tarea que se va a devolver"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.short_desc": {
           "source": "Retrieve one task",
@@ -2344,40 +2344,40 @@
           "message": "Eliminar entrada de blog"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.desc": {
-          "source": "If attempting to delete a page that is a draft.",
-          "message": "Si se intenta eliminar una página que es un borrador."
+          "source": "If attempting to delete a blog post that is a draft.",
+          "message": "Al intentar eliminar una entrada de blog que es un borrador."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.display_name": {
           "source": "Draft",
           "message": "Borrador"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.short_desc": {
-          "source": "If attempting to delete a page that is a draft",
-          "message": "Si se intenta eliminar una página que es un borrador"
+          "source": "If attempting to delete a blog post that is a draft",
+          "message": "Al intentar eliminar una entrada de blog que es un borrador"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "El ID de la página que se devolverá. Si no conoce el ID de la página, use Obtener páginas y filtre los resultados."
+          "source": "The ID of the blog post to be deleted.",
+          "message": "El identificador de la entrada de blog que se va a eliminar."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.display_name": {
           "source": "Blog Post",
           "message": "Entrada de blog"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "El ID de la página que se devolverá"
+          "source": "The ID of the blog post to be deleted",
+          "message": "El identificador de la entrada de blog que se va a eliminar"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.desc": {
-          "source": "If attempting to purge the page.",
-          "message": "Si se intenta purgar la página."
+          "source": "If attempting to purge the blog post.",
+          "message": "Al intentar purgar la entrada de blog."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.display_name": {
           "source": "Purge",
           "message": "Purgar"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.short_desc": {
-          "source": "If attempting to purge the page",
-          "message": "Si se intenta purgar la página"
+          "source": "If attempting to purge the blog post",
+          "message": "Al intentar purgar la entrada de blog"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.short_desc": {
           "source": "Move a blog post to the trash, or purge it",
@@ -2404,16 +2404,16 @@
           "message": "Si se intenta eliminar una página que es un borrador"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "El ID de la página que se devolverá. Si no conoce el ID de la página, use Obtener páginas y filtre los resultados."
+          "source": "The ID of the page to be deleted.",
+          "message": "El identificador de la página que se va a eliminar."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.display_name": {
           "source": "Page",
           "message": "Página"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "El ID de la página que se devolverá"
+          "source": "The ID of the page to be deleted",
+          "message": "El identificador de la página que se va a eliminar"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.cHVyZ2U.desc": {
           "source": "If attempting to purge the page.",
@@ -2896,16 +2896,16 @@
           "message": "El contenido; configure «representation» para indicar el formato de «value»"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "El ID de la página que se devolverá. Si no conoce el ID de la página, use Obtener páginas y filtre los resultados."
+          "source": "The ID of the blog post to be updated. If you don't know the blog post ID, use Get Blog Posts and filter the results.",
+          "message": "El identificador de la entrada de blog que se va a actualizar. Si no conoce el identificador de la entrada de blog, use Obtener entradas de blog y filtre los resultados."
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.display_name": {
           "source": "Blog Post",
           "message": "Entrada de blog"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "El ID de la página que se devolverá"
+          "source": "The ID of the blog post to be updated",
+          "message": "El identificador de la entrada de blog que se va a actualizar"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.c3BhY2VJZA.desc": {
           "source": "ID of the containing space.\n\nThis currently **does not support moving the blog post to a different space**.",
@@ -2988,16 +2988,16 @@
           "message": "El contenido; configure «representation» para indicar el formato de «value»"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "El ID de la página que se devolverá. Si no conoce el ID de la página, use Obtener páginas y filtre los resultados."
+          "source": "The ID of the page to be updated. If you don't know the page ID, use Get Pages and filter the results.",
+          "message": "El identificador de la página que se va a actualizar. Si no conoce el identificador de la página, use Obtener páginas y filtre los resultados."
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.display_name": {
           "source": "Page",
           "message": "Página"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "El ID de la página que se devolverá"
+          "source": "The ID of the page to be updated",
+          "message": "El identificador de la página que se va a actualizar"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.b3duZXJJZA.desc": {
           "source": "Account ID of the page owner.\n\nThis allows page ownership to be transferred to another user.",
@@ -3092,16 +3092,16 @@
           "message": "Cambiar nombre de página"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "El ID de la página que se devolverá. Si no conoce el ID de la página, use Obtener páginas y filtre los resultados."
+          "source": "The ID of the page to be updated. If you don't know the page ID, use Get Pages and filter the results",
+          "message": "El identificador de la página que se va a actualizar. Si no conoce el identificador de la página, use Obtener páginas y filtre los resultados"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.display_name": {
           "source": "Page",
           "message": "Página"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "El ID de la página que se devolverá"
+          "source": "The ID of the page to be updated",
+          "message": "El identificador de la página que se va a actualizar"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.c3RhdHVz.allowed-value.c3RyaW5nOmN1cnJlbnQ.display_name": {
           "source": "current",
@@ -3252,16 +3252,16 @@
           "message": "Fecha y hora de vencimiento de la tarea"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "El ID de la página que se devolverá. Si no conoce el ID de la página, use Obtener páginas y filtre los resultados."
+          "source": "The ID of the task to be updated. If you don't know the task ID, use Get tasks and filter the results.",
+          "message": "El identificador de la tarea que se va a actualizar. Si no conoce el identificador de la tarea, use Obtener tareas y filtre los resultados."
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.display_name": {
           "source": "Task",
           "message": "Tarea"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "El ID de la página que se devolverá"
+          "source": "The ID of the task to be updated",
+          "message": "El identificador de la tarea que se va a actualizar"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.bG9jYWxJZA.desc": {
           "source": "Local ID of the task. This ID is local to the corresponding page or blog post.",

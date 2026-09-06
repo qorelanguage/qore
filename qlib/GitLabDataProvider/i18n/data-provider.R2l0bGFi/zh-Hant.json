@@ -196,8 +196,8 @@
           "message": "依 asc (遞增) 或 desc (遞減) 排序"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHM.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "返回符合搜尋準則的分支清單"
+          "source": "Search for a specific group",
+          "message": "搜尋特定群組"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHM.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -412,16 +412,16 @@
           "message": "顯示成員的席位資訊"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZE1lbWJlcnM.option.c2tpcF91c2Vycw.desc": {
-          "source": "Filter out users with the specified IDs",
-          "message": "篩選排除具有指定 ID 的使用者"
+          "source": "Array of user ids to be skipped for membership",
+          "message": "成員資格中要略過的使用者 ID 陣列"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZE1lbWJlcnM.option.c2tpcF91c2Vycw.display_name": {
           "source": "Skip Users",
           "message": "略過使用者"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZE1lbWJlcnM.option.c2tpcF91c2Vycw.short_desc": {
-          "source": "Filter out users with the specified IDs",
-          "message": "篩選排除具有指定 ID 的使用者"
+          "source": "Array of user ids to be skipped for membership",
+          "message": "成員資格中要略過的使用者 ID 陣列"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZE1lbWJlcnM.option.cGFnZQ.desc": {
           "source": "Current page number",
@@ -532,7 +532,7 @@
           "message": "取得群組變數"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZFZhcmlhYmxlc0tleQ.option.a2V5.desc": {
-          "source": "The key of a variable",
+          "source": "The key of the variable",
           "message": "變數的索引鍵"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZFZhcmlhYmxlc0tleQ.option.a2V5.display_name": {
@@ -540,7 +540,7 @@
           "message": "鍵"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZFZhcmlhYmxlc0tleQ.option.a2V5.short_desc": {
-          "source": "The key of a variable",
+          "source": "The key of the variable",
           "message": "變數的索引鍵"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZFZhcmlhYmxlc0tleQ.option.aWQ.desc": {
@@ -1224,8 +1224,8 @@
           "message": "要傳回誰的議題"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRJc3N1ZXM.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "返回符合搜尋準則的分支清單"
+          "source": "Search issues for text present in the title, description, or any combination of these",
+          "message": "在問題的標題、描述或兩者的任意組合中搜尋文字"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRJc3N1ZXM.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -2120,8 +2120,8 @@
           "message": "傳回指定範圍的議題：'created_by_me'、'assigned_to_me' 或 'all'"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkSXNzdWVz.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "返回符合搜尋準則的分支清單"
+          "source": "Search issues for text present in the title, description, or any combination of these",
+          "message": "在問題的標題、描述或兩者的任意組合中搜尋文字"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkSXNzdWVz.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -2372,16 +2372,16 @@
           "message": "顯示成員的席位資訊"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVtYmVycw.option.c2tpcF91c2Vycw.desc": {
-          "source": "Filter out users with the specified IDs",
-          "message": "篩選排除具有指定 ID 的使用者"
+          "source": "Array of user ids to be skipped for membership",
+          "message": "成員資格中要略過的使用者 ID 陣列"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVtYmVycw.option.c2tpcF91c2Vycw.display_name": {
           "source": "Skip Users",
           "message": "略過使用者"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVtYmVycw.option.c2tpcF91c2Vycw.short_desc": {
-          "source": "Filter out users with the specified IDs",
-          "message": "篩選排除具有指定 ID 的使用者"
+          "source": "Array of user ids to be skipped for membership",
+          "message": "成員資格中要略過的使用者 ID 陣列"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVtYmVycw.option.cGFnZQ.desc": {
           "source": "Current page number",
@@ -2528,28 +2528,28 @@
           "message": "列出合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues created after the specified time",
-          "message": "傳回在指定時間之後建立的議題"
+          "source": "Returns merge requests created on or after the given time. Expected in ISO 8601 format.",
+          "message": "傳回在指定時間或之後建立的合併請求。 必須為 ISO 8601 格式。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9hZnRlcg.display_name": {
           "source": "Created After",
           "message": "建立日期晚於"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues created after the specified time",
-          "message": "傳回在指定時間之後建立的議題"
+          "source": "Returns merge requests created on or after the given time",
+          "message": "傳回在指定時間或之後建立的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues created before the specified time",
-          "message": "傳回在指定時間之前建立的議題"
+          "source": "Returns merge requests created on or before the given time. Expected in ISO 8601 format.",
+          "message": "傳回在指定時間或之前建立的合併請求。 必須為 ISO 8601 格式。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9iZWZvcmU.display_name": {
           "source": "Created Before",
           "message": "建立日期早於"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues created before the specified time",
-          "message": "傳回在指定時間之前建立的議題"
+          "source": "Returns merge requests created on or before the given time",
+          "message": "傳回在指定時間或之前建立的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXBwcm92ZWRfYnlfaWRz.desc": {
           "source": "Return merge requests which have been approved by the specified users with the given IDs",
@@ -2588,52 +2588,52 @@
           "message": "傳回已將指定 ID 的使用者設為核准者的合併請求…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfaWQ.desc": {
-          "source": "Return issues which are assigned to the user with the given ID",
-          "message": "傳回指派給指定 ID 之使用者的議題"
+          "source": "Returns merge requests assigned to the given user `id`. `None` returns unassigned merge requests. `Any` returns merge requests with an assignee.",
+          "message": "傳回指派給指定使用者 `id` 的合併請求。`None` 傳回未指派的合併請求；`Any` 傳回已有受指派人的合併請求。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfaWQ.display_name": {
           "source": "Assignee",
           "message": "負責人"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfaWQ.short_desc": {
-          "source": "Return issues which are assigned to the user with the given ID",
-          "message": "傳回指派給指定 ID 之使用者的議題"
+          "source": "Returns merge requests assigned to the given user 'id'",
+          "message": "傳回指派給指定使用者 'id' 的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfdXNlcm5hbWU.desc": {
-          "source": "Return issues which are assigned to the user with the given username",
-          "message": "傳回指派給指定使用者名稱之使用者的議題"
+          "source": "Returns merge requests created by the given `username`. Mutually exclusive with `author_id`.",
+          "message": "傳回由指定 `username` 建立的合併請求。與 `author_id` 互斥。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfdXNlcm5hbWU.display_name": {
           "source": "Assignee Username",
           "message": "指派對象使用者名稱"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfdXNlcm5hbWU.short_desc": {
-          "source": "Return issues which are assigned to the user with the given username",
-          "message": "傳回指派給指定使用者名稱之使用者的議題"
+          "source": "Returns merge requests created by the given 'username'",
+          "message": "傳回由指定 'username' 建立的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX2lk.desc": {
-          "source": "Return issues which are authored by the user with the given ID",
-          "message": "傳回由指定 ID 之使用者所建立的議題"
+          "source": "Returns merge requests created by the given user `id`. Mutually exclusive with `author_username`. Combine with `scope=all` or `scope=assigned_to_me`.",
+          "message": "傳回由指定使用者 `id` 建立的合併請求。與 `author_username` 互斥。請搭配 `scope=all` 或 `scope=assigned_to_me` 使用。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX2lk.display_name": {
           "source": "Author",
           "message": "作者"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX2lk.short_desc": {
-          "source": "Return issues which are authored by the user with the given ID",
-          "message": "傳回由指定 ID 之使用者所建立的議題"
+          "source": "Returns merge requests created by the given user 'id'",
+          "message": "傳回由指定使用者 'id' 建立的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX3VzZXJuYW1l.desc": {
-          "source": "Return issues which are authored by the user with the given username",
-          "message": "傳回由指定使用者名稱之使用者所建立的議題"
+          "source": "Returns merge requests created by the given `username`. Mutually exclusive with `author_id`.",
+          "message": "傳回由指定 `username` 建立的合併請求。與 `author_id` 互斥。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX3VzZXJuYW1l.display_name": {
           "source": "Author Username",
           "message": "建立者使用者名稱"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX3VzZXJuYW1l.short_desc": {
-          "source": "Return issues which are authored by the user with the given username",
-          "message": "傳回由指定使用者名稱之使用者所建立的議題"
+          "source": "Returns merge requests created by the given 'username'",
+          "message": "傳回由指定 'username' 建立的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.ZGVwbG95ZWRfYWZ0ZXI.desc": {
           "source": "Returns merge requests deployed after the given date/time. Expected in ISO 8601 format",
@@ -2684,16 +2684,16 @@
           "message": "傳回部署至指定環境的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aW4.desc": {
-          "source": "`title`, `description`, or a string joining them with comma",
-          "message": "`title`、`description` 或以逗號連接它們的字串"
+          "source": "Modify the scope of the search attribute. `title`, `description`, or a string joining them with comma.",
+          "message": "修改搜尋屬性的範圍。`title`、`description`，或以逗號連接兩者的字串。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aW4.display_name": {
           "source": "In",
           "message": "In"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aW4.short_desc": {
-          "source": "'title', 'description', or a string joining them with comma",
-          "message": "'title'、'description' 或以逗號連接它們的字串"
+          "source": "Modify the scope of the search attribute",
+          "message": "修改搜尋屬性的範圍"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aWQ.desc": {
           "source": "The project this action works on, given as its numeric ID or as its path (`group/project`).\n\nGive the path as it reads; the transport escapes it into the single path segment GitLab expects. A path escaped by hand would be escaped a second time and would not resolve.\n\nEvery other option scoped by a project - branches, issues, members, variables - is listed from this project, so changing it re-reads them.",
@@ -2708,16 +2708,16 @@
           "message": "要操作的專案"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aWlkcw.desc": {
-          "source": "The IID array of issues",
-          "message": "議題的 IID 陣列"
+          "source": "Returns the request having the given `iid`.",
+          "message": "傳回具有指定 `iid` 的請求。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aWlkcw.display_name": {
           "source": "Iids",
           "message": "Iids"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aWlkcw.short_desc": {
-          "source": "The IID array of issues",
-          "message": "議題的 IID 陣列"
+          "source": "Returns the request having the given 'iid'",
+          "message": "傳回具有指定 'iid' 的請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.b3JkZXJfYnk.allowed-value.c3RyaW5nOm1lcmdlZF9hdA.display_name": {
           "source": "merged_at",
@@ -2764,16 +2764,16 @@
           "message": "傳回依 'created_at'、'label_priority' 排序的合併請求…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bGFiZWxz.desc": {
-          "source": "Comma-separated list of label names",
-          "message": "以逗號分隔的標籤名稱清單"
+          "source": "Returns merge requests matching a comma-separated list of labels. `None` lists all merge requests with no labels. `Any` lists all merge requests with at least one label. Predefined names are case-insensitive.",
+          "message": "傳回符合以逗號分隔標籤清單的合併請求。`None` 列出所有沒有標籤的合併請求；`Any` 列出所有至少有一個標籤的合併請求。預先定義的名稱不分大小寫。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bGFiZWxz.display_name": {
           "source": "Labels",
           "message": "標籤"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bGFiZWxz.short_desc": {
-          "source": "Comma-separated list of label names",
-          "message": "以逗號分隔的標籤名稱清單"
+          "source": "Returns merge requests matching a comma-separated list of labels",
+          "message": "傳回符合以逗號分隔標籤清單的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bWVyZ2VfdXNlcl91c2VybmFtZQ.desc": {
           "source": "Returns merge requests which have been merged by the user with the given `username`. Mutually exclusive with `merge_user_id`.",
@@ -2824,40 +2824,40 @@
           "message": "傳回在指定時間或之前合併的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bWlsZXN0b25l.desc": {
-          "source": "Milestone title",
-          "message": "里程碑標題"
+          "source": "Returns merge requests for a specific milestone. `None` returns merge requests with no milestone. `Any` returns merge requests that have an assigned milestone.",
+          "message": "傳回特定里程碑的合併請求。`None` 傳回沒有里程碑的合併請求；`Any` 傳回已指派里程碑的合併請求。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bWlsZXN0b25l.display_name": {
           "source": "Milestone",
           "message": "里程碑"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bWlsZXN0b25l.short_desc": {
-          "source": "Milestone title",
-          "message": "里程碑標題"
+          "source": "Returns merge requests for a specific milestone",
+          "message": "傳回特定里程碑的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bXlfcmVhY3Rpb25fZW1vamk.desc": {
-          "source": "Return issues reacted by the authenticated user by the given emoji",
-          "message": "傳回已驗證使用者使用指定表情符號給予回應的議題"
+          "source": "Returns merge requests reacted by the authenticated user by the given `emoji`. `None` returns issues not given a reaction. `Any` returns issues given at least one reaction.",
+          "message": "傳回已驗證使用者以指定 `emoji` 回應的合併請求。`None` 傳回未獲得回應的問題；`Any` 傳回至少獲得一個回應的問題。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bXlfcmVhY3Rpb25fZW1vamk.display_name": {
           "source": "My Reaction Emoji",
           "message": "My Reaction Emoji"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bXlfcmVhY3Rpb25fZW1vamk.short_desc": {
-          "source": "Return issues reacted by the authenticated user by the given emoji",
-          "message": "傳回已驗證使用者使用指定表情符號給予回應的議題"
+          "source": "Returns merge requests reacted by the authenticated user by the given 'emoji'",
+          "message": "傳回已驗證使用者以指定 'emoji' 回應的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90.desc": {
-          "source": "Filters by the specified parameters",
-          "message": "依指定的參數篩選"
+          "source": "Returns merge requests that do not match the parameters supplied",
+          "message": "傳回不符合所提供參數的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90.display_name": {
           "source": "Not",
           "message": "Not"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90.short_desc": {
-          "source": "Filters by the specified parameters",
-          "message": "依指定的參數篩選"
+          "source": "Returns merge requests that do not match the parameters supplied",
+          "message": "傳回不符合所提供參數的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W215X3JlYWN0aW9uX2Vtb2ppXQ.desc": {
           "source": "`<Negated>` Returns merge requests reacted by the authenticated user by the given `emoji`. `None` returns issues not given a reaction. `Any` returns issues given at least one reaction.",
@@ -2872,40 +2872,40 @@
           "message": "'<Negated>' 傳回已驗證使用者使用指定表情回應的合併請求…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W21pbGVzdG9uZV0.desc": {
-          "source": "Milestone title",
-          "message": "里程碑標題"
+          "source": "`<Negated>` Returns merge requests for a specific milestone. `None` returns merge requests with no milestone. `Any` returns merge requests that have an assigned milestone.",
+          "message": "`<Negated>` 傳回特定里程碑的合併請求。`None` 傳回沒有里程碑的合併請求；`Any` 傳回已指派里程碑的合併請求。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W21pbGVzdG9uZV0.display_name": {
           "source": "Not[milestone]",
           "message": "Not[milestone]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W21pbGVzdG9uZV0.short_desc": {
-          "source": "Milestone title",
-          "message": "里程碑標題"
+          "source": "'<Negated>' Returns merge requests for a specific milestone. 'None' returns…",
+          "message": "'<Negated>' 傳回特定里程碑的合併請求。'None' 傳回沒有里程碑的合併請求；'Any'…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl91c2VybmFtZV0.desc": {
-          "source": "Return issues which are not authored by the user with the given username",
-          "message": "傳回非由指定使用者名稱之使用者建立的議題"
+          "source": "`<Negated>` Returns merge requests created by the given `username`. Mutually exclusive with `author_id`.",
+          "message": "`<Negated>` 傳回由指定 `username` 建立的合併請求。與 `author_id` 互斥。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl91c2VybmFtZV0.display_name": {
           "source": "Not[author Username]",
           "message": "Not[author Username]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl91c2VybmFtZV0.short_desc": {
-          "source": "Return issues which are not authored by the user with the given username",
-          "message": "傳回非由指定使用者名稱之使用者建立的議題"
+          "source": "'<Negated>' Returns merge requests created by the given 'username'",
+          "message": "'<Negated>' 傳回由指定 'username' 建立的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl9pZF0.desc": {
-          "source": "Return issues which are not authored by the user with the given ID",
-          "message": "傳回非由指定 ID 之使用者建立的議題"
+          "source": "`<Negated>` Returns merge requests created by the given user `id`. Mutually exclusive with `author_username`. Combine with `scope=all` or `scope=assigned_to_me`.",
+          "message": "`<Negated>` 傳回由指定使用者 `id` 建立的合併請求。與 `author_username` 互斥。請搭配 `scope=all` 或 `scope=assigned_to_me` 使用。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl9pZF0.display_name": {
           "source": "Not Authored By",
           "message": "Not Authored By"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl9pZF0.short_desc": {
-          "source": "Return issues which are not authored by the user with the given ID",
-          "message": "傳回非由指定 ID 之使用者建立的議題"
+          "source": "'<Negated>' Returns merge requests created by the given user 'id'",
+          "message": "'<Negated>' 傳回由指定使用者 'id' 建立的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2Fzc2lnbmVlX2lkXQ.desc": {
           "source": "`<Negated>` Returns merge requests assigned to the given user `id`. `None` returns unassigned merge requests. `Any` returns merge requests with an assignee.",
@@ -2920,28 +2920,28 @@
           "message": "'<Negated>' 傳回指派給指定使用者 'id' 的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2Fzc2lnbmVlX3VzZXJuYW1lXQ.desc": {
-          "source": "Return issues which are not assigned to the user with the given username",
-          "message": "傳回未指派給指定使用者名稱之使用者的議題"
+          "source": "`<Negated>` Returns merge requests created by the given `username`. Mutually exclusive with `author_id`.",
+          "message": "`<Negated>` 傳回由指定 `username` 建立的合併請求。與 `author_id` 互斥。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2Fzc2lnbmVlX3VzZXJuYW1lXQ.display_name": {
           "source": "Not[assignee Username]",
           "message": "Not[assignee Username]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2Fzc2lnbmVlX3VzZXJuYW1lXQ.short_desc": {
-          "source": "Return issues which are not assigned to the user with the given username",
-          "message": "傳回未指派給指定使用者名稱之使用者的議題"
+          "source": "'<Negated>' Returns merge requests created by the given 'username'",
+          "message": "'<Negated>' 傳回由指定 'username' 建立的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2xhYmVsc10.desc": {
-          "source": "Comma-separated list of label names",
-          "message": "以逗號分隔的標籤名稱清單"
+          "source": "`<Negated>` Returns merge requests matching a comma-separated list of labels. `None` lists all merge requests with no labels. `Any` lists all merge requests with at least one label. Predefined names are case-insensitive.",
+          "message": "`<Negated>` 傳回符合以逗號分隔標籤清單的合併請求。`None` 列出所有沒有標籤的合併請求；`Any` 列出所有至少有一個標籤的合併請求。預先定義的名稱不分大小寫。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2xhYmVsc10.display_name": {
           "source": "Not[labels]",
           "message": "Not[labels]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2xhYmVsc10.short_desc": {
-          "source": "Comma-separated list of label names",
-          "message": "以逗號分隔的標籤名稱清單"
+          "source": "'<Negated>' Returns merge requests matching a comma-separated list of labels.…",
+          "message": "'<Negated>' 傳回符合以逗號分隔標籤清單的合併請求。'None'…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W3Jldmlld2VyX2lkXQ.desc": {
           "source": "`<Negated>` Returns merge requests which have the user as a reviewer with the given user `id`. `None` returns merge requests with no reviewers. `Any` returns merge requests with any reviewer. Mutually exclusive with `reviewer_username`.",
@@ -3000,16 +3000,16 @@
           "message": "desc"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c29ydA.desc": {
-          "source": "Return issues sorted in `asc` or `desc` order.",
-          "message": "傳回依 `asc` 或 `desc` 順序排序的議題。"
+          "source": "Returns merge requests sorted in `asc` or `desc` order.",
+          "message": "以 `asc` 或 `desc` 順序排序後傳回合併請求。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c29ydA.display_name": {
           "source": "Sort",
           "message": "排序"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c29ydA.short_desc": {
-          "source": "Return issues sorted in 'asc' or 'desc' order",
-          "message": "傳回依 'asc' 或 'desc' 順序排序的議題"
+          "source": "Returns merge requests sorted in 'asc' or 'desc' order",
+          "message": "以 'asc' 或 'desc' 順序排序後傳回合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c2NvcGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
           "source": "all",
@@ -3048,8 +3048,8 @@
           "message": "傳回指定範圍的合併請求：'created_by_me'、'assigned_to_me'…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "返回符合搜尋準則的分支清單"
+          "source": "Search merge requests against their `title` and `description`.",
+          "message": "依合併請求的 `title` 與 `description` 進行搜尋。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -3140,16 +3140,16 @@
           "message": "傳回以指定使用者名稱的使用者做為審查者的合併請求…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.d2l0aF9sYWJlbHNfZGV0YWlscw.desc": {
-          "source": "Return titles of labels and other details",
-          "message": "傳回標籤標題與其他詳細資訊"
+          "source": "If `true`, response returns more details for each label in labels field: `:name`,`:color`, `:description`, `:description_html`, `:text_color`",
+          "message": "若為 `true`，回應會在 labels 欄位中傳回每個標籤的更多細節：`:name`,`:color`, `:description`, `:description_html`, `:text_color`"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.d2l0aF9sYWJlbHNfZGV0YWlscw.display_name": {
           "source": "With Labels Details",
           "message": "With Labels Details"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.d2l0aF9sYWJlbHNfZGV0YWlscw.short_desc": {
-          "source": "Return titles of labels and other details",
-          "message": "傳回標籤標題與其他詳細資訊"
+          "source": "If 'true', response returns more details for each label in labels field:…",
+          "message": "若為 'true'，回應會在 labels 欄位中傳回每個標籤的更多細節：':name',':color'…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.d2l0aF9tZXJnZV9zdGF0dXNfcmVjaGVjaw.desc": {
           "source": "If `true`, this projection requests (but does not guarantee) that the `merge_status` field be recalculated asynchronously. Introduced in GitLab 13.0.",
@@ -3196,28 +3196,28 @@
           "message": "傳回具有指定目標分支的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "傳回在指定時間之後更新的議題"
+          "source": "Returns merge requests updated on or after the given time. Expected in ISO 8601 format.",
+          "message": "傳回在指定時間或之後更新的合併請求。 必須為 ISO 8601 格式。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9hZnRlcg.display_name": {
           "source": "Updated After",
           "message": "更新時間晚於"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "傳回在指定時間之後更新的議題"
+          "source": "Returns merge requests updated on or after the given time",
+          "message": "傳回在指定時間或之後更新的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "傳回在指定時間之前更新的議題"
+          "source": "Returns merge requests updated on or before the given time. Expected in ISO 8601 format.",
+          "message": "傳回在指定時間或之前更新的合併請求。 必須為 ISO 8601 格式。"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9iZWZvcmU.display_name": {
           "source": "Updated Before",
           "message": "更新時間早於"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "傳回在指定時間之前更新的議題"
+          "source": "Returns merge requests updated on or before the given time",
+          "message": "傳回在指定時間或之前更新的合併請求"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dmlldw.allowed-value.c3RyaW5nOnNpbXBsZQ.display_name": {
           "source": "simple",
@@ -3284,28 +3284,28 @@
           "message": "要操作的專案"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.aWlkcw.desc": {
-          "source": "The IID array of issues",
-          "message": "議題的 IID 陣列"
+          "source": "The IIDs of the milestones",
+          "message": "里程碑的 IID"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.aWlkcw.display_name": {
           "source": "Iids",
           "message": "Iids"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.aWlkcw.short_desc": {
-          "source": "The IID array of issues",
-          "message": "議題的 IID 陣列"
+          "source": "The IIDs of the milestones",
+          "message": "里程碑的 IID"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "返回符合搜尋準則的分支清單"
+          "source": "The search criteria for the title or description of the milestone",
+          "message": "里程碑標題或描述的搜尋條件"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.c2VhcmNo.display_name": {
           "source": "Search",
           "message": "搜尋"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.c2VhcmNo.short_desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "返回符合搜尋準則的分支清單"
+          "source": "The search criteria for the title or description of the milestone",
+          "message": "里程碑標題或描述的搜尋條件"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.c3RhdGU.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
           "source": "active",
@@ -3368,28 +3368,28 @@
           "message": "里程碑的標題"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "傳回在指定時間之後更新的議題"
+          "source": "Return milestones updated after the specified datetime. Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ",
+          "message": "傳回在指定日期時間之後更新的里程碑。 格式：ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9hZnRlcg.display_name": {
           "source": "Updated After",
           "message": "更新時間晚於"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "傳回在指定時間之後更新的議題"
+          "source": "Return milestones updated after the specified datetime",
+          "message": "傳回在指定日期時間之後更新的里程碑"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "傳回在指定時間之前更新的議題"
+          "source": "Return milestones updated before the specified datetime. Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ",
+          "message": "傳回在指定日期時間之前更新的里程碑。 格式：ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9iZWZvcmU.display_name": {
           "source": "Updated Before",
           "message": "更新時間早於"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "傳回在指定時間之前更新的議題"
+          "source": "Return milestones updated before the specified datetime",
+          "message": "傳回在指定日期時間之前更新的里程碑"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.short_desc": {
           "source": "List a project's milestones",
@@ -3664,16 +3664,16 @@
           "message": "要傳回的結果頁碼，從 1 開始"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkUmVwb3NpdG9yeUNvbW1pdHM.option.cGFnZV90b2tlbg.desc": {
-          "source": "Name of branch to start the pagination from",
-          "message": "要從中開始分頁的分支名稱"
+          "source": "Record from which to start the keyset pagination",
+          "message": "開始鍵集分頁的記錄"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkUmVwb3NpdG9yeUNvbW1pdHM.option.cGFnZV90b2tlbg.display_name": {
           "source": "Page Token",
           "message": "頁面標記"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkUmVwb3NpdG9yeUNvbW1pdHM.option.cGFnZV90b2tlbg.short_desc": {
-          "source": "Name of branch to start the pagination from",
-          "message": "要從中開始分頁的分支名稱"
+          "source": "Record from which to start the keyset pagination",
+          "message": "開始鍵集分頁的記錄"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkUmVwb3NpdG9yeUNvbW1pdHM.option.cGFnaW5hdGlvbg.allowed-value.c3RyaW5nOmtleXNldA.display_name": {
           "source": "keyset",
@@ -3936,16 +3936,16 @@
           "message": "Wiki 頁面的 URL slug"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.cmVuZGVyX2h0bWw.desc": {
-          "source": "If `true`, response includes rendered HTML for title and description.",
-          "message": "若為 `true`，回應將包含標題與描述的已轉譯 HTML。"
+          "source": "Render content to HTML",
+          "message": "將內容轉譯為 HTML"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.cmVuZGVyX2h0bWw.display_name": {
           "source": "Render HTML",
           "message": "轉譯 HTML"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.cmVuZGVyX2h0bWw.short_desc": {
-          "source": "If 'true', response includes rendered HTML for title and description",
-          "message": "若為 'true'，回應將包含標題與描述的已轉譯 HTML"
+          "source": "Render content to HTML",
+          "message": "將內容轉譯為 HTML"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.dmVyc2lvbg.desc": {
           "source": "The version hash of a wiki page",
@@ -3984,16 +3984,16 @@
           "message": "要操作的專案"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkVXNlcnM.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "返回符合搜尋準則的分支清單"
+          "source": "Return list of users matching the search criteria",
+          "message": "傳回符合搜尋條件的使用者清單"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkVXNlcnM.option.c2VhcmNo.display_name": {
           "source": "Search",
           "message": "搜尋"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkVXNlcnM.option.c2VhcmNo.short_desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "返回符合搜尋準則的分支清單"
+          "source": "Return list of users matching the search criteria",
+          "message": "傳回符合搜尋條件的使用者清單"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkVXNlcnM.option.c2tpcF91c2Vycw.desc": {
           "source": "Filter out users with the specified IDs",
@@ -4164,16 +4164,16 @@
           "message": "使用自訂屬性篩選"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.YWN0aXZl.desc": {
-          "source": "Limit by groups that are not archived and not marked for deletion",
-          "message": "限制為未封存且未標記為刪除的群組"
+          "source": "Limit by projects that are not archived and not marked for deletion",
+          "message": "限制為未封存且未標記為刪除的專案"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.YWN0aXZl.display_name": {
           "source": "Active",
           "message": "作用中"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.YWN0aXZl.short_desc": {
-          "source": "Limit by groups that are not archived and not marked for deletion",
-          "message": "限制為未封存且未標記為刪除的群組"
+          "source": "Limit by projects that are not archived and not marked for deletion",
+          "message": "限制為未封存且未標記為刪除的專案"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.YXJjaGl2ZWQ.desc": {
           "source": "Limit by archived status",
@@ -4344,16 +4344,16 @@
           "message": "將結果限制為 last_activity 在指定時間之前的專案"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWFya2VkX2Zvcl9kZWxldGlvbl9vbg.desc": {
-          "source": "Return groups that are marked for deletion on this date",
-          "message": "返回在此日期標記為刪除的群組"
+          "source": "Date when the project was marked for deletion",
+          "message": "專案被標記為刪除的日期"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWFya2VkX2Zvcl9kZWxldGlvbl9vbg.display_name": {
           "source": "Marked for Deletion On",
           "message": "標記為刪除的日期"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWFya2VkX2Zvcl9kZWxldGlvbl9vbg.short_desc": {
-          "source": "Return groups that are marked for deletion on this date",
-          "message": "返回在此日期標記為刪除的群組"
+          "source": "Date when the project was marked for deletion",
+          "message": "專案被標記為刪除的日期"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWVtYmVyc2hpcA.desc": {
           "source": "Limit by projects that the current user is a member of",
@@ -4396,16 +4396,16 @@
           "message": "50"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWluX2FjY2Vzc19sZXZlbA.desc": {
-          "source": "Minimum access level of authenticated user",
-          "message": "已驗證使用者的最低存取層級"
+          "source": "Limit by minimum access level of authenticated user",
+          "message": "依已驗證使用者的最低存取層級限制"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWluX2FjY2Vzc19sZXZlbA.display_name": {
           "source": "Min Access Level",
           "message": "最低存取層級"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWluX2FjY2Vzc19sZXZlbA.short_desc": {
-          "source": "Minimum access level of authenticated user",
-          "message": "已驗證使用者的最低存取層級"
+          "source": "Limit by minimum access level of authenticated user",
+          "message": "依已驗證使用者的最低存取層級限制"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c29ydA.allowed-value.c3RyaW5nOmFzYw.display_name": {
           "source": "asc",
@@ -4416,20 +4416,20 @@
           "message": "desc"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c29ydA.desc": {
-          "source": "Return issues sorted in `asc` or `desc` order.",
-          "message": "傳回依 `asc` 或 `desc` 順序排序的議題。"
+          "source": "Return projects sorted in ascending and descending order",
+          "message": "傳回依遞增或遞減順序排序的專案"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c29ydA.display_name": {
           "source": "Sort",
           "message": "排序"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c29ydA.short_desc": {
-          "source": "Return issues sorted in 'asc' or 'desc' order",
-          "message": "傳回依 'asc' 或 'desc' 順序排序的議題"
+          "source": "Return projects sorted in ascending and descending order",
+          "message": "傳回依遞增或遞減順序排序的專案"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "返回符合搜尋準則的分支清單"
+          "source": "Return list of projects matching the search criteria",
+          "message": "傳回符合搜尋條件的專案清單"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -4524,16 +4524,16 @@
           "message": "依儲存庫總和檢查碼失敗的專案篩選"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.cmVwb3NpdG9yeV9zdG9yYWdl.desc": {
-          "source": "Filter by repository storage used by the group",
-          "message": "依群組使用的存放庫儲存空間篩選"
+          "source": "Which storage shard the repository is on. Available only to admins",
+          "message": "存放庫所在的儲存分片。僅管理員可使用"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.cmVwb3NpdG9yeV9zdG9yYWdl.display_name": {
           "source": "Repository Storage",
           "message": "存放庫儲存"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.cmVwb3NpdG9yeV9zdG9yYWdl.short_desc": {
-          "source": "Filter by repository storage used by the group",
-          "message": "依群組使用的存放庫儲存空間篩選"
+          "source": "Which storage shard the repository is on",
+          "message": "存放庫所在的儲存分片"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.d2l0aF9jdXN0b21fYXR0cmlidXRlcw.desc": {
           "source": "Include custom attributes in the response",
@@ -4620,28 +4620,28 @@
           "message": "僅返回帶有此主題的專案"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "傳回在指定時間之後更新的議題"
+          "source": "Return projects updated after the specified datetime. Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ",
+          "message": "傳回在指定日期時間之後更新的專案。 格式：ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9hZnRlcg.display_name": {
           "source": "Updated After",
           "message": "更新時間晚於"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "傳回在指定時間之後更新的議題"
+          "source": "Return projects updated after the specified datetime",
+          "message": "傳回在指定日期時間之後更新的專案"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "傳回在指定時間之前更新的議題"
+          "source": "Return projects updated before the specified datetime. Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ",
+          "message": "傳回在指定日期時間之前更新的專案。 格式：ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9iZWZvcmU.display_name": {
           "source": "Updated Before",
           "message": "更新時間早於"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "傳回在指定時間之前更新的議題"
+          "source": "Return projects updated before the specified datetime",
+          "message": "傳回在指定日期時間之前更新的專案"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dmlzaWJpbGl0eQ.allowed-value.c3RyaW5nOmludGVybmFs.display_name": {
           "source": "internal",
@@ -4692,16 +4692,16 @@
           "message": "主題的組織 ID"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "返回符合搜尋準則的分支清單"
+          "source": "Return list of topics matching the search criteria",
+          "message": "傳回符合搜尋條件的主題清單"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.c2VhcmNo.display_name": {
           "source": "Search",
           "message": "搜尋"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.c2VhcmNo.short_desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "返回符合搜尋準則的分支清單"
+          "source": "Return list of topics matching the search criteria",
+          "message": "傳回符合搜尋條件的主題清單"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.cGFnZQ.desc": {
           "source": "Current page number",
@@ -4728,16 +4728,16 @@
           "message": "要傳回的記錄數量，最多 100 筆"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.d2l0aG91dF9wcm9qZWN0cw.desc": {
-          "source": "Filters only users without projects",
-          "message": "僅篩選沒有專案的使用者"
+          "source": "Return list of topics without assigned projects",
+          "message": "傳回未指派專案的主題清單"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.d2l0aG91dF9wcm9qZWN0cw.display_name": {
           "source": "Without Projects",
           "message": "無專案"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.d2l0aG91dF9wcm9qZWN0cw.short_desc": {
-          "source": "Filters only users without projects",
-          "message": "僅篩選沒有專案的使用者"
+          "source": "Return list of topics without assigned projects",
+          "message": "傳回未指派專案的主題清單"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.short_desc": {
           "source": "List the project topics defined on this instance",
@@ -4752,28 +4752,28 @@
           "message": "列出使用者"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues created after the specified time",
-          "message": "傳回在指定時間之後建立的議題"
+          "source": "Return users created after the specified time",
+          "message": "傳回在指定時間之後建立的使用者"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9hZnRlcg.display_name": {
           "source": "Created After",
           "message": "建立日期晚於"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues created after the specified time",
-          "message": "傳回在指定時間之後建立的議題"
+          "source": "Return users created after the specified time",
+          "message": "傳回在指定時間之後建立的使用者"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues created before the specified time",
-          "message": "傳回在指定時間之前建立的議題"
+          "source": "Return users created before the specified time",
+          "message": "傳回在指定時間之前建立的使用者"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9iZWZvcmU.display_name": {
           "source": "Created Before",
           "message": "建立日期早於"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues created before the specified time",
-          "message": "傳回在指定時間之前建立的議題"
+          "source": "Return users created before the specified time",
+          "message": "傳回在指定時間之前建立的使用者"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3VzdG9tX2F0dHJpYnV0ZXM.desc": {
           "source": "Filter with custom attributes",
@@ -4788,16 +4788,16 @@
           "message": "使用自訂屬性篩選"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.YWN0aXZl.desc": {
-          "source": "Limit by groups that are not archived and not marked for deletion",
-          "message": "限制為未封存且未標記為刪除的群組"
+          "source": "Filters only active users",
+          "message": "僅篩選使用中的使用者"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.YWN0aXZl.display_name": {
           "source": "Active",
           "message": "作用中"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.YWN0aXZl.short_desc": {
-          "source": "Limit by groups that are not archived and not marked for deletion",
-          "message": "限制為未封存且未標記為刪除的群組"
+          "source": "Filters only active users",
+          "message": "僅篩選使用中的使用者"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.YWRtaW5z.desc": {
           "source": "Filters only admin users",
@@ -4972,8 +4972,8 @@
           "message": "傳回依遞增或遞減順序排序的使用者"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "返回符合搜尋準則的分支清單"
+          "source": "Search for a username",
+          "message": "搜尋使用者名稱"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -5212,16 +5212,16 @@
           "message": "若為 'true'，該成員將保留在子群組或專案中的任何直接成員資格"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dW5hc3NpZ25faXNzdWFibGVz.desc": {
-          "source": "If `true`, unassigns the member from any issues or merge requests in the project.",
-          "message": "若為 `true`，則取消指派該成員在專案中的任何議題或合併請求。"
+          "source": "If `true`, unassigns the member from any issues or merge requests in the group.",
+          "message": "若為 'true'，將該成員自群組中所有問題或合併請求取消指派"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dW5hc3NpZ25faXNzdWFibGVz.display_name": {
           "source": "Unassign Issuables",
           "message": "取消指派議題與合併請求"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dW5hc3NpZ25faXNzdWFibGVz.short_desc": {
-          "source": "If 'true', unassigns the member from any issues or merge requests in the project",
-          "message": "若為 'true'，則取消指派該成員在專案中的任何議題或合併請求"
+          "source": "If 'true', unassigns the member from any issues or merge requests in the group",
+          "message": "若為 'true'，將該成員自群組中所有問題或合併請求取消指派"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dXNlcl9pZA.desc": {
           "source": "The user ID of the member",
@@ -5584,7 +5584,7 @@
           "message": "可用的篩選條件：[environment_scope]"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.ZmlsdGVyW2Vudmlyb25tZW50X3Njb3BlXQ.desc": {
-          "source": "The environment scope of a variable",
+          "source": "The environment scope of the variable",
           "message": "變數的環境範圍"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.ZmlsdGVyW2Vudmlyb25tZW50X3Njb3BlXQ.display_name": {
@@ -5592,7 +5592,7 @@
           "message": "Filter[environment Scope]"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.ZmlsdGVyW2Vudmlyb25tZW50X3Njb3BlXQ.short_desc": {
-          "source": "The environment scope of a variable",
+          "source": "The environment scope of the variable",
           "message": "變數的環境範圍"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.a2V5.desc": {
@@ -9560,8 +9560,8 @@
           "message": "評論文字，採 GitLab 特性 Markdown 格式"
         },
         "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRzU2hhQ29tbWVudHM.option.c2hh.desc": {
-          "source": "A commit sha, or the name of a branch or tag",
-          "message": "提交 SHA，或分支或標籤的名稱"
+          "source": "A commit sha, or the name of a branch or tag on which to post a comment",
+          "message": "要張貼註解的提交 SHA，或分支或標籤名稱"
         },
         "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRzU2hhQ29tbWVudHM.option.c2hh.display_name": {
           "source": "Commit",
@@ -10920,8 +10920,8 @@
           "message": "要更新的成員角色 ID"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dXNlcl9pZA.desc": {
-          "source": "The user ID of the member",
-          "message": "該成員的使用者 ID"
+          "source": "The user ID of the new member",
+          "message": "新成員的使用者 ID"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dXNlcl9pZA.display_name": {
           "source": "User",
@@ -13348,8 +13348,8 @@
           "message": "要更新的成員角色 ID"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkTWVtYmVyc1VzZXJJZA.option.dXNlcl9pZA.desc": {
-          "source": "The user ID of the member",
-          "message": "該成員的使用者 ID"
+          "source": "The user ID of the new member",
+          "message": "新成員的使用者 ID"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkTWVtYmVyc1VzZXJJZA.option.dXNlcl9pZA.display_name": {
           "source": "User",

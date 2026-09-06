@@ -492,16 +492,16 @@
           "message": "Назва завдання"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.desc": {
-          "source": "You can specify an individual project by appending the projectId to the endpoint",
-          "message": "Ви можете вказати окремий проєкт, додавши projectId до кінцевої точки"
+          "source": "You can create a task on a specified projectId",
+          "message": "Ви можете створити завдання для вказаного projectId"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.display_name": {
           "source": "Project",
           "message": "Проєкт"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.short_desc": {
-          "source": "You can specify an individual project by appending the projectId to the endpoint",
-          "message": "Ви можете вказати окремий проєкт, додавши projectId до кінцевої точки"
+          "source": "You can create a task on a specified projectId",
+          "message": "Ви можете створити завдання для вказаного projectId"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cmF0ZQ.display_name": {
           "source": "Rate",
@@ -664,8 +664,8 @@
           "message": "Поле для сортування, наприклад: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0Q3JlZGl0Tm90ZXM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "наприклад, page=1 — За один виклик API буде повернуто до 100 контактів."
+          "source": "e.g. page=1 – Up to 100 credit notes will be returned in a single API call with line items shown for each credit note",
+          "message": "напр. page=1 — за один виклик API повертається до 100 кредит-нот із позиціями кожної"
         },
         "app.WGVybw.action.Z2V0Q3JlZGl0Tm90ZXM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -808,8 +808,8 @@
           "message": "Поле для сортування, наприклад: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0QmFua1RyYW5zYWN0aW9ucw.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "наприклад, page=1 — За один виклик API буде повернуто до 100 контактів."
+          "source": "Up to 100 bank transactions will be returned in a single API call with line items details",
+          "message": "За один виклик API повертається до 100 банківських транзакцій із деталями позицій"
         },
         "app.WGVybw.action.Z2V0QmFua1RyYW5zYWN0aW9ucw.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -916,8 +916,8 @@
           "message": "Список ідентифікаторів контактів, розділених комами"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.SURz.desc": {
-          "source": "Filter by a comma separated list of ContactIDs. Allows you to retrieve a specific set of contacts in a single call.",
-          "message": "Фільтрувати за списком ContactIDs, розділених комами. Дозволяє отримати певний набір контактів за один виклик."
+          "source": "Filter by a comma-separated list of InvoicesIDs.",
+          "message": "Фільтрувати за списком InvoicesIDs, розділеним комами."
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.SURz.display_name": {
           "source": "Invoice IDs",
@@ -976,16 +976,16 @@
           "message": "Якщо true, повертаються лише створені вашим додатком рахунки (Invoices)"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.desc": {
-          "source": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be included in the response",
-          "message": "наприклад, includeArchived=true — контакти зі статусом ARCHIVED будуть включені у відповідь"
+          "source": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be included in the response",
+          "message": "напр. includeArchived=true — до відповіді буде включено рахунки зі статусом ARCHIVED"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.display_name": {
           "source": "Include Archived",
           "message": "Включати заархівовані"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.short_desc": {
-          "source": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be…",
-          "message": "напр. includeArchived=true — контакти зі статусом ARCHIVED будуть…"
+          "source": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be…",
+          "message": "напр. includeArchived=true — до відповіді буде включено рахунки зі статусом…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.b3JkZXI.desc": {
           "source": "Order by an any element",
@@ -1000,16 +1000,16 @@
           "message": "Поле для сортування, наприклад: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.desc": {
-          "source": "Search parameter that performs a case-insensitive text search across the Name, FirstName, LastName, ContactNumber and EmailAddress fields.",
-          "message": "Параметр пошуку, який виконує нечутливий до регістру текстовий пошук у полях Name, FirstName, LastName, ContactNumber та EmailAddress."
+          "source": "Search parameter that performs a case-insensitive text search across the fields e.g. InvoiceNumber, Reference.",
+          "message": "Параметр пошуку, що виконує текстовий пошук без урахування регістру за полями, напр. InvoiceNumber, Reference."
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.display_name": {
           "source": "Search Term",
           "message": "Пошуковий запит"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.short_desc": {
-          "source": "Search parameter that performs a case-insensitive text search across the Name,…",
-          "message": "Параметр нечутливого до регістру пошуку за полем Name,…"
+          "source": "Search parameter that performs a case-insensitive text search across the…",
+          "message": "Параметр пошуку, що виконує текстовий пошук без урахування регістру за полями…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c3VtbWFyeU9ubHk.desc": {
           "source": "Use summaryOnly=true in GET Contacts and Invoices endpoint to retrieve a smaller version of the response object. This returns only lightweight fields, excluding computation-heavy fields from the response, making the API calls quick and efficient.",
@@ -1024,8 +1024,8 @@
           "message": "Використовуйте summaryOnly=true у запитах GET Contacts та Invoices для…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "наприклад, page=1 — За один виклик API буде повернуто до 100 контактів."
+          "source": "e.g. page=1 – Up to 100 invoices will be returned in a single API call with line items shown for each invoice",
+          "message": "напр. page=1 — за один виклик API повертається до 100 рахунків із позиціями кожного"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -1168,8 +1168,8 @@
           "message": "Поле для сортування, наприклад: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0UGF5bWVudHM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "наприклад, page=1 — За один виклик API буде повернуто до 100 контактів."
+          "source": "Up to 100 payments will be returned in a single API call",
+          "message": "За один виклик API повертається до 100 платежів"
         },
         "app.WGVybw.action.Z2V0UGF5bWVudHM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -1404,8 +1404,8 @@
           "message": "Поле для сортування, наприклад: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0UHVyY2hhc2VPcmRlcnM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "наприклад, page=1 — За один виклик API буде повернуто до 100 контактів."
+          "source": "To specify a page, append the page parameter to the URL e.g. ?page=1. If there are 100 records in the response you will need to check if there is any more data by fetching the next page e.g ?page=2 and continuing this process until no more results are returned.",
+          "message": "Щоб указати сторінку, додайте до URL параметр page, напр. ?page=1. Якщо відповідь містить 100 записів, перевірте наявність додаткових даних, отримавши наступну сторінку, напр. ?page=2, і повторюйте, доки не перестануть повертатися результати."
         },
         "app.WGVybw.action.Z2V0UHVyY2hhc2VPcmRlcnM.option.cGFnZQ.display_name": {
           "source": "Page",

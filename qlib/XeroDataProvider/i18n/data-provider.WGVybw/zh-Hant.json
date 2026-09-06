@@ -492,16 +492,16 @@
           "message": "任務名稱"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.desc": {
-          "source": "You can specify an individual project by appending the projectId to the endpoint",
-          "message": "您可以透過將 projectId 附加至端點來指定個別專案"
+          "source": "You can create a task on a specified projectId",
+          "message": "您可以在指定的 projectId 上建立工作"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.display_name": {
           "source": "Project",
           "message": "專案"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.short_desc": {
-          "source": "You can specify an individual project by appending the projectId to the endpoint",
-          "message": "您可以透過將 projectId 附加至端點來指定個別專案"
+          "source": "You can create a task on a specified projectId",
+          "message": "您可以在指定的 projectId 上建立工作"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cmF0ZQ.display_name": {
           "source": "Rate",
@@ -664,8 +664,8 @@
           "message": "用於排序的欄位，例如：\"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0Q3JlZGl0Tm90ZXM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "例如 page=1 - 單次 API 呼叫最多傳回 100 個聯絡人。"
+          "source": "e.g. page=1 – Up to 100 credit notes will be returned in a single API call with line items shown for each credit note",
+          "message": "例如 page=1－單次 API 呼叫最多傳回 100 筆貸方通知單，並顯示每筆的明細項目"
         },
         "app.WGVybw.action.Z2V0Q3JlZGl0Tm90ZXM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -808,8 +808,8 @@
           "message": "用於排序的欄位，例如：\"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0QmFua1RyYW5zYWN0aW9ucw.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "例如 page=1 - 單次 API 呼叫最多傳回 100 個聯絡人。"
+          "source": "Up to 100 bank transactions will be returned in a single API call with line items details",
+          "message": "單次 API 呼叫最多傳回 100 筆銀行交易，並含明細項目詳細資料"
         },
         "app.WGVybw.action.Z2V0QmFua1RyYW5zYWN0aW9ucw.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -916,8 +916,8 @@
           "message": "以逗號分隔的聯絡人 ID 清單"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.SURz.desc": {
-          "source": "Filter by a comma separated list of ContactIDs. Allows you to retrieve a specific set of contacts in a single call.",
-          "message": "依以逗號分隔的 ContactID 清單篩選。可讓您在單次呼叫中擷取一組特定的聯絡人。"
+          "source": "Filter by a comma-separated list of InvoicesIDs.",
+          "message": "依以逗號分隔的 InvoicesIDs 清單篩選。"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.SURz.display_name": {
           "source": "Invoice IDs",
@@ -976,16 +976,16 @@
           "message": "設為 true 時，將僅擷取由您的應用程式所建立的發票"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.desc": {
-          "source": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be included in the response",
-          "message": "例如 includeArchived=true - 狀態為 ARCHIVED 的聯絡人將包含在回應中"
+          "source": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be included in the response",
+          "message": "例如 includeArchived=true－狀態為 ARCHIVED 的發票將納入回應"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.display_name": {
           "source": "Include Archived",
           "message": "包含已封存項目"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.short_desc": {
-          "source": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be…",
-          "message": "例如 includeArchived=true - 狀態為 ARCHIVED 的聯絡人將被…"
+          "source": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be…",
+          "message": "例如 includeArchived=true－狀態為 ARCHIVED 的發票將納入回應"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.b3JkZXI.desc": {
           "source": "Order by an any element",
@@ -1000,16 +1000,16 @@
           "message": "用於排序的欄位，例如：\"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.desc": {
-          "source": "Search parameter that performs a case-insensitive text search across the Name, FirstName, LastName, ContactNumber and EmailAddress fields.",
-          "message": "搜尋參數，在 Name、FirstName、LastName、ContactNumber 和 EmailAddress 欄位中執行不分大小寫的文字搜尋。"
+          "source": "Search parameter that performs a case-insensitive text search across the fields e.g. InvoiceNumber, Reference.",
+          "message": "搜尋參數，會跨欄位執行不分大小寫的文字搜尋，例如 InvoiceNumber、Reference。"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.display_name": {
           "source": "Search Term",
           "message": "搜尋字詞"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.short_desc": {
-          "source": "Search parameter that performs a case-insensitive text search across the Name,…",
-          "message": "在 Name 之間執行不區分大小寫文字搜尋的搜尋參數，…"
+          "source": "Search parameter that performs a case-insensitive text search across the…",
+          "message": "搜尋參數，會跨欄位執行不分大小寫的文字搜尋，例如 InvoiceNumber、Reference。"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c3VtbWFyeU9ubHk.desc": {
           "source": "Use summaryOnly=true in GET Contacts and Invoices endpoint to retrieve a smaller version of the response object. This returns only lightweight fields, excluding computation-heavy fields from the response, making the API calls quick and efficient.",
@@ -1024,8 +1024,8 @@
           "message": "在 GET Contacts 與 Invoices 端點中使用 summaryOnly=true 以擷取…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "例如 page=1 - 單次 API 呼叫最多傳回 100 個聯絡人。"
+          "source": "e.g. page=1 – Up to 100 invoices will be returned in a single API call with line items shown for each invoice",
+          "message": "例如 page=1－單次 API 呼叫最多傳回 100 筆發票，並顯示每筆的明細項目"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -1168,8 +1168,8 @@
           "message": "用於排序的欄位，例如：\"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0UGF5bWVudHM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "例如 page=1 - 單次 API 呼叫最多傳回 100 個聯絡人。"
+          "source": "Up to 100 payments will be returned in a single API call",
+          "message": "單次 API 呼叫最多傳回 100 筆付款"
         },
         "app.WGVybw.action.Z2V0UGF5bWVudHM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -1404,8 +1404,8 @@
           "message": "用於排序的欄位，例如：\"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0UHVyY2hhc2VPcmRlcnM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "例如 page=1 - 單次 API 呼叫最多傳回 100 個聯絡人。"
+          "source": "To specify a page, append the page parameter to the URL e.g. ?page=1. If there are 100 records in the response you will need to check if there is any more data by fetching the next page e.g ?page=2 and continuing this process until no more results are returned.",
+          "message": "若要指定頁面，請在 URL 後加上 page 參數，例如 ?page=1。若回應含有 100 筆記錄，需取得下一頁（例如 ?page=2）以確認是否還有資料，並持續此程序直到不再傳回結果為止。"
         },
         "app.WGVybw.action.Z2V0UHVyY2hhc2VPcmRlcnM.option.cGFnZQ.display_name": {
           "source": "Page",

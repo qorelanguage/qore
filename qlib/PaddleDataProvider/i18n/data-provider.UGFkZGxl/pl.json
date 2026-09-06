@@ -1268,8 +1268,8 @@
           "message": "Zwróć tylko te transakcje"
         },
         "app.UGFkZGxl.action.bGlzdF90cmFuc2FjdGlvbnM.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "Sortuj zwrócone jednostki według określonego pola i kierunku (`[ASC]` lub `[DESC]`). Na przykład `?order_by=id[ASC]`.\n\nPrawidłowe pola sortowania: `id`."
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `billed_at`, `created_at`, `id`, and `updated_at`.",
+          "message": "Sortuje zwracane encje według wskazanego pola i kierunku (`[ASC]` lub `[DESC]`). Na przykład `?order_by=id[ASC]`.\n\nPrawidłowe pola do sortowania: `billed_at`, `created_at`, `id`, i `updated_at`."
         },
         "app.UGFkZGxl.action.bGlzdF90cmFuc2FjdGlvbnM.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",
@@ -1544,8 +1544,8 @@
           "message": "Zwróć tylko te produkty"
         },
         "app.UGFkZGxl.action.bGlzdF9wcm9kdWN0cw.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "Sortuj zwrócone jednostki według określonego pola i kierunku (`[ASC]` lub `[DESC]`). Na przykład `?order_by=id[ASC]`.\n\nPrawidłowe pola sortowania: `id`."
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `created_at`, `custom_data`, `description`, `id`, `image_url`, `name`, `status`, `tax_category`, and `updated_at`.",
+          "message": "Sortuje zwracane encje według wskazanego pola i kierunku (`[ASC]` lub `[DESC]`). Na przykład `?order_by=id[ASC]`.\n\nPrawidłowe pola do sortowania: `created_at`, `custom_data`, `description`, `id`, `image_url`, `name`, `status`, `tax_category`, i `updated_at`."
         },
         "app.UGFkZGxl.action.bGlzdF9wcm9kdWN0cw.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",
@@ -1712,8 +1712,8 @@
           "message": "Zwróć tylko te ceny"
         },
         "app.UGFkZGxl.action.bGlzdF9wcmljZXM.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "Sortuj zwrócone jednostki według określonego pola i kierunku (`[ASC]` lub `[DESC]`). Na przykład `?order_by=id[ASC]`.\n\nPrawidłowe pola sortowania: `id`."
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `billing_cycle.frequency`, `billing_cycle.interval`, `id`, `product_id`, `quantity.maximum`, `quantity.minimum`, `status`, `tax_mode`, `unit_price.amount`, and `unit_price.currency_code`.",
+          "message": "Sortuje zwracane encje według wskazanego pola i kierunku (`[ASC]` lub `[DESC]`). Na przykład `?order_by=id[ASC]`.\n\nPrawidłowe pola do sortowania: `billing_cycle.frequency`, `billing_cycle.interval`, `id`, `product_id`, `quantity.maximum`, `quantity.minimum`, `status`, `tax_mode`, `unit_price.amount`, i `unit_price.currency_code`."
         },
         "app.UGFkZGxl.action.bGlzdF9wcmljZXM.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",

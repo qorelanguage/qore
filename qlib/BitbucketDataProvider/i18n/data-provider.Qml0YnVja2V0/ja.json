@@ -96,8 +96,8 @@
           "message": "コミットレポートの一覧表示"
         },
         "app.Qml0YnVja2V0.action.Z2V0UmVwb3J0c0ZvckNvbW1pdA.option.Y29tbWl0.desc": {
-          "source": "The commit's SHA1.",
-          "message": "コミットのSHA1。"
+          "source": "The commit for which to retrieve reports.",
+          "message": "レポートを取得する対象のコミット。"
         },
         "app.Qml0YnVja2V0.action.Z2V0UmVwb3J0c0ZvckNvbW1pdA.option.Y29tbWl0.display_name": {
           "source": "Commit",
@@ -984,8 +984,8 @@
           "message": "コミットハッシュ、ブランチ名、またはタグ"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfY29tbWl0X2NvbW1pdF9jb21tZW50c19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\n[フィルタリングとソート](/cloud/bitbucket/rest/intro/#filtering)に従って結果をソートするフィールド。\n        "
+          "source": "Field by which the results should be sorted as per\n[filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n",
+          "message": "結果の並べ替えに使用するフィールド。並べ替えの基準は次を参照:\n[フィルタリングと並べ替え](/cloud/bitbucket/rest/intro/#filtering).\n"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfY29tbWl0X2NvbW1pdF9jb21tZW50c19nZXQ.option.c29ydA.display_name": {
           "source": "Sort By",
@@ -2280,8 +2280,8 @@
           "message": "ブランチの一覧取得"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfcmVmc19icmFuY2hlc19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\n[フィルタリングとソート](/cloud/bitbucket/rest/intro/#filtering)に従って結果をソートするフィールド。\n        "
+          "source": "\nField by which the results should be sorted as per\n[filtering and sorting](/cloud/bitbucket/rest/intro/#filtering). The `name`\nfield is handled specially for branches in that, if specified as the sort field, it\nuses a natural sort order instead of the default lexicographical sort order. For example,\nit will return ['branch1', 'branch2', 'branch10'] instead of ['branch1', 'branch10', 'branch2'].",
+          "message": "\n結果の並べ替えに使用するフィールド。並べ替えの基準は次を参照:\n[フィルタリングと並べ替え](/cloud/bitbucket/rest/intro/#filtering). `name`\nフィールドはブランチでは特別に扱われ、並べ替えフィールドとして指定すると、\n既定の辞書順ではなく自然順で並べ替えられます。 例:\n['branch1', 'branch10', 'branch2'] ではなく ['branch1', 'branch2', 'branch10'] が返されます。"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfcmVmc19icmFuY2hlc19nZXQ.option.c29ydA.display_name": {
           "source": "Sort By",
@@ -2496,8 +2496,8 @@
           "message": "資格情報が管理者権限を持つワークスペースのみを返す"
         },
         "app.Qml0YnVja2V0.action.d29ya3NwYWNlc19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\n[フィルタリングとソート](/cloud/bitbucket/rest/intro/#filtering)に従って結果をソートするフィールド。\n        "
+          "source": "Name of a response property to sort results (only slug is supported).",
+          "message": "結果の並べ替えに使用するレスポンスプロパティの名前 (slug のみサポートされます)。"
         },
         "app.Qml0YnVja2V0.action.d29ya3NwYWNlc19nZXQ.option.c29ydA.display_name": {
           "source": "Sort By",

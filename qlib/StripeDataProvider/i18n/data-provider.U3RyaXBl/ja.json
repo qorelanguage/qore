@@ -851,17 +851,9 @@
           "source": "Three-letter…",
           "message": "3文字の…"
         },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "この顧客 ID で指定された顧客の請求のみを返します。"
-        },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "顧客"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "この顧客 ID で指定された顧客の請求のみを返却"
         },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.YW1vdW50.desc": {
           "source": "The integer amount in **cents (or local equivalent)** to apply to the customer's credit balance.",
@@ -979,17 +971,9 @@
           "source": "Three-letter…",
           "message": "3文字の…"
         },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "この顧客 ID で指定された顧客の請求のみを返します。"
-        },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "顧客"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "この顧客 ID で指定された顧客の請求のみを返却"
         },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.YWRkX2ludm9pY2VfaXRlbXM.desc": {
           "source": "A list of prices and quantities that will generate invoice items appended to the next invoice for this subscription. You may pass up to 20 items.",
@@ -1343,17 +1327,9 @@
           "source": "A token, like the ones returned by [Stripe.js](https://stripe.com/docs/js)",
           "message": "[Stripe.js](https://stripe.com/docs/js) から返されるようなトークン"
         },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "この顧客 ID で指定された顧客の請求のみを返します。"
-        },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "顧客"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "この顧客 ID で指定された顧客の請求のみを返却"
         },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.YWxpcGF5X2FjY291bnQ.desc": {
           "source": "A token returned by [Stripe.js](https://stripe.com/docs/js) representing the user’s Alipay account details.",
@@ -2983,17 +2959,9 @@
           "source": "Get Customer",
           "message": "顧客を取得"
         },
-        "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "この顧客 ID で指定された顧客の請求のみを返します。"
-        },
         "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "顧客"
-        },
-        "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "この顧客 ID で指定された顧客の請求のみを返却"
         },
         "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.ZXhwYW5k.desc": {
           "source": "Specifies which fields in the response should be expanded.",
@@ -3087,17 +3055,9 @@
           "source": "Specifies which fields in the response should be expanded",
           "message": "レスポンス内で展開するフィールドを指定します"
         },
-        "app.U3RyaXBl.action.Z2V0LWludm9pY2U.option.aW52b2ljZQ.desc": {
-          "source": "Only return transactions that are related to the specified invoice.",
-          "message": "指定した請求書に関連するトランザクションのみを返します。"
-        },
         "app.U3RyaXBl.action.Z2V0LWludm9pY2U.option.aW52b2ljZQ.display_name": {
           "source": "Invoice",
           "message": "Invoice"
-        },
-        "app.U3RyaXBl.action.Z2V0LWludm9pY2U.option.aW52b2ljZQ.short_desc": {
-          "source": "Only return transactions that are related to the specified invoice",
-          "message": "指定した請求書に関連するトランザクションのみを返す"
         },
         "app.U3RyaXBl.action.Z2V0LWludm9pY2U.short_desc": {
           "source": "Retrieve one invoice",
@@ -3135,17 +3095,9 @@
           "source": "Delete Customer",
           "message": "顧客を削除"
         },
-        "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "この顧客 ID で指定された顧客の請求のみを返します。"
-        },
         "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "顧客"
-        },
-        "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "この顧客 ID で指定された顧客の請求のみを返却"
         },
         "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.short_desc": {
           "source": "Delete a customer",
@@ -3175,17 +3127,9 @@
           "source": "Delete Invoice",
           "message": "請求書を削除"
         },
-        "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.option.aW52b2ljZQ.desc": {
-          "source": "Only return transactions that are related to the specified invoice.",
-          "message": "指定した請求書に関連するトランザクションのみを返します。"
-        },
         "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.option.aW52b2ljZQ.display_name": {
           "source": "Invoice",
           "message": "Invoice"
-        },
-        "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.option.aW52b2ljZQ.short_desc": {
-          "source": "Only return transactions that are related to the specified invoice",
-          "message": "指定した請求書に関連するトランザクションのみを返す"
         },
         "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.short_desc": {
           "source": "Delete a draft invoice",
@@ -3420,16 +3364,16 @@
           "message": "請求を一覧表示"
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "指定された期間内に作成されたトランザクションのみを返します。"
+          "source": "Only return charges that were created during the given date interval.",
+          "message": "指定した期間内に作成された支払いのみを返します。"
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "作成日時"
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "指定された期間内に作成されたトランザクションのみを返す"
+          "source": "Only return charges that were created during the given date interval",
+          "message": "指定した期間内に作成された支払いのみを返します"
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3VzdG9tZXI.desc": {
           "source": "Only return charges for the customer specified by this customer ID.",
@@ -3528,16 +3472,16 @@
           "message": "連結アカウントを一覧表示"
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "指定された期間内に作成されたトランザクションのみを返します。"
+          "source": "Only return connected accounts that were created during the given date interval.",
+          "message": "指定した期間内に作成された連結アカウントのみを返します。"
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "作成日時"
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "指定された期間内に作成されたトランザクションのみを返す"
+          "source": "Only return connected accounts that were created during the given date interval",
+          "message": "指定した期間内に作成された連結アカウントのみを返します"
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -3600,28 +3544,20 @@
           "message": "顧客残高トランザクションを一覧表示"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "指定された期間内に作成されたトランザクションのみを返します。"
+          "source": "Only return customer balance transactions that were created during the given date interval.",
+          "message": "指定した期間内に作成された顧客残高トランザクションのみを返します。"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "作成日時"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "指定された期間内に作成されたトランザクションのみを返す"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "この顧客 ID で指定された顧客の請求のみを返します。"
+          "source": "Only return customer balance transactions that were created during the given…",
+          "message": "指定した期間内に作成された顧客残高トランザクションのみを返します。"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "顧客"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "この顧客 ID で指定された顧客の請求のみを返却"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -3695,17 +3631,9 @@
           "source": "List Customer Sources",
           "message": "顧客ソースを一覧表示"
         },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "この顧客 ID で指定された顧客の請求のみを返します。"
-        },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "顧客"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "この顧客 ID で指定された顧客の請求のみを返却"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -3779,17 +3707,9 @@
           "source": "List Customer Subscriptions",
           "message": "顧客サブスクリプションを一覧表示"
         },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "この顧客 ID で指定された顧客の請求のみを返します。"
-        },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "顧客"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "この顧客 ID で指定された顧客の請求のみを返却"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -3852,16 +3772,16 @@
           "message": "顧客の一覧表示"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "指定された期間内に作成されたトランザクションのみを返します。"
+          "source": "Only return customers that were created during the given date interval.",
+          "message": "指定した期間内に作成された顧客のみを返します。"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "作成日時"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "指定された期間内に作成されたトランザクションのみを返す"
+          "source": "Only return customers that were created during the given date interval",
+          "message": "指定した期間内に作成された顧客のみを返します"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.ZW1haWw.desc": {
           "source": "A case-sensitive filter on the list based on the customer's `email` field. The value must be a string.",
@@ -4052,28 +3972,28 @@
           "message": "取得する請求書の回収方法"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "指定された期間内に作成されたトランザクションのみを返します。"
+          "source": "Only return invoices that were created during the given date interval.",
+          "message": "指定した期間内に作成された請求書のみを返します。"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "作成日時"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "指定された期間内に作成されたトランザクションのみを返す"
+          "source": "Only return invoices that were created during the given date interval",
+          "message": "指定した期間内に作成された請求書のみを返します"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "この顧客 ID で指定された顧客の請求のみを返します。"
+          "source": "Only return invoices for the customer specified by this customer ID.",
+          "message": "この顧客 ID が指定する顧客の請求書のみを返します。"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "顧客"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "この顧客 ID で指定された顧客の請求のみを返却"
+          "source": "Only return invoices for the customer specified by this customer ID",
+          "message": "この顧客 ID が指定する顧客の請求書のみを返します"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXJfYWNjb3VudA.desc": {
           "source": "Only return invoices for the account representing the customer specified by this account ID.",
@@ -4196,40 +4116,40 @@
           "message": "Payment Intents を一覧表示"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "指定された期間内に作成されたトランザクションのみを返します。"
+          "source": "A filter on the list, based on the object `created` field. The value can be a string with an integer Unix timestamp or a dictionary with a number of different query options.",
+          "message": "オブジェクトの `created` フィールドに基づくリストのフィルター。値には整数の Unix タイムスタンプを表す文字列、または複数のクエリオプションを持つ辞書を指定できます。"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "作成日時"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "指定された期間内に作成されたトランザクションのみを返す"
+          "source": "A filter on the list, based on the object 'created' field",
+          "message": "オブジェクトの 'created' フィールドに基づくリストのフィルター"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "この顧客 ID で指定された顧客の請求のみを返します。"
+          "source": "Only return PaymentIntents for the customer that this customer ID specifies.",
+          "message": "この顧客 ID が指定する顧客の PaymentIntents のみを返します。"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "顧客"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "この顧客 ID で指定された顧客の請求のみを返却"
+          "source": "Only return PaymentIntents for the customer that this customer ID specifies",
+          "message": "この顧客 ID が指定する顧客の PaymentIntents のみを返します"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXJfYWNjb3VudA.desc": {
-          "source": "Only return invoices for the account representing the customer specified by this account ID.",
-          "message": "このアカウント ID で指定された顧客を表すアカウントの請求書のみを返します。"
+          "source": "Only return PaymentIntents for the account representing the customer that this ID specifies.",
+          "message": "この ID が指定する顧客を表すアカウントの PaymentIntents のみを返します。"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXJfYWNjb3VudA.display_name": {
           "source": "Customer Account",
           "message": "顧客アカウント"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXJfYWNjb3VudA.short_desc": {
-          "source": "Only return invoices for the account representing the customer specified by…",
-          "message": "指定された顧客を表すアカウントの請求書のみを返します…"
+          "source": "Only return PaymentIntents for the account representing the customer that this…",
+          "message": "この ID が指定する顧客を表すアカウントの PaymentIntents のみを返します。"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -4304,16 +4224,16 @@
           "message": "このチャージ ID で指定されたチャージの返金のみを返します"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "指定された期間内に作成されたトランザクションのみを返します。"
+          "source": "Only return refunds that were created during the given date interval.",
+          "message": "指定した期間内に作成された返金のみを返します。"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "作成日時"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "指定された期間内に作成されたトランザクションのみを返す"
+          "source": "Only return refunds that were created during the given date interval",
+          "message": "指定した期間内に作成された返金のみを返します"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -4364,16 +4284,16 @@
           "message": "ページネーションで使用するカーソル"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.cGF5bWVudF9pbnRlbnQ.desc": {
-          "source": "Only return charges that were created by the PaymentIntent specified by this PaymentIntent ID.",
-          "message": "このPaymentIntent IDで指定されたPaymentIntentによって作成された請求のみを返します。"
+          "source": "Only return refunds for the PaymentIntent specified by this ID.",
+          "message": "この ID が指定する PaymentIntent の返金のみを返します。"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.cGF5bWVudF9pbnRlbnQ.display_name": {
           "source": "Payment Intent",
           "message": "支払いインテント"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.cGF5bWVudF9pbnRlbnQ.short_desc": {
-          "source": "Only return charges that were created by the PaymentIntent specified by this…",
-          "message": "指定されたPaymentIntentで作成された請求のみを返します…"
+          "source": "Only return refunds for the PaymentIntent specified by this ID",
+          "message": "この ID が指定する PaymentIntent の返金のみを返します"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.short_desc": {
           "source": "List refunds, most recent first",
@@ -4843,17 +4763,9 @@
           "source": "Balance information and default balance settings for this customer",
           "message": "この顧客の残高情報およびデフォルトの残高設定"
         },
-        "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "この顧客 ID で指定された顧客の請求のみを返します。"
-        },
         "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "顧客"
-        },
-        "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "この顧客 ID で指定された顧客の請求のみを返却"
         },
         "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.YWRkcmVzcw.desc": {
           "source": "The customer's address. Learn about [country-specific requirements for calculating tax](https://docs.stripe.com/invoicing/taxes?dashboard-or-api=dashboard#set-up-customer).",
@@ -5683,17 +5595,9 @@
           "source": "Footer to be displayed on the invoice",
           "message": "インボイスに表示されるフッター"
         },
-        "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aW52b2ljZQ.desc": {
-          "source": "Only return transactions that are related to the specified invoice.",
-          "message": "指定した請求書に関連するトランザクションのみを返します。"
-        },
         "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aW52b2ljZQ.display_name": {
           "source": "Invoice",
           "message": "Invoice"
-        },
-        "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aW52b2ljZQ.short_desc": {
-          "source": "Only return transactions that are related to the specified invoice",
-          "message": "指定した請求書に関連するトランザクションのみを返す"
         },
         "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aXNzdWVy.desc": {
           "source": "The connected account that issues the invoice. The invoice is presented with the branding and support information of the specified account.",

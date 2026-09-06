@@ -784,8 +784,8 @@
           "message": "A field to sort by; prefix with \"-\" to reverse"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfcmVmc19icmFuY2hlc19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        "
+          "source": "\nField by which the results should be sorted as per\n[filtering and sorting](/cloud/bitbucket/rest/intro/#filtering). The `name`\nfield is handled specially for branches in that, if specified as the sort field, it\nuses a natural sort order instead of the default lexicographical sort order. For example,\nit will return ['branch1', 'branch2', 'branch10'] instead of ['branch1', 'branch10', 'branch2'].",
+          "message": "\nField by which the results should be sorted as per\n[filtering and sorting](/cloud/bitbucket/rest/intro/#filtering). The `name`\nfield is handled specially for branches in that, if specified as the sort field, it\nuses a natural sort order instead of the default lexicographical sort order. For example,\nit will return ['branch1', 'branch2', 'branch10'] instead of ['branch1', 'branch10', 'branch2']."
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfcmVmc19icmFuY2hlc19nZXQ.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -964,8 +964,8 @@
           "message": "A commit hash, a branch name or a tag"
         },
         "app.Qml0YnVja2V0.action.Z2V0UmVwb3J0c0ZvckNvbW1pdA.option.Y29tbWl0.desc": {
-          "source": "The commit's SHA1.",
-          "message": "The commit's SHA1."
+          "source": "The commit for which to retrieve reports.",
+          "message": "The commit for which to retrieve reports."
         },
         "app.Qml0YnVja2V0.action.Z2V0UmVwb3J0c0ZvckNvbW1pdA.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -1060,8 +1060,8 @@
           "message": "A field to sort by; prefix with \"-\" to reverse"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfY29tbWl0X2NvbW1pdF9jb21tZW50c19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        "
+          "source": "Field by which the results should be sorted as per\n[filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n",
+          "message": "Field by which the results should be sorted as per\n[filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfY29tbWl0X2NvbW1pdF9jb21tZW50c19nZXQ.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -2268,8 +2268,8 @@
           "message": "A field to sort by; prefix with \"-\" to reverse"
         },
         "app.Qml0YnVja2V0.action.d29ya3NwYWNlc19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        "
+          "source": "Name of a response property to sort results (only slug is supported).",
+          "message": "Name of a response property to sort results (only slug is supported)."
         },
         "app.Qml0YnVja2V0.action.d29ya3NwYWNlc19nZXQ.option.cGFnZQ.display_name": {
           "source": "Page",

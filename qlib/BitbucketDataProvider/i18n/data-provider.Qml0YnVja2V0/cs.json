@@ -96,8 +96,8 @@
           "message": "Vypsat reporty commitu"
         },
         "app.Qml0YnVja2V0.action.Z2V0UmVwb3J0c0ZvckNvbW1pdA.option.Y29tbWl0.desc": {
-          "source": "The commit's SHA1.",
-          "message": "SHA1 commitu."
+          "source": "The commit for which to retrieve reports.",
+          "message": "Commit, pro který se mají načíst reporty."
         },
         "app.Qml0YnVja2V0.action.Z2V0UmVwb3J0c0ZvckNvbW1pdA.option.Y29tbWl0.display_name": {
           "source": "Commit",
@@ -984,8 +984,8 @@
           "message": "Hash commitu, název větve nebo tag"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfY29tbWl0X2NvbW1pdF9jb21tZW50c19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\nPole, podle kterého mají být výsledky seřazeny podle [filtrování a řazení](/cloud/bitbucket/rest/intro/#filtering).\n        "
+          "source": "Field by which the results should be sorted as per\n[filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n",
+          "message": "Pole, podle kterého mají být výsledky seřazeny podle\n[filtrování a řazení](/cloud/bitbucket/rest/intro/#filtering).\n"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfY29tbWl0X2NvbW1pdF9jb21tZW50c19nZXQ.option.c29ydA.display_name": {
           "source": "Sort By",
@@ -2280,8 +2280,8 @@
           "message": "Vypsat větve"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfcmVmc19icmFuY2hlc19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\nPole, podle kterého mají být výsledky seřazeny podle [filtrování a řazení](/cloud/bitbucket/rest/intro/#filtering).\n        "
+          "source": "\nField by which the results should be sorted as per\n[filtering and sorting](/cloud/bitbucket/rest/intro/#filtering). The `name`\nfield is handled specially for branches in that, if specified as the sort field, it\nuses a natural sort order instead of the default lexicographical sort order. For example,\nit will return ['branch1', 'branch2', 'branch10'] instead of ['branch1', 'branch10', 'branch2'].",
+          "message": "\nPole, podle kterého mají být výsledky seřazeny podle\n[filtrování a řazení](/cloud/bitbucket/rest/intro/#filtering). Pole `name`\nje u větví zpracováno zvláštním způsobem: pokud je zadáno jako pole řazení,\npoužije se přirozené řazení místo výchozího lexikografického. Například\nvrátí ['branch1', 'branch2', 'branch10'] místo ['branch1', 'branch10', 'branch2']."
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfcmVmc19icmFuY2hlc19nZXQ.option.c29ydA.display_name": {
           "source": "Sort By",
@@ -2496,8 +2496,8 @@
           "message": "Vrátit pouze pracovní prostory, které dané přihlašovací údaje spravují"
         },
         "app.Qml0YnVja2V0.action.d29ya3NwYWNlc19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\nPole, podle kterého mají být výsledky seřazeny podle [filtrování a řazení](/cloud/bitbucket/rest/intro/#filtering).\n        "
+          "source": "Name of a response property to sort results (only slug is supported).",
+          "message": "Název vlastnosti odpovědi, podle které se řadí výsledky (podporován je pouze slug)."
         },
         "app.Qml0YnVja2V0.action.d29ya3NwYWNlc19nZXQ.option.c29ydA.display_name": {
           "source": "Sort By",

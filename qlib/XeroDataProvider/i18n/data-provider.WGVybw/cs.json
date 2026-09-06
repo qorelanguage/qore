@@ -492,16 +492,16 @@
           "message": "Název úkolu"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.desc": {
-          "source": "You can specify an individual project by appending the projectId to the endpoint",
-          "message": "Konkrétní projekt můžete zadat připojením projectId ke koncovému bodu"
+          "source": "You can create a task on a specified projectId",
+          "message": "Úkol lze vytvořit v zadaném projectId"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.display_name": {
           "source": "Project",
           "message": "Projekt"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.short_desc": {
-          "source": "You can specify an individual project by appending the projectId to the endpoint",
-          "message": "Konkrétní projekt můžete zadat připojením projectId ke koncovému bodu"
+          "source": "You can create a task on a specified projectId",
+          "message": "Úkol lze vytvořit v zadaném projectId"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cmF0ZQ.display_name": {
           "source": "Rate",
@@ -664,8 +664,8 @@
           "message": "Pole pro řazení, např.: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0Q3JlZGl0Tm90ZXM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "např. page=1 – V jednom volání API bude vráceno až 100 kontaktů."
+          "source": "e.g. page=1 – Up to 100 credit notes will be returned in a single API call with line items shown for each credit note",
+          "message": "např. page=1 – v jednom volání API se vrátí až 100 dobropisů, u každého se zobrazí položky"
         },
         "app.WGVybw.action.Z2V0Q3JlZGl0Tm90ZXM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -808,8 +808,8 @@
           "message": "Pole pro řazení, např.: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0QmFua1RyYW5zYWN0aW9ucw.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "např. page=1 – V jednom volání API bude vráceno až 100 kontaktů."
+          "source": "Up to 100 bank transactions will be returned in a single API call with line items details",
+          "message": "V jednom volání API se vrátí až 100 bankovních transakcí včetně podrobností položek"
         },
         "app.WGVybw.action.Z2V0QmFua1RyYW5zYWN0aW9ucw.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -916,8 +916,8 @@
           "message": "Čárkami oddělený seznam ID kontaktů"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.SURz.desc": {
-          "source": "Filter by a comma separated list of ContactIDs. Allows you to retrieve a specific set of contacts in a single call.",
-          "message": "Filtrovat podle čárkami odděleného seznamu ContactID. Umožňuje načíst konkrétní sadu kontaktů v jediném volání."
+          "source": "Filter by a comma-separated list of InvoicesIDs.",
+          "message": "Filtrovat podle čárkou odděleného seznamu InvoicesIDs."
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.SURz.display_name": {
           "source": "Invoice IDs",
@@ -976,16 +976,16 @@
           "message": "Při nastavení na hodnotu true se načtou pouze faktury vytvořené vaší aplikací"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.desc": {
-          "source": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be included in the response",
-          "message": "např. includeArchived=true – kontakty se stavem ARCHIVED budou zahrnuty v odpovědi"
+          "source": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be included in the response",
+          "message": "např. includeArchived=true – v odpovědi budou zahrnuty faktury se stavem ARCHIVED"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.display_name": {
           "source": "Include Archived",
           "message": "Zahrnout archivované"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.short_desc": {
-          "source": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be…",
-          "message": "Např. includeArchived=true – kontakty se stavem ARCHIVED budou…"
+          "source": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be…",
+          "message": "např. includeArchived=true – v odpovědi budou zahrnuty faktury se stavem…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.b3JkZXI.desc": {
           "source": "Order by an any element",
@@ -1000,16 +1000,16 @@
           "message": "Pole pro řazení, např.: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.desc": {
-          "source": "Search parameter that performs a case-insensitive text search across the Name, FirstName, LastName, ContactNumber and EmailAddress fields.",
-          "message": "Vyhledávací parametr provádějící textové vyhledávání bez rozlišení velkých a malých písmen v polích Name, FirstName, LastName, ContactNumber a EmailAddress."
+          "source": "Search parameter that performs a case-insensitive text search across the fields e.g. InvoiceNumber, Reference.",
+          "message": "Parametr vyhledávání, který provádí textové hledání bez rozlišení velikosti písmen napříč poli, např. InvoiceNumber, Reference."
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.display_name": {
           "source": "Search Term",
           "message": "Hledaný výraz"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.short_desc": {
-          "source": "Search parameter that performs a case-insensitive text search across the Name,…",
-          "message": "Parametr vyhledávání provádějící textové hledání bez rozlišení velikosti v Name…"
+          "source": "Search parameter that performs a case-insensitive text search across the…",
+          "message": "Parametr vyhledávání, který provádí textové hledání bez rozlišení velikosti…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c3VtbWFyeU9ubHk.desc": {
           "source": "Use summaryOnly=true in GET Contacts and Invoices endpoint to retrieve a smaller version of the response object. This returns only lightweight fields, excluding computation-heavy fields from the response, making the API calls quick and efficient.",
@@ -1024,8 +1024,8 @@
           "message": "Použijte summaryOnly=true v koncovém bodu GET Contacts a Invoices k získání…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "např. page=1 – V jednom volání API bude vráceno až 100 kontaktů."
+          "source": "e.g. page=1 – Up to 100 invoices will be returned in a single API call with line items shown for each invoice",
+          "message": "např. page=1 – v jednom volání API se vrátí až 100 faktur, u každé se zobrazí položky"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -1168,8 +1168,8 @@
           "message": "Pole pro řazení, např.: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0UGF5bWVudHM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "např. page=1 – V jednom volání API bude vráceno až 100 kontaktů."
+          "source": "Up to 100 payments will be returned in a single API call",
+          "message": "V jednom volání API se vrátí až 100 plateb"
         },
         "app.WGVybw.action.Z2V0UGF5bWVudHM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -1404,8 +1404,8 @@
           "message": "Pole pro řazení, např.: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0UHVyY2hhc2VPcmRlcnM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "např. page=1 – V jednom volání API bude vráceno až 100 kontaktů."
+          "source": "To specify a page, append the page parameter to the URL e.g. ?page=1. If there are 100 records in the response you will need to check if there is any more data by fetching the next page e.g ?page=2 and continuing this process until no more results are returned.",
+          "message": "Chcete-li určit stránku, připojte k adrese URL parametr page, např. ?page=1. Pokud odpověď obsahuje 100 záznamů, je třeba ověřit, zda existují další data, načtením další stránky, např. ?page=2, a pokračovat, dokud se nevrátí žádné další výsledky."
         },
         "app.WGVybw.action.Z2V0UHVyY2hhc2VPcmRlcnM.option.cGFnZQ.display_name": {
           "source": "Page",

@@ -2544,12 +2544,12 @@
           "message": "Since"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "Only show repositories updated after the given time"
+          "source": "Only show results that were last updated after the given time",
+          "message": "Only show results that were last updated after the given time"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`."
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+          "message": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`."
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c29ydA.display_name": {
           "source": "Sort",
@@ -2622,6 +2622,14 @@
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.dHlwZQ.display_name": {
           "source": "Type",
           "message": "Type"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.dHlwZQ.short_desc": {
+          "source": "Can be the name of an issue type",
+          "message": "Can be the name of an issue type"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.dHlwZQ.desc": {
+          "source": "Can be the name of an issue type. If the string `*` is passed, issues with any type are accepted. If the string `none` is passed, issues without type are returned.",
+          "message": "Can be the name of an issue type. If the string `*` is passed, issues with any type are accepted. If the string `none` is passed, issues without type are returned."
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.bWVudGlvbmVk.display_name": {
           "source": "Mentioned",
@@ -2736,12 +2744,12 @@
           "message": "Since"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "Only show repositories updated after the given time"
+          "source": "Only show results that were last updated after the given time",
+          "message": "Only show results that were last updated after the given time"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`."
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+          "message": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`."
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c29ydA.display_name": {
           "source": "Sort",
@@ -3416,12 +3424,12 @@
           "message": "State"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.short_desc": {
-          "source": "Indicates the state of the issues to return",
-          "message": "Indicates the state of the issues to return"
+          "source": "Either 'open', 'closed', or 'all' to filter by state",
+          "message": "Either 'open', 'closed', or 'all' to filter by state"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.desc": {
-          "source": "Indicates the state of the issues to return.",
-          "message": "Indicates the state of the issues to return."
+          "source": "Either `open`, `closed`, or `all` to filter by state.",
+          "message": "Either `open`, `closed`, or `all` to filter by state."
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.allowed-value.c3RyaW5nOm9wZW4.display_name": {
           "source": "open",
@@ -3492,12 +3500,12 @@
           "message": "Direction"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.short_desc": {
-          "source": "The order to sort by",
-          "message": "The order to sort by"
+          "source": "The direction of the sort",
+          "message": "The direction of the sort"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.desc": {
-          "source": "The order to sort by. Default: `asc` when using `full_name`, otherwise `desc`.",
-          "message": "The order to sort by. Default: `asc` when using `full_name`, otherwise `desc`."
+          "source": "The direction of the sort. Default: `desc` when sort is `created` or sort is not specified, otherwise `asc`.",
+          "message": "The direction of the sort. Default: `desc` when sort is `created` or sort is not specified, otherwise `asc`."
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.allowed-value.c3RyaW5nOmFzYw.display_name": {
           "source": "asc",
@@ -4243,17 +4251,21 @@
           "source": "The branch, tag or commit to list from; the default branch if unset",
           "message": "The branch, tag or commit to list from; the default branch if unset"
         },
+        "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2hh.desc": {
+          "source": "SHA or branch to start listing commits from. Default: the repository’s default branch (usually `main`).",
+          "message": "SHA or branch to start listing commits from. Default: the repository’s default branch (usually `main`)."
+        },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.display_name": {
           "source": "Path",
           "message": "Path"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.short_desc": {
-          "source": "path parameter",
-          "message": "path parameter"
+          "source": "Only commits containing this file path will be returned",
+          "message": "Only commits containing this file path will be returned"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.desc": {
-          "source": "path parameter",
-          "message": "path parameter"
+          "source": "Only commits containing this file path will be returned.",
+          "message": "Only commits containing this file path will be returned."
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.YXV0aG9y.display_name": {
           "source": "Author",
@@ -4284,12 +4296,12 @@
           "message": "Since"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "Only show repositories updated after the given time"
+          "source": "Only show results that were last updated after the given time",
+          "message": "Only show results that were last updated after the given time"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`."
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. Due to limitations of Git, timestamps must be between 1970-01-01 and 2099-12-31 (inclusive) or unexpected results may be returned.",
+          "message": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. Due to limitations of Git, timestamps must be between 1970-01-01 and 2099-12-31 (inclusive) or unexpected results may be returned."
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.dW50aWw.display_name": {
           "source": "Until",
@@ -4792,8 +4804,8 @@
           "message": "The search query, in GitHub's search syntax"
         },
         "app.R2l0aHVi.action.c2VhcmNoLWlzc3Vlcy1hbmQtcHVsbC1yZXF1ZXN0cw.option.cQ.desc": {
-          "source": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as the web interface for GitHub. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query). See \"[Searching for repositories](https://docs.github.com/articles/searching-for-repositories/)\" for a detailed list of qualifiers.",
-          "message": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as the web interface for GitHub. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query). See \"[Searching for repositories](https://docs.github.com/articles/searching-for-repositories/)\" for a detailed list of qualifiers."
+          "source": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as the web interface for GitHub. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query). See \"[Searching issues and pull requests](https://docs.github.com/search-github/searching-on-github/searching-issues-and-pull-requests)\" for a detailed list of qualifiers.",
+          "message": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as the web interface for GitHub. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query). See \"[Searching issues and pull requests](https://docs.github.com/search-github/searching-on-github/searching-issues-and-pull-requests)\" for a detailed list of qualifiers."
         },
         "app.R2l0aHVi.action.c2VhcmNoLWlzc3Vlcy1hbmQtcHVsbC1yZXF1ZXN0cw.option.YWR2YW5jZWRfc2VhcmNo.display_name": {
           "source": "Advanced Search",

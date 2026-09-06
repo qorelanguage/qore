@@ -851,17 +851,9 @@
           "source": "Three-letter…",
           "message": "三個字母的…"
         },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費。"
-        },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "客戶"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費"
         },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.YW1vdW50.desc": {
           "source": "The integer amount in **cents (or local equivalent)** to apply to the customer's credit balance.",
@@ -979,17 +971,9 @@
           "source": "Three-letter…",
           "message": "三個字母的…"
         },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費。"
-        },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "客戶"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費"
         },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.YWRkX2ludm9pY2VfaXRlbXM.desc": {
           "source": "A list of prices and quantities that will generate invoice items appended to the next invoice for this subscription. You may pass up to 20 items.",
@@ -1343,17 +1327,9 @@
           "source": "A token, like the ones returned by [Stripe.js](https://stripe.com/docs/js)",
           "message": "權杖，例如 [Stripe.js](https://stripe.com/docs/js) 傳回的權杖"
         },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費。"
-        },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "客戶"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費"
         },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.YWxpcGF5X2FjY291bnQ.desc": {
           "source": "A token returned by [Stripe.js](https://stripe.com/docs/js) representing the user’s Alipay account details.",
@@ -2983,17 +2959,9 @@
           "source": "Get Customer",
           "message": "取得客戶"
         },
-        "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費。"
-        },
         "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "客戶"
-        },
-        "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費"
         },
         "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.ZXhwYW5k.desc": {
           "source": "Specifies which fields in the response should be expanded.",
@@ -3087,17 +3055,9 @@
           "source": "Specifies which fields in the response should be expanded",
           "message": "指定回應中應展開的欄位"
         },
-        "app.U3RyaXBl.action.Z2V0LWludm9pY2U.option.aW52b2ljZQ.desc": {
-          "source": "Only return transactions that are related to the specified invoice.",
-          "message": "僅傳回與指定發票相關的交易。"
-        },
         "app.U3RyaXBl.action.Z2V0LWludm9pY2U.option.aW52b2ljZQ.display_name": {
           "source": "Invoice",
           "message": "發票"
-        },
-        "app.U3RyaXBl.action.Z2V0LWludm9pY2U.option.aW52b2ljZQ.short_desc": {
-          "source": "Only return transactions that are related to the specified invoice",
-          "message": "僅傳回與指定發票相關的交易"
         },
         "app.U3RyaXBl.action.Z2V0LWludm9pY2U.short_desc": {
           "source": "Retrieve one invoice",
@@ -3135,17 +3095,9 @@
           "source": "Delete Customer",
           "message": "刪除客戶"
         },
-        "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費。"
-        },
         "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "客戶"
-        },
-        "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費"
         },
         "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.short_desc": {
           "source": "Delete a customer",
@@ -3175,17 +3127,9 @@
           "source": "Delete Invoice",
           "message": "刪除發票"
         },
-        "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.option.aW52b2ljZQ.desc": {
-          "source": "Only return transactions that are related to the specified invoice.",
-          "message": "僅傳回與指定發票相關的交易。"
-        },
         "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.option.aW52b2ljZQ.display_name": {
           "source": "Invoice",
           "message": "發票"
-        },
-        "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.option.aW52b2ljZQ.short_desc": {
-          "source": "Only return transactions that are related to the specified invoice",
-          "message": "僅傳回與指定發票相關的交易"
         },
         "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.short_desc": {
           "source": "Delete a draft invoice",
@@ -3420,16 +3364,16 @@
           "message": "列出收費"
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "僅傳回在指定日期區間內建立的交易。"
+          "source": "Only return charges that were created during the given date interval.",
+          "message": "僅傳回在指定日期區間內建立的收費。"
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "已建立"
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "僅傳回在指定日期區間內建立的交易"
+          "source": "Only return charges that were created during the given date interval",
+          "message": "僅傳回在指定日期區間內建立的收費"
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3VzdG9tZXI.desc": {
           "source": "Only return charges for the customer specified by this customer ID.",
@@ -3528,16 +3472,16 @@
           "message": "列出已連結帳戶"
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "僅傳回在指定日期區間內建立的交易。"
+          "source": "Only return connected accounts that were created during the given date interval.",
+          "message": "僅傳回在指定日期區間內建立的連結帳戶。"
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "已建立"
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "僅傳回在指定日期區間內建立的交易"
+          "source": "Only return connected accounts that were created during the given date interval",
+          "message": "僅傳回在指定日期區間內建立的連結帳戶"
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -3600,28 +3544,20 @@
           "message": "列出客戶餘額交易"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "僅傳回在指定日期區間內建立的交易。"
+          "source": "Only return customer balance transactions that were created during the given date interval.",
+          "message": "僅傳回在指定日期區間內建立的客戶餘額交易。"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "已建立"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "僅傳回在指定日期區間內建立的交易"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費。"
+          "source": "Only return customer balance transactions that were created during the given…",
+          "message": "僅傳回在指定日期區間內建立的客戶餘額交易。"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "客戶"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -3695,17 +3631,9 @@
           "source": "List Customer Sources",
           "message": "列出客戶來源"
         },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費。"
-        },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "客戶"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -3779,17 +3707,9 @@
           "source": "List Customer Subscriptions",
           "message": "列出客戶訂閱"
         },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費。"
-        },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "客戶"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -3852,16 +3772,16 @@
           "message": "列出客戶"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "僅傳回在指定日期區間內建立的交易。"
+          "source": "Only return customers that were created during the given date interval.",
+          "message": "僅傳回在指定日期區間內建立的客戶。"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "已建立"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "僅傳回在指定日期區間內建立的交易"
+          "source": "Only return customers that were created during the given date interval",
+          "message": "僅傳回在指定日期區間內建立的客戶"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.ZW1haWw.desc": {
           "source": "A case-sensitive filter on the list based on the customer's `email` field. The value must be a string.",
@@ -4052,28 +3972,28 @@
           "message": "要擷取的發票收款方式"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "僅傳回在指定日期區間內建立的交易。"
+          "source": "Only return invoices that were created during the given date interval.",
+          "message": "僅傳回在指定日期區間內建立的發票。"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "已建立"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "僅傳回在指定日期區間內建立的交易"
+          "source": "Only return invoices that were created during the given date interval",
+          "message": "僅傳回在指定日期區間內建立的發票"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費。"
+          "source": "Only return invoices for the customer specified by this customer ID.",
+          "message": "僅傳回此客戶 ID 所指定客戶的發票。"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "客戶"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費"
+          "source": "Only return invoices for the customer specified by this customer ID",
+          "message": "僅傳回此客戶 ID 所指定客戶的發票"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXJfYWNjb3VudA.desc": {
           "source": "Only return invoices for the account representing the customer specified by this account ID.",
@@ -4196,40 +4116,40 @@
           "message": "列出 Payment Intents"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "僅傳回在指定日期區間內建立的交易。"
+          "source": "A filter on the list, based on the object `created` field. The value can be a string with an integer Unix timestamp or a dictionary with a number of different query options.",
+          "message": "依物件 `created` 欄位篩選清單。值可以是含整數 Unix 時間戳記的字串，或含多個查詢選項的字典。"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "已建立"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "僅傳回在指定日期區間內建立的交易"
+          "source": "A filter on the list, based on the object 'created' field",
+          "message": "依物件 'created' 欄位篩選清單"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費。"
+          "source": "Only return PaymentIntents for the customer that this customer ID specifies.",
+          "message": "僅傳回此客戶 ID 所指定客戶的 PaymentIntents。"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "客戶"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費"
+          "source": "Only return PaymentIntents for the customer that this customer ID specifies",
+          "message": "僅傳回此客戶 ID 所指定客戶的 PaymentIntents"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXJfYWNjb3VudA.desc": {
-          "source": "Only return invoices for the account representing the customer specified by this account ID.",
-          "message": "僅傳回由此帳戶 ID 所指定代表客戶之帳戶的發票。"
+          "source": "Only return PaymentIntents for the account representing the customer that this ID specifies.",
+          "message": "僅傳回代表此 ID 所指定客戶之帳戶的 PaymentIntents。"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXJfYWNjb3VudA.display_name": {
           "source": "Customer Account",
           "message": "客戶帳戶"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXJfYWNjb3VudA.short_desc": {
-          "source": "Only return invoices for the account representing the customer specified by…",
-          "message": "僅傳回代表此指定客戶之帳戶的發票…"
+          "source": "Only return PaymentIntents for the account representing the customer that this…",
+          "message": "僅傳回代表此 ID 所指定客戶之帳戶的 PaymentIntents。"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -4304,16 +4224,16 @@
           "message": "僅傳回由此收費 ID 所指定收費的退款"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "僅傳回在指定日期區間內建立的交易。"
+          "source": "Only return refunds that were created during the given date interval.",
+          "message": "僅傳回在指定日期區間內建立的退款。"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "已建立"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "僅傳回在指定日期區間內建立的交易"
+          "source": "Only return refunds that were created during the given date interval",
+          "message": "僅傳回在指定日期區間內建立的退款"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.ZW5kaW5nX2JlZm9yZQ.desc": {
           "source": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
@@ -4364,16 +4284,16 @@
           "message": "用於分頁的游標"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.cGF5bWVudF9pbnRlbnQ.desc": {
-          "source": "Only return charges that were created by the PaymentIntent specified by this PaymentIntent ID.",
-          "message": "僅傳回由此 PaymentIntent ID 所指定的 PaymentIntent 所建立的收費。"
+          "source": "Only return refunds for the PaymentIntent specified by this ID.",
+          "message": "僅傳回此 ID 所指定 PaymentIntent 的退款。"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.cGF5bWVudF9pbnRlbnQ.display_name": {
           "source": "Payment Intent",
           "message": "付款意圖"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.cGF5bWVudF9pbnRlbnQ.short_desc": {
-          "source": "Only return charges that were created by the PaymentIntent specified by this…",
-          "message": "僅傳回由此指定的 PaymentIntent 所建立的收費…"
+          "source": "Only return refunds for the PaymentIntent specified by this ID",
+          "message": "僅傳回此 ID 所指定 PaymentIntent 的退款"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.short_desc": {
           "source": "List refunds, most recent first",
@@ -4843,17 +4763,9 @@
           "source": "Balance information and default balance settings for this customer",
           "message": "此客戶的餘額資訊及預設餘額設定"
         },
-        "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費。"
-        },
         "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "客戶"
-        },
-        "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "僅傳回此客戶 ID 所指定客戶的收費"
         },
         "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.YWRkcmVzcw.desc": {
           "source": "The customer's address. Learn about [country-specific requirements for calculating tax](https://docs.stripe.com/invoicing/taxes?dashboard-or-api=dashboard#set-up-customer).",
@@ -5683,17 +5595,9 @@
           "source": "Footer to be displayed on the invoice",
           "message": "發票上要顯示的頁尾"
         },
-        "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aW52b2ljZQ.desc": {
-          "source": "Only return transactions that are related to the specified invoice.",
-          "message": "僅傳回與指定發票相關的交易。"
-        },
         "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aW52b2ljZQ.display_name": {
           "source": "Invoice",
           "message": "發票"
-        },
-        "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aW52b2ljZQ.short_desc": {
-          "source": "Only return transactions that are related to the specified invoice",
-          "message": "僅傳回與指定發票相關的交易"
         },
         "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aXNzdWVy.desc": {
           "source": "The connected account that issues the invoice. The invoice is presented with the branding and support information of the specified account.",

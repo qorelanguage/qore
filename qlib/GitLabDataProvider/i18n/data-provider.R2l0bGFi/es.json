@@ -196,8 +196,8 @@
           "message": "Ordenar por asc (ascendente) o desc (descendente)"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHM.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "Devolver lista de ramas que coincidan con los criterios de búsqueda"
+          "source": "Search for a specific group",
+          "message": "Busca un grupo concreto"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHM.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -412,16 +412,16 @@
           "message": "Mostrar información de puestos para los miembros"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZE1lbWJlcnM.option.c2tpcF91c2Vycw.desc": {
-          "source": "Filter out users with the specified IDs",
-          "message": "Filtrar usuarios con los ID especificados"
+          "source": "Array of user ids to be skipped for membership",
+          "message": "Matriz de identificadores de usuario que se omitirán en la pertenencia"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZE1lbWJlcnM.option.c2tpcF91c2Vycw.display_name": {
           "source": "Skip Users",
           "message": "Omitir usuarios"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZE1lbWJlcnM.option.c2tpcF91c2Vycw.short_desc": {
-          "source": "Filter out users with the specified IDs",
-          "message": "Filtrar usuarios con los ID especificados"
+          "source": "Array of user ids to be skipped for membership",
+          "message": "Matriz de identificadores de usuario que se omitirán en la pertenencia"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZE1lbWJlcnM.option.cGFnZQ.desc": {
           "source": "Current page number",
@@ -532,16 +532,16 @@
           "message": "Obtener variable de grupo"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZFZhcmlhYmxlc0tleQ.option.a2V5.desc": {
-          "source": "The key of a variable",
-          "message": "La clave de una variable"
+          "source": "The key of the variable",
+          "message": "La clave de la variable"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZFZhcmlhYmxlc0tleQ.option.a2V5.display_name": {
           "source": "Key",
           "message": "Clave"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZFZhcmlhYmxlc0tleQ.option.a2V5.short_desc": {
-          "source": "The key of a variable",
-          "message": "La clave de una variable"
+          "source": "The key of the variable",
+          "message": "La clave de la variable"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZFZhcmlhYmxlc0tleQ.option.aWQ.desc": {
           "source": "The group this action works on, given as its numeric ID or as its path (`parent/group`).\n\nGive the path as it reads; the transport escapes it into the single path segment GitLab expects. A path escaped by hand would be escaped a second time and would not resolve.\n\nEvery other option scoped by a group - members, variables - is listed from this group, so changing it re-reads them.",
@@ -1224,8 +1224,8 @@
           "message": "De quién son las incidencias a devolver"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRJc3N1ZXM.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "Devolver lista de ramas que coincidan con los criterios de búsqueda"
+          "source": "Search issues for text present in the title, description, or any combination of these",
+          "message": "Busca en las incidencias el texto presente en el título, la descripción o cualquier combinación de ambos"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRJc3N1ZXM.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -2120,8 +2120,8 @@
           "message": "Devuelve incidencias según ámbito: 'created_by_me', 'assigned_to_me' o 'all'"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkSXNzdWVz.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "Devolver lista de ramas que coincidan con los criterios de búsqueda"
+          "source": "Search issues for text present in the title, description, or any combination of these",
+          "message": "Busca en las incidencias el texto presente en el título, la descripción o cualquier combinación de ambos"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkSXNzdWVz.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -2372,16 +2372,16 @@
           "message": "Mostrar información de puestos para los miembros"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVtYmVycw.option.c2tpcF91c2Vycw.desc": {
-          "source": "Filter out users with the specified IDs",
-          "message": "Filtrar usuarios con los ID especificados"
+          "source": "Array of user ids to be skipped for membership",
+          "message": "Matriz de identificadores de usuario que se omitirán en la pertenencia"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVtYmVycw.option.c2tpcF91c2Vycw.display_name": {
           "source": "Skip Users",
           "message": "Omitir usuarios"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVtYmVycw.option.c2tpcF91c2Vycw.short_desc": {
-          "source": "Filter out users with the specified IDs",
-          "message": "Filtrar usuarios con los ID especificados"
+          "source": "Array of user ids to be skipped for membership",
+          "message": "Matriz de identificadores de usuario que se omitirán en la pertenencia"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVtYmVycw.option.cGFnZQ.desc": {
           "source": "Current page number",
@@ -2528,28 +2528,28 @@
           "message": "Enumerar merge requests"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues created after the specified time",
-          "message": "Devuelve las incidencias creadas después de la hora especificada"
+          "source": "Returns merge requests created on or after the given time. Expected in ISO 8601 format.",
+          "message": "Devuelve las merge requests creadas en el momento indicado o después. Se espera en formato ISO 8601."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9hZnRlcg.display_name": {
           "source": "Created After",
           "message": "Creado después de"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues created after the specified time",
-          "message": "Devuelve las incidencias creadas después de la hora especificada"
+          "source": "Returns merge requests created on or after the given time",
+          "message": "Devuelve las merge requests creadas en el momento indicado o después"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues created before the specified time",
-          "message": "Devuelve las incidencias creadas antes de la hora especificada"
+          "source": "Returns merge requests created on or before the given time. Expected in ISO 8601 format.",
+          "message": "Devuelve las merge requests creadas en el momento indicado o antes. Se espera en formato ISO 8601."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9iZWZvcmU.display_name": {
           "source": "Created Before",
           "message": "Creado antes de"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues created before the specified time",
-          "message": "Devuelve las incidencias creadas antes de la hora especificada"
+          "source": "Returns merge requests created on or before the given time",
+          "message": "Devuelve las merge requests creadas en el momento indicado o antes"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXBwcm92ZWRfYnlfaWRz.desc": {
           "source": "Return merge requests which have been approved by the specified users with the given IDs",
@@ -2588,52 +2588,52 @@
           "message": "Devuelve merge requests que tienen a los usuarios con los ID dados como…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfaWQ.desc": {
-          "source": "Return issues which are assigned to the user with the given ID",
-          "message": "Devuelve las incidencias que están asignadas al usuario con el ID especificado"
+          "source": "Returns merge requests assigned to the given user `id`. `None` returns unassigned merge requests. `Any` returns merge requests with an assignee.",
+          "message": "Devuelve las merge requests asignadas al usuario con el `id` indicado. `None` devuelve las merge requests sin asignar. `Any` devuelve las merge requests con persona asignada."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfaWQ.display_name": {
           "source": "Assignee",
           "message": "Asignado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfaWQ.short_desc": {
-          "source": "Return issues which are assigned to the user with the given ID",
-          "message": "Devuelve las incidencias que están asignadas al usuario con el ID especificado"
+          "source": "Returns merge requests assigned to the given user 'id'",
+          "message": "Devuelve las merge requests asignadas al usuario con el 'id' indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfdXNlcm5hbWU.desc": {
-          "source": "Return issues which are assigned to the user with the given username",
-          "message": "Devuelve las incidencias que están asignadas al usuario con el nombre de usuario especificado"
+          "source": "Returns merge requests created by the given `username`. Mutually exclusive with `author_id`.",
+          "message": "Devuelve las merge requests creadas por el `username` indicado. Es mutuamente excluyente con `author_id`."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfdXNlcm5hbWU.display_name": {
           "source": "Assignee Username",
           "message": "Nombre de usuario del asignado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfdXNlcm5hbWU.short_desc": {
-          "source": "Return issues which are assigned to the user with the given username",
-          "message": "Devuelve incidencias asignadas al usuario con el nombre de usuario dado"
+          "source": "Returns merge requests created by the given 'username'",
+          "message": "Devuelve las merge requests creadas por el 'username' indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX2lk.desc": {
-          "source": "Return issues which are authored by the user with the given ID",
-          "message": "Devuelve las incidencias creadas por el usuario con el ID especificado"
+          "source": "Returns merge requests created by the given user `id`. Mutually exclusive with `author_username`. Combine with `scope=all` or `scope=assigned_to_me`.",
+          "message": "Devuelve las merge requests creadas por el usuario con el `id` indicado. Es mutuamente excluyente con `author_username`. Combínelo con `scope=all` o `scope=assigned_to_me`."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX2lk.display_name": {
           "source": "Author",
           "message": "Autor"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX2lk.short_desc": {
-          "source": "Return issues which are authored by the user with the given ID",
-          "message": "Devuelve las incidencias creadas por el usuario con el ID especificado"
+          "source": "Returns merge requests created by the given user 'id'",
+          "message": "Devuelve las merge requests creadas por el usuario con el 'id' indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX3VzZXJuYW1l.desc": {
-          "source": "Return issues which are authored by the user with the given username",
-          "message": "Devuelve las incidencias creadas por el usuario con el nombre de usuario especificado"
+          "source": "Returns merge requests created by the given `username`. Mutually exclusive with `author_id`.",
+          "message": "Devuelve las merge requests creadas por el `username` indicado. Es mutuamente excluyente con `author_id`."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX3VzZXJuYW1l.display_name": {
           "source": "Author Username",
           "message": "Nombre de usuario del autor"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX3VzZXJuYW1l.short_desc": {
-          "source": "Return issues which are authored by the user with the given username",
-          "message": "Devuelve incidencias creadas por el usuario con el nombre de usuario dado"
+          "source": "Returns merge requests created by the given 'username'",
+          "message": "Devuelve las merge requests creadas por el 'username' indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.ZGVwbG95ZWRfYWZ0ZXI.desc": {
           "source": "Returns merge requests deployed after the given date/time. Expected in ISO 8601 format",
@@ -2684,16 +2684,16 @@
           "message": "Devuelve las merge requests desplegadas en el entorno indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aW4.desc": {
-          "source": "`title`, `description`, or a string joining them with comma",
-          "message": "`title`, `description` o una cadena que los una con coma"
+          "source": "Modify the scope of the search attribute. `title`, `description`, or a string joining them with comma.",
+          "message": "Modifica el ámbito del atributo de búsqueda. `title`, `description` o una cadena que los una con una coma."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aW4.display_name": {
           "source": "In",
           "message": "En"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aW4.short_desc": {
-          "source": "'title', 'description', or a string joining them with comma",
-          "message": "'title', 'description' o una cadena que los una con coma"
+          "source": "Modify the scope of the search attribute",
+          "message": "Modifica el ámbito del atributo de búsqueda"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aWQ.desc": {
           "source": "The project this action works on, given as its numeric ID or as its path (`group/project`).\n\nGive the path as it reads; the transport escapes it into the single path segment GitLab expects. A path escaped by hand would be escaped a second time and would not resolve.\n\nEvery other option scoped by a project - branches, issues, members, variables - is listed from this project, so changing it re-reads them.",
@@ -2708,16 +2708,16 @@
           "message": "El proyecto sobre el que trabajar"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aWlkcw.desc": {
-          "source": "The IID array of issues",
-          "message": "El arreglo de IID de incidencias"
+          "source": "Returns the request having the given `iid`.",
+          "message": "Devuelve la solicitud que tiene el `iid` indicado."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aWlkcw.display_name": {
           "source": "Iids",
           "message": "Iids"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aWlkcw.short_desc": {
-          "source": "The IID array of issues",
-          "message": "El arreglo de IID de incidencias"
+          "source": "Returns the request having the given 'iid'",
+          "message": "Devuelve la solicitud que tiene el 'iid' indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.b3JkZXJfYnk.allowed-value.c3RyaW5nOm1lcmdlZF9hdA.display_name": {
           "source": "merged_at",
@@ -2764,16 +2764,16 @@
           "message": "Devuelve merge requests por 'created_at', 'label_priority',…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bGFiZWxz.desc": {
-          "source": "Comma-separated list of label names",
-          "message": "Lista de nombres de etiquetas separada por comas"
+          "source": "Returns merge requests matching a comma-separated list of labels. `None` lists all merge requests with no labels. `Any` lists all merge requests with at least one label. Predefined names are case-insensitive.",
+          "message": "Devuelve las merge requests que coinciden con una lista de etiquetas separadas por comas. `None` enumera todas las merge requests sin etiquetas. `Any` enumera todas las que tienen al menos una etiqueta. Los nombres predefinidos no distinguen mayúsculas de minúsculas."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bGFiZWxz.display_name": {
           "source": "Labels",
           "message": "Etiquetas"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bGFiZWxz.short_desc": {
-          "source": "Comma-separated list of label names",
-          "message": "Lista de nombres de etiquetas separada por comas"
+          "source": "Returns merge requests matching a comma-separated list of labels",
+          "message": "Devuelve las merge requests que coinciden con una lista de etiquetas separadas por comas"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bWVyZ2VfdXNlcl91c2VybmFtZQ.desc": {
           "source": "Returns merge requests which have been merged by the user with the given `username`. Mutually exclusive with `merge_user_id`.",
@@ -2824,40 +2824,40 @@
           "message": "Devuelve las solicitudes de fusión fusionadas en o antes de la hora indicada"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bWlsZXN0b25l.desc": {
-          "source": "Milestone title",
-          "message": "Título del hito"
+          "source": "Returns merge requests for a specific milestone. `None` returns merge requests with no milestone. `Any` returns merge requests that have an assigned milestone.",
+          "message": "Devuelve las merge requests de un hito concreto. `None` devuelve las merge requests sin hito. `Any` devuelve las merge requests que tienen un hito asignado."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bWlsZXN0b25l.display_name": {
           "source": "Milestone",
           "message": "Hito"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bWlsZXN0b25l.short_desc": {
-          "source": "Milestone title",
-          "message": "Título del hito"
+          "source": "Returns merge requests for a specific milestone",
+          "message": "Devuelve las merge requests de un hito concreto"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bXlfcmVhY3Rpb25fZW1vamk.desc": {
-          "source": "Return issues reacted by the authenticated user by the given emoji",
-          "message": "Devuelve incidencias que recibieron una reacción del usuario autenticado con el emoji especificado"
+          "source": "Returns merge requests reacted by the authenticated user by the given `emoji`. `None` returns issues not given a reaction. `Any` returns issues given at least one reaction.",
+          "message": "Devuelve las merge requests a las que el usuario autenticado ha reaccionado con el `emoji` indicado. `None` devuelve las incidencias sin reacción. `Any` devuelve las que tienen al menos una reacción."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bXlfcmVhY3Rpb25fZW1vamk.display_name": {
           "source": "My Reaction Emoji",
           "message": "Emoji de mi reacción"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bXlfcmVhY3Rpb25fZW1vamk.short_desc": {
-          "source": "Return issues reacted by the authenticated user by the given emoji",
-          "message": "Devuelve incidencias con reacción del usuario autenticado con ese emoji"
+          "source": "Returns merge requests reacted by the authenticated user by the given 'emoji'",
+          "message": "Devuelve las merge requests a las que el usuario autenticado ha reaccionado con el 'emoji' indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90.desc": {
-          "source": "Filters by the specified parameters",
-          "message": "Filtra por los parámetros especificados"
+          "source": "Returns merge requests that do not match the parameters supplied",
+          "message": "Devuelve las merge requests que no coinciden con los parámetros indicados"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90.display_name": {
           "source": "Not",
           "message": "No"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90.short_desc": {
-          "source": "Filters by the specified parameters",
-          "message": "Filtra por los parámetros especificados"
+          "source": "Returns merge requests that do not match the parameters supplied",
+          "message": "Devuelve las merge requests que no coinciden con los parámetros indicados"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W215X3JlYWN0aW9uX2Vtb2ppXQ.desc": {
           "source": "`<Negated>` Returns merge requests reacted by the authenticated user by the given `emoji`. `None` returns issues not given a reaction. `Any` returns issues given at least one reaction.",
@@ -2872,40 +2872,40 @@
           "message": "'<Negated>' Devuelve merge requests con reacción del usuario autenticado por…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W21pbGVzdG9uZV0.desc": {
-          "source": "Milestone title",
-          "message": "Título del hito"
+          "source": "`<Negated>` Returns merge requests for a specific milestone. `None` returns merge requests with no milestone. `Any` returns merge requests that have an assigned milestone.",
+          "message": "`<Negated>` Devuelve las merge requests de un hito concreto. `None` devuelve las merge requests sin hito. `Any` devuelve las merge requests que tienen un hito asignado."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W21pbGVzdG9uZV0.display_name": {
           "source": "Not[milestone]",
           "message": "Not[milestone]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W21pbGVzdG9uZV0.short_desc": {
-          "source": "Milestone title",
-          "message": "Título del hito"
+          "source": "'<Negated>' Returns merge requests for a specific milestone. 'None' returns…",
+          "message": "'<Negated>' Devuelve las merge requests de un hito concreto. 'None' devuelve…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl91c2VybmFtZV0.desc": {
-          "source": "Return issues which are not authored by the user with the given username",
-          "message": "Devuelve incidencias que no hayan sido creadas por el usuario con el nombre de usuario indicado"
+          "source": "`<Negated>` Returns merge requests created by the given `username`. Mutually exclusive with `author_id`.",
+          "message": "`<Negated>` Devuelve las merge requests creadas por el `username` indicado. Es mutuamente excluyente con `author_id`."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl91c2VybmFtZV0.display_name": {
           "source": "Not[author Username]",
           "message": "Not[author Username]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl91c2VybmFtZV0.short_desc": {
-          "source": "Return issues which are not authored by the user with the given username",
-          "message": "Devuelve incidencias no creadas por el usuario con el username indicado"
+          "source": "'<Negated>' Returns merge requests created by the given 'username'",
+          "message": "'<Negated>' Devuelve merge requests creadas por el 'username' indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl9pZF0.desc": {
-          "source": "Return issues which are not authored by the user with the given ID",
-          "message": "Devuelve incidencias que no hayan sido creadas por el usuario con el ID indicado"
+          "source": "`<Negated>` Returns merge requests created by the given user `id`. Mutually exclusive with `author_username`. Combine with `scope=all` or `scope=assigned_to_me`.",
+          "message": "`<Negated>` Devuelve las merge requests creadas por el usuario con el `id` indicado. Es mutuamente excluyente con `author_username`. Combínelo con `scope=all` o `scope=assigned_to_me`."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl9pZF0.display_name": {
           "source": "Not Authored By",
           "message": "No creado por"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl9pZF0.short_desc": {
-          "source": "Return issues which are not authored by the user with the given ID",
-          "message": "Devuelve incidencias que no hayan sido creadas por el usuario con el ID indicado"
+          "source": "'<Negated>' Returns merge requests created by the given user 'id'",
+          "message": "'<Negated>' Devuelve merge requests creadas por el usuario con el 'id' indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2Fzc2lnbmVlX2lkXQ.desc": {
           "source": "`<Negated>` Returns merge requests assigned to the given user `id`. `None` returns unassigned merge requests. `Any` returns merge requests with an assignee.",
@@ -2920,28 +2920,28 @@
           "message": "'<Negated>' Devuelve merge requests asignadas al 'id' de usuario dado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2Fzc2lnbmVlX3VzZXJuYW1lXQ.desc": {
-          "source": "Return issues which are not assigned to the user with the given username",
-          "message": "Devuelve incidencias que no estén asignadas al usuario con el nombre de usuario indicado"
+          "source": "`<Negated>` Returns merge requests created by the given `username`. Mutually exclusive with `author_id`.",
+          "message": "`<Negated>` Devuelve las merge requests creadas por el `username` indicado. Es mutuamente excluyente con `author_id`."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2Fzc2lnbmVlX3VzZXJuYW1lXQ.display_name": {
           "source": "Not[assignee Username]",
           "message": "Not[assignee Username]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2Fzc2lnbmVlX3VzZXJuYW1lXQ.short_desc": {
-          "source": "Return issues which are not assigned to the user with the given username",
-          "message": "Devuelve incidencias no asignadas al usuario con el username indicado"
+          "source": "'<Negated>' Returns merge requests created by the given 'username'",
+          "message": "'<Negated>' Devuelve merge requests creadas por el 'username' indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2xhYmVsc10.desc": {
-          "source": "Comma-separated list of label names",
-          "message": "Lista de nombres de etiquetas separada por comas"
+          "source": "`<Negated>` Returns merge requests matching a comma-separated list of labels. `None` lists all merge requests with no labels. `Any` lists all merge requests with at least one label. Predefined names are case-insensitive.",
+          "message": "`<Negated>` Devuelve las merge requests que coinciden con una lista de etiquetas separadas por comas. `None` enumera todas las merge requests sin etiquetas. `Any` enumera todas las que tienen al menos una etiqueta. Los nombres predefinidos no distinguen mayúsculas de minúsculas."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2xhYmVsc10.display_name": {
           "source": "Not[labels]",
           "message": "Not[labels]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2xhYmVsc10.short_desc": {
-          "source": "Comma-separated list of label names",
-          "message": "Lista de nombres de etiquetas separada por comas"
+          "source": "'<Negated>' Returns merge requests matching a comma-separated list of labels.…",
+          "message": "'<Negated>' Devuelve las merge requests que coinciden con una lista de…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W3Jldmlld2VyX2lkXQ.desc": {
           "source": "`<Negated>` Returns merge requests which have the user as a reviewer with the given user `id`. `None` returns merge requests with no reviewers. `Any` returns merge requests with any reviewer. Mutually exclusive with `reviewer_username`.",
@@ -3000,16 +3000,16 @@
           "message": "descendente"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c29ydA.desc": {
-          "source": "Return issues sorted in `asc` or `desc` order.",
-          "message": "Devuelve incidencias ordenadas de forma `asc` o `desc`."
+          "source": "Returns merge requests sorted in `asc` or `desc` order.",
+          "message": "Devuelve las merge requests ordenadas en orden `asc` o `desc`."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c29ydA.display_name": {
           "source": "Sort",
           "message": "Ordenar"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c29ydA.short_desc": {
-          "source": "Return issues sorted in 'asc' or 'desc' order",
-          "message": "Devuelve incidencias ordenadas de forma 'asc' o 'desc'"
+          "source": "Returns merge requests sorted in 'asc' or 'desc' order",
+          "message": "Devuelve las merge requests ordenadas en orden 'asc' o 'desc'"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c2NvcGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
           "source": "all",
@@ -3048,8 +3048,8 @@
           "message": "Devuelve merge requests por ámbito: 'created_by_me', 'assigned_to_me',…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "Devolver lista de ramas que coincidan con los criterios de búsqueda"
+          "source": "Search merge requests against their `title` and `description`.",
+          "message": "Busca en las merge requests por su `title` y `description`."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -3140,16 +3140,16 @@
           "message": "Devuelve merge requests con el usuario como revisor según el…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.d2l0aF9sYWJlbHNfZGV0YWlscw.desc": {
-          "source": "Return titles of labels and other details",
-          "message": "Devuelve los títulos de las etiquetas y otros detalles"
+          "source": "If `true`, response returns more details for each label in labels field: `:name`,`:color`, `:description`, `:description_html`, `:text_color`",
+          "message": "Si es `true`, la respuesta devuelve más detalles de cada etiqueta en el campo labels: `:name`,`:color`, `:description`, `:description_html`, `:text_color`"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.d2l0aF9sYWJlbHNfZGV0YWlscw.display_name": {
           "source": "With Labels Details",
           "message": "Con detalles de etiquetas"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.d2l0aF9sYWJlbHNfZGV0YWlscw.short_desc": {
-          "source": "Return titles of labels and other details",
-          "message": "Devuelve los títulos de las etiquetas y otros detalles"
+          "source": "If 'true', response returns more details for each label in labels field:…",
+          "message": "Si es 'true', la respuesta devuelve más detalles de cada etiqueta en el campo…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.d2l0aF9tZXJnZV9zdGF0dXNfcmVjaGVjaw.desc": {
           "source": "If `true`, this projection requests (but does not guarantee) that the `merge_status` field be recalculated asynchronously. Introduced in GitLab 13.0.",
@@ -3196,28 +3196,28 @@
           "message": "Devuelve las solicitudes de fusión con la rama de destino indicada"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "Devuelve incidencias actualizadas después de la hora especificada"
+          "source": "Returns merge requests updated on or after the given time. Expected in ISO 8601 format.",
+          "message": "Devuelve las merge requests actualizadas en el momento indicado o después. Se espera en formato ISO 8601."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9hZnRlcg.display_name": {
           "source": "Updated After",
           "message": "Actualizado después de"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "Devuelve incidencias actualizadas después de la hora especificada"
+          "source": "Returns merge requests updated on or after the given time",
+          "message": "Devuelve las merge requests actualizadas en el momento indicado o después"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "Devuelve incidencias actualizadas antes de la hora especificada"
+          "source": "Returns merge requests updated on or before the given time. Expected in ISO 8601 format.",
+          "message": "Devuelve las merge requests actualizadas en el momento indicado o antes. Se espera en formato ISO 8601."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9iZWZvcmU.display_name": {
           "source": "Updated Before",
           "message": "Actualizado antes de"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "Devuelve incidencias actualizadas antes de la hora especificada"
+          "source": "Returns merge requests updated on or before the given time",
+          "message": "Devuelve las merge requests actualizadas en el momento indicado o antes"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dmlldw.allowed-value.c3RyaW5nOnNpbXBsZQ.display_name": {
           "source": "simple",
@@ -3284,28 +3284,28 @@
           "message": "El proyecto sobre el que trabajar"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.aWlkcw.desc": {
-          "source": "The IID array of issues",
-          "message": "El arreglo de IID de incidencias"
+          "source": "The IIDs of the milestones",
+          "message": "Los IID de los hitos"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.aWlkcw.display_name": {
           "source": "Iids",
           "message": "Iids"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.aWlkcw.short_desc": {
-          "source": "The IID array of issues",
-          "message": "El arreglo de IID de incidencias"
+          "source": "The IIDs of the milestones",
+          "message": "Los IID de los hitos"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "Devolver lista de ramas que coincidan con los criterios de búsqueda"
+          "source": "The search criteria for the title or description of the milestone",
+          "message": "Los criterios de búsqueda para el título o la descripción del hito"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.c2VhcmNo.display_name": {
           "source": "Search",
           "message": "Buscar"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.c2VhcmNo.short_desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "Devolver lista de ramas que coincidan con los criterios de búsqueda"
+          "source": "The search criteria for the title or description of the milestone",
+          "message": "Los criterios de búsqueda para el título o la descripción del hito"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.c3RhdGU.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
           "source": "active",
@@ -3368,28 +3368,28 @@
           "message": "El título de los hitos"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "Devuelve incidencias actualizadas después de la hora especificada"
+          "source": "Return milestones updated after the specified datetime. Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ",
+          "message": "Devuelve los hitos actualizados después de la fecha y hora indicadas. Formato: ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9hZnRlcg.display_name": {
           "source": "Updated After",
           "message": "Actualizado después de"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "Devuelve incidencias actualizadas después de la hora especificada"
+          "source": "Return milestones updated after the specified datetime",
+          "message": "Devuelve los hitos actualizados después de la fecha y hora indicadas"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "Devuelve incidencias actualizadas antes de la hora especificada"
+          "source": "Return milestones updated before the specified datetime. Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ",
+          "message": "Devuelve los hitos actualizados antes de la fecha y hora indicadas. Formato: ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9iZWZvcmU.display_name": {
           "source": "Updated Before",
           "message": "Actualizado antes de"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "Devuelve incidencias actualizadas antes de la hora especificada"
+          "source": "Return milestones updated before the specified datetime",
+          "message": "Devuelve los hitos actualizados antes de la fecha y hora indicadas"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.short_desc": {
           "source": "List a project's milestones",
@@ -3664,16 +3664,16 @@
           "message": "Qué página de resultados devolver, comenzando en 1"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkUmVwb3NpdG9yeUNvbW1pdHM.option.cGFnZV90b2tlbg.desc": {
-          "source": "Name of branch to start the pagination from",
-          "message": "Nombre de la rama desde la que comenzar la paginación"
+          "source": "Record from which to start the keyset pagination",
+          "message": "Registro a partir del cual iniciar la paginación por conjunto de claves"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkUmVwb3NpdG9yeUNvbW1pdHM.option.cGFnZV90b2tlbg.display_name": {
           "source": "Page Token",
           "message": "Token de página"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkUmVwb3NpdG9yeUNvbW1pdHM.option.cGFnZV90b2tlbg.short_desc": {
-          "source": "Name of branch to start the pagination from",
-          "message": "Nombre de la rama desde la que comenzar la paginación"
+          "source": "Record from which to start the keyset pagination",
+          "message": "Registro a partir del cual iniciar la paginación por conjunto de claves"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkUmVwb3NpdG9yeUNvbW1pdHM.option.cGFnaW5hdGlvbg.allowed-value.c3RyaW5nOmtleXNldA.display_name": {
           "source": "keyset",
@@ -3936,16 +3936,16 @@
           "message": "El slug de URL de la página wiki"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.cmVuZGVyX2h0bWw.desc": {
-          "source": "If `true`, response includes rendered HTML for title and description.",
-          "message": "Si es `true`, la respuesta incluye HTML renderizado para el título y la descripción."
+          "source": "Render content to HTML",
+          "message": "Representar el contenido como HTML"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.cmVuZGVyX2h0bWw.display_name": {
           "source": "Render HTML",
           "message": "Renderizar HTML"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.cmVuZGVyX2h0bWw.short_desc": {
-          "source": "If 'true', response includes rendered HTML for title and description",
-          "message": "Si es 'true', la respuesta incluye HTML renderizado de título y descripción"
+          "source": "Render content to HTML",
+          "message": "Representar el contenido como HTML"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.dmVyc2lvbg.desc": {
           "source": "The version hash of a wiki page",
@@ -3984,16 +3984,16 @@
           "message": "El proyecto sobre el que trabajar"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkVXNlcnM.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "Devolver lista de ramas que coincidan con los criterios de búsqueda"
+          "source": "Return list of users matching the search criteria",
+          "message": "Devuelve la lista de usuarios que coinciden con los criterios de búsqueda"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkVXNlcnM.option.c2VhcmNo.display_name": {
           "source": "Search",
           "message": "Buscar"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkVXNlcnM.option.c2VhcmNo.short_desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "Devolver lista de ramas que coincidan con los criterios de búsqueda"
+          "source": "Return list of users matching the search criteria",
+          "message": "Devuelve la lista de usuarios que coinciden con los criterios de búsqueda"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkVXNlcnM.option.c2tpcF91c2Vycw.desc": {
           "source": "Filter out users with the specified IDs",
@@ -4164,16 +4164,16 @@
           "message": "Filtrar con atributos personalizados"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.YWN0aXZl.desc": {
-          "source": "Limit by groups that are not archived and not marked for deletion",
-          "message": "Limitar por grupos que no estén archivados ni marcados para eliminación"
+          "source": "Limit by projects that are not archived and not marked for deletion",
+          "message": "Limitar a los proyectos que no están archivados ni marcados para eliminación"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.YWN0aXZl.display_name": {
           "source": "Active",
           "message": "Activo"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.YWN0aXZl.short_desc": {
-          "source": "Limit by groups that are not archived and not marked for deletion",
-          "message": "Limitar por grupos que no estén archivados ni marcados para eliminación"
+          "source": "Limit by projects that are not archived and not marked for deletion",
+          "message": "Limitar a los proyectos que no están archivados ni marcados para eliminación"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.YXJjaGl2ZWQ.desc": {
           "source": "Limit by archived status",
@@ -4344,16 +4344,16 @@
           "message": "Limita resultados a proyectos con last_activity anterior a la fecha dada"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWFya2VkX2Zvcl9kZWxldGlvbl9vbg.desc": {
-          "source": "Return groups that are marked for deletion on this date",
-          "message": "Devolver grupos que están marcados para eliminación en esta fecha"
+          "source": "Date when the project was marked for deletion",
+          "message": "Fecha en que el proyecto se marcó para eliminación"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWFya2VkX2Zvcl9kZWxldGlvbl9vbg.display_name": {
           "source": "Marked for Deletion On",
           "message": "Marcado para eliminación el"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWFya2VkX2Zvcl9kZWxldGlvbl9vbg.short_desc": {
-          "source": "Return groups that are marked for deletion on this date",
-          "message": "Devolver grupos que están marcados para eliminación en esta fecha"
+          "source": "Date when the project was marked for deletion",
+          "message": "Fecha en que el proyecto se marcó para eliminación"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWVtYmVyc2hpcA.desc": {
           "source": "Limit by projects that the current user is a member of",
@@ -4396,16 +4396,16 @@
           "message": "50"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWluX2FjY2Vzc19sZXZlbA.desc": {
-          "source": "Minimum access level of authenticated user",
-          "message": "Nivel mínimo de acceso del usuario autenticado"
+          "source": "Limit by minimum access level of authenticated user",
+          "message": "Limitar por el nivel de acceso mínimo del usuario autenticado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWluX2FjY2Vzc19sZXZlbA.display_name": {
           "source": "Min Access Level",
           "message": "Nivel de acceso mínimo"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWluX2FjY2Vzc19sZXZlbA.short_desc": {
-          "source": "Minimum access level of authenticated user",
-          "message": "Nivel mínimo de acceso del usuario autenticado"
+          "source": "Limit by minimum access level of authenticated user",
+          "message": "Limitar por el nivel de acceso mínimo del usuario autenticado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c29ydA.allowed-value.c3RyaW5nOmFzYw.display_name": {
           "source": "asc",
@@ -4416,20 +4416,20 @@
           "message": "descendente"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c29ydA.desc": {
-          "source": "Return issues sorted in `asc` or `desc` order.",
-          "message": "Devuelve incidencias ordenadas de forma `asc` o `desc`."
+          "source": "Return projects sorted in ascending and descending order",
+          "message": "Devuelve los proyectos ordenados de forma ascendente o descendente"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c29ydA.display_name": {
           "source": "Sort",
           "message": "Ordenar"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c29ydA.short_desc": {
-          "source": "Return issues sorted in 'asc' or 'desc' order",
-          "message": "Devuelve incidencias ordenadas de forma 'asc' o 'desc'"
+          "source": "Return projects sorted in ascending and descending order",
+          "message": "Devuelve los proyectos ordenados de forma ascendente o descendente"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "Devolver lista de ramas que coincidan con los criterios de búsqueda"
+          "source": "Return list of projects matching the search criteria",
+          "message": "Devuelve la lista de proyectos que coinciden con los criterios de búsqueda"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -4524,16 +4524,16 @@
           "message": "Limitar a proyectos donde la suma de comprobación del repositorio falló"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.cmVwb3NpdG9yeV9zdG9yYWdl.desc": {
-          "source": "Filter by repository storage used by the group",
-          "message": "Filtrar por almacenamiento de repositorio utilizado por el grupo"
+          "source": "Which storage shard the repository is on. Available only to admins",
+          "message": "En qué fragmento de almacenamiento se encuentra el repositorio. Solo disponible para administradores"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.cmVwb3NpdG9yeV9zdG9yYWdl.display_name": {
           "source": "Repository Storage",
           "message": "Almacenamiento del repositorio"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.cmVwb3NpdG9yeV9zdG9yYWdl.short_desc": {
-          "source": "Filter by repository storage used by the group",
-          "message": "Filtrar por almacenamiento de repositorio utilizado por el grupo"
+          "source": "Which storage shard the repository is on",
+          "message": "En qué fragmento de almacenamiento se encuentra el repositorio"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.d2l0aF9jdXN0b21fYXR0cmlidXRlcw.desc": {
           "source": "Include custom attributes in the response",
@@ -4620,28 +4620,28 @@
           "message": "Devolver solo proyectos que incluyan este tema"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "Devuelve incidencias actualizadas después de la hora especificada"
+          "source": "Return projects updated after the specified datetime. Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ",
+          "message": "Devuelve los proyectos actualizados después de la fecha y hora indicadas. Formato: ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9hZnRlcg.display_name": {
           "source": "Updated After",
           "message": "Actualizado después de"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "Devuelve incidencias actualizadas después de la hora especificada"
+          "source": "Return projects updated after the specified datetime",
+          "message": "Devuelve los proyectos actualizados después de la fecha y hora indicadas"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "Devuelve incidencias actualizadas antes de la hora especificada"
+          "source": "Return projects updated before the specified datetime. Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ",
+          "message": "Devuelve los proyectos actualizados antes de la fecha y hora indicadas. Formato: ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9iZWZvcmU.display_name": {
           "source": "Updated Before",
           "message": "Actualizado antes de"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "Devuelve incidencias actualizadas antes de la hora especificada"
+          "source": "Return projects updated before the specified datetime",
+          "message": "Devuelve los proyectos actualizados antes de la fecha y hora indicadas"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dmlzaWJpbGl0eQ.allowed-value.c3RyaW5nOmludGVybmFs.display_name": {
           "source": "internal",
@@ -4692,16 +4692,16 @@
           "message": "El ID de la organización para los temas"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "Devolver lista de ramas que coincidan con los criterios de búsqueda"
+          "source": "Return list of topics matching the search criteria",
+          "message": "Devuelve la lista de temas que coinciden con los criterios de búsqueda"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.c2VhcmNo.display_name": {
           "source": "Search",
           "message": "Buscar"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.c2VhcmNo.short_desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "Devolver lista de ramas que coincidan con los criterios de búsqueda"
+          "source": "Return list of topics matching the search criteria",
+          "message": "Devuelve la lista de temas que coinciden con los criterios de búsqueda"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.cGFnZQ.desc": {
           "source": "Current page number",
@@ -4728,16 +4728,16 @@
           "message": "Cuántos registros devolver, hasta 100"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.d2l0aG91dF9wcm9qZWN0cw.desc": {
-          "source": "Filters only users without projects",
-          "message": "Filtra solo usuarios sin proyectos"
+          "source": "Return list of topics without assigned projects",
+          "message": "Devuelve la lista de temas sin proyectos asignados"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.d2l0aG91dF9wcm9qZWN0cw.display_name": {
           "source": "Without Projects",
           "message": "Sin proyectos"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.d2l0aG91dF9wcm9qZWN0cw.short_desc": {
-          "source": "Filters only users without projects",
-          "message": "Filtra solo usuarios sin proyectos"
+          "source": "Return list of topics without assigned projects",
+          "message": "Devuelve la lista de temas sin proyectos asignados"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.short_desc": {
           "source": "List the project topics defined on this instance",
@@ -4752,28 +4752,28 @@
           "message": "Listar usuarios"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues created after the specified time",
-          "message": "Devuelve las incidencias creadas después de la hora especificada"
+          "source": "Return users created after the specified time",
+          "message": "Devuelve los usuarios creados después del momento indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9hZnRlcg.display_name": {
           "source": "Created After",
           "message": "Creado después de"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues created after the specified time",
-          "message": "Devuelve las incidencias creadas después de la hora especificada"
+          "source": "Return users created after the specified time",
+          "message": "Devuelve los usuarios creados después del momento indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues created before the specified time",
-          "message": "Devuelve las incidencias creadas antes de la hora especificada"
+          "source": "Return users created before the specified time",
+          "message": "Devuelve los usuarios creados antes del momento indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9iZWZvcmU.display_name": {
           "source": "Created Before",
           "message": "Creado antes de"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues created before the specified time",
-          "message": "Devuelve las incidencias creadas antes de la hora especificada"
+          "source": "Return users created before the specified time",
+          "message": "Devuelve los usuarios creados antes del momento indicado"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3VzdG9tX2F0dHJpYnV0ZXM.desc": {
           "source": "Filter with custom attributes",
@@ -4788,16 +4788,16 @@
           "message": "Filtrar con atributos personalizados"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.YWN0aXZl.desc": {
-          "source": "Limit by groups that are not archived and not marked for deletion",
-          "message": "Limitar por grupos que no estén archivados ni marcados para eliminación"
+          "source": "Filters only active users",
+          "message": "Filtra solo los usuarios activos"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.YWN0aXZl.display_name": {
           "source": "Active",
           "message": "Activo"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.YWN0aXZl.short_desc": {
-          "source": "Limit by groups that are not archived and not marked for deletion",
-          "message": "Limitar por grupos que no estén archivados ni marcados para eliminación"
+          "source": "Filters only active users",
+          "message": "Filtra solo los usuarios activos"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.YWRtaW5z.desc": {
           "source": "Filters only admin users",
@@ -4972,8 +4972,8 @@
           "message": "Devuelve usuarios ordenados de forma ascendente y descendente"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "Devolver lista de ramas que coincidan con los criterios de búsqueda"
+          "source": "Search for a username",
+          "message": "Busca un nombre de usuario"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -5212,16 +5212,16 @@
           "message": "Si es 'true', el miembro retiene membresías directas en subgrupos o proyectos"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dW5hc3NpZ25faXNzdWFibGVz.desc": {
-          "source": "If `true`, unassigns the member from any issues or merge requests in the project.",
-          "message": "Si es `true`, desasigna al miembro de cualquier incidencia o solicitud de fusión en el proyecto."
+          "source": "If `true`, unassigns the member from any issues or merge requests in the group.",
+          "message": "Si es 'true', desasigna al miembro de todas las incidencias o merge requests del grupo"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dW5hc3NpZ25faXNzdWFibGVz.display_name": {
           "source": "Unassign Issuables",
           "message": "Desasignar elementos"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dW5hc3NpZ25faXNzdWFibGVz.short_desc": {
-          "source": "If 'true', unassigns the member from any issues or merge requests in the project",
-          "message": "Si es 'true', desasigna al miembro de incidencias o merge requests del proyecto"
+          "source": "If 'true', unassigns the member from any issues or merge requests in the group",
+          "message": "Si es 'true', desasigna al miembro de todas las incidencias o merge requests del grupo"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dXNlcl9pZA.desc": {
           "source": "The user ID of the member",
@@ -5584,16 +5584,16 @@
           "message": "Filtros disponibles: [environment_scope]"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.ZmlsdGVyW2Vudmlyb25tZW50X3Njb3BlXQ.desc": {
-          "source": "The environment scope of a variable",
-          "message": "El ámbito de entorno de una variable"
+          "source": "The environment scope of the variable",
+          "message": "El ámbito de entorno de la variable"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.ZmlsdGVyW2Vudmlyb25tZW50X3Njb3BlXQ.display_name": {
           "source": "Filter[environment Scope]",
           "message": "Filter[environment Scope]"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.ZmlsdGVyW2Vudmlyb25tZW50X3Njb3BlXQ.short_desc": {
-          "source": "The environment scope of a variable",
-          "message": "El ámbito de entorno de una variable"
+          "source": "The environment scope of the variable",
+          "message": "El ámbito de entorno de la variable"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.a2V5.desc": {
           "source": "The key of a variable",
@@ -9560,8 +9560,8 @@
           "message": "El texto del comentario, en GitLab-flavored Markdown"
         },
         "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRzU2hhQ29tbWVudHM.option.c2hh.desc": {
-          "source": "A commit sha, or the name of a branch or tag",
-          "message": "Un SHA de commit o el nombre de una rama o etiqueta"
+          "source": "A commit sha, or the name of a branch or tag on which to post a comment",
+          "message": "Un SHA de commit, o el nombre de una rama o etiqueta en la que publicar un comentario"
         },
         "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRzU2hhQ29tbWVudHM.option.c2hh.display_name": {
           "source": "Commit",
@@ -10920,8 +10920,8 @@
           "message": "El ID del rol de miembro que se actualizará"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dXNlcl9pZA.desc": {
-          "source": "The user ID of the member",
-          "message": "El ID de usuario del miembro"
+          "source": "The user ID of the new member",
+          "message": "El identificador de usuario del nuevo miembro"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dXNlcl9pZA.display_name": {
           "source": "User",
@@ -13348,8 +13348,8 @@
           "message": "El ID del rol de miembro que se actualizará"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkTWVtYmVyc1VzZXJJZA.option.dXNlcl9pZA.desc": {
-          "source": "The user ID of the member",
-          "message": "El ID de usuario del miembro"
+          "source": "The user ID of the new member",
+          "message": "El identificador de usuario del nuevo miembro"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkTWVtYmVyc1VzZXJJZA.option.dXNlcl9pZA.display_name": {
           "source": "User",

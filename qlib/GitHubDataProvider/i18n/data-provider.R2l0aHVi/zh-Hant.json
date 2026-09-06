@@ -720,16 +720,16 @@
           "message": "結果的排序依據"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "僅顯示在指定時間之後更新的儲存庫。這是 [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 格式的時間戳記：`YYYY-MM-DDTHH:MM:SSZ`。"
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+          "message": "僅顯示在指定時間之後最後更新的結果。此為 [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 格式的時間戳記：`YYYY-MM-DDTHH:MM:SSZ`。"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.display_name": {
           "source": "Since",
           "message": "起始時間"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "僅顯示在指定時間之後更新的儲存庫"
+          "source": "Only show results that were last updated after the given time",
+          "message": "僅顯示在指定時間之後最後更新的結果"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c3RhdGU.allowed-value.c3RyaW5nOm9wZW4.display_name": {
           "source": "open",
@@ -924,16 +924,16 @@
           "message": "結果的排序依據"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "僅顯示在指定時間之後更新的儲存庫。這是 [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 格式的時間戳記：`YYYY-MM-DDTHH:MM:SSZ`。"
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+          "message": "僅顯示在指定時間之後最後更新的結果。此為 [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 格式的時間戳記：`YYYY-MM-DDTHH:MM:SSZ`。"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.display_name": {
           "source": "Since",
           "message": "起始時間"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "僅顯示在指定時間之後更新的儲存庫"
+          "source": "Only show results that were last updated after the given time",
+          "message": "僅顯示在指定時間之後最後更新的結果"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c3RhdGU.allowed-value.c3RyaW5nOm9wZW4.display_name": {
           "source": "open",
@@ -2024,8 +2024,8 @@
           "message": "一頁返回的記錄數量；最多 100 筆"
         },
         "app.R2l0aHVi.action.c2VhcmNoLWlzc3Vlcy1hbmQtcHVsbC1yZXF1ZXN0cw.option.cQ.desc": {
-          "source": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as the web interface for GitHub. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query). See \"[Searching for repositories](https://docs.github.com/articles/searching-for-repositories/)\" for a detailed list of qualifiers.",
-          "message": "查詢包含一個或多個搜尋關鍵字和限定詞。限定詞可讓您將搜尋範圍限制在 GitHub 的特定區域。REST API 支援與 GitHub 網頁介面相同的限定詞。若要深入了解查詢的格式，請參閱 [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query)。如需限定詞的詳細清單，請參閱「[Searching for repositories](https://docs.github.com/articles/searching-for-repositories/)」。"
+          "source": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as the web interface for GitHub. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query). See \"[Searching issues and pull requests](https://docs.github.com/search-github/searching-on-github/searching-issues-and-pull-requests)\" for a detailed list of qualifiers.",
+          "message": "查詢包含一個或多個搜尋關鍵字與限定詞。限定詞可將搜尋範圍限制在 GitHub 的特定區域。REST API 支援與 GitHub 網頁介面相同的限定詞。如需查詢格式的詳細資訊，請參閱 [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query)。限定詞的完整清單請參閱 \"[Searching issues and pull requests](https://docs.github.com/search-github/searching-on-github/searching-issues-and-pull-requests)\"。"
         },
         "app.R2l0aHVi.action.c2VhcmNoLWlzc3Vlcy1hbmQtcHVsbC1yZXF1ZXN0cw.option.cQ.display_name": {
           "source": "Query",
@@ -2368,16 +2368,16 @@
           "message": "desc"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.desc": {
-          "source": "The order to sort by. Default: `asc` when using `full_name`, otherwise `desc`.",
-          "message": "排序順序。預設值：使用 `full_name` 時為 `asc`，否則為 `desc`。"
+          "source": "The direction of the sort. Default: `desc` when sort is `created` or sort is not specified, otherwise `asc`.",
+          "message": "排序方向。預設值：當 sort 為 `created` 或未指定時為 `desc`，否則為 `asc`。"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.display_name": {
           "source": "Direction",
           "message": "方向"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.short_desc": {
-          "source": "The order to sort by",
-          "message": "排序順序"
+          "source": "The direction of the sort",
+          "message": "排序方向"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.aGVhZA.desc": {
           "source": "Filter pulls by head user or head organization and branch name in the format of `user:ref-name` or `organization:ref-name`. For example: `github:new-script-format` or `octocat:test-branch`.",
@@ -2444,16 +2444,16 @@
           "message": "closed"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.desc": {
-          "source": "Indicates the state of the issues to return.",
-          "message": "指示要返回的議題狀態。"
+          "source": "Either `open`, `closed`, or `all` to filter by state.",
+          "message": "'open'、'closed' 或 'all'，用於依狀態篩選"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.display_name": {
           "source": "State",
           "message": "州/省"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.short_desc": {
-          "source": "Indicates the state of the issues to return",
-          "message": "指示要傳回的議題狀態"
+          "source": "Either 'open', 'closed', or 'all' to filter by state",
+          "message": "'open'、'closed' 或 'all'，用於依狀態篩選"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.cGFnZQ.desc": {
           "source": "The page number of the results to fetch. For more information, see \"[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api).\"",
@@ -4192,28 +4192,28 @@
           "message": "要從中列出的分支、標籤或提交；未設定時為預設分支"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "僅顯示在指定時間之後更新的儲存庫。這是 [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 格式的時間戳記：`YYYY-MM-DDTHH:MM:SSZ`。"
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. Due to limitations of Git, timestamps must be between 1970-01-01 and 2099-12-31 (inclusive) or unexpected results may be returned.",
+          "message": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. 由於 Git 的限制，時間戳記必須介於 1970-01-01 與 2099-12-31（含）之間，否則可能傳回非預期的結果。"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.display_name": {
           "source": "Since",
           "message": "起始時間"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "僅顯示在指定時間之後更新的儲存庫"
+          "source": "Only show results that were last updated after the given time",
+          "message": "僅顯示在指定時間之後最後更新的結果"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.desc": {
-          "source": "path parameter",
-          "message": "路徑參數"
+          "source": "Only commits containing this file path will be returned.",
+          "message": "只會傳回包含此檔案路徑的提交。"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.display_name": {
           "source": "Path",
           "message": "路徑"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.short_desc": {
-          "source": "path parameter",
-          "message": "路徑參數"
+          "source": "Only commits containing this file path will be returned",
+          "message": "只會傳回包含此檔案路徑的提交"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGFnZQ.desc": {
           "source": "The page number of the results to fetch. For more information, see \"[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api).\"",
@@ -5394,6 +5394,18 @@
         "app.R2l0aHVi.short_desc": {
           "source": "Work with GitHub repositories, issues, pull requests, releases and Actions",
           "message": "處理 GitHub 存放庫、議題、Pull Request、發行版本和 Actions"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.dHlwZQ.short_desc": {
+          "source": "Can be the name of an issue type",
+          "message": "可以是問題類型的名稱"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.dHlwZQ.desc": {
+          "source": "Can be the name of an issue type. If the string `*` is passed, issues with any type are accepted. If the string `none` is passed, issues without type are returned.",
+          "message": "可以是問題類型的名稱。若傳入字串 `*`，則接受任何類型的問題；若傳入字串 `none`，則傳回沒有類型的問題。"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2hh.desc": {
+          "source": "SHA or branch to start listing commits from. Default: the repository’s default branch (usually `main`).",
+          "message": "開始列出提交的 SHA 或分支。預設值：存放庫的預設分支（通常為 `main`）。"
         }
       }
     }

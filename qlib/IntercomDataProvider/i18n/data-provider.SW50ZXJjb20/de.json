@@ -12,8 +12,8 @@
           "message": "Kontakt löschen"
         },
         "app.SW50ZXJjb20.action.RGVsZXRlQ29udGFjdA.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "Die von Intercom vergebene eindeutige Kennung für den Kontakt"
+          "source": "contact_id",
+          "message": "contact_id"
         },
         "app.SW50ZXJjb20.action.RGVsZXRlQ29udGFjdA.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -148,8 +148,8 @@
           "message": "Kontakt abrufen"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "Die von Intercom vergebene eindeutige Kennung für den Kontakt"
+          "source": "contact_id",
+          "message": "contact_id"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -160,16 +160,16 @@
           "message": "Der Kontakt, für den dies gilt"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.desc": {
-          "source": "Pass `true` to include a `merge_history` array on each contact in the response. Only returned for contacts with a `user` role.",
-          "message": "Übergeben Sie `true`, um ein `merge_history`-Array für jeden Kontakt in der Antwort einzubinden. Wird nur für Kontakte mit der Rolle `user` zurückgegeben."
+          "source": "Pass `true` to include the contact's merge history in the response. Only returned for contacts with a `user` role.",
+          "message": "Übergeben Sie `true`, um den Zusammenführungsverlauf des Kontakts in die Antwort aufzunehmen. Wird nur für Kontakte mit der Rolle `user` zurückgegeben."
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.display_name": {
           "source": "Include Merge History",
           "message": "Zusammenführungsverlauf einbeziehen"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.short_desc": {
-          "source": "Pass 'true' to include a 'merge_history' array on each contact in the response",
-          "message": "'true' übergeben, um ein 'merge_history'-Array je Kontakt einzubinden"
+          "source": "Pass 'true' to include the contact's merge history in the response",
+          "message": "Übergeben Sie 'true', um den Zusammenführungsverlauf des Kontakts in die Antwort aufzunehmen"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.short_desc": {
           "source": "Retrieve a contact by its identity",
@@ -316,8 +316,8 @@
           "message": "Kontakt aktualisieren"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "Die von Intercom vergebene eindeutige Kennung für den Kontakt"
+          "source": "id",
+          "message": "id"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -388,16 +388,16 @@
           "message": "Eine an Intercom übergebene eindeutige Kennung für den Kontakt"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.desc": {
-          "source": "Pass `true` to include a `merge_history` array on each contact in the response. Only returned for contacts with a `user` role.",
-          "message": "Übergeben Sie `true`, um ein `merge_history`-Array für jeden Kontakt in der Antwort einzubinden. Wird nur für Kontakte mit der Rolle `user` zurückgegeben."
+          "source": "Pass `true` to include the contact's merge history in the response. Only returned for contacts with a `user` role.",
+          "message": "Übergeben Sie `true`, um den Zusammenführungsverlauf des Kontakts in die Antwort aufzunehmen. Wird nur für Kontakte mit der Rolle `user` zurückgegeben."
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.display_name": {
           "source": "Include Merge History",
           "message": "Zusammenführungsverlauf einbeziehen"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.short_desc": {
-          "source": "Pass 'true' to include a 'merge_history' array on each contact in the response",
-          "message": "'true' übergeben, um ein 'merge_history'-Array je Kontakt einzubinden"
+          "source": "Pass 'true' to include the contact's merge history in the response",
+          "message": "Übergeben Sie 'true', um den Zusammenführungsverlauf des Kontakts in die Antwort aufzunehmen"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.b3duZXJfaWQ.desc": {
           "source": "The id of an admin that has been assigned account ownership of the contact",
@@ -1336,8 +1336,8 @@
           "message": "Tag löschen"
         },
         "app.SW50ZXJjb20.action.ZGVsZXRlVGFn.option.dGFnX2lk.desc": {
-          "source": "The unique identifier for the tag which is given by Intercom",
-          "message": "Die von Intercom vergebene eindeutige Kennung für den Tag"
+          "source": "The unique identifier of a given tag",
+          "message": "Der eindeutige Bezeichner eines bestimmten Tags"
         },
         "app.SW50ZXJjb20.action.ZGVsZXRlVGFn.option.dGFnX2lk.display_name": {
           "source": "Tag",
@@ -1360,8 +1360,8 @@
           "message": "Tag abrufen"
         },
         "app.SW50ZXJjb20.action.ZmluZFRhZw.option.dGFnX2lk.desc": {
-          "source": "The unique identifier for the tag which is given by Intercom",
-          "message": "Die von Intercom vergebene eindeutige Kennung für den Tag"
+          "source": "The unique identifier of a given tag",
+          "message": "Der eindeutige Bezeichner eines bestimmten Tags"
         },
         "app.SW50ZXJjb20.action.ZmluZFRhZw.option.dGFnX2lk.display_name": {
           "source": "Tag",

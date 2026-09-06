@@ -720,16 +720,16 @@
           "message": "結果の並べ替え基準"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "指定した日時以降に更新されたリポジトリのみを表示します。これは[ISO 8601](https://en.wikipedia.org/wiki/ISO_8601)形式のタイムスタンプです: `YYYY-MM-DDTHH:MM:SSZ`。"
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+          "message": "指定した時刻より後に最終更新された結果のみを表示します。これは [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 形式のタイムスタンプです: `YYYY-MM-DDTHH:MM:SSZ`。"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.display_name": {
           "source": "Since",
           "message": "開始日時"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "指定した日時以降に更新されたリポジトリのみを表示"
+          "source": "Only show results that were last updated after the given time",
+          "message": "指定した時刻より後に最終更新された結果のみを表示します"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c3RhdGU.allowed-value.c3RyaW5nOm9wZW4.display_name": {
           "source": "open",
@@ -924,16 +924,16 @@
           "message": "結果の並べ替え基準"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "指定した日時以降に更新されたリポジトリのみを表示します。これは[ISO 8601](https://en.wikipedia.org/wiki/ISO_8601)形式のタイムスタンプです: `YYYY-MM-DDTHH:MM:SSZ`。"
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+          "message": "指定した時刻より後に最終更新された結果のみを表示します。これは [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 形式のタイムスタンプです: `YYYY-MM-DDTHH:MM:SSZ`。"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.display_name": {
           "source": "Since",
           "message": "開始日時"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "指定した日時以降に更新されたリポジトリのみを表示"
+          "source": "Only show results that were last updated after the given time",
+          "message": "指定した時刻より後に最終更新された結果のみを表示します"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c3RhdGU.allowed-value.c3RyaW5nOm9wZW4.display_name": {
           "source": "open",
@@ -2024,8 +2024,8 @@
           "message": "1ページあたりに返すレコード数（最大100）"
         },
         "app.R2l0aHVi.action.c2VhcmNoLWlzc3Vlcy1hbmQtcHVsbC1yZXF1ZXN0cw.option.cQ.desc": {
-          "source": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as the web interface for GitHub. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query). See \"[Searching for repositories](https://docs.github.com/articles/searching-for-repositories/)\" for a detailed list of qualifiers.",
-          "message": "クエリには、1つ以上の検索キーワードと修飾子が含まれます。修飾子を使用すると、GitHubの特定の領域に検索を絞り込むことができます。REST APIは、GitHubのWebインターフェースと同じ修飾子をサポートしています。クエリの形式の詳細については、[検索クエリの構築](https://docs.github.com/rest/search/search#constructing-a-search-query) を参照してください。修飾子の詳細なリストについては、\"[リポジトリの検索](https://docs.github.com/articles/searching-for-repositories/)\" を参照してください。"
+          "source": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as the web interface for GitHub. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query). See \"[Searching issues and pull requests](https://docs.github.com/search-github/searching-on-github/searching-issues-and-pull-requests)\" for a detailed list of qualifiers.",
+          "message": "クエリには 1 つ以上の検索キーワードと修飾子を指定します。修飾子を使うと、検索を GitHub の特定の範囲に限定できます。REST API は GitHub の Web インターフェイスと同じ修飾子をサポートします。クエリの形式について詳しくは [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query) を参照してください。修飾子の詳細な一覧は \"[Searching issues and pull requests](https://docs.github.com/search-github/searching-on-github/searching-issues-and-pull-requests)\" を参照してください。"
         },
         "app.R2l0aHVi.action.c2VhcmNoLWlzc3Vlcy1hbmQtcHVsbC1yZXF1ZXN0cw.option.cQ.display_name": {
           "source": "Query",
@@ -2368,16 +2368,16 @@
           "message": "降順"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.desc": {
-          "source": "The order to sort by. Default: `asc` when using `full_name`, otherwise `desc`.",
-          "message": "ソート順序。デフォルト: `full_name` を使用している場合は `asc`、それ以外の場合は `desc`。"
+          "source": "The direction of the sort. Default: `desc` when sort is `created` or sort is not specified, otherwise `asc`.",
+          "message": "並べ替えの方向。既定値: sort が `created` の場合または未指定の場合は `desc`、それ以外は `asc`。"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.display_name": {
           "source": "Direction",
           "message": "方向"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.short_desc": {
-          "source": "The order to sort by",
-          "message": "ソート順序"
+          "source": "The direction of the sort",
+          "message": "並べ替えの方向"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.aGVhZA.desc": {
           "source": "Filter pulls by head user or head organization and branch name in the format of `user:ref-name` or `organization:ref-name`. For example: `github:new-script-format` or `octocat:test-branch`.",
@@ -2444,16 +2444,16 @@
           "message": "クローズ"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.desc": {
-          "source": "Indicates the state of the issues to return.",
-          "message": "返されるIssueの状態を指定します。"
+          "source": "Either `open`, `closed`, or `all` to filter by state.",
+          "message": "状態で絞り込むための 'open'、'closed'、'all' のいずれか"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.display_name": {
           "source": "State",
           "message": "都道府県・州"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.short_desc": {
-          "source": "Indicates the state of the issues to return",
-          "message": "返されるIssueの状態を指定します"
+          "source": "Either 'open', 'closed', or 'all' to filter by state",
+          "message": "状態で絞り込むための 'open'、'closed'、'all' のいずれか"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.cGFnZQ.desc": {
           "source": "The page number of the results to fetch. For more information, see \"[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api).\"",
@@ -4192,28 +4192,28 @@
           "message": "一覧取得の起点となるブランチ、タグ、コミット（未指定時はデフォルトブランチ）"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "指定した日時以降に更新されたリポジトリのみを表示します。これは[ISO 8601](https://en.wikipedia.org/wiki/ISO_8601)形式のタイムスタンプです: `YYYY-MM-DDTHH:MM:SSZ`。"
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. Due to limitations of Git, timestamps must be between 1970-01-01 and 2099-12-31 (inclusive) or unexpected results may be returned.",
+          "message": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. Git の制限により、タイムスタンプは 1970-01-01 から 2099-12-31 (両端を含む) の範囲でなければならず、範囲外では予期しない結果が返される場合があります。"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.display_name": {
           "source": "Since",
           "message": "開始日時"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "指定した日時以降に更新されたリポジトリのみを表示"
+          "source": "Only show results that were last updated after the given time",
+          "message": "指定した時刻より後に最終更新された結果のみを表示します"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.desc": {
-          "source": "path parameter",
-          "message": "パスパラメーター"
+          "source": "Only commits containing this file path will be returned.",
+          "message": "このファイルパスを含むコミットのみが返されます。"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.display_name": {
           "source": "Path",
           "message": "パス"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.short_desc": {
-          "source": "path parameter",
-          "message": "パスパラメーター"
+          "source": "Only commits containing this file path will be returned",
+          "message": "このファイルパスを含むコミットのみが返されます"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGFnZQ.desc": {
           "source": "The page number of the results to fetch. For more information, see \"[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api).\"",
@@ -5394,6 +5394,18 @@
         "app.R2l0aHVi.short_desc": {
           "source": "Work with GitHub repositories, issues, pull requests, releases and Actions",
           "message": "GitHub のリポジトリ、Issue、プルリクエスト、リリース、Actions を操作"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.dHlwZQ.short_desc": {
+          "source": "Can be the name of an issue type",
+          "message": "issue タイプの名前を指定できます"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.dHlwZQ.desc": {
+          "source": "Can be the name of an issue type. If the string `*` is passed, issues with any type are accepted. If the string `none` is passed, issues without type are returned.",
+          "message": "issue タイプの名前を指定できます。文字列 `*` を渡すとすべてのタイプの issue が対象になります。文字列 `none` を渡すとタイプのない issue が返されます。"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2hh.desc": {
+          "source": "SHA or branch to start listing commits from. Default: the repository’s default branch (usually `main`).",
+          "message": "コミットの一覧を開始する SHA またはブランチ。既定値: リポジトリの既定ブランチ (通常は `main`)。"
         }
       }
     }

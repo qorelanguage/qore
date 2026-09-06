@@ -92,16 +92,16 @@
           "message": "Stav příspěvku blogu; určuje, zda bude příspěvek blogu vytvořen jako…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.desc": {
-          "source": "The page will be private. Only the user who creates this page will have permission to view and edit one.",
-          "message": "Stránka bude soukromá. Pouze uživatel, který tuto stránku vytvoří, bude mít oprávnění k jejímu zobrazení a úpravám."
+          "source": "The blog post will be private. Only the user who creates this blog post will have permission to view and edit one.",
+          "message": "Blogový příspěvek bude soukromý. Zobrazit a upravovat jej bude moci pouze uživatel, který jej vytvoří."
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.display_name": {
           "source": "Private",
           "message": "Soukromé"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.short_desc": {
-          "source": "The page will be private",
-          "message": "Stránka bude soukromá"
+          "source": "The blog post will be private",
+          "message": "Blogový příspěvek bude soukromý"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.dGl0bGU.desc": {
           "source": "Title of the blog post, required if creating non-draft.",
@@ -400,136 +400,136 @@
           "message": "Typy formátu obsahu, které se mají vrátit v poli „body“ odpovědi"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.desc": {
-          "source": "Retrieve the draft version of this page.",
-          "message": "Načíst koncept této stránky."
+          "source": "Retrieve the draft version of this blog post.",
+          "message": "Načte koncept tohoto blogového příspěvku."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.display_name": {
           "source": "Get Draft",
           "message": "Získat koncept"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.short_desc": {
-          "source": "Retrieve the draft version of this page",
-          "message": "Načíst koncept této stránky"
+          "source": "Retrieve the draft version of this blog post",
+          "message": "Načte koncept tohoto blogového příspěvku"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.desc": {
-          "source": "Includes the current version associated with this page in the response.\nBy default this is included and can be omitted by setting the value to `false`.",
-          "message": "Zahrne do odpovědi aktuální verzi přidruženou k této stránce.\nVe výchozím nastavení je zahrnuta a lze ji vynechat nastavením hodnoty na `false`."
+          "source": "Includes the current version associated with this blog post in the response.\nBy default this is included and can be omitted by setting the value to `false`.",
+          "message": "Zahrne do odpovědi aktuální verzi spojenou s tímto blogovým příspěvkem.\nVe výchozím nastavení je zahrnuta a lze ji vynechat nastavením hodnoty na `false`."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.display_name": {
           "source": "Include Version",
           "message": "Zahrnout verzi"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.short_desc": {
-          "source": "Includes the current version associated with this page in the response",
-          "message": "Zahrne do odpovědi aktuální verzi přidruženou k této stránce"
+          "source": "Includes the current version associated with this blog post in the response",
+          "message": "Zahrne do odpovědi aktuální verzi spojenou s tímto blogovým příspěvkem"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.desc": {
-          "source": "Includes versions associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Zahrne do odpovědi verze přidružené k této stránce.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí řazení.\nVlastnosti `meta` a `_links` budou přítomny k indikaci, zda jsou k dispozici další výsledky, a odkazu pro načtení zbývajících výsledků."
+          "source": "Includes versions associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Zahrne do odpovědi verze spojené s tímto blogovým příspěvkem.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí. \nVlastnosti `meta` a `_links` uvádějí, zda jsou k dispozici další výsledky, a odkaz pro získání zbytku výsledků."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.display_name": {
           "source": "Include Versions",
           "message": "Zahrnout verze"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.short_desc": {
-          "source": "Includes versions associated with this page in the response",
-          "message": "Zahrne do odpovědi verze přidružené k této stránce"
+          "source": "Includes versions associated with this blog post in the response",
+          "message": "Zahrne do odpovědi verze spojené s tímto blogovým příspěvkem"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.desc": {
-          "source": "Includes web resources that can be used to render page content on a client.",
-          "message": "Zahrne webové prostředky, které lze použít k vykreslení obsahu stránky na klientovi."
+          "source": "Includes web resources that can be used to render blog post content on a client.",
+          "message": "Zahrne webové prostředky, které lze použít k vykreslení obsahu blogového příspěvku na klientovi."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.display_name": {
           "source": "Include Webresources",
           "message": "Zahrnout webové prostředky"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.short_desc": {
-          "source": "Includes web resources that can be used to render page content on a client",
-          "message": "Zahrnuje webové prostředky použitelné k vykreslení obsahu stránky na klientovi"
+          "source": "Includes web resources that can be used to render blog post content on a client",
+          "message": "Zahrne webové prostředky, které lze použít k vykreslení obsahu blogového příspěvku na klientovi"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.desc": {
-          "source": "Includes collaborators on the page.",
-          "message": "Zahrne spolupracovníky na stránce."
+          "source": "Includes collaborators on the blog post.",
+          "message": "Zahrne do odpovědi spolupracovníky na blogovém příspěvku."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.display_name": {
           "source": "Include Collaborators",
           "message": "Zahrnout spolupracovníky"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.short_desc": {
-          "source": "Includes collaborators on the page",
-          "message": "Zahrne spolupracovníky na stránce"
+          "source": "Includes collaborators on the blog post",
+          "message": "Zahrne do odpovědi spolupracovníky na blogovém příspěvku"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.desc": {
-          "source": "Includes whether this page has been favorited by the current user.",
-          "message": "Zahrne informaci, zda byla tato stránka přidána mezi oblíbené aktuálním uživatelem."
+          "source": "Includes whether this blog post has been favorited by the current user.",
+          "message": "Uvede, zda si aktuální uživatel přidal tento blogový příspěvek mezi oblíbené."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.display_name": {
           "source": "Include Favorited by Current User Status",
           "message": "Zahrnout stav oblíbení aktuálním uživatelem"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.short_desc": {
-          "source": "Includes whether this page has been favorited by the current user",
-          "message": "Zahrnuje informaci, zda má aktuální uživatel stránku v oblíbených"
+          "source": "Includes whether this blog post has been favorited by the current user",
+          "message": "Uvede, zda si aktuální uživatel přidal tento blogový příspěvek mezi oblíbené"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.desc": {
-          "source": "Includes labels associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Zahrne do odpovědi štítky přidružené k této stránce.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí řazení.\nVlastnosti `meta` a `_links` budou přítomny k indikaci, zda jsou k dispozici další výsledky, a odkazu pro načtení zbývajících výsledků."
+          "source": "Includes labels associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Zahrne do odpovědi štítky spojené s tímto blogovým příspěvkem.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí. \nVlastnosti `meta` a `_links` uvádějí, zda jsou k dispozici další výsledky, a odkaz pro získání zbytku výsledků."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.display_name": {
           "source": "Include Labels",
           "message": "Zahrnout štítky"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.short_desc": {
-          "source": "Includes labels associated with this page in the response",
-          "message": "Zahrne do odpovědi štítky přidružené k této stránce"
+          "source": "Includes labels associated with this blog post in the response",
+          "message": "Zahrne do odpovědi štítky spojené s tímto blogovým příspěvkem"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.desc": {
-          "source": "Includes likes associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Zahrne do odpovědi lajky přidružené k této stránce.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí řazení.\nVlastnosti `meta` a `_links` budou přítomny k určení, zda jsou k dispozici další výsledky, a odkazu pro načtení zbývajících výsledků."
+          "source": "Includes likes associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Zahrne do odpovědi „líbí se“ spojené s tímto blogovým příspěvkem.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí. \nVlastnosti `meta` a `_links` uvádějí, zda jsou k dispozici další výsledky, a odkaz pro získání zbytku výsledků."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.display_name": {
           "source": "Include Likes",
           "message": "Zahrnout lajky"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.short_desc": {
-          "source": "Includes likes associated with this page in the response",
-          "message": "Zahrne do odpovědi lajky přidružené k této stránce"
+          "source": "Includes likes associated with this blog post in the response",
+          "message": "Zahrne do odpovědi „líbí se“ spojené s tímto blogovým příspěvkem"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.desc": {
-          "source": "Includes operations associated with this page in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Zahrne do odpovědi operace přidružené k této stránce, jak jsou definovány v objektu `Operation`.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí řazení.\nVlastnosti `meta` a `_links` budou přítomny k určení, zda jsou k dispozici další výsledky, a odkazu pro načtení zbývajících výsledků."
+          "source": "Includes operations associated with this blog post in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Zahrne do odpovědi operace spojené s tímto blogovým příspěvkem, jak je definuje objekt `Operation`.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí. \nVlastnosti `meta` a `_links` uvádějí, zda jsou k dispozici další výsledky, a odkaz pro získání zbytku výsledků."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.display_name": {
           "source": "Include Operations",
           "message": "Zahrnout operace"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.short_desc": {
-          "source": "Includes operations associated with this page in the response, as defined in…",
-          "message": "Zahrne operace spojené s touto stránkou v odpovědi, jak je definováno v…"
+          "source": "Includes operations associated with this blog post in the response, as defined…",
+          "message": "Zahrne do odpovědi operace spojené s tímto blogovým příspěvkem, jak je definuje…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.desc": {
-          "source": "Includes content properties associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Zahrne do odpovědi vlastnosti obsahu přidružené k této stránce.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí řazení.\nVlastnosti `meta` a `_links` budou přítomny k určení, zda jsou k dispozici další výsledky, a odkazu pro načtení zbývajících výsledků."
+          "source": "Includes content properties associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Zahrne do odpovědi vlastnosti obsahu spojené s tímto blogovým příspěvkem.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí. \nVlastnosti `meta` a `_links` uvádějí, zda jsou k dispozici další výsledky, a odkaz pro získání zbytku výsledků."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.display_name": {
           "source": "Include Properties",
           "message": "Zahrnout vlastnosti"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.short_desc": {
-          "source": "Includes content properties associated with this page in the response",
-          "message": "Zahrne do odpovědi vlastnosti obsahu přidružené k této stránce"
+          "source": "Includes content properties associated with this blog post in the response",
+          "message": "Zahrne do odpovědi vlastnosti obsahu spojené s tímto blogovým příspěvkem"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "ID stránky, která se má vrátit. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
+          "source": "The ID of the blog post to be returned. If you don't know the blog post ID, use Get blog posts and filter the results.",
+          "message": "ID blogového příspěvku k vrácení. Pokud ID blogového příspěvku neznáte, použijte Získat blogové příspěvky a vyfiltrujte výsledky."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.display_name": {
           "source": "Blog Post",
           "message": "Příspěvek na blogu"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "ID stránky, která se má vrátit"
+          "source": "The ID of the blog post to be returned",
+          "message": "ID blogového příspěvku k vrácení"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.c3RhdHVz.desc": {
           "source": "Filter the blog post being retrieved by its status.",
@@ -600,8 +600,8 @@
           "message": "Typy formátu obsahu, které se mají vrátit v poli „body“ odpovědi"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.aWQ.desc": {
-          "source": "Filter the results based on page ids. Multiple page ids can be specified as a comma-separated list.",
-          "message": "Filtrovat výsledky podle ID stránek. Více ID stránek lze zadat jako seznam oddělený čárkami."
+          "source": "Filter the results based on blog post ids. Multiple blog post ids can be specified as a comma-separated list.",
+          "message": "Filtrovat výsledky podle ID blogových příspěvků. Více ID lze zadat jako čárkou oddělený seznam."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.aWQ.display_name": {
           "source": "Blog Posts",
@@ -684,16 +684,16 @@
           "message": "Filtrovat výsledky na příspěvky na blogu podle jejich stavu"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.desc": {
-          "source": "Filter the results to pages based on their title.",
-          "message": "Filtrovat výsledky na stránky podle jejich názvu."
+          "source": "Filter the results to blog posts based on their title.",
+          "message": "Filtrovat výsledky na blogové příspěvky podle jejich názvu"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.display_name": {
           "source": "Title",
           "message": "Název"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.short_desc": {
-          "source": "Filter the results to pages based on their title",
-          "message": "Filtrovat výsledky na stránky podle jejich názvu"
+          "source": "Filter the results to blog posts based on their title",
+          "message": "Filtrovat výsledky na blogové příspěvky podle jejich názvu"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.short_desc": {
           "source": "List the blog posts on the site",
@@ -740,8 +740,8 @@
           "message": "Typy formátu obsahu, které se mají vrátit v poli „body“ odpovědi"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "ID stránky, která se má vrátit. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
+          "source": "The ID of the space for which blog posts should be returned.",
+          "message": "ID prostoru, pro který se mají vrátit blogové příspěvky."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.aWQ.display_name": {
           "source": "Space",
@@ -812,16 +812,16 @@
           "message": "Filtrovat výsledky na příspěvky na blogu podle jejich stavu"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.desc": {
-          "source": "Filter the results to pages based on their title.",
-          "message": "Filtrovat výsledky na stránky podle jejich názvu."
+          "source": "Filter the results to blog posts based on their title.",
+          "message": "Filtrovat výsledky na blogové příspěvky podle jejich názvu"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.display_name": {
           "source": "Title",
           "message": "Název"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.short_desc": {
-          "source": "Filter the results to pages based on their title",
-          "message": "Filtrovat výsledky na stránky podle jejich názvu"
+          "source": "Filter the results to blog posts based on their title",
+          "message": "Filtrovat výsledky na blogové příspěvky podle jejich názvu"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.short_desc": {
           "source": "List the blog posts in one space",
@@ -868,16 +868,16 @@
           "message": "Typy formátu obsahu, které se mají vrátit v poli „body“ odpovědi"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "ID stránky, která se má vrátit. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
+          "source": "The ID of the label for which blog posts should be returned.",
+          "message": "ID štítku, pro který se mají vrátit blogové příspěvky."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.display_name": {
           "source": "Label",
           "message": "Štítek"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "ID stránky, která se má vrátit"
+          "source": "The ID of the label for which blog posts should be returned",
+          "message": "ID štítku, pro který se mají vrátit blogové příspěvky"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.bGltaXQ.desc": {
           "source": "How many records to return in one page.\n\nThere is no total in the response: `_links.next` is a relative URL carrying the cursor for the following page, and its absence is what says the collection is exhausted.",
@@ -984,16 +984,16 @@
           "message": "Typy formátu obsahu, které se mají vrátit v poli „body“ odpovědi"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "ID stránky, která se má vrátit. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
+          "source": "The ID of the label for which pages should be returned.",
+          "message": "ID štítku, pro který se mají vrátit stránky."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.display_name": {
           "source": "Label",
           "message": "Štítek"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "ID stránky, která se má vrátit"
+          "source": "The ID of the label for which pages should be returned",
+          "message": "ID štítku, pro který se mají vrátit stránky"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.bGltaXQ.desc": {
           "source": "How many records to return in one page.\n\nThere is no total in the response: `_links.next` is a relative URL carrying the cursor for the following page, and its absence is what says the collection is exhausted.",
@@ -1180,28 +1180,28 @@
           "message": "Zda se má načíst ikona prostoru"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.desc": {
-          "source": "Includes labels associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Zahrne do odpovědi štítky přidružené k této stránce.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí řazení.\nVlastnosti `meta` a `_links` budou přítomny k indikaci, zda jsou k dispozici další výsledky, a odkazu pro načtení zbývajících výsledků."
+          "source": "Includes labels associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Zahrne do odpovědi štítky spojené s tímto prostorem.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí.\nVlastnosti `meta` a `_links` uvádějí, zda jsou k dispozici další výsledky, a odkaz pro získání zbytku výsledků."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.display_name": {
           "source": "Include Labels",
           "message": "Zahrnout štítky"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.short_desc": {
-          "source": "Includes labels associated with this page in the response",
-          "message": "Zahrne do odpovědi štítky přidružené k této stránce"
+          "source": "Includes labels associated with this space in the response",
+          "message": "Zahrne do odpovědi štítky spojené s tímto prostorem"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.desc": {
-          "source": "Includes operations associated with this page in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Zahrne do odpovědi operace přidružené k této stránce, jak jsou definovány v objektu `Operation`.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí řazení.\nVlastnosti `meta` a `_links` budou přítomny k určení, zda jsou k dispozici další výsledky, a odkazu pro načtení zbývajících výsledků."
+          "source": "Includes operations associated with this space in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Zahrne do odpovědi operace spojené s tímto prostorem, jak je definuje objekt `Operation`.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí.\nVlastnosti `meta` a `_links` uvádějí, zda jsou k dispozici další výsledky, a odkaz pro získání zbytku výsledků."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.display_name": {
           "source": "Include Operations",
           "message": "Zahrnout operace"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.short_desc": {
-          "source": "Includes operations associated with this page in the response, as defined in…",
-          "message": "Zahrne operace spojené s touto stránkou v odpovědi, jak je definováno v…"
+          "source": "Includes operations associated with this space in the response, as defined in…",
+          "message": "Zahrne do odpovědi operace spojené s tímto prostorem, jak je definuje objekt…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wZXJtaXNzaW9ucw.desc": {
           "source": "Includes space permissions associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
@@ -1216,16 +1216,16 @@
           "message": "Zahrnuje v odpovědi oprávnění k prostoru spojená s tímto prostorem"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.desc": {
-          "source": "Includes content properties associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Zahrne do odpovědi vlastnosti obsahu přidružené k této stránce.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí řazení.\nVlastnosti `meta` a `_links` budou přítomny k určení, zda jsou k dispozici další výsledky, a odkazu pro načtení zbývajících výsledků."
+          "source": "Includes space properties associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Zahrne do odpovědi vlastnosti prostoru spojené s tímto prostorem.\nPočet výsledků bude omezen na 50 a seřazen ve výchozím pořadí.\nVlastnosti `meta` a `_links` uvádějí, zda jsou k dispozici další výsledky, a odkaz pro získání zbytku výsledků."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.display_name": {
           "source": "Include Properties",
           "message": "Zahrnout vlastnosti"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.short_desc": {
-          "source": "Includes content properties associated with this page in the response",
-          "message": "Zahrne do odpovědi vlastnosti obsahu přidružené k této stránce"
+          "source": "Includes space properties associated with this space in the response",
+          "message": "Zahrne do odpovědi vlastnosti prostoru spojené s tímto prostorem"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1yb2xlLWFzc2lnbm1lbnRz.desc": {
           "source": "Includes role assignments associated with this space in the response. This parameter is only accepted for EAP sites.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
@@ -1240,8 +1240,8 @@
           "message": "Zahrnuje v odpovědi přiřazení rolí spojená s tímto prostorem"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "ID stránky, která se má vrátit. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
+          "source": "The ID of the space to be returned.",
+          "message": "ID prostoru k vrácení."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aWQ.display_name": {
           "source": "Space",
@@ -1928,8 +1928,8 @@
           "message": "Filtrovat výsledky na stránky v kořenu prostoru nebo na všechny stránky v…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0UGFnZXNJblNwYWNl.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "ID stránky, která se má vrátit. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
+          "source": "The ID of the space for which pages should be returned.",
+          "message": "ID prostoru, pro který se mají vrátit stránky."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0UGFnZXNJblNwYWNl.option.aWQ.display_name": {
           "source": "Space",
@@ -2052,16 +2052,16 @@
           "message": "Typy formátu obsahu, které se mají vrátit v poli „body“ odpovědi"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "ID stránky, která se má vrátit. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
+          "source": "The ID of the task to be returned. If you don't know the task ID, use Get tasks and filter the results.",
+          "message": "ID úkolu k vrácení. Pokud ID úkolu neznáte, použijte Získat úkoly a vyfiltrujte výsledky."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.display_name": {
           "source": "Task",
           "message": "Úkol"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "ID stránky, která se má vrátit"
+          "source": "The ID of the task to be returned",
+          "message": "ID úkolu k vrácení"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.short_desc": {
           "source": "Retrieve one task",
@@ -2344,40 +2344,40 @@
           "message": "Odstranit blogový příspěvek"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.desc": {
-          "source": "If attempting to delete a page that is a draft.",
-          "message": "Při pokusu o odstranění stránky, která je konceptem."
+          "source": "If attempting to delete a blog post that is a draft.",
+          "message": "Při pokusu o smazání blogového příspěvku, který je konceptem."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.display_name": {
           "source": "Draft",
           "message": "Koncept"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.short_desc": {
-          "source": "If attempting to delete a page that is a draft",
-          "message": "Při pokusu o odstranění stránky, která je konceptem"
+          "source": "If attempting to delete a blog post that is a draft",
+          "message": "Při pokusu o smazání blogového příspěvku, který je konceptem"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "ID stránky, která se má vrátit. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
+          "source": "The ID of the blog post to be deleted.",
+          "message": "ID blogového příspěvku ke smazání."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.display_name": {
           "source": "Blog Post",
           "message": "Příspěvek na blogu"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "ID stránky, která se má vrátit"
+          "source": "The ID of the blog post to be deleted",
+          "message": "ID blogového příspěvku ke smazání"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.desc": {
-          "source": "If attempting to purge the page.",
-          "message": "Při pokusu o trvalé odstranění stránky."
+          "source": "If attempting to purge the blog post.",
+          "message": "Při pokusu o trvalé odstranění blogového příspěvku."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.display_name": {
           "source": "Purge",
           "message": "Trvale odstranit"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.short_desc": {
-          "source": "If attempting to purge the page",
-          "message": "Při pokusu o trvalé odstranění stránky"
+          "source": "If attempting to purge the blog post",
+          "message": "Při pokusu o trvalé odstranění blogového příspěvku"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.short_desc": {
           "source": "Move a blog post to the trash, or purge it",
@@ -2404,16 +2404,16 @@
           "message": "Při pokusu o odstranění stránky, která je konceptem"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "ID stránky, která se má vrátit. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
+          "source": "The ID of the page to be deleted.",
+          "message": "ID stránky ke smazání."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.display_name": {
           "source": "Page",
           "message": "Stránka"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "ID stránky, která se má vrátit"
+          "source": "The ID of the page to be deleted",
+          "message": "ID stránky ke smazání"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.cHVyZ2U.desc": {
           "source": "If attempting to purge the page.",
@@ -2896,16 +2896,16 @@
           "message": "Obsah; nastavte \"representation\", abyste určili, v čem je \"value\" zapsána"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "ID stránky, která se má vrátit. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
+          "source": "The ID of the blog post to be updated. If you don't know the blog post ID, use Get Blog Posts and filter the results.",
+          "message": "ID blogového příspěvku k aktualizaci. Pokud ID blogového příspěvku neznáte, použijte Získat blogové příspěvky a vyfiltrujte výsledky."
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.display_name": {
           "source": "Blog Post",
           "message": "Příspěvek na blogu"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "ID stránky, která se má vrátit"
+          "source": "The ID of the blog post to be updated",
+          "message": "ID blogového příspěvku k aktualizaci"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.c3BhY2VJZA.desc": {
           "source": "ID of the containing space.\n\nThis currently **does not support moving the blog post to a different space**.",
@@ -2988,16 +2988,16 @@
           "message": "Obsah; nastavte \"representation\", abyste určili, v čem je \"value\" zapsána"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "ID stránky, která se má vrátit. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
+          "source": "The ID of the page to be updated. If you don't know the page ID, use Get Pages and filter the results.",
+          "message": "ID stránky k aktualizaci. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.display_name": {
           "source": "Page",
           "message": "Stránka"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "ID stránky, která se má vrátit"
+          "source": "The ID of the page to be updated",
+          "message": "ID stránky k aktualizaci"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.b3duZXJJZA.desc": {
           "source": "Account ID of the page owner.\n\nThis allows page ownership to be transferred to another user.",
@@ -3092,16 +3092,16 @@
           "message": "Přejmenovat stránku"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "ID stránky, která se má vrátit. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
+          "source": "The ID of the page to be updated. If you don't know the page ID, use Get Pages and filter the results",
+          "message": "ID stránky k aktualizaci. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.display_name": {
           "source": "Page",
           "message": "Stránka"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "ID stránky, která se má vrátit"
+          "source": "The ID of the page to be updated",
+          "message": "ID stránky k aktualizaci"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.c3RhdHVz.allowed-value.c3RyaW5nOmN1cnJlbnQ.display_name": {
           "source": "current",
@@ -3252,16 +3252,16 @@
           "message": "Datum a čas termínu splnění úkolu"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "ID stránky, která se má vrátit. Pokud ID stránky neznáte, použijte Získat stránky a vyfiltrujte výsledky."
+          "source": "The ID of the task to be updated. If you don't know the task ID, use Get tasks and filter the results.",
+          "message": "ID úkolu k aktualizaci. Pokud ID úkolu neznáte, použijte Získat úkoly a vyfiltrujte výsledky."
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.display_name": {
           "source": "Task",
           "message": "Úkol"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "ID stránky, která se má vrátit"
+          "source": "The ID of the task to be updated",
+          "message": "ID úkolu k aktualizaci"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.bG9jYWxJZA.desc": {
           "source": "Local ID of the task. This ID is local to the corresponding page or blog post.",

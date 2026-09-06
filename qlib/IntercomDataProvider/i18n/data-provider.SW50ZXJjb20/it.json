@@ -12,8 +12,8 @@
           "message": "Elimina contatto"
         },
         "app.SW50ZXJjb20.action.RGVsZXRlQ29udGFjdA.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "L'identificatore univoco per il contatto assegnato da Intercom"
+          "source": "contact_id",
+          "message": "contact_id"
         },
         "app.SW50ZXJjb20.action.RGVsZXRlQ29udGFjdA.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -148,8 +148,8 @@
           "message": "Ottieni contatto"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "L'identificatore univoco per il contatto assegnato da Intercom"
+          "source": "contact_id",
+          "message": "contact_id"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -160,16 +160,16 @@
           "message": "Il contatto a cui si applica l'operazione"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.desc": {
-          "source": "Pass `true` to include a `merge_history` array on each contact in the response. Only returned for contacts with a `user` role.",
-          "message": "Passa `true` per includere un array `merge_history` per ogni contatto nella risposta. Restituito solo per i contatti con un ruolo `user`."
+          "source": "Pass `true` to include the contact's merge history in the response. Only returned for contacts with a `user` role.",
+          "message": "Passare `true` per includere nella risposta la cronologia di unione del contatto. Restituita solo per i contatti con ruolo `user`."
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.display_name": {
           "source": "Include Merge History",
           "message": "Includi cronologia di unione"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.short_desc": {
-          "source": "Pass 'true' to include a 'merge_history' array on each contact in the response",
-          "message": "Passa 'true' per includere un array 'merge_history' per ciascun contatto"
+          "source": "Pass 'true' to include the contact's merge history in the response",
+          "message": "Passare 'true' per includere nella risposta la cronologia di unione del contatto"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.short_desc": {
           "source": "Retrieve a contact by its identity",
@@ -316,8 +316,8 @@
           "message": "Aggiorna contatto"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "L'identificatore univoco per il contatto assegnato da Intercom"
+          "source": "id",
+          "message": "id"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -388,16 +388,16 @@
           "message": "Un identificatore univoco per il contatto fornito a Intercom"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.desc": {
-          "source": "Pass `true` to include a `merge_history` array on each contact in the response. Only returned for contacts with a `user` role.",
-          "message": "Passa `true` per includere un array `merge_history` per ogni contatto nella risposta. Restituito solo per i contatti con un ruolo `user`."
+          "source": "Pass `true` to include the contact's merge history in the response. Only returned for contacts with a `user` role.",
+          "message": "Passare `true` per includere nella risposta la cronologia di unione del contatto. Restituita solo per i contatti con ruolo `user`."
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.display_name": {
           "source": "Include Merge History",
           "message": "Includi cronologia di unione"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.short_desc": {
-          "source": "Pass 'true' to include a 'merge_history' array on each contact in the response",
-          "message": "Passa 'true' per includere un array 'merge_history' per ciascun contatto"
+          "source": "Pass 'true' to include the contact's merge history in the response",
+          "message": "Passare 'true' per includere nella risposta la cronologia di unione del contatto"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.b3duZXJfaWQ.desc": {
           "source": "The id of an admin that has been assigned account ownership of the contact",
@@ -1336,8 +1336,8 @@
           "message": "Elimina tag"
         },
         "app.SW50ZXJjb20.action.ZGVsZXRlVGFn.option.dGFnX2lk.desc": {
-          "source": "The unique identifier for the tag which is given by Intercom",
-          "message": "L'identificatore univoco del tag assegnato da Intercom"
+          "source": "The unique identifier of a given tag",
+          "message": "L'identificatore univoco di un determinato tag"
         },
         "app.SW50ZXJjb20.action.ZGVsZXRlVGFn.option.dGFnX2lk.display_name": {
           "source": "Tag",
@@ -1360,8 +1360,8 @@
           "message": "Recupera tag"
         },
         "app.SW50ZXJjb20.action.ZmluZFRhZw.option.dGFnX2lk.desc": {
-          "source": "The unique identifier for the tag which is given by Intercom",
-          "message": "L'identificatore univoco del tag assegnato da Intercom"
+          "source": "The unique identifier of a given tag",
+          "message": "L'identificatore univoco di un determinato tag"
         },
         "app.SW50ZXJjb20.action.ZmluZFRhZw.option.dGFnX2lk.display_name": {
           "source": "Tag",

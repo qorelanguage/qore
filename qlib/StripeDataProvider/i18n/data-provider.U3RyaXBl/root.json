@@ -568,12 +568,12 @@
           "message": "Created"
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Only return transactions that were created during the given date interval"
+          "source": "Only return connected accounts that were created during the given date interval",
+          "message": "Only return connected accounts that were created during the given date interval"
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Only return transactions that were created during the given date interval."
+          "source": "Only return connected accounts that were created during the given date interval.",
+          "message": "Only return connected accounts that were created during the given date interval."
         },
         "app.U3RyaXBl.action.bGlzdC1jb25uZWN0ZWQtYWNjb3VudHM.option.ZW5kaW5nX2JlZm9yZQ.display_name": {
           "source": "Ending Before",
@@ -1668,12 +1668,12 @@
           "message": "Created"
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Only return transactions that were created during the given date interval"
+          "source": "Only return charges that were created during the given date interval",
+          "message": "Only return charges that were created during the given date interval"
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Only return transactions that were created during the given date interval."
+          "source": "Only return charges that were created during the given date interval.",
+          "message": "Only return charges that were created during the given date interval."
         },
         "app.U3RyaXBl.action.bGlzdC1jaGFyZ2Vz.option.ZW5kaW5nX2JlZm9yZQ.display_name": {
           "source": "Ending Before",
@@ -2140,12 +2140,12 @@
           "message": "Created"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Only return transactions that were created during the given date interval"
+          "source": "Only return customers that were created during the given date interval",
+          "message": "Only return customers that were created during the given date interval"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Only return transactions that were created during the given date interval."
+          "source": "Only return customers that were created during the given date interval.",
+          "message": "Only return customers that were created during the given date interval."
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lcnM.option.ZW5kaW5nX2JlZm9yZQ.display_name": {
           "source": "Ending Before",
@@ -2210,14 +2210,6 @@
         "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Customer"
-        },
-        "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Only return charges for the customer specified by this customer ID"
-        },
-        "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Only return charges for the customer specified by this customer ID."
         },
         "app.U3RyaXBl.action.Z2V0LWN1c3RvbWVy.option.ZXhwYW5k.display_name": {
           "source": "Expand",
@@ -2518,14 +2510,6 @@
         "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Customer"
-        },
-        "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Only return charges for the customer specified by this customer ID"
-        },
-        "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Only return charges for the customer specified by this customer ID."
         },
         "app.U3RyaXBl.action.dXBkYXRlLWN1c3RvbWVy.option.ZW1haWw.display_name": {
           "source": "Email",
@@ -2847,14 +2831,6 @@
           "source": "Customer",
           "message": "Customer"
         },
-        "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Only return charges for the customer specified by this customer ID"
-        },
-        "app.U3RyaXBl.action.ZGVsZXRlLWN1c3RvbWVy.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Only return charges for the customer specified by this customer ID."
-        },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.display_name": {
           "source": "List Customer Balance Transactions",
           "message": "List Customer Balance Transactions"
@@ -2870,14 +2846,6 @@
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Customer"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Only return charges for the customer specified by this customer ID"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Only return charges for the customer specified by this customer ID."
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.bGltaXQ.display_name": {
           "source": "Limit",
@@ -2908,12 +2876,12 @@
           "message": "Created"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Only return transactions that were created during the given date interval"
+          "source": "Only return customer balance transactions that were created during the given…",
+          "message": "Only return customer balance transactions that were created during the given…"
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Only return transactions that were created during the given date interval."
+          "source": "Only return customer balance transactions that were created during the given date interval.",
+          "message": "Only return customer balance transactions that were created during the given date interval."
         },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1iYWxhbmNlLXRyYW5zYWN0aW9ucw.option.ZW5kaW5nX2JlZm9yZQ.display_name": {
           "source": "Ending Before",
@@ -2966,14 +2934,6 @@
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Customer"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Only return charges for the customer specified by this customer ID"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Only return charges for the customer specified by this customer ID."
         },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLWJhbGFuY2UtdHJhbnNhY3Rpb24.option.YW1vdW50.display_name": {
           "source": "Amount",
@@ -3051,14 +3011,6 @@
           "source": "Customer",
           "message": "Customer"
         },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Only return charges for the customer specified by this customer ID"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Only return charges for the customer specified by this customer ID."
-        },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zb3VyY2Vz.option.b2JqZWN0.display_name": {
           "source": "Object",
           "message": "Object"
@@ -3134,14 +3086,6 @@
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Customer"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Only return charges for the customer specified by this customer ID"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Only return charges for the customer specified by this customer ID."
         },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXNvdXJjZQ.option.c291cmNl.display_name": {
           "source": "Source",
@@ -3231,14 +3175,6 @@
           "source": "Customer",
           "message": "Customer"
         },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Only return charges for the customer specified by this customer ID"
-        },
-        "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Only return charges for the customer specified by this customer ID."
-        },
         "app.U3RyaXBl.action.bGlzdC1jdXN0b21lci1zdWJzY3JpcHRpb25z.option.bGltaXQ.display_name": {
           "source": "Limit",
           "message": "Limit"
@@ -3302,14 +3238,6 @@
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Customer"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Only return charges for the customer specified by this customer ID"
-        },
-        "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Only return charges for the customer specified by this customer ID."
         },
         "app.U3RyaXBl.action.Y3JlYXRlLWN1c3RvbWVyLXN1YnNjcmlwdGlvbg.option.aXRlbXM.display_name": {
           "source": "Items",
@@ -3724,12 +3652,12 @@
           "message": "Customer"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Only return charges for the customer specified by this customer ID"
+          "source": "Only return invoices for the customer specified by this customer ID",
+          "message": "Only return invoices for the customer specified by this customer ID"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Only return charges for the customer specified by this customer ID."
+          "source": "Only return invoices for the customer specified by this customer ID.",
+          "message": "Only return invoices for the customer specified by this customer ID."
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.c3RhdHVz.display_name": {
           "source": "Status",
@@ -3788,12 +3716,12 @@
           "message": "Created"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Only return transactions that were created during the given date interval"
+          "source": "Only return invoices that were created during the given date interval",
+          "message": "Only return invoices that were created during the given date interval"
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Only return transactions that were created during the given date interval."
+          "source": "Only return invoices that were created during the given date interval.",
+          "message": "Only return invoices that were created during the given date interval."
         },
         "app.U3RyaXBl.action.bGlzdC1pbnZvaWNlcw.option.Y3VzdG9tZXJfYWNjb3VudA.display_name": {
           "source": "Customer Account",
@@ -3874,14 +3802,6 @@
         "app.U3RyaXBl.action.Z2V0LWludm9pY2U.option.aW52b2ljZQ.display_name": {
           "source": "Invoice",
           "message": "Invoice"
-        },
-        "app.U3RyaXBl.action.Z2V0LWludm9pY2U.option.aW52b2ljZQ.short_desc": {
-          "source": "Only return transactions that are related to the specified invoice",
-          "message": "Only return transactions that are related to the specified invoice"
-        },
-        "app.U3RyaXBl.action.Z2V0LWludm9pY2U.option.aW52b2ljZQ.desc": {
-          "source": "Only return transactions that are related to the specified invoice.",
-          "message": "Only return transactions that are related to the specified invoice."
         },
         "app.U3RyaXBl.action.Z2V0LWludm9pY2U.option.ZXhwYW5k.display_name": {
           "source": "Expand",
@@ -4335,14 +4255,6 @@
           "source": "Invoice",
           "message": "Invoice"
         },
-        "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aW52b2ljZQ.short_desc": {
-          "source": "Only return transactions that are related to the specified invoice",
-          "message": "Only return transactions that are related to the specified invoice"
-        },
-        "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.aW52b2ljZQ.desc": {
-          "source": "Only return transactions that are related to the specified invoice.",
-          "message": "Only return transactions that are related to the specified invoice."
-        },
         "app.U3RyaXBl.action.dXBkYXRlLWludm9pY2U.option.ZGVzY3JpcHRpb24.display_name": {
           "source": "Description",
           "message": "Description"
@@ -4691,14 +4603,6 @@
           "source": "Invoice",
           "message": "Invoice"
         },
-        "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.option.aW52b2ljZQ.short_desc": {
-          "source": "Only return transactions that are related to the specified invoice",
-          "message": "Only return transactions that are related to the specified invoice"
-        },
-        "app.U3RyaXBl.action.ZGVsZXRlLWludm9pY2U.option.aW52b2ljZQ.desc": {
-          "source": "Only return transactions that are related to the specified invoice.",
-          "message": "Only return transactions that are related to the specified invoice."
-        },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.display_name": {
           "source": "List Payment Intents",
           "message": "List Payment Intents"
@@ -4728,36 +4632,36 @@
           "message": "Customer"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXI.short_desc": {
-          "source": "Only return charges for the customer specified by this customer ID",
-          "message": "Only return charges for the customer specified by this customer ID"
+          "source": "Only return PaymentIntents for the customer that this customer ID specifies",
+          "message": "Only return PaymentIntents for the customer that this customer ID specifies"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXI.desc": {
-          "source": "Only return charges for the customer specified by this customer ID.",
-          "message": "Only return charges for the customer specified by this customer ID."
+          "source": "Only return PaymentIntents for the customer that this customer ID specifies.",
+          "message": "Only return PaymentIntents for the customer that this customer ID specifies."
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "Created"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Only return transactions that were created during the given date interval"
+          "source": "A filter on the list, based on the object 'created' field",
+          "message": "A filter on the list, based on the object 'created' field"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Only return transactions that were created during the given date interval."
+          "source": "A filter on the list, based on the object `created` field. The value can be a string with an integer Unix timestamp or a dictionary with a number of different query options.",
+          "message": "A filter on the list, based on the object `created` field. The value can be a string with an integer Unix timestamp or a dictionary with a number of different query options."
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXJfYWNjb3VudA.display_name": {
           "source": "Customer Account",
           "message": "Customer Account"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXJfYWNjb3VudA.short_desc": {
-          "source": "Only return invoices for the account representing the customer specified by…",
-          "message": "Only return invoices for the account representing the customer specified by…"
+          "source": "Only return PaymentIntents for the account representing the customer that this…",
+          "message": "Only return PaymentIntents for the account representing the customer that this…"
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.Y3VzdG9tZXJfYWNjb3VudA.desc": {
-          "source": "Only return invoices for the account representing the customer specified by this account ID.",
-          "message": "Only return invoices for the account representing the customer specified by this account ID."
+          "source": "Only return PaymentIntents for the account representing the customer that this ID specifies.",
+          "message": "Only return PaymentIntents for the account representing the customer that this ID specifies."
         },
         "app.U3RyaXBl.action.bGlzdC1wYXltZW50LWludGVudHM.option.ZW5kaW5nX2JlZm9yZQ.display_name": {
           "source": "Ending Before",
@@ -5332,24 +5236,24 @@
           "message": "Payment Intent"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.cGF5bWVudF9pbnRlbnQ.short_desc": {
-          "source": "Only return charges that were created by the PaymentIntent specified by this…",
-          "message": "Only return charges that were created by the PaymentIntent specified by this…"
+          "source": "Only return refunds for the PaymentIntent specified by this ID",
+          "message": "Only return refunds for the PaymentIntent specified by this ID"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.cGF5bWVudF9pbnRlbnQ.desc": {
-          "source": "Only return charges that were created by the PaymentIntent specified by this PaymentIntent ID.",
-          "message": "Only return charges that were created by the PaymentIntent specified by this PaymentIntent ID."
+          "source": "Only return refunds for the PaymentIntent specified by this ID.",
+          "message": "Only return refunds for the PaymentIntent specified by this ID."
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.Y3JlYXRlZA.display_name": {
           "source": "Created",
           "message": "Created"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.Y3JlYXRlZA.short_desc": {
-          "source": "Only return transactions that were created during the given date interval",
-          "message": "Only return transactions that were created during the given date interval"
+          "source": "Only return refunds that were created during the given date interval",
+          "message": "Only return refunds that were created during the given date interval"
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.Y3JlYXRlZA.desc": {
-          "source": "Only return transactions that were created during the given date interval.",
-          "message": "Only return transactions that were created during the given date interval."
+          "source": "Only return refunds that were created during the given date interval.",
+          "message": "Only return refunds that were created during the given date interval."
         },
         "app.U3RyaXBl.action.bGlzdC1yZWZ1bmRz.option.ZW5kaW5nX2JlZm9yZQ.display_name": {
           "source": "Ending Before",

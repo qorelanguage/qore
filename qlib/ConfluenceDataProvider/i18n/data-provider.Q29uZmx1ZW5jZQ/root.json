@@ -876,12 +876,12 @@
           "message": "Page"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "The ID of the page to be returned"
+          "source": "The ID of the page to be updated",
+          "message": "The ID of the page to be updated"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results."
+          "source": "The ID of the page to be updated. If you don't know the page ID, use Get Pages and filter the results.",
+          "message": "The ID of the page to be updated. If you don't know the page ID, use Get Pages and filter the results."
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.dGl0bGU.display_name": {
           "source": "Title",
@@ -992,12 +992,12 @@
           "message": "Page"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "The ID of the page to be returned"
+          "source": "The ID of the page to be updated",
+          "message": "The ID of the page to be updated"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results."
+          "source": "The ID of the page to be updated. If you don't know the page ID, use Get Pages and filter the results",
+          "message": "The ID of the page to be updated. If you don't know the page ID, use Get Pages and filter the results"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.dGl0bGU.display_name": {
           "source": "Title",
@@ -1048,12 +1048,12 @@
           "message": "Page"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "The ID of the page to be returned"
+          "source": "The ID of the page to be deleted",
+          "message": "The ID of the page to be deleted"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results."
+          "source": "The ID of the page to be deleted.",
+          "message": "The ID of the page to be deleted."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.cHVyZ2U.display_name": {
           "source": "Purge",
@@ -1100,8 +1100,8 @@
           "message": "The space to work in"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0UGFnZXNJblNwYWNl.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results."
+          "source": "The ID of the space for which pages should be returned.",
+          "message": "The ID of the space for which pages should be returned."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0UGFnZXNJblNwYWNl.option.dGl0bGU.display_name": {
           "source": "Title",
@@ -1252,12 +1252,12 @@
           "message": "Label"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "The ID of the page to be returned"
+          "source": "The ID of the label for which pages should be returned",
+          "message": "The ID of the label for which pages should be returned"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results."
+          "source": "The ID of the label for which pages should be returned.",
+          "message": "The ID of the label for which pages should be returned."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.c3BhY2UtaWQ.display_name": {
           "source": "Spaces",
@@ -1388,12 +1388,12 @@
           "message": "Title"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.short_desc": {
-          "source": "Filter the results to pages based on their title",
-          "message": "Filter the results to pages based on their title"
+          "source": "Filter the results to blog posts based on their title",
+          "message": "Filter the results to blog posts based on their title"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.desc": {
-          "source": "Filter the results to pages based on their title.",
-          "message": "Filter the results to pages based on their title."
+          "source": "Filter the results to blog posts based on their title.",
+          "message": "Filter the results to blog posts based on their title."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.c3RhdHVz.display_name": {
           "source": "Status",
@@ -1496,8 +1496,8 @@
           "message": "Return only these blog posts"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.aWQ.desc": {
-          "source": "Filter the results based on page ids. Multiple page ids can be specified as a comma-separated list.",
-          "message": "Filter the results based on page ids. Multiple page ids can be specified as a comma-separated list."
+          "source": "Filter the results based on blog post ids. Multiple blog post ids can be specified as a comma-separated list.",
+          "message": "Filter the results based on blog post ids. Multiple blog post ids can be specified as a comma-separated list."
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.display_name": {
           "source": "Create Blog Post",
@@ -1572,12 +1572,12 @@
           "message": "Private"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.short_desc": {
-          "source": "The page will be private",
-          "message": "The page will be private"
+          "source": "The blog post will be private",
+          "message": "The blog post will be private"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.desc": {
-          "source": "The page will be private. Only the user who creates this page will have permission to view and edit one.",
-          "message": "The page will be private. Only the user who creates this page will have permission to view and edit one."
+          "source": "The blog post will be private. Only the user who creates this blog post will have permission to view and edit one.",
+          "message": "The blog post will be private. Only the user who creates this blog post will have permission to view and edit one."
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.Y3JlYXRlZEF0.display_name": {
           "source": "Created At",
@@ -1608,12 +1608,12 @@
           "message": "Blog Post"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "The ID of the page to be returned"
+          "source": "The ID of the blog post to be returned",
+          "message": "The ID of the blog post to be returned"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results."
+          "source": "The ID of the blog post to be returned. If you don't know the blog post ID, use Get blog posts and filter the results.",
+          "message": "The ID of the blog post to be returned. If you don't know the blog post ID, use Get blog posts and filter the results."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Ym9keS1mb3JtYXQ.display_name": {
           "source": "Body Format",
@@ -1672,24 +1672,24 @@
           "message": "Include Labels"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.short_desc": {
-          "source": "Includes labels associated with this page in the response",
-          "message": "Includes labels associated with this page in the response"
+          "source": "Includes labels associated with this blog post in the response",
+          "message": "Includes labels associated with this blog post in the response"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.desc": {
-          "source": "Includes labels associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Includes labels associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
+          "source": "Includes labels associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Includes labels associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.display_name": {
           "source": "Get Draft",
           "message": "Get Draft"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.short_desc": {
-          "source": "Retrieve the draft version of this page",
-          "message": "Retrieve the draft version of this page"
+          "source": "Retrieve the draft version of this blog post",
+          "message": "Retrieve the draft version of this blog post"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.desc": {
-          "source": "Retrieve the draft version of this page.",
-          "message": "Retrieve the draft version of this page."
+          "source": "Retrieve the draft version of this blog post.",
+          "message": "Retrieve the draft version of this blog post."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.c3RhdHVz.display_name": {
           "source": "Status",
@@ -1708,96 +1708,96 @@
           "message": "Include Properties"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.short_desc": {
-          "source": "Includes content properties associated with this page in the response",
-          "message": "Includes content properties associated with this page in the response"
+          "source": "Includes content properties associated with this blog post in the response",
+          "message": "Includes content properties associated with this blog post in the response"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.desc": {
-          "source": "Includes content properties associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Includes content properties associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
+          "source": "Includes content properties associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Includes content properties associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.display_name": {
           "source": "Include Operations",
           "message": "Include Operations"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.short_desc": {
-          "source": "Includes operations associated with this page in the response, as defined in…",
-          "message": "Includes operations associated with this page in the response, as defined in…"
+          "source": "Includes operations associated with this blog post in the response, as defined…",
+          "message": "Includes operations associated with this blog post in the response, as defined…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.desc": {
-          "source": "Includes operations associated with this page in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Includes operations associated with this page in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
+          "source": "Includes operations associated with this blog post in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Includes operations associated with this blog post in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.display_name": {
           "source": "Include Likes",
           "message": "Include Likes"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.short_desc": {
-          "source": "Includes likes associated with this page in the response",
-          "message": "Includes likes associated with this page in the response"
+          "source": "Includes likes associated with this blog post in the response",
+          "message": "Includes likes associated with this blog post in the response"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.desc": {
-          "source": "Includes likes associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Includes likes associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
+          "source": "Includes likes associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Includes likes associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.display_name": {
           "source": "Include Versions",
           "message": "Include Versions"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.short_desc": {
-          "source": "Includes versions associated with this page in the response",
-          "message": "Includes versions associated with this page in the response"
+          "source": "Includes versions associated with this blog post in the response",
+          "message": "Includes versions associated with this blog post in the response"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.desc": {
-          "source": "Includes versions associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Includes versions associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
+          "source": "Includes versions associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Includes versions associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.display_name": {
           "source": "Include Version",
           "message": "Include Version"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.short_desc": {
-          "source": "Includes the current version associated with this page in the response",
-          "message": "Includes the current version associated with this page in the response"
+          "source": "Includes the current version associated with this blog post in the response",
+          "message": "Includes the current version associated with this blog post in the response"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.desc": {
-          "source": "Includes the current version associated with this page in the response.\nBy default this is included and can be omitted by setting the value to `false`.",
-          "message": "Includes the current version associated with this page in the response.\nBy default this is included and can be omitted by setting the value to `false`."
+          "source": "Includes the current version associated with this blog post in the response.\nBy default this is included and can be omitted by setting the value to `false`.",
+          "message": "Includes the current version associated with this blog post in the response.\nBy default this is included and can be omitted by setting the value to `false`."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.display_name": {
           "source": "Include Favorited by Current User Status",
           "message": "Include Favorited by Current User Status"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.short_desc": {
-          "source": "Includes whether this page has been favorited by the current user",
-          "message": "Includes whether this page has been favorited by the current user"
+          "source": "Includes whether this blog post has been favorited by the current user",
+          "message": "Includes whether this blog post has been favorited by the current user"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.desc": {
-          "source": "Includes whether this page has been favorited by the current user.",
-          "message": "Includes whether this page has been favorited by the current user."
+          "source": "Includes whether this blog post has been favorited by the current user.",
+          "message": "Includes whether this blog post has been favorited by the current user."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.display_name": {
           "source": "Include Webresources",
           "message": "Include Webresources"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.short_desc": {
-          "source": "Includes web resources that can be used to render page content on a client",
-          "message": "Includes web resources that can be used to render page content on a client"
+          "source": "Includes web resources that can be used to render blog post content on a client",
+          "message": "Includes web resources that can be used to render blog post content on a client"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.desc": {
-          "source": "Includes web resources that can be used to render page content on a client.",
-          "message": "Includes web resources that can be used to render page content on a client."
+          "source": "Includes web resources that can be used to render blog post content on a client.",
+          "message": "Includes web resources that can be used to render blog post content on a client."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.display_name": {
           "source": "Include Collaborators",
           "message": "Include Collaborators"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.short_desc": {
-          "source": "Includes collaborators on the page",
-          "message": "Includes collaborators on the page"
+          "source": "Includes collaborators on the blog post",
+          "message": "Includes collaborators on the blog post"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.desc": {
-          "source": "Includes collaborators on the page.",
-          "message": "Includes collaborators on the page."
+          "source": "Includes collaborators on the blog post.",
+          "message": "Includes collaborators on the blog post."
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.display_name": {
           "source": "Update Blog Post",
@@ -1816,12 +1816,12 @@
           "message": "Blog Post"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "The ID of the page to be returned"
+          "source": "The ID of the blog post to be updated",
+          "message": "The ID of the blog post to be updated"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results."
+          "source": "The ID of the blog post to be updated. If you don't know the blog post ID, use Get Blog Posts and filter the results.",
+          "message": "The ID of the blog post to be updated. If you don't know the blog post ID, use Get Blog Posts and filter the results."
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.dGl0bGU.display_name": {
           "source": "Title",
@@ -1920,36 +1920,36 @@
           "message": "Blog Post"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "The ID of the page to be returned"
+          "source": "The ID of the blog post to be deleted",
+          "message": "The ID of the blog post to be deleted"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results."
+          "source": "The ID of the blog post to be deleted.",
+          "message": "The ID of the blog post to be deleted."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.display_name": {
           "source": "Purge",
           "message": "Purge"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.short_desc": {
-          "source": "If attempting to purge the page",
-          "message": "If attempting to purge the page"
+          "source": "If attempting to purge the blog post",
+          "message": "If attempting to purge the blog post"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.desc": {
-          "source": "If attempting to purge the page.",
-          "message": "If attempting to purge the page."
+          "source": "If attempting to purge the blog post.",
+          "message": "If attempting to purge the blog post."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.display_name": {
           "source": "Draft",
           "message": "Draft"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.short_desc": {
-          "source": "If attempting to delete a page that is a draft",
-          "message": "If attempting to delete a page that is a draft"
+          "source": "If attempting to delete a blog post that is a draft",
+          "message": "If attempting to delete a blog post that is a draft"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.desc": {
-          "source": "If attempting to delete a page that is a draft.",
-          "message": "If attempting to delete a page that is a draft."
+          "source": "If attempting to delete a blog post that is a draft.",
+          "message": "If attempting to delete a blog post that is a draft."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.display_name": {
           "source": "List Blog Posts in Space",
@@ -1972,20 +1972,20 @@
           "message": "The space to work in"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results."
+          "source": "The ID of the space for which blog posts should be returned.",
+          "message": "The ID of the space for which blog posts should be returned."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.display_name": {
           "source": "Title",
           "message": "Title"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.short_desc": {
-          "source": "Filter the results to pages based on their title",
-          "message": "Filter the results to pages based on their title"
+          "source": "Filter the results to blog posts based on their title",
+          "message": "Filter the results to blog posts based on their title"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.desc": {
-          "source": "Filter the results to pages based on their title.",
-          "message": "Filter the results to pages based on their title."
+          "source": "Filter the results to blog posts based on their title.",
+          "message": "Filter the results to blog posts based on their title."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.c3RhdHVz.display_name": {
           "source": "Status",
@@ -2096,12 +2096,12 @@
           "message": "Label"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "The ID of the page to be returned"
+          "source": "The ID of the label for which blog posts should be returned",
+          "message": "The ID of the label for which blog posts should be returned"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results."
+          "source": "The ID of the label for which blog posts should be returned.",
+          "message": "The ID of the label for which blog posts should be returned."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.c3BhY2UtaWQ.display_name": {
           "source": "Spaces",
@@ -2440,8 +2440,8 @@
           "message": "The space to work in"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results."
+          "source": "The ID of the space to be returned.",
+          "message": "The ID of the space to be returned."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.ZGVzY3JpcHRpb24tZm9ybWF0.display_name": {
           "source": "Description Format",
@@ -2480,24 +2480,24 @@
           "message": "Include Operations"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.short_desc": {
-          "source": "Includes operations associated with this page in the response, as defined in…",
-          "message": "Includes operations associated with this page in the response, as defined in…"
+          "source": "Includes operations associated with this space in the response, as defined in…",
+          "message": "Includes operations associated with this space in the response, as defined in…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.desc": {
-          "source": "Includes operations associated with this page in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Includes operations associated with this page in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
+          "source": "Includes operations associated with this space in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Includes operations associated with this space in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.display_name": {
           "source": "Include Properties",
           "message": "Include Properties"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.short_desc": {
-          "source": "Includes content properties associated with this page in the response",
-          "message": "Includes content properties associated with this page in the response"
+          "source": "Includes space properties associated with this space in the response",
+          "message": "Includes space properties associated with this space in the response"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.desc": {
-          "source": "Includes content properties associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Includes content properties associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
+          "source": "Includes space properties associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Includes space properties associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wZXJtaXNzaW9ucw.display_name": {
           "source": "Include Permissions",
@@ -2528,12 +2528,12 @@
           "message": "Include Labels"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.short_desc": {
-          "source": "Includes labels associated with this page in the response",
-          "message": "Includes labels associated with this page in the response"
+          "source": "Includes labels associated with this space in the response",
+          "message": "Includes labels associated with this space in the response"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.desc": {
-          "source": "Includes labels associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "Includes labels associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
+          "source": "Includes labels associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "Includes labels associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza3M.display_name": {
           "source": "List Tasks",
@@ -2796,12 +2796,12 @@
           "message": "Task"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "The ID of the page to be returned"
+          "source": "The ID of the task to be returned",
+          "message": "The ID of the task to be returned"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results."
+          "source": "The ID of the task to be returned. If you don't know the task ID, use Get tasks and filter the results.",
+          "message": "The ID of the task to be returned. If you don't know the task ID, use Get tasks and filter the results."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.Ym9keS1mb3JtYXQ.display_name": {
           "source": "Body Format",
@@ -2840,12 +2840,12 @@
           "message": "Task"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "The ID of the page to be returned"
+          "source": "The ID of the task to be updated",
+          "message": "The ID of the task to be updated"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results."
+          "source": "The ID of the task to be updated. If you don't know the task ID, use Get tasks and filter the results.",
+          "message": "The ID of the task to be updated. If you don't know the task ID, use Get tasks and filter the results."
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.c3RhdHVz.display_name": {
           "source": "Status",

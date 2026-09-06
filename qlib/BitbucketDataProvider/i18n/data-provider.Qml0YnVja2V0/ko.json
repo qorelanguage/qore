@@ -96,8 +96,8 @@
           "message": "커밋 보고서 목록 조회"
         },
         "app.Qml0YnVja2V0.action.Z2V0UmVwb3J0c0ZvckNvbW1pdA.option.Y29tbWl0.desc": {
-          "source": "The commit's SHA1.",
-          "message": "커밋의 SHA1입니다."
+          "source": "The commit for which to retrieve reports.",
+          "message": "보고서를 가져올 커밋입니다."
         },
         "app.Qml0YnVja2V0.action.Z2V0UmVwb3J0c0ZvckNvbW1pdA.option.Y29tbWl0.display_name": {
           "source": "Commit",
@@ -984,8 +984,8 @@
           "message": "커밋 해시, 브랜치 이름 또는 태그"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfY29tbWl0X2NvbW1pdF9jb21tZW50c19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\n[필터링 및 정렬](/cloud/bitbucket/rest/intro/#filtering)에 따라 결과를 정렬할 기준 필드입니다.\n        "
+          "source": "Field by which the results should be sorted as per\n[filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n",
+          "message": "결과를 정렬할 기준 필드입니다. 정렬 기준은 다음을 참조하십시오:\n[필터링 및 정렬](/cloud/bitbucket/rest/intro/#filtering).\n"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfY29tbWl0X2NvbW1pdF9jb21tZW50c19nZXQ.option.c29ydA.display_name": {
           "source": "Sort By",
@@ -2280,8 +2280,8 @@
           "message": "브랜치 목록 조회"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfcmVmc19icmFuY2hlc19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\n[필터링 및 정렬](/cloud/bitbucket/rest/intro/#filtering)에 따라 결과를 정렬할 기준 필드입니다.\n        "
+          "source": "\nField by which the results should be sorted as per\n[filtering and sorting](/cloud/bitbucket/rest/intro/#filtering). The `name`\nfield is handled specially for branches in that, if specified as the sort field, it\nuses a natural sort order instead of the default lexicographical sort order. For example,\nit will return ['branch1', 'branch2', 'branch10'] instead of ['branch1', 'branch10', 'branch2'].",
+          "message": "\n결과를 정렬할 기준 필드입니다. 정렬 기준은 다음을 참조하십시오:\n[필터링 및 정렬](/cloud/bitbucket/rest/intro/#filtering). `name`\n필드는 브랜치에서 특별하게 처리되어, 정렬 필드로 지정하면\n기본 사전순 대신 자연 정렬 순서를 사용합니다. 예를 들어\n['branch1', 'branch10', 'branch2'] 대신 ['branch1', 'branch2', 'branch10'] 을 반환합니다."
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfcmVmc19icmFuY2hlc19nZXQ.option.c29ydA.display_name": {
           "source": "Sort By",
@@ -2496,8 +2496,8 @@
           "message": "자격 증명이 관리하는 워크스페이스만 반환"
         },
         "app.Qml0YnVja2V0.action.d29ya3NwYWNlc19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\n[필터링 및 정렬](/cloud/bitbucket/rest/intro/#filtering)에 따라 결과를 정렬할 기준 필드입니다.\n        "
+          "source": "Name of a response property to sort results (only slug is supported).",
+          "message": "결과를 정렬할 응답 속성의 이름입니다(slug만 지원됨)."
         },
         "app.Qml0YnVja2V0.action.d29ya3NwYWNlc19nZXQ.option.c29ydA.display_name": {
           "source": "Sort By",

@@ -12,8 +12,8 @@
           "message": "Видалити контакт"
         },
         "app.SW50ZXJjb20.action.RGVsZXRlQ29udGFjdA.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "Унікальний ідентифікатор контакту, наданий Intercom"
+          "source": "contact_id",
+          "message": "contact_id"
         },
         "app.SW50ZXJjb20.action.RGVsZXRlQ29udGFjdA.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -148,8 +148,8 @@
           "message": "Отримати контакт"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "Унікальний ідентифікатор контакту, наданий Intercom"
+          "source": "contact_id",
+          "message": "contact_id"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -160,16 +160,16 @@
           "message": "Контакт, до якого це застосовується"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.desc": {
-          "source": "Pass `true` to include a `merge_history` array on each contact in the response. Only returned for contacts with a `user` role.",
-          "message": "Передайте `true`, щоб включити масив `merge_history` для кожного контакту у відповіді. Повертається лише для контактів із роллю `user`."
+          "source": "Pass `true` to include the contact's merge history in the response. Only returned for contacts with a `user` role.",
+          "message": "Передайте `true`, щоб включити у відповідь історію об'єднань контакту. Повертається лише для контактів із роллю `user`."
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.display_name": {
           "source": "Include Merge History",
           "message": "Включити історію об'єднань"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.short_desc": {
-          "source": "Pass 'true' to include a 'merge_history' array on each contact in the response",
-          "message": "Передайте 'true', щоб включити масив 'merge_history' для кожного контакту"
+          "source": "Pass 'true' to include the contact's merge history in the response",
+          "message": "Передайте 'true', щоб включити у відповідь історію об'єднань контакту"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.short_desc": {
           "source": "Retrieve a contact by its identity",
@@ -316,8 +316,8 @@
           "message": "Оновити контакт"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "Унікальний ідентифікатор контакту, наданий Intercom"
+          "source": "id",
+          "message": "id"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -388,16 +388,16 @@
           "message": "Унікальний ідентифікатор контакту, переданий в Intercom"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.desc": {
-          "source": "Pass `true` to include a `merge_history` array on each contact in the response. Only returned for contacts with a `user` role.",
-          "message": "Передайте `true`, щоб включити масив `merge_history` для кожного контакту у відповіді. Повертається лише для контактів із роллю `user`."
+          "source": "Pass `true` to include the contact's merge history in the response. Only returned for contacts with a `user` role.",
+          "message": "Передайте `true`, щоб включити у відповідь історію об'єднань контакту. Повертається лише для контактів із роллю `user`."
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.display_name": {
           "source": "Include Merge History",
           "message": "Включити історію об'єднань"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.short_desc": {
-          "source": "Pass 'true' to include a 'merge_history' array on each contact in the response",
-          "message": "Передайте 'true', щоб включити масив 'merge_history' для кожного контакту"
+          "source": "Pass 'true' to include the contact's merge history in the response",
+          "message": "Передайте 'true', щоб включити у відповідь історію об'єднань контакту"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.b3duZXJfaWQ.desc": {
           "source": "The id of an admin that has been assigned account ownership of the contact",
@@ -1336,8 +1336,8 @@
           "message": "Видалити тег"
         },
         "app.SW50ZXJjb20.action.ZGVsZXRlVGFn.option.dGFnX2lk.desc": {
-          "source": "The unique identifier for the tag which is given by Intercom",
-          "message": "Унікальний ідентифікатор тегу, наданий Intercom"
+          "source": "The unique identifier of a given tag",
+          "message": "Унікальний ідентифікатор заданого теґу"
         },
         "app.SW50ZXJjb20.action.ZGVsZXRlVGFn.option.dGFnX2lk.display_name": {
           "source": "Tag",
@@ -1360,8 +1360,8 @@
           "message": "Отримати тег"
         },
         "app.SW50ZXJjb20.action.ZmluZFRhZw.option.dGFnX2lk.desc": {
-          "source": "The unique identifier for the tag which is given by Intercom",
-          "message": "Унікальний ідентифікатор тегу, наданий Intercom"
+          "source": "The unique identifier of a given tag",
+          "message": "Унікальний ідентифікатор заданого теґу"
         },
         "app.SW50ZXJjb20.action.ZmluZFRhZw.option.dGFnX2lk.display_name": {
           "source": "Tag",

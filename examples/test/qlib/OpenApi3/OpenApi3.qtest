@@ -427,6 +427,8 @@ public class OpenApi3Test inherits QUnit::Test {
         addTestCase("Test allOf object property composition", \testAllOfObjectProperties());
         addTestCase("Test self-referential schemas", \testSelfReferentialSchemas());
         addTestCase("Test SQL NULL in a response body", \testNullValueInResponse());
+        addTestCase("Test per-use field documentation", \testSharedSchemaFieldDocumentation());
+        addTestCase("Test a description that contains the other", \testContainedFieldDescription());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -4447,6 +4449,117 @@ public class OpenApi3Test inherits QUnit::Test {
         array and object branches refer back to it, which every vendor that accepts arbitrary JSON
         declares, and unguarded it recursed until the stack was exhausted.
     */
+    #! A parameter description is not joined to its schema's when one already contains the other
+    /** A parameter and the schema it points at usually carry the same text, and joining those gives
+        "X: X" - which is why the join is skipped when they are equal.  One being a prefix of the other is
+        the same case with one side merely saying more: Exa documents an agent run id as "Agent run ID."
+        on the parameter and "Agent run ID. New run IDs are returned with the `agent_run_` prefix." on the
+        schema, and joining those repeated the first sentence.
+    */
+    testContainedFieldDescription() {
+        checkModules();
+
+        code<string(string, string)> load = string sub (string param_desc, string schema_desc) {
+            hash<auto> src = ValidOpenApi31Schema + {
+                "paths": {
+                    "/runs/{id}": {
+                        "get": {
+                            "operationId": "getRun",
+                            "parameters": (
+                                {
+                                    "name": "id", "in": "path", "required": True,
+                                    "description": param_desc,
+                                    "schema": {"type": "string", "description": schema_desc},
+                                },
+                            ),
+                            "responses": {"200": {"description": "ok"}},
+                        },
+                    },
+                },
+            };
+            OpenApi3Schema schema = OpenApi3::OpenApi3Loader::fromString(my_make_json(src), True);
+            OpenApi3::PathItemObject pio = schema.paths.tryMatch("/runs/1");
+            OpenApi3::OperationObject op = pio.getOperation("get", "/runs/{id}");
+            OpenApi3::ParameterBase param = (pio.parameters + op.parameters).id;
+            return schema.getFieldFromSchema(param.name, param.desc, param.schema, True).getDescription();
+        };
+
+        # the schema says more: its text already begins with the parameter's, so keep it whole
+        assertEq("Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+            load("Agent run ID.", "Agent run ID. New run IDs are returned with the `agent_run_` prefix."));
+        # the parameter says more, and is kept for the same reason
+        assertEq("Agent run ID. Returned with a prefix.",
+            load("Agent run ID. Returned with a prefix.", "Agent run ID."));
+        # identical text is not repeated either
+        assertEq("Agent run ID.", load("Agent run ID.", "Agent run ID."));
+        # two genuinely different descriptions are still joined, because each says something the other
+        # does not
+        assertEq("The run to fetch: Agent run ID.", load("The run to fetch", "Agent run ID."));
+    }
+
+    #! Two parameters with the same name and the same schema keep their own documentation
+    /** A schema object is interned by its content, so \c limit declared as an integer on two different
+        listings is **one** object.  That is right for the type, which the schema determines completely, and
+        wrong for the field, which also carries what the use supplies: the parameter's own description and
+        default value.
+
+        Caching the field under the name alone therefore gave whichever operation was built second the
+        first one's documentation - silently, and depending only on registration order, which is why it
+        survived until a manifest happened to export two such listings.
+    */
+    testSharedSchemaFieldDocumentation() {
+        checkModules();
+
+        hash<auto> src = ValidOpenApi31Schema + {
+            "paths": {
+                "/widgets": {
+                    "get": {
+                        "operationId": "listWidgets",
+                        "parameters": (
+                            {
+                                "name": "limit", "in": "query", "required": False,
+                                "description": "the maximum number of widgets to return",
+                                "schema": {"type": "integer"},
+                            },
+                        ),
+                        "responses": {"200": {"description": "ok"}},
+                    },
+                },
+                "/records": {
+                    "get": {
+                        "operationId": "listRecords",
+                        "parameters": (
+                            {
+                                "name": "limit", "in": "query", "required": False,
+                                "description": "the maximum number of records to return",
+                                "schema": {"type": "integer"},
+                            },
+                        ),
+                        "responses": {"200": {"description": "ok"}},
+                    },
+                },
+            },
+        };
+
+        # asserted in both build orders, because the bug this covers was an order dependency and an
+        # assertion in one order alone would have passed with it in place
+        code check = sub (list<string> order) {
+            OpenApi3Schema schema = OpenApi3::OpenApi3Loader::fromString(my_make_json(src), True);
+            hash<string, string> desc = {};
+            foreach string path in (order) {
+                OpenApi3::PathItemObject pio = schema.paths.tryMatch(path);
+                OpenApi3::OperationObject op = pio.getOperation("get", path);
+                OpenApi3::ParameterBase param = (pio.parameters + op.parameters).limit;
+                desc{path} = schema.getFieldFromSchema(param.name, param.desc, param.schema, False)
+                    .getDescription();
+            }
+            assertEq("the maximum number of widgets to return", desc."/widgets", sprintf("order %y", order));
+            assertEq("the maximum number of records to return", desc."/records", sprintf("order %y", order));
+        };
+        check(("/widgets", "/records"));
+        check(("/records", "/widgets"));
+    }
+
     testSelfReferentialSchemas() {
         checkModules();
 

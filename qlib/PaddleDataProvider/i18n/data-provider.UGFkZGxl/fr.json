@@ -1268,8 +1268,8 @@
           "message": "Renvoyer uniquement ces transactions"
         },
         "app.UGFkZGxl.action.bGlzdF90cmFuc2FjdGlvbnM.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "Trier les entités renvoyées selon le champ et la direction spécifiés (`[ASC]` ou `[DESC]`). Par exemple, `?order_by=id[ASC]`.\n\nChamps valides pour le tri : `id`."
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `billed_at`, `created_at`, `id`, and `updated_at`.",
+          "message": "Trie les entités renvoyées selon le champ et le sens indiqués (`[ASC]` ou `[DESC]`). Par exemple, `?order_by=id[ASC]`.\n\nChamps valides pour le tri : `billed_at`, `created_at`, `id`, et `updated_at`."
         },
         "app.UGFkZGxl.action.bGlzdF90cmFuc2FjdGlvbnM.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",
@@ -1544,8 +1544,8 @@
           "message": "Renvoyer uniquement ces produits"
         },
         "app.UGFkZGxl.action.bGlzdF9wcm9kdWN0cw.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "Trier les entités renvoyées selon le champ et la direction spécifiés (`[ASC]` ou `[DESC]`). Par exemple, `?order_by=id[ASC]`.\n\nChamps valides pour le tri : `id`."
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `created_at`, `custom_data`, `description`, `id`, `image_url`, `name`, `status`, `tax_category`, and `updated_at`.",
+          "message": "Trie les entités renvoyées selon le champ et le sens indiqués (`[ASC]` ou `[DESC]`). Par exemple, `?order_by=id[ASC]`.\n\nChamps valides pour le tri : `created_at`, `custom_data`, `description`, `id`, `image_url`, `name`, `status`, `tax_category`, et `updated_at`."
         },
         "app.UGFkZGxl.action.bGlzdF9wcm9kdWN0cw.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",
@@ -1712,8 +1712,8 @@
           "message": "Renvoyer uniquement ces prix"
         },
         "app.UGFkZGxl.action.bGlzdF9wcmljZXM.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "Trier les entités renvoyées selon le champ et la direction spécifiés (`[ASC]` ou `[DESC]`). Par exemple, `?order_by=id[ASC]`.\n\nChamps valides pour le tri : `id`."
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `billing_cycle.frequency`, `billing_cycle.interval`, `id`, `product_id`, `quantity.maximum`, `quantity.minimum`, `status`, `tax_mode`, `unit_price.amount`, and `unit_price.currency_code`.",
+          "message": "Trie les entités renvoyées selon le champ et le sens indiqués (`[ASC]` ou `[DESC]`). Par exemple, `?order_by=id[ASC]`.\n\nChamps valides pour le tri : `billing_cycle.frequency`, `billing_cycle.interval`, `id`, `product_id`, `quantity.maximum`, `quantity.minimum`, `status`, `tax_mode`, `unit_price.amount`, et `unit_price.currency_code`."
         },
         "app.UGFkZGxl.action.bGlzdF9wcmljZXM.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",

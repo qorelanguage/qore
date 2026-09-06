@@ -96,8 +96,8 @@
           "message": "Commit-Berichte auflisten"
         },
         "app.Qml0YnVja2V0.action.Z2V0UmVwb3J0c0ZvckNvbW1pdA.option.Y29tbWl0.desc": {
-          "source": "The commit's SHA1.",
-          "message": "Der SHA1-Wert des Commits."
+          "source": "The commit for which to retrieve reports.",
+          "message": "Der Commit, für den Berichte abgerufen werden sollen."
         },
         "app.Qml0YnVja2V0.action.Z2V0UmVwb3J0c0ZvckNvbW1pdA.option.Y29tbWl0.display_name": {
           "source": "Commit",
@@ -984,8 +984,8 @@
           "message": "Ein Commit-Hash, ein Branch-Name oder ein Tag"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfY29tbWl0X2NvbW1pdF9jb21tZW50c19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\nFeld, nach dem die Ergebnisse gemäß [Filtern und Sortieren](/cloud/bitbucket/rest/intro/#filtering) sortiert werden sollen.\n        "
+          "source": "Field by which the results should be sorted as per\n[filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n",
+          "message": "Feld, nach dem die Ergebnisse sortiert werden sollen, gemäß\n[Filtern und Sortieren](/cloud/bitbucket/rest/intro/#filtering).\n"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfY29tbWl0X2NvbW1pdF9jb21tZW50c19nZXQ.option.c29ydA.display_name": {
           "source": "Sort By",
@@ -2280,8 +2280,8 @@
           "message": "Branches auflisten"
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfcmVmc19icmFuY2hlc19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\nFeld, nach dem die Ergebnisse gemäß [Filtern und Sortieren](/cloud/bitbucket/rest/intro/#filtering) sortiert werden sollen.\n        "
+          "source": "\nField by which the results should be sorted as per\n[filtering and sorting](/cloud/bitbucket/rest/intro/#filtering). The `name`\nfield is handled specially for branches in that, if specified as the sort field, it\nuses a natural sort order instead of the default lexicographical sort order. For example,\nit will return ['branch1', 'branch2', 'branch10'] instead of ['branch1', 'branch10', 'branch2'].",
+          "message": "\nFeld, nach dem die Ergebnisse sortiert werden sollen, gemäß\n[Filtern und Sortieren](/cloud/bitbucket/rest/intro/#filtering). Das Feld `name`\nwird bei Branches gesondert behandelt: Wird es als Sortierfeld angegeben, gilt\neine natürliche statt der standardmäßigen lexikografischen Sortierreihenfolge. Beispielsweise\nwird ['branch1', 'branch2', 'branch10'] statt ['branch1', 'branch10', 'branch2'] zurückgegeben."
         },
         "app.Qml0YnVja2V0.action.cmVwb3NpdG9yaWVzX3dvcmtzcGFjZV9yZXBvX3NsdWdfcmVmc19icmFuY2hlc19nZXQ.option.c29ydA.display_name": {
           "source": "Sort By",
@@ -2496,8 +2496,8 @@
           "message": "Nur Workspaces zurückgeben, die mit den Anmeldedaten verwaltet werden"
         },
         "app.Qml0YnVja2V0.action.d29ya3NwYWNlc19nZXQ.option.c29ydA.desc": {
-          "source": "\nField by which the results should be sorted as per [filtering and sorting](/cloud/bitbucket/rest/intro/#filtering).\n        ",
-          "message": "\nFeld, nach dem die Ergebnisse gemäß [Filtern und Sortieren](/cloud/bitbucket/rest/intro/#filtering) sortiert werden sollen.\n        "
+          "source": "Name of a response property to sort results (only slug is supported).",
+          "message": "Name einer Antwort-Eigenschaft zum Sortieren der Ergebnisse (nur slug wird unterstützt)."
         },
         "app.Qml0YnVja2V0.action.d29ya3NwYWNlc19nZXQ.option.c29ydA.display_name": {
           "source": "Sort By",

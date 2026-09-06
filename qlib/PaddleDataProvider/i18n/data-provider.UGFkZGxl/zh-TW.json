@@ -1268,8 +1268,8 @@
           "message": "僅傳回這些交易"
         },
         "app.UGFkZGxl.action.bGlzdF90cmFuc2FjdGlvbnM.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "依指定欄位和方向（`[ASC]` 或 `[DESC]`）排序傳回的實體。例如 `?order_by=id[ASC]`。\n\n可用於排序的欄位：`id`。"
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `billed_at`, `created_at`, `id`, and `updated_at`.",
+          "message": "依指定的欄位與方向（`[ASC]` 或 `[DESC]`）排序傳回的實體。 例如 `?order_by=id[ASC]`。\n\n可用於排序的欄位： `billed_at`, `created_at`, `id`, 與 `updated_at`."
         },
         "app.UGFkZGxl.action.bGlzdF90cmFuc2FjdGlvbnM.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",
@@ -1544,8 +1544,8 @@
           "message": "僅傳回這些產品"
         },
         "app.UGFkZGxl.action.bGlzdF9wcm9kdWN0cw.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "依指定欄位和方向（`[ASC]` 或 `[DESC]`）排序傳回的實體。例如 `?order_by=id[ASC]`。\n\n可用於排序的欄位：`id`。"
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `created_at`, `custom_data`, `description`, `id`, `image_url`, `name`, `status`, `tax_category`, and `updated_at`.",
+          "message": "依指定的欄位與方向（`[ASC]` 或 `[DESC]`）排序傳回的實體。 例如 `?order_by=id[ASC]`。\n\n可用於排序的欄位： `created_at`, `custom_data`, `description`, `id`, `image_url`, `name`, `status`, `tax_category`, 與 `updated_at`."
         },
         "app.UGFkZGxl.action.bGlzdF9wcm9kdWN0cw.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",
@@ -1712,8 +1712,8 @@
           "message": "僅傳回這些價格"
         },
         "app.UGFkZGxl.action.bGlzdF9wcmljZXM.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "依指定欄位和方向（`[ASC]` 或 `[DESC]`）排序傳回的實體。例如 `?order_by=id[ASC]`。\n\n可用於排序的欄位：`id`。"
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `billing_cycle.frequency`, `billing_cycle.interval`, `id`, `product_id`, `quantity.maximum`, `quantity.minimum`, `status`, `tax_mode`, `unit_price.amount`, and `unit_price.currency_code`.",
+          "message": "依指定的欄位與方向（`[ASC]` 或 `[DESC]`）排序傳回的實體。 例如 `?order_by=id[ASC]`。\n\n可用於排序的欄位： `billing_cycle.frequency`, `billing_cycle.interval`, `id`, `product_id`, `quantity.maximum`, `quantity.minimum`, `status`, `tax_mode`, `unit_price.amount`, 與 `unit_price.currency_code`."
         },
         "app.UGFkZGxl.action.bGlzdF9wcmljZXM.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",

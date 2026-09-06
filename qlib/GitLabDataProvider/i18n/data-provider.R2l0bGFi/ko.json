@@ -196,8 +196,8 @@
           "message": "asc(오름차순) 또는 desc(내림차순)로 정렬"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHM.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "검색 기준과 일치하는 브랜치 목록 반환"
+          "source": "Search for a specific group",
+          "message": "특정 그룹을 검색합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHM.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -412,16 +412,16 @@
           "message": "멤버의 시트 정보 표시"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZE1lbWJlcnM.option.c2tpcF91c2Vycw.desc": {
-          "source": "Filter out users with the specified IDs",
-          "message": "지정된 ID의 사용자 필터링 제외"
+          "source": "Array of user ids to be skipped for membership",
+          "message": "멤버십에서 건너뛸 사용자 ID 배열"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZE1lbWJlcnM.option.c2tpcF91c2Vycw.display_name": {
           "source": "Skip Users",
           "message": "건너뛸 사용자"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZE1lbWJlcnM.option.c2tpcF91c2Vycw.short_desc": {
-          "source": "Filter out users with the specified IDs",
-          "message": "지정된 ID의 사용자 필터링 제외"
+          "source": "Array of user ids to be skipped for membership",
+          "message": "멤버십에서 건너뛸 사용자 ID 배열"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZE1lbWJlcnM.option.cGFnZQ.desc": {
           "source": "Current page number",
@@ -532,7 +532,7 @@
           "message": "그룹 변수 가져오기"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZFZhcmlhYmxlc0tleQ.option.a2V5.desc": {
-          "source": "The key of a variable",
+          "source": "The key of the variable",
           "message": "변수의 키"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZFZhcmlhYmxlc0tleQ.option.a2V5.display_name": {
@@ -540,7 +540,7 @@
           "message": "키"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZFZhcmlhYmxlc0tleQ.option.a2V5.short_desc": {
-          "source": "The key of a variable",
+          "source": "The key of the variable",
           "message": "변수의 키"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZFZhcmlhYmxlc0tleQ.option.aWQ.desc": {
@@ -1224,8 +1224,8 @@
           "message": "반환할 이슈의 대상"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRJc3N1ZXM.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "검색 기준과 일치하는 브랜치 목록 반환"
+          "source": "Search issues for text present in the title, description, or any combination of these",
+          "message": "제목, 설명 또는 이들의 조합에 포함된 텍스트로 이슈를 검색합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRJc3N1ZXM.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -2120,8 +2120,8 @@
           "message": "지정된 범위의 이슈 반환: 'created_by_me', 'assigned_to_me' 또는 'all'"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkSXNzdWVz.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "검색 기준과 일치하는 브랜치 목록 반환"
+          "source": "Search issues for text present in the title, description, or any combination of these",
+          "message": "제목, 설명 또는 이들의 조합에 포함된 텍스트로 이슈를 검색합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkSXNzdWVz.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -2372,16 +2372,16 @@
           "message": "멤버의 시트 정보 표시"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVtYmVycw.option.c2tpcF91c2Vycw.desc": {
-          "source": "Filter out users with the specified IDs",
-          "message": "지정된 ID의 사용자 필터링 제외"
+          "source": "Array of user ids to be skipped for membership",
+          "message": "멤버십에서 건너뛸 사용자 ID 배열"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVtYmVycw.option.c2tpcF91c2Vycw.display_name": {
           "source": "Skip Users",
           "message": "건너뛸 사용자"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVtYmVycw.option.c2tpcF91c2Vycw.short_desc": {
-          "source": "Filter out users with the specified IDs",
-          "message": "지정된 ID의 사용자 필터링 제외"
+          "source": "Array of user ids to be skipped for membership",
+          "message": "멤버십에서 건너뛸 사용자 ID 배열"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVtYmVycw.option.cGFnZQ.desc": {
           "source": "Current page number",
@@ -2528,28 +2528,28 @@
           "message": "병합 요청 목록 조회"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues created after the specified time",
-          "message": "지정된 시간 이후에 생성된 이슈를 반환합니다"
+          "source": "Returns merge requests created on or after the given time. Expected in ISO 8601 format.",
+          "message": "지정한 시각 이후(포함)에 생성된 병합 요청을 반환합니다. ISO 8601 형식이어야 합니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9hZnRlcg.display_name": {
           "source": "Created After",
           "message": "생성일 이후"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues created after the specified time",
-          "message": "지정된 시간 이후에 생성된 이슈를 반환합니다"
+          "source": "Returns merge requests created on or after the given time",
+          "message": "지정한 시각 이후(포함)에 생성된 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues created before the specified time",
-          "message": "지정된 시간 이전에 생성된 이슈를 반환합니다"
+          "source": "Returns merge requests created on or before the given time. Expected in ISO 8601 format.",
+          "message": "지정한 시각 이전(포함)에 생성된 병합 요청을 반환합니다. ISO 8601 형식이어야 합니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9iZWZvcmU.display_name": {
           "source": "Created Before",
           "message": "생성일 이전"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.Y3JlYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues created before the specified time",
-          "message": "지정된 시간 이전에 생성된 이슈를 반환합니다"
+          "source": "Returns merge requests created on or before the given time",
+          "message": "지정한 시각 이전(포함)에 생성된 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXBwcm92ZWRfYnlfaWRz.desc": {
           "source": "Return merge requests which have been approved by the specified users with the given IDs",
@@ -2588,52 +2588,52 @@
           "message": "지정된 ID의 사용자를 승인자로 지정한 병합 요청 반환…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfaWQ.desc": {
-          "source": "Return issues which are assigned to the user with the given ID",
-          "message": "지정된 ID를 가진 사용자에게 할당된 이슈를 반환합니다"
+          "source": "Returns merge requests assigned to the given user `id`. `None` returns unassigned merge requests. `Any` returns merge requests with an assignee.",
+          "message": "지정한 사용자 `id` 에 할당된 병합 요청을 반환합니다. `None` 은 할당되지 않은 병합 요청을 반환합니다. `Any` 는 담당자가 있는 병합 요청을 반환합니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfaWQ.display_name": {
           "source": "Assignee",
           "message": "담당자"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfaWQ.short_desc": {
-          "source": "Return issues which are assigned to the user with the given ID",
-          "message": "지정된 ID를 가진 사용자에게 할당된 이슈를 반환합니다"
+          "source": "Returns merge requests assigned to the given user 'id'",
+          "message": "지정한 사용자 'id' 에 할당된 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfdXNlcm5hbWU.desc": {
-          "source": "Return issues which are assigned to the user with the given username",
-          "message": "지정된 사용자 이름을 가진 사용자에게 할당된 이슈를 반환합니다"
+          "source": "Returns merge requests created by the given `username`. Mutually exclusive with `author_id`.",
+          "message": "지정한 `username` 이(가) 만든 병합 요청을 반환합니다. `author_id` 와 함께 사용할 수 없습니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfdXNlcm5hbWU.display_name": {
           "source": "Assignee Username",
           "message": "담당자 사용자 이름"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXNzaWduZWVfdXNlcm5hbWU.short_desc": {
-          "source": "Return issues which are assigned to the user with the given username",
-          "message": "지정된 사용자 이름을 가진 사용자에게 할당된 이슈를 반환합니다"
+          "source": "Returns merge requests created by the given 'username'",
+          "message": "지정한 'username' 이(가) 만든 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX2lk.desc": {
-          "source": "Return issues which are authored by the user with the given ID",
-          "message": "지정된 ID를 가진 사용자가 작성한 이슈를 반환합니다"
+          "source": "Returns merge requests created by the given user `id`. Mutually exclusive with `author_username`. Combine with `scope=all` or `scope=assigned_to_me`.",
+          "message": "지정한 사용자 `id` 가 만든 병합 요청을 반환합니다. `author_username` 과 함께 사용할 수 없습니다. `scope=all` 또는 `scope=assigned_to_me` 와 함께 사용하십시오."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX2lk.display_name": {
           "source": "Author",
           "message": "작성자"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX2lk.short_desc": {
-          "source": "Return issues which are authored by the user with the given ID",
-          "message": "지정된 ID를 가진 사용자가 작성한 이슈를 반환합니다"
+          "source": "Returns merge requests created by the given user 'id'",
+          "message": "지정한 사용자 'id' 가 만든 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX3VzZXJuYW1l.desc": {
-          "source": "Return issues which are authored by the user with the given username",
-          "message": "지정된 사용자 이름을 가진 사용자가 작성한 이슈를 반환합니다"
+          "source": "Returns merge requests created by the given `username`. Mutually exclusive with `author_id`.",
+          "message": "지정한 `username` 이(가) 만든 병합 요청을 반환합니다. `author_id` 와 함께 사용할 수 없습니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX3VzZXJuYW1l.display_name": {
           "source": "Author Username",
           "message": "작성자 사용자 이름"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.YXV0aG9yX3VzZXJuYW1l.short_desc": {
-          "source": "Return issues which are authored by the user with the given username",
-          "message": "지정된 사용자 이름을 가진 사용자가 작성한 이슈를 반환합니다"
+          "source": "Returns merge requests created by the given 'username'",
+          "message": "지정한 'username' 이(가) 만든 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.ZGVwbG95ZWRfYWZ0ZXI.desc": {
           "source": "Returns merge requests deployed after the given date/time. Expected in ISO 8601 format",
@@ -2684,16 +2684,16 @@
           "message": "지정된 환경에 배포된 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aW4.desc": {
-          "source": "`title`, `description`, or a string joining them with comma",
-          "message": "`title`, `description` 또는 이들을 쉼표로 연결한 문자열"
+          "source": "Modify the scope of the search attribute. `title`, `description`, or a string joining them with comma.",
+          "message": "검색 속성의 범위를 변경합니다. `title`, `description` 또는 두 값을 쉼표로 연결한 문자열입니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aW4.display_name": {
           "source": "In",
           "message": "In"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aW4.short_desc": {
-          "source": "'title', 'description', or a string joining them with comma",
-          "message": "'title', 'description' 또는 이들을 쉼표로 연결한 문자열"
+          "source": "Modify the scope of the search attribute",
+          "message": "검색 속성의 범위를 변경합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aWQ.desc": {
           "source": "The project this action works on, given as its numeric ID or as its path (`group/project`).\n\nGive the path as it reads; the transport escapes it into the single path segment GitLab expects. A path escaped by hand would be escaped a second time and would not resolve.\n\nEvery other option scoped by a project - branches, issues, members, variables - is listed from this project, so changing it re-reads them.",
@@ -2708,16 +2708,16 @@
           "message": "작업할 프로젝트"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aWlkcw.desc": {
-          "source": "The IID array of issues",
-          "message": "이슈의 IID 배열"
+          "source": "Returns the request having the given `iid`.",
+          "message": "지정한 `iid` 를 가진 요청을 반환합니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aWlkcw.display_name": {
           "source": "Iids",
           "message": "Iids"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.aWlkcw.short_desc": {
-          "source": "The IID array of issues",
-          "message": "이슈의 IID 배열"
+          "source": "Returns the request having the given 'iid'",
+          "message": "지정한 'iid' 를 가진 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.b3JkZXJfYnk.allowed-value.c3RyaW5nOm1lcmdlZF9hdA.display_name": {
           "source": "merged_at",
@@ -2764,16 +2764,16 @@
           "message": "'created_at', 'label_priority' 순으로 정렬된 병합 요청 반환…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bGFiZWxz.desc": {
-          "source": "Comma-separated list of label names",
-          "message": "쉼표로 구분된 레이블 이름 목록"
+          "source": "Returns merge requests matching a comma-separated list of labels. `None` lists all merge requests with no labels. `Any` lists all merge requests with at least one label. Predefined names are case-insensitive.",
+          "message": "쉼표로 구분된 레이블 목록과 일치하는 병합 요청을 반환합니다. `None` 은 레이블이 없는 모든 병합 요청을 나열합니다. `Any` 는 레이블이 하나 이상 있는 모든 병합 요청을 나열합니다. 미리 정의된 이름은 대소문자를 구분하지 않습니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bGFiZWxz.display_name": {
           "source": "Labels",
           "message": "라벨"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bGFiZWxz.short_desc": {
-          "source": "Comma-separated list of label names",
-          "message": "쉼표로 구분된 레이블 이름 목록"
+          "source": "Returns merge requests matching a comma-separated list of labels",
+          "message": "쉼표로 구분된 레이블 목록과 일치하는 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bWVyZ2VfdXNlcl91c2VybmFtZQ.desc": {
           "source": "Returns merge requests which have been merged by the user with the given `username`. Mutually exclusive with `merge_user_id`.",
@@ -2824,40 +2824,40 @@
           "message": "지정된 시간 또는 그 이전에 병합된 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bWlsZXN0b25l.desc": {
-          "source": "Milestone title",
-          "message": "마일스톤 제목"
+          "source": "Returns merge requests for a specific milestone. `None` returns merge requests with no milestone. `Any` returns merge requests that have an assigned milestone.",
+          "message": "특정 마일스톤의 병합 요청을 반환합니다. `None` 은 마일스톤이 없는 병합 요청을 반환합니다. `Any` 는 마일스톤이 할당된 병합 요청을 반환합니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bWlsZXN0b25l.display_name": {
           "source": "Milestone",
           "message": "마일스톤"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bWlsZXN0b25l.short_desc": {
-          "source": "Milestone title",
-          "message": "마일스톤 제목"
+          "source": "Returns merge requests for a specific milestone",
+          "message": "특정 마일스톤의 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bXlfcmVhY3Rpb25fZW1vamk.desc": {
-          "source": "Return issues reacted by the authenticated user by the given emoji",
-          "message": "인증된 사용자가 지정된 이모지로 반응한 이슈를 반환합니다."
+          "source": "Returns merge requests reacted by the authenticated user by the given `emoji`. `None` returns issues not given a reaction. `Any` returns issues given at least one reaction.",
+          "message": "인증된 사용자가 지정한 `emoji` 로 반응한 병합 요청을 반환합니다. `None` 은 반응이 없는 이슈를 반환합니다. `Any` 는 반응이 하나 이상 있는 이슈를 반환합니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bXlfcmVhY3Rpb25fZW1vamk.display_name": {
           "source": "My Reaction Emoji",
           "message": "내 반응 이모지"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bXlfcmVhY3Rpb25fZW1vamk.short_desc": {
-          "source": "Return issues reacted by the authenticated user by the given emoji",
-          "message": "인증된 사용자가 지정된 이모지로 반응한 이슈를 반환합니다."
+          "source": "Returns merge requests reacted by the authenticated user by the given 'emoji'",
+          "message": "인증된 사용자가 지정한 'emoji' 로 반응한 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90.desc": {
-          "source": "Filters by the specified parameters",
-          "message": "지정된 매개변수로 필터링합니다."
+          "source": "Returns merge requests that do not match the parameters supplied",
+          "message": "제공된 매개변수와 일치하지 않는 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90.display_name": {
           "source": "Not",
           "message": "Not"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90.short_desc": {
-          "source": "Filters by the specified parameters",
-          "message": "지정된 매개변수로 필터링합니다."
+          "source": "Returns merge requests that do not match the parameters supplied",
+          "message": "제공된 매개변수와 일치하지 않는 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W215X3JlYWN0aW9uX2Vtb2ppXQ.desc": {
           "source": "`<Negated>` Returns merge requests reacted by the authenticated user by the given `emoji`. `None` returns issues not given a reaction. `Any` returns issues given at least one reaction.",
@@ -2872,40 +2872,40 @@
           "message": "'<부정>' 인증된 사용자가 지정된 이모지로 반응한 병합 요청 반환…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W21pbGVzdG9uZV0.desc": {
-          "source": "Milestone title",
-          "message": "마일스톤 제목"
+          "source": "`<Negated>` Returns merge requests for a specific milestone. `None` returns merge requests with no milestone. `Any` returns merge requests that have an assigned milestone.",
+          "message": "`<Negated>` 특정 마일스톤의 병합 요청을 반환합니다. `None` 은 마일스톤이 없는 병합 요청을 반환합니다. `Any` 는 마일스톤이 할당된 병합 요청을 반환합니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W21pbGVzdG9uZV0.display_name": {
           "source": "Not[milestone]",
           "message": "Not[milestone]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W21pbGVzdG9uZV0.short_desc": {
-          "source": "Milestone title",
-          "message": "마일스톤 제목"
+          "source": "'<Negated>' Returns merge requests for a specific milestone. 'None' returns…",
+          "message": "'<Negated>' 특정 마일스톤의 병합 요청을 반환합니다. 'None' 은 마일스톤이 없는…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl91c2VybmFtZV0.desc": {
-          "source": "Return issues which are not authored by the user with the given username",
-          "message": "지정된 사용자 이름을 가진 사용자가 작성하지 않은 이슈를 반환합니다."
+          "source": "`<Negated>` Returns merge requests created by the given `username`. Mutually exclusive with `author_id`.",
+          "message": "`<Negated>` 지정한 `username` 이(가) 만든 병합 요청을 반환합니다. `author_id` 와 함께 사용할 수 없습니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl91c2VybmFtZV0.display_name": {
           "source": "Not[author Username]",
           "message": "Not[author Username]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl91c2VybmFtZV0.short_desc": {
-          "source": "Return issues which are not authored by the user with the given username",
-          "message": "지정된 사용자 이름을 가진 사용자가 작성하지 않은 이슈를 반환합니다."
+          "source": "'<Negated>' Returns merge requests created by the given 'username'",
+          "message": "'<Negated>' 지정한 'username' 이(가) 만든 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl9pZF0.desc": {
-          "source": "Return issues which are not authored by the user with the given ID",
-          "message": "지정된 ID를 가진 사용자가 작성하지 않은 이슈를 반환합니다."
+          "source": "`<Negated>` Returns merge requests created by the given user `id`. Mutually exclusive with `author_username`. Combine with `scope=all` or `scope=assigned_to_me`.",
+          "message": "`<Negated>` 지정한 사용자 `id` 가 만든 병합 요청을 반환합니다. `author_username` 과 함께 사용할 수 없습니다. `scope=all` 또는 `scope=assigned_to_me` 와 함께 사용하십시오."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl9pZF0.display_name": {
           "source": "Not Authored By",
           "message": "작성자 제외"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl9pZF0.short_desc": {
-          "source": "Return issues which are not authored by the user with the given ID",
-          "message": "지정된 ID를 가진 사용자가 작성하지 않은 이슈를 반환합니다."
+          "source": "'<Negated>' Returns merge requests created by the given user 'id'",
+          "message": "'<Negated>' 지정한 사용자 'id' 가 만든 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2Fzc2lnbmVlX2lkXQ.desc": {
           "source": "`<Negated>` Returns merge requests assigned to the given user `id`. `None` returns unassigned merge requests. `Any` returns merge requests with an assignee.",
@@ -2920,28 +2920,28 @@
           "message": "'<부정>' 지정된 사용자 'id'에 할당된 병합 요청 반환"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2Fzc2lnbmVlX3VzZXJuYW1lXQ.desc": {
-          "source": "Return issues which are not assigned to the user with the given username",
-          "message": "지정된 사용자 이름을 가진 사용자에게 할당되지 않은 이슈를 반환합니다."
+          "source": "`<Negated>` Returns merge requests created by the given `username`. Mutually exclusive with `author_id`.",
+          "message": "`<Negated>` 지정한 `username` 이(가) 만든 병합 요청을 반환합니다. `author_id` 와 함께 사용할 수 없습니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2Fzc2lnbmVlX3VzZXJuYW1lXQ.display_name": {
           "source": "Not[assignee Username]",
           "message": "Not[assignee Username]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2Fzc2lnbmVlX3VzZXJuYW1lXQ.short_desc": {
-          "source": "Return issues which are not assigned to the user with the given username",
-          "message": "지정된 사용자 이름을 가진 사용자에게 할당되지 않은 이슈를 반환합니다."
+          "source": "'<Negated>' Returns merge requests created by the given 'username'",
+          "message": "'<Negated>' 지정한 'username' 이(가) 만든 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2xhYmVsc10.desc": {
-          "source": "Comma-separated list of label names",
-          "message": "쉼표로 구분된 레이블 이름 목록"
+          "source": "`<Negated>` Returns merge requests matching a comma-separated list of labels. `None` lists all merge requests with no labels. `Any` lists all merge requests with at least one label. Predefined names are case-insensitive.",
+          "message": "`<Negated>` 쉼표로 구분된 레이블 목록과 일치하는 병합 요청을 반환합니다. `None` 은 레이블이 없는 모든 병합 요청을 나열합니다. `Any` 는 레이블이 하나 이상 있는 모든 병합 요청을 나열합니다. 미리 정의된 이름은 대소문자를 구분하지 않습니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2xhYmVsc10.display_name": {
           "source": "Not[labels]",
           "message": "Not[labels]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2xhYmVsc10.short_desc": {
-          "source": "Comma-separated list of label names",
-          "message": "쉼표로 구분된 레이블 이름 목록"
+          "source": "'<Negated>' Returns merge requests matching a comma-separated list of labels.…",
+          "message": "'<Negated>' 쉼표로 구분된 레이블 목록과 일치하는 병합 요청을 반환합니다. 'None'…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W3Jldmlld2VyX2lkXQ.desc": {
           "source": "`<Negated>` Returns merge requests which have the user as a reviewer with the given user `id`. `None` returns merge requests with no reviewers. `Any` returns merge requests with any reviewer. Mutually exclusive with `reviewer_username`.",
@@ -3000,16 +3000,16 @@
           "message": "내림차순"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c29ydA.desc": {
-          "source": "Return issues sorted in `asc` or `desc` order.",
-          "message": "`asc` 또는 `desc` 순서로 정렬된 이슈를 반환합니다."
+          "source": "Returns merge requests sorted in `asc` or `desc` order.",
+          "message": "병합 요청을 `asc` 또는 `desc` 순서로 정렬하여 반환합니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c29ydA.display_name": {
           "source": "Sort",
           "message": "정렬"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c29ydA.short_desc": {
-          "source": "Return issues sorted in 'asc' or 'desc' order",
-          "message": "'asc' 또는 'desc' 순으로 정렬된 이슈 반환"
+          "source": "Returns merge requests sorted in 'asc' or 'desc' order",
+          "message": "병합 요청을 'asc' 또는 'desc' 순서로 정렬하여 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c2NvcGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
           "source": "all",
@@ -3048,8 +3048,8 @@
           "message": "지정된 범위의 병합 요청 반환: 'created_by_me', 'assigned_to_me'…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "검색 기준과 일치하는 브랜치 목록 반환"
+          "source": "Search merge requests against their `title` and `description`.",
+          "message": "병합 요청을 `title` 과 `description` 으로 검색합니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -3140,16 +3140,16 @@
           "message": "지정된 사용자명을 검토자로 가진 병합 요청을 반환합니다…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.d2l0aF9sYWJlbHNfZGV0YWlscw.desc": {
-          "source": "Return titles of labels and other details",
-          "message": "레이블 제목 및 기타 세부 정보를 반환합니다."
+          "source": "If `true`, response returns more details for each label in labels field: `:name`,`:color`, `:description`, `:description_html`, `:text_color`",
+          "message": "`true` 이면 응답이 labels 필드의 각 레이블에 대해 다음 정보를 더 반환합니다: `:name`,`:color`, `:description`, `:description_html`, `:text_color`"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.d2l0aF9sYWJlbHNfZGV0YWlscw.display_name": {
           "source": "With Labels Details",
           "message": "레이블 세부 정보 포함"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.d2l0aF9sYWJlbHNfZGV0YWlscw.short_desc": {
-          "source": "Return titles of labels and other details",
-          "message": "레이블 제목 및 기타 세부 정보를 반환합니다."
+          "source": "If 'true', response returns more details for each label in labels field:…",
+          "message": "'true' 이면 응답이 labels 필드의 각 레이블에 대해 다음 정보를 더 반환합니다:…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.d2l0aF9tZXJnZV9zdGF0dXNfcmVjaGVjaw.desc": {
           "source": "If `true`, this projection requests (but does not guarantee) that the `merge_status` field be recalculated asynchronously. Introduced in GitLab 13.0.",
@@ -3196,28 +3196,28 @@
           "message": "지정된 타겟 브랜치가 있는 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "지정된 시간 이후에 업데이트된 이슈를 반환합니다."
+          "source": "Returns merge requests updated on or after the given time. Expected in ISO 8601 format.",
+          "message": "지정한 시각 이후(포함)에 업데이트된 병합 요청을 반환합니다. ISO 8601 형식이어야 합니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9hZnRlcg.display_name": {
           "source": "Updated After",
           "message": "이후 업데이트됨"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "지정된 시간 이후에 업데이트된 이슈를 반환합니다."
+          "source": "Returns merge requests updated on or after the given time",
+          "message": "지정한 시각 이후(포함)에 업데이트된 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "지정된 시간 이전에 업데이트된 이슈를 반환합니다."
+          "source": "Returns merge requests updated on or before the given time. Expected in ISO 8601 format.",
+          "message": "지정한 시각 이전(포함)에 업데이트된 병합 요청을 반환합니다. ISO 8601 형식이어야 합니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9iZWZvcmU.display_name": {
           "source": "Updated Before",
           "message": "이전 업데이트됨"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dXBkYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "지정된 시간 이전에 업데이트된 이슈를 반환합니다."
+          "source": "Returns merge requests updated on or before the given time",
+          "message": "지정한 시각 이전(포함)에 업데이트된 병합 요청을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.dmlldw.allowed-value.c3RyaW5nOnNpbXBsZQ.display_name": {
           "source": "simple",
@@ -3284,28 +3284,28 @@
           "message": "작업할 프로젝트"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.aWlkcw.desc": {
-          "source": "The IID array of issues",
-          "message": "이슈의 IID 배열"
+          "source": "The IIDs of the milestones",
+          "message": "마일스톤의 IID"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.aWlkcw.display_name": {
           "source": "Iids",
           "message": "Iids"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.aWlkcw.short_desc": {
-          "source": "The IID array of issues",
-          "message": "이슈의 IID 배열"
+          "source": "The IIDs of the milestones",
+          "message": "마일스톤의 IID"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "검색 기준과 일치하는 브랜치 목록 반환"
+          "source": "The search criteria for the title or description of the milestone",
+          "message": "마일스톤의 제목 또는 설명에 대한 검색 조건"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.c2VhcmNo.display_name": {
           "source": "Search",
           "message": "검색"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.c2VhcmNo.short_desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "검색 기준과 일치하는 브랜치 목록 반환"
+          "source": "The search criteria for the title or description of the milestone",
+          "message": "마일스톤의 제목 또는 설명에 대한 검색 조건"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.c3RhdGU.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
           "source": "active",
@@ -3368,28 +3368,28 @@
           "message": "마일스톤의 제목"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "지정된 시간 이후에 업데이트된 이슈를 반환합니다."
+          "source": "Return milestones updated after the specified datetime. Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ",
+          "message": "지정한 날짜/시간 이후에 업데이트된 마일스톤을 반환합니다. 형식: ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9hZnRlcg.display_name": {
           "source": "Updated After",
           "message": "이후 업데이트됨"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "지정된 시간 이후에 업데이트된 이슈를 반환합니다."
+          "source": "Return milestones updated after the specified datetime",
+          "message": "지정한 날짜/시간 이후에 업데이트된 마일스톤을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "지정된 시간 이전에 업데이트된 이슈를 반환합니다."
+          "source": "Return milestones updated before the specified datetime. Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ",
+          "message": "지정한 날짜/시간 이전에 업데이트된 마일스톤을 반환합니다. 형식: ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9iZWZvcmU.display_name": {
           "source": "Updated Before",
           "message": "이전 업데이트됨"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.option.dXBkYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "지정된 시간 이전에 업데이트된 이슈를 반환합니다."
+          "source": "Return milestones updated before the specified datetime",
+          "message": "지정한 날짜/시간 이전에 업데이트된 마일스톤을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWlsZXN0b25lcw.short_desc": {
           "source": "List a project's milestones",
@@ -3664,16 +3664,16 @@
           "message": "반환할 결과 페이지(1부터 시작)"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkUmVwb3NpdG9yeUNvbW1pdHM.option.cGFnZV90b2tlbg.desc": {
-          "source": "Name of branch to start the pagination from",
-          "message": "페이지 매김을 시작할 브랜치의 이름"
+          "source": "Record from which to start the keyset pagination",
+          "message": "키셋 페이지네이션을 시작할 레코드"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkUmVwb3NpdG9yeUNvbW1pdHM.option.cGFnZV90b2tlbg.display_name": {
           "source": "Page Token",
           "message": "페이지 토큰"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkUmVwb3NpdG9yeUNvbW1pdHM.option.cGFnZV90b2tlbg.short_desc": {
-          "source": "Name of branch to start the pagination from",
-          "message": "페이지 매김을 시작할 브랜치의 이름"
+          "source": "Record from which to start the keyset pagination",
+          "message": "키셋 페이지네이션을 시작할 레코드"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkUmVwb3NpdG9yeUNvbW1pdHM.option.cGFnaW5hdGlvbg.allowed-value.c3RyaW5nOmtleXNldA.display_name": {
           "source": "keyset",
@@ -3936,16 +3936,16 @@
           "message": "위키 페이지의 URL 슬러그"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.cmVuZGVyX2h0bWw.desc": {
-          "source": "If `true`, response includes rendered HTML for title and description.",
-          "message": "`true`인 경우 응답에 제목과 설명에 대해 렌더링된 HTML이 포함됩니다."
+          "source": "Render content to HTML",
+          "message": "콘텐츠를 HTML로 렌더링합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.cmVuZGVyX2h0bWw.display_name": {
           "source": "Render HTML",
           "message": "HTML 렌더링"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.cmVuZGVyX2h0bWw.short_desc": {
-          "source": "If 'true', response includes rendered HTML for title and description",
-          "message": "'true'인 경우 응답에 제목과 설명에 대해 렌더링된 HTML이 포함됩니다"
+          "source": "Render content to HTML",
+          "message": "콘텐츠를 HTML로 렌더링합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.dmVyc2lvbg.desc": {
           "source": "The version hash of a wiki page",
@@ -3984,16 +3984,16 @@
           "message": "작업할 프로젝트"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkVXNlcnM.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "검색 기준과 일치하는 브랜치 목록 반환"
+          "source": "Return list of users matching the search criteria",
+          "message": "검색 조건과 일치하는 사용자 목록을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkVXNlcnM.option.c2VhcmNo.display_name": {
           "source": "Search",
           "message": "검색"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkVXNlcnM.option.c2VhcmNo.short_desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "검색 기준과 일치하는 브랜치 목록 반환"
+          "source": "Return list of users matching the search criteria",
+          "message": "검색 조건과 일치하는 사용자 목록을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkVXNlcnM.option.c2tpcF91c2Vycw.desc": {
           "source": "Filter out users with the specified IDs",
@@ -4164,16 +4164,16 @@
           "message": "사용자 정의 속성으로 필터링"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.YWN0aXZl.desc": {
-          "source": "Limit by groups that are not archived and not marked for deletion",
-          "message": "보관되지 않고 삭제 대상으로 표시되지 않은 그룹으로 제한"
+          "source": "Limit by projects that are not archived and not marked for deletion",
+          "message": "보관되지 않았고 삭제 대상으로 표시되지 않은 프로젝트로 제한합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.YWN0aXZl.display_name": {
           "source": "Active",
           "message": "활성"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.YWN0aXZl.short_desc": {
-          "source": "Limit by groups that are not archived and not marked for deletion",
-          "message": "보관되지 않고 삭제 대상으로 표시되지 않은 그룹으로 제한"
+          "source": "Limit by projects that are not archived and not marked for deletion",
+          "message": "보관되지 않았고 삭제 대상으로 표시되지 않은 프로젝트로 제한합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.YXJjaGl2ZWQ.desc": {
           "source": "Limit by archived status",
@@ -4344,16 +4344,16 @@
           "message": "지정된 시간 이전에 last_activity가 있는 프로젝트로 결과 제한"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWFya2VkX2Zvcl9kZWxldGlvbl9vbg.desc": {
-          "source": "Return groups that are marked for deletion on this date",
-          "message": "이 날짜에 삭제 대상으로 표시된 그룹 반환"
+          "source": "Date when the project was marked for deletion",
+          "message": "프로젝트가 삭제 대상으로 표시된 날짜"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWFya2VkX2Zvcl9kZWxldGlvbl9vbg.display_name": {
           "source": "Marked for Deletion On",
           "message": "삭제 예정 날짜"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWFya2VkX2Zvcl9kZWxldGlvbl9vbg.short_desc": {
-          "source": "Return groups that are marked for deletion on this date",
-          "message": "이 날짜에 삭제 대상으로 표시된 그룹 반환"
+          "source": "Date when the project was marked for deletion",
+          "message": "프로젝트가 삭제 대상으로 표시된 날짜"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWVtYmVyc2hpcA.desc": {
           "source": "Limit by projects that the current user is a member of",
@@ -4396,16 +4396,16 @@
           "message": "50"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWluX2FjY2Vzc19sZXZlbA.desc": {
-          "source": "Minimum access level of authenticated user",
-          "message": "인증된 사용자의 최소 액세스 레벨"
+          "source": "Limit by minimum access level of authenticated user",
+          "message": "인증된 사용자의 최소 액세스 수준으로 제한합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWluX2FjY2Vzc19sZXZlbA.display_name": {
           "source": "Min Access Level",
           "message": "최소 액세스 레벨"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.bWluX2FjY2Vzc19sZXZlbA.short_desc": {
-          "source": "Minimum access level of authenticated user",
-          "message": "인증된 사용자의 최소 액세스 레벨"
+          "source": "Limit by minimum access level of authenticated user",
+          "message": "인증된 사용자의 최소 액세스 수준으로 제한합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c29ydA.allowed-value.c3RyaW5nOmFzYw.display_name": {
           "source": "asc",
@@ -4416,20 +4416,20 @@
           "message": "내림차순"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c29ydA.desc": {
-          "source": "Return issues sorted in `asc` or `desc` order.",
-          "message": "`asc` 또는 `desc` 순서로 정렬된 이슈를 반환합니다."
+          "source": "Return projects sorted in ascending and descending order",
+          "message": "오름차순 또는 내림차순으로 정렬된 프로젝트를 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c29ydA.display_name": {
           "source": "Sort",
           "message": "정렬"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c29ydA.short_desc": {
-          "source": "Return issues sorted in 'asc' or 'desc' order",
-          "message": "'asc' 또는 'desc' 순으로 정렬된 이슈 반환"
+          "source": "Return projects sorted in ascending and descending order",
+          "message": "오름차순 또는 내림차순으로 정렬된 프로젝트를 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "검색 기준과 일치하는 브랜치 목록 반환"
+          "source": "Return list of projects matching the search criteria",
+          "message": "검색 조건과 일치하는 프로젝트 목록을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -4524,16 +4524,16 @@
           "message": "저장소 체크섬이 실패한 프로젝트로 제한"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.cmVwb3NpdG9yeV9zdG9yYWdl.desc": {
-          "source": "Filter by repository storage used by the group",
-          "message": "그룹에서 사용하는 저장소 스토리지별로 필터링"
+          "source": "Which storage shard the repository is on. Available only to admins",
+          "message": "저장소가 위치한 스토리지 샤드입니다. 관리자만 사용할 수 있습니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.cmVwb3NpdG9yeV9zdG9yYWdl.display_name": {
           "source": "Repository Storage",
           "message": "저장소 스토리지"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.cmVwb3NpdG9yeV9zdG9yYWdl.short_desc": {
-          "source": "Filter by repository storage used by the group",
-          "message": "그룹에서 사용하는 저장소 스토리지별로 필터링"
+          "source": "Which storage shard the repository is on",
+          "message": "저장소가 위치한 스토리지 샤드"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.d2l0aF9jdXN0b21fYXR0cmlidXRlcw.desc": {
           "source": "Include custom attributes in the response",
@@ -4620,28 +4620,28 @@
           "message": "이 토픽을 포함하는 프로젝트만 반환"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "지정된 시간 이후에 업데이트된 이슈를 반환합니다."
+          "source": "Return projects updated after the specified datetime. Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ",
+          "message": "지정한 날짜/시간 이후에 업데이트된 프로젝트를 반환합니다. 형식: ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9hZnRlcg.display_name": {
           "source": "Updated After",
           "message": "이후 업데이트됨"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues updated after the specified time",
-          "message": "지정된 시간 이후에 업데이트된 이슈를 반환합니다."
+          "source": "Return projects updated after the specified datetime",
+          "message": "지정한 날짜/시간 이후에 업데이트된 프로젝트를 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "지정된 시간 이전에 업데이트된 이슈를 반환합니다."
+          "source": "Return projects updated before the specified datetime. Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ",
+          "message": "지정한 날짜/시간 이전에 업데이트된 프로젝트를 반환합니다. 형식: ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9iZWZvcmU.display_name": {
           "source": "Updated Before",
           "message": "이전 업데이트됨"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dXBkYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues updated before the specified time",
-          "message": "지정된 시간 이전에 업데이트된 이슈를 반환합니다."
+          "source": "Return projects updated before the specified datetime",
+          "message": "지정한 날짜/시간 이전에 업데이트된 프로젝트를 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0cw.option.dmlzaWJpbGl0eQ.allowed-value.c3RyaW5nOmludGVybmFs.display_name": {
           "source": "internal",
@@ -4692,16 +4692,16 @@
           "message": "토픽의 조직 ID"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "검색 기준과 일치하는 브랜치 목록 반환"
+          "source": "Return list of topics matching the search criteria",
+          "message": "검색 조건과 일치하는 토픽 목록을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.c2VhcmNo.display_name": {
           "source": "Search",
           "message": "검색"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.c2VhcmNo.short_desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "검색 기준과 일치하는 브랜치 목록 반환"
+          "source": "Return list of topics matching the search criteria",
+          "message": "검색 조건과 일치하는 토픽 목록을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.cGFnZQ.desc": {
           "source": "Current page number",
@@ -4728,16 +4728,16 @@
           "message": "반환할 레코드 수(최대 100개)"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.d2l0aG91dF9wcm9qZWN0cw.desc": {
-          "source": "Filters only users without projects",
-          "message": "프로젝트가 없는 사용자만 필터링"
+          "source": "Return list of topics without assigned projects",
+          "message": "할당된 프로젝트가 없는 토픽 목록을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.d2l0aG91dF9wcm9qZWN0cw.display_name": {
           "source": "Without Projects",
           "message": "프로젝트 없음"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.option.d2l0aG91dF9wcm9qZWN0cw.short_desc": {
-          "source": "Filters only users without projects",
-          "message": "프로젝트가 없는 사용자만 필터링"
+          "source": "Return list of topics without assigned projects",
+          "message": "할당된 프로젝트가 없는 토픽 목록을 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRUb3BpY3M.short_desc": {
           "source": "List the project topics defined on this instance",
@@ -4752,28 +4752,28 @@
           "message": "사용자 목록"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9hZnRlcg.desc": {
-          "source": "Return issues created after the specified time",
-          "message": "지정된 시간 이후에 생성된 이슈를 반환합니다"
+          "source": "Return users created after the specified time",
+          "message": "지정한 시각 이후에 생성된 사용자를 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9hZnRlcg.display_name": {
           "source": "Created After",
           "message": "생성일 이후"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9hZnRlcg.short_desc": {
-          "source": "Return issues created after the specified time",
-          "message": "지정된 시간 이후에 생성된 이슈를 반환합니다"
+          "source": "Return users created after the specified time",
+          "message": "지정한 시각 이후에 생성된 사용자를 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9iZWZvcmU.desc": {
-          "source": "Return issues created before the specified time",
-          "message": "지정된 시간 이전에 생성된 이슈를 반환합니다"
+          "source": "Return users created before the specified time",
+          "message": "지정한 시각 이전에 생성된 사용자를 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9iZWZvcmU.display_name": {
           "source": "Created Before",
           "message": "생성일 이전"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3JlYXRlZF9iZWZvcmU.short_desc": {
-          "source": "Return issues created before the specified time",
-          "message": "지정된 시간 이전에 생성된 이슈를 반환합니다"
+          "source": "Return users created before the specified time",
+          "message": "지정한 시각 이전에 생성된 사용자를 반환합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.Y3VzdG9tX2F0dHJpYnV0ZXM.desc": {
           "source": "Filter with custom attributes",
@@ -4788,16 +4788,16 @@
           "message": "사용자 정의 속성으로 필터링"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.YWN0aXZl.desc": {
-          "source": "Limit by groups that are not archived and not marked for deletion",
-          "message": "보관되지 않고 삭제 대상으로 표시되지 않은 그룹으로 제한"
+          "source": "Filters only active users",
+          "message": "활성 사용자만 필터링합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.YWN0aXZl.display_name": {
           "source": "Active",
           "message": "활성"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.YWN0aXZl.short_desc": {
-          "source": "Limit by groups that are not archived and not marked for deletion",
-          "message": "보관되지 않고 삭제 대상으로 표시되지 않은 그룹으로 제한"
+          "source": "Filters only active users",
+          "message": "활성 사용자만 필터링합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.YWRtaW5z.desc": {
           "source": "Filters only admin users",
@@ -4972,8 +4972,8 @@
           "message": "오름차순 및 내림차순으로 정렬된 사용자를 반환합니다."
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.c2VhcmNo.desc": {
-          "source": "Return list of branches matching the search criteria",
-          "message": "검색 기준과 일치하는 브랜치 목록 반환"
+          "source": "Search for a username",
+          "message": "사용자 이름을 검색합니다"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRVc2Vycw.option.c2VhcmNo.display_name": {
           "source": "Search",
@@ -5212,16 +5212,16 @@
           "message": "'true'인 경우 멤버는 서브그룹이나 프로젝트의 직접 멤버십을 유지합니다."
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dW5hc3NpZ25faXNzdWFibGVz.desc": {
-          "source": "If `true`, unassigns the member from any issues or merge requests in the project.",
-          "message": "`true`인 경우 프로젝트 내의 모든 이슈 또는 병합 요청에서 멤버의 할당을 해제합니다."
+          "source": "If `true`, unassigns the member from any issues or merge requests in the group.",
+          "message": "'true' 이면 그룹의 모든 이슈나 병합 요청에서 해당 멤버의 담당을 해제합니다"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dW5hc3NpZ25faXNzdWFibGVz.display_name": {
           "source": "Unassign Issuables",
           "message": "발행물 할당 해제"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dW5hc3NpZ25faXNzdWFibGVz.short_desc": {
-          "source": "If 'true', unassigns the member from any issues or merge requests in the project",
-          "message": "'true'이면 프로젝트의 모든 이슈 또는 병합 요청에서 멤버를 할당 해제합니다"
+          "source": "If 'true', unassigns the member from any issues or merge requests in the group",
+          "message": "'true' 이면 그룹의 모든 이슈나 병합 요청에서 해당 멤버의 담당을 해제합니다"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dXNlcl9pZA.desc": {
           "source": "The user ID of the member",
@@ -5584,7 +5584,7 @@
           "message": "사용 가능한 필터: [environment_scope]"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.ZmlsdGVyW2Vudmlyb25tZW50X3Njb3BlXQ.desc": {
-          "source": "The environment scope of a variable",
+          "source": "The environment scope of the variable",
           "message": "변수의 환경 범위"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.ZmlsdGVyW2Vudmlyb25tZW50X3Njb3BlXQ.display_name": {
@@ -5592,7 +5592,7 @@
           "message": "Filter[environment Scope]"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.ZmlsdGVyW2Vudmlyb25tZW50X3Njb3BlXQ.short_desc": {
-          "source": "The environment scope of a variable",
+          "source": "The environment scope of the variable",
           "message": "변수의 환경 범위"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.a2V5.desc": {
@@ -9560,8 +9560,8 @@
           "message": "GitLab 특화 Markdown 형식의 댓글 텍스트"
         },
         "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRzU2hhQ29tbWVudHM.option.c2hh.desc": {
-          "source": "A commit sha, or the name of a branch or tag",
-          "message": "커밋 SHA, 또는 브랜치나 태그의 이름"
+          "source": "A commit sha, or the name of a branch or tag on which to post a comment",
+          "message": "댓글을 게시할 커밋 SHA 또는 브랜치나 태그 이름"
         },
         "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRzU2hhQ29tbWVudHM.option.c2hh.display_name": {
           "source": "Commit",
@@ -10920,8 +10920,8 @@
           "message": "업데이트할 멤버 역할의 ID"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dXNlcl9pZA.desc": {
-          "source": "The user ID of the member",
-          "message": "멤버의 사용자 ID"
+          "source": "The user ID of the new member",
+          "message": "새 멤버의 사용자 ID"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZE1lbWJlcnNVc2VySWQ.option.dXNlcl9pZA.display_name": {
           "source": "User",
@@ -13348,8 +13348,8 @@
           "message": "업데이트할 멤버 역할의 ID"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkTWVtYmVyc1VzZXJJZA.option.dXNlcl9pZA.desc": {
-          "source": "The user ID of the member",
-          "message": "멤버의 사용자 ID"
+          "source": "The user ID of the new member",
+          "message": "새 멤버의 사용자 ID"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkTWVtYmVyc1VzZXJJZA.option.dXNlcl9pZA.display_name": {
           "source": "User",

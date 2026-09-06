@@ -12,8 +12,8 @@
           "message": "Smazat kontakt"
         },
         "app.SW50ZXJjb20.action.RGVsZXRlQ29udGFjdA.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "Jedinečný identifikátor kontaktu přidělený službou Intercom"
+          "source": "contact_id",
+          "message": "contact_id"
         },
         "app.SW50ZXJjb20.action.RGVsZXRlQ29udGFjdA.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -148,8 +148,8 @@
           "message": "Získat kontakt"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "Jedinečný identifikátor kontaktu přidělený službou Intercom"
+          "source": "contact_id",
+          "message": "contact_id"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -160,16 +160,16 @@
           "message": "Kontakt, kterého se to týká"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.desc": {
-          "source": "Pass `true` to include a `merge_history` array on each contact in the response. Only returned for contacts with a `user` role.",
-          "message": "Předejte `true` pro zahrnutí pole `merge_history` u každého kontaktu v odpovědi. Vrací se pouze pro kontakty s rolí `user`."
+          "source": "Pass `true` to include the contact's merge history in the response. Only returned for contacts with a `user` role.",
+          "message": "Předejte `true`, chcete-li do odpovědi zahrnout historii sloučení kontaktu. Vrací se pouze u kontaktů s rolí `user`."
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.display_name": {
           "source": "Include Merge History",
           "message": "Zahrnout historii sloučení"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.short_desc": {
-          "source": "Pass 'true' to include a 'merge_history' array on each contact in the response",
-          "message": "Předáním 'true' zahrnete pole 'merge_history' u každého kontaktu v odpovědi"
+          "source": "Pass 'true' to include the contact's merge history in the response",
+          "message": "Předejte 'true', chcete-li do odpovědi zahrnout historii sloučení kontaktu"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.short_desc": {
           "source": "Retrieve a contact by its identity",
@@ -316,8 +316,8 @@
           "message": "Aktualizovat kontakt"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "Jedinečný identifikátor kontaktu přidělený službou Intercom"
+          "source": "id",
+          "message": "id"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -388,16 +388,16 @@
           "message": "Jedinečný identifikátor kontaktu předávaný systému Intercom"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.desc": {
-          "source": "Pass `true` to include a `merge_history` array on each contact in the response. Only returned for contacts with a `user` role.",
-          "message": "Předejte `true` pro zahrnutí pole `merge_history` u každého kontaktu v odpovědi. Vrací se pouze pro kontakty s rolí `user`."
+          "source": "Pass `true` to include the contact's merge history in the response. Only returned for contacts with a `user` role.",
+          "message": "Předejte `true`, chcete-li do odpovědi zahrnout historii sloučení kontaktu. Vrací se pouze u kontaktů s rolí `user`."
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.display_name": {
           "source": "Include Merge History",
           "message": "Zahrnout historii sloučení"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.short_desc": {
-          "source": "Pass 'true' to include a 'merge_history' array on each contact in the response",
-          "message": "Předáním 'true' zahrnete pole 'merge_history' u každého kontaktu v odpovědi"
+          "source": "Pass 'true' to include the contact's merge history in the response",
+          "message": "Předejte 'true', chcete-li do odpovědi zahrnout historii sloučení kontaktu"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.b3duZXJfaWQ.desc": {
           "source": "The id of an admin that has been assigned account ownership of the contact",
@@ -1336,8 +1336,8 @@
           "message": "Smazat štítek"
         },
         "app.SW50ZXJjb20.action.ZGVsZXRlVGFn.option.dGFnX2lk.desc": {
-          "source": "The unique identifier for the tag which is given by Intercom",
-          "message": "Jedinečný identifikátor štítku přidělený službou Intercom"
+          "source": "The unique identifier of a given tag",
+          "message": "Jedinečný identifikátor daného tagu"
         },
         "app.SW50ZXJjb20.action.ZGVsZXRlVGFn.option.dGFnX2lk.display_name": {
           "source": "Tag",
@@ -1360,8 +1360,8 @@
           "message": "Získat štítek"
         },
         "app.SW50ZXJjb20.action.ZmluZFRhZw.option.dGFnX2lk.desc": {
-          "source": "The unique identifier for the tag which is given by Intercom",
-          "message": "Jedinečný identifikátor štítku přidělený službou Intercom"
+          "source": "The unique identifier of a given tag",
+          "message": "Jedinečný identifikátor daného tagu"
         },
         "app.SW50ZXJjb20.action.ZmluZFRhZw.option.dGFnX2lk.display_name": {
           "source": "Tag",

@@ -84,6 +84,15 @@ module RestSchemaValidator {
       - @ref RestSchemaValidator::AbstractComposableSchemaObject "AbstractComposableSchemaObject": allOf/oneOf/anyOf/not composition
       - @ref RestSchemaValidator::AbstractRestSchemaObject "AbstractRestSchemaObject": shared REST schema object methods
     - fixed Swagger min/max error messages that incorrectly reported maximum instead of minimum values
+    - fixed two parameters that share a name and a schema sharing one another's documentation: the derived
+      field was cached under the parameter name alone, although a field also carries what the **use**
+      supplies - its own description and default value - so whichever operation was registered second
+      published the first one's.  The cached field is still shared, because it is also what stops a
+      recursive property from recursing forever, and a use whose description or default differs from it now
+      gets its own copy over the same type
+    - fixed a parameter description being joined to its schema's when one already contains the other, which
+      published a repeated sentence such as \c "Agent run ID.: Agent run ID. New run IDs are returned with
+      the \c agent_run_ prefix."; whichever says more is now kept
     - fixed a bug where a response with a non-text \c Content-Type and a binary body raised
       \c DESERIALIZATION-ERROR; the check assumed every body arrives as a string, which holds for the synchronous
       \c HTTPClient path but not for the asynchronous transport used by the \c RestClientIo module, making binary
@@ -1189,7 +1198,40 @@ public namespace RestSchemaValidator {
 
         private {
             #! maps fields: name -> {Y,N} -> field
+            /** The canonical field for a name, and also the **recursion cut**:
+                @ref getFieldIntern() registers a field here before building its type and then updates
+                that same field in place, so a property on the far side of a cycle is handed the very
+                same object and still ends up with the real type.
+
+                It is therefore keyed by the name alone and has to stay that way: keying it by anything a
+                *use* supplies means a recursive re-entry with a different description misses the
+                placeholder, and the type built at that depth is the incomplete one.  Per-use differences
+                live in @ref usemap instead.
+            */
             hash<string, hash<string, AbstractDataField>> fieldmap;
+
+            #! maps per-use fields: use key -> {Y,N} -> field
+            /** A schema object is interned by its content, so two parameters with the same name and the
+                same schema are one object.  That is right for the type, which the schema determines
+                completely, and wrong for the field: a field also carries what the **use** supplies - its
+                own description and default value.  Publishing the canonical field for every use gave
+                whichever operation was registered second the first one's documentation.
+
+                A use that differs from the one the canonical field was built from gets a copy carrying
+                its own description and default over the canonical (finished) type.
+            */
+            hash<string, hash<string, AbstractDataField>> usemap;
+
+            #! The use key each name's canonical field was built from
+            hash<string, string> field_use;
+
+            #! Names whose canonical field is being built right now
+            /** A field in here is the recursion cut and is deliberately incomplete: its type is a
+                placeholder that is replaced in place once the build finishes.  Copying one would keep the
+                placeholder forever, so a use that arrives while its name is in here takes the canonical
+                field, exactly as every use did before per-use copies existed.
+            */
+            hash<string, bool> building;
         }
 
         #! Returns the data provider type for a given type/format/items path
@@ -1346,21 +1388,112 @@ public namespace RestSchemaValidator {
         #! Returns a field definition from the schema parameter
         AbstractDataField getField(string name, *string desc, bool required = True, *object rest,
                 auto default_value) {
-            string rstr = required ? "Y" : "N";
-            if (*AbstractDataField rv = getCacheField(\fieldmap{name}, rstr)) {
-                return rv;
-            }
-            return getFieldIntern(name, name, desc, required, rest, default_value, rstr);
+            return getFieldForUse(name, name, desc, required, rest, default_value);
         }
 
         #! Returns a field definition from the schema parameter
         AbstractDataField getField(string path, string name, *string desc, bool required = True, *object rest,
                 auto default_value) {
+            return getFieldForUse(path, name, desc, required, rest, default_value);
+        }
+
+        #! Returns the field for one use of this schema, building or decorating it as needed
+        private AbstractDataField getFieldForUse(string path, string name, *string desc, bool required,
+                *object rest, auto default_value) {
             string rstr = required ? "Y" : "N";
-            if (*AbstractDataField rv = getCacheField(\fieldmap{name}, rstr)) {
+            string ukey = AbstractRestSchemaObject::getFieldUseKey(name, desc, default_value);
+            if (*AbstractDataField rv = getCacheField(\usemap{ukey}, rstr)) {
                 return rv;
             }
-            return getFieldIntern(path, name, desc, required, rest, default_value, rstr);
+            if (*AbstractDataField rv = getCacheField(\fieldmap{name}, rstr)) {
+                return decorateField(rv, ukey, name, desc, required, default_value, rstr);
+            }
+            return decorateField(getFieldIntern(path, name, desc, required, rest, default_value, rstr, ukey),
+                ukey, name, desc, required, default_value, rstr);
+        }
+
+        #! Returns the key identifying one **use** of this schema as a field
+        /** @param name the field name
+            @param desc the description supplied by the use, before this schema's own is merged into it
+            @param default_value the default value supplied by the use
+
+            @return the use key
+
+            @note The common case - no description and no default - keeps the name as its own key rather
+            than paying for a digest; the two forms cannot collide because each carries its own prefix.
+        */
+        private static string getFieldUseKey(string name, *string desc, auto default_value) {
+            if (!desc.val() && !exists default_value) {
+                return "n:" + name;
+            }
+            return "h:" + sprintf("%y\n%y\n%y", name, desc, default_value).toSHA256();
+        }
+
+        #! Returns the field a use should see, which is a copy when it differs from the canonical one
+        /** @param canonical the field cached under this name
+            @param ukey the use key
+            @param name the field name
+            @param desc the description supplied by the use, before this schema's own is merged into it
+            @param required whether the use declares the field required
+            @param default_value the default value supplied by the use
+            @param rstr the requiredness cache key
+
+            @return the field for this use
+
+            @note A use that arrives while the canonical field is still being built takes it as it is; see
+            @ref building.
+        */
+        private AbstractDataField decorateField(AbstractDataField canonical, string ukey, string name,
+                *string desc, bool required, auto default_value, string rstr) {
+            if (building{name} || field_use{name} == ukey) {
+                return canonical;
+            }
+            # built exactly as getFieldIntern() builds the canonical field, and given its finished type the
+            # same way: the schema's enum values are hash keys and therefore strings, and it is
+            # updateFieldType() that converts them to the type they belong to.  Constructing the copy with
+            # the final type instead leaves an integer enum published as a list of strings.
+            QoreDataField rv({
+                "name": name,
+                "desc": getMergedFieldDesc(desc),
+                "type": AutoType,
+                "allowed_values": keys enumValues,
+                "default_value": default_value,
+            } + ((type == "object" || hasSchemaCompositionFeatures()) && required ? {
+                "attr": {
+                    "preselected": True,
+                    "required": True,
+                },
+            } : NOTHING));
+            rv.updateFieldType(canonical.getType());
+            usemap{ukey}{rstr} = rv;
+            return rv;
+        }
+
+        #! Returns the description a field carries, with this schema's own merged into the use's
+        /** @param desc the description supplied by the use
+
+            @return the description to give the field, never @ref nothing
+        */
+        private string getMergedFieldDesc(*string desc) {
+            if (self.desc.val()) {
+                # a parameter and the schema it points at often carry the same text - every document
+                # FastAPI generates does this - and joining those gives "X: X", which is what the
+                # user then reads on the option.  One being a prefix of the other is the same case
+                # with one side merely saying more: Exa documents an agent run id as "Agent run ID."
+                # on the parameter and "Agent run ID. New run IDs are returned with the `agent_run_`
+                # prefix." on the schema, and joining those repeats the first sentence.  Keep
+                # whichever says more instead
+                string schema_desc = trim(self.desc);
+                string param_desc = desc.val() ? trim(desc) : "";
+                if (!param_desc.val()) {
+                    desc = self.desc;
+                } else if (param_desc == schema_desc || schema_desc.find(param_desc) == 0) {
+                    desc = self.desc;
+                } else if (param_desc.find(schema_desc) != 0) {
+                    desc += ": " + self.desc;
+                }
+            }
+            return desc.val() ? desc.getDecoded(CE_XHTML) : "";
         }
 
         #! Returns a field object from the given cache
@@ -1384,28 +1517,26 @@ public namespace RestSchemaValidator {
 
         #! Returns a field definition from the schema parameter
         private AbstractDataField getFieldIntern(string path, string name, *string desc, bool required = True,
-                *object rest, auto default_value, *string rstr) {
+                *object rest, auto default_value, *string rstr, *string ukey) {
             if (!rstr) {
                 rstr = required ? "Y" : "N";
             }
-            if (self.desc.val()) {
-                # a parameter and the schema it points at often carry the same text - every document
-                # FastAPI generates does this - and joining those gives "X: X", which is what the
-                # user then reads on the option
-                if (desc.val() && trim(desc) != trim(self.desc)) {
-                    desc += ": " + self.desc;
-                } else if (!desc.val()) {
-                    desc = self.desc;
-                }
+            # recorded before this schema's own description is merged into "desc" below, so that a use
+            # and the canonical field it matches always agree on the key
+            if (!ukey.val()) {
+                ukey = AbstractRestSchemaObject::getFieldUseKey(name, desc, default_value);
             }
-            if (!exists desc) {
-                desc = "";
-            }
+            field_use{name} = ukey;
+            string field_desc = getMergedFieldDesc(desc);
+            # the field registered below is handed to anything that re-enters this schema while its type
+            # is being built, so it must not be copied until that build has finished
+            building{name} = True;
+            on_exit remove building{name};
             if (type == "object" || hasSchemaCompositionFeatures()) {
                 # create the field with a placeholder type
                 QoreDataField field({
                     "name": name,
-                    "desc": desc.val() ? desc.getDecoded(CE_XHTML) : "",
+                    "desc": field_desc,
                     "type": AutoType,
                     "allowed_values": keys enumValues,
                     "default_value": default_value,
@@ -1423,7 +1554,7 @@ public namespace RestSchemaValidator {
             # create the field with a placeholder type
             QoreDataField field({
                 "name": name,
-                "desc": desc.val() ? desc.getDecoded(CE_XHTML) : "",
+                "desc": field_desc,
                 "type": AutoType,
                 "allowed_values": keys enumValues,
                 "default_value": default_value,

@@ -536,8 +536,8 @@
           "message": "A comma-separated list of invoice IDs"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.SURz.desc": {
-          "source": "Filter by a comma separated list of ContactIDs. Allows you to retrieve a specific set of contacts in a single call.",
-          "message": "Filter by a comma separated list of ContactIDs. Allows you to retrieve a specific set of contacts in a single call."
+          "source": "Filter by a comma-separated list of InvoicesIDs.",
+          "message": "Filter by a comma-separated list of InvoicesIDs."
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.SW52b2ljZU51bWJlcnM.display_name": {
           "source": "Invoice Numbers",
@@ -580,12 +580,12 @@
           "message": "Search Term"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.short_desc": {
-          "source": "Search parameter that performs a case-insensitive text search across the Name,…",
-          "message": "Search parameter that performs a case-insensitive text search across the Name,…"
+          "source": "Search parameter that performs a case-insensitive text search across the…",
+          "message": "Search parameter that performs a case-insensitive text search across the…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.desc": {
-          "source": "Search parameter that performs a case-insensitive text search across the Name, FirstName, LastName, ContactNumber and EmailAddress fields.",
-          "message": "Search parameter that performs a case-insensitive text search across the Name, FirstName, LastName, ContactNumber and EmailAddress fields."
+          "source": "Search parameter that performs a case-insensitive text search across the fields e.g. InvoiceNumber, Reference.",
+          "message": "Search parameter that performs a case-insensitive text search across the fields e.g. InvoiceNumber, Reference."
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.Y3JlYXRlZEJ5TXlBcHA.display_name": {
           "source": "Created by My App",
@@ -604,12 +604,12 @@
           "message": "Include Archived"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.short_desc": {
-          "source": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be…",
-          "message": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be…"
+          "source": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be…",
+          "message": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.desc": {
-          "source": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be included in the response",
-          "message": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be included in the response"
+          "source": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be included in the response",
+          "message": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be included in the response"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c3VtbWFyeU9ubHk.display_name": {
           "source": "Summary Only",
@@ -644,8 +644,8 @@
           "message": "Which page to return, counting from 1"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "e.g. page=1 - Up to 100 contacts will be returned in a single API call."
+          "source": "e.g. page=1 – Up to 100 invoices will be returned in a single API call with line items shown for each invoice",
+          "message": "e.g. page=1 – Up to 100 invoices will be returned in a single API call with line items shown for each invoice"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.cGFnZVNpemU.display_name": {
           "source": "Page Size",
@@ -928,8 +928,8 @@
           "message": "Which page to return, counting from 1"
         },
         "app.WGVybw.action.Z2V0UGF5bWVudHM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "e.g. page=1 - Up to 100 contacts will be returned in a single API call."
+          "source": "Up to 100 payments will be returned in a single API call",
+          "message": "Up to 100 payments will be returned in a single API call"
         },
         "app.WGVybw.action.Z2V0UGF5bWVudHM.option.cGFnZVNpemU.display_name": {
           "source": "Page Size",
@@ -1292,8 +1292,8 @@
           "message": "Which page to return, counting from 1"
         },
         "app.WGVybw.action.Z2V0Q3JlZGl0Tm90ZXM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "e.g. page=1 - Up to 100 contacts will be returned in a single API call."
+          "source": "e.g. page=1 – Up to 100 credit notes will be returned in a single API call with line items shown for each credit note",
+          "message": "e.g. page=1 – Up to 100 credit notes will be returned in a single API call with line items shown for each credit note"
         },
         "app.WGVybw.action.Z2V0Q3JlZGl0Tm90ZXM.option.cGFnZVNpemU.display_name": {
           "source": "Page Size",
@@ -1432,8 +1432,8 @@
           "message": "Which page to return, counting from 1"
         },
         "app.WGVybw.action.Z2V0QmFua1RyYW5zYWN0aW9ucw.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "e.g. page=1 - Up to 100 contacts will be returned in a single API call."
+          "source": "Up to 100 bank transactions will be returned in a single API call with line items details",
+          "message": "Up to 100 bank transactions will be returned in a single API call with line items details"
         },
         "app.WGVybw.action.Z2V0QmFua1RyYW5zYWN0aW9ucw.option.cGFnZVNpemU.display_name": {
           "source": "Page Size",
@@ -1780,8 +1780,8 @@
           "message": "Which page to return, counting from 1"
         },
         "app.WGVybw.action.Z2V0UHVyY2hhc2VPcmRlcnM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "e.g. page=1 - Up to 100 contacts will be returned in a single API call."
+          "source": "To specify a page, append the page parameter to the URL e.g. ?page=1. If there are 100 records in the response you will need to check if there is any more data by fetching the next page e.g ?page=2 and continuing this process until no more results are returned.",
+          "message": "To specify a page, append the page parameter to the URL e.g. ?page=1. If there are 100 records in the response you will need to check if there is any more data by fetching the next page e.g ?page=2 and continuing this process until no more results are returned."
         },
         "app.WGVybw.action.Z2V0UHVyY2hhc2VPcmRlcnM.option.cGFnZVNpemU.display_name": {
           "source": "Page Size",
@@ -2068,12 +2068,12 @@
           "message": "Project"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.short_desc": {
-          "source": "You can specify an individual project by appending the projectId to the endpoint",
-          "message": "You can specify an individual project by appending the projectId to the endpoint"
+          "source": "You can create a task on a specified projectId",
+          "message": "You can create a task on a specified projectId"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.desc": {
-          "source": "You can specify an individual project by appending the projectId to the endpoint",
-          "message": "You can specify an individual project by appending the projectId to the endpoint"
+          "source": "You can create a task on a specified projectId",
+          "message": "You can create a task on a specified projectId"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.bmFtZQ.display_name": {
           "source": "Name",

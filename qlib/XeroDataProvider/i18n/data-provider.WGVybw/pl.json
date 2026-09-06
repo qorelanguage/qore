@@ -492,16 +492,16 @@
           "message": "Nazwa zadania"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.desc": {
-          "source": "You can specify an individual project by appending the projectId to the endpoint",
-          "message": "Możesz określić pojedynczy projekt, dołączając projectId do punktu końcowego"
+          "source": "You can create a task on a specified projectId",
+          "message": "Możesz utworzyć zadanie w podanym projectId"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.display_name": {
           "source": "Project",
           "message": "Projekt"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cHJvamVjdElk.short_desc": {
-          "source": "You can specify an individual project by appending the projectId to the endpoint",
-          "message": "Możesz określić pojedynczy projekt, dołączając projectId do punktu końcowego"
+          "source": "You can create a task on a specified projectId",
+          "message": "Możesz utworzyć zadanie w podanym projectId"
         },
         "app.WGVybw.action.Y3JlYXRlVGFzaw.option.cmF0ZQ.display_name": {
           "source": "Rate",
@@ -664,8 +664,8 @@
           "message": "Pole do sortowania, np.: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0Q3JlZGl0Tm90ZXM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "np. page=1 — w pojedynczym wywołaniu API zostanie zwróconych do 100 kontaktów."
+          "source": "e.g. page=1 – Up to 100 credit notes will be returned in a single API call with line items shown for each credit note",
+          "message": "np. page=1 – W jednym wywołaniu API zostanie zwróconych do 100 not kredytowych wraz z pozycjami każdej z nich"
         },
         "app.WGVybw.action.Z2V0Q3JlZGl0Tm90ZXM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -808,8 +808,8 @@
           "message": "Pole do sortowania, np.: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0QmFua1RyYW5zYWN0aW9ucw.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "np. page=1 — w pojedynczym wywołaniu API zostanie zwróconych do 100 kontaktów."
+          "source": "Up to 100 bank transactions will be returned in a single API call with line items details",
+          "message": "W jednym wywołaniu API zostanie zwróconych do 100 transakcji bankowych wraz ze szczegółami pozycji"
         },
         "app.WGVybw.action.Z2V0QmFua1RyYW5zYWN0aW9ucw.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -916,8 +916,8 @@
           "message": "Rozdzielona przecinkami lista identyfikatorów kontaktów"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.SURz.desc": {
-          "source": "Filter by a comma separated list of ContactIDs. Allows you to retrieve a specific set of contacts in a single call.",
-          "message": "Filtruj według listy identyfikatorów ContactID rozdzielonych przecinkami. Pozwala pobrać określony zestaw kontaktów w jednym wywołaniu."
+          "source": "Filter by a comma-separated list of InvoicesIDs.",
+          "message": "Filtruj według listy InvoicesIDs rozdzielonej przecinkami."
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.SURz.display_name": {
           "source": "Invoice IDs",
@@ -976,16 +976,16 @@
           "message": "Gdy ma wartość true, pobiera tylko faktury utworzone przez Twoją aplikację"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.desc": {
-          "source": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be included in the response",
-          "message": "np. includeArchived=true — kontakty o statusie ARCHIVED zostaną uwzględnione w odpowiedzi"
+          "source": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be included in the response",
+          "message": "np. includeArchived=true – w odpowiedzi zostaną uwzględnione faktury o statusie ARCHIVED"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.display_name": {
           "source": "Include Archived",
           "message": "Uwzględnij zarchiwizowane"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.aW5jbHVkZUFyY2hpdmVk.short_desc": {
-          "source": "e.g. includeArchived=true - Contacts with a status of ARCHIVED will be…",
-          "message": "np. includeArchived=true – kontakty o statusie ARCHIVED zostaną…"
+          "source": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be…",
+          "message": "np. includeArchived=true – w odpowiedzi zostaną uwzględnione faktury o statusie…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.b3JkZXI.desc": {
           "source": "Order by an any element",
@@ -1000,16 +1000,16 @@
           "message": "Pole do sortowania, np.: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.desc": {
-          "source": "Search parameter that performs a case-insensitive text search across the Name, FirstName, LastName, ContactNumber and EmailAddress fields.",
-          "message": "Parametr wyszukiwania wykonujący wyszukiwanie tekstowe bez uwzględniania wielkości liter w polach Name, FirstName, LastName, ContactNumber i EmailAddress."
+          "source": "Search parameter that performs a case-insensitive text search across the fields e.g. InvoiceNumber, Reference.",
+          "message": "Parametr wyszukiwania wykonujący wyszukiwanie tekstowe bez rozróżniania wielkości liter w polach, np. InvoiceNumber, Reference."
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.display_name": {
           "source": "Search Term",
           "message": "Szukany termin"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c2VhcmNoVGVybQ.short_desc": {
-          "source": "Search parameter that performs a case-insensitive text search across the Name,…",
-          "message": "Parametr wyszukiwania bez uwzględniania wielkości liter w polach Name,…"
+          "source": "Search parameter that performs a case-insensitive text search across the…",
+          "message": "Parametr wyszukiwania wykonujący wyszukiwanie tekstowe bez rozróżniania…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.c3VtbWFyeU9ubHk.desc": {
           "source": "Use summaryOnly=true in GET Contacts and Invoices endpoint to retrieve a smaller version of the response object. This returns only lightweight fields, excluding computation-heavy fields from the response, making the API calls quick and efficient.",
@@ -1024,8 +1024,8 @@
           "message": "Użyj summaryOnly=true w punkcie GET Contacts/Invoices, aby pobrać…"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "np. page=1 — w pojedynczym wywołaniu API zostanie zwróconych do 100 kontaktów."
+          "source": "e.g. page=1 – Up to 100 invoices will be returned in a single API call with line items shown for each invoice",
+          "message": "np. page=1 – W jednym wywołaniu API zostanie zwróconych do 100 faktur wraz z pozycjami każdej z nich"
         },
         "app.WGVybw.action.Z2V0SW52b2ljZXM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -1168,8 +1168,8 @@
           "message": "Pole do sortowania, np.: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0UGF5bWVudHM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "np. page=1 — w pojedynczym wywołaniu API zostanie zwróconych do 100 kontaktów."
+          "source": "Up to 100 payments will be returned in a single API call",
+          "message": "W jednym wywołaniu API zostanie zwróconych do 100 płatności"
         },
         "app.WGVybw.action.Z2V0UGF5bWVudHM.option.cGFnZQ.display_name": {
           "source": "Page",
@@ -1404,8 +1404,8 @@
           "message": "Pole do sortowania, np.: \"UpdatedDateUTC DESC\""
         },
         "app.WGVybw.action.Z2V0UHVyY2hhc2VPcmRlcnM.option.cGFnZQ.desc": {
-          "source": "e.g. page=1 - Up to 100 contacts will be returned in a single API call.",
-          "message": "np. page=1 — w pojedynczym wywołaniu API zostanie zwróconych do 100 kontaktów."
+          "source": "To specify a page, append the page parameter to the URL e.g. ?page=1. If there are 100 records in the response you will need to check if there is any more data by fetching the next page e.g ?page=2 and continuing this process until no more results are returned.",
+          "message": "Aby wskazać stronę, dołącz do adresu URL parametr page, np. ?page=1. Jeśli odpowiedź zawiera 100 rekordów, sprawdź, czy są kolejne dane, pobierając następną stronę, np. ?page=2, i powtarzaj, aż nie zostaną zwrócone żadne wyniki."
         },
         "app.WGVybw.action.Z2V0UHVyY2hhc2VPcmRlcnM.option.cGFnZQ.display_name": {
           "source": "Page",

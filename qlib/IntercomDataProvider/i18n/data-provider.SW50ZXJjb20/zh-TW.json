@@ -12,8 +12,8 @@
           "message": "刪除聯絡人"
         },
         "app.SW50ZXJjb20.action.RGVsZXRlQ29udGFjdA.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "Intercom 指定給該聯絡人的唯一識別碼"
+          "source": "contact_id",
+          "message": "contact_id"
         },
         "app.SW50ZXJjb20.action.RGVsZXRlQ29udGFjdA.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -148,8 +148,8 @@
           "message": "取得聯絡人"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "Intercom 指定給該聯絡人的唯一識別碼"
+          "source": "contact_id",
+          "message": "contact_id"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -160,16 +160,16 @@
           "message": "此操作適用的聯絡人"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.desc": {
-          "source": "Pass `true` to include a `merge_history` array on each contact in the response. Only returned for contacts with a `user` role.",
-          "message": "傳入 `true` 可在回應中為每個聯絡人包含 `merge_history` 陣列。僅適用於角色為 `user` 的聯絡人。"
+          "source": "Pass `true` to include the contact's merge history in the response. Only returned for contacts with a `user` role.",
+          "message": "傳入 `true` 以在回應中納入聯絡人的合併歷程。僅針對具有 `user` 角色的聯絡人傳回。"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.display_name": {
           "source": "Include Merge History",
           "message": "包含合併歷程記錄"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.short_desc": {
-          "source": "Pass 'true' to include a 'merge_history' array on each contact in the response",
-          "message": "傳入 'true' 可在回應中為每個聯絡人包含 'merge_history' 陣列"
+          "source": "Pass 'true' to include the contact's merge history in the response",
+          "message": "傳入 'true' 以在回應中納入聯絡人的合併歷程"
         },
         "app.SW50ZXJjb20.action.U2hvd0NvbnRhY3Q.short_desc": {
           "source": "Retrieve a contact by its identity",
@@ -316,8 +316,8 @@
           "message": "更新聯絡人"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.Y29udGFjdF9pZA.desc": {
-          "source": "The unique identifier for the contact which is given by Intercom",
-          "message": "Intercom 指定給該聯絡人的唯一識別碼"
+          "source": "id",
+          "message": "id"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.Y29udGFjdF9pZA.display_name": {
           "source": "Contact",
@@ -388,16 +388,16 @@
           "message": "提供給 Intercom 的聯絡人唯一識別碼"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.desc": {
-          "source": "Pass `true` to include a `merge_history` array on each contact in the response. Only returned for contacts with a `user` role.",
-          "message": "傳入 `true` 可在回應中為每個聯絡人包含 `merge_history` 陣列。僅適用於角色為 `user` 的聯絡人。"
+          "source": "Pass `true` to include the contact's merge history in the response. Only returned for contacts with a `user` role.",
+          "message": "傳入 `true` 以在回應中納入聯絡人的合併歷程。僅針對具有 `user` 角色的聯絡人傳回。"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.display_name": {
           "source": "Include Merge History",
           "message": "包含合併歷程記錄"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.aW5jbHVkZV9tZXJnZV9oaXN0b3J5.short_desc": {
-          "source": "Pass 'true' to include a 'merge_history' array on each contact in the response",
-          "message": "傳入 'true' 可在回應中為每個聯絡人包含 'merge_history' 陣列"
+          "source": "Pass 'true' to include the contact's merge history in the response",
+          "message": "傳入 'true' 以在回應中納入聯絡人的合併歷程"
         },
         "app.SW50ZXJjb20.action.VXBkYXRlQ29udGFjdA.option.b3duZXJfaWQ.desc": {
           "source": "The id of an admin that has been assigned account ownership of the contact",
@@ -1336,8 +1336,8 @@
           "message": "刪除標籤"
         },
         "app.SW50ZXJjb20.action.ZGVsZXRlVGFn.option.dGFnX2lk.desc": {
-          "source": "The unique identifier for the tag which is given by Intercom",
-          "message": "Intercom 為該標籤指定的唯一識別碼"
+          "source": "The unique identifier of a given tag",
+          "message": "指定標籤的唯一識別碼"
         },
         "app.SW50ZXJjb20.action.ZGVsZXRlVGFn.option.dGFnX2lk.display_name": {
           "source": "Tag",
@@ -1360,8 +1360,8 @@
           "message": "取得標籤"
         },
         "app.SW50ZXJjb20.action.ZmluZFRhZw.option.dGFnX2lk.desc": {
-          "source": "The unique identifier for the tag which is given by Intercom",
-          "message": "Intercom 為該標籤指定的唯一識別碼"
+          "source": "The unique identifier of a given tag",
+          "message": "指定標籤的唯一識別碼"
         },
         "app.SW50ZXJjb20.action.ZmluZFRhZw.option.dGFnX2lk.display_name": {
           "source": "Tag",

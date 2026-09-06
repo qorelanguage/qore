@@ -3040,6 +3040,19 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         declared \c nullable accepts it and one that is not gives a normal \c SCHEMA-VALIDATION-ERROR; the
         value itself is left as it is.  The no-value validation variant also took a \c reference<nothing>,
         which binds no ordinary lvalue, and now takes an untyped reference
+      - fixed two parameters that share a name and a schema sharing one another's documentation.  A schema
+        object is interned by its content, so \c limit declared as an integer on two listings is one object;
+        its derived **field** was then cached under the parameter name alone, although a field also carries
+        what the use supplies - the parameter's own description and default value.  Whichever operation was
+        registered second therefore published the first one's description and default, silently and
+        depending only on registration order.  The cached field is still shared - it is also the cut that
+        stops a recursive property from recursing forever - and a use whose description or default differs
+        from it now gets its own copy over the same type
+      - fixed a parameter description being joined to its schema's when one already contains the other,
+        which published a repeated sentence: Exa documents an agent run id as \c "Agent run ID." on the
+        parameter and \c "Agent run ID. New run IDs are returned with the \c agent_run_ prefix." on the
+        schema, and the two were joined into \c "Agent run ID.: Agent run ID. New run IDs...".  Whichever
+        says more is now kept
 
     - @ref resthandlerintro "RestHandler" module
       - fixed handling \c OPTIONS requests with an \c action parameter

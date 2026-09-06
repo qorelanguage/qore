@@ -92,16 +92,16 @@
           "message": "部落格文章的狀態，指定部落格文章是否會建立為…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.desc": {
-          "source": "The page will be private. Only the user who creates this page will have permission to view and edit one.",
-          "message": "此頁面將設為私人。只有建立此頁面的使用者才有檢視和編輯的權限。"
+          "source": "The blog post will be private. Only the user who creates this blog post will have permission to view and edit one.",
+          "message": "網誌文章將設為私人。只有建立此文章的使用者才有權檢視與編輯。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.display_name": {
           "source": "Private",
           "message": "私人"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.short_desc": {
-          "source": "The page will be private",
-          "message": "此頁面將設為私人"
+          "source": "The blog post will be private",
+          "message": "網誌文章將設為私人"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.dGl0bGU.desc": {
           "source": "Title of the blog post, required if creating non-draft.",
@@ -400,136 +400,136 @@
           "message": "要在回應的「body」欄位中傳回的內容格式類型"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.desc": {
-          "source": "Retrieve the draft version of this page.",
-          "message": "擷取此頁面的草稿版本。"
+          "source": "Retrieve the draft version of this blog post.",
+          "message": "擷取此網誌文章的草稿版本。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.display_name": {
           "source": "Get Draft",
           "message": "取得草稿"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.short_desc": {
-          "source": "Retrieve the draft version of this page",
-          "message": "擷取此頁面的草稿版本"
+          "source": "Retrieve the draft version of this blog post",
+          "message": "擷取此網誌文章的草稿版本"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.desc": {
-          "source": "Includes the current version associated with this page in the response.\nBy default this is included and can be omitted by setting the value to `false`.",
-          "message": "在回應中包含與此頁面關聯的目前版本。\n預設會包含此項目，可透過將值設為 `false` 來省略。"
+          "source": "Includes the current version associated with this blog post in the response.\nBy default this is included and can be omitted by setting the value to `false`.",
+          "message": "在回應中納入與此網誌文章關聯的目前版本。\n預設會納入，將值設為 `false` 即可省略。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.display_name": {
           "source": "Include Version",
           "message": "包含版本"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.short_desc": {
-          "source": "Includes the current version associated with this page in the response",
-          "message": "在回應中包含與此頁面關聯的目前版本"
+          "source": "Includes the current version associated with this blog post in the response",
+          "message": "在回應中納入與此網誌文章關聯的目前版本"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.desc": {
-          "source": "Includes versions associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "在回應中包含與此頁面關聯的版本。\n結果數量上限為 50 筆，並依預設排序順序排序。\n回應中會提供 `meta` 與 `_links` 屬性，用以指示是否有更多可用結果以及擷取其餘結果的連結。"
+          "source": "Includes versions associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "在回應中納入與此網誌文章關聯的版本。\n結果數量將限制為 50 筆，並依預設排序順序排列。 \n回應會包含 `meta` 與 `_links` 屬性，指出是否有更多結果，以及取得其餘結果的連結。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.display_name": {
           "source": "Include Versions",
           "message": "包含版本"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.short_desc": {
-          "source": "Includes versions associated with this page in the response",
-          "message": "在回應中包含與此頁面關聯的版本"
+          "source": "Includes versions associated with this blog post in the response",
+          "message": "在回應中納入與此網誌文章關聯的版本"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.desc": {
-          "source": "Includes web resources that can be used to render page content on a client.",
-          "message": "包含可用於在用戶端轉譯頁面內容的 Web 資源。"
+          "source": "Includes web resources that can be used to render blog post content on a client.",
+          "message": "納入可用於在用戶端呈現網誌文章內容的網頁資源。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.display_name": {
           "source": "Include Webresources",
           "message": "包含 Web 資源"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.short_desc": {
-          "source": "Includes web resources that can be used to render page content on a client",
-          "message": "包含可用於在用戶端轉譯頁面內容的 Web 資源"
+          "source": "Includes web resources that can be used to render blog post content on a client",
+          "message": "納入可用於在用戶端呈現網誌文章內容的網頁資源"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.desc": {
-          "source": "Includes collaborators on the page.",
-          "message": "包含頁面的協作者。"
+          "source": "Includes collaborators on the blog post.",
+          "message": "納入網誌文章的協作者。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.display_name": {
           "source": "Include Collaborators",
           "message": "包含協作者"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.short_desc": {
-          "source": "Includes collaborators on the page",
-          "message": "包含頁面的協作者"
+          "source": "Includes collaborators on the blog post",
+          "message": "納入網誌文章的協作者"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.desc": {
-          "source": "Includes whether this page has been favorited by the current user.",
-          "message": "包含目前使用者是否已將此頁面加入我的最愛。"
+          "source": "Includes whether this blog post has been favorited by the current user.",
+          "message": "納入目前使用者是否已將此網誌文章加入最愛。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.display_name": {
           "source": "Include Favorited by Current User Status",
           "message": "包含目前使用者最愛狀態"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.short_desc": {
-          "source": "Includes whether this page has been favorited by the current user",
-          "message": "包含目前使用者是否已將此頁面加入我的最愛"
+          "source": "Includes whether this blog post has been favorited by the current user",
+          "message": "納入目前使用者是否已將此網誌文章加入最愛"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.desc": {
-          "source": "Includes labels associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "在回應中包含與此頁面關聯的標籤。\n結果數量將限制為 50 個，並按預設排序順序排序。\n將提供 `meta` 和 `_links` 屬性，以指示是否有更多可用結果以及用於檢索其餘結果的連結。"
+          "source": "Includes labels associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "在回應中納入與此網誌文章關聯的標籤。\n結果數量將限制為 50 筆，並依預設排序順序排列。 \n回應會包含 `meta` 與 `_links` 屬性，指出是否有更多結果，以及取得其餘結果的連結。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.display_name": {
           "source": "Include Labels",
           "message": "包含標籤"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.short_desc": {
-          "source": "Includes labels associated with this page in the response",
-          "message": "在回應中包含與此頁面關聯的標籤"
+          "source": "Includes labels associated with this blog post in the response",
+          "message": "在回應中納入與此網誌文章關聯的標籤"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.desc": {
-          "source": "Includes likes associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "在回應中包含與此頁面關聯的按讚數。\n結果數量將限制為 50 個，並按預設排序順序排序。\n將提供 `meta` 和 `_links` 屬性，以指示是否有更多可用結果以及用於檢索其餘結果的連結。"
+          "source": "Includes likes associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "在回應中納入與此網誌文章關聯的按讚。\n結果數量將限制為 50 筆，並依預設排序順序排列。 \n回應會包含 `meta` 與 `_links` 屬性，指出是否有更多結果，以及取得其餘結果的連結。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.display_name": {
           "source": "Include Likes",
           "message": "包含按讚"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.short_desc": {
-          "source": "Includes likes associated with this page in the response",
-          "message": "在回應中包含與此頁面關聯的按讚"
+          "source": "Includes likes associated with this blog post in the response",
+          "message": "在回應中納入與此網誌文章關聯的按讚"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.desc": {
-          "source": "Includes operations associated with this page in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "在回應中包含與此頁面關聯的作業（如 `Operation` 物件中所定義）。\n結果數量將限制為 50 個，並按預設排序順序排序。\n將提供 `meta` 和 `_links` 屬性，以指示是否有更多可用結果以及用於檢索其餘結果的連結。"
+          "source": "Includes operations associated with this blog post in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "在回應中納入與此網誌文章關聯的操作，如 `Operation` 物件所定義。\n結果數量將限制為 50 筆，並依預設排序順序排列。 \n回應會包含 `meta` 與 `_links` 屬性，指出是否有更多結果，以及取得其餘結果的連結。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.display_name": {
           "source": "Include Operations",
           "message": "包含作業"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.short_desc": {
-          "source": "Includes operations associated with this page in the response, as defined in…",
-          "message": "在回應中包含與此頁面關聯的操作，定義於…"
+          "source": "Includes operations associated with this blog post in the response, as defined…",
+          "message": "在回應中納入與此網誌文章關聯的操作，如 'Operation' 物件所定義。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.desc": {
-          "source": "Includes content properties associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "在回應中包含與此頁面關聯的內容屬性。\n結果數量將限制為 50 個，並按預設排序順序排序。\n將提供 `meta` 和 `_links` 屬性，以指示是否有更多可用結果以及用於檢索其餘結果的連結。"
+          "source": "Includes content properties associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "在回應中納入與此網誌文章關聯的內容屬性。\n結果數量將限制為 50 筆，並依預設排序順序排列。 \n回應會包含 `meta` 與 `_links` 屬性，指出是否有更多結果，以及取得其餘結果的連結。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.display_name": {
           "source": "Include Properties",
           "message": "包含屬性"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.short_desc": {
-          "source": "Includes content properties associated with this page in the response",
-          "message": "在回應中包含與此頁面關聯的內容屬性"
+          "source": "Includes content properties associated with this blog post in the response",
+          "message": "在回應中納入與此網誌文章關聯的內容屬性"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "要傳回之頁面的 ID。如果您不知道頁面 ID，請使用「取得頁面」並篩選結果。"
+          "source": "The ID of the blog post to be returned. If you don't know the blog post ID, use Get blog posts and filter the results.",
+          "message": "要傳回的網誌文章 ID。若不知道網誌文章 ID，請使用「取得網誌文章」並篩選結果。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.display_name": {
           "source": "Blog Post",
           "message": "部落格文章"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "要傳回之頁面的 ID"
+          "source": "The ID of the blog post to be returned",
+          "message": "要傳回的網誌文章 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.c3RhdHVz.desc": {
           "source": "Filter the blog post being retrieved by its status.",
@@ -600,8 +600,8 @@
           "message": "要在回應的「body」欄位中傳回的內容格式類型"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.aWQ.desc": {
-          "source": "Filter the results based on page ids. Multiple page ids can be specified as a comma-separated list.",
-          "message": "根據頁面 ID 篩選結果。多個頁面 ID 可以指定為以逗號分隔的清單。"
+          "source": "Filter the results based on blog post ids. Multiple blog post ids can be specified as a comma-separated list.",
+          "message": "依網誌文章 ID 篩選結果。可用以逗號分隔的清單指定多個 ID。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.aWQ.display_name": {
           "source": "Blog Posts",
@@ -684,16 +684,16 @@
           "message": "根據狀態將結果篩選為部落格文章"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.desc": {
-          "source": "Filter the results to pages based on their title.",
-          "message": "根據標題將結果篩選為頁面。"
+          "source": "Filter the results to blog posts based on their title.",
+          "message": "依標題篩選網誌文章結果"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.display_name": {
           "source": "Title",
           "message": "標題"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.short_desc": {
-          "source": "Filter the results to pages based on their title",
-          "message": "根據標題將結果篩選為頁面"
+          "source": "Filter the results to blog posts based on their title",
+          "message": "依標題篩選網誌文章結果"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.short_desc": {
           "source": "List the blog posts on the site",
@@ -740,8 +740,8 @@
           "message": "要在回應的「body」欄位中傳回的內容格式類型"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "要傳回之頁面的 ID。如果您不知道頁面 ID，請使用「取得頁面」並篩選結果。"
+          "source": "The ID of the space for which blog posts should be returned.",
+          "message": "要傳回網誌文章的空間 ID。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.aWQ.display_name": {
           "source": "Space",
@@ -812,16 +812,16 @@
           "message": "根據狀態將結果篩選為部落格文章"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.desc": {
-          "source": "Filter the results to pages based on their title.",
-          "message": "根據標題將結果篩選為頁面。"
+          "source": "Filter the results to blog posts based on their title.",
+          "message": "依標題篩選網誌文章結果"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.display_name": {
           "source": "Title",
           "message": "標題"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.short_desc": {
-          "source": "Filter the results to pages based on their title",
-          "message": "根據標題將結果篩選為頁面"
+          "source": "Filter the results to blog posts based on their title",
+          "message": "依標題篩選網誌文章結果"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.short_desc": {
           "source": "List the blog posts in one space",
@@ -868,16 +868,16 @@
           "message": "要在回應的「body」欄位中傳回的內容格式類型"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "要傳回之頁面的 ID。如果您不知道頁面 ID，請使用「取得頁面」並篩選結果。"
+          "source": "The ID of the label for which blog posts should be returned.",
+          "message": "要傳回網誌文章的標籤 ID。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.display_name": {
           "source": "Label",
           "message": "標籤"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "要傳回之頁面的 ID"
+          "source": "The ID of the label for which blog posts should be returned",
+          "message": "要傳回網誌文章的標籤 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.bGltaXQ.desc": {
           "source": "How many records to return in one page.\n\nThere is no total in the response: `_links.next` is a relative URL carrying the cursor for the following page, and its absence is what says the collection is exhausted.",
@@ -984,16 +984,16 @@
           "message": "要在回應的「body」欄位中傳回的內容格式類型"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "要傳回之頁面的 ID。如果您不知道頁面 ID，請使用「取得頁面」並篩選結果。"
+          "source": "The ID of the label for which pages should be returned.",
+          "message": "要傳回頁面的標籤 ID。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.display_name": {
           "source": "Label",
           "message": "標籤"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "要傳回之頁面的 ID"
+          "source": "The ID of the label for which pages should be returned",
+          "message": "要傳回頁面的標籤 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.bGltaXQ.desc": {
           "source": "How many records to return in one page.\n\nThere is no total in the response: `_links.next` is a relative URL carrying the cursor for the following page, and its absence is what says the collection is exhausted.",
@@ -1180,28 +1180,28 @@
           "message": "是否應擷取空間的圖示"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.desc": {
-          "source": "Includes labels associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "在回應中包含與此頁面關聯的標籤。\n結果數量將限制為 50 個，並按預設排序順序排序。\n將提供 `meta` 和 `_links` 屬性，以指示是否有更多可用結果以及用於檢索其餘結果的連結。"
+          "source": "Includes labels associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "在回應中納入與此空間關聯的標籤。\n結果數量將限制為 50 筆，並依預設排序順序排列。\n回應會包含 `meta` 與 `_links` 屬性，指出是否有更多結果，以及取得其餘結果的連結。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.display_name": {
           "source": "Include Labels",
           "message": "包含標籤"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.short_desc": {
-          "source": "Includes labels associated with this page in the response",
-          "message": "在回應中包含與此頁面關聯的標籤"
+          "source": "Includes labels associated with this space in the response",
+          "message": "在回應中納入與此空間關聯的標籤"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.desc": {
-          "source": "Includes operations associated with this page in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "在回應中包含與此頁面關聯的作業（如 `Operation` 物件中所定義）。\n結果數量將限制為 50 個，並按預設排序順序排序。\n將提供 `meta` 和 `_links` 屬性，以指示是否有更多可用結果以及用於檢索其餘結果的連結。"
+          "source": "Includes operations associated with this space in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "在回應中納入與此空間關聯的操作，如 `Operation` 物件所定義。\n結果數量將限制為 50 筆，並依預設排序順序排列。\n回應會包含 `meta` 與 `_links` 屬性，指出是否有更多結果，以及取得其餘結果的連結。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.display_name": {
           "source": "Include Operations",
           "message": "包含作業"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.short_desc": {
-          "source": "Includes operations associated with this page in the response, as defined in…",
-          "message": "在回應中包含與此頁面關聯的操作，定義於…"
+          "source": "Includes operations associated with this space in the response, as defined in…",
+          "message": "在回應中納入與此空間關聯的操作，如 'Operation' 物件所定義。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wZXJtaXNzaW9ucw.desc": {
           "source": "Includes space permissions associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
@@ -1216,16 +1216,16 @@
           "message": "在回應中包含與此空間相關聯的空間權限"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.desc": {
-          "source": "Includes content properties associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "在回應中包含與此頁面關聯的內容屬性。\n結果數量將限制為 50 個，並按預設排序順序排序。\n將提供 `meta` 和 `_links` 屬性，以指示是否有更多可用結果以及用於檢索其餘結果的連結。"
+          "source": "Includes space properties associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "在回應中納入與此空間關聯的空間屬性。\n結果數量將限制為 50 筆，並依預設排序順序排列。\n回應會包含 `meta` 與 `_links` 屬性，指出是否有更多結果，以及取得其餘結果的連結。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.display_name": {
           "source": "Include Properties",
           "message": "包含屬性"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.short_desc": {
-          "source": "Includes content properties associated with this page in the response",
-          "message": "在回應中包含與此頁面關聯的內容屬性"
+          "source": "Includes space properties associated with this space in the response",
+          "message": "在回應中納入與此空間關聯的空間屬性"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1yb2xlLWFzc2lnbm1lbnRz.desc": {
           "source": "Includes role assignments associated with this space in the response. This parameter is only accepted for EAP sites.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
@@ -1240,8 +1240,8 @@
           "message": "在回應中包含與此空間相關聯的角色指派"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "要傳回之頁面的 ID。如果您不知道頁面 ID，請使用「取得頁面」並篩選結果。"
+          "source": "The ID of the space to be returned.",
+          "message": "要傳回的空間 ID。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aWQ.display_name": {
           "source": "Space",
@@ -1928,8 +1928,8 @@
           "message": "將結果篩選為空間根層級的頁面或…中的所有頁面"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0UGFnZXNJblNwYWNl.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "要傳回之頁面的 ID。如果您不知道頁面 ID，請使用「取得頁面」並篩選結果。"
+          "source": "The ID of the space for which pages should be returned.",
+          "message": "要傳回頁面的空間 ID。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0UGFnZXNJblNwYWNl.option.aWQ.display_name": {
           "source": "Space",
@@ -2052,16 +2052,16 @@
           "message": "要在回應的「body」欄位中傳回的內容格式類型"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "要傳回之頁面的 ID。如果您不知道頁面 ID，請使用「取得頁面」並篩選結果。"
+          "source": "The ID of the task to be returned. If you don't know the task ID, use Get tasks and filter the results.",
+          "message": "要傳回的工作 ID。若不知道工作 ID，請使用「取得工作」並篩選結果。"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.display_name": {
           "source": "Task",
           "message": "任務"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "要傳回之頁面的 ID"
+          "source": "The ID of the task to be returned",
+          "message": "要傳回的工作 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.short_desc": {
           "source": "Retrieve one task",
@@ -2344,40 +2344,40 @@
           "message": "刪除部落格文章"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.desc": {
-          "source": "If attempting to delete a page that is a draft.",
-          "message": "如果嘗試刪除屬於草稿的頁面。"
+          "source": "If attempting to delete a blog post that is a draft.",
+          "message": "嘗試刪除為草稿的網誌文章時。"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.display_name": {
           "source": "Draft",
           "message": "草稿"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.short_desc": {
-          "source": "If attempting to delete a page that is a draft",
-          "message": "如果嘗試刪除屬於草稿的頁面"
+          "source": "If attempting to delete a blog post that is a draft",
+          "message": "嘗試刪除為草稿的網誌文章時"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "要傳回之頁面的 ID。如果您不知道頁面 ID，請使用「取得頁面」並篩選結果。"
+          "source": "The ID of the blog post to be deleted.",
+          "message": "要刪除的網誌文章 ID。"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.display_name": {
           "source": "Blog Post",
           "message": "部落格文章"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "要傳回之頁面的 ID"
+          "source": "The ID of the blog post to be deleted",
+          "message": "要刪除的網誌文章 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.desc": {
-          "source": "If attempting to purge the page.",
-          "message": "如果嘗試清除頁面。"
+          "source": "If attempting to purge the blog post.",
+          "message": "嘗試永久清除網誌文章時。"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.display_name": {
           "source": "Purge",
           "message": "清除"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.short_desc": {
-          "source": "If attempting to purge the page",
-          "message": "如果嘗試清除頁面"
+          "source": "If attempting to purge the blog post",
+          "message": "嘗試永久清除網誌文章時"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.short_desc": {
           "source": "Move a blog post to the trash, or purge it",
@@ -2404,16 +2404,16 @@
           "message": "如果嘗試刪除屬於草稿的頁面"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "要傳回之頁面的 ID。如果您不知道頁面 ID，請使用「取得頁面」並篩選結果。"
+          "source": "The ID of the page to be deleted.",
+          "message": "要刪除的頁面 ID。"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.display_name": {
           "source": "Page",
           "message": "頁碼"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "要傳回之頁面的 ID"
+          "source": "The ID of the page to be deleted",
+          "message": "要刪除的頁面 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.cHVyZ2U.desc": {
           "source": "If attempting to purge the page.",
@@ -2896,16 +2896,16 @@
           "message": "內容；設定 \"representation\" 以指明 \"value\" 的編寫格式"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "要傳回之頁面的 ID。如果您不知道頁面 ID，請使用「取得頁面」並篩選結果。"
+          "source": "The ID of the blog post to be updated. If you don't know the blog post ID, use Get Blog Posts and filter the results.",
+          "message": "要更新的網誌文章 ID。若不知道網誌文章 ID，請使用「取得網誌文章」並篩選結果。"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.display_name": {
           "source": "Blog Post",
           "message": "部落格文章"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "要傳回之頁面的 ID"
+          "source": "The ID of the blog post to be updated",
+          "message": "要更新的網誌文章 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.c3BhY2VJZA.desc": {
           "source": "ID of the containing space.\n\nThis currently **does not support moving the blog post to a different space**.",
@@ -2988,16 +2988,16 @@
           "message": "內容；設定 \"representation\" 以指明 \"value\" 的編寫格式"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "要傳回之頁面的 ID。如果您不知道頁面 ID，請使用「取得頁面」並篩選結果。"
+          "source": "The ID of the page to be updated. If you don't know the page ID, use Get Pages and filter the results.",
+          "message": "要更新的頁面 ID。若不知道頁面 ID，請使用「取得頁面」並篩選結果。"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.display_name": {
           "source": "Page",
           "message": "頁碼"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "要傳回之頁面的 ID"
+          "source": "The ID of the page to be updated",
+          "message": "要更新的頁面 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.b3duZXJJZA.desc": {
           "source": "Account ID of the page owner.\n\nThis allows page ownership to be transferred to another user.",
@@ -3092,16 +3092,16 @@
           "message": "重新命名頁面"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "要傳回之頁面的 ID。如果您不知道頁面 ID，請使用「取得頁面」並篩選結果。"
+          "source": "The ID of the page to be updated. If you don't know the page ID, use Get Pages and filter the results",
+          "message": "要更新的頁面 ID。若不知道頁面 ID，請使用「取得頁面」並篩選結果"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.display_name": {
           "source": "Page",
           "message": "頁碼"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "要傳回之頁面的 ID"
+          "source": "The ID of the page to be updated",
+          "message": "要更新的頁面 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.c3RhdHVz.allowed-value.c3RyaW5nOmN1cnJlbnQ.display_name": {
           "source": "current",
@@ -3252,16 +3252,16 @@
           "message": "工作到期的日期與時間"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "要傳回之頁面的 ID。如果您不知道頁面 ID，請使用「取得頁面」並篩選結果。"
+          "source": "The ID of the task to be updated. If you don't know the task ID, use Get tasks and filter the results.",
+          "message": "要更新的工作 ID。若不知道工作 ID，請使用「取得工作」並篩選結果。"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.display_name": {
           "source": "Task",
           "message": "任務"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "要傳回之頁面的 ID"
+          "source": "The ID of the task to be updated",
+          "message": "要更新的工作 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.bG9jYWxJZA.desc": {
           "source": "Local ID of the task. This ID is local to the corresponding page or blog post.",

@@ -92,16 +92,16 @@
           "message": "블로그 게시물의 상태이며, 생성될 형태를 지정합니다:…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.desc": {
-          "source": "The page will be private. Only the user who creates this page will have permission to view and edit one.",
-          "message": "페이지가 비공개로 설정됩니다. 이 페이지를 생성한 사용자만 페이지를 보고 편집할 수 있는 권한을 가집니다."
+          "source": "The blog post will be private. Only the user who creates this blog post will have permission to view and edit one.",
+          "message": "블로그 게시물이 비공개로 설정됩니다. 이 게시물을 만든 사용자만 보고 편집할 수 있습니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.display_name": {
           "source": "Private",
           "message": "비공개"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.cHJpdmF0ZQ.short_desc": {
-          "source": "The page will be private",
-          "message": "페이지가 비공개로 설정됨"
+          "source": "The blog post will be private",
+          "message": "블로그 게시물이 비공개로 설정됩니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Y3JlYXRlQmxvZ1Bvc3Q.option.dGl0bGU.desc": {
           "source": "Title of the blog post, required if creating non-draft.",
@@ -400,136 +400,136 @@
           "message": "응답의 'body' 필드에 반환될 콘텐츠 형식 유형"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.desc": {
-          "source": "Retrieve the draft version of this page.",
-          "message": "이 페이지의 임시 저장 버전을 검색합니다."
+          "source": "Retrieve the draft version of this blog post.",
+          "message": "이 블로그 게시물의 초안 버전을 가져옵니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.display_name": {
           "source": "Get Draft",
           "message": "임시 저장 버전 가져오기"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.Z2V0LWRyYWZ0.short_desc": {
-          "source": "Retrieve the draft version of this page",
-          "message": "이 페이지의 임시 저장 버전을 검색합니다"
+          "source": "Retrieve the draft version of this blog post",
+          "message": "이 블로그 게시물의 초안 버전을 가져옵니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.desc": {
-          "source": "Includes the current version associated with this page in the response.\nBy default this is included and can be omitted by setting the value to `false`.",
-          "message": "응답에 이 페이지와 연결된 현재 버전을 포함합니다.\n기본적으로 포함되며 값을 `false`(으)로 설정하여 생략할 수 있습니다."
+          "source": "Includes the current version associated with this blog post in the response.\nBy default this is included and can be omitted by setting the value to `false`.",
+          "message": "이 블로그 게시물과 연결된 현재 버전을 응답에 포함합니다.\n기본적으로 포함되며 값을 `false` 로 설정하면 생략할 수 있습니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.display_name": {
           "source": "Include Version",
           "message": "버전 포함"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9u.short_desc": {
-          "source": "Includes the current version associated with this page in the response",
-          "message": "응답에 이 페이지와 연결된 현재 버전을 포함합니다"
+          "source": "Includes the current version associated with this blog post in the response",
+          "message": "이 블로그 게시물과 연결된 현재 버전을 응답에 포함합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.desc": {
-          "source": "Includes versions associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "응답에 이 페이지와 연결된 버전들을 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다.\n추가 결과가 있는지 여부를 나타내는 `meta` 및 나머지 결과를 검색할 수 있는 링크인 `_links` 속성이 제공됩니다."
+          "source": "Includes versions associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "이 블로그 게시물과 연결된 버전을 응답에 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다. \n`meta` 및 `_links` 속성은 결과가 더 있는지 여부와 나머지 결과를 가져올 링크를 나타냅니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.display_name": {
           "source": "Include Versions",
           "message": "버전 목록 포함"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS12ZXJzaW9ucw.short_desc": {
-          "source": "Includes versions associated with this page in the response",
-          "message": "응답에 이 페이지와 연결된 버전들을 포함합니다"
+          "source": "Includes versions associated with this blog post in the response",
+          "message": "이 블로그 게시물과 연결된 버전을 응답에 포함합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.desc": {
-          "source": "Includes web resources that can be used to render page content on a client.",
-          "message": "클라이언트에서 페이지 콘텐츠를 렌더링하는 데 사용할 수 있는 웹 리소스를 포함합니다."
+          "source": "Includes web resources that can be used to render blog post content on a client.",
+          "message": "클라이언트에서 블로그 게시물 콘텐츠를 렌더링하는 데 사용할 수 있는 웹 리소스를 포함합니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.display_name": {
           "source": "Include Webresources",
           "message": "웹 리소스 포함"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS13ZWJyZXNvdXJjZXM.short_desc": {
-          "source": "Includes web resources that can be used to render page content on a client",
-          "message": "클라이언트에서 페이지 콘텐츠를 렌더링하는 데 사용할 수 있는 웹 리소스 포함"
+          "source": "Includes web resources that can be used to render blog post content on a client",
+          "message": "클라이언트에서 블로그 게시물 콘텐츠를 렌더링하는 데 사용할 수 있는 웹 리소스를 포함합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.desc": {
-          "source": "Includes collaborators on the page.",
-          "message": "페이지의 공동 작업자를 포함합니다."
+          "source": "Includes collaborators on the blog post.",
+          "message": "블로그 게시물의 공동 작업자를 포함합니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.display_name": {
           "source": "Include Collaborators",
           "message": "공동 작업자 포함"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1jb2xsYWJvcmF0b3Jz.short_desc": {
-          "source": "Includes collaborators on the page",
-          "message": "페이지의 공동 작업자를 포함합니다"
+          "source": "Includes collaborators on the blog post",
+          "message": "블로그 게시물의 공동 작업자를 포함합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.desc": {
-          "source": "Includes whether this page has been favorited by the current user.",
-          "message": "현재 사용자가 이 페이지를 즐겨찾기에 추가했는지 여부를 포함합니다."
+          "source": "Includes whether this blog post has been favorited by the current user.",
+          "message": "현재 사용자가 이 블로그 게시물을 즐겨찾기했는지 여부를 포함합니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.display_name": {
           "source": "Include Favorited by Current User Status",
           "message": "현재 사용자의 즐겨찾기 상태 포함"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1mYXZvcml0ZWQtYnktY3VycmVudC11c2VyLXN0YXR1cw.short_desc": {
-          "source": "Includes whether this page has been favorited by the current user",
-          "message": "현재 사용자가 이 페이지를 즐겨찾기에 추가했는지 여부를 포함합니다"
+          "source": "Includes whether this blog post has been favorited by the current user",
+          "message": "현재 사용자가 이 블로그 게시물을 즐겨찾기했는지 여부를 포함합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.desc": {
-          "source": "Includes labels associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "응답에 이 페이지와 연결된 레이블을 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다.\n추가 결과가 있는지 여부를 나타내는 `meta` 및 나머지 결과를 검색할 수 있는 링크인 `_links` 속성이 제공됩니다."
+          "source": "Includes labels associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "이 블로그 게시물과 연결된 레이블을 응답에 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다. \n`meta` 및 `_links` 속성은 결과가 더 있는지 여부와 나머지 결과를 가져올 링크를 나타냅니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.display_name": {
           "source": "Include Labels",
           "message": "레이블 포함"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1sYWJlbHM.short_desc": {
-          "source": "Includes labels associated with this page in the response",
-          "message": "응답에 이 페이지와 연결된 레이블을 포함합니다"
+          "source": "Includes labels associated with this blog post in the response",
+          "message": "이 블로그 게시물과 연결된 레이블을 응답에 포함합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.desc": {
-          "source": "Includes likes associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "응답에 이 페이지와 연결된 좋아요를 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다.\n추가 결과가 있는지 여부를 나타내는 `meta` 및 나머지 결과를 가져오기 위한 링크인 `_links` 속성이 제공됩니다."
+          "source": "Includes likes associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "이 블로그 게시물과 연결된 좋아요를 응답에 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다. \n`meta` 및 `_links` 속성은 결과가 더 있는지 여부와 나머지 결과를 가져올 링크를 나타냅니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.display_name": {
           "source": "Include Likes",
           "message": "좋아요 포함"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1saWtlcw.short_desc": {
-          "source": "Includes likes associated with this page in the response",
-          "message": "응답에 이 페이지와 연결된 좋아요를 포함합니다"
+          "source": "Includes likes associated with this blog post in the response",
+          "message": "이 블로그 게시물과 연결된 좋아요를 응답에 포함합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.desc": {
-          "source": "Includes operations associated with this page in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "응답에 `Operation` 개체에 정의된 대로 이 페이지와 연결된 작업을 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다.\n추가 결과가 있는지 여부를 나타내는 `meta` 및 나머지 결과를 가져오기 위한 링크인 `_links` 속성이 제공됩니다."
+          "source": "Includes operations associated with this blog post in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "`Operation` 객체에 정의된 대로 이 블로그 게시물과 연결된 작업을 응답에 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다. \n`meta` 및 `_links` 속성은 결과가 더 있는지 여부와 나머지 결과를 가져올 링크를 나타냅니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.display_name": {
           "source": "Include Operations",
           "message": "작업 포함"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.short_desc": {
-          "source": "Includes operations associated with this page in the response, as defined in…",
-          "message": "다음에 정의된 대로, 응답에 이 페이지와 연결된 작업 포함:…"
+          "source": "Includes operations associated with this blog post in the response, as defined…",
+          "message": "'Operation' 객체에 정의된 대로 이 블로그 게시물과 연결된 작업을 응답에…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.desc": {
-          "source": "Includes content properties associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "응답에 이 페이지와 연결된 콘텐츠 속성을 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다.\n추가 결과가 있는지 여부를 나타내는 `meta` 및 나머지 결과를 가져오기 위한 링크인 `_links` 속성이 제공됩니다."
+          "source": "Includes content properties associated with this blog post in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "이 블로그 게시물과 연결된 콘텐츠 속성을 응답에 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다. \n`meta` 및 `_links` 속성은 결과가 더 있는지 여부와 나머지 결과를 가져올 링크를 나타냅니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.display_name": {
           "source": "Include Properties",
           "message": "속성 포함"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.short_desc": {
-          "source": "Includes content properties associated with this page in the response",
-          "message": "응답에 이 페이지와 연결된 콘텐츠 속성을 포함합니다"
+          "source": "Includes content properties associated with this blog post in the response",
+          "message": "이 블로그 게시물과 연결된 콘텐츠 속성을 응답에 포함합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "반환할 페이지의 ID입니다. 페이지 ID를 모르는 경우 페이지 가져오기를 사용하여 결과를 필터링하세요."
+          "source": "The ID of the blog post to be returned. If you don't know the blog post ID, use Get blog posts and filter the results.",
+          "message": "반환할 블로그 게시물의 ID. 블로그 게시물 ID를 모르는 경우 블로그 게시물 가져오기를 사용해 결과를 필터링하십시오."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.display_name": {
           "source": "Blog Post",
           "message": "블로그 게시물"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "반환할 페이지의 ID입니다"
+          "source": "The ID of the blog post to be returned",
+          "message": "반환할 블로그 게시물의 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RCeUlk.option.c3RhdHVz.desc": {
           "source": "Filter the blog post being retrieved by its status.",
@@ -600,8 +600,8 @@
           "message": "응답의 'body' 필드에 반환될 콘텐츠 형식 유형"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.aWQ.desc": {
-          "source": "Filter the results based on page ids. Multiple page ids can be specified as a comma-separated list.",
-          "message": "페이지 ID를 기반으로 결과를 필터링합니다. 여러 페이지 ID를 쉼표로 구분된 목록으로 지정할 수 있습니다."
+          "source": "Filter the results based on blog post ids. Multiple blog post ids can be specified as a comma-separated list.",
+          "message": "블로그 게시물 ID로 결과를 필터링합니다. 여러 ID는 쉼표로 구분된 목록으로 지정할 수 있습니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.aWQ.display_name": {
           "source": "Blog Posts",
@@ -684,16 +684,16 @@
           "message": "상태를 기반으로 블로그 게시물 결과를 필터링합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.desc": {
-          "source": "Filter the results to pages based on their title.",
-          "message": "제목을 기반으로 페이지 결과를 필터링합니다."
+          "source": "Filter the results to blog posts based on their title.",
+          "message": "제목을 기준으로 블로그 게시물 결과를 필터링합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.display_name": {
           "source": "Title",
           "message": "제목"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.option.dGl0bGU.short_desc": {
-          "source": "Filter the results to pages based on their title",
-          "message": "제목을 기반으로 페이지 결과를 필터링합니다"
+          "source": "Filter the results to blog posts based on their title",
+          "message": "제목을 기준으로 블로그 게시물 결과를 필터링합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3Rz.short_desc": {
           "source": "List the blog posts on the site",
@@ -740,8 +740,8 @@
           "message": "응답의 'body' 필드에 반환될 콘텐츠 형식 유형"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "반환할 페이지의 ID입니다. 페이지 ID를 모르는 경우 페이지 가져오기를 사용하여 결과를 필터링하세요."
+          "source": "The ID of the space for which blog posts should be returned.",
+          "message": "블로그 게시물을 반환할 스페이스의 ID입니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.aWQ.display_name": {
           "source": "Space",
@@ -812,16 +812,16 @@
           "message": "상태를 기반으로 블로그 게시물 결과를 필터링합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.desc": {
-          "source": "Filter the results to pages based on their title.",
-          "message": "제목을 기반으로 페이지 결과를 필터링합니다."
+          "source": "Filter the results to blog posts based on their title.",
+          "message": "제목을 기준으로 블로그 게시물 결과를 필터링합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.display_name": {
           "source": "Title",
           "message": "제목"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.option.dGl0bGU.short_desc": {
-          "source": "Filter the results to pages based on their title",
-          "message": "제목을 기반으로 페이지 결과를 필터링합니다"
+          "source": "Filter the results to blog posts based on their title",
+          "message": "제목을 기준으로 블로그 게시물 결과를 필터링합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0QmxvZ1Bvc3RzSW5TcGFjZQ.short_desc": {
           "source": "List the blog posts in one space",
@@ -868,16 +868,16 @@
           "message": "응답의 'body' 필드에 반환될 콘텐츠 형식 유형"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "반환할 페이지의 ID입니다. 페이지 ID를 모르는 경우 페이지 가져오기를 사용하여 결과를 필터링하세요."
+          "source": "The ID of the label for which blog posts should be returned.",
+          "message": "블로그 게시물을 반환할 레이블의 ID입니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.display_name": {
           "source": "Label",
           "message": "라벨"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "반환할 페이지의 ID입니다"
+          "source": "The ID of the label for which blog posts should be returned",
+          "message": "블로그 게시물을 반환할 레이블의 ID입니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxCbG9nUG9zdHM.option.bGltaXQ.desc": {
           "source": "How many records to return in one page.\n\nThere is no total in the response: `_links.next` is a relative URL carrying the cursor for the following page, and its absence is what says the collection is exhausted.",
@@ -984,16 +984,16 @@
           "message": "응답의 'body' 필드에 반환될 콘텐츠 형식 유형"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "반환할 페이지의 ID입니다. 페이지 ID를 모르는 경우 페이지 가져오기를 사용하여 결과를 필터링하세요."
+          "source": "The ID of the label for which pages should be returned.",
+          "message": "페이지를 반환할 레이블의 ID입니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.display_name": {
           "source": "Label",
           "message": "라벨"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "반환할 페이지의 ID입니다"
+          "source": "The ID of the label for which pages should be returned",
+          "message": "페이지를 반환할 레이블의 ID입니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0TGFiZWxQYWdlcw.option.bGltaXQ.desc": {
           "source": "How many records to return in one page.\n\nThere is no total in the response: `_links.next` is a relative URL carrying the cursor for the following page, and its absence is what says the collection is exhausted.",
@@ -1180,28 +1180,28 @@
           "message": "스페이스 아이콘을 가져올지 여부"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.desc": {
-          "source": "Includes labels associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "응답에 이 페이지와 연결된 레이블을 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다.\n추가 결과가 있는지 여부를 나타내는 `meta` 및 나머지 결과를 검색할 수 있는 링크인 `_links` 속성이 제공됩니다."
+          "source": "Includes labels associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "이 스페이스와 연결된 레이블을 응답에 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다.\n`meta` 및 `_links` 속성은 결과가 더 있는지 여부와 나머지 결과를 가져올 링크를 나타냅니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.display_name": {
           "source": "Include Labels",
           "message": "레이블 포함"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1sYWJlbHM.short_desc": {
-          "source": "Includes labels associated with this page in the response",
-          "message": "응답에 이 페이지와 연결된 레이블을 포함합니다"
+          "source": "Includes labels associated with this space in the response",
+          "message": "이 스페이스와 연결된 레이블을 응답에 포함합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.desc": {
-          "source": "Includes operations associated with this page in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "응답에 `Operation` 개체에 정의된 대로 이 페이지와 연결된 작업을 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다.\n추가 결과가 있는지 여부를 나타내는 `meta` 및 나머지 결과를 가져오기 위한 링크인 `_links` 속성이 제공됩니다."
+          "source": "Includes operations associated with this space in the response, as defined in the `Operation` object.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "`Operation` 객체에 정의된 대로 이 스페이스와 연결된 작업을 응답에 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다.\n`meta` 및 `_links` 속성은 결과가 더 있는지 여부와 나머지 결과를 가져올 링크를 나타냅니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.display_name": {
           "source": "Include Operations",
           "message": "작업 포함"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1vcGVyYXRpb25z.short_desc": {
-          "source": "Includes operations associated with this page in the response, as defined in…",
-          "message": "다음에 정의된 대로, 응답에 이 페이지와 연결된 작업 포함:…"
+          "source": "Includes operations associated with this space in the response, as defined in…",
+          "message": "'Operation' 객체에 정의된 대로 이 스페이스와 연결된 작업을 응답에 포함합니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wZXJtaXNzaW9ucw.desc": {
           "source": "Includes space permissions associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
@@ -1216,16 +1216,16 @@
           "message": "응답에 이 스페이스와 연결된 스페이스 권한을 포함합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.desc": {
-          "source": "Includes content properties associated with this page in the response.\nThe number of results will be limited to 50 and sorted in the default sort order. \nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
-          "message": "응답에 이 페이지와 연결된 콘텐츠 속성을 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다.\n추가 결과가 있는지 여부를 나타내는 `meta` 및 나머지 결과를 가져오기 위한 링크인 `_links` 속성이 제공됩니다."
+          "source": "Includes space properties associated with this space in the response.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
+          "message": "이 스페이스와 연결된 스페이스 속성을 응답에 포함합니다.\n결과 수는 50개로 제한되며 기본 정렬 순서로 정렬됩니다.\n`meta` 및 `_links` 속성은 결과가 더 있는지 여부와 나머지 결과를 가져올 링크를 나타냅니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.display_name": {
           "source": "Include Properties",
           "message": "속성 포함"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1wcm9wZXJ0aWVz.short_desc": {
-          "source": "Includes content properties associated with this page in the response",
-          "message": "응답에 이 페이지와 연결된 콘텐츠 속성을 포함합니다"
+          "source": "Includes space properties associated with this space in the response",
+          "message": "이 스페이스와 연결된 스페이스 속성을 응답에 포함합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aW5jbHVkZS1yb2xlLWFzc2lnbm1lbnRz.desc": {
           "source": "Includes role assignments associated with this space in the response. This parameter is only accepted for EAP sites.\nThe number of results will be limited to 50 and sorted in the default sort order.\nA `meta` and `_links` property will be present to indicate if more results are available and a link to retrieve the rest of the results.",
@@ -1240,8 +1240,8 @@
           "message": "응답에 이 공간과 연결된 역할 할당을 포함합니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "반환할 페이지의 ID입니다. 페이지 ID를 모르는 경우 페이지 가져오기를 사용하여 결과를 필터링하세요."
+          "source": "The ID of the space to be returned.",
+          "message": "반환할 스페이스의 ID입니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0U3BhY2VCeUlk.option.aWQ.display_name": {
           "source": "Space",
@@ -1928,8 +1928,8 @@
           "message": "공간의 루트 수준에 있는 페이지 또는 다음의 모든 페이지로 결과 필터링:…"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0UGFnZXNJblNwYWNl.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "반환할 페이지의 ID입니다. 페이지 ID를 모르는 경우 페이지 가져오기를 사용하여 결과를 필터링하세요."
+          "source": "The ID of the space for which pages should be returned.",
+          "message": "페이지를 반환할 스페이스의 ID입니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0UGFnZXNJblNwYWNl.option.aWQ.display_name": {
           "source": "Space",
@@ -2052,16 +2052,16 @@
           "message": "응답의 'body' 필드에 반환될 콘텐츠 형식 유형"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "반환할 페이지의 ID입니다. 페이지 ID를 모르는 경우 페이지 가져오기를 사용하여 결과를 필터링하세요."
+          "source": "The ID of the task to be returned. If you don't know the task ID, use Get tasks and filter the results.",
+          "message": "반환할 작업의 ID. 작업 ID를 모르는 경우 작업 가져오기를 사용해 결과를 필터링하십시오."
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.display_name": {
           "source": "Task",
           "message": "작업"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "반환할 페이지의 ID입니다"
+          "source": "The ID of the task to be returned",
+          "message": "반환할 작업의 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.Z2V0VGFza0J5SWQ.short_desc": {
           "source": "Retrieve one task",
@@ -2344,40 +2344,40 @@
           "message": "블로그 게시물 삭제"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.desc": {
-          "source": "If attempting to delete a page that is a draft.",
-          "message": "초안인 페이지를 삭제하려는 경우입니다."
+          "source": "If attempting to delete a blog post that is a draft.",
+          "message": "초안 상태인 블로그 게시물을 삭제하려는 경우입니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.display_name": {
           "source": "Draft",
           "message": "임시 저장"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.ZHJhZnQ.short_desc": {
-          "source": "If attempting to delete a page that is a draft",
-          "message": "초안인 페이지를 삭제하려는 경우"
+          "source": "If attempting to delete a blog post that is a draft",
+          "message": "초안 상태인 블로그 게시물을 삭제하려는 경우입니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "반환할 페이지의 ID입니다. 페이지 ID를 모르는 경우 페이지 가져오기를 사용하여 결과를 필터링하세요."
+          "source": "The ID of the blog post to be deleted.",
+          "message": "삭제할 블로그 게시물의 ID."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.display_name": {
           "source": "Blog Post",
           "message": "블로그 게시물"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "반환할 페이지의 ID입니다"
+          "source": "The ID of the blog post to be deleted",
+          "message": "삭제할 블로그 게시물의 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.desc": {
-          "source": "If attempting to purge the page.",
-          "message": "페이지를 영구 삭제하려는 경우입니다."
+          "source": "If attempting to purge the blog post.",
+          "message": "블로그 게시물을 영구 삭제하려는 경우입니다."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.display_name": {
           "source": "Purge",
           "message": "영구 삭제"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.option.cHVyZ2U.short_desc": {
-          "source": "If attempting to purge the page",
-          "message": "페이지를 영구 삭제하려는 경우"
+          "source": "If attempting to purge the blog post",
+          "message": "블로그 게시물을 영구 삭제하려는 경우입니다"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlQmxvZ1Bvc3Q.short_desc": {
           "source": "Move a blog post to the trash, or purge it",
@@ -2404,16 +2404,16 @@
           "message": "초안인 페이지를 삭제하려는 경우"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "반환할 페이지의 ID입니다. 페이지 ID를 모르는 경우 페이지 가져오기를 사용하여 결과를 필터링하세요."
+          "source": "The ID of the page to be deleted.",
+          "message": "삭제할 페이지의 ID."
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.display_name": {
           "source": "Page",
           "message": "페이지"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "반환할 페이지의 ID입니다"
+          "source": "The ID of the page to be deleted",
+          "message": "삭제할 페이지의 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.ZGVsZXRlUGFnZQ.option.cHVyZ2U.desc": {
           "source": "If attempting to purge the page.",
@@ -2896,16 +2896,16 @@
           "message": "콘텐츠입니다. \"value\"의 작성 형식을 지정하려면 \"representation\"을 설정하세요"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "반환할 페이지의 ID입니다. 페이지 ID를 모르는 경우 페이지 가져오기를 사용하여 결과를 필터링하세요."
+          "source": "The ID of the blog post to be updated. If you don't know the blog post ID, use Get Blog Posts and filter the results.",
+          "message": "업데이트할 블로그 게시물의 ID. 블로그 게시물 ID를 모르는 경우 블로그 게시물 가져오기를 사용해 결과를 필터링하십시오."
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.display_name": {
           "source": "Blog Post",
           "message": "블로그 게시물"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "반환할 페이지의 ID입니다"
+          "source": "The ID of the blog post to be updated",
+          "message": "업데이트할 블로그 게시물의 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlQmxvZ1Bvc3Q.option.c3BhY2VJZA.desc": {
           "source": "ID of the containing space.\n\nThis currently **does not support moving the blog post to a different space**.",
@@ -2988,16 +2988,16 @@
           "message": "콘텐츠입니다. \"value\"의 작성 형식을 지정하려면 \"representation\"을 설정하세요"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "반환할 페이지의 ID입니다. 페이지 ID를 모르는 경우 페이지 가져오기를 사용하여 결과를 필터링하세요."
+          "source": "The ID of the page to be updated. If you don't know the page ID, use Get Pages and filter the results.",
+          "message": "업데이트할 페이지의 ID. 페이지 ID를 모르는 경우 페이지 가져오기를 사용해 결과를 필터링하십시오."
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.display_name": {
           "source": "Page",
           "message": "페이지"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "반환할 페이지의 ID입니다"
+          "source": "The ID of the page to be updated",
+          "message": "업데이트할 페이지의 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZQ.option.b3duZXJJZA.desc": {
           "source": "Account ID of the page owner.\n\nThis allows page ownership to be transferred to another user.",
@@ -3092,16 +3092,16 @@
           "message": "페이지 이름 변경"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "반환할 페이지의 ID입니다. 페이지 ID를 모르는 경우 페이지 가져오기를 사용하여 결과를 필터링하세요."
+          "source": "The ID of the page to be updated. If you don't know the page ID, use Get Pages and filter the results",
+          "message": "업데이트할 페이지의 ID. 페이지 ID를 모르는 경우 페이지 가져오기를 사용해 결과를 필터링하십시오"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.display_name": {
           "source": "Page",
           "message": "페이지"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "반환할 페이지의 ID입니다"
+          "source": "The ID of the page to be updated",
+          "message": "업데이트할 페이지의 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlUGFnZVRpdGxl.option.c3RhdHVz.allowed-value.c3RyaW5nOmN1cnJlbnQ.display_name": {
           "source": "current",
@@ -3252,16 +3252,16 @@
           "message": "작업 마감 날짜와 시간"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.desc": {
-          "source": "The ID of the page to be returned. If you don't know the page ID, use Get pages and filter the results.",
-          "message": "반환할 페이지의 ID입니다. 페이지 ID를 모르는 경우 페이지 가져오기를 사용하여 결과를 필터링하세요."
+          "source": "The ID of the task to be updated. If you don't know the task ID, use Get tasks and filter the results.",
+          "message": "업데이트할 작업의 ID. 작업 ID를 모르는 경우 작업 가져오기를 사용해 결과를 필터링하십시오."
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.display_name": {
           "source": "Task",
           "message": "작업"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.aWQ.short_desc": {
-          "source": "The ID of the page to be returned",
-          "message": "반환할 페이지의 ID입니다"
+          "source": "The ID of the task to be updated",
+          "message": "업데이트할 작업의 ID"
         },
         "app.Q29uZmx1ZW5jZQ.action.dXBkYXRlVGFzaw.option.bG9jYWxJZA.desc": {
           "source": "Local ID of the task. This ID is local to the corresponding page or blog post.",

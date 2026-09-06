@@ -720,16 +720,16 @@
           "message": "결과 정렬 기준"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "지정된 시간 이후에 업데이트된 리포지토리만 표시합니다. [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 형식의 타임스탬프입니다: `YYYY-MM-DDTHH:MM:SSZ`."
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+          "message": "지정한 시각 이후에 마지막으로 업데이트된 결과만 표시합니다. [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 형식의 타임스탬프입니다: `YYYY-MM-DDTHH:MM:SSZ`."
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.display_name": {
           "source": "Since",
           "message": "이후"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "지정된 시간 이후에 업데이트된 리포지토리만 표시"
+          "source": "Only show results that were last updated after the given time",
+          "message": "지정한 시각 이후에 마지막으로 업데이트된 결과만 표시합니다"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c3RhdGU.allowed-value.c3RyaW5nOm9wZW4.display_name": {
           "source": "open",
@@ -924,16 +924,16 @@
           "message": "결과 정렬 기준"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "지정된 시간 이후에 업데이트된 리포지토리만 표시합니다. [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 형식의 타임스탬프입니다: `YYYY-MM-DDTHH:MM:SSZ`."
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+          "message": "지정한 시각 이후에 마지막으로 업데이트된 결과만 표시합니다. [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 형식의 타임스탬프입니다: `YYYY-MM-DDTHH:MM:SSZ`."
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.display_name": {
           "source": "Since",
           "message": "이후"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "지정된 시간 이후에 업데이트된 리포지토리만 표시"
+          "source": "Only show results that were last updated after the given time",
+          "message": "지정한 시각 이후에 마지막으로 업데이트된 결과만 표시합니다"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c3RhdGU.allowed-value.c3RyaW5nOm9wZW4.display_name": {
           "source": "open",
@@ -2024,8 +2024,8 @@
           "message": "한 페이지에 반환할 레코드 수(최대 100개)"
         },
         "app.R2l0aHVi.action.c2VhcmNoLWlzc3Vlcy1hbmQtcHVsbC1yZXF1ZXN0cw.option.cQ.desc": {
-          "source": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as the web interface for GitHub. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query). See \"[Searching for repositories](https://docs.github.com/articles/searching-for-repositories/)\" for a detailed list of qualifiers.",
-          "message": "쿼리에는 하나 이상의 검색 키워드와 한정자(qualifiers)가 포함됩니다. 한정자를 사용하면 검색 범위를 GitHub의 특정 영역으로 제한할 수 있습니다. REST API는 GitHub 웹 인터페이스와 동일한 한정자를 지원합니다. 쿼리 형식에 대한 자세한 내용은 [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query)를 참조하세요. 한정자의 자세한 목록은 \"[Searching for repositories](https://docs.github.com/articles/searching-for-repositories/)\"를 참조하세요."
+          "source": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as the web interface for GitHub. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query). See \"[Searching issues and pull requests](https://docs.github.com/search-github/searching-on-github/searching-issues-and-pull-requests)\" for a detailed list of qualifiers.",
+          "message": "쿼리에는 하나 이상의 검색 키워드와 한정자가 포함됩니다. 한정자를 사용하면 검색을 GitHub의 특정 영역으로 제한할 수 있습니다. REST API는 GitHub 웹 인터페이스와 동일한 한정자를 지원합니다. 쿼리 형식에 대한 자세한 내용은 [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query) 를 참조하십시오. 한정자의 자세한 목록은 \"[Searching issues and pull requests](https://docs.github.com/search-github/searching-on-github/searching-issues-and-pull-requests)\" 를 참조하십시오."
         },
         "app.R2l0aHVi.action.c2VhcmNoLWlzc3Vlcy1hbmQtcHVsbC1yZXF1ZXN0cw.option.cQ.display_name": {
           "source": "Query",
@@ -2368,16 +2368,16 @@
           "message": "내림차순"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.desc": {
-          "source": "The order to sort by. Default: `asc` when using `full_name`, otherwise `desc`.",
-          "message": "정렬 순서입니다. 기본값: `full_name` 사용 시 `asc`, 그렇지 않으면 `desc`."
+          "source": "The direction of the sort. Default: `desc` when sort is `created` or sort is not specified, otherwise `asc`.",
+          "message": "정렬 방향입니다. 기본값: sort 가 `created` 이거나 지정되지 않은 경우 `desc`, 그렇지 않으면 `asc`."
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.display_name": {
           "source": "Direction",
           "message": "방향"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.short_desc": {
-          "source": "The order to sort by",
-          "message": "정렬 순서"
+          "source": "The direction of the sort",
+          "message": "정렬 방향"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.aGVhZA.desc": {
           "source": "Filter pulls by head user or head organization and branch name in the format of `user:ref-name` or `organization:ref-name`. For example: `github:new-script-format` or `octocat:test-branch`.",
@@ -2444,16 +2444,16 @@
           "message": "닫힘"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.desc": {
-          "source": "Indicates the state of the issues to return.",
-          "message": "반환할 이슈의 상태를 지정합니다."
+          "source": "Either `open`, `closed`, or `all` to filter by state.",
+          "message": "상태로 필터링하려면 'open', 'closed' 또는 'all'"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.display_name": {
           "source": "State",
           "message": "주/도"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.short_desc": {
-          "source": "Indicates the state of the issues to return",
-          "message": "반환할 이슈 상태 지정"
+          "source": "Either 'open', 'closed', or 'all' to filter by state",
+          "message": "상태로 필터링하려면 'open', 'closed' 또는 'all'"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.cGFnZQ.desc": {
           "source": "The page number of the results to fetch. For more information, see \"[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api).\"",
@@ -4192,28 +4192,28 @@
           "message": "조회할 브랜치, 태그 또는 커밋(설정하지 않으면 기본 브랜치)"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "지정된 시간 이후에 업데이트된 리포지토리만 표시합니다. [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 형식의 타임스탬프입니다: `YYYY-MM-DDTHH:MM:SSZ`."
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. Due to limitations of Git, timestamps must be between 1970-01-01 and 2099-12-31 (inclusive) or unexpected results may be returned.",
+          "message": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. Git의 제한으로 인해 타임스탬프는 1970-01-01 부터 2099-12-31 사이(양 끝 포함)여야 하며, 그렇지 않으면 예기치 않은 결과가 반환될 수 있습니다."
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.display_name": {
           "source": "Since",
           "message": "이후"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "지정된 시간 이후에 업데이트된 리포지토리만 표시"
+          "source": "Only show results that were last updated after the given time",
+          "message": "지정한 시각 이후에 마지막으로 업데이트된 결과만 표시합니다"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.desc": {
-          "source": "path parameter",
-          "message": "path 매개변수"
+          "source": "Only commits containing this file path will be returned.",
+          "message": "이 파일 경로를 포함하는 커밋만 반환됩니다."
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.display_name": {
           "source": "Path",
           "message": "경로"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.short_desc": {
-          "source": "path parameter",
-          "message": "path 매개변수"
+          "source": "Only commits containing this file path will be returned",
+          "message": "이 파일 경로를 포함하는 커밋만 반환됩니다"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGFnZQ.desc": {
           "source": "The page number of the results to fetch. For more information, see \"[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api).\"",
@@ -5394,6 +5394,18 @@
         "app.R2l0aHVi.short_desc": {
           "source": "Work with GitHub repositories, issues, pull requests, releases and Actions",
           "message": "GitHub 리포지토리, 이슈, 풀 리퀘스트, 릴리스 및 Actions 작업 수행"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.dHlwZQ.short_desc": {
+          "source": "Can be the name of an issue type",
+          "message": "이슈 유형의 이름일 수 있습니다"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.dHlwZQ.desc": {
+          "source": "Can be the name of an issue type. If the string `*` is passed, issues with any type are accepted. If the string `none` is passed, issues without type are returned.",
+          "message": "이슈 유형의 이름일 수 있습니다. 문자열 `*` 을 전달하면 모든 유형의 이슈가 허용됩니다. 문자열 `none` 을 전달하면 유형이 없는 이슈가 반환됩니다."
+        },
+        "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2hh.desc": {
+          "source": "SHA or branch to start listing commits from. Default: the repository’s default branch (usually `main`).",
+          "message": "커밋 목록을 시작할 SHA 또는 브랜치입니다. 기본값: 저장소의 기본 브랜치(보통 `main`)."
         }
       }
     }

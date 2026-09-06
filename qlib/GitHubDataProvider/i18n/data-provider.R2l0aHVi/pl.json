@@ -720,16 +720,16 @@
           "message": "Kryterium sortowania wyników"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "Pokaż tylko repozytoria zaktualizowane po podanym czasie. Jest to znacznik czasu w formacie [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601): `YYYY-MM-DDTHH:MM:SSZ`."
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+          "message": "Pokaż tylko wyniki zaktualizowane po podanym czasie. Jest to znacznik czasu w formacie [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601): `YYYY-MM-DDTHH:MM:SSZ`."
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.display_name": {
           "source": "Since",
           "message": "Od"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "Pokaż tylko repozytoria zaktualizowane po podanym czasie"
+          "source": "Only show results that were last updated after the given time",
+          "message": "Pokaż tylko wyniki zaktualizowane po podanym czasie"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3Q.option.c3RhdGU.allowed-value.c3RyaW5nOm9wZW4.display_name": {
           "source": "open",
@@ -924,16 +924,16 @@
           "message": "Kryterium sortowania wyników"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "Pokaż tylko repozytoria zaktualizowane po podanym czasie. Jest to znacznik czasu w formacie [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601): `YYYY-MM-DDTHH:MM:SSZ`."
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+          "message": "Pokaż tylko wyniki zaktualizowane po podanym czasie. Jest to znacznik czasu w formacie [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601): `YYYY-MM-DDTHH:MM:SSZ`."
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.display_name": {
           "source": "Since",
           "message": "Od"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "Pokaż tylko repozytoria zaktualizowane po podanym czasie"
+          "source": "Only show results that were last updated after the given time",
+          "message": "Pokaż tylko wyniki zaktualizowane po podanym czasie"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.c3RhdGU.allowed-value.c3RyaW5nOm9wZW4.display_name": {
           "source": "open",
@@ -2024,8 +2024,8 @@
           "message": "Liczba rekordów zwracanych na jednej stronie; maksymalnie 100"
         },
         "app.R2l0aHVi.action.c2VhcmNoLWlzc3Vlcy1hbmQtcHVsbC1yZXF1ZXN0cw.option.cQ.desc": {
-          "source": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as the web interface for GitHub. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query). See \"[Searching for repositories](https://docs.github.com/articles/searching-for-repositories/)\" for a detailed list of qualifiers.",
-          "message": "Zapytanie zawiera jedno lub więcej słów kluczowych i kwalifikatorów. Kwalifikatory pozwalają ograniczyć wyszukiwanie do określonych obszarów GitHuba. Interfejs REST API obsługuje te same kwalifikatory co interfejs webowy GitHuba. Aby dowiedzieć się więcej o formacie zapytania, zobacz [Tworzenie zapytania wyszukiwania](https://docs.github.com/rest/search/search#constructing-a-search-query). Zobacz „[Wyszukiwanie repozytoriów](https://docs.github.com/articles/searching-for-repositories/)”, aby uzyskać szczegółową listę kwalifikatorów."
+          "source": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as the web interface for GitHub. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query). See \"[Searching issues and pull requests](https://docs.github.com/search-github/searching-on-github/searching-issues-and-pull-requests)\" for a detailed list of qualifiers.",
+          "message": "Zapytanie zawiera co najmniej jedno słowo kluczowe i kwalifikatory. Kwalifikatory pozwalają ograniczyć wyszukiwanie do określonych obszarów GitHuba. Interfejs REST API obsługuje te same kwalifikatory co interfejs webowy GitHuba. Więcej o formacie zapytania: [Constructing a search query](https://docs.github.com/rest/search/search#constructing-a-search-query). Szczegółową listę kwalifikatorów znajdziesz w \"[Searching issues and pull requests](https://docs.github.com/search-github/searching-on-github/searching-issues-and-pull-requests)\"."
         },
         "app.R2l0aHVi.action.c2VhcmNoLWlzc3Vlcy1hbmQtcHVsbC1yZXF1ZXN0cw.option.cQ.display_name": {
           "source": "Query",
@@ -2368,15 +2368,15 @@
           "message": "malejąco"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.desc": {
-          "source": "The order to sort by. Default: `asc` when using `full_name`, otherwise `desc`.",
-          "message": "Kierunek sortowania. Domyślnie: `asc` w przypadku użycia `full_name`, w przeciwnym razie `desc`."
+          "source": "The direction of the sort. Default: `desc` when sort is `created` or sort is not specified, otherwise `asc`.",
+          "message": "Kierunek sortowania. Domyślnie: `desc`, gdy sort ma wartość `created` lub nie podano sortowania, w przeciwnym razie `asc`."
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.display_name": {
           "source": "Direction",
           "message": "Kierunek"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.ZGlyZWN0aW9u.short_desc": {
-          "source": "The order to sort by",
+          "source": "The direction of the sort",
           "message": "Kierunek sortowania"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.aGVhZA.desc": {
@@ -2444,16 +2444,16 @@
           "message": "zamknięte"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.desc": {
-          "source": "Indicates the state of the issues to return.",
-          "message": "Określa stan zgłoszeń do zwrócenia."
+          "source": "Either `open`, `closed`, or `all` to filter by state.",
+          "message": "'open', 'closed' albo 'all', aby filtrować według stanu"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.display_name": {
           "source": "State",
           "message": "Stan / województwo"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.c3RhdGU.short_desc": {
-          "source": "Indicates the state of the issues to return",
-          "message": "Określa stan zgłoszeń do zwrócenia"
+          "source": "Either 'open', 'closed', or 'all' to filter by state",
+          "message": "'open', 'closed' albo 'all', aby filtrować według stanu"
         },
         "app.R2l0aHVi.action.cHVsbHMtbGlzdA.option.cGFnZQ.desc": {
           "source": "The page number of the results to fetch. For more information, see \"[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api).\"",
@@ -4192,28 +4192,28 @@
           "message": "Gałąź, tag lub commit jako źródło listy; domyślna gałąź, jeśli brak"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.desc": {
-          "source": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
-          "message": "Pokaż tylko repozytoria zaktualizowane po podanym czasie. Jest to znacznik czasu w formacie [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601): `YYYY-MM-DDTHH:MM:SSZ`."
+          "source": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. Due to limitations of Git, timestamps must be between 1970-01-01 and 2099-12-31 (inclusive) or unexpected results may be returned.",
+          "message": "Only show results that were last updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`. Ze względu na ograniczenia Gita znaczniki czasu muszą mieścić się w zakresie od 1970-01-01 do 2099-12-31 (włącznie), w przeciwnym razie mogą zostać zwrócone nieoczekiwane wyniki."
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.display_name": {
           "source": "Since",
           "message": "Od"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2luY2U.short_desc": {
-          "source": "Only show repositories updated after the given time",
-          "message": "Pokaż tylko repozytoria zaktualizowane po podanym czasie"
+          "source": "Only show results that were last updated after the given time",
+          "message": "Pokaż tylko wyniki zaktualizowane po podanym czasie"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.desc": {
-          "source": "path parameter",
-          "message": "parametr path"
+          "source": "Only commits containing this file path will be returned.",
+          "message": "Zwrócone zostaną tylko commity zawierające tę ścieżkę pliku."
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.display_name": {
           "source": "Path",
           "message": "Ścieżka"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGF0aA.short_desc": {
-          "source": "path parameter",
-          "message": "parametr path"
+          "source": "Only commits containing this file path will be returned",
+          "message": "Zwrócone zostaną tylko commity zawierające tę ścieżkę pliku"
         },
         "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.cGFnZQ.desc": {
           "source": "The page number of the results to fetch. For more information, see \"[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api).\"",
@@ -5394,6 +5394,18 @@
         "app.R2l0aHVi.short_desc": {
           "source": "Work with GitHub repositories, issues, pull requests, releases and Actions",
           "message": "Pracuj z repozytoriami GitHub, zgłoszeniami, pull requestami i Actions"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.dHlwZQ.short_desc": {
+          "source": "Can be the name of an issue type",
+          "message": "Może być nazwą typu zgłoszenia"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.option.dHlwZQ.desc": {
+          "source": "Can be the name of an issue type. If the string `*` is passed, issues with any type are accepted. If the string `none` is passed, issues without type are returned.",
+          "message": "Może być nazwą typu zgłoszenia. Przekazanie ciągu `*` oznacza akceptowanie zgłoszeń dowolnego typu. Przekazanie ciągu `none` zwraca zgłoszenia bez typu."
+        },
+        "app.R2l0aHVi.action.cmVwb3MtbGlzdC1jb21taXRz.option.c2hh.desc": {
+          "source": "SHA or branch to start listing commits from. Default: the repository’s default branch (usually `main`).",
+          "message": "SHA lub gałąź, od której rozpocząć wypisywanie commitów. Domyślnie: domyślna gałąź repozytorium (zwykle `main`)."
         }
       }
     }

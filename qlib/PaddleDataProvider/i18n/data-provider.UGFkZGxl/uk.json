@@ -1268,8 +1268,8 @@
           "message": "Повертати лише ці транзакції"
         },
         "app.UGFkZGxl.action.bGlzdF90cmFuc2FjdGlvbnM.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "Впорядкувати повернуті сутності за вказаним полем і напрямком (`[ASC]` або `[DESC]`). Наприклад, `?order_by=id[ASC]`.\n\nДопустимі поля для сортування: `id`."
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `billed_at`, `created_at`, `id`, and `updated_at`.",
+          "message": "Упорядковує повернені сутності за вказаним полем і напрямком (`[ASC]` або `[DESC]`). Наприклад, `?order_by=id[ASC]`.\n\nДійсні поля для впорядкування: `billed_at`, `created_at`, `id`, та `updated_at`."
         },
         "app.UGFkZGxl.action.bGlzdF90cmFuc2FjdGlvbnM.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",
@@ -1544,8 +1544,8 @@
           "message": "Повертати лише ці продукти"
         },
         "app.UGFkZGxl.action.bGlzdF9wcm9kdWN0cw.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "Впорядкувати повернуті сутності за вказаним полем і напрямком (`[ASC]` або `[DESC]`). Наприклад, `?order_by=id[ASC]`.\n\nДопустимі поля для сортування: `id`."
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `created_at`, `custom_data`, `description`, `id`, `image_url`, `name`, `status`, `tax_category`, and `updated_at`.",
+          "message": "Упорядковує повернені сутності за вказаним полем і напрямком (`[ASC]` або `[DESC]`). Наприклад, `?order_by=id[ASC]`.\n\nДійсні поля для впорядкування: `created_at`, `custom_data`, `description`, `id`, `image_url`, `name`, `status`, `tax_category`, та `updated_at`."
         },
         "app.UGFkZGxl.action.bGlzdF9wcm9kdWN0cw.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",
@@ -1712,8 +1712,8 @@
           "message": "Повертати лише ці ціни"
         },
         "app.UGFkZGxl.action.bGlzdF9wcmljZXM.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "Впорядкувати повернуті сутності за вказаним полем і напрямком (`[ASC]` або `[DESC]`). Наприклад, `?order_by=id[ASC]`.\n\nДопустимі поля для сортування: `id`."
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `billing_cycle.frequency`, `billing_cycle.interval`, `id`, `product_id`, `quantity.maximum`, `quantity.minimum`, `status`, `tax_mode`, `unit_price.amount`, and `unit_price.currency_code`.",
+          "message": "Упорядковує повернені сутності за вказаним полем і напрямком (`[ASC]` або `[DESC]`). Наприклад, `?order_by=id[ASC]`.\n\nДійсні поля для впорядкування: `billing_cycle.frequency`, `billing_cycle.interval`, `id`, `product_id`, `quantity.maximum`, `quantity.minimum`, `status`, `tax_mode`, `unit_price.amount`, та `unit_price.currency_code`."
         },
         "app.UGFkZGxl.action.bGlzdF9wcmljZXM.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",

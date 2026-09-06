@@ -1268,8 +1268,8 @@
           "message": "해당 거래만 반환"
         },
         "app.UGFkZGxl.action.bGlzdF90cmFuc2FjdGlvbnM.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "지정된 필드 및 방향(`[ASC]` 또는 `[DESC]`)을 기준으로 반환된 엔티티를 정렬합니다. 예: `?order_by=id[ASC]`.\n\n정렬에 유효한 필드: `id`."
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `billed_at`, `created_at`, `id`, and `updated_at`.",
+          "message": "지정한 필드와 방향(`[ASC]` 또는 `[DESC]`)으로 반환된 엔터티를 정렬합니다. 예: `?order_by=id[ASC]`.\n\n정렬에 사용할 수 있는 필드: `billed_at`, `created_at`, `id`, 및 `updated_at`."
         },
         "app.UGFkZGxl.action.bGlzdF90cmFuc2FjdGlvbnM.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",
@@ -1544,8 +1544,8 @@
           "message": "이 제품만 반환"
         },
         "app.UGFkZGxl.action.bGlzdF9wcm9kdWN0cw.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "지정된 필드 및 방향(`[ASC]` 또는 `[DESC]`)을 기준으로 반환된 엔티티를 정렬합니다. 예: `?order_by=id[ASC]`.\n\n정렬에 유효한 필드: `id`."
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `created_at`, `custom_data`, `description`, `id`, `image_url`, `name`, `status`, `tax_category`, and `updated_at`.",
+          "message": "지정한 필드와 방향(`[ASC]` 또는 `[DESC]`)으로 반환된 엔터티를 정렬합니다. 예: `?order_by=id[ASC]`.\n\n정렬에 사용할 수 있는 필드: `created_at`, `custom_data`, `description`, `id`, `image_url`, `name`, `status`, `tax_category`, 및 `updated_at`."
         },
         "app.UGFkZGxl.action.bGlzdF9wcm9kdWN0cw.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",
@@ -1712,8 +1712,8 @@
           "message": "이 가격만 반환"
         },
         "app.UGFkZGxl.action.bGlzdF9wcmljZXM.option.b3JkZXJfYnk.desc": {
-          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `id`.",
-          "message": "지정된 필드 및 방향(`[ASC]` 또는 `[DESC]`)을 기준으로 반환된 엔티티를 정렬합니다. 예: `?order_by=id[ASC]`.\n\n정렬에 유효한 필드: `id`."
+          "source": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`). For example, `?order_by=id[ASC]`.\n\nValid fields for ordering: `billing_cycle.frequency`, `billing_cycle.interval`, `id`, `product_id`, `quantity.maximum`, `quantity.minimum`, `status`, `tax_mode`, `unit_price.amount`, and `unit_price.currency_code`.",
+          "message": "지정한 필드와 방향(`[ASC]` 또는 `[DESC]`)으로 반환된 엔터티를 정렬합니다. 예: `?order_by=id[ASC]`.\n\n정렬에 사용할 수 있는 필드: `billing_cycle.frequency`, `billing_cycle.interval`, `id`, `product_id`, `quantity.maximum`, `quantity.minimum`, `status`, `tax_mode`, `unit_price.amount`, 및 `unit_price.currency_code`."
         },
         "app.UGFkZGxl.action.bGlzdF9wcmljZXM.option.b3JkZXJfYnk.display_name": {
           "source": "Order By",
