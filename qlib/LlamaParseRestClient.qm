@@ -53,27 +53,45 @@ module LlamaParseRestClient {
     @section llamaparserestclientintro LlamaParseRestClient Introduction
 
     The %LlamaParseRestClient module provides a REST client for
-    [LlamaParse](https://docs.cloud.llamaindex.ai/llamaparse/getting_started) —
-    a document extraction service from LlamaIndex that turns PDFs, docx,
-    HTML, and image documents into structured markdown.
+    [LlamaParse](https://docs.cloud.llamaindex.ai/llamaparse/getting_started),
+    LlamaIndex's document platform: parsing documents into markdown, text and
+    structured items, extracting structured data against a schema, classifying
+    documents against rules, and splitting a document that holds many.
 
     @par Async job lifecycle
 
-    LlamaParse is asynchronous: every parse goes through an
-    upload → poll job → fetch result lifecycle.  The
+    LlamaParse is asynchronous: a parse is submitted, the job is polled, and the
+    content is read back.  The
     @ref LlamaParseRestClient::LlamaParseRestClientIo::parseDocument()
     method encapsulates all three phases.  The polling loop is delegated
     to @ref qoreasyncjobutilsintro "QoreAsyncJobUtils"' \c AsyncJobPoller
     so the same machinery is shared with other async-REST providers
     (async OCR batches, image/video generation, etc.).
 
-    @par URL-only document submission (v1)
+    @par Which API version
 
-    The v1 client submits documents by URL only (via the JSON variant
-    of LlamaParse's `/upload` endpoint).  Local-file upload via
-    multipart/form-data is planned for a follow-up release — until then,
-    callers should host files at a URL LlamaParse can fetch (or proxy
-    them through their own server).
+    \c parseDocument() runs against the **v2** parse API.  Earlier versions of this
+    module posted the document URL as a JSON body to the v1
+    \c /api/parsing/upload endpoint, which that endpoint does not accept - it
+    wants a multipart form - so every call failed with
+    \c "Either file, input_url, or input_s3_path must be provided".
+
+    @par Submitting a document
+
+    \c parseDocument() takes a URL LlamaParse can fetch.  To send a document that
+    is not reachable at a public URL, upload it first with the
+    @ref llamaparsedataproviderintro "LlamaParseDataProvider" application's
+    \c upload-file action and parse it by file ID.
+
+    @par Regions
+
+    LlamaIndex Cloud runs in two regions, and an API key issued for one is
+    rejected by the other.  The connection defaults to
+    \c api.cloud.llamaindex.ai; if the key is rejected there, the ping tries the
+    other known region and adopts the one that accepts it.  The ping itself is a
+    cheap authenticated read, so an invalid API key fails it - this connection
+    declared no ping at all until the module covered more than the v1 parsing
+    API, and every ping reported \c "OK" without contacting the server.
 
     @par Companion chunker
 
@@ -93,12 +111,34 @@ module LlamaParseRestClient {
 public namespace LlamaParseRestClient {
 public class LlamaParseRestClientBase {
     public {
-        #! Default LlamaParse REST API URL
-        const DefaultUrl = "https://api.cloud.llamaindex.ai/api/parsing";
+        #! Default LlamaIndex Cloud REST API URL
+        /** The host root, not a path below it: the API description spells every path from the
+            root - \c /api/v1/... and \c /api/v2/... - so anything more here would be prepended
+            to paths that already carry their own prefix.
+        */
+        const DefaultUrl = "https://api.cloud.llamaindex.ai";
+
+        #! The base path of the v1 parsing API
+        const ParsingApiPath = "/api/parsing";
+
+        #! The base path of the v2 parse API used by @ref LlamaParseRestClientIo::parseDocument()
+        const ParseApiPath = "/api/v2/parse";
+
+        #! The parsing tier @ref LlamaParseRestClientIo::parseDocument() uses unless told otherwise
+        /** The cheapest one: a caller that wants AI-powered parsing asks for it.
+        */
+        const DefaultTier = "fast";
+
+        #! Which v2 expansion carries the content for each result type
+        const ResultTypeExpandMap = {
+            "markdown": "markdown",
+            "text": "text",
+            "json": "items",
+        };
 
         #! Terminal job statuses
-        const JobStatusSuccess   = "SUCCESS";
-        const JobStatusError     = "ERROR";
+        const JobStatusSuccess   = "COMPLETED";
+        const JobStatusError     = "FAILED";
         const JobStatusCancelled = "CANCELLED";
 
         const TerminalStatuses = (JobStatusSuccess, JobStatusError, JobStatusCancelled);
@@ -153,7 +193,10 @@ public class LlamaParseRestClientIo inherits RestClientIo::RestClientIo, LlamaPa
             : RestClientIo(LlamaParseRestClientBase::getOptions(opts), shared_mgr) {
         poller = new QoreAsyncJobUtils::AsyncJobPoller(
             hash<auto> sub (string job_id) {
-                return restGet(sprintf("/job/%s", job_id)).body;
+                # v2 answers a job read with an envelope carrying the job under "job" alongside the
+                # content expansions; the status lives there, not at the top level
+                hash<auto> body = restGet(sprintf("%s/%s", ParseApiPath, job_id)).body;
+                return body.job.typeCode() == NT_HASH ? body.job : body;
             },
             bool sub (hash<auto> status) {
                 return status.status && inlist(status.status, TerminalStatuses);
@@ -174,18 +217,28 @@ public class LlamaParseRestClientIo inherits RestClientIo::RestClientIo, LlamaPa
         poller.setSleeper(s);
     }
 
-    #! Parses a document end-to-end: upload → poll job → fetch result
-    /** @param url public URL of the document to parse
+    #! Parses a document end-to-end: submit → poll job → return the content
+    /** Runs against the **v2** parse API.  Earlier versions of this module posted the document URL
+        as a JSON body to the v1 \c /api/parsing/upload endpoint, which that endpoint does not
+        accept - it wants a multipart form - so every call failed with
+        \c "Either file, input_url, or input_s3_path must be provided".  The v2 API takes the URL in
+        a JSON body and returns the parsed content from the job itself, so the whole lifecycle is
+        one submit and one read.
+
+        @param url public URL of the document to parse
         @param options optional LlamaParse parameters
             (\c parsing_instruction, \c language, \c result_type
-            (\c markdown / \c text / \c json), \c poll_interval_ms,
+            (\c markdown / \c text / \c json), \c tier, \c version, \c poll_interval_ms,
             \c job_timeout)
 
         @return a hash with the following keys:
             - \c job_id — the LlamaParse job id
-            - \c status — final job status (always \c SUCCESS at this point)
+            - \c status — final job status (always \c COMPLETED at this point)
             - \c result_type — the requested result type
             - \c content — the parsed document content
+
+        @throw LLAMAPARSE-ERROR the result type is not one of the three supported, the job did not
+        start, or the job ended in a status other than \c COMPLETED
     */
     hash<auto> parseDocument(string url, *hash<auto> options) {
         string result_type = options.result_type ?? "markdown";
@@ -195,25 +248,33 @@ public class LlamaParseRestClientIo inherits RestClientIo::RestClientIo, LlamaPa
                     result_type);
         }
 
-        hash<auto> upload_body = {"input_url": url};
+        hash<auto> body = {
+            "source_url": url,
+            "tier": options.tier ?? DefaultTier,
+            "version": options.version ?? "latest",
+        };
         if (options.parsing_instruction.val()) {
-            upload_body.parsing_instruction = options.parsing_instruction;
+            # v2 carries the instruction in the tier's own options rather than at the top level
+            body.agentic_options = (body.agentic_options ?? {})
+                + {"parsing_instruction": options.parsing_instruction};
         }
         if (options.language.val()) {
-            upload_body.language = options.language;
+            body.processing_options = (body.processing_options ?? {})
+                + {"languages": (options.language,)};
         }
         if (options.extra) {
-            upload_body += options.extra;
+            body += options.extra;
         }
 
-        hash<auto> upload_resp = restPost("/upload", upload_body);
-        *string job_id = upload_resp.body.id;
+        hash<auto> submit = restPost(ParseApiPath, body);
+        *string job_id = submit.body.id;
         if (!job_id) {
             throw "LLAMAPARSE-ERROR",
-                "LlamaParse /upload did not return a job id",
-                {"body": upload_resp.body};
+                "the LlamaParse parse request did not return a job id",
+                {"body": submit.body};
         }
 
+        string expand = ResultTypeExpandMap{result_type};
         hash<auto> job = pollUntilDone(job_id,
             options.job_timeout ?? DefaultJobTimeout,
             options.poll_interval_ms ?? DefaultPollIntervalMs);
@@ -224,30 +285,37 @@ public class LlamaParseRestClientIo inherits RestClientIo::RestClientIo, LlamaPa
                 {"job": job};
         }
 
-        # Fetch the result
-        hash<auto> result_resp = restGet(sprintf("/job/%s/result/%s",
-            job_id, result_type));
-        # Result endpoint returns either a hash with a `markdown`/`text`/`json` field
-        # or a hash with everything; surface the body as `content`
-        auto content;
-        switch (result_type) {
-            case "markdown":
-                content = result_resp.body.markdown ?? result_resp.body;
-                break;
-            case "text":
-                content = result_resp.body.text ?? result_resp.body;
-                break;
-            case "json":
-                content = result_resp.body.pages ?? result_resp.body;
-                break;
-        }
-
+        # the content only comes back when it is asked for; without "expand" the job is metadata
+        hash<auto> result = restGet(sprintf("%s/%s?expand=%s", ParseApiPath, job_id, expand)).body;
         return {
             "job_id":      job_id,
             "status":      job.status,
             "result_type": result_type,
-            "content":     content,
+            "content":     LlamaParseRestClientIo::collectContent(result, result_type, expand),
         };
+    }
+
+    #! Returns the parsed content of a v2 parse result in the requested form
+    /** v2 answers with the content split per page; a caller that asked for markdown or text wants
+        the document, so the pages are joined.  \c json keeps the per-page structure, which is the
+        point of asking for it.
+
+        @param result the expanded parse job
+        @param result_type the requested result type
+        @param expand the field the content was requested in
+
+        @return the content in the requested form
+    */
+    private static auto collectContent(hash<auto> result, string result_type, string expand) {
+        *list<auto> pages = result{expand}.pages;
+        if (!pages) {
+            return result{expand} ?? result;
+        }
+        if (result_type == "json") {
+            return pages;
+        }
+        # the per-page field carries the same name as the expansion
+        return (map ($1{expand} ?? "").toString(), pages).join("\n\n");
     }
 
     #! Polls a LlamaParse job until it reaches a terminal state
@@ -274,16 +342,46 @@ public class LlamaParseRestClientIo inherits RestClientIo::RestClientIo, LlamaPa
 #! Class for LlamaParse REST connections
 public class LlamaParseRestConnection inherits RestClient::RestConnection {
     public {
-        const DefaultUrl = "llamaparse://api.cloud.llamaindex.ai/api/parsing";
+        #! The default connection URL
+        /** The host root: the API description spells every path from the root, so a base path here
+            would be prepended to paths that already carry their own prefix.
+        */
+        const DefaultUrl = "llamaparse://api.cloud.llamaindex.ai";
+
+        #! Every LlamaIndex Cloud region, in probe order
+        /** An API key is issued for one region and is rejected with a \c 401 by the other, and the
+            rejection names the region as the likely cause without saying which one the key belongs
+            to - so the only way to identify it is to try them.  @ref pingImpl() does that.
+        */
+        const KnownApiUrls = (
+            DefaultUrl,
+            "llamaparse://api.cloud.eu.llamaindex.ai",
+        );
+
+        #! The base path earlier versions of this module put in the connection URL
+        /** Kept so that a connection created before the application covered more than the v1
+            parsing API keeps working; see @ref normalizeUrl().
+        */
+        const LegacyUrlPath = "/api/parsing";
+
+        #! The path pinged to verify that the server accepts the API key
+        /** A cheap authenticated read: it lists the projects the key can reach, so a key the server
+            rejects fails the ping.
+        */
+        const PingPath = "/api/v2/projects";
 
         const ConnectionScheme = <ConnectionSchemeInfo>{
-            "display_name": "LlamaParse Document Extraction Connection",
-            "short_desc": "A connection to the LlamaParse document-extraction REST API",
-            "desc": "A connection to [LlamaParse](https://docs.cloud.llamaindex.ai/llamaparse/getting_started) "
-                "— a document extraction service from LlamaIndex that converts PDFs, "
-                "docx, HTML, and image documents into structured markdown.\n\n"
+            "display_name": "LlamaParse Connection",
+            "short_desc": "A connection to the LlamaIndex Cloud document APIs",
+            "desc": "A connection to [LlamaParse](https://docs.cloud.llamaindex.ai/llamaparse/getting_started), "
+                "LlamaIndex's document platform: parsing documents into markdown, text and "
+                "structured items, extracting structured data against a schema, classifying "
+                "documents against rules, and splitting a document that holds many.\n\n"
                 "Requires an API key for Bearer authentication.  Get your API key from "
-                "the [LlamaCloud dashboard](https://cloud.llamaindex.ai/).",
+                "the [LlamaCloud dashboard](https://cloud.llamaindex.ai/).\n\n"
+                "An API key belongs to one region and is rejected by the other.  When the "
+                "configured region rejects the key, the connection tries the other known region on "
+                "the next ping and moves itself to whichever one accepts it.",
             "cls": Class::forName("LlamaParseRestConnection"),
             "auto_url": True,
             "schemes": {"llamaparse": True},
@@ -315,6 +413,132 @@ public class LlamaParseRestConnection inherits RestClient::RestConnection {
         return "llamaparse";
     }
 
+    #! Returns the data provider application name this connection serves
+    /** Without this the base class returns nothing, the connection is never associated with its
+        app, and @ref ConnectionProvider::AbstractConnection::getInfo() "getInfo()" omits \c app
+        entirely.
+
+        @note must match @c LlamaParseDataProvider::AppName; the name is repeated here rather than
+        referenced because %LlamaParseDataProvider requires this module, not the reverse
+    */
+    *string getAppName() {
+        return "LlamaParse";
+    }
+
+    #! Declares that this connection can update its own options
+    /** @ref pingImpl() moves the connection to the region that accepts its API key, and the
+        corrected URL has to be persisted for that to be worth anything.  The base class declares
+        the feature only for OAuth2 and custom-token connections, whose options change on their own.
+    */
+    private setFeatures() {
+        RestConnection::setFeatures();
+        features{CF_UPDATE_OPTIONS} = True;
+    }
+
+    #! Pings the server by listing the projects the API key can reach
+    /** LlamaIndex serves an unauthenticated liveness endpoint, so a plain reachability ping reports
+        success even when the API key is invalid or missing - which is what this connection used to
+        do, by declaring no ping at all: every ping returned \c "OK" without contacting the server.
+        Listing projects is a cheap authenticated read that returns \c 401 when the key is not
+        accepted, so the credentials are actually verified.
+
+        When the configured region rejects the key, the other regions in @ref KnownApiUrls are
+        tried, and the connection moves to whichever one accepts it; see @ref adoptWorkingApiUrl().
+
+        Set both the \c ping_method and \c ping_path options to use the standard
+        @ref RestClient::RestConnection "RestConnection" ping instead.  Note that such a ping cannot
+        detect an invalid API key unless the path it names requires one.
+
+        @throw REST-RESPONSE-ERROR the server rejected the ping request
+    */
+    private pingImpl() {
+        if (opts.ping_method && opts.ping_path) {
+            RestConnection::pingImpl();
+            return;
+        }
+        LlamaParseRestClientIo client = cast<LlamaParseRestClientIo>(getAsync());
+        try {
+            client.restGet(PingPath);
+        } catch (hash<ExceptionInfo> ex) {
+            # anything other than the server rejecting the key is a real failure of this ping
+            if (!LlamaParseRestConnection::isApiKeyRejection(ex) || !adoptWorkingApiUrl(\client)) {
+                authFailure();
+                rethrow;
+            }
+        }
+        authSuccess();
+    }
+
+    #! Returns the regions to try when the configured one rejects the API key
+    /** @return @ref KnownApiUrls; override to return nothing to disable the search entirely
+    */
+    private *softlist<string> getKnownApiUrls() {
+        return KnownApiUrls;
+    }
+
+    #! Returns @ref True if the exception is the server rejecting the API key
+    /** @param ex the exception thrown by the failed request
+
+        @return @ref True if the server rejected the API key
+    */
+    private static bool isApiKeyRejection(hash<ExceptionInfo> ex) {
+        return ex.err == "REST-RESPONSE-ERROR"
+            && (ex.arg.status_code == 401 || ex.arg.status_code == 403);
+    }
+
+    #! Moves the connection to the known region that accepts its API key
+    /** A LlamaIndex Cloud API key is issued for one region and rejected by the other, and the
+        rejection says only "check your region" without saying which one the key belongs to, so a
+        connection pointed at the wrong region can only be identified by trying the alternative.
+        Leaving it pointed at the wrong one is the worse outcome: every request fails with an
+        authentication error that reads as a bad key rather than a bad URL, which is exactly the
+        wrong thing to go looking at.
+
+        @param client the client whose requests failed
+
+        @return @ref True if the connection was moved to a region that accepts the key
+    */
+    private bool adoptWorkingApiUrl(reference<LlamaParseRestClientIo> client) {
+        *softlist<string> urls = getKnownApiUrls();
+        foreach string candidate in (urls) {
+            if (candidate == url) {
+                continue;
+            }
+            LlamaParseRestClientIo probe(getConnectionOptions() + {
+                "url": LlamaParseRestConnection::normalizeUrl(candidate),
+            });
+            try {
+                probe.restGet(PingPath);
+            } catch (hash<ExceptionInfo> ex) {
+                if (LlamaParseRestConnection::isApiKeyRejection(ex)) {
+                    continue;
+                }
+                # a region that is unreachable is not evidence about the key
+                continue;
+            }
+            setRealUrl(candidate);
+            doUpdateOptions(self, {"url": candidate});
+            client = probe;
+            return True;
+        }
+        return False;
+    }
+
+    #! Returns the URL with any legacy base path removed
+    /** Earlier versions of this module pointed the connection at \c /api/parsing, because the
+        module only covered the v1 parsing API.  Every path in the API description is spelled from
+        the host root, so that base path would now be prepended to paths that already carry their
+        own prefix, and every request would 404.  Stripping it keeps a connection created then
+        working without anyone having to edit it.
+
+        @param u the configured URL
+
+        @return the URL with a trailing \c /api/parsing removed
+    */
+    static string normalizeUrl(string u) {
+        return replace(u, LegacyUrlPath, "");
+    }
+
     bool hasDataProvider() {
         return True;
     }
@@ -342,6 +566,9 @@ public class LlamaParseRestConnection inherits RestClient::RestConnection {
 
     *hash<auto> getConnectionOptions(*hash<auto> rtopts) {
         hash<auto> rv = RestConnection::getConnectionOptions(rtopts);
+        if (rv.url) {
+            rv.url = LlamaParseRestConnection::normalizeUrl(rv.url);
+        }
         return LlamaParseRestClientBase::getOptions(rv);
     }
 }

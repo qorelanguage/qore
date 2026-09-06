@@ -27,7 +27,10 @@
 
 %requires(reexport) DataProvider
 %requires(reexport) LlamaParseRestClient
+%requires(reexport) RestSchemaActions
+%requires OpenApi3
 %requires RestClientIo
+%requires Mime
 
 module LlamaParseDataProvider {
     version = "1.0";
@@ -42,10 +45,20 @@ module LlamaParseDataProvider {
             "name": LlamaParseDataProvider::AppName,
             "presentation_source_locale": "en",
             "display_name": "LlamaParse",
-            "short_desc": "LlamaParse document extraction (PDF / docx / HTML to markdown)",
-            "desc": "Provides access to [LlamaParse](https://docs.cloud.llamaindex.ai/llamaparse/getting_started) "
-                "— a document extraction service from LlamaIndex that converts PDFs, "
-                "docx, HTML, and image documents into structured markdown.\n\n"
+            "short_desc": "LlamaParse document parsing, extraction, classification and splitting",
+            "desc": "Provides access to [LlamaParse](https://docs.cloud.llamaindex.ai/llamaparse/getting_started), "
+                "LlamaIndex's document platform, which turns documents into data an application can "
+                "act on.\n\n"
+                "- **Parse** PDFs, Office files, HTML and images into markdown, plain text or "
+                "structured page-by-page items, choosing how thoroughly - and how expensively - each "
+                "document is read\n"
+                "- **Extract** structured data against a JSON schema, generating that schema from a "
+                "plain-language description if you do not have one\n"
+                "- **Classify** a document against rules written in plain language, so an inbound "
+                "document can be routed to the right process\n"
+                "- **Split** a document that holds many - a scanned batch of invoices, a loan file - "
+                "into its parts\n"
+                "- **Batch** a whole directory through any of the above in one job\n\n"
                 "Use the @ref QoreRagUtils::LlamaParseChunker \"LlamaParseChunker\" "
                 "backend in @ref qoreragutilsintro \"QoreRagUtils\" for the supported "
                 "RAG ingestion path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
@@ -56,19 +69,53 @@ module LlamaParseDataProvider {
             "groups": (DataProvider::AppGroup::AiLlm, DataProvider::AppGroup::Documents,),
         });
 
+        # every action generated from the vendored LlamaIndex Cloud API description; see
+        # LlamaParseManifest for what is exported and why
+        map DataProviderActionCatalog::registerAction($1),
+            LlamaParseSchema::getActionSet().getActionInfoList(LlamaParseDataProvider::AppName);
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": LlamaParseDataProvider::AppName,
+            "path": "/" + LlamaParseUploadFileDataProvider::ProviderName,
+            "action": "upload-file",
+            "display_name": "Upload File",
+            "short_desc": "Upload a document so that it can be parsed, extracted from or classified",
+            "desc": "Uploads a document to LlamaParse and returns the stored file.\n\n"
+                "Uploading is worth doing on its own rather than passing a URL to every job: the "
+                "document is stored once and referred to by ID afterwards, so parsing, extracting "
+                "from and classifying the same document costs one transfer rather than three.  It is "
+                "also the way to send a document that is not reachable at a public URL.\n\n"
+                "Give the document either inline as `file_data` or by `file_path`.",
+            "action_code": DPAT_API,
+            "groups": (LlamaParseManifest::GroupFiles,),
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
+                LlamaParseUploadFileRequestDataType::Fields{
+                    "file_data", "file_path", "filename", "purpose",
+                }, {
+                    "preselected": True,
+                }
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
+                LlamaParseUploadFileRequestDataType::Fields - (
+                    "file_data", "file_path", "filename", "purpose",
+                )
+            ),
+            "output_type": LlamaParseUploadFileDataProvider::ResponseType,
+        });
+
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": LlamaParseDataProvider::AppName,
             "path": "/parse-document",
             "action": "parse-document",
-            "display_name": "Parse Document",
-            "short_desc": "Extract structured markdown from a document URL",
-            "desc": "Submits a document URL to LlamaParse and waits for extraction to "
-                "complete (upload → poll job → fetch result lifecycle).  Returns the "
-                "extracted content as markdown, plain text, or structured JSON.\n\n"
-                "**Note**: v1 supports URL-based document submission only; local file "
-                "upload via multipart/form-data is planned for a follow-up release.",
+            "display_name": "Parse Document and Wait",
+            "short_desc": "Parse a document and wait for the extracted content",
+            "desc": "Submits a document to LlamaParse, waits for parsing to finish, and returns the "
+                "extracted content as markdown, plain text or structured JSON.\n\n"
+                "Use this when the calling flow can wait for the result - a single document, a user "
+                "waiting on a screen.  Use **Parse Document** and **Get Parse Job** instead when the "
+                "job should be started and collected later, which is what a large document or a "
+                "queue of them needs.",
             "action_code": DPAT_API,
-            "groups": ("Document Extraction",),
+            "groups": (LlamaParseManifest::GroupParse,),
             "options": DataProviderActionCatalog::getActionOptionFromFields(
                 LlamaParseRequestDataType::Fields{"url",}, {
                     "preselected": True, "required": True,
@@ -96,9 +143,81 @@ module LlamaParseDataProvider {
     @section llamaparsedataproviderintro LlamaParseDataProvider Introduction
 
     Data-provider integration for
-    [LlamaParse](https://docs.cloud.llamaindex.ai/llamaparse/getting_started).
-    Exposes a single `parse-document` DPAT_API action that handles the
-    full async upload → poll → fetch lifecycle internally.
+    [LlamaParse](https://docs.cloud.llamaindex.ai/llamaparse/getting_started), LlamaIndex's document
+    platform.
+
+    The application covers LlamaIndex Cloud's document surface:
+
+    |!Group|!What it does
+    |Parsing|turn a document into markdown, plain text or structured page-by-page items
+    |Extraction|pull structured data out of a document against a JSON schema
+    |Classification|decide which of a set of document types a document is
+    |Splitting|break a document that holds many into its parts
+    |Batches|run any of the above over every file in a directory
+    |Files and Directories|upload documents once and refer to them by ID afterwards
+    |Configurations|save a parse, extract, classify or split configuration and reuse it
+
+    @section llamaparsedataproviderversion Which API Version
+
+    LlamaIndex serves \c /api/v1 and \c /api/v2 side by side and publishes a v1-to-v2 migration
+    guide.  This module uses **v2 wherever the vendor has one**, and v1 only where there is no v2
+    counterpart - files, splitting, saved configurations and the account lookups.
+
+    The v2 parse surface is also what makes the application usable in one step:
+    \c GET \c /api/v2/parse/{job_id} returns the parsed content itself through \c expand, where v1
+    required a separate result call per output format.
+
+    @section llamaparsedataproviderusage Parsing a Document
+
+    A document is uploaded once and then referred to by ID, so parsing, extracting from and
+    classifying the same document costs one transfer rather than three:
+
+    @code{.py}
+AbstractDataProvider llama = conn.getDataProvider();
+
+# upload once
+hash<auto> file = llama.getChildProviderEx("upload-file").doRequest({
+    "file_path": "/data/invoices/2026-08.pdf",
+    "purpose": "parse",
+});
+
+# parse it; the job runs asynchronously
+hash<auto> job = llama.getChildProviderEx("parse-file").doRequest({
+    "file_id": file.id,
+    "tier": "fast",
+    "version": "latest",
+});
+
+# read the content back - "expand" is what makes it come back at all
+hash<auto> result = llama.getChildProviderEx("get-parse-job").doRequest({
+    "job_id": job.id,
+    "expand": ("markdown",),
+});
+string markdown = (map $1.markdown, result.markdown.pages).join("\n\n");
+    @endcode
+
+    \c parse-document does the same thing in one call and waits for the result; use it when the
+    calling flow can wait, and the two-step form when the job should be started and collected later.
+
+    @section llamaparsedataproviderschema How the Actions Are Generated
+
+    Almost every action is generated from an API description vendored with this module through
+    @ref restschemaactionsintro "RestSchemaActions", so its options and result types are the
+    vendor's own and an upstream change cannot alter the contract of an action a workflow already
+    calls; see @ref LlamaParseDataProvider::LlamaParseManifest "LlamaParseManifest" for what is
+    exported and why, and @ref LlamaParseDataProvider::LlamaParseSchema "LlamaParseSchema" for the
+    pinned document's provenance.
+
+    Two actions are hand-written, because neither can be generated: \c upload-file sends a
+    \c multipart/form-data body, which the schema-driven layer does not support, and
+    \c parse-document waits for its result.
+
+    @section llamaparsedataproviderregions Regions
+
+    LlamaIndex Cloud runs in two regions, and an API key issued for one is rejected by the other with
+    an error that names the region without saying which one the key belongs to.  The connection
+    defaults to \c api.cloud.llamaindex.ai; if the key is rejected there, the ping tries the other
+    known region and adopts the one that accepts it.
 
     For RAG-pipeline integration, prefer the
     @ref QoreRagUtils::LlamaParseChunker "LlamaParseChunker" backend

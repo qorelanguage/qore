@@ -12,28 +12,28 @@
 
 %exec-class LlamaParseRestClientTest
 
-#! Drives the upload -> poll -> fetch lifecycle deterministically:
-#! - first POST /upload returns {id: "job1"}
-#! - first 2 GETs of /job/job1 return PENDING / PROCESSING
-#! - third GET returns SUCCESS
-#! - GET /job/job1/result/markdown returns the markdown body
+#! Drives the v2 submit -> poll -> read lifecycle deterministically:
+#! - POST /api/v2/parse returns {id: "job1"}
+#! - the first 2 GETs of /api/v2/parse/job1 return PENDING / RUNNING
+#! - the third returns COMPLETED
+#! - GET /api/v2/parse/job1?expand=... returns the content for that expansion
 class FakeLlamaParseClient inherits LlamaParseRestClient::LlamaParseRestClientIo {
     public {
         list<hash<auto>> calls = ();
-        list<string> poll_sequence = ("PENDING", "PROCESSING", "SUCCESS");
+        list<string> poll_sequence = ("PENDING", "RUNNING", "COMPLETED");
         int poll_index = 0;
         int sleep_calls = 0;
     }
 
     constructor() : LlamaParseRestClient::LlamaParseRestClientIo(
-            {"url": "https://api.cloud.llamaindex.ai/api/parsing", "apikey": "x"}) {
+            {"url": "https://api.cloud.llamaindex.ai", "apikey": "x"}) {
         # inject a no-op sleeper so the test doesn't wait
         setSleeper(nothing sub (timeout to) { ++sleep_calls; });
     }
 
     hash<RestClient::RestResponseInfo> restPost(string path, auto body, *hash<auto> hdr) {
         push calls, {"method": "POST", "path": path, "body": body};
-        if (path == "/upload") {
+        if (path == LlamaParseRestClientBase::ParseApiPath) {
             return <RestClient::RestResponseInfo>{
                 "body": {"id": "job1", "status": "PENDING"},
             };
@@ -43,7 +43,8 @@ class FakeLlamaParseClient inherits LlamaParseRestClient::LlamaParseRestClientIo
 
     hash<RestClient::RestResponseInfo> restGet(string path, *hash<auto> hdr) {
         push calls, {"method": "GET", "path": path};
-        if (path == "/job/job1") {
+        string base = LlamaParseRestClientBase::ParseApiPath + "/job1";
+        if (path == base) {
             string status = poll_sequence[poll_index];
             if (poll_index < poll_sequence.size() - 1) {
                 ++poll_index;
@@ -52,26 +53,30 @@ class FakeLlamaParseClient inherits LlamaParseRestClient::LlamaParseRestClientIo
                 "body": {"id": "job1", "status": status},
             };
         }
-        if (path == "/job/job1/result/markdown") {
+        # v2 returns the content only for the expansions that were asked for, split per page
+        if (path == base + "?expand=markdown") {
             return <RestClient::RestResponseInfo>{
-                "body": {"markdown": "# Title\n\nFirst paragraph.\n\nSecond paragraph."},
+                "body": {"markdown": {"pages": (
+                    {"page_number": 1, "markdown": "# Title\n\nFirst paragraph."},
+                    {"page_number": 2, "markdown": "Second paragraph."},
+                )}},
             };
         }
-        if (path == "/job/job1/result/text") {
+        if (path == base + "?expand=text") {
             return <RestClient::RestResponseInfo>{
-                "body": {"text": "Plain text body."},
+                "body": {"text": {"pages": ({"page_number": 1, "text": "Plain text body."},)}},
             };
         }
-        if (path == "/job/job1/result/json") {
+        if (path == base + "?expand=items") {
             return <RestClient::RestResponseInfo>{
-                "body": {"pages": ({"page": 1, "md": "Hi"},)},
+                "body": {"items": {"pages": ({"page_number": 1, "md": "Hi"},)}},
             };
         }
         throw "FAKE-ERROR", sprintf("unexpected GET %y", path);
     }
 
     string getSafeUrl() {
-        return "https://api.cloud.llamaindex.ai/api/parsing";
+        return "https://api.cloud.llamaindex.ai";
     }
 }
 
@@ -94,7 +99,7 @@ public class LlamaParseRestClientTest inherits QUnit::Test {
     private connectionSchemeTest() {
         hash<ConnectionSchemeInfo> info =
             ConnectionProvider::ConnectionSchemeCache::getScheme("llamaparse");
-        assertEq("LlamaParse Document Extraction Connection", info.display_name);
+        assertEq("LlamaParse Connection", info.display_name);
         assertTrue(info.schemes.llamaparse);
         assertEq("apikey", info.required_options);
     }
@@ -105,7 +110,7 @@ public class LlamaParseRestClientTest inherits QUnit::Test {
         });
         assertEq("my-key", opts.token);
         assertEq(NOTHING, opts.apikey);
-        assertEq("https://api.cloud.llamaindex.ai/api/parsing", opts.url);
+        assertEq("https://api.cloud.llamaindex.ai", opts.url);
     }
 
     private chunkerModuleMapTest() {
@@ -130,22 +135,27 @@ public class LlamaParseRestClientTest inherits QUnit::Test {
         );
 
         assertEq("job1", result.job_id);
-        assertEq("SUCCESS", result.status);
+        assertEq("COMPLETED", result.status);
         assertEq("markdown", result.result_type);
         assertTrue(result.content =~ /# Title/);
 
-        # Verify the call sequence: POST /upload, GET /job/job1 x3, GET /result/markdown
+        # the call sequence: POST /api/v2/parse, GET the job 3 times, then read it expanded
         assertEq("POST", fake.calls[0].method);
-        assertEq("/upload", fake.calls[0].path);
-        assertEq("https://example.com/doc.pdf", fake.calls[0].body.input_url);
+        assertEq(LlamaParseRestClientBase::ParseApiPath, fake.calls[0].path);
+        # v2 takes the document URL as "source_url"; the v1 body this module used to send was
+        # "input_url" as JSON, which the v1 endpoint rejects - it wants a multipart form
+        assertEq("https://example.com/doc.pdf", fake.calls[0].body.source_url);
+        assertEq("fast", fake.calls[0].body.tier);
+        assertEq("latest", fake.calls[0].body.version);
 
-        list<hash<auto>> job_polls = select fake.calls, $1.path == "/job/job1";
+        list<hash<auto>> job_polls = select fake.calls,
+            $1.path == LlamaParseRestClientBase::ParseApiPath + "/job1";
         assertEq(3, job_polls.size());
         assertEq("GET", job_polls[0].method);
 
         # Final fetch
         hash<auto> last = fake.calls[fake.calls.size() - 1];
-        assertEq("/job/job1/result/markdown", last.path);
+        assertEq(LlamaParseRestClientBase::ParseApiPath + "/job1?expand=markdown", last.path);
         # Sleeper invoked between polls (status changed twice = 2 sleeps)
         assertEq(2, fake.sleep_calls);
     }
@@ -159,11 +169,11 @@ public class LlamaParseRestClientTest inherits QUnit::Test {
         );
         assertEq("text", result.result_type);
         hash<auto> last = fake.calls[fake.calls.size() - 1];
-        assertEq("/job/job1/result/text", last.path);
+        assertEq(LlamaParseRestClientBase::ParseApiPath + "/job1?expand=text", last.path);
     }
 
     private pollTimeoutTest() {
-        # build a fake that NEVER returns SUCCESS
+        # build a fake that NEVER reaches a terminal status
         FakeLlamaParseClient fake();
         fake.poll_sequence = ("PENDING", "PENDING", "PENDING", "PENDING", "PENDING");
         assertThrows("LLAMAPARSE-ERROR", sub () {

@@ -78,39 +78,83 @@ public class LlamaParseDataProviderCommon inherits DataProvider::AbstractDataPro
     }
 }
 
-public class LlamaParseDataProvider inherits LlamaParseDataProviderCommon {
+#! The root of the LlamaParse application
+/** Almost every action is generated from the vendored LlamaIndex Cloud API description, so the root is
+    the action set itself; see
+    @ref LlamaParseDataProvider::LlamaParseManifest "LlamaParseManifest" for what is exported and why.
+
+    Two children are hand-written, because neither can be generated:
+
+    - \c upload-file sends a \c multipart/form-data body, which
+      @ref restschemaactionsintro "RestSchemaActions" does not support
+    - \c parse-document parses a document and waits for the result, where the generated
+      \c parse-file returns as soon as the job is started
+
+    @since %LlamaParseDataProvider 1.1
+*/
+public class LlamaParseDataProvider inherits RestSchemaActions::RestSchemaActionSetDataProvider {
     public {
+        #! The name of the hand-written synchronous parse action
+        const ParseDocumentChildName = "parse-document";
+
+        #! The name of the hand-written upload action
+        const UploadFileChildName = "upload-file";
+
         const ProviderInfo = <DataProviderInfo>{
             "name": "llamaparse",
             "type": "LlamaParseDataProvider",
             "supports_children": True,
-            "constructor_options": ConstructorOptions,
+            "constructor_options": LlamaParseDataProviderCommon::ConstructorOptions,
             "children_can_support_apis": True,
         };
     }
 
-    private {
-        static hash<string, Reflection::Class> childMap = {
-            "parse-document":
-                Class::forName("LlamaParseDataProvider::LlamaParseDocumentDataProvider"),
-        };
+    #! Creates the object from a REST client
+    constructor(*RestClient::AbstractRestClient rest)
+            : RestSchemaActionSetDataProvider(LlamaParseSchema::getActionSet(), rest) {
     }
 
-    constructor(LlamaParseRestClient::LlamaParseRestClientIo rest)
-            : LlamaParseDataProviderCommon(rest) {}
-    constructor(*hash<auto> options) : LlamaParseDataProviderCommon(options) {}
+    #! Creates the object from options
+    constructor(*hash<auto> options)
+            : RestSchemaActionSetDataProvider(LlamaParseSchema::getActionSet(),
+                LlamaParseDataProvider::getClient(options)) {
+    }
 
     string getName() { return ProviderInfo.name; }
 
-    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator();
+    private *list<string> getChildProviderNamesImpl() {
+        return (RestSchemaActionSetDataProvider::getChildProviderNamesImpl() ?? ())
+            + (ParseDocumentChildName, UploadFileChildName);
     }
-    private *list<string> getChildProviderNamesImpl() { return keys childMap; }
-    private *AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = childMap{name};
-        return cls ? cls.newObject(rest) : NOTHING;
+
+    private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
+        switch (name) {
+            case ParseDocumentChildName:
+                return new LlamaParseDocumentDataProvider(getIoClient());
+            case UploadFileChildName:
+                return new LlamaParseUploadFileDataProvider(getIoClient());
+        }
+        return RestSchemaActionSetDataProvider::getChildProviderImpl(name);
     }
+
     private hash<DataProviderInfo> getStaticInfoImpl() { return ProviderInfo; }
+
+    #! Returns the async client the hand-written children need
+    private LlamaParseRestClient::LlamaParseRestClientIo getIoClient() {
+        if (rest instanceof LlamaParseRestClient::LlamaParseRestClientIo) {
+            return cast<LlamaParseRestClient::LlamaParseRestClientIo>(rest);
+        }
+        throw "LLAMAPARSE-CLIENT-ERROR", sprintf("this action needs a LlamaParseRestClientIo, but the "
+            "provider holds %s", rest ? sprintf("a %y", rest.className()) : "no client");
+    }
+
+    #! Returns a client built from constructor options
+    private static LlamaParseRestClient::LlamaParseRestClientIo getClient(*hash<auto> options) {
+        if (options.restclient) {
+            return options.restclient;
+        }
+        return new LlamaParseRestClient::LlamaParseRestClientIo(options - "restclient");
+    }
 }
 
 public class LlamaParseDataProviderFactory inherits AbstractDataProviderFactory {

@@ -12,6 +12,7 @@
 %requires DataProvider
 %requires LlamaParseRestClient
 %requires LlamaParseDataProvider
+%requires RestSchemaActions
 
 %exec-class LlamaParseDataProviderTest
 
@@ -55,6 +56,9 @@ public class LlamaParseDataProviderTest inherits QUnit::Test {
         conn_name = m_options.conn ?? ENV.LLAMAPARSE_CONNECTION;
 
         addTestCase("factory + app + action registered", \registrationTest());
+        addTestCase("the manifest agrees with the pinned schema", \schemaTest());
+        addTestCase("generated action presentation", \actionPresentationTest());
+        addTestCase("upload request contract", \uploadRequestTest());
         addTestCase("parse-document forwards to parseDocument()",
             \parseDocumentTest());
 
@@ -62,6 +66,9 @@ public class LlamaParseDataProviderTest inherits QUnit::Test {
         # LlamaParse free tier: 1000 pages/day. ~$0 per run when within free
         # tier.
         if (conn_name) {
+            addTestCase("live: the ping verifies the API key", \livePingTest());
+            addTestCase("live: read-only listings and dropdowns", \liveReadTest());
+            addTestCase("live: upload, parse and read the result", \liveParseLifecycleTest());
             addTestCase("live: ping + parse-document (1-page sample PDF URL)",
                 \liveLlamaParseTest());
         }
@@ -89,8 +96,112 @@ public class LlamaParseDataProviderTest inherits QUnit::Test {
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("LlamaParse"),
             $1.action != AbstractDataProvider::GenericApiCallActionName;
-        assertEq(1, actions.size());
-        assertEq("parse-document", actions[0].action);
+        # one hand-written action grew into the LlamaIndex Cloud document surface
+        assertTrue(actions.size() >= 50, sprintf("%d actions registered", actions.size()));
+        hash<string, hash<DataProviderActionInfo>> by_id = map {$1.action: $1}, actions;
+
+        # the two hand-written actions and a representative generated one from each group
+        map assertTrue(exists by_id{$1}, $1), (
+            "upload-file", "parse-document", "parse-file", "get-parse-job", "list-parse-versions",
+            "extract-from-document", "generate-extract-schema", "classify-document",
+            "split-document", "create-batch", "list-directories", "create-configuration",
+            "list-projects", "list-supported-file-types",
+        );
+        map assertEq(DPAT_API, $1.action_code, $1.action), actions;
+
+        # every action needs a form the user can fill in and a result they can consume; the only
+        # exceptions are the two operations LlamaIndex declares no parameters for, and the deletes
+        # it answers with 204
+        foreach hash<DataProviderActionInfo> a in (actions) {
+            if (a.action !~ /^list-(parse-versions|supported-file-types)$/) {
+                assertTrue(exists a.options, sprintf("%s has options", a.action));
+            }
+            if (a.action !~ /^delete-(file|configuration|directory|directory-file|directory-files)$/) {
+                assertTrue(exists a.output_type, sprintf("%s has an output type", a.action));
+            }
+        }
+    }
+
+    private schemaTest() {
+        # the vendored schema is pinned, so its provenance is part of the module's contract
+        hash<LlamaParseSchemaProvenanceInfo> p =
+            LlamaParseDataProvider::LlamaParseSchema::Provenance;
+        assertEq(64, p.source_sha256.size());
+        assertTrue(p.source_url =~ /openapi\.json$/);
+        assertTrue(p.source_size > 0);
+        assertTrue(p.source_operations > 0);
+        assertTrue(is_file(LlamaParseDataProvider::LlamaParseSchema::getSchemaPath()),
+            "the vendored schema ships with the module");
+
+        # if the manifest and the committed schema ever disagree, that must fail here rather than
+        # when a user opens an action
+        RestSchemaActionSet aset = LlamaParseDataProvider::LlamaParseSchema::getActionSet();
+        list<hash<RestSchemaDriftInfo>> drift = RestSchemaDrift::compare(aset,
+            LlamaParseDataProvider::LlamaParseSchema::getSchema());
+        assertEq((), drift, "the manifest and the vendored schema agree");
+    }
+
+    private actionPresentationTest() {
+        list<hash<DataProviderActionInfo>> actions = select
+            DataProvider::DataProviderActionCatalog::getActions("LlamaParse"),
+            $1.action != AbstractDataProvider::GenericApiCallActionName;
+        hash<string, hash<DataProviderActionInfo>> by_id = map {$1.action: $1}, actions;
+
+        # the console's browser session is a cookie parameter on every operation and must never
+        # reach a user as an option
+        map assertEq(NOTHING, $1.options.session, $1.action), actions;
+
+        # the parsing tier is an enum the schema declares
+        hash<auto> tier = by_id."parse-file".options.tier;
+        assertEq(("fast", "cost_effective", "agentic", "agentic_plus"),
+            (map $1.value, tier.allowed_values));
+        map assertTrue($1.display_name.val(), $1.value), tier.allowed_values;
+
+        # "expand" is typed as a list of bare strings and names its values only in prose, so the
+        # values are restored as ELEMENT allowed values - one whole-value list would be wrong
+        hash<auto> expand = by_id."get-parse-job".options.expand;
+        assertEq(NOTHING, expand.allowed_values);
+        assertTrue(expand.element_allowed_values.size() >= 16);
+        map assertEq(NT_STRING, $1.value.typeCode(), sprintf("%y is a string", $1.value)),
+            expand.element_allowed_values;
+        assertTrue((map $1.value, expand.element_allowed_values).contains("markdown"));
+
+        # every option naming another object offers a dropdown backed by a listing this app exports
+        foreach hash<DataProviderActionInfo> a in (actions) {
+            foreach hash<auto> o in ((a.options ?? {}).pairIterator()) {
+                if (o.key =~ /^(project_id|organization_id|configuration_id|directory_id|job_id|batch_id|config_id|source_directory_id)$/) {
+                    assertTrue(o.value.ref_data.val(),
+                        sprintf("%s.%s offers a dropdown", a.action, o.key));
+                }
+            }
+        }
+
+        # a directory's files cannot be listed before the directory is chosen
+        hash<auto> dfile = by_id."get-directory-file".options.directory_file_id;
+        assertEq(LlamaParseManifest::RefDirectoryFile, dfile.ref_data);
+        assertEq(("directory_id",), dfile.depends_on);
+    }
+
+    private uploadRequestTest() {
+        AbstractDataProvider up = new LlamaParseUploadFileDataProvider(new FakeLlamaParseRestClientIo());
+        assertEq("upload-file", up.getName());
+        assertTrue(up.getInfo().supports_request);
+
+        # the document is given one way or the other, never both and never neither
+        assertThrows("UPLOAD-FILE-ERROR", "not both", sub () {
+            up.doRequest({"file_data": "x", "file_path": "/tmp/x"});
+        });
+        assertThrows("UPLOAD-FILE-ERROR", "file_data", sub () {
+            up.doRequest({"purpose": "parse"});
+        });
+
+        # the purpose is a closed set the vendor names in the form field's own description
+        hash<DataProviderActionInfo> a = (select
+            DataProvider::DataProviderActionCatalog::getActions("LlamaParse"),
+            $1.action == "upload-file")[0];
+        assertEq("parse", a.options.purpose.default_value);
+        assertTrue((map $1.value, a.options.purpose.allowed_values).contains("extract"));
+        map assertTrue($1.display_name.val(), $1.value), a.options.purpose.allowed_values;
     }
 
     private parseDocumentTest() {
@@ -115,6 +226,113 @@ public class LlamaParseDataProviderTest inherits QUnit::Test {
         assertEq("abc-123", resp.job_id);
         assertEq("SUCCESS", resp.status);
         assertEq("# Hello\n\nWorld.", resp.content);
+    }
+
+    #! Verifies that the ping actually authenticates
+    /** This connection declared no ping at all until the application covered more than the v1
+        parsing API, so every ping returned \c "OK" without contacting the server - including with
+        an API key the server would reject.
+    */
+    private livePingTest() {
+        AbstractConnection conn = get_connection(conn_name);
+        hash<auto> ping = conn.ping(True);
+        assertTrue(ping.ok, sprintf("LlamaParse connection ping failed: %s",
+            ping.info ?? "no info"));
+
+        # the same ping with a key the server cannot accept must fail, and must reach the server to
+        # find that out
+        LlamaParseRestConnection bad("llamaparse-bad-key", "a key the server rejects",
+            LlamaParseRestConnection::DefaultUrl, {}, {"apikey": "llx-this-key-is-not-real"});
+        hash<PingInfo> bp = bad.ping();
+        assertFalse(bp.ok, "a ping with an invalid API key must fail");
+        assertTrue(bp.info =~ /401|403/, sprintf("the ping reported the rejection: %y", bp.info));
+
+        # a connection created when this module only covered the v1 parsing API carries that base
+        # path in its URL; every generated path is spelled from the host root, so it has to go
+        assertEq("llamaparse://api.cloud.llamaindex.ai",
+            LlamaParseRestConnection::normalizeUrl("llamaparse://api.cloud.llamaindex.ai/api/parsing"));
+    }
+
+    #! Reads what the account already holds, and fills the dropdowns from it
+    private liveReadTest() {
+        AbstractDataProvider prov = get_connection(conn_name).getDataProvider();
+
+        auto projects = prov.getChildProviderEx("list-projects").doRequest({});
+        assertTrue(projects.items.size() > 0, "the API key reaches at least one project");
+        assertTrue(projects.items[0].id.val(), "a project carries an ID");
+
+        # the version listing is what pins a parse to behaviour that has been tested
+        auto versions = prov.getChildProviderEx("list-parse-versions").doRequest({});
+        map assertTrue(exists versions{$1}, $1),
+            ("fast", "cost_effective", "agentic", "agentic_plus", "latest");
+
+        auto exts = prov.getChildProviderEx("list-supported-file-types").doRequest({});
+        assertTrue(exts.size() > 0, "LlamaParse reports the extensions it accepts");
+        assertTrue(exts.contains(".pdf"), "PDF is among them");
+
+        # the dropdowns are answered by the listings this application exports
+        AbstractDataProvider pf = prov.getChildProviderEx("parse-file");
+        *list<hash<AllowedValueInfo>> pv = pf.getReferenceData(LlamaParseManifest::RefProject);
+        assertTrue(pv.size() > 0, "the project dropdown is filled from the live account");
+        map assertTrue($1.value.val(), "a dropdown entry carries a value"), pv;
+    }
+
+    #! Uploads a document, parses it, reads the result and cleans up
+    /** Covers the two things the schema cannot generate - the multipart upload - and the v2 parse
+        lifecycle the application is built on.  A few hundred bytes of Markdown on the cheapest
+        tier.
+    */
+    private liveParseLifecycleTest() {
+        AbstractDataProvider prov = get_connection(conn_name).getDataProvider();
+        string doc = "# Quarterly Report\n\nRevenue for Q3 was 1,250,000 EUR.\n";
+        *string file_id;
+        on_exit if (file_id) {
+            try {
+                prov.getChildProviderEx("delete-file").doRequest({"file_id": file_id});
+            } catch (hash<ExceptionInfo> ex) {
+                # a file left behind is not a test failure; report it and move on
+                printf("could not delete file %y: %s: %s\n", file_id, ex.err, ex.desc);
+            }
+        }
+
+        auto up = prov.getChildProviderEx("upload-file").doRequest({
+            "file_data": doc,
+            "filename": "quarterly-report.md",
+            "content_type": "text/markdown",
+            "purpose": "parse",
+        });
+        file_id = up.id;
+        assertTrue(file_id.val(), "the upload returned a file ID");
+        assertEq("quarterly-report.md", up.name);
+
+        auto listed = prov.getChildProviderEx("list-files").doRequest({"page_size": 100});
+        assertEq(1, (select listed.items, $1.id == file_id).size(),
+            "the uploaded file appears in the listing exactly once");
+
+        auto job = prov.getChildProviderEx("parse-file").doRequest({
+            "file_id": file_id,
+            "tier": "fast",
+            "version": "latest",
+        });
+        assertTrue(job.id.val(), "the parse returned a job ID");
+        assertEq("fast", job.tier);
+
+        # the job is asynchronous, so the result is read back until it reaches a terminal status
+        AbstractDataProvider gj = prov.getChildProviderEx("get-parse-job");
+        hash<auto> res;
+        for (int i = 0; i < 60; ++i) {
+            res = gj.doRequest({"job_id": job.id, "expand": ("markdown", "text")});
+            if (res.job.status =~ /COMPLETED|FAILED|CANCELLED/) {
+                break;
+            }
+            usleep(2s);
+        }
+        assertEq("COMPLETED", res.job.status, sprintf("the parse finished: %y", res.job));
+        # "expand" is what makes the content come back at all; without it the job is metadata only
+        assertTrue(res.markdown.pages.size() > 0, "the parse returned page content");
+        assertTrue(res.markdown.pages[0].markdown =~ /Quarterly Report/,
+            sprintf("the parsed markdown holds the document text: %y",
+                res.markdown.pages[0].markdown));
     }
 
     #! Exercises LlamaParse's live upload/poll/fetch lifecycle
