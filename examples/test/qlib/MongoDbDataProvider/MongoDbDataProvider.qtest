@@ -60,6 +60,7 @@ public class MongoDbDataProviderTest inherits QUnit::Test {
         addTestCase("action paths resolve to their types", \actionPathResolutionTest());
         addTestCase("Atlas connection configuration", \atlasConnectionTest());
         addTestCase("live: the ping verifies the credentials", \liveAtlasPingTest());
+        addTestCase("live: Atlas vector search", \liveVectorSearchTest());
 %else
         addTestCase("module check", \moduleCheck());
 %endif
@@ -926,6 +927,123 @@ sub typed_mongodb_provider(MongoDbDataProvider::MongoDbCollectionDataProvider pr
                 {"password": "secret"});
             bad.getUri();
         });
+    }
+
+    #! Exercises Atlas Vector Search end to end against a real vector index
+    /** Vector search is an Atlas feature, so this runs only against a "mongodb+srv" cluster.  The
+        test builds its own index rather than relying on one existing: it inserts unit vectors along
+        each axis, so the expected ranking follows from cosine similarity alone and does not depend
+        on any particular sample data.
+
+        The action could not run at all before: its request type made every optional field mandatory,
+        it passed an untyped list to a driver parameter typed \c {list<hash<auto>>}, and it sent
+        \c numCandidates alongside \c exact, which Atlas rejects.
+    */
+    liveVectorSearchTest() {
+        if (!url) {
+            testSkip("MONGODB_URL not set");
+            return;
+        }
+        if (parse_url(url).protocol != MongoDbConnection::SrvScheme) {
+            testSkip("vector search requires an Atlas cluster (mongodb+srv)");
+            return;
+        }
+        if (!ensureConnection()) return;
+
+        string vs_db = "qore_vector_search_test";
+        string vs_coll = "vectors";
+        string vs_index = "qore_vs_idx";
+
+        MongoDatabase db = client.getDatabase(vs_db);
+        MongoCollection coll = db.getCollection(vs_coll);
+        on_exit {
+            try {
+                db.runCommand({"dropSearchIndex": vs_coll, "name": vs_index});
+            } catch (hash<ExceptionInfo> ex) {
+                # the index may not have been created; nothing to undo
+            }
+            try {
+                coll.drop();
+            } catch (hash<ExceptionInfo> ex) {
+            }
+        }
+
+        # unit vectors along each axis: the expected ranking follows from cosine similarity
+        coll.deleteMany({});
+        coll.insertMany((
+            {"_id": "x", "cat": "axis", "vec": (1.0, 0.0, 0.0, 0.0)},
+            {"_id": "y", "cat": "axis", "vec": (0.0, 1.0, 0.0, 0.0)},
+            {"_id": "z", "cat": "axis", "vec": (0.0, 0.0, 1.0, 0.0)},
+            {"_id": "w", "cat": "other", "vec": (0.0, 0.0, 0.0, 1.0)},
+            {"_id": "y2", "cat": "other", "vec": (0.05, 0.95, 0.0, 0.0)},
+        ));
+
+        try {
+            db.runCommand({"dropSearchIndex": vs_coll, "name": vs_index});
+            usleep(5s);
+        } catch (hash<ExceptionInfo> ex) {
+            # no index to drop on the first run
+        }
+        hash<auto> created = db.runCommand({
+            "createSearchIndexes": vs_coll,
+            "indexes": ({
+                "name": vs_index,
+                "type": "vectorSearch",
+                "definition": {
+                    "fields": (
+                        {"type": "vector", "path": "vec", "numDimensions": 4,
+                            "similarity": "cosine"},
+                        {"type": "filter", "path": "cat"},
+                    ),
+                },
+            },),
+        });
+        assertEq(1.0, created.ok, "the vector search index was created");
+
+        # Atlas builds the index asynchronously; it cannot be queried until it says so
+        date timeout = now_us() + 8m;
+        bool queryable = False;
+        while (now_us() < timeout) {
+            list<hash<auto>> pipeline = ({"$listSearchIndexes": {}},);
+            list<hash<auto>> idx = coll.aggregate(pipeline).toList();
+            if (idx && idx[0].queryable) {
+                queryable = True;
+                break;
+            }
+            usleep(10s);
+        }
+        assertTrue(queryable, "the vector search index became queryable");
+
+        MongoDbDataProvider root(client);
+        AbstractDataProvider vs = root.getChildProviderPath(
+            sprintf("databases/%s/%s/vector-search", vs_db, vs_coll));
+
+        hash<auto> base = {
+            "index_name": vs_index,
+            "path": "vec",
+            # nearest "y2", then "y"; "x" shares a component, "z" and "w" are orthogonal
+            "query_vector": (0.1, 0.9, 0.0, 0.0),
+        };
+
+        # approximate nearest neighbour: the ranking follows cosine similarity
+        hash<auto> ann = vs.doRequest(base + {"limit": 3});
+        assertEq(3, ann.count, "the search returned the requested number of results");
+        assertEq(("y2", "y", "x"), (map $1._id, ann.results), "results are ordered by similarity");
+        assertTrue(ann.results[0].score > 0.99, "the nearest vector scores close to 1");
+        assertTrue(ann.results[0].score > ann.results[1].score, "scores decrease with distance");
+
+        # an exact search scans every vector and must rank them the same way
+        hash<auto> exact = vs.doRequest(base + {"limit": 3, "exact": True});
+        assertEq(("y2", "y", "x"), (map $1._id, exact.results), "an exact search ranks identically");
+
+        # the pre-filter narrows the candidate set to the indexed filter field
+        hash<auto> filtered = vs.doRequest(base + {"limit": 3, "filter": {"cat": "other"}});
+        assertEq(("y2", "w"), (map $1._id, filtered.results),
+            "the filter selects only the documents it names");
+
+        # the optional fields really are optional
+        hash<auto> minimal = vs.doRequest(base);
+        assertTrue(minimal.count > 0, "the action runs with only its required options");
     }
 
     #! The connection ping must verify the credentials, not merely reach the host

@@ -259,7 +259,10 @@ module MongoDbDataProvider {
     every operation in the cluster's monitoring.
 
     @ref MongoDbDataProvider::MongoDbVectorSearchDataProvider "Vector Search" is Atlas-only and needs
-    a vector search index on the collection; \c index_name and \c path must match that index.
+    a vector search index on the collection; \c index_name and \c path must match that index.  A
+    field named in the index as a \c filter field can then be used in the action's \c filter option
+    to narrow the candidate set, and \c exact runs the search over every vector rather than
+    approximately.
 
     @section mongodbdataprovider_factory MongoDB Data Provider Factory
 

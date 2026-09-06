@@ -120,14 +120,19 @@ public class MongoDbVectorSearchDataProvider inherits DataProvider::AbstractData
                 "path":          req.path,
                 "queryVector":   req.query_vector,
                 "limit":         req.limit ?? 10,
-                "numCandidates": req.num_candidates ?? ((req.limit ?? 10) * 10),
             },
         };
+        if (req.exact) {
+            # an exact search scans every vector, so there is no candidate set to size; sending
+            # "numCandidates" anyway is rejected with "numCandidates must be omitted when exact is
+            # set to true", which made this option unusable
+            vs_stage."$vectorSearch".exact = True;
+        } else {
+            vs_stage."$vectorSearch".numCandidates =
+                req.num_candidates ?? ((req.limit ?? 10) * 10);
+        }
         if (exists req.filter) {
             vs_stage."$vectorSearch".filter = req.filter;
-        }
-        if (req.exact) {
-            vs_stage."$vectorSearch".exact = True;
         }
 
         # Attach `$meta: "vectorSearchScore"` projection so the score field
@@ -180,14 +185,14 @@ public class MongoDbVectorSearchRequestDataType inherits HashDataType {
             "limit": {
                 "display_name": "Limit",
                 "short_desc": "Maximum results to return",
-                "type": SoftIntType,
+                "type": SoftIntOrNothingType,
                 "desc": "Maximum number of nearest-neighbor results to return.  Default: 10.",
                 "example_value": 10,
             },
             "num_candidates": {
                 "display_name": "Number of Candidates",
                 "short_desc": "Number of HNSW candidates to consider",
-                "type": SoftIntType,
+                "type": SoftIntOrNothingType,
                 "desc": "Number of nearest-neighbor candidates the HNSW index should consider "
                     "before applying any filter and returning `limit` results.  Higher values "
                     "improve recall at the cost of latency.  Atlas recommends 10x-20x `limit`. "
@@ -196,7 +201,7 @@ public class MongoDbVectorSearchRequestDataType inherits HashDataType {
             "filter": {
                 "display_name": "Filter",
                 "short_desc": "Pre-filter applied before vector search (MQL filter)",
-                "type": AutoHashType,
+                "type": HashOrNothingType,
                 "desc": "Optional MongoDB query filter applied BEFORE the vector search "
                     "stage.  Must reference fields indexed as `filter` type in the Atlas "
                     "Vector Search index definition.",
@@ -204,7 +209,7 @@ public class MongoDbVectorSearchRequestDataType inherits HashDataType {
             "exact": {
                 "display_name": "Exact",
                 "short_desc": "Use exact nearest-neighbor search (ENN) instead of HNSW",
-                "type": SoftBoolType,
+                "type": SoftBoolOrNothingType,
                 "desc": "When `True`, performs exact nearest-neighbor search (no HNSW "
                     "approximation).  Much slower; useful for benchmarking recall.",
             },
