@@ -12203,14 +12203,26 @@ static QoreThreadLock& get_aot_module_state_lock() {
 // (its own QoreProgram, shared by every importing Program).  Guarded by get_aot_module_state_lock().
 // Once the process-global module-load lock no longer serializes AOT init, concurrent imports of the
 // same module race the shared shadow; this barrier makes the shadow populated exactly once and fully
-// before any concurrent importer reads it.  The waiting thread holds no other lock and the populating
-// thread holds no lock across generated init code, so this wait cannot deadlock (module init reads
-// already-loaded dependency constants and does not trigger a circular cross-module shadow apply; real
-// module-dependency cycles are detected at load time).
+// before any concurrent importer reads it.  The populating thread holds no lock across generated init
+// code (module init reads already-loaded dependency constants and does not trigger a circular
+// cross-module shadow apply; real module-dependency cycles are detected at load time).
+//
+// The *waiting* thread, however, does hold a lock that matters: a runtime load_module() reaches here
+// with the target Program's parse lock held, and lockParsing() blocks every other thread in that
+// Program while it is held.  The wait is therefore bounded -- see AOT_SHADOW_INIT_WAIT_TIMEOUT_MS and
+// the barrier in runAOTModuleInitForProgram() -- so that a stalled or lost population can never wedge
+// an entire Program.
 static QoreCondition& get_aot_shadow_init_cond() {
     static QoreCondition cond;
     return cond;
 }
+
+//! How long a concurrent importer waits for the shared AOT shadow Program to be populated
+/** Bounded because the waiter holds the target Program's parse lock; on expiry the import is
+    abandoned as retryable rather than held open.  Generous enough that a genuinely slow population
+    is waited out rather than repeatedly abandoned.
+*/
+static constexpr int64 AOT_SHADOW_INIT_WAIT_TIMEOUT_MS = 120000;
 
 //! Extract dependency module names from source \%requires directives
 /** Parses the source to find all \%requires directives and extracts the module names.
@@ -12428,6 +12440,34 @@ static AOTModuleInitRunResult runAOTModuleInitForProgram(const std::string& mod_
     // exactly once per module under the state lock (see AotModuleState::shadow_init_state)
     bool write_shadow = false;
 
+    // RAII backstop: if this run claims the one-time shadow population but does not reach finish()
+    // below (early return or C++ unwind), release the claim and wake any waiters so a concurrent
+    // importer can claim and complete it — waiters must never be stranded.  The normal-path
+    // transition (SHADOW_DONE on success, back to SHADOW_NOT_STARTED on a retryable failure)
+    // happens in finish(), which disarms this by clearing write_shadow.
+    //
+    // Declared BEFORE the block that can take the claim, so it is already armed at the instant
+    // write_shadow becomes true.  Previously it was constructed after that block, leaving a window
+    // in which the claim was held with no guard covering it: anything that left the function in
+    // that window stranded SHADOW_IN_PROGRESS forever, with no thread populating and every later
+    // importer of that module blocking on the condition below.
+    struct ShadowInitFinalizer {
+        const std::string& mod_name;
+        bool& write_shadow;
+        ~ShadowInitFinalizer() {
+            if (!write_shadow) {
+                return;
+            }
+            AutoLocker al(get_aot_module_state_lock());
+            auto sit = aot_module_map.find(mod_name);
+            if (sit != aot_module_map.end()) {
+                sit->second.shadow_init_state = AotModuleState::SHADOW_NOT_STARTED;
+                sit->second.shadow_init_tid = 0;
+            }
+            get_aot_shadow_init_cond().broadcast();
+        }
+    } shadow_finalizer{mod_name, write_shadow};
+
     {
         AutoLocker aot_state_al(get_aot_module_state_lock());
         auto it = aot_module_map.find(mod_name);
@@ -12465,10 +12505,25 @@ static AOTModuleInitRunResult runAOTModuleInitForProgram(const std::string& mod_
 
         // Coordinate the one-time population of the shared shadow Program.  Only the first
         // importer populates it (write_shadow=true); concurrent importers of the same module
-        // wait until it is fully populated, then read it (write_shadow=false).  NOTE: the wait
-        // releases only the state lock; the populating thread holds no lock across generated
-        // init code, so this cannot deadlock.  While the module-load lock still serializes AOT
-        // init, no thread ever observes SHADOW_IN_PROGRESS from another thread, so this is inert.
+        // wait here until it is fully populated, then read it (write_shadow=false).
+        //
+        // This wait must be bounded.  It runs with the *target Program's parse lock* held by the
+        // caller (QoreAbstractModule::addToProgram() -> QoreBuiltinModule::addToProgramImpl()),
+        // and qore_program_private::lockParsing() blocks every other thread in that Program while
+        // parse_tid is held.  Waiting here without a bound therefore does not stall one import, it
+        // deadlocks the whole Program: every thread that has to resolve a name at runtime piles up
+        // behind the parse lock.  Seen in the field on a qorus-core instance that stopped serving
+        // entirely -- parse_tid held by the waiter, 46 threads blocked in lockParsing(), no thread
+        // populating the shadow, the HTTP listener bound but accepting nothing, and startup never
+        // completing.  A previous comment here asserted this "cannot deadlock" and was "inert"
+        // because no thread ever observes SHADOW_IN_PROGRESS from another thread; both halves of
+        // that were wrong.
+        //
+        // On expiry, give up this attempt as retryable rather than keeping the parse lock: the
+        // caller's retry fixpoint (retryPendingAOTModuleInitsForProgram()) comes back for it.
+        // Deliberately NOT reclaiming the other thread's claim here: reclaiming is only safe
+        // sequentially, after a completed-but-failed pass (see finish() below); stealing it from a
+        // populator that is merely slow would run two populating passes concurrently.
         while (true) {
             // 'it' may be invalidated by the wait below; re-find each iteration
             auto sit = aot_module_map.find(mod_name);
@@ -12478,11 +12533,20 @@ static AOTModuleInitRunResult runAOTModuleInitForProgram(const std::string& mod_
             if (sit->second.shadow_init_state == AotModuleState::SHADOW_IN_PROGRESS
                     && sit->second.shadow_init_tid != q_gettid()) {
                 int wait_rc = get_aot_shadow_init_cond().waitWithInterrupt(
-                    get_aot_module_state_lock(), &xsink);
+                    get_aot_module_state_lock(), AOT_SHADOW_INIT_WAIT_TIMEOUT_MS, &xsink);
                 if (wait_rc == QORE_COND_RESULT_INTERRUPTED) {
                     target_pp->initializing_aot_modules.erase(mod_name);
                     result.attempted = true;
                     result.success = false;
+                    return result;
+                }
+                if (wait_rc == QORE_COND_RESULT_TIMEOUT) {
+                    target_pp->initializing_aot_modules.erase(mod_name);
+                    result.attempted = true;
+                    result.success = false;
+                    result.error = "timed out waiting for another thread to populate the shared "
+                        "AOT shadow Program for module '" + mod_name + "'; releasing the target "
+                        "Program's parse lock and leaving this initialization to be retried";
                     return result;
                 }
                 continue;  // re-find and re-check after wake
@@ -12501,27 +12565,6 @@ static AOTModuleInitRunResult runAOTModuleInitForProgram(const std::string& mod_
     assert(init_descriptor_snapshot);
     const std::vector<AOTInitFuncDescriptor>& init_descriptors = *init_descriptor_snapshot;
 
-    // RAII backstop: if this run claimed the one-time shadow population but does not reach
-    // finish() below (C++ unwind), release the claim and wake any waiters so a concurrent
-    // importer can claim and complete it — waiters must never be stranded.  The normal-path
-    // transition (SHADOW_DONE on success, back to SHADOW_NOT_STARTED on a retryable failure)
-    // happens in finish(), which disarms this by clearing write_shadow.
-    struct ShadowInitFinalizer {
-        const std::string& mod_name;
-        bool& write_shadow;
-        ~ShadowInitFinalizer() {
-            if (!write_shadow) {
-                return;
-            }
-            AutoLocker al(get_aot_module_state_lock());
-            auto sit = aot_module_map.find(mod_name);
-            if (sit != aot_module_map.end()) {
-                sit->second.shadow_init_state = AotModuleState::SHADOW_NOT_STARTED;
-                sit->second.shadow_init_tid = 0;
-            }
-            get_aot_shadow_init_cond().broadcast();
-        }
-    } shadow_finalizer{mod_name, write_shadow};
     bool init_marker_active = true;
     struct InitMarkerFinalizer {
         qore_program_private* target_pp;
