@@ -158,6 +158,7 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
         addTestCase("round trip", \roundTripTest());
         addTestCase("wire codecs", \codecTest());
         addTestCase("overlay presentation", \overlayTest());
+        addTestCase("overlay on a union body", \unionOverlayTest());
         addTestCase("overlay errors", \overlayErrorTest());
         addTestCase("manifest errors", \manifestErrorTest());
         addTestCase("narrowed operation variants", \variantTest());
@@ -465,6 +466,100 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
             gw.processResponse({"id": "w_1", "created": 1709294400}));
     }
 
+    unionOverlayTest() {
+        # a discriminated body is a union of one object per kind; an overlay entry belongs to the
+        # alternatives that declare that field and to no others
+        RestSchemaActionOperation op = makeOp(entry("create-subscription", "POST", "/subscriptions", {
+            "flatten_body": False,
+            "fields": {
+                "body": <RestSchemaFieldOverlayInfo>{
+                    "display_name": "Subscription",
+                    "fields": {
+                        "secret": <RestSchemaFieldOverlayInfo>{
+                            "display_name": "Signing Secret",
+                            "sensitive": True,
+                        },
+                        "url": <RestSchemaFieldOverlayInfo>{
+                            "display_name": "Delivery URL",
+                        },
+                    },
+                },
+            },
+        }), );
+
+        *hash<string, AbstractDataField> fields = op.getRequestFields();
+        assertEq(("body",), keys fields);
+        assertEq("Subscription", fields.body.getDisplayName());
+
+        AbstractDataProviderType t = fields.body.getType();
+        assertTrue(t instanceof QoreUnionDataType);
+        # the union is rebuilt in place: still two alternatives, still in declaration order
+        list<AbstractDataProviderType> branches = cast<QoreUnionDataType>(t).getUnionTypes();
+        assertEq(2, branches.size());
+        assertEq(("hook_create", "mail_create"), (map $1.getName(), branches));
+
+        hash<string, AbstractDataField> hook = branches[0].getFields();
+        hash<string, AbstractDataField> mail = branches[1].getFields();
+        # "secret" is declared by both, so both are overlaid
+        assertEq("Signing Secret", hook.secret.getDisplayName());
+        assertEq("Signing Secret", mail.secret.getDisplayName());
+        assertTrue(hook.secret.getAttributes().sensitive);
+        assertTrue(mail.secret.getAttributes().sensitive);
+        # "url" is declared only by the webhook alternative, so only it is touched
+        assertEq("Delivery URL", hook.url.getDisplayName());
+        assertEq(NOTHING, mail.url);
+        # everything else is left as the schema had it
+        assertEq("address", mail.address.getName());
+        assertTrue(mail.address.getType().isMandatory());
+
+        # an entry no alternative declares is a manifest error, exactly as it is for an object
+        assertThrows("REST-SCHEMA-ACTION-ERROR", "does not name a field of any alternative", sub () {
+            makeOp(entry("create-subscription", "POST", "/subscriptions", {
+                "flatten_body": False,
+                "fields": {
+                    "body": <RestSchemaFieldOverlayInfo>{
+                        "fields": {
+                            "nonesuch": <RestSchemaFieldOverlayInfo>{"display_name": "No Such"},
+                        },
+                    },
+                },
+            }), );
+        });
+
+        # a type override is self-contained in the alternative it is applied to, so it is allowed
+        RestSchemaActionOperation typed = makeOp(entry("create-subscription", "POST", "/subscriptions", {
+            "flatten_body": False,
+            "fields": {
+                "body": <RestSchemaFieldOverlayInfo>{
+                    "fields": {
+                        "secret": <RestSchemaFieldOverlayInfo>{
+                            "type": AbstractDataProviderTypeMap."*softint",
+                        },
+                    },
+                },
+            },
+        }), );
+        assertEq("*softint", cast<QoreUnionDataType>(typed.getRequestFields().body.getType())
+            .getUnionTypes()[0].getFields().secret.getType().getName());
+
+        # a codec is recorded per field name, and the same name would need a different conversion in
+        # each alternative, so it is refused rather than applied to whichever one matches at run time
+        assertThrows("REST-SCHEMA-ACTION-ERROR", "needs a wire conversion", sub () {
+            makeOp(entry("create-subscription", "POST", "/subscriptions", {
+                "flatten_body": False,
+                "fields": {
+                    "body": <RestSchemaFieldOverlayInfo>{
+                        "fields": {
+                            "secret": <RestSchemaFieldOverlayInfo>{
+                                "codec": RestSchemaActionCodecs::UnixSeconds,
+                            },
+                        },
+                    },
+                },
+            }), );
+        });
+    }
+
     overlayTest() {
         RestSchemaActionOperation op = makeOp(entry("create-widget", "POST", "/widgets", {
             "field_order": ("name", "category", "tags"),
@@ -487,6 +582,11 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
                 "tags": <RestSchemaFieldOverlayInfo>{
                     "required_groups": ("identity",),
                     "depends_on": ("name",),
+                    "element_allowed_values": (
+                        <AllowedValueInfo>{"value": "hand", "display_name": "Hand Tool"},
+                        <AllowedValueInfo>{"value": "power", "display_name": "Power Tool"},
+                    ),
+                    "element_allowed_values_creatable": True,
                 },
                 "dimensions": <RestSchemaFieldOverlayInfo>{"ignore": True},
             },
@@ -514,6 +614,16 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
         assertEq("*uri", fields.homepage.getType().getName());
         assertEq(("identity",), fields.tags.getAttributes().required_groups);
         assertEq(("name",), fields.tags.getAttributes().depends_on);
+
+        # a list field enumerates its ELEMENTS; setting "allowed_values" on one instead would coerce
+        # each value to the field type and turn every entry into a one-element list
+        hash<DataFieldInfo> tfi = fields.tags.getInfo();
+        assertEq(NOTHING, tfi.allowed_values);
+        assertEq(("hand", "power"), (map $1.value, tfi.element_allowed_values));
+        map assertEq(NT_STRING, $1.value.typeCode(), sprintf("%y is a string", $1.value)),
+            tfi.element_allowed_values;
+        assertEq(("Hand Tool", "Power Tool"), (map $1.display_name, tfi.element_allowed_values));
+        assertTrue(tfi.element_allowed_values_creatable);
 
         # renaming a field must not disturb the others, and the original schema field must be untouched
         AbstractDataField orig = schema.getFieldFromSchema("category", NOTHING,

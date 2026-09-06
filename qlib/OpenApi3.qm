@@ -4306,6 +4306,18 @@ public class OpenApi3UnionDataType inherits QoreUnionDataType {
         self.schemas = schemas;
     }
 
+    #! Returns a union of the same kind over the given alternatives
+    /** Carries the composition keyword and the schema alternatives across, so that a rebuilt union still
+        validates the way the document says it does.
+
+        @param types the replacement alternatives, in declaration order
+
+        @return an %OpenAPI union over \a types with this type's composition semantics
+    */
+    QoreUnionDataType copyWithUnionTypes(list<AbstractDataProviderType> types) {
+        return new OpenApi3UnionDataType(types, composition_keyword, schemas);
+    }
+
     #! Returns the type's short description
     string getShortDescription() {
         return sprintf("OpenAPI %s union accepting: %s", composition_keyword,

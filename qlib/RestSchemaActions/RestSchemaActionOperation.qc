@@ -999,6 +999,57 @@ public class RestSchemaActionOperation {
         response_type = type;
     }
 
+    #! Applies nested field overrides to each branch of a union that declares them
+    /** A union's branches are alternative shapes for the same value, so an entry belongs to every branch
+        that declares it and to no others; an entry no branch declares is a manifest error, exactly as it is
+        for an object.
+
+        Only presentation may be changed this way.  A codec or a type replacement produces a wire conversion
+        that is recorded per field name, and the same name would need different conversions in different
+        branches, so a conversion here is refused rather than silently applied to whichever branch is matched
+        at runtime.
+
+        @param type the union type
+        @param ovl the nested field overrides
+        @param ctx a description of the value for error messages
+        @param node the conversion applied to the assembled value; never set here
+
+        @return the union rebuilt over the overlaid branches
+
+        @throw REST-SCHEMA-ACTION-ERROR an entry names no branch's field, or would need a wire conversion
+    */
+    private AbstractDataProviderType applyUnionOverlay(DataProvider::QoreUnionDataType type,
+            hash<string, hash<RestSchemaFieldOverlayInfo>> ovl, string ctx, reference<*hash<auto>> node) {
+        hash<string, bool> matched = {};
+        list<AbstractDataProviderType> branches = ();
+        foreach AbstractDataProviderType branch in (type.getUnionTypes()) {
+            *hash<string, AbstractDataField> bfields = branch.getFields();
+            hash<string, hash<RestSchemaFieldOverlayInfo>> bovl = ovl{keys (bfields ?? {})};
+            if (!bovl) {
+                branches += branch;
+                continue;
+            }
+            map matched{$1} = True, keys bovl;
+            *hash<auto> bnode;
+            branches += applyTypeOverlay(branch, bovl,
+                sprintf("%s alternative %y", ctx, branch.getName()), \bnode);
+            if (bnode) {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("the overlay for %s alternative %y needs a wire "
+                    "conversion; only presentation can be overridden on a union alternative, because the "
+                    "same field name would need a different conversion in each alternative", ctx,
+                    branch.getName());
+            }
+        }
+        foreach string key in (keys ovl) {
+            if (!matched{key}) {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("overlay entry %y does not name a field of any "
+                    "alternative of %s; alternatives: %y", key, ctx,
+                    (map $1.getName(), type.getUnionTypes()));
+            }
+        }
+        return type.copyWithUnionTypes(branches);
+    }
+
     #! Returns the overlay for a derived field, preferring a location-qualified key
     private hash<RestSchemaFieldOverlayInfo> getFieldOverlay(*hash<string, hash<RestSchemaFieldOverlayInfo>> ovl,
             string loc, string derived_name) {
@@ -1179,6 +1230,9 @@ public class RestSchemaActionOperation {
         if (exists ov.allowed_values) {
             rv.setAllowedValues(ov.allowed_values, ov.allowed_values_creatable);
         }
+        if (exists ov.element_allowed_values) {
+            rv.setElementAllowedValues(ov.element_allowed_values, ov.element_allowed_values_creatable);
+        }
         return rv;
     }
 
@@ -1196,6 +1250,13 @@ public class RestSchemaActionOperation {
             AbstractDataProviderType new_etype = applyTypeOverlay(etype, ovl, ctx + " element", \enode);
             node = enode;
             return new ListDataType(type.getName(), new_etype, !type.isMandatory());
+        }
+
+        # a discriminated body is a union of one object per kind, and the field being overridden belongs to
+        # whichever branches declare it: a webhook channel's signing secret is a field of the webhook branch
+        # and of no other
+        if (type instanceof DataProvider::QoreUnionDataType) {
+            return applyUnionOverlay(cast<DataProvider::QoreUnionDataType>(type), ovl, ctx, \node);
         }
 
         *hash<string, AbstractDataField> tfields = type.getFields();

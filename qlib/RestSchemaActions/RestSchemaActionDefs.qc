@@ -317,6 +317,19 @@ public hashdecl RestSchemaFieldOverlayInfo {
     #! Whether values outside @ref allowed_values may also be supplied
     *bool allowed_values_creatable;
 
+    #! Static allowed values for the **elements** of a list-valued field
+    /** A list field enumerates what each of its elements may be, not what the whole list may be, so a set of
+        values restored onto one belongs here: @ref allowed_values on a list field describes whole values,
+        which turns each entry into a one-element list and any real selection into a list of lists.
+
+        This is the static counterpart of @ref element_ref_data, exactly as @ref allowed_values is of
+        @ref ref_data.
+    */
+    *softlist<auto> element_allowed_values;
+
+    #! Whether element values outside @ref element_allowed_values may also be supplied
+    *bool element_allowed_values_creatable;
+
     #! Narrow the field to required
     /** Only narrowing is supported: an action may present a stricter contract than the API, but declaring a
         schema-required field optional would produce requests the server rejects, so it is an error.
@@ -424,6 +437,14 @@ public hashdecl RestSchemaFieldOverlayInfo {
 
     #! Overrides for fields nested inside this field's type
     /** Overriding a nested field rewrites only that field; the rest of the derived type is preserved.
+
+        A **union** - a body a vendor describes as one object per kind, discriminated on a property - is
+        overlaid one alternative at a time: an entry belongs to every alternative that declares that field
+        and to no others, so marking a webhook subscription's signing secret sensitive leaves an email
+        subscription untouched.  An entry no alternative declares is an error, exactly as it is for an
+        object.  Only presentation and the field's type may be changed there: a wire codec is recorded per
+        field name and the same name could need a different conversion in each alternative, so a codec on a
+        union alternative is refused.
     */
     *hash<string, hash<RestSchemaFieldOverlayInfo>> fields;
 }

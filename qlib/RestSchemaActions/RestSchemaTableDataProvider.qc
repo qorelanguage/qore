@@ -877,6 +877,12 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
             rv.allowed_values = info.allowed_values;
             rv.allowed_values_creatable = info.allowed_values_creatable ?? False;
         }
+        # a list-valued option enumerates its elements, not whole values; dropping these would leave a
+        # multi-select as free text in the table where the action offers a list
+        if (info.element_allowed_values) {
+            rv.element_allowed_values = info.element_allowed_values;
+            rv.element_allowed_values_creatable = info.element_allowed_values_creatable ?? False;
+        }
         # a dropdown and its scope are the manifest's, and a table option that dropped them would be a
         # free-text field where the action offers a list
         foreach string key in (("ref_data", "element_ref_data", "depends_on", "preselected",

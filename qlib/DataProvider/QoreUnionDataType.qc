@@ -70,6 +70,21 @@ public class QoreUnionDataType inherits AbstractDataProviderType {
         return types;
     }
 
+    #! Returns a union of the same kind over the given alternatives
+    /** Lets a caller rebuild a union after transforming its alternatives - applying a presentation overlay
+        to each branch of a discriminated body, say - without knowing what kind of union it is holding.
+        A subclass that carries more than its alternatives must override this to carry it across.
+
+        @param types the replacement alternatives, in declaration order
+
+        @return a union of the same kind over \a types
+
+        @since DataProvider 3.7
+    */
+    QoreUnionDataType copyWithUnionTypes(list<AbstractDataProviderType> types) {
+        return new QoreUnionDataType(types);
+    }
+
     #! Returns the type name
     /** @return the normalized union type name
         @since DataProvider 3.5.1
