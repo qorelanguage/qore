@@ -3,6 +3,42 @@
   "locales": {
     "ko": {
       "messages": {
+        "app.TW9uZ29EQg.action.Y291bnQ.desc": {
+          "source": "Counts the documents in a MongoDB collection matching a filter, without returning any of them.\n\nThis takes the same filter as **Find Documents**, so it is the cheap way to ask how large a result would be before asking for the result itself.",
+          "message": "MongoDB 컬렉션에서 필터에 일치하는 문서의 수를, 그중 어느 것도 반환하지 않고 셉니다.\n\n**문서 찾기**와 같은 필터를 받으므로, 결과 자체를 요청하기 전에 그 결과가 얼마나 클지 저렴하게 확인하는 방법입니다."
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.display_name": {
+          "source": "Count Documents",
+          "message": "문서 수 세기"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "MongoDB 컬렉션의 이름"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "컬렉션"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "MongoDB 컬렉션 이름"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "MongoDB 데이터베이스의 이름"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "데이터베이스"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "MongoDB 데이터베이스 이름"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.short_desc": {
+          "source": "Count the documents matching a filter",
+          "message": "필터에 일치하는 문서의 수를 셉니다"
+        },
         "app.TW9uZ29EQg.action.YWdncmVnYXRl.desc": {
           "source": "Execute an aggregation pipeline on a MongoDB collection",
           "message": "MongoDB 컬렉션에서 집계 파이프라인 실행"
@@ -147,6 +183,42 @@
           "source": "Query documents in a collection",
           "message": "컬렉션의 문서 조회"
         },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.desc": {
+          "source": "Returns the first document in a MongoDB collection matching a filter, as the document itself rather than as a list holding it.\n\nUse this where at most one document is wanted - a lookup by `_id`, say - and **Find Documents** where several are.  The result reports `found` separately, so a flow can branch on whether anything matched without testing the document.",
+          "message": "MongoDB 컬렉션에서 필터에 일치하는 첫 번째 문서를, 그것을 담은 목록이 아니라 문서 자체로 반환합니다.\n\n`_id` 조회처럼 많아야 한 건만 예상되는 경우에는 이 액션을, 여러 건인 경우에는 **문서 찾기**를 사용하세요. 결과에 `found`가 따로 담기므로, 문서를 살펴보지 않고도 흐름에서 분기할 수 있습니다."
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.display_name": {
+          "source": "Find One Document",
+          "message": "문서 하나 찾기"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "MongoDB 컬렉션의 이름"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "컬렉션"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "MongoDB 컬렉션 이름"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "MongoDB 데이터베이스의 이름"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "데이터베이스"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "MongoDB 데이터베이스 이름"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.short_desc": {
+          "source": "Return the first document matching a filter",
+          "message": "필터에 일치하는 첫 번째 문서를 반환합니다"
+        },
         "app.TW9uZ29EQg.action.aW5zZXJ0.desc": {
           "source": "Insert one or more documents into a MongoDB collection",
           "message": "MongoDB 컬렉션에 하나 이상의 문서 삽입"
@@ -218,6 +290,42 @@
         "app.TW9uZ29EQg.action.dXBkYXRl.short_desc": {
           "source": "Update documents in a collection",
           "message": "컬렉션의 문서 업데이트"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.desc": {
+          "source": "Runs an [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/) query: given a query vector, returns the documents whose stored embeddings are nearest to it, each with its similarity `score`.\n\nThis is the retrieval step of a RAG pipeline done in the database, so the documents and their embeddings stay in one place instead of being copied into a separate vector store.\n\n**Requires an Atlas vector search index** on the collection, naming the field that holds the embeddings; `index_name` and `path` must match it.  Available on Atlas clusters only, not on a self-managed server.",
+          "message": "[Atlas 벡터 검색](https://www.mongodb.com/docs/atlas/atlas-vector-search/) 쿼리를 실행합니다. 주어진 쿼리 벡터에 대해, 저장된 임베딩이 가장 가까운 문서들을 각각의 유사도 `score`와 함께 반환합니다.\n\nRAG 파이프라인의 검색 단계를 데이터베이스 안에서 수행하는 것이므로, 문서와 그 임베딩을 별도의 벡터 저장소로 복사하지 않고 한곳에 둘 수 있습니다.\n\n**컬렉션에 Atlas 벡터 검색 인덱스가 필요합니다.** 인덱스는 임베딩이 담긴 필드를 지정해야 하며, `index_name`과 `path`가 그것과 일치해야 합니다. Atlas 클러스터에서만 사용할 수 있고, 직접 운영하는 서버에서는 사용할 수 없습니다."
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.display_name": {
+          "source": "Vector Search",
+          "message": "벡터 검색"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "MongoDB 컬렉션의 이름"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "컬렉션"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "MongoDB 컬렉션 이름"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "MongoDB 데이터베이스의 이름"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "데이터베이스"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "MongoDB 데이터베이스 이름"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.short_desc": {
+          "source": "Find the documents nearest a query vector",
+          "message": "쿼리 벡터에 가장 가까운 문서를 찾습니다"
         },
         "app.TW9uZ29EQg.desc": {
           "source": "MongoDB is a document-oriented NoSQL database for high volume data storage",

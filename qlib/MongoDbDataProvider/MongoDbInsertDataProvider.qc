@@ -100,7 +100,8 @@ public class MongoDbInsertDataProvider inherits DataProvider::AbstractDataProvid
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
         if (req.documents) {
             # Insert multiple documents
-            hash<auto> result = coll.insertMany(req.documents);
+            # as for the aggregation pipeline, the driver's parameter is typed
+            hash<auto> result = coll.insertMany(cast<list<hash<auto>>>(req.documents));
             return {
                 "inserted_count": result.insertedCount,
                 # insertMany doesn't return individual IDs in libmongoc
@@ -138,7 +139,8 @@ public class MongoDbInsertRequestDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbInsertRequest", Fields) {
+    constructor() : HashDataType("MongoDbInsertRequest") {
+        addQoreFields(Fields);
     }
 }
 
@@ -162,7 +164,8 @@ public class MongoDbInsertResponseDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbInsertResponse", Fields) {
+    constructor() : HashDataType("MongoDbInsertResponse") {
+        addQoreFields(Fields);
     }
 }
 }

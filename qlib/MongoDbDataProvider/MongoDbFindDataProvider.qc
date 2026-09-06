@@ -160,7 +160,8 @@ public class MongoDbFindRequestDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbFindRequest", Fields) {
+    constructor() : HashDataType("MongoDbFindRequest") {
+        addQoreFields(Fields);
     }
 }
 
@@ -184,7 +185,8 @@ public class MongoDbFindResponseDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbFindResponse", Fields) {
+    constructor() : HashDataType("MongoDbFindResponse") {
+        addQoreFields(Fields);
     }
 }
 }

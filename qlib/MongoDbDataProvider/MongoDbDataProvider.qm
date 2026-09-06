@@ -42,8 +42,12 @@ module MongoDbDataProvider {
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
-        # register the connection scheme
+        # register the connection schemes; Atlas clusters are reached with "mongodb+srv", where
+        # the hosts come from DNS and TLS is implied, and a connection could not use one at all
+        # until the scheme was registered
         ConnectionSchemeCache::registerScheme("mongodb", MongoDbConnection::ConnectionScheme);
+        ConnectionSchemeCache::registerScheme(MongoDbConnection::SrvScheme,
+            MongoDbConnection::ConnectionScheme);
 
         # register the data provider factory
         DataProvider::registerFactory(new MongoDbDataProviderFactory());
@@ -84,7 +88,7 @@ module MongoDbDataProvider {
         # register CRUD actions
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": MongoDbDataProvider::AppName,
-            "path": "/databases/{database}/collections/{collection}/insert",
+            "path": "/databases/{database}/{collection}/insert",
             "path_vars": collection_path_vars,
             "action": "insert",
             "display_name": "Insert Document",
@@ -96,7 +100,7 @@ module MongoDbDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": MongoDbDataProvider::AppName,
-            "path": "/databases/{database}/collections/{collection}/find",
+            "path": "/databases/{database}/{collection}/find",
             "path_vars": collection_path_vars,
             "action": "find",
             "display_name": "Find Documents",
@@ -108,7 +112,7 @@ module MongoDbDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": MongoDbDataProvider::AppName,
-            "path": "/databases/{database}/collections/{collection}/update",
+            "path": "/databases/{database}/{collection}/update",
             "path_vars": collection_path_vars,
             "action": "update",
             "display_name": "Update Documents",
@@ -120,7 +124,7 @@ module MongoDbDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": MongoDbDataProvider::AppName,
-            "path": "/databases/{database}/collections/{collection}/delete",
+            "path": "/databases/{database}/{collection}/delete",
             "path_vars": collection_path_vars,
             "action": "delete",
             "display_name": "Delete Documents",
@@ -132,7 +136,7 @@ module MongoDbDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": MongoDbDataProvider::AppName,
-            "path": "/databases/{database}/collections/{collection}/aggregate",
+            "path": "/databases/{database}/{collection}/aggregate",
             "path_vars": collection_path_vars,
             "action": "aggregate",
             "display_name": "Aggregation Pipeline",
@@ -144,12 +148,63 @@ module MongoDbDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": MongoDbDataProvider::AppName,
-            "path": "/databases/{database}/collections/{collection}/bulk",
+            "path": "/databases/{database}/{collection}/bulk",
             "path_vars": collection_path_vars,
             "action": "bulk",
             "display_name": "Bulk Operations",
             "short_desc": "Execute bulk write operations",
             "desc": "Execute bulk insert, update, and delete operations on a MongoDB collection",
+            "action_code": DPAT_API,
+            "data_dependent_options": True,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": MongoDbDataProvider::AppName,
+            "path": "/databases/{database}/{collection}/find-one",
+            "path_vars": collection_path_vars,
+            "action": "find-one",
+            "display_name": "Find One Document",
+            "short_desc": "Return the first document matching a filter",
+            "desc": "Returns the first document in a MongoDB collection matching a filter, as the "
+                "document itself rather than as a list holding it.\n\n"
+                "Use this where at most one document is wanted - a lookup by `_id`, say - and "
+                "**Find Documents** where several are.  The result reports `found` separately, so "
+                "a flow can branch on whether anything matched without testing the document.",
+            "action_code": DPAT_API,
+            "data_dependent_options": True,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": MongoDbDataProvider::AppName,
+            "path": "/databases/{database}/{collection}/count",
+            "path_vars": collection_path_vars,
+            "action": "count",
+            "display_name": "Count Documents",
+            "short_desc": "Count the documents matching a filter",
+            "desc": "Counts the documents in a MongoDB collection matching a filter, without "
+                "returning any of them.\n\n"
+                "This takes the same filter as **Find Documents**, so it is the cheap way to ask "
+                "how large a result would be before asking for the result itself.",
+            "action_code": DPAT_API,
+            "data_dependent_options": True,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": MongoDbDataProvider::AppName,
+            "path": "/databases/{database}/{collection}/vector-search",
+            "path_vars": collection_path_vars,
+            "action": "vector-search",
+            "display_name": "Vector Search",
+            "short_desc": "Find the documents nearest a query vector",
+            "desc": "Runs an [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/) "
+                "query: given a query vector, returns the documents whose stored embeddings are "
+                "nearest to it, each with its similarity `score`.\n\n"
+                "This is the retrieval step of a RAG pipeline done in the database, so the "
+                "documents and their embeddings stay in one place instead of being copied into a "
+                "separate vector store.\n\n"
+                "**Requires an Atlas vector search index** on the collection, naming the field "
+                "that holds the embeddings; `index_name` and `path` must match it.  Available on "
+                "Atlas clusters only, not on a self-managed server.",
             "action_code": DPAT_API,
             "data_dependent_options": True,
         });
@@ -174,13 +229,37 @@ module MongoDbDataProvider {
 
     This data provider provides MongoDB API access to:
     - databases: <b><tt>databases/{@ref MongoDbDataProvider::MongoDbDatabaseDataProvider "database_name"}</tt></b>
-    - collections: <b><tt>databases/db_name/collections/{@ref MongoDbDataProvider::MongoDbCollectionDataProvider "collection_name"}</tt></b>
-    - CRUD operations: <b><tt>databases/db_name/collections/coll_name/{@ref MongoDbDataProvider::MongoDbInsertDataProvider "insert",
+    - collections: <b><tt>databases/db_name/{@ref MongoDbDataProvider::MongoDbCollectionDataProvider "collection_name"}</tt></b>
+    - CRUD operations: <b><tt>databases/db_name/coll_name/{@ref MongoDbDataProvider::MongoDbInsertDataProvider "insert",
       @ref MongoDbDataProvider::MongoDbFindDataProvider "find",
       @ref MongoDbDataProvider::MongoDbUpdateDataProvider "update",
       @ref MongoDbDataProvider::MongoDbDeleteDataProvider "delete"}</tt></b>
-    - aggregation: <b><tt>databases/db_name/collections/coll_name/{@ref MongoDbDataProvider::MongoDbAggregateDataProvider "aggregate"}</tt></b>
-    - bulk: <b><tt>databases/db_name/collections/coll_name/{@ref MongoDbDataProvider::MongoDbBulkDataProvider "bulk"}</tt></b>
+    - aggregation: <b><tt>databases/db_name/coll_name/{@ref MongoDbDataProvider::MongoDbAggregateDataProvider "aggregate"}</tt></b>
+    - bulk: <b><tt>databases/db_name/coll_name/{@ref MongoDbDataProvider::MongoDbBulkDataProvider "bulk"}</tt></b>
+    - single-document reads: <b><tt>databases/db_name/coll_name/{@ref MongoDbDataProvider::MongoDbFindOneDataProvider "find-one",
+      @ref MongoDbDataProvider::MongoDbCountDataProvider "count"}</tt></b>
+    - Atlas Vector Search: <b><tt>databases/db_name/coll_name/{@ref MongoDbDataProvider::MongoDbVectorSearchDataProvider "vector-search"}</tt></b>
+
+    @note The path to an operation is <tt>databases/<i>db</i>/<i>collection</i>/<i>operation</i></tt>:
+    a database's children are its collections directly, with no intervening <tt>collections</tt>
+    segment.
+
+    @section mongodbdataprovider_atlas MongoDB Atlas
+
+    Atlas clusters are reached with a <tt>mongodb+srv://</tt> URL, where the hosts come from a DNS
+    seed list and TLS is implied:
+
+    @verbatim mongodb+srv://cluster0.abcde.mongodb.net
+    @endverbatim
+
+    Give the credentials as the connection's \c username and \c password options rather than
+    writing them into the URL.  The password is then stored and rendered as a password, and both are
+    URL-encoded when the client is created, so a password containing \c "@", \c ":" or \c "/"
+    needs no encoding of its own.  \c appname is worth setting as well: Atlas reports it against
+    every operation in the cluster's monitoring.
+
+    @ref MongoDbDataProvider::MongoDbVectorSearchDataProvider "Vector Search" is Atlas-only and needs
+    a vector search index on the collection; \c index_name and \c path must match that index.
 
     @section mongodbdataprovider_factory MongoDB Data Provider Factory
 
@@ -191,27 +270,27 @@ module MongoDbDataProvider {
     These examples are with \c qdp, the command-line interface to the Data Provider API.
 
     @par API Example: Insert a Document
-    @verbatim qdp 'mongodb{url=mongodb://localhost:27017}/databases/mydb/collections/mycoll/insert' document='{"name": "test", "value": 42}'
+    @verbatim qdp 'mongodb{url=mongodb://localhost:27017}/databases/mydb/mycoll/insert' document='{"name": "test", "value": 42}'
     @endverbatim
 
     @par API Example: Find Documents
-    @verbatim qdp 'mongodb{url=mongodb://localhost:27017}/databases/mydb/collections/mycoll/find' filter='{"name": "test"}'
+    @verbatim qdp 'mongodb{url=mongodb://localhost:27017}/databases/mydb/mycoll/find' filter='{"name": "test"}'
     @endverbatim
 
     @par API Example: Update Documents
-    @verbatim qdp 'mongodb{url=mongodb://localhost:27017}/databases/mydb/collections/mycoll/update' filter='{"name": "test"}',update='{"$set": {"value": 100}}'
+    @verbatim qdp 'mongodb{url=mongodb://localhost:27017}/databases/mydb/mycoll/update' filter='{"name": "test"}',update='{"$set": {"value": 100}}'
     @endverbatim
 
     @par API Example: Delete Documents
-    @verbatim qdp 'mongodb{url=mongodb://localhost:27017}/databases/mydb/collections/mycoll/delete' filter='{"name": "test"}'
+    @verbatim qdp 'mongodb{url=mongodb://localhost:27017}/databases/mydb/mycoll/delete' filter='{"name": "test"}'
     @endverbatim
 
     @par API Example: Aggregation Pipeline
-    @verbatim qdp 'mongodb{url=mongodb://localhost:27017}/databases/mydb/collections/mycoll/aggregate' pipeline='[{"$group": {"_id": "$category", "total": {"$sum": "$value"}}}]'
+    @verbatim qdp 'mongodb{url=mongodb://localhost:27017}/databases/mydb/mycoll/aggregate' pipeline='[{"$group": {"_id": "$category", "total": {"$sum": "$value"}}}]'
     @endverbatim
 
     @par Record-Based Example: Search Collection
-    @verbatim qdp 'mongodb{url=mongodb://localhost:27017}/databases/mydb/collections/mycoll' name=test
+    @verbatim qdp 'mongodb{url=mongodb://localhost:27017}/databases/mydb/mycoll' name=test
     @endverbatim
 
     @par Typed Iterator Example

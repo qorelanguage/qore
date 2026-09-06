@@ -134,7 +134,7 @@ public class MongoDbVectorSearchDataProvider inherits DataProvider::AbstractData
 
         # Attach `$meta: "vectorSearchScore"` projection so the score field
         # surfaces in each result document
-        list<auto> pipeline = (
+        list<hash<auto>> pipeline = (
             vs_stage,
             {"$addFields": {"score": {"$meta": "vectorSearchScore"}}},
         );

@@ -3,6 +3,42 @@
   "locales": {
     "fr": {
       "messages": {
+        "app.TW9uZ29EQg.action.Y291bnQ.desc": {
+          "source": "Counts the documents in a MongoDB collection matching a filter, without returning any of them.\n\nThis takes the same filter as **Find Documents**, so it is the cheap way to ask how large a result would be before asking for the result itself.",
+          "message": "Compte les documents d'une collection MongoDB correspondant au filtre, sans en renvoyer aucun.\n\nCette action prend le même filtre que **Trouver des documents** : c'est donc le moyen économique de savoir quelle serait la taille d'un résultat avant de demander le résultat lui-même."
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.display_name": {
+          "source": "Count Documents",
+          "message": "Compter les documents"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Le nom de la collection MongoDB"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Collection"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Nom de la collection MongoDB"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Le nom de la base de données MongoDB"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Base de données"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Nom de la base de données MongoDB"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.short_desc": {
+          "source": "Count the documents matching a filter",
+          "message": "Compter les documents correspondant à un filtre"
+        },
         "app.TW9uZ29EQg.action.YWdncmVnYXRl.desc": {
           "source": "Execute an aggregation pipeline on a MongoDB collection",
           "message": "Exécuter un pipeline d'agrégation sur une collection MongoDB"
@@ -147,6 +183,42 @@
           "source": "Query documents in a collection",
           "message": "Interroger des documents dans une collection"
         },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.desc": {
+          "source": "Returns the first document in a MongoDB collection matching a filter, as the document itself rather than as a list holding it.\n\nUse this where at most one document is wanted - a lookup by `_id`, say - and **Find Documents** where several are.  The result reports `found` separately, so a flow can branch on whether anything matched without testing the document.",
+          "message": "Renvoie le premier document d'une collection MongoDB correspondant au filtre, sous la forme du document lui-même plutôt que d'une liste le contenant.\n\nUtilisez cette action lorsqu'un seul document au plus est attendu - une recherche par `_id`, par exemple - et **Trouver des documents** lorsqu'il y en a plusieurs.  Le résultat indique `found` séparément, de sorte qu'un flux peut s'y brancher sans avoir à examiner le document."
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.display_name": {
+          "source": "Find One Document",
+          "message": "Trouver un document"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Le nom de la collection MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Collection"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Nom de la collection MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Le nom de la base de données MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Base de données"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Nom de la base de données MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.short_desc": {
+          "source": "Return the first document matching a filter",
+          "message": "Renvoyer le premier document correspondant à un filtre"
+        },
         "app.TW9uZ29EQg.action.aW5zZXJ0.desc": {
           "source": "Insert one or more documents into a MongoDB collection",
           "message": "Insérer un ou plusieurs documents dans une collection MongoDB"
@@ -218,6 +290,42 @@
         "app.TW9uZ29EQg.action.dXBkYXRl.short_desc": {
           "source": "Update documents in a collection",
           "message": "Mettre à jour des documents dans une collection"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.desc": {
+          "source": "Runs an [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/) query: given a query vector, returns the documents whose stored embeddings are nearest to it, each with its similarity `score`.\n\nThis is the retrieval step of a RAG pipeline done in the database, so the documents and their embeddings stay in one place instead of being copied into a separate vector store.\n\n**Requires an Atlas vector search index** on the collection, naming the field that holds the embeddings; `index_name` and `path` must match it.  Available on Atlas clusters only, not on a self-managed server.",
+          "message": "Exécute une requête de [recherche vectorielle Atlas](https://www.mongodb.com/docs/atlas/atlas-vector-search/) : à partir d'un vecteur de requête, renvoie les documents dont les plongements stockés en sont les plus proches, chacun avec son score de similarité `score`.\n\nC'est l'étape de récupération d'un pipeline RAG effectuée dans la base de données, de sorte que les documents et leurs plongements restent au même endroit au lieu d'être copiés dans un magasin de vecteurs distinct.\n\n**Nécessite un index de recherche vectorielle Atlas** sur la collection, désignant le champ qui contient les plongements ; `index_name` et `path` doivent y correspondre.  Disponible uniquement sur les clusters Atlas, pas sur un serveur autogéré."
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.display_name": {
+          "source": "Vector Search",
+          "message": "Recherche vectorielle"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Le nom de la collection MongoDB"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Collection"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Nom de la collection MongoDB"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Le nom de la base de données MongoDB"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Base de données"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Nom de la base de données MongoDB"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.short_desc": {
+          "source": "Find the documents nearest a query vector",
+          "message": "Trouver les documents les plus proches d'un vecteur de requête"
         },
         "app.TW9uZ29EQg.desc": {
           "source": "MongoDB is a document-oriented NoSQL database for high volume data storage",

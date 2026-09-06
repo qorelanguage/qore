@@ -57,6 +57,9 @@ public class MongoDbDataProviderTest inherits QUnit::Test {
         addTestCase("corner case tests", \cornerCaseTests());
         addTestCase("invalid connection test", \invalidConnectionTest());
         addTestCase("action data dependent options", \testActionDataDependentOptions());
+        addTestCase("action paths resolve to their types", \actionPathResolutionTest());
+        addTestCase("Atlas connection configuration", \atlasConnectionTest());
+        addTestCase("live: the ping verifies the credentials", \liveAtlasPingTest());
 %else
         addTestCase("module check", \moduleCheck());
 %endif
@@ -808,7 +811,8 @@ sub typed_mongodb_provider(MongoDbDataProvider::MongoDbCollectionDataProvider pr
     }
     testActionDataDependentOptions() {
         list<string> expected_actions = (
-            "insert", "find", "update", "delete", "aggregate", "bulk",
+            "insert", "find", "find-one", "count", "update", "delete", "aggregate", "bulk",
+            "vector-search",
         );
 
         # NOTE: the action catalog is global and open to other modules; getActions() also loads any
@@ -820,9 +824,135 @@ sub typed_mongodb_provider(MongoDbDataProvider::MongoDbCollectionDataProvider pr
         }
         foreach string action_name in (expected_actions) {
             assertTrue(action_map.hasKey(action_name), sprintf("action %y is registered", action_name));
-            assertTrue(action_map{action_name}.data_dependent_options,
+            hash<DataProviderActionInfo> action = action_map{action_name};
+            assertTrue(action.data_dependent_options,
                 sprintf("action %y has data_dependent_options", action_name));
+            # an action a user cannot read is an action a user cannot use
+            assertTrue(action.display_name.val(), sprintf("action %y has a display name", action_name));
+            assertTrue(action.short_desc.val(), sprintf("action %y has a short description", action_name));
+            assertTrue(action.desc.val(), sprintf("action %y has a description", action_name));
+            # the path is what the options are read from, so it must address the collection level
+            # of the provider hierarchy: it carried an extra "collections" segment that does not
+            # exist there, and every action's options were therefore unreachable
+            assertEq(sprintf("/databases/{database}/{collection}/%s", action_name), action.path,
+                sprintf("action %y addresses the collection", action_name));
         }
+    }
+
+    #! Every action's path must resolve to a provider that supplies the option and result types
+    /** The actions declare "data_dependent_options", so the form a user fills in is built from the
+        request type of the provider at the action's path.  Both halves of that were broken: the
+        path did not resolve, and the request types were constructed in a way that discarded every
+        field they declared, so even a resolvable path would have produced an empty form.
+    */
+    actionPathResolutionTest() {
+        if (!ensureConnection()) return;
+
+        MongoDbDataProvider root(client);
+        # make sure the collection exists so that the walk has something to resolve against
+        MongoDatabase db = client.getDatabase(test_db);
+        MongoCollection coll = db.getCollection(test_coll);
+        coll.insertOne({"_id": "path-resolution", "v": 1});
+        on_exit coll.deleteMany({"_id": "path-resolution"});
+
+        foreach hash<DataProviderActionInfo> action in (DataProviderActionCatalog::getActions("MongoDB")) {
+            if (action.action == AbstractDataProvider::GenericApiCallActionName) {
+                continue;
+            }
+            string path = replace(replace(action.path, "{database}", test_db),
+                "{collection}", test_coll);
+            path =~ s/^\///;
+            AbstractDataProvider prov = root.getChildProviderPath(path);
+
+            *AbstractDataProviderType rt = prov.getRequestType();
+            assertTrue(exists rt, sprintf("%s supplies a request type", action.action));
+            assertTrue(rt.getFields().size() > 0,
+                sprintf("%s supplies the fields its form is built from", action.action));
+
+            *AbstractDataProviderType ot = prov.getResponseType();
+            assertTrue(exists ot, sprintf("%s supplies a response type", action.action));
+            assertTrue(ot.getFields().size() > 0,
+                sprintf("%s describes the result it returns", action.action));
+        }
+    }
+
+    #! The connection must be configurable for Atlas: an SRV URL and credentials as options
+    /** Neither was possible: only the "mongodb" scheme was registered, and the credentials could
+        only be written into the URL, which is not a place to put a password.
+    */
+    atlasConnectionTest() {
+        # both schemes reach the same connection class
+        foreach string scheme in (("mongodb", MongoDbConnection::SrvScheme)) {
+            hash<ConnectionSchemeInfo> info = ConnectionSchemeCache::getScheme(scheme);
+            assertEq("MongoDB Connection", info.display_name, sprintf("%y is registered", scheme));
+        }
+        assertEq("mongodb+srv", MongoDbConnection::SrvScheme);
+
+        hash<ConnectionSchemeInfo> info = MongoDbConnection::ConnectionScheme;
+        assertTrue(info.options.password.sensitive, "the password option is marked sensitive");
+        assertFalse(info.options.username.sensitive ?? False, "the username is not a credential");
+
+        # the credentials, the default database and the driver settings all reach the URI
+        MongoDbConnection conn("mongodb-atlas", "test", "mongodb+srv://cluster0.example.mongodb.net",
+            {}, {
+                "username": "user",
+                "password": "p@ss:w/rd",
+                "database": "mydb",
+                "appname": "Cluster0",
+                "authsource": "admin",
+            });
+        string uri = conn.getUri();
+        # a password containing "@", ":" and "/" must be percent-encoded or the URI parses into
+        # something else entirely
+        assertRegex("^mongodb\\+srv://user:p%40ss%3Aw%2Frd@cluster0\\.example\\.mongodb\\.net/mydb\\?", uri);
+        assertRegex("appName=Cluster0", uri);
+        assertRegex("authSource=admin", uri);
+        # the timeouts are options of the connection and milliseconds to MongoDB; they were declared
+        # but never reached the driver at all
+        assertRegex("connectTimeoutMS=10000", uri);
+        assertRegex("serverSelectionTimeoutMS=30000", uri);
+
+        # a URL that carries its own credentials and options keeps them
+        MongoDbConnection url_conn("mongodb-url", "test",
+            "mongodb://u2:p2@localhost:27017/other?appName=FromUrl", {},
+            {"username": "ignored", "appname": "ignored"});
+        string url_uri = url_conn.getUri();
+        assertRegex("^mongodb://u2:p2@localhost:27017/other\\?", url_uri);
+        assertRegex("appName=FromUrl", url_uri);
+
+        # MongoDB has no way to send a password without a user
+        assertThrows("MONGODB-CONNECTION-ERROR", "no username", sub() {
+            MongoDbConnection bad("bad", "test", "mongodb+srv://cluster0.example.mongodb.net", {},
+                {"password": "secret"});
+            bad.getUri();
+        });
+    }
+
+    #! The connection ping must verify the credentials, not merely reach the host
+    liveAtlasPingTest() {
+        if (!url) {
+            testSkip("MONGODB_URL not set");
+            return;
+        }
+        hash<UrlInfo> h = parse_url(url);
+        if (!h.username.val()) {
+            testSkip("MONGODB_URL carries no credentials");
+            return;
+        }
+        string bare = sprintf("%s://%s%s", h.protocol, h.host, h.port ? sprintf(":%d", h.port) : "");
+
+        MongoDbConnection conn("mongodb-live", "test", bare, {},
+            {"username": h.username, "password": h.password});
+        hash<auto> ping = conn.ping();
+        assertTrue(ping.ok, sprintf("the connection pings with credentials given as options: %s",
+            ping.info ?? ping.desc ?? ""));
+        assertEq("MongoDB", conn.getAppName(), "the connection names its application");
+
+        # the point of the ping: credentials the server rejects must fail it
+        MongoDbConnection bad("mongodb-live-bad", "test", bare, {},
+            {"username": h.username, "password": "definitely-not-the-password"});
+        hash<auto> bad_ping = bad.ping();
+        assertFalse(bad_ping.ok, "a rejected password must fail the ping");
     }
 %endif
 }

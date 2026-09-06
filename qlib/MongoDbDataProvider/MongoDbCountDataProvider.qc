@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore MongoDbDeleteDataProvider class definition
+#! Qore MongoDbCountDataProvider class definition
 
-/** MongoDbDeleteDataProvider.qc Copyright 2025 Qore Technologies, s.r.o.
+/** MongoDbCountDataProvider.qc Copyright 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,30 +22,26 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 public namespace MongoDbDataProvider {
-#! MongoDB delete data provider - deletes documents from a collection
-public class MongoDbDeleteDataProvider inherits DataProvider::AbstractDataProvider {
+#! MongoDB count data provider - counts the documents matching a filter
+public class MongoDbCountDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "MongoDbDeleteDataProvider",
+            "type": "MongoDbCountDataProvider",
             "supports_request": True,
-            "supports_children": False,
-            "constructor_options": NOTHING,
         };
-
-        #! Request type
-        const RequestType = new MongoDbDeleteRequestDataType();
-
-        #! Response type
-        const ResponseType = new MongoDbDeleteResponseDataType();
 
         #! Provider summary info
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
+
+        #! Request type
+        const RequestType = new MongoDbCountRequestDataType();
+
+        #! Response type
+        const ResponseType = new MongoDbCountResponseDataType();
     }
 
     private {
@@ -59,7 +55,7 @@ public class MongoDbDeleteDataProvider inherits DataProvider::AbstractDataProvid
         MongoCollection coll;
     }
 
-    #! Creates the object
+    #! Creates the object from a client, database and collection
     constructor(MongoClient client, MongoDatabase db, MongoCollection coll) {
         self.client = client;
         self.db = db;
@@ -68,17 +64,12 @@ public class MongoDbDeleteDataProvider inherits DataProvider::AbstractDataProvid
 
     #! Returns the data provider name
     string getName() {
-        return "delete";
+        return "count";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "MongoDB delete data provider - deletes documents from a collection";
-    }
-
-    #! Returns data provider static info
-    private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
-        return ProviderInfo;
+        return "MongoDB count data provider - counts the documents matching a filter";
     }
 
     #! Returns the request type
@@ -91,67 +82,62 @@ public class MongoDbDeleteDataProvider inherits DataProvider::AbstractDataProvid
         return ResponseType;
     }
 
-    #! Makes a request and returns the response
+    #! Returns data provider static info
+    private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
+        return ProviderInfo;
+    }
+
+    #! Counts the matching documents
     /** @param req the request hash
         @param request_options the request options
 
-        @return the response to the request
+        @return a hash with the number of matching documents
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        hash<auto> result;
-        if (req.delete_one) {
-            result = coll.deleteOne(req.filter ?? {});
-        } else {
-            result = coll.deleteMany(req.filter ?? {});
-        }
-
         return {
-            "deleted_count": result.deletedCount,
+            "count": coll.countDocuments(req.filter),
         };
     }
 }
 
-#! Delete request data type
-public class MongoDbDeleteRequestDataType inherits HashDataType {
+#! Count request data type
+public class MongoDbCountRequestDataType inherits HashDataType {
     public {
         const Fields = {
             "filter": {
                 "display_name": "Filter",
-                "short_desc": "Query filter for matching documents",
+                "short_desc": "The query filter selecting the documents to count",
                 "type": HashOrNothingType,
-                "desc": "A query filter hash to match documents to delete",
-            },
-            "delete_one": {
-                "display_name": "Delete One",
-                "short_desc": "Delete only one document",
-                "type": SoftBoolType,
-                "desc": "If `True`, delete only the first matching document; otherwise delete all matching documents",
-                "default_value": False,
+                "desc": "The query filter selecting the documents to count; every document in the "
+                    "collection is counted when this is empty or `NOTHING`.\n\n"
+                    "This is the same filter **Find Documents** takes, so a count is the cheap way "
+                    "to ask how large a result would be before asking for it.",
+                "example_value": {"status": "active"},
             },
         };
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbDeleteRequest") {
+    constructor() : HashDataType("MongoDbCountRequest") {
         addQoreFields(Fields);
     }
 }
 
-#! Delete response data type
-public class MongoDbDeleteResponseDataType inherits HashDataType {
+#! Count response data type
+public class MongoDbCountResponseDataType inherits HashDataType {
     public {
         const Fields = {
-            "deleted_count": {
-                "display_name": "Deleted Count",
-                "short_desc": "Number of documents deleted",
+            "count": {
+                "display_name": "Count",
+                "short_desc": "The number of matching documents",
                 "type": IntType,
-                "desc": "The number of documents that were deleted",
+                "desc": "The number of documents matching the filter.",
             },
         };
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbDeleteResponse") {
+    constructor() : HashDataType("MongoDbCountResponse") {
         addQoreFields(Fields);
     }
 }

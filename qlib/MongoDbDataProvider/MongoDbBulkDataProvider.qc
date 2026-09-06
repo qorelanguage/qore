@@ -204,7 +204,8 @@ public class MongoDbBulkRequestDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbBulkRequest", Fields) {
+    constructor() : HashDataType("MongoDbBulkRequest") {
+        addQoreFields(Fields);
     }
 }
 
@@ -258,7 +259,8 @@ public class MongoDbBulkResponseDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbBulkResponse", Fields) {
+    constructor() : HashDataType("MongoDbBulkResponse") {
+        addQoreFields(Fields);
     }
 }
 }

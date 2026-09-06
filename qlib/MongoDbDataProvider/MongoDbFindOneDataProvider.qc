@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore MongoDbDeleteDataProvider class definition
+#! Qore MongoDbFindOneDataProvider class definition
 
-/** MongoDbDeleteDataProvider.qc Copyright 2025 Qore Technologies, s.r.o.
+/** MongoDbFindOneDataProvider.qc Copyright 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,30 +22,26 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 public namespace MongoDbDataProvider {
-#! MongoDB delete data provider - deletes documents from a collection
-public class MongoDbDeleteDataProvider inherits DataProvider::AbstractDataProvider {
+#! MongoDB find-one data provider - returns the first document matching a filter
+public class MongoDbFindOneDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "MongoDbDeleteDataProvider",
+            "type": "MongoDbFindOneDataProvider",
             "supports_request": True,
-            "supports_children": False,
-            "constructor_options": NOTHING,
         };
-
-        #! Request type
-        const RequestType = new MongoDbDeleteRequestDataType();
-
-        #! Response type
-        const ResponseType = new MongoDbDeleteResponseDataType();
 
         #! Provider summary info
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
+
+        #! Request type
+        const RequestType = new MongoDbFindOneRequestDataType();
+
+        #! Response type
+        const ResponseType = new MongoDbFindOneResponseDataType();
     }
 
     private {
@@ -59,7 +55,7 @@ public class MongoDbDeleteDataProvider inherits DataProvider::AbstractDataProvid
         MongoCollection coll;
     }
 
-    #! Creates the object
+    #! Creates the object from a client, database and collection
     constructor(MongoClient client, MongoDatabase db, MongoCollection coll) {
         self.client = client;
         self.db = db;
@@ -68,17 +64,12 @@ public class MongoDbDeleteDataProvider inherits DataProvider::AbstractDataProvid
 
     #! Returns the data provider name
     string getName() {
-        return "delete";
+        return "find-one";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "MongoDB delete data provider - deletes documents from a collection";
-    }
-
-    #! Returns data provider static info
-    private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
-        return ProviderInfo;
+        return "MongoDB find-one data provider - returns the first document matching a filter";
     }
 
     #! Returns the request type
@@ -91,67 +82,72 @@ public class MongoDbDeleteDataProvider inherits DataProvider::AbstractDataProvid
         return ResponseType;
     }
 
-    #! Makes a request and returns the response
+    #! Returns data provider static info
+    private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
+        return ProviderInfo;
+    }
+
+    #! Returns the first matching document
     /** @param req the request hash
         @param request_options the request options
 
-        @return the response to the request
+        @return a hash holding the document, and whether one was found at all
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        hash<auto> result;
-        if (req.delete_one) {
-            result = coll.deleteOne(req.filter ?? {});
-        } else {
-            result = coll.deleteMany(req.filter ?? {});
-        }
-
+        *hash<auto> doc = coll.findOne(req.filter);
         return {
-            "deleted_count": result.deletedCount,
+            "document": doc,
+            "found": exists doc,
         };
     }
 }
 
-#! Delete request data type
-public class MongoDbDeleteRequestDataType inherits HashDataType {
+#! Find-one request data type
+public class MongoDbFindOneRequestDataType inherits HashDataType {
     public {
         const Fields = {
             "filter": {
                 "display_name": "Filter",
-                "short_desc": "Query filter for matching documents",
+                "short_desc": "The query filter selecting the document",
                 "type": HashOrNothingType,
-                "desc": "A query filter hash to match documents to delete",
-            },
-            "delete_one": {
-                "display_name": "Delete One",
-                "short_desc": "Delete only one document",
-                "type": SoftBoolType,
-                "desc": "If `True`, delete only the first matching document; otherwise delete all matching documents",
-                "default_value": False,
+                "desc": "The query filter selecting the document; the first document in the "
+                    "collection is returned when this is empty or `NOTHING`.\n\n"
+                    "Use this rather than **Find Documents** with a limit of 1 when at most one "
+                    "document is wanted: the result is the document itself rather than a list "
+                    "holding it.",
+                "example_value": {"_id": "6789"},
             },
         };
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbDeleteRequest") {
+    constructor() : HashDataType("MongoDbFindOneRequest") {
         addQoreFields(Fields);
     }
 }
 
-#! Delete response data type
-public class MongoDbDeleteResponseDataType inherits HashDataType {
+#! Find-one response data type
+public class MongoDbFindOneResponseDataType inherits HashDataType {
     public {
         const Fields = {
-            "deleted_count": {
-                "display_name": "Deleted Count",
-                "short_desc": "Number of documents deleted",
-                "type": IntType,
-                "desc": "The number of documents that were deleted",
+            "document": {
+                "display_name": "Document",
+                "short_desc": "The matching document",
+                "type": HashOrNothingType,
+                "desc": "The matching document; missing when nothing matched the filter.",
+            },
+            "found": {
+                "display_name": "Found",
+                "short_desc": "Whether a document matched the filter",
+                "type": BoolType,
+                "desc": "Whether a document matched the filter.  Reported separately so that a "
+                    "flow can branch on it without having to test the document for emptiness.",
             },
         };
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbDeleteResponse") {
+    constructor() : HashDataType("MongoDbFindOneResponse") {
         addQoreFields(Fields);
     }
 }

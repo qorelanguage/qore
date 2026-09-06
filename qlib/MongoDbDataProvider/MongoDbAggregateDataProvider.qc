@@ -102,7 +102,9 @@ public class MongoDbAggregateDataProvider inherits DataProvider::AbstractDataPro
             throw "MONGODB-AGGREGATE-ERROR", "pipeline is required";
         }
 
-        MongoCursor<hash<auto>> cursor = coll.aggregate(req.pipeline);
+        # the option is a soft list of stage hashes, but the driver's parameter is typed, so the
+        # value has to be cast or the call finds no matching variant at runtime
+        MongoCursor<hash<auto>> cursor = coll.aggregate(cast<list<hash<auto>>>(req.pipeline));
         list<hash<auto>> docs = cursor.toList();
 
         return {
@@ -127,7 +129,8 @@ public class MongoDbAggregateRequestDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbAggregateRequest", Fields) {
+    constructor() : HashDataType("MongoDbAggregateRequest") {
+        addQoreFields(Fields);
     }
 }
 
@@ -151,7 +154,8 @@ public class MongoDbAggregateResponseDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbAggregateResponse", Fields) {
+    constructor() : HashDataType("MongoDbAggregateResponse") {
+        addQoreFields(Fields);
     }
 }
 }

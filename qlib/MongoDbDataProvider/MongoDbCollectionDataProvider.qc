@@ -114,6 +114,8 @@ public class MongoDbCollectionDataProvider inherits DataProvider::AbstractDataPr
         const ChildMap = {
             "insert": Class::forName("MongoDbDataProvider::MongoDbInsertDataProvider"),
             "find": Class::forName("MongoDbDataProvider::MongoDbFindDataProvider"),
+            "find-one": Class::forName("MongoDbDataProvider::MongoDbFindOneDataProvider"),
+            "count": Class::forName("MongoDbDataProvider::MongoDbCountDataProvider"),
             "update": Class::forName("MongoDbDataProvider::MongoDbUpdateDataProvider"),
             "delete": Class::forName("MongoDbDataProvider::MongoDbDeleteDataProvider"),
             "aggregate": Class::forName("MongoDbDataProvider::MongoDbAggregateDataProvider"),

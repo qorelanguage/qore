@@ -154,7 +154,8 @@ public class MongoDbUpdateRequestDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbUpdateRequest", Fields) {
+    constructor() : HashDataType("MongoDbUpdateRequest") {
+        addQoreFields(Fields);
     }
 }
 
@@ -184,7 +185,8 @@ public class MongoDbUpdateResponseDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() : HashDataType("MongoDbUpdateResponse", Fields) {
+    constructor() : HashDataType("MongoDbUpdateResponse") {
+        addQoreFields(Fields);
     }
 }
 }

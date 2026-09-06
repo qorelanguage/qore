@@ -3,6 +3,42 @@
   "locales": {
     "zh-Hant": {
       "messages": {
+        "app.TW9uZ29EQg.action.Y291bnQ.desc": {
+          "source": "Counts the documents in a MongoDB collection matching a filter, without returning any of them.\n\nThis takes the same filter as **Find Documents**, so it is the cheap way to ask how large a result would be before asking for the result itself.",
+          "message": "計算 MongoDB 集合中符合篩選條件的文件數量，且不傳回其中任何一份。\n\n它接受與 **尋找文件** 相同的篩選條件，因此是在索取結果本身之前，先低成本得知結果會有多大的方式。"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.display_name": {
+          "source": "Count Documents",
+          "message": "計算文件數"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "MongoDB 集合的名稱"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "集合"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "MongoDB 集合名稱"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "MongoDB 資料庫的名稱"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "資料庫"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "MongoDB 資料庫名稱"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.short_desc": {
+          "source": "Count the documents matching a filter",
+          "message": "計算符合篩選條件的文件數量"
+        },
         "app.TW9uZ29EQg.action.YWdncmVnYXRl.desc": {
           "source": "Execute an aggregation pipeline on a MongoDB collection",
           "message": "在 MongoDB 集合上執行聚合管道"
@@ -147,6 +183,42 @@
           "source": "Query documents in a collection",
           "message": "查詢集合中的文件"
         },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.desc": {
+          "source": "Returns the first document in a MongoDB collection matching a filter, as the document itself rather than as a list holding it.\n\nUse this where at most one document is wanted - a lookup by `_id`, say - and **Find Documents** where several are.  The result reports `found` separately, so a flow can branch on whether anything matched without testing the document.",
+          "message": "傳回 MongoDB 集合中符合篩選條件的第一份文件，傳回的是文件本身，而不是包住它的清單。\n\n當最多只預期一份文件時（例如以 `_id` 查詢）請用這個動作；若有多份，請用 **尋找文件**。結果會另外附上 `found`，因此流程可以據此分支，而不必檢查文件內容。"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.display_name": {
+          "source": "Find One Document",
+          "message": "尋找單一文件"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "MongoDB 集合的名稱"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "集合"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "MongoDB 集合名稱"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "MongoDB 資料庫的名稱"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "資料庫"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "MongoDB 資料庫名稱"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.short_desc": {
+          "source": "Return the first document matching a filter",
+          "message": "傳回符合篩選條件的第一份文件"
+        },
         "app.TW9uZ29EQg.action.aW5zZXJ0.desc": {
           "source": "Insert one or more documents into a MongoDB collection",
           "message": "將一個或多個文件插入 MongoDB 集合中"
@@ -218,6 +290,42 @@
         "app.TW9uZ29EQg.action.dXBkYXRl.short_desc": {
           "source": "Update documents in a collection",
           "message": "更新集合中的文件"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.desc": {
+          "source": "Runs an [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/) query: given a query vector, returns the documents whose stored embeddings are nearest to it, each with its similarity `score`.\n\nThis is the retrieval step of a RAG pipeline done in the database, so the documents and their embeddings stay in one place instead of being copied into a separate vector store.\n\n**Requires an Atlas vector search index** on the collection, naming the field that holds the embeddings; `index_name` and `path` must match it.  Available on Atlas clusters only, not on a self-managed server.",
+          "message": "執行 [Atlas 向量搜尋](https://www.mongodb.com/docs/atlas/atlas-vector-search/) 查詢：對於給定的查詢向量，傳回其所儲存嵌入向量與之最接近的文件，每一筆並附上相似度 `score`。\n\n這是在資料庫內完成 RAG 流程的取用步驟，因此文件與其嵌入向量可以留在同一處，而不必複製到另一個向量儲存區。\n\n**集合上必須有 Atlas 向量搜尋索引**，且該索引要指明存放嵌入向量的欄位；`index_name` 與 `path` 必須與之相符。僅適用於 Atlas 叢集，不適用於自行維運的伺服器。"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.display_name": {
+          "source": "Vector Search",
+          "message": "向量搜尋"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "MongoDB 集合的名稱"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "集合"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "MongoDB 集合名稱"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "MongoDB 資料庫的名稱"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "資料庫"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "MongoDB 資料庫名稱"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.short_desc": {
+          "source": "Find the documents nearest a query vector",
+          "message": "尋找與查詢向量最接近的文件"
         },
         "app.TW9uZ29EQg.desc": {
           "source": "MongoDB is a document-oriented NoSQL database for high volume data storage",

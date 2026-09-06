@@ -230,6 +230,114 @@
         "app.TW9uZ29EQg.action.YnVsaw.option.Y29sbGVjdGlvbg.desc": {
           "source": "The name of the MongoDB collection",
           "message": "The name of the MongoDB collection"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.display_name": {
+          "source": "Find One Document",
+          "message": "Find One Document"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.short_desc": {
+          "source": "Return the first document matching a filter",
+          "message": "Return the first document matching a filter"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.desc": {
+          "source": "Returns the first document in a MongoDB collection matching a filter, as the document itself rather than as a list holding it.\n\nUse this where at most one document is wanted - a lookup by `_id`, say - and **Find Documents** where several are.  The result reports `found` separately, so a flow can branch on whether anything matched without testing the document.",
+          "message": "Returns the first document in a MongoDB collection matching a filter, as the document itself rather than as a list holding it.\n\nUse this where at most one document is wanted - a lookup by `_id`, say - and **Find Documents** where several are.  The result reports `found` separately, so a flow can branch on whether anything matched without testing the document."
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Database"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "MongoDB database name"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "The name of the MongoDB database"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Collection"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "MongoDB collection name"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "The name of the MongoDB collection"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.display_name": {
+          "source": "Count Documents",
+          "message": "Count Documents"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.short_desc": {
+          "source": "Count the documents matching a filter",
+          "message": "Count the documents matching a filter"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.desc": {
+          "source": "Counts the documents in a MongoDB collection matching a filter, without returning any of them.\n\nThis takes the same filter as **Find Documents**, so it is the cheap way to ask how large a result would be before asking for the result itself.",
+          "message": "Counts the documents in a MongoDB collection matching a filter, without returning any of them.\n\nThis takes the same filter as **Find Documents**, so it is the cheap way to ask how large a result would be before asking for the result itself."
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Database"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "MongoDB database name"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "The name of the MongoDB database"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Collection"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "MongoDB collection name"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "The name of the MongoDB collection"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.display_name": {
+          "source": "Vector Search",
+          "message": "Vector Search"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.short_desc": {
+          "source": "Find the documents nearest a query vector",
+          "message": "Find the documents nearest a query vector"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.desc": {
+          "source": "Runs an [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/) query: given a query vector, returns the documents whose stored embeddings are nearest to it, each with its similarity `score`.\n\nThis is the retrieval step of a RAG pipeline done in the database, so the documents and their embeddings stay in one place instead of being copied into a separate vector store.\n\n**Requires an Atlas vector search index** on the collection, naming the field that holds the embeddings; `index_name` and `path` must match it.  Available on Atlas clusters only, not on a self-managed server.",
+          "message": "Runs an [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/) query: given a query vector, returns the documents whose stored embeddings are nearest to it, each with its similarity `score`.\n\nThis is the retrieval step of a RAG pipeline done in the database, so the documents and their embeddings stay in one place instead of being copied into a separate vector store.\n\n**Requires an Atlas vector search index** on the collection, naming the field that holds the embeddings; `index_name` and `path` must match it.  Available on Atlas clusters only, not on a self-managed server."
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Database"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "MongoDB database name"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "The name of the MongoDB database"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Collection"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "MongoDB collection name"
+        },
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "The name of the MongoDB collection"
         }
       }
     }
