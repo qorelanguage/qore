@@ -141,7 +141,11 @@ public class AsyncJobPoller {
         terminal_predicate = terminal;
         label = lbl ?? DefaultLabel;
         error_class = exception_class ?? DefaultErrorClass;
-        sleeper = code<nothing(timeout)> sub (timeout to) { Qore::usleep(to); };
+        # NOTE no "code<nothing(timeout)>" prefix here: in that position it is read as the *block's*
+        # return type, so the block is declared to return a closure and then falls off its end, and
+        # every poll that needs to wait fails with "block missing return statement".  The member is
+        # already typed, so the annotation adds nothing.
+        sleeper = sub (timeout to) { Qore::usleep(to); };
     }
 
     #! Injects a custom sleeper closure (test seam)

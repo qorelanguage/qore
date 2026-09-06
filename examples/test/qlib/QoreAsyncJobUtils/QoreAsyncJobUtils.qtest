@@ -26,7 +26,30 @@ public class QoreAsyncJobUtilsTest inherits QUnit::Test {
             \setSleeperTest());
         addTestCase("custom poll interval is forwarded to sleeper",
             \customIntervalTest());
+        addTestCase("the default sleeper waits between polls",
+            \defaultSleeperTest());
         set_return_value(main());
+    }
+
+    #! Polls with the sleeper the poller installs for itself
+    /** Every other case here injects one through setSleeper(), so the default was never run: it was
+        written with its type in the block's return-type position, which declared the block to return
+        a closure and then fall off its end, and every poll that had to wait failed with "block
+        missing return statement".  Four applications poll jobs through this class, so the first
+        status that was not already terminal broke all of them.
+    */
+    private defaultSleeperTest() {
+        int fetch_calls = 0;
+        QoreAsyncJobUtils::AsyncJobPoller p(
+            hash<auto> sub (string j) {
+                return {"id": j, "status": ++fetch_calls >= 3 ? "DONE" : "RUNNING"};
+            },
+            bool sub (hash<auto> s) { return s.status == "DONE"; },
+        );
+        # a real wait, kept to a millisecond a poll so the test costs nothing
+        hash<auto> r = p.poll("job-default-sleeper", 10s, 1ms);
+        assertEq("DONE", r.status);
+        assertEq(3, fetch_calls, "the poller waited and polled again rather than throwing");
     }
 
     private terminalImmediatelyTest() {
