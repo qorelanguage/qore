@@ -39,6 +39,13 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         };
 
         const OptionColumn = 22;
+
+        const TestElements = (
+            {"type": "Title", "text": "Section One", "element_id": "e1",
+             "metadata": {"page_number": 1}},
+            {"type": "NarrativeText", "text": "Body paragraph.", "element_id": "e2",
+             "metadata": {"page_number": 1}},
+        );
     }
 
     private {
@@ -49,15 +56,16 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         conn_name = m_options.conn ?? ENV.UNSTRUCTURED_CONNECTION;
 
         addTestCase("factory + app + action registered", \registrationTest());
-        addTestCase("partition-text forwards to partitionText()",
-            \partitionTextTest());
+        addTestCase("provider hierarchy", \providerHierarchyTest());
+        addTestCase("constructor requires an API key", \constructorOptionsTest());
+        addTestCase("request and response types", \providerTypesTest());
+        addTestCase("partition-text forwards to partitionText()", \partitionTextTest());
 
-        # Live test requires a real Unstructured connection.
-        # Unstructured Serverless free tier: 1000 pages/month. ~$0 per run
-        # when within free tier.
+        # Live tests require a real Unstructured connection.  Unstructured Serverless free tier:
+        # 1000 pages/month; these tests submit a few bytes of text.
         if (conn_name) {
-            addTestCase("live: ping + partition (tiny inline html)",
-                \liveUnstructuredTest());
+            addTestCase("live: connection provides the data provider", \liveConnectionTest());
+            addTestCase("live: partition-text round trip", \livePartitionTextTest());
         }
         set_return_value(main());
     }
@@ -65,8 +73,8 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-c,--connection=ARG",
-            "set the Unstructured connection name; without it (and without "
-            "the UNSTRUCTURED_CONNECTION env var) the live test is skipped",
+            "set the Unstructured connection name; without it (and without the "
+            "UNSTRUCTURED_CONNECTION environment variable) the live tests are skipped",
             OptionColumn);
     }
 
@@ -85,16 +93,74 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
             $1.action != AbstractDataProvider::GenericApiCallActionName;
         assertEq(1, actions.size());
         assertEq("partition-text", actions[0].action);
+        assertEq(DPAT_API, actions[0].action_code);
+        # "text" is the required input of the action
+        assertTrue(actions[0].options.text.required);
+    }
+
+    private providerHierarchyTest() {
+        FakeUnstructuredRestClientIo fake();
+        UnstructuredDataProvider::UnstructuredDataProvider prov(fake);
+        assertEq("unstructured", prov.getName());
+        assertTrue(prov.getChildProviderNames().contains("partition-text"));
+
+        AbstractDataProvider child = prov.getChildProviderEx("partition-text");
+        assertEq("partition-text", child.getName());
+        assertTrue(child.getInfo().supports_request);
+
+        # summary info is published for the child
+        assertEq(("partition-text",),
+            (map $1.name, prov.getChildProviderSummaryInfo()));
+
+        assertThrows("INVALID-CHILD-PROVIDER", sub () {
+            prov.getChildProviderEx("does-not-exist");
+        });
+    }
+
+    private constructorOptionsTest() {
+        # the API key is mandatory for Unstructured API communication
+        assertThrows("CONSTRUCTOR-ERROR", sub () {
+            new UnstructuredDataProvider::UnstructuredDataProvider({});
+        });
+
+        # ... and a provider constructed with one uses the given URL
+        UnstructuredDataProvider::UnstructuredDataProvider prov({
+            "apikey": "k",
+            "url": "https://example.com",
+        });
+        assertEq("unstructured", prov.getName());
+
+        # the API key option is declared required and sensitive so that UIs prompt for it
+        hash<auto> copts = UnstructuredDataProvider::UnstructuredDataProvider::ProviderInfo
+            .constructor_options;
+        assertTrue(copts.apikey.required);
+        assertTrue(copts.apikey.sensitive);
+    }
+
+    private providerTypesTest() {
+        FakeUnstructuredRestClientIo fake();
+        AbstractDataProvider pt =
+            new UnstructuredDataProvider::UnstructuredPartitionTextDataProvider(fake);
+
+        AbstractDataProviderType req = pt.getRequestType();
+        # the document text is the one mandatory input
+        assertEq("string", req.getFields().text.getType().getName());
+        assertTrue(req.getFields().text.isMandatory());
+        assertFalse(req.getFields().strategy.isMandatory());
+        # the partitioning strategies Unstructured accepts
+        assertEq(("auto", "fast", "hi_res", "ocr_only"),
+            (map $1.value, req.getFields().strategy.getAllowedValues()));
+        assertEq(("by_title", "basic"),
+            (map $1.value, req.getFields().chunking_strategy.getAllowedValues()));
+
+        AbstractDataProviderType resp = pt.getResponseType();
+        assertEq(("elt_list",), keys resp.getFields());
+        assertEq("UnstructuredElementList", resp.getFields().elt_list.getType().getName());
     }
 
     private partitionTextTest() {
         FakeUnstructuredRestClientIo fake();
-        fake.canned_elements = (
-            {"type": "Title", "text": "Section One", "element_id": "e1",
-             "metadata": {"page_number": 1}},
-            {"type": "NarrativeText", "text": "Body paragraph.", "element_id": "e2",
-             "metadata": {"page_number": 1}},
-        );
+        fake.canned_elements = TestElements;
         UnstructuredDataProvider::UnstructuredPartitionTextDataProvider prov(fake);
         auto resp = prov.doRequest({
             "text": "Section One\n\nBody paragraph.",
@@ -109,29 +175,36 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         assertEq(2, resp.elt_list.size());
         assertEq("Title", resp.elt_list[0].type);
         assertEq("Section One", resp.elt_list[0].text);
+        assertEq(1, resp.elt_list[0].metadata.page_number);
     }
 
-    #! Exercises Unstructured's live multipart upload + partition lifecycle
-    /** Verifies the actual wire format against Unstructured's production API
-        using a tiny inline HTML snippet.  Unstructured Serverless free
-        tier: 1000 pages/month.  ~$0 per run when within free tier.
-    */
-    private liveUnstructuredTest() {
+    private liveConnectionTest() {
         AbstractConnection conn = get_connection(conn_name);
+        assertEq("unstructured", conn.getType());
+        assertTrue(conn.hasDataProvider());
+
         hash<auto> ping = conn.ping(True);
         assertTrue(ping.ok, sprintf("Unstructured connection ping failed: %s",
             ping.info ?? "no info"));
 
         AbstractDataProvider prov = conn.getDataProvider();
-        AbstractDataProvider pt = prov.getChildProvider("partition-text");
+        assertTrue(prov.getChildProviderNames().contains("partition-text"));
+    }
+
+    #! Exercises Unstructured's live multipart upload + partition lifecycle
+    /** Verifies the actual wire format against Unstructured's production API using a tiny text
+        snippet.  Unstructured Serverless free tier: 1000 pages/month.
+    */
+    private livePartitionTextTest() {
+        AbstractConnection conn = get_connection(conn_name);
+        AbstractDataProvider prov = conn.getDataProvider();
+        AbstractDataProvider pt = prov.getChildProviderEx("partition-text");
         auto resp = pt.doRequest({
-            "text":     "<html><body><h1>Title</h1>"
-                        "<p>Hello world.</p></body></html>",
+            "text": "Section One\n\nHello world, this is a test document.",
             "strategy": "fast",
         });
-        assertTrue(resp.elt_list.size() >= 1,
-            "Unstructured returned at least one element");
-        assertTrue(resp.elt_list[0].type.val(),
-            "Unstructured element has a type");
+        assertTrue(resp.elt_list.size() >= 1, "Unstructured returned at least one element");
+        assertTrue(resp.elt_list[0].type.val(), "Unstructured element has a type");
+        assertTrue(resp.elt_list[0].text.val(), "Unstructured element has text");
     }
 }

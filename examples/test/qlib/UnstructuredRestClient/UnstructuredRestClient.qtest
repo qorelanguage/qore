@@ -5,16 +5,102 @@
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
 %requires Util
+%requires FsUtil
 %requires QUnit
+%requires Mime
+%requires ConnectionProvider
 %requires QoreRagTypes
 %requires QoreRagUtils
 %requires UnstructuredRestClient
 
 %exec-class UnstructuredRestClientTest
 
+#! Single-request HTTP listener that captures the raw request and returns a canned response
+/** Used to assert on what actually goes out on the wire; a mock at the client-method level
+    cannot catch serialization or header bugs, which is how the multipart body of every
+    @ref UnstructuredRestClient::UnstructuredRestClientIo::partition() "partition()" call came to
+    be base64-encoded into a quoted string without any test noticing.
+*/
+class CaptureServer {
+    public {
+        #! The port the listener is bound to
+        int port;
+
+        #! The request headers received (lower-case keys, plus "method", "path")
+        *hash<auto> req_hdr;
+
+        #! The raw request body received
+        *binary req_body;
+
+        #! Any error encountered while serving
+        *string error;
+    }
+
+    private {
+        Socket sock();
+        Counter done(1);
+        string response_body;
+        string status_line;
+    }
+
+    #! Binds an ephemeral port and starts serving a single request in the background
+    constructor(string response_body = "[]", string status_line = "200 OK") {
+        self.response_body = response_body;
+        self.status_line = status_line;
+        sock.bind(0, True);
+        sock.listen();
+        port = sock.getSocketInfo().port;
+        background serve();
+    }
+
+    #! Returns the URL of the listener
+    string getUrl() {
+        return "http://localhost:" + port;
+    }
+
+    #! Blocks until the single request has been served
+    nothing wait() {
+        done.waitForZero();
+    }
+
+    #! Returns the request body as a string
+    string getBodyString() {
+        return req_body ? req_body.toString() : "";
+    }
+
+    private nothing serve() {
+        on_exit done.dec();
+        try {
+            # NOTE bounded, so that a test whose client call throws before connecting cannot
+            # leave this thread blocked forever and hang the whole test run
+            *Socket conn = sock.accept(30s);
+            if (!conn) {
+                error = "timed out waiting for a connection";
+                return;
+            }
+            req_hdr = conn.readHTTPHeader(30s);
+            int len = req_hdr."content-length".toInt();
+            if (len) {
+                req_body = conn.recvBinary(len, 30s);
+            }
+            conn.send(sprintf("HTTP/1.1 %s\r\nContent-Type: application/json\r\n"
+                "Content-Length: %d\r\n\r\n%s", status_line, response_body.size(),
+                response_body));
+        } catch (hash<ExceptionInfo> ex) {
+            error = sprintf("%s: %s", ex.err, ex.desc);
+        }
+    }
+}
+
+#! Intercepts the raw REST call so response handling can be tested without a server
 class FakeUnstructuredClient inherits UnstructuredRestClient::UnstructuredRestClientIo {
     public {
-        list<hash<auto>> elements_to_return = ();
+        #! Response body to return from the intercepted call
+        auto body_to_return;
+
+        #! The request captured by the intercepted call
+        *string captured_method;
+        *string captured_path;
         *data captured_body;
         *hash<auto> captured_hdr;
     }
@@ -23,10 +109,16 @@ class FakeUnstructuredClient inherits UnstructuredRestClient::UnstructuredRestCl
             {"url": "https://api.unstructuredapp.io", "apikey": "x"}) {
     }
 
-    hash<RestClient::RestResponseInfo> restPost(string path, auto body, *hash<auto> hdr) {
+    # NOTE partition() sends the pre-serialized multipart body with restDoRawRequest(), so this is
+    # the method that has to be intercepted; overriding restPost() would let the call escape to the
+    # network
+    hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body,
+            *hash<auto> hdr) {
+        captured_method = method;
+        captured_path = path;
         captured_body = body;
         captured_hdr = hdr;
-        return <RestClient::RestResponseInfo>{"body": elements_to_return};
+        return <RestClient::RestResponseInfo>{"body": body_to_return};
     }
 
     string getSafeUrl() {
@@ -34,36 +126,162 @@ class FakeUnstructuredClient inherits UnstructuredRestClient::UnstructuredRestCl
     }
 }
 
+#! Test seam: drives the real UnstructuredChunker flattening against a canned element tree
+/** \c flattenElements() is \c private, which in %Qore means it is accessible to subclasses, so
+    this seam exercises the production implementation rather than a copy of it.
+*/
+class TestChunker inherits QoreRagUtils::UnstructuredChunker {
+    private {
+        UnstructuredRestClient::UnstructuredRestClientIo test_client;
+    }
+
+    constructor(hash<QoreRagUtils::ChunkerConfig> cfg,
+            UnstructuredRestClient::UnstructuredRestClientIo client)
+            : QoreRagUtils::UnstructuredChunker(cfg) {
+        test_client = client;
+    }
+
+    list<hash<QoreRagUtils::ChunkInfo>> chunk(string content, *hash<auto> metadata) {
+        if (!content.val()) {
+            return ();
+        }
+        return flattenElements(test_client.partitionText(content, {}), metadata);
+    }
+}
+
+#! Test seam: an Unstructured connection whose alternative deployments are under test control
+/** The real list is Unstructured's public deployments; a test must never reach them.
+*/
+class TestUnstructuredConnection inherits UnstructuredRestClient::UnstructuredRestConnection {
+    public {
+        #! Deployments offered to the connection when the configured one rejects the API key
+        *softlist<string> candidates;
+
+        #! Number of times the connection asked for the alternatives
+        int probe_calls = 0;
+    }
+
+    constructor(string url, hash<auto> options, *softlist<string> candidates)
+            : UnstructuredRestClient::UnstructuredRestConnection("test",
+                "Unstructured test connection", url, {"monitor": False}, options) {
+        self.candidates = candidates;
+    }
+
+    private *softlist<string> getKnownApiUrls() {
+        ++probe_calls;
+        return candidates;
+    }
+}
+
 public class UnstructuredRestClientTest inherits QUnit::Test {
-    constructor() : Test("UnstructuredRestClient Test", "1.0") {
-        addTestCase("connection scheme registered",        \connectionSchemeTest());
+    public {
+        const MyOpts = Opts + {
+            "conn": "c,connection=s",
+        };
+
+        const OptionColumn = 22;
+
+        #! Element tree used by the flattening tests
+        const TestElements = (
+            {"type": "Title", "text": "Section One", "element_id": "e1"},
+            {"type": "NarrativeText", "text": "Para one here.", "element_id": "e2"},
+            {"type": "ListItem", "text": "Bullet A.", "element_id": "e3"},
+            {"type": "Title", "text": "Section Two", "element_id": "e4"},
+            {"type": "NarrativeText", "text": "Para in section two.", "element_id": "e5"},
+        );
+    }
+
+    private {
+        *string conn_name;
+    }
+
+    constructor() : Test("UnstructuredRestClient Test", "1.0", \ARGV, MyOpts) {
+        conn_name = m_options.conn ?? ENV.UNSTRUCTURED_CONNECTION;
+
+        addTestCase("connection scheme registered", \connectionSchemeTest());
+        addTestCase("connection requires an API key", \connectionRequiresApikeyTest());
         addTestCase("unstructured-api-key header injected", \apikeyMappingTest());
-        addTestCase("ChunkerModuleMap entry registered",    \chunkerModuleMapTest());
-        addTestCase("chunker factory registered",           \chunkerFactoryTest());
-        addTestCase("partitionText sends multipart body",   \partitionTextTest());
-        addTestCase("chunker flattens element tree into ChunkInfo records",
-            \chunkerFlattenTest());
-        addTestCase("chunker rejects content without api_key",
-            \chunkerNoApiKeyTest());
+        addTestCase("ChunkerModuleMap entry registered", \chunkerModuleMapTest());
+        addTestCase("chunker factory registered", \chunkerFactoryTest());
+        addTestCase("ping validates the API key", \pingTest());
+        addTestCase("ping reports an authentication failure", \pingFailureTest());
+        addTestCase("ping honors an explicit ping_method/ping_path", \pingOverrideTest());
+        addTestCase("ping moves the connection to the deployment that accepts the key",
+            \pingAdoptsWorkingDeploymentTest());
+        addTestCase("ping does not search after a non-authentication failure",
+            \pingNoSearchOnServerErrorTest());
+        addTestCase("known deployments are listed with the default first",
+            \knownApiUrlsTest());
+        addTestCase("partition sends a well-formed multipart request", \wireFormatTest());
+        addTestCase("partition sends repeated fields for list options", \wireListOptionTest());
+        addTestCase("partitionFile sends the file basename", \partitionFileTest());
+        addTestCase("partition accepts both response shapes", \responseShapeTest());
+        addTestCase("partition rejects an unknown response shape", \badResponseShapeTest());
+        addTestCase("chunker flattens element tree into ChunkInfo records", \chunkerFlattenTest());
+        addTestCase("chunker splits content over the token target", \chunkerSplitTest());
+        addTestCase("chunker rejects content without api_key", \chunkerNoApiKeyTest());
+        addTestCase("chunker returns nothing for empty content", \chunkerEmptyContentTest());
+
+        # Live tests require a real Unstructured connection; Unstructured's free tier allows
+        # 1000 pages/month, and these tests submit a few bytes of text
+        if (conn_name) {
+            addTestCase("live: connection ping", \livePingTest());
+            addTestCase("live: partitionText round trip", \livePartitionTextTest());
+        }
         set_return_value(main());
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--connection=ARG",
+            "set the Unstructured connection name; without it (and without the "
+            "UNSTRUCTURED_CONNECTION environment variable) the live tests are skipped",
+            OptionColumn);
     }
 
     private connectionSchemeTest() {
         hash<ConnectionSchemeInfo> info =
             ConnectionProvider::ConnectionSchemeCache::getScheme("unstructured");
-        assertEq("Unstructured.io Document Partitioning Connection",
-            info.display_name);
+        assertEq("Unstructured.io Document Partitioning Connection", info.display_name);
         assertTrue(info.schemes.unstructured);
+        # the API key is mandatory, so a connection cannot be created without it
+        assertEq("apikey", info.required_options);
+        # the ping is implemented by UnstructuredRestConnection::pingImpl(); no ping_method /
+        # ping_path defaults are declared, because setting both is how a caller opts out of it
+        assertEq(NOTHING, info.options.ping_method.default_value);
+        assertEq(NOTHING, info.options.ping_path.default_value);
+    }
+
+    private connectionRequiresApikeyTest() {
+        assertThrows("CONNECTION-OPTION-ERROR", "missing required options", sub () {
+            ConnectionProvider::ConnectionSchemeCache::validateConnectionOptions("test",
+                "unstructured", {});
+        });
+
+        # ... and it validates when the API key is supplied
+        hash<auto> opts = ConnectionProvider::ConnectionSchemeCache::validateConnectionOptions(
+            "test", "unstructured", {"apikey": "my-key"});
+        assertEq("my-key", opts.apikey);
     }
 
     private apikeyMappingTest() {
         hash<auto> opts = UnstructuredRestClient::UnstructuredRestClientBase::getOptions({
             "apikey": "my-key",
         });
-        # Unstructured uses unstructured-api-key header, NOT Bearer
+        # Unstructured uses the unstructured-api-key header, NOT Bearer
         assertEq(NOTHING, opts.token);
         assertEq(NOTHING, opts.apikey);
-        assertEq("my-key", opts.default_headers."unstructured-api-key");
+        # NOTE the option is "headers"; "default_headers" is not a REST client option, and setting
+        # it means the key is silently dropped and no authentication header is ever sent
+        assertEq("my-key", opts.headers."unstructured-api-key");
+
+        # caller-supplied headers are preserved
+        opts = UnstructuredRestClient::UnstructuredRestClientBase::getOptions({
+            "apikey": "my-key",
+            "headers": {"x-custom": "v"},
+        });
+        assertEq("my-key", opts.headers."unstructured-api-key");
+        assertEq("v", opts.headers."x-custom");
     }
 
     private chunkerModuleMapTest() {
@@ -78,165 +296,316 @@ public class UnstructuredRestClientTest inherits QUnit::Test {
         assertEq("Unstructured.io element-tree chunker", f.getDisplayName());
     }
 
-    private partitionTextTest() {
+    #! Returns a connection pointed at the given capture server
+    /** @param server the capture server the connection targets
+        @param extra_opts additional connection options
+        @param candidates deployments to offer when the capture server rejects the API key; empty
+            by default, so that a failing ping cannot reach Unstructured's public deployments
+    */
+    private TestUnstructuredConnection getTestConnection(CaptureServer server,
+            *hash<auto> extra_opts, *softlist<string> candidates) {
+        return new TestUnstructuredConnection(server.getUrl(),
+            {"apikey": "ping-key", "http_version": "1.1"} + extra_opts, candidates);
+    }
+
+    #! The default ping must contact the server with the API key, not just check reachability
+    private pingTest() {
+        CaptureServer server();
+        hash<auto> ping = getTestConnection(server).ping(True);
+        server.wait();
+        assertEq(NOTHING, server.error);
+        assertTrue(ping.ok, sprintf("ping failed: %s", ping.info ?? "no info"));
+
+        # "GET healthcheck" is served without credentials, so the ping has to submit an empty
+        # document to the partition endpoint to get the API key checked at all
+        assertEq("POST", server.req_hdr.method);
+        assertEq("/general/v0/general", server.req_hdr.path);
+        assertEq("ping-key", server.req_hdr."unstructured-api-key");
+
+        hash<string, hash<FormDataMessageInfo>> parts = MultiPartFormDataMessage::parseMessage(
+            server.req_hdr."content-type", server.getBodyString());
+        assertEq(("files",), keys parts);
+        # no document content is submitted, so the ping does no partitioning work
+        assertEq("", parts.files.body.toString());
+        assertEq("ping.txt", parts.files.filename);
+    }
+
+    #! A rejected API key must make the ping fail
+    private pingFailureTest() {
+        CaptureServer server("{\"detail\": \"API key is invalid\"}", "401 Unauthorized");
+        # NOTE ping(True) rethrows the failure; the flag-less call reports it in the hash instead
+        hash<auto> ping = getTestConnection(server).ping();
+        server.wait();
+        assertEq(NOTHING, server.error);
+        assertFalse(ping.ok, "a 401 response must fail the ping");
+        assertTrue(ping.info =~ /401/, sprintf("ping info: %y", ping.info));
+    }
+
+    #! Setting both ping options opts out of the credential-validating ping
+    private pingOverrideTest() {
+        CaptureServer server("{}");
+        hash<auto> ping = getTestConnection(server, {
+            "ping_method": "GET",
+            "ping_path": "healthcheck",
+        }).ping(True);
+        server.wait();
+        assertEq(NOTHING, server.error);
+        assertTrue(ping.ok, sprintf("ping failed: %s", ping.info ?? "no info"));
+        assertEq("GET", server.req_hdr.method);
+        assertEq("/healthcheck", server.req_hdr.path);
+    }
+
+    #! A key rejected by the configured deployment must move the connection to the one that takes it
+    private pingAdoptsWorkingDeploymentTest() {
+        CaptureServer configured("{\"detail\": \"API key is invalid\"}", "401 Unauthorized");
+        CaptureServer working();
+
+        TestUnstructuredConnection conn = getTestConnection(configured, NOTHING,
+            (working.getUrl(),));
+        hash<auto> ping = conn.ping(True);
+        configured.wait();
+        working.wait();
+        assertEq(NOTHING, configured.error);
+        assertEq(NOTHING, working.error);
+
+        # the ping succeeds against the deployment that accepted the key
+        assertTrue(ping.ok, sprintf("ping failed: %s", ping.info ?? "no info"));
+        assertEq(1, conn.probe_calls);
+        assertEq("POST", working.req_hdr.method);
+        assertEq("/general/v0/general", working.req_hdr.path);
+        assertEq("ping-key", working.req_hdr."unstructured-api-key");
+
+        # ... and the connection now targets it, so calls made before the platform reloads the
+        # connection do not go back to the deployment that rejected the key
+        assertEq(working.getUrl(), conn.getAsync().getSafeUrl());
+    }
+
+    #! A server error is a failure of this ping, not evidence that the deployment is wrong
+    private pingNoSearchOnServerErrorTest() {
+        CaptureServer server("{\"detail\": \"boom\"}", "500 Internal Server Error");
+        TestUnstructuredConnection conn = getTestConnection(server, NOTHING,
+            ("unstructured://must-not-be-contacted.invalid",));
+        hash<auto> ping = conn.ping();
+        server.wait();
+        assertEq(NOTHING, server.error);
+        assertFalse(ping.ok, "a 500 response must fail the ping");
+        # the alternatives were never asked for, so no other deployment was contacted
+        assertEq(0, conn.probe_calls);
+    }
+
+    private knownApiUrlsTest() {
+        list<string> urls =
+            UnstructuredRestClient::UnstructuredRestConnection::KnownApiUrls;
+        # the default deployment is tried first
+        assertEq(UnstructuredRestClient::UnstructuredRestConnection::DefaultUrl, urls[0]);
+        assertEq(("unstructured://api.transform.unstructured.io",
+            "unstructured://api.unstructuredapp.io"), urls);
+        # every entry uses the connection scheme, so that an adopted URL can be stored as-is
+        map assertTrue($1 =~ /^unstructured:\/\//, $1), urls;
+    }
+
+    #! Asserts on the bytes that actually reach the server
+    private wireFormatTest() {
+        CaptureServer server();
+        UnstructuredRestClient::UnstructuredRestClientIo client({
+            "url": server.getUrl(),
+            "apikey": "wire-key",
+            "http_version": "1.1",
+        });
+        list<hash<auto>> elt_list = client.partitionText("Hello world.", {"strategy": "fast"});
+        server.wait();
+        assertEq(NOTHING, server.error);
+        assertEq((), elt_list);
+
+        assertEq("POST", server.req_hdr.method);
+        assertEq("/general/v0/general", server.req_hdr.path);
+        # the API key must be sent, otherwise every request is rejected with a 401
+        assertEq("wire-key", server.req_hdr."unstructured-api-key");
+
+        string ct = server.req_hdr."content-type";
+        assertTrue(ct =~ /^multipart\/form-data; boundary=/, sprintf("Content-Type: %y", ct));
+        # "charset" is not defined for multipart types and breaks strict parsers
+        assertFalse(ct =~ /charset=/, sprintf("Content-Type: %y", ct));
+
+        string boundary = (ct =~ x/boundary="?([^";]+)"?/)[0];
+        assertTrue(boundary.val());
+
+        string body = server.getBodyString();
+        # the body must be the raw multipart message: passing it through the client's data
+        # serializer base64-encodes it into a quoted string that no server can parse
+        assertEq("--" + boundary + "\r\n", body.substr(0, boundary.size() + 4));
+        assertFalse(body =~ /^"/, "body must not be a serialized string");
+        assertFalse(body =~ /^This is a MIME multipart message/, "body must have no preamble");
+
+        # the parts arrive intact and carry the values that were sent
+        hash<string, hash<FormDataMessageInfo>> parts =
+            MultiPartFormDataMessage::parseMessage(ct, body);
+        assertEq(("files", "strategy"), keys parts);
+        assertEq("Hello world.", parts.files.body);
+        assertEq("input.txt", parts.files.filename);
+        assertEq("fast", parts.strategy.body);
+    }
+
+    #! List-valued options are sent as repeated fields, not as a serialized list
+    private wireListOptionTest() {
+        CaptureServer server();
+        UnstructuredRestClient::UnstructuredRestClientIo client({
+            "url": server.getUrl(),
+            "apikey": "wire-key",
+            "http_version": "1.1",
+        });
+        client.partition("doc.txt", MimeTypeText, "body text", {"languages": ("eng", "deu")});
+        server.wait();
+        assertEq(NOTHING, server.error);
+
+        string body = server.getBodyString();
+        # both values are present as separate parts under the same field name
+        assertEq(2, body.split("name=\"languages\"").size() - 1);
+        assertTrue(body =~ /\r\neng\r\n/);
+        assertTrue(body =~ /\r\ndeu\r\n/);
+        # the file part is still there alongside them
+        assertEq(1, body.split("name=\"files\"").size() - 1);
+    }
+
+    private partitionFileTest() {
+        TmpFile tmp("unstructured-", ".txt");
+        File f();
+        f.open2(tmp.path, O_WRONLY | O_TRUNC);
+        f.write("file content here");
+        f.close();
+
+        CaptureServer server();
+        UnstructuredRestClient::UnstructuredRestClientIo client({
+            "url": server.getUrl(),
+            "apikey": "wire-key",
+            "http_version": "1.1",
+        });
+        client.partitionFile(tmp.path, MimeTypeText);
+        server.wait();
+        assertEq(NOTHING, server.error);
+
+        hash<string, hash<FormDataMessageInfo>> parts = MultiPartFormDataMessage::parseMessage(
+            server.req_hdr."content-type", server.getBodyString());
+        # only the basename is sent, not the full local path
+        assertEq(basename(tmp.path), parts.files.filename);
+        assertFalse(parts.files.filename =~ /\//);
+        assertEq("file content here", parts.files.body.toString());
+    }
+
+    private responseShapeTest() {
         FakeUnstructuredClient fake();
-        fake.elements_to_return = (
-            {"type": "Title", "text": "Document Title", "element_id": "e1"},
-            {"type": "NarrativeText", "text": "First paragraph here.",
-             "element_id": "e2"},
-        );
-        list<hash<auto>> elt_list = fake.partitionText("Some document text",
-            {"strategy": "fast"});
-        # Round-trip: 2 elements returned
-        assertEq(2, elt_list.size());
+
+        # Unstructured returns the element list as the body
+        fake.body_to_return = TestElements;
+        list<hash<auto>> elt_list = fake.partitionText("text", {"strategy": "fast"});
+        assertEq(5, elt_list.size());
         assertEq("Title", elt_list[0]."type");
-        # Multipart body sent
-        assertTrue(fake.captured_body.typeCode() == NT_BINARY);
+        assertEq("POST", fake.captured_method);
+        assertEq("/general/v0/general", fake.captured_path);
+        assertEq(NT_BINARY, fake.captured_body.typeCode());
         assertTrue(fake.captured_hdr."Content-Type" =~ /multipart\/form-data/);
+
+        # some deployments wrap the list in {elt_list: [...]}
+        fake.body_to_return = {"elt_list": TestElements};
+        elt_list = fake.partitionText("text");
+        assertEq(5, elt_list.size());
+        assertEq("Section One", elt_list[0].text);
+    }
+
+    private badResponseShapeTest() {
+        FakeUnstructuredClient fake();
+        fake.body_to_return = {"detail": "something went wrong"};
+        assertThrows("UNSTRUCTURED-ERROR", "unexpected /general response shape", sub () {
+            fake.partitionText("text");
+        });
     }
 
     private chunkerFlattenTest() {
-        # Use the chunker directly with a fake REST client by extending
-        # LlamaParseChunker is overkill — instead, test the inline-content
-        # path... wait, Unstructured chunker ALWAYS hits the API (no inline mode).
-        # So we test by constructing an instance + manually calling
-        # flattenElements via the test seam.
-
-        # Instead: verify the chunker passes the right shape to partitionText
-        # by registering a stub.  Cleaner: use the FakeUnstructuredClient and
-        # construct the chunker with that REST client directly.
-
-        # Easiest path: feed the chunker a constructed UnstructuredChunker
-        # and check that with a fake REST client, chunk() produces ChunkInfo
-        # records flattened from the elements.
         FakeUnstructuredClient fake();
-        fake.elements_to_return = (
-            {"type": "Title", "text": "Section One", "element_id": "e1"},
-            {"type": "NarrativeText", "text": "Para one here.",
-             "element_id": "e2"},
-            {"type": "ListItem", "text": "Bullet A.", "element_id": "e3"},
-            {"type": "Title", "text": "Section Two", "element_id": "e4"},
-            {"type": "NarrativeText", "text": "Para in section two.",
-             "element_id": "e5"},
-        );
+        fake.body_to_return = TestElements;
 
-        # Construct the chunker with our fake REST client by injecting it
-        # via a tiny subclass that bypasses ensureRestClient.
         TestChunker c(<QoreRagUtils::ChunkerConfig>{
             "strategy": "unstructured",
             "target_tokens": 1000,
             "options": {"api_key": "k"},
         }, fake);
-        list<hash<QoreRagUtils::ChunkInfo>> chunks = c.chunk("doc text");
+        list<hash<QoreRagUtils::ChunkInfo>> chunks = c.chunk("doc text", {"source": "test"});
 
-        # Two sections -> two chunks (with under-target tokens, no further split)
+        # two sections -> two chunks; under the token target, so no further split
         assertEq(2, chunks.size());
         assertEq("Section One", chunks[0].metadata.section);
         assertEq("Section Two", chunks[1].metadata.section);
-        # Element types preserved in metadata
+        # the Title itself is recorded as section metadata and not repeated in the body
+        assertEq("Para one here.\n\nBullet A.", chunks[0].content);
+        assertEq("Para in section two.", chunks[1].content);
+        # element types preserved in metadata
         assertEq(("NarrativeText", "ListItem"), chunks[0].metadata.element_types);
         assertEq(("NarrativeText",), chunks[1].metadata.element_types);
-        # Sequential indices
+        # caller metadata is carried through
+        assertEq("test", chunks[0].metadata.source);
+        # sequential indices
         assertEq(0, chunks[0].index);
         assertEq(1, chunks[1].index);
+        assertTrue(chunks[0].token_count > 0);
+    }
+
+    #! Content over the token target is split even without an intervening Title
+    private chunkerSplitTest() {
+        FakeUnstructuredClient fake();
+        fake.body_to_return = (
+            {"type": "Title", "text": "Only Section", "element_id": "e1"},
+            {"type": "NarrativeText", "text": strmul("a", 100), "element_id": "e2"},
+            {"type": "NarrativeText", "text": strmul("b", 100), "element_id": "e3"},
+            # elements with no text are skipped entirely
+            {"type": "NarrativeText", "text": "", "element_id": "e4"},
+        );
+
+        TestChunker c(<QoreRagUtils::ChunkerConfig>{
+            "strategy": "unstructured",
+            "target_tokens": 10,
+            "options": {"api_key": "k"},
+        }, fake);
+        list<hash<QoreRagUtils::ChunkInfo>> chunks = c.chunk("doc text");
+
+        assertEq(2, chunks.size());
+        assertEq(strmul("a", 100), chunks[0].content);
+        assertEq(strmul("b", 100), chunks[1].content);
+        # both chunks stay under the same section
+        map assertEq("Only Section", $1.metadata.section), chunks;
     }
 
     private chunkerNoApiKeyTest() {
         QoreRagUtils::UnstructuredChunker c(<QoreRagUtils::ChunkerConfig>{
             "strategy": "unstructured",
         });
-        assertThrows("UNSTRUCTURED-CHUNKER-ERROR", sub () {
+        assertThrows("UNSTRUCTURED-CHUNKER-ERROR", "requires 'options.api_key'", sub () {
             c.chunk("some text");
         });
     }
-}
 
-#! Test seam — UnstructuredChunker subclass that accepts a pre-built REST client
-class TestChunker inherits QoreRagUtils::UnstructuredChunker {
-    constructor(hash<QoreRagUtils::ChunkerConfig> cfg,
-            UnstructuredRestClient::UnstructuredRestClientIo client)
-            : QoreRagUtils::UnstructuredChunker(cfg) {
-        # Inject the fake REST client by setting the private slot via reflection
-        # — instead, just use the public chunk() method which calls
-        # ensureRestClient(); but for this test we shortcut by exposing a
-        # public injection method.  Simpler: override chunk() to use a
-        # passed-in client directly.
-        rest_client_override = client;
+    private chunkerEmptyContentTest() {
+        # empty content short-circuits before the API key check, so no request is made
+        QoreRagUtils::UnstructuredChunker c(<QoreRagUtils::ChunkerConfig>{
+            "strategy": "unstructured",
+        });
+        assertEq((), c.chunk(""));
     }
 
-    private {
-        UnstructuredRestClient::UnstructuredRestClientIo rest_client_override;
+    private livePingTest() {
+        AbstractConnection conn = get_connection(conn_name);
+        assertEq("unstructured", conn.getType());
+        hash<auto> ping = conn.ping(True);
+        assertTrue(ping.ok, sprintf("Unstructured connection ping failed: %s",
+            ping.info ?? "no info"));
     }
 
-    list<hash<QoreRagUtils::ChunkInfo>> chunk(string content,
-            *hash<auto> metadata) {
-        if (!content.val()) {
-            return ();
-        }
-        list<hash<auto>> elt_list = rest_client_override.partitionText(content,
-            {});
-        return flattenElements(elt_list, metadata);
-    }
-
-    public list<hash<QoreRagUtils::ChunkInfo>> flattenElements(
-            list<hash<auto>> elt_list, *hash<auto> base_metadata) {
-        # Call the private flattenElements via a thin wrapper — but
-        # private isn't accessible from a subclass. Re-implement the
-        # flattening logic by inlining.
-        # ... or use a fully-different path.  For the test, just call
-        # the same logic as in the parent (copy-paste here for clarity).
-        int target = 1000;
-        list<hash<QoreRagUtils::ChunkInfo>> chunks = ();
-        hash<auto> state;
-        state.current_section = NOTHING;
-        state.current_texts = ();
-        state.current_types = ();
-        state.current_tokens = 0;
-        state.idx = 0;
-
-        code flush = sub () {
-            if (!state.current_texts) {
-                return;
-            }
-            *hash<auto> md = base_metadata;
-            if (state.current_section.val()) {
-                md = (md ?? {}) + {"section": state.current_section};
-            }
-            if (state.current_types) {
-                md = (md ?? {}) + {"element_types": state.current_types};
-            }
-            push chunks, <QoreRagUtils::ChunkInfo>{
-                "index": state.idx,
-                "content": (foldl $1 + "\n\n" + $2, state.current_texts),
-                "token_count": state.current_tokens,
-                "metadata": md,
-            };
-            ++state.idx;
-            state.current_texts = ();
-            state.current_types = ();
-            state.current_tokens = 0;
-        };
-
-        foreach hash<auto> el in (elt_list) {
-            *string text = el.text;
-            if (!text.val()) {
-                continue;
-            }
-            string el_type = el."type" ?? "Element";
-            if (el_type == "Title") {
-                flush();
-                state.current_section = text;
-                continue;
-            }
-            int t = (text.length() / 4) ?? 0;
-            if (state.current_texts && state.current_tokens + t > target) {
-                flush();
-            }
-            push state.current_texts, text;
-            push state.current_types, el_type;
-            state.current_tokens += t;
-        }
-        flush();
-        return chunks;
+    private livePartitionTextTest() {
+        AbstractConnection conn = get_connection(conn_name);
+        object client = conn.getAsync();
+        list<hash<auto>> elt_list = client.partitionText(
+            "Section One\n\nHello world, this is a test document.", {"strategy": "fast"});
+        assertTrue(elt_list.size() >= 1, "Unstructured returned at least one element");
+        assertTrue(elt_list[0]."type".val(), "Unstructured element has a type");
+        assertTrue(elt_list[0].text.val(), "Unstructured element has text");
     }
 }

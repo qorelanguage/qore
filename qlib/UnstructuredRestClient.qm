@@ -57,9 +57,32 @@ module UnstructuredRestClient {
     a typed element tree (Title, NarrativeText, ListItem, Table, Image,
     ...) suitable for RAG ingestion.
 
-    Works against both the Unstructured Serverless API
-    (`https://api.unstructuredapp.io/general/v0`) and self-hosted
+    Works against both the Unstructured Serverless API and self-hosted
     Unstructured deployments — same module, different URL.
+
+    @par Choosing the URL
+
+    An Unstructured API key is issued for exactly one deployment and is
+    rejected with a `401` by all the others, and no Unstructured API
+    reports which deployment a key belongs to.  A key sent to the wrong
+    deployment is reported as `API key is invalid` and one of the wrong
+    shape entirely as `API key is malformed`, so an authentication error
+    here usually means the URL is wrong rather than the key.
+
+    The default is `https://api.transform.unstructured.io`, Unstructured's
+    current deployment.  A connection does not have to be configured for
+    an account on the older `https://api.unstructuredapp.io` deployment:
+    @ref UnstructuredRestClient::UnstructuredRestConnection "UnstructuredRestConnection"
+    tries the alternatives when the configured deployment rejects the key
+    and moves itself to whichever one accepts it — see
+    @ref UnstructuredRestClient::UnstructuredRestConnection::KnownApiUrls "KnownApiUrls".
+    Self-hosted deployments are configured by URL as usual and are never
+    moved, as there is nowhere else to try.
+
+    Note also that the Unstructured **Platform API** (workflows, sources,
+    destinations and jobs) is a different service with its own host and
+    no partition endpoint; this module implements the partition API only,
+    so a Platform API base URL will not work here.
 
     @par Submission shapes
 
@@ -93,8 +116,13 @@ module UnstructuredRestClient {
 public namespace UnstructuredRestClient {
 public class UnstructuredRestClientBase {
     public {
-        #! Default Unstructured Serverless API URL
-        const DefaultUrl = "https://api.unstructuredapp.io";
+        #! Default Unstructured partition API URL
+        /** Unstructured's current deployment; accounts issued a key for the older
+            \c "https://api.unstructuredapp.io" deployment must set the URL explicitly, which
+            @ref UnstructuredRestClient::UnstructuredRestConnection "UnstructuredRestConnection"
+            does for them on the first ping
+        */
+        const DefaultUrl = "https://api.transform.unstructured.io";
 
         const DefaultOptions = {
             "url": DefaultUrl,
@@ -107,11 +135,11 @@ public class UnstructuredRestClientBase {
         rv += DefaultOptions + opts;
         if (rv.apikey) {
             hash<auto!> dh;
-            if (rv.default_headers) {
-                dh += rv.default_headers;
+            if (rv.headers) {
+                dh += rv.headers;
             }
             dh."unstructured-api-key" = rv.apikey;
-            rv.default_headers = dh;
+            rv.headers = dh;
             delete rv.apikey;
         }
         return rv;
@@ -153,9 +181,9 @@ public class UnstructuredRestClientIo inherits RestClientIo::RestClientIo, Unstr
         if (options) {
             foreach hash<auto> p in (options.pairIterator()) {
                 if (p.value.typeCode() == NT_LIST) {
-                    # repeated fields (e.g. languages)
+                    # repeated fields (e.g. languages); addPart() rejects a repeated name
                     foreach auto v in (p.value) {
-                        msg.addPart(v.toString(), p.key);
+                        msg.addRepeatedPart(v.toString(), p.key);
                     }
                 } else {
                     msg.addPart(p.value.toString(), p.key);
@@ -163,7 +191,10 @@ public class UnstructuredRestClientIo inherits RestClientIo::RestClientIo, Unstr
             }
         }
         hash<MessageInfo> mi = msg.getMsgAndHeaders();
-        hash<auto> resp = restPost("/general/v0/general", mi.body, mi.hdr);
+        # NOTE the multipart body is already serialized, so it must be sent with
+        # restDoRawRequest(); restPost() would hand it to the client's data serializer, which
+        # base64-encodes a binary body into a quoted JSON/YAML string and destroys the message
+        hash<auto> resp = restDoRawRequest("POST", "/general/v0/general", mi.body, mi.hdr);
         # Unstructured returns the elt_list directly as the body (a list of hashes)
         if (resp.body.typeCode() == NT_LIST) {
             return cast<list<hash<auto>>>(resp.body);
@@ -207,7 +238,22 @@ public class UnstructuredRestClientIo inherits RestClientIo::RestClientIo, Unstr
 #! Class for Unstructured.io REST connections
 public class UnstructuredRestConnection inherits RestClient::RestConnection {
     public {
-        const DefaultUrl = "unstructured://api.unstructuredapp.io";
+        #! The default connection URL
+        const DefaultUrl = "unstructured://api.transform.unstructured.io";
+
+        #! Every known public Unstructured partition API deployment, in probe order
+        /** An API key is issued for exactly one deployment and is rejected with a \c 401 by all
+            the others, and no Unstructured API reports which deployment a key belongs to, so the
+            only way to identify it is to try each one; @ref pingImpl() does that when the
+            configured deployment rejects the key.
+
+            Self-hosted deployments are not listed here: their URLs are unknowable, and a
+            self-hosted connection that fails to authenticate has nowhere else to be tried.
+        */
+        const KnownApiUrls = (
+            DefaultUrl,
+            "unstructured://api.unstructuredapp.io",
+        );
 
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "display_name": "Unstructured.io Document Partitioning Connection",
@@ -215,9 +261,11 @@ public class UnstructuredRestConnection inherits RestClient::RestConnection {
             "desc": "A connection to [Unstructured.io](https://unstructured.io) — a "
                 "document partitioning service that breaks PDFs, docx, HTML, and "
                 "images into a typed element tree.\n\n"
-                "Works against the Serverless API "
-                "(`https://api.unstructuredapp.io/general/v0`) and self-hosted "
-                "deployments — same module, different URL.\n\n"
+                "Works against Unstructured's hosted deployments and self-hosted "
+                "deployments — same module, different URL.  An API key is issued for one "
+                "deployment and is rejected by the others; when the configured deployment "
+                "rejects the key, the connection tries the other known deployments on the "
+                "next ping and moves itself to whichever one accepts it.\n\n"
                 "Auth: the `unstructured-api-key` header.",
             "cls": Class::forName("UnstructuredRestConnection"),
             "auto_url": True,
@@ -234,7 +282,11 @@ public class UnstructuredRestConnection inherits RestClient::RestConnection {
                     "preselected": True,
                 },
             },
+            "required_options": "apikey",
         };
+
+        #! Filename sent for the empty document submitted by the default ping
+        const PingFilename = "ping.txt";
     }
 
     constructor(string name, string description, string url = DefaultUrl,
@@ -261,6 +313,131 @@ public class UnstructuredRestConnection inherits RestClient::RestConnection {
 
     private setChildCapabilities() {
         children_can_support_apis = True;
+    }
+
+    #! Declares that this connection can update its own options
+    /** @ref pingImpl() moves the connection to the deployment that accepts its API key, and the
+        corrected URL has to be persisted for that to be worth anything.  The base class declares
+        the feature only for OAuth2 and custom-token connections, whose options change on their own.
+    */
+    private setFeatures() {
+        RestConnection::setFeatures();
+        features{CF_UPDATE_OPTIONS} = True;
+    }
+
+    #! Pings the server by submitting an empty document to the partition endpoint
+    /** Unstructured's partition API exposes no authenticated \c GET endpoint: \c "GET healthcheck"
+        is served without credentials, so pinging it reports success even when the API key is
+        invalid or missing.  Posting a \c files part with no content instead returns an empty
+        element list when the key is valid and \c 401 when it is not, so the credentials are
+        actually verified; no document content is submitted, so no partitioning work is done.
+
+        When the configured deployment rejects the key, the other deployments in
+        @ref KnownApiUrls are tried, and the connection moves to whichever one accepts it; see
+        @ref adoptWorkingApiUrl().
+
+        Set both the \c ping_method and \c ping_path options to use the standard
+        @ref RestClient::RestConnection "RestConnection" ping instead — for a self-hosted
+        deployment that rejects an empty upload, \c "GET" and \c "healthcheck" restore a plain
+        liveness check.  Note that such a ping cannot detect an invalid API key.
+
+        @throw REST-RESPONSE-ERROR the server rejected the ping request
+    */
+    private pingImpl() {
+        if (opts.ping_method && opts.ping_path) {
+            RestConnection::pingImpl();
+            return;
+        }
+        UnstructuredRestClientIo client = cast<UnstructuredRestClientIo>(getAsync());
+        try {
+            UnstructuredRestConnection::pingApi(client);
+        } catch (hash<ExceptionInfo> ex) {
+            # anything other than the server rejecting the key is a real failure of this ping
+            if (!UnstructuredRestConnection::isApiKeyRejection(ex) || !adoptWorkingApiUrl(client)) {
+                authFailure();
+                rethrow;
+            }
+        }
+        authSuccess();
+    }
+
+    #! Returns the deployments to try when the configured one rejects the API key
+    /** @return @ref KnownApiUrls; override to give a private or self-hosted deployment its own
+        set of alternatives, or to return nothing to disable the search entirely
+    */
+    private *softlist<string> getKnownApiUrls() {
+        return KnownApiUrls;
+    }
+
+    #! Submits an empty document to verify that the server accepts the API key
+    /** @param client the client to submit with
+
+        @throw REST-RESPONSE-ERROR the server rejected the request
+    */
+    private static pingApi(UnstructuredRestClientIo client) {
+        client.partition(PingFilename, MimeTypeText, "");
+    }
+
+    #! Returns @ref True if the exception is the server rejecting the API key
+    /** Unstructured answers a key that belongs to another deployment, and one that is malformed,
+        with the same \c 401; neither can be told from the other, and both mean "not this
+        deployment's key".
+
+        @param ex the exception thrown by the failed request
+
+        @return @ref True if the server rejected the API key
+    */
+    private static bool isApiKeyRejection(hash<ExceptionInfo> ex) {
+        return ex.err == "REST-RESPONSE-ERROR"
+            && (ex.arg.status_code == 401 || ex.arg.status_code == 403);
+    }
+
+    #! Moves the connection to the known deployment that accepts its API key
+    /** An Unstructured API key is issued for one deployment and rejected by the others, and
+        nothing in any Unstructured API says which one a key belongs to, so a connection pointed at
+        the wrong deployment can only be identified by trying the alternatives.  Leaving it pointed
+        at the wrong one is the worse outcome: every request fails with an authentication error
+        that reads as a bad key rather than a bad URL, which is exactly the wrong thing to go
+        looking at.
+
+        The choice is made on the fixed order of @ref KnownApiUrls so that a working connection
+        cannot move merely because one deployment answered more slowly, and the rejections are
+        logged so that the choice can be seen.
+
+        @param client the client whose credentials are to be tried against the other deployments
+
+        @return @ref True if another deployment accepted the key and the connection was moved
+    */
+    private bool adoptWorkingApiUrl(UnstructuredRestClientIo client) {
+        list<string> rejected = ();
+        foreach string candidate in (getKnownApiUrls()) {
+            string candidate_url = AbstractConnection::getRealUrl(candidate,
+                getConnectionSchemeInfo(), getType());
+            if (candidate_url == real_url) {
+                continue;
+            }
+            try {
+                UnstructuredRestConnection::pingApi(
+                    cast<UnstructuredRestClientIo>(client.copyWithUrl(candidate_url)));
+            } catch (hash<ExceptionInfo> ex) {
+                # an unreachable or broken deployment must not stop the remaining ones being tried
+                rejected += sprintf("%s (%s)", candidate_url, ex.err);
+                continue;
+            }
+            info("connection %y: the API key is not accepted by %y but is accepted by %y; moving "
+                "the connection there%s", name, real_url, candidate_url,
+                rejected ? sprintf("; also rejected by: %y", rejected) : "");
+            # correct this object as well as the stored connection, so that clients created before
+            # the platform reloads the connection already target the right deployment
+            setRealUrl(candidate);
+            doUpdateOptions(self, {"url": candidate});
+            return True;
+        }
+        if (rejected) {
+            info("connection %y: the API key is not accepted by %y or by any other known "
+                "deployment: %y", name, real_url, rejected);
+        }
+        return False;
     }
 
     private UnstructuredRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
@@ -314,7 +491,7 @@ public namespace QoreRagUtils {
 public class UnstructuredChunker inherits AbstractChunker {
     public {
         #! Default Unstructured URL
-        const DefaultUrl = "https://api.unstructuredapp.io";
+        const DefaultUrl = UnstructuredRestClient::UnstructuredRestClientBase::DefaultUrl;
     }
 
     private {
