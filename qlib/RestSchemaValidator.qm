@@ -1389,9 +1389,12 @@ public namespace RestSchemaValidator {
                 rstr = required ? "Y" : "N";
             }
             if (self.desc.val()) {
-                if (desc.val()) {
+                # a parameter and the schema it points at often carry the same text - every document
+                # FastAPI generates does this - and joining those gives "X: X", which is what the
+                # user then reads on the option
+                if (desc.val() && trim(desc) != trim(self.desc)) {
                     desc += ": " + self.desc;
-                } else {
+                } else if (!desc.val()) {
                     desc = self.desc;
                 }
             }
