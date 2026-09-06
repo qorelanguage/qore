@@ -200,6 +200,7 @@ public class UnstructuredRestClientTest inherits QUnit::Test {
 
         addTestCase("connection scheme registered", \connectionSchemeTest());
         addTestCase("connection requires an API key", \connectionRequiresApikeyTest());
+        addTestCase("connection is associated with its app", \connectionAppNameTest());
         addTestCase("unstructured-api-key header injected", \apikeyMappingTest());
         addTestCase("ChunkerModuleMap entry registered", \chunkerModuleMapTest());
         addTestCase("chunker factory registered", \chunkerFactoryTest());
@@ -262,6 +263,16 @@ public class UnstructuredRestClientTest inherits QUnit::Test {
         hash<auto> opts = ConnectionProvider::ConnectionSchemeCache::validateConnectionOptions(
             "test", "unstructured", {"apikey": "my-key"});
         assertEq("my-key", opts.apikey);
+    }
+
+    #! The connection must name its app, or nothing associates it with the action catalog
+    private connectionAppNameTest() {
+        UnstructuredRestClient::UnstructuredRestConnection conn("test", "test",
+            UnstructuredRestClient::UnstructuredRestConnection::DefaultUrl, {"monitor": False},
+            {"apikey": "my-key"});
+        assertEq("UnstructuredIo", conn.getAppName());
+        # the base class returns nothing, in which case getInfo() omits "app" entirely
+        assertEq("UnstructuredIo", conn.getInfo().app);
     }
 
     private apikeyMappingTest() {

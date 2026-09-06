@@ -368,8 +368,8 @@
           "message": "Estrategia de fragmentación en el servidor"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.desc": {
-          "source": "List of ISO language codes for the document.",
-          "message": "Lista de códigos de idioma ISO para el documento."
+          "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
+          "message": "Lista de códigos de idioma ISO 639 presentes en el documento, utilizados para guiar la partición y el OCR."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.display_name": {
           "source": "Languages",

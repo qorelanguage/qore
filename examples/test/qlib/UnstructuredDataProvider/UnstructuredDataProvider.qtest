@@ -153,9 +153,24 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         assertEq(("by_title", "basic"),
             (map $1.value, req.getFields().chunking_strategy.getAllowedValues()));
 
+        # types must be named; an unnamed HashDataType reports as "hash<auto>" and the UI has
+        # no schema to render
+        assertEq("UnstructuredPartitionTextRequest", req.getName());
+
         AbstractDataProviderType resp = pt.getResponseType();
+        assertEq("UnstructuredPartitionTextResponse", resp.getName());
         assertEq(("elt_list",), keys resp.getFields());
         assertEq("UnstructuredElementList", resp.getFields().elt_list.getType().getName());
+
+        # the element and its metadata are typed, not bare hashes
+        AbstractDataProviderType el = resp.getFields().elt_list.getType().getElementType();
+        assertEq("UnstructuredElement", el.getName());
+        AbstractDataProviderType md = el.getFields().metadata.getType();
+        assertEq("UnstructuredElementMetadata", md.getName());
+        # the fields that carry the value for RAG ingestion
+        map assertTrue(exists md.getFields(){$1}, $1),
+            ("page_number", "parent_id", "text_as_html", "image_base64", "coordinates",
+             "orig_elements", "filename", "filetype");
     }
 
     private partitionTextTest() {

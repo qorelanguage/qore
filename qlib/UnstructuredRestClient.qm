@@ -111,7 +111,6 @@ module UnstructuredRestClient {
     - the initial version of the %UnstructuredRestClient module
 */
 
-%requires json
 
 public namespace UnstructuredRestClient {
 public class UnstructuredRestClientBase {
@@ -300,6 +299,18 @@ public class UnstructuredRestConnection inherits RestClient::RestConnection {
 
     string getType() {
         return "unstructured";
+    }
+
+    #! Returns the data provider application name this connection serves
+    /** Without this the base class returns nothing, the connection is never associated with its
+        app, and @ref ConnectionProvider::AbstractConnection::getInfo() "getInfo()" omits \c app
+        entirely.
+
+        @note must match @c UnstructuredDataProvider::AppName; the name is repeated here rather
+        than referenced because %UnstructuredDataProvider requires this module, not the reverse
+    */
+    *string getAppName() {
+        return "UnstructuredIo";
     }
 
     bool hasDataProvider() {

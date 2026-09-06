@@ -368,8 +368,8 @@
           "message": "Stratégia delenia na bloky na strane servera"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.desc": {
-          "source": "List of ISO language codes for the document.",
-          "message": "Zoznam kódov ISO jazykov pre dokument."
+          "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
+          "message": "Zoznam kódov jazykov ISO 639 prítomných v dokumente, ktoré sa používajú na riadenie delenia na časti a OCR."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.display_name": {
           "source": "Languages",

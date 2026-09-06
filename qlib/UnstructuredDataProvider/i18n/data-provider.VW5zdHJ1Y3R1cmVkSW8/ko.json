@@ -368,8 +368,8 @@
           "message": "서버 측 청킹 전략"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.desc": {
-          "source": "List of ISO language codes for the document.",
-          "message": "문서의 ISO 언어 코드 목록입니다."
+          "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
+          "message": "문서에 포함된 ISO 639 언어 코드 목록으로, 분할 및 OCR을 안내하는 데 사용됩니다."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.display_name": {
           "source": "Languages",

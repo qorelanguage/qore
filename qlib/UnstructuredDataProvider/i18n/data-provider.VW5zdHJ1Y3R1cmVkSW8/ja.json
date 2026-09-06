@@ -368,8 +368,8 @@
           "message": "サーバー側のチャンキング戦略"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.desc": {
-          "source": "List of ISO language codes for the document.",
-          "message": "ドキュメントの ISO 言語コードのリスト。"
+          "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
+          "message": "ドキュメントに含まれる ISO 639 言語コードのリストです。パーティショニングと OCR の判定に使用されます。"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.display_name": {
           "source": "Languages",

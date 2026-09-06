@@ -368,8 +368,8 @@
           "message": "Серверна стратегія розбиття на фрагменти"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.desc": {
-          "source": "List of ISO language codes for the document.",
-          "message": "Список кодів мов ISO для документа."
+          "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
+          "message": "Перелік кодів мов ISO 639, наявних у документі; використовується для керування поділом на елементи та OCR."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.display_name": {
           "source": "Languages",

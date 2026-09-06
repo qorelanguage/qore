@@ -368,8 +368,8 @@
           "message": "Serverseitige Chunking-Strategie"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.desc": {
-          "source": "List of ISO language codes for the document.",
-          "message": "Liste der ISO-Sprachcodes für das Dokument."
+          "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
+          "message": "Liste der im Dokument vorhandenen ISO-639-Sprachcodes, die zur Steuerung der Partitionierung und der OCR verwendet werden."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.display_name": {
           "source": "Languages",

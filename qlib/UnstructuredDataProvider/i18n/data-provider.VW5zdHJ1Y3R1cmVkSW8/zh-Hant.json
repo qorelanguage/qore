@@ -368,8 +368,8 @@
           "message": "伺服器端分塊策略"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.desc": {
-          "source": "List of ISO language codes for the document.",
-          "message": "文件的 ISO 語言代碼列表。"
+          "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
+          "message": "文件中出現的 ISO 639 語言代碼清單，用於引導分割與 OCR。"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.display_name": {
           "source": "Languages",
