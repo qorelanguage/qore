@@ -30,6 +30,7 @@
 %requires DataProvider
 %requires RestSchemaActions
 %requires RestClientIo
+%requires HttpClientIo
 
 %requires json
 
@@ -104,6 +105,104 @@ class FakeRestClient inherits RestClientIo::RestClientIo {
     }
 }
 
+#! A request recorded together with the client that made it
+hashdecl RoutedRequest {
+    #! The URL of the client the request went out on, which is what says which host it was sent to
+    string url;
+    string method;
+    string path;
+    auto body;
+    #! The request headers merged over the client's own default headers
+    *hash<auto> headers;
+}
+
+#! Records every request made by a client and each of its copyWithUrl() copies
+/** A per-host client is a **copy** of the connection's own, so it is a different object with a different
+    URL; nothing about it is observable from the parent.  Sharing one recorder between them is what makes
+    the routing visible at all, and it is also what a concurrency test needs, so every method is
+    synchronized.
+*/
+class RoutingCallLog {
+    public {
+        #! Responses keyed by "<METHOD> <path>"
+        hash<string, hash<auto>> responses = {};
+
+        #! Used when no keyed response matches
+        hash<auto> default_response = {"body": {}, "headers": {}};
+    }
+
+    private {
+        list<hash<RoutedRequest>> reqs = ();
+    }
+
+    synchronized hash<auto> record(hash<RoutedRequest> req) {
+        push reqs, req;
+        return responses{req.method + " " + req.path} ?? default_response;
+    }
+
+    synchronized list<hash<RoutedRequest>> requests() {
+        return reqs;
+    }
+
+    #! Returns the requests made against the given URL
+    synchronized list<hash<RoutedRequest>> requestsTo(string url) {
+        return select reqs, $1.url == url;
+    }
+
+    #! Returns how many requests were made to the given URI path
+    synchronized int countPath(string path) {
+        return (select reqs, $1.path == path).size();
+    }
+
+    synchronized reset() {
+        reqs = ();
+        responses = {};
+    }
+}
+
+#! A REST client that records requests instead of making them, and copies itself the way the real one does
+/** Unlike @ref FakeRestClient this one keeps the conventional <tt>(opts, shared_mgr)</tt> constructor, so
+    that @ref RestClientIo::RestClientIo::copyWithUrl() "copyWithUrl()" builds a copy of **this** class
+    through the ordinary path - which is the thing under test.
+*/
+class RoutingFakeClient inherits RestClientIo::RestClientIo {
+    public {
+        #! Shared by the parent and every copy, because a copy is a separate object with its own URL
+        static RoutingCallLog log = new RoutingCallLog();
+    }
+
+    constructor(hash<auto> opts, *HttpClientIo::HttpClientConnectionManager shared_mgr)
+            : RestClientIo(opts, shared_mgr) {
+    }
+
+    hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body,
+            *hash<auto> hdr) {
+        hash<auto> resp = RoutingFakeClient::log.record(<RoutedRequest>{
+            "url": getUrl().toString(),
+            "method": method,
+            "path": path,
+            "body": body,
+            # the client's own default headers are what carry the connection's credentials, so recording
+            # them merged is what proves a copy still has them
+            "headers": (getDefaultHeaders() ?? {}) + (hdr ?? {}),
+        });
+        if (resp.throw_status) {
+            throw "REST-RESPONSE-ERROR", sprintf("HTTP %d response received", resp.throw_status),
+                <RestClient::RestResponseInfo>{
+                    "status_code": resp.throw_status,
+                    "headers": resp.headers ?? {},
+                    "body": resp.body,
+                    "request_path": path,
+                };
+        }
+        return <RestClient::RestResponseInfo>{
+            "status_code": resp.status_code ?? 200,
+            "body": resp.body,
+            "headers": resp.headers ?? {},
+        };
+    }
+}
+
 public class RestSchemaActionSetTest inherits QUnit::Test {
     public {
         #! The fixture schema
@@ -118,6 +217,44 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
                 "value_field": "id",
                 "display_field": "label",
                 "desc": "widget categories",
+            },
+        };
+
+        #! The API key the connection owns; a routed request has to carry it as well
+        const ApiKey = "secret-widget-key";
+
+        #! The connection's own URL
+        const ControlUrl = "http://widget.example.com/api";
+
+        #! Reference data backing the host key dropdown
+        const ShardRefData = {
+            "shard": <RestSchemaReferenceDataInfo>{
+                "name": "shard",
+                "action": "list-shards",
+                "value_field": "name",
+                "display_field": "name",
+                "desc": "the shards of the widget store",
+            },
+        };
+
+        #! The host the data-plane operations go to, resolved per shard
+        const ShardHostSources = {
+            "shard_host": <RestSchemaHostSourceInfo>{
+                "name": "shard_host",
+                "action": "describe-shard",
+                "key_option": "shard",
+                "lookup_option": "shard_name",
+                "host_field": ("host",),
+                "scheme": "https",
+                "allowed_host_suffixes": ("shard.example.com",),
+                "key_overlay": <RestSchemaFieldOverlayInfo>{
+                    "display_name": "Shard",
+                    "short_desc": "The shard the request is sent to",
+                    "desc": "The **shard** whose host serves these records.",
+                    "ref_data": "shard",
+                    "preselected": True,
+                },
+                "desc": "the shard whose host serves the records",
             },
         };
 
@@ -176,6 +313,11 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
         addTestCase("a body lifted out of an envelope", \requestUnwrapTest());
         addTestCase("a grouping object published as options", \liftTest());
         addTestCase("a response envelope merged into what carries it", \mergeTest());
+        addTestCase("a request host resolved per object", \hostRoutingTest());
+        addTestCase("a resolved host is checked before it is used", \hostSuffixTest());
+        addTestCase("host source manifest errors", \hostSourceManifestTest());
+        addTestCase("host routing under the drift report", \hostRoutingDriftTest());
+        addTestCase("concurrent use of a host source", \hostRoutingConcurrencyTest());
 
         set_return_value(main());
     }
@@ -195,8 +337,31 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
 
     #! Returns an action set built from the given manifest entries
     private RestSchemaActionSet makeSet(list<hash<RestSchemaActionInfo>> manifest,
-            *hash<string, hash<RestSchemaReferenceDataInfo>> refdata) {
-        return new RestSchemaActionSet(schema, manifest, refdata);
+            *hash<string, hash<RestSchemaReferenceDataInfo>> refdata,
+            *hash<string, hash<RestSchemaHostSourceInfo>> host_sources) {
+        return new RestSchemaActionSet(schema, manifest, refdata, NOTHING, host_sources);
+    }
+
+    #! Returns the manifest exercising a per-object request host
+    /** The two data-plane operations name no shard anywhere, exactly as Pinecone's do not name an index:
+        the object *is* the host.
+    */
+    private list<hash<RestSchemaActionInfo>> shardManifest() {
+        return (
+            entry("list-shards", "GET", "/shards", {"response_unwrap": ("data",)}),
+            entry("describe-shard", "GET", "/shards/{shard_name}"),
+            entry("query-records", "POST", "/records/query", {"host_from": "shard_host"}),
+            entry("list-records", "GET", "/records", {"host_from": "shard_host"}),
+        );
+    }
+
+    #! Returns a client for the shard tests with its shared recorder reset
+    private RoutingFakeClient shardClient() {
+        RoutingFakeClient::log.reset();
+        return new RoutingFakeClient({
+            "url": ControlUrl,
+            "headers": {"Api-Key": ApiKey},
+        });
     }
 
     #! Returns a single operation built from one manifest entry
@@ -1610,6 +1775,318 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
         hash<auto> doc = parse_json(File::readTextFile(SchemaFile));
         change(\doc);
         return OpenApi3::OpenApi3Loader::fromString(make_json(doc), True);
+    }
+
+
+    hostRoutingTest() {
+        RestSchemaActionSet aset = makeSet(shardManifest(), ShardRefData, ShardHostSources);
+
+        # the option naming the shard is synthesized from the host source: the operation declares it
+        # nowhere at all, because the shard is the host
+        RestSchemaActionOperation query = aset.getOperationEx("query-records");
+        *hash<string, AbstractDataField> fields = query.getRequestFields();
+        assertEq(("shard", "query", "top_k"), keys fields, "the host key is presented first");
+        assertEq("shard", query.getHostKeyOption());
+        assertEq(RSAL_HOST, query.getFlatMap().shard.loc);
+        assertTrue(fields.shard.getType().isMandatory(), "the request has no host without it");
+
+        # the host source describes its key option once, for every action that names it
+        assertEq("Shard", fields.shard.getDisplayName());
+        assertEq("The shard the request is sent to", fields.shard.getShortDescription());
+        assertEq("shard", fields.shard.getAttributes().ref_data);
+        assertTrue(fields.shard.getAttributes().preselected);
+
+        # it is consumed when the host is resolved and never travels in the request
+        hash<auto> wire = query.unflatten({"shard": "s1", "query": "gizmo"});
+        assertEq({"body": {"query": "gizmo"}}, wire.req);
+        assertEq({}, wire.path_vars);
+
+        RoutingFakeClient rest = shardClient();
+        RoutingFakeClient::log.responses = {
+            "GET /api/shards/s1": {"body": {"name": "s1", "host": "s1.shard.example.com", "ready": True}},
+            "GET /api/shards/s2": {"body": {"name": "s2", "host": "s2.shard.example.com", "ready": True}},
+            "POST /api/records/query": {"body": {"matches": ({"id": "r_1"},)}},
+            "GET /api/records": {"body": {"data": ({"id": "r_1"},)}},
+        };
+        RestSchemaActionSetDataProvider root(aset, rest);
+
+        auto resp = root.getChildProviderEx("query-records").doRequest({"shard": "s1", "query": "gizmo"});
+        assertEq({"matches": ({"id": "r_1"},)}, resp);
+
+        list<hash<RoutedRequest>> reqs = RoutingFakeClient::log.requests();
+        assertEq(2, reqs.size(), "the lookup, then the request it routed");
+        # the lookup runs on the connection's own client
+        assertEq(ControlUrl, reqs[0].url);
+        assertEq("/api/shards/s1", reqs[0].path);
+        # ... and the operation itself goes to the shard's own host
+        assertEq("https://s1.shard.example.com", reqs[1].url);
+        assertEq("POST", reqs[1].method);
+        assertEq("/api/records/query", reqs[1].path);
+        # copyWithUrl() keeps the connection's configuration, so the credential travels with the copy
+        assertEq(ApiKey, reqs[1].headers."Api-Key",
+            "the connection's API key survives copyWithUrl() onto the resolved host");
+
+        # a second call for the same shard reuses the resolved host rather than looking it up again
+        RoutingFakeClient::log.reset();
+        RoutingFakeClient::log.responses = {
+            "POST /api/records/query": {"body": {"matches": ()}},
+            "GET /api/records": {"body": {"data": ()}},
+        };
+        root.getChildProviderEx("query-records").doRequest({"shard": "s1", "query": "again"});
+        assertEq(0, RoutingFakeClient::log.countPath("/api/shards/s1"), "the host was not resolved again");
+        # a different action on the same shard shares the same client, because a client is per host
+        root.getChildProviderEx("list-records").doRequest({"shard": "s1", "limit": 5});
+        assertEq(0, RoutingFakeClient::log.countPath("/api/shards/s1"));
+        assertEq(2, RoutingFakeClient::log.requestsTo("https://s1.shard.example.com").size());
+        assertEq(1, root.getHostRouter().getCachedCount(), "one client per host, not per endpoint");
+
+        # a different shard is a different host, and is resolved on its own
+        RoutingFakeClient::log.reset();
+        RoutingFakeClient::log.responses = {
+            "GET /api/shards/s2": {"body": {"name": "s2", "host": "s2.shard.example.com", "ready": True}},
+            "POST /api/records/query": {"body": {"matches": ()}},
+        };
+        root.getChildProviderEx("query-records").doRequest({"shard": "s2", "query": "other"});
+        assertEq(1, RoutingFakeClient::log.countPath("/api/shards/s2"));
+        assertEq(1, RoutingFakeClient::log.requestsTo("https://s2.shard.example.com").size());
+        assertEq(2, root.getHostRouter().getCachedCount());
+
+        # the dropdown the key option offers is the listing action, run on the connection's own client
+        RoutingFakeClient::log.reset();
+        RoutingFakeClient::log.responses = {
+            "GET /api/shards": {"body": {"data": ({"name": "s1"}, {"name": "s2"})}},
+        };
+        AbstractDataProvider q = root.getChildProviderEx("query-records");
+        assertEq({"shard": True}, q.getSupportedReferenceData());
+        assertEq(("s1", "s2"), (map $1.value, q.getReferenceData("shard")));
+        assertEq(ControlUrl, RoutingFakeClient::log.requests()[0].url);
+
+        # an action that names no host source is untouched: it goes to the connection's own host
+        RoutingFakeClient::log.reset();
+        RoutingFakeClient::log.responses = {"GET /api/shards": {"body": {"data": ()}}};
+        root.getChildProviderEx("list-shards").doRequest();
+        assertEq(ControlUrl, RoutingFakeClient::log.requests()[0].url);
+        assertNothing(aset.getOperationEx("list-shards").getHostKeyOption());
+
+        # the key option has to have a value: without it there is no host to send to
+        assertThrows("REST-SCHEMA-HOST-ERROR", "has no value",
+            \q.doRequest(), ({"shard": "", "query": "x"},));
+    }
+
+    hostSuffixTest() {
+        hash<RestSchemaHostSourceInfo> src = ShardHostSources.shard_host;
+
+        # the ordinary case, and the two spellings of a suffix
+        assertEq("https://s1.shard.example.com",
+            RestSchemaHostRouter::checkResolvedHost(src, "s1.shard.example.com"));
+        assertEq("https://s1.shard.example.com",
+            RestSchemaHostRouter::checkResolvedHost(src, "https://s1.shard.example.com"));
+        assertEq("https://shard.example.com",
+            RestSchemaHostRouter::checkResolvedHost(src, "shard.example.com"), "the suffix itself matches");
+        assertEq("https://s1.shard.example.com:8443",
+            RestSchemaHostRouter::checkResolvedHost(src, "s1.shard.example.com:8443"));
+        assertEq("https://s1.shard.example.com",
+            RestSchemaHostRouter::checkResolvedHost(
+                cast<hash<RestSchemaHostSourceInfo>>(src + {"allowed_host_suffixes": (".shard.example.com",)}),
+                "s1.shard.example.com"), "a leading dot on the declared suffix means the same thing");
+
+        # the check is label by label, so the classic string-suffix bypass does not work
+        assertThrows("REST-SCHEMA-HOST-ERROR", "is not any of",
+            \RestSchemaHostRouter::checkResolvedHost(), (src, "evil-shard.example.com"));
+        assertThrows("REST-SCHEMA-HOST-ERROR", "is not any of",
+            \RestSchemaHostRouter::checkResolvedHost(), (src, "shard.example.com.evil.test"));
+        assertThrows("REST-SCHEMA-HOST-ERROR", "is not any of",
+            \RestSchemaHostRouter::checkResolvedHost(), (src, "attacker.test"));
+        assertThrows("REST-SCHEMA-HOST-ERROR", "is not any of",
+            \RestSchemaHostRouter::checkResolvedHost(), (src, "10.0.0.1"));
+
+        # the scheme comes from the declaration, so a service cannot move a credentialed request onto
+        # cleartext
+        assertThrows("REST-SCHEMA-HOST-ERROR", "uses scheme",
+            \RestSchemaHostRouter::checkResolvedHost(), (src, "http://s1.shard.example.com"));
+        # credentials in the resolved URL are never valid
+        assertThrows("REST-SCHEMA-HOST-ERROR", "carrying credentials",
+            \RestSchemaHostRouter::checkResolvedHost(), (src, "https://user:pass@s1.shard.example.com"));
+        assertThrows("REST-SCHEMA-HOST-ERROR", "empty host",
+            \RestSchemaHostRouter::checkResolvedHost(), (src, "   "));
+
+        # end to end: a host outside the declared suffixes fails the action, and no request is made to it
+        RestSchemaActionSet aset = makeSet(shardManifest(), ShardRefData, ShardHostSources);
+        RoutingFakeClient rest = shardClient();
+        RoutingFakeClient::log.responses = {
+            "GET /api/shards/evil": {"body": {"name": "evil", "host": "attacker.test"}},
+        };
+        RestSchemaActionSetDataProvider root(aset, rest);
+        AbstractDataProvider q = root.getChildProviderEx("query-records");
+        assertThrows("REST-SCHEMA-HOST-ERROR", "is not any of",
+            \q.doRequest(), ({"shard": "evil", "query": "x"},));
+        assertEq(1, RoutingFakeClient::log.requests().size(), "only the lookup was made");
+        assertEq(0, root.getHostRouter().getCachedCount(), "a refused host is not cached");
+
+        # a lookup that reports no host at all is a failure, not a request to nowhere
+        RoutingFakeClient::log.reset();
+        RoutingFakeClient::log.responses = {"GET /api/shards/s1": {"body": {"name": "s1"}}};
+        assertThrows("REST-SCHEMA-HOST-ERROR", "expected a non-empty string",
+            \q.doRequest(), ({"shard": "s1", "query": "x"},));
+    }
+
+    hostSourceManifestTest() {
+        # every one of these would otherwise show up as a request to the wrong host, or to none
+        assertThrows("REST-SCHEMA-ACTION-ERROR", "is not declared in this action set",
+            \makeSet(), (shardManifest(), ShardRefData));
+
+        code make = sub (hash<auto> changes) {
+            makeSet(shardManifest(), ShardRefData,
+                {"shard_host": cast<hash<RestSchemaHostSourceInfo>>(ShardHostSources.shard_host + changes)});
+        };
+
+        assertThrows("REST-SCHEMA-ACTION-ERROR", "the manifest does not export",
+            make, ({"action": "nonesuch"},));
+        assertThrows("REST-SCHEMA-ACTION-ERROR", "registered under key",
+            \makeSet(), (shardManifest(), ShardRefData,
+                {"shard_host": cast<hash<RestSchemaHostSourceInfo>>(
+                    ShardHostSources.shard_host + {"name": "other"})}));
+        assertThrows("REST-SCHEMA-ACTION-ERROR", "allowed_host_suffixes",
+            make, ({"allowed_host_suffixes": ()},));
+        assertThrows("REST-SCHEMA-ACTION-ERROR", "only \"http\" and \"https\"",
+            make, ({"scheme": "ftp"},));
+        assertThrows("REST-SCHEMA-ACTION-ERROR", "which does not declare it",
+            make, ({"lookup_option": "nonesuch"},));
+        assertThrows("REST-SCHEMA-ACTION-ERROR", "which does not declare it",
+            make, ({"options": {"nonesuch": 1}},));
+
+        # a lookup whose own host had to be resolved first could never be made
+        list<hash<RestSchemaActionInfo>> recursive = (
+            entry("list-shards", "GET", "/shards", {"response_unwrap": ("data",)}),
+            entry("describe-shard", "GET", "/shards/{shard_name}", {"host_from": "shard_host"}),
+        );
+        assertThrows("REST-SCHEMA-ACTION-ERROR", "could never be made",
+            \makeSet(), (recursive, ShardRefData, ShardHostSources));
+
+        # an overlay that drops the key option leaves the request with no host to go to
+        list<hash<RestSchemaActionInfo>> dropped = shardManifest();
+        dropped[2].fields = {"shard": <RestSchemaFieldOverlayInfo>{"ignore": True}};
+        assertThrows("REST-SCHEMA-ACTION-ERROR", "publishes no option to resolve it from",
+            \makeSet(), (dropped, ShardRefData, ShardHostSources));
+
+        # the host key cannot be relaxed to optional: a request with no host is not a request
+        list<hash<RestSchemaActionInfo>> optional = shardManifest();
+        optional[2].fields = {"shard": <RestSchemaFieldOverlayInfo>{"required": False}};
+        assertThrows("REST-SCHEMA-ACTION-ERROR", "never a wider one",
+            \makeSet(), (optional, ShardRefData, ShardHostSources));
+
+        # an action's own overlay refines the host source's, rather than replacing it
+        list<hash<RestSchemaActionInfo>> refined = shardManifest();
+        refined[2].fields = {"shard": <RestSchemaFieldOverlayInfo>{"display_name": "Query Shard"}};
+        RestSchemaActionSet aset = makeSet(refined, ShardRefData, ShardHostSources);
+        *hash<string, AbstractDataField> fields = aset.getOperationEx("query-records").getRequestFields();
+        assertEq("Query Shard", fields.shard.getDisplayName());
+        assertEq("shard", fields.shard.getAttributes().ref_data, "the host source's dropdown is kept");
+
+        # a rename reaches the request as well as the form
+        list<hash<RestSchemaActionInfo>> renamed = shardManifest();
+        renamed[2].fields = {"shard": <RestSchemaFieldOverlayInfo>{"name": "shard_id"}};
+        RestSchemaActionSet raset = makeSet(renamed, ShardRefData, ShardHostSources);
+        assertEq("shard_id", raset.getOperationEx("query-records").getHostKeyOption());
+        RoutingFakeClient rest = shardClient();
+        RoutingFakeClient::log.responses = {
+            "GET /api/shards/s1": {"body": {"name": "s1", "host": "s1.shard.example.com"}},
+            "POST /api/records/query": {"body": {"matches": ()}},
+        };
+        RestSchemaActionSetDataProvider root(raset, rest);
+        root.getChildProviderEx("query-records").doRequest({"shard_id": "s1", "query": "x"});
+        assertEq("https://s1.shard.example.com", RoutingFakeClient::log.requests()[1].url);
+    }
+
+    #! A host-routed action still resolves against a candidate schema, and its host key is not drift
+    /** The candidate operation has to be built with the same host source, or the option the host source
+        adds would be missing and the report would call a perfectly healthy action withdrawn.
+    */
+    hostRoutingDriftTest() {
+        RestSchemaActionSet aset = makeSet(shardManifest(), ShardRefData, ShardHostSources);
+        assertEq((), RestSchemaDrift::compare(aset, schema), "the same schema is no drift at all");
+
+        # an added option is reported as such, and the synthesized host key is not confused for one
+        list<hash<RestSchemaDriftInfo>> drift = RestSchemaDrift::compare(aset,
+            mutate(sub (reference<hash<auto>> d) {
+                # the operation declares no parameters at all, so this is the whole list
+                d.paths."/records/query".post.parameters = ({
+                    "name": "trace", "in": "query", "required": False, "schema": {"type": "boolean"},
+                },);
+            }));
+        assertEq(1, drift.size(), sprintf("drift: %y",
+            (map sprintf("%s/%s: %s [%y -> %y]", $1.action, $1.kind, $1.desc, $1.old_value, $1.new_value),
+                drift)));
+        assertEq(RSD_OPTION_ADDED, drift[0].kind);
+        assertEq("trace", drift[0].option);
+    }
+
+    hostRoutingConcurrencyTest() {
+        RestSchemaActionSet aset = makeSet(shardManifest(), ShardRefData, ShardHostSources);
+        RoutingFakeClient rest = shardClient();
+        RoutingFakeClient::log.responses = {
+            "GET /api/shards/s1": {"body": {"name": "s1", "host": "s1.shard.example.com"}},
+            "GET /api/shards/s2": {"body": {"name": "s2", "host": "s2.shard.example.com"}},
+            "POST /api/records/query": {"body": {"matches": ()}},
+            "GET /api/records": {"body": {"data": ()}},
+        };
+        RestSchemaActionSetDataProvider root(aset, rest);
+
+        const int Threads = 8;
+        # started together, so that the threads actually race for the same uncached host
+        Counter go(1);
+        Counter done(Threads);
+        list<hash<ExceptionInfo>> errors = ();
+        Mutex elock();
+        code worker = sub (int i) {
+            on_exit done.dec();
+            try {
+                go.waitForZero();
+                string shard = i % 2 ? "s2" : "s1";
+                AbstractDataProvider dp = root.getChildProviderEx(i % 3 ? "query-records" : "list-records");
+                if (dp.getName() == "query-records") {
+                    dp.doRequest({"shard": shard, "query": "q"});
+                } else {
+                    dp.doRequest({"shard": shard, "limit": 1});
+                }
+            } catch (hash<ExceptionInfo> ex) {
+                AutoLock al(elock);
+                errors += ex;
+            }
+        };
+        for (int i = 0; i < Threads; ++i) {
+            background worker(i);
+        }
+        go.dec();
+        done.waitForZero();
+        assertEq((), errors, "no thread failed");
+
+        # every data-plane request landed on the host belonging to the shard it named, and the two
+        # resolved hosts are cached once each however many threads raced for them
+        assertEq(2, root.getHostRouter().getCachedCount());
+        int routed = 0;
+        foreach hash<RoutedRequest> req in (RoutingFakeClient::log.requests()) {
+            # a listing carries its query arguments in the path, so the prefix is what identifies it
+            if (req.path =~ /^\/api\/records/) {
+                assertTrue(req.url == "https://s1.shard.example.com" || req.url == "https://s2.shard.example.com",
+                    sprintf("a routed request went to %y", req.url));
+                assertEq(ApiKey, req.headers."Api-Key");
+                ++routed;
+            }
+        }
+        assertEq(Threads, routed, "every thread's request was routed");
+
+        # a resolution is made outside the lock, so a race may resolve a key more than once; what must
+        # hold is that it is bounded and that the cache then settles
+        int lookups = RoutingFakeClient::log.countPath("/api/shards/s1")
+            + RoutingFakeClient::log.countPath("/api/shards/s2");
+        assertGe(2, lookups, "each host was resolved at least once");
+        assertLe(Threads, lookups, "no thread resolved more than the one host it needed");
+
+        RoutingFakeClient::log.reset();
+        RoutingFakeClient::log.responses = {"POST /api/records/query": {"body": {"matches": ()}}};
+        root.getChildProviderEx("query-records").doRequest({"shard": "s1", "query": "q"});
+        assertEq(1, RoutingFakeClient::log.requests().size(), "the cache settled: no further lookup");
     }
 
 }

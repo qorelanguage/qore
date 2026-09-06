@@ -147,6 +147,23 @@ public class RestSchemaPruner {
                     "schema declares only %y for that path", op.method.upr(), op.path,
                     RestSchemaPruner::methodsOf(schema.paths{op.path}));
             }
+            # a path item or an operation may declare its own "servers", naming a host other than the
+            # document's.  Nothing in this stack reads one: OpenApi3 takes the host from the document's
+            # servers[0], and a host that varies per request comes from a manifest host source.  A
+            # selected operation that declared one would therefore be pruned, published, and then sent to
+            # the document's host with the connection's credentials -- silently, and to the wrong place.
+            # Refuse it here, where the raw document is still in hand
+            *string servers_at = exists schema.paths{op.path}{method}.servers
+                ? "operation"
+                : (exists schema.paths{op.path}.servers ? "path item" : NOTHING);
+            if (servers_at) {
+                throw "REST-SCHEMA-PRUNE-ERROR", sprintf("operation %s %y was selected, but its %s declares "
+                    "its own \"servers\", naming a host other than the document's; nothing consumes a "
+                    "path- or operation-level server, so the request would be sent to the document's host "
+                    "instead.  A host that varies per request is declared in the manifest with "
+                    "\"host_from\"; a host that is fixed for a group of operations belongs in a document "
+                    "of its own", op.method.upr(), op.path, servers_at);
+            }
             keep{op.path}{method} = True;
         }
 
@@ -166,8 +183,10 @@ public class RestSchemaPruner {
                 if (!methods{key}) {
                     # a non-operation member of the path item: "parameters", which applies to every
                     # operation under the path and whose loss would silently remove required inputs;
-                    # "servers", whose loss would send the request to the wrong host entirely; plus
-                    # "summary", "description", "$ref" and any vendor extension
+                    # plus "summary", "description", "$ref", "servers" and any vendor extension.  The
+                    # artifact is a faithfully pruned copy of the document, so a member is kept whether or
+                    # not this stack reads it -- "servers" is not read, which is why selecting an operation
+                    # that declares one is refused above rather than quietly reinterpreted here
                     out{key} = item{key};
                 } else if (keep{path}{key}) {
                     out{key} = item{key};

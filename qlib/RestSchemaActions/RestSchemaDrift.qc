@@ -147,9 +147,14 @@ public class RestSchemaDrift {
             RestSchemaActionOperation old_op = action_set.getOperationEx(action);
             hash<RestSchemaActionInfo> info = old_op.getInfo();
 
+            # an action with a host source gains an option from it, so the candidate operation has to be
+            # built with the same declaration; without it the action would not resolve at all and the
+            # report would call it withdrawn
+            *hash<RestSchemaHostSourceInfo> host_source = old_op.getHostSource();
+
             RestSchemaActionOperation new_op;
             try {
-                new_op = new RestSchemaActionOperation(new_schema, info);
+                new_op = new RestSchemaActionOperation(new_schema, info, host_source);
             } catch (hash<ExceptionInfo> ex) {
                 # an operationId change is drift in its own right, not a failure to resolve, so it is
                 # retried without the check to see whether the operation is otherwise still there
@@ -157,7 +162,7 @@ public class RestSchemaDrift {
                     hash<RestSchemaActionInfo> relaxed = info;
                     remove relaxed.operation_id;
                     try {
-                        new_op = new RestSchemaActionOperation(new_schema, relaxed);
+                        new_op = new RestSchemaActionOperation(new_schema, relaxed, host_source);
                         rv += <RestSchemaDriftInfo>{
                             "kind": RSD_OPERATION_RENAMED,
                             "action": action,

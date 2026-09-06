@@ -854,6 +854,113 @@ did. If that default were treated as a value the caller chose, no `state` predic
 down. A defaulted option yields to a predicate; one the caller set explicitly does not, and the two together
 mean the intersection.
 
+## A host that varies per request
+
+A connection addresses one host. Every action on it sends there, and that is what makes the connection URL
+the boundary that sandboxing and network allow-listing are expressed against.
+
+Pinecone is the case that breaks it. Its control plane lives at `api.pinecone.io` and describes indexes;
+the 24 data-plane operations - `query`, `upsert`, `fetch`, `list`, namespaces, documents, bulk imports,
+which is to say the operations that *are* Pinecone - go to a **per-index** host that only the control plane
+knows. Its own published description says so, declaring the data-plane server as the template
+`https://{index_host}`, and **none of those 24 operations names an index anywhere**: not in a path
+variable, not in a query argument, not in the body. The index *is* the host.
+
+Measure this before generalizing from it. Across every vendored spec in `qlib/`:
+
+|!Case|!Where the host comes from|!Works today
+|Confluence `https://{your-domain}/wiki/api/v2`|the connection's own URL supplies it; the spec variable is documentation|yes, and always did
+|Pinecone `https://{index_host}`|a response, per request, within one connection|needed this feature
+|everything else|a single fixed document server|yes
+
+One vendor, one shape. So the feature is built for that shape and nothing wider: `OpenApi3` still takes the
+host from the document's `servers[0]` and still ignores `variables`, because for a connection-level
+variable there is nothing to do.
+
+**The host key cannot come from the schema, so it is synthesized.** This is the part that is easy to get
+wrong on paper: the natural design is "an existing option resolved through a lookup", and there is no
+existing option - the operation describes no index. `RestSchemaHostSourceInfo` therefore adds one. It is a
+new transport location, `RSAL_HOST`, meaning *not sent*: the option is consumed when the host is resolved
+and never appears in the request. It is presented first, because nothing else about the request can be
+filled in sensibly before it, and it is declared once on the host source rather than per action - Pinecone
+would otherwise repeat the same display name and dropdown 24 times. An action's own overlay refines that
+declaration rather than replacing it.
+
+Pair it with `ref_data` naming the same collection and the user picks the index from a dropdown and never
+sees a host at all.
+
+**Retargeting goes through `copyWithUrl()`; do not build client machinery.** A `RestClientIo`'s URL is
+immutable by design, because its connection manager pools by URL. `copyWithUrl()` is the sanctioned way
+around that: the copy keeps the connection's configuration - tokens, default headers, validator, OAuth2
+state - and shares the parent's connection manager, so hosts common to both URLs reuse pooled connections.
+Connection pings already do exactly this when `ping_path` resolves to an absolute URL on another host.
+The result is **one client per host, not per endpoint**: all 24 data-plane operations for a given index
+share one.
+
+**Bind the cache to the client, not to the application.** `RestSchemaHostRouter` holds the parent client
+and caches resolved hosts under it. That is not a detail of where the mutex goes - it is what keeps two
+connections to the same service apart. Two Pinecone projects can both have an index called `products`, on
+different hosts; a cache keyed by index name alone would route one account's request to the other
+account's host with the first account's credentials. The router is created by
+`RestSchemaActionSetDataProvider` and shared by every action under it, and may be supplied explicitly by an
+application that has a longer-lived anchor.
+
+Resolution happens **outside** the lock, because it is a network call: holding a lock across one serializes
+every thread behind the slowest lookup. Two threads racing for the same key may both resolve it; the first
+to finish wins and the loser discards its copy. Cheap, and it preserves the invariant that a key always
+yields the same client.
+
+**Fail closed on the resolved host - it is the one input the service controls.** Following a host out of a
+response means sending the connection's credentials somewhere the connection URL did not name, which is
+precisely what that URL was bounding. So `allowed_host_suffixes` is required rather than optional, and:
+
+- the suffix is matched label by label, so `evil-pinecone.io` does not pass for `pinecone.io` - the bug a
+  plain string-suffix test always has;
+- the scheme comes from the declaration and never from the response, so a compromised or misconfigured
+  service cannot move a credentialed request onto cleartext;
+- a resolved URL carrying credentials, naming no host, or unparseable is refused;
+- a refused host is not cached, and no request is made.
+
+**A `"\0"` separator does not work in %Qore.** The first version keyed the cache with
+`source_name + "\0" + index`; %Qore strings are NUL-terminated, so every key collapsed to the source name
+and the second index silently got the first index's client. The test caught it because it asserted the
+**URL each request went out on**, not merely that the request succeeded - which it did, against the wrong
+host. Key a cache with nested hashes, and assert the target, not the outcome.
+
+**A schema object is interned; a field is not.** Adding a second listing to the test fixture surfaced a
+pre-existing framework bug: `limit` declared as an integer on two different operations is **one**
+`SchemaObject`, because they are interned by content - correct for the type, which the schema determines
+completely, and wrong for the derived field, which also carries what the *use* supplies: the parameter's own
+description and default value. That field was cached under the parameter name alone, so whichever operation
+was registered second published the first one's documentation and default. It is invisible in a
+single-operation test and depends only on registration order, which is how it survived this long; every
+schema-driven app in the tree has parameters named `limit`, `page`, `cursor` and `id`.
+
+The obvious fix - key the field cache on everything that varies per use - is wrong, and Bitbucket said so
+immediately: that same cache is the **recursion cut**. A property that refers back to its own schema is
+stopped by finding the placeholder field the build registered before deriving its type, and back-patching
+that one object in place is what gives the far side of the cycle the real type. Make the key more specific
+and a recursive re-entry misses the placeholder, and the type it builds at that depth is the incomplete one
+- Bitbucket's repository body lost 14 of its 19 properties. The cached field therefore stays keyed by name,
+and a use whose description or default differs gets a **copy** over the finished type, taken only once the
+build that registered it has completed.
+
+Fixing a leak exposes what it was hiding. Two further defects only became visible once each use got its own
+field: eight applications - not the six the first scan found - publish descriptions the schema-derived field
+had been sharing, because the i18n tool resolves `-m <module>` through the ordinary module path and had been
+loading a stale installed copy rather than the repository's; and the merge that joins a parameter's own
+description to its schema's does not notice when one already contains the other, so Exa's agent run id came
+out as `Agent run ID.: Agent run ID. New run IDs are returned with the `agent_run_` prefix.`. Point the
+extractor at the tree you are actually changing, and re-run the scan after every fix.
+
+**Decide what happens to a path- or operation-level `servers`.** `RestSchemaPruner` preserved them under a
+comment saying their loss "would send the request to the wrong host entirely" - but nothing ever read them,
+so an operation declaring one would have been pruned, published and then sent to the *document's* host,
+with credentials, silently. No vendored spec declares one, so the honest resolution is to keep preserving
+them (the artifact is a faithful pruned copy of the document) and refuse to **select** such an operation at
+import time, naming `host_from` as the supported alternative. If a vendor ever ships one, that is the
+moment to implement it, with a test.
+
 ## Where per-application detail belongs
 
 In the module's own documentation, not here.

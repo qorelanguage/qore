@@ -466,6 +466,164 @@
      }
     }
    }
+  },
+  "/shards": {
+   "get": {
+    "operationId": "listShards",
+    "summary": "Lists the shards",
+    "description": "The control-plane listing a host-key dropdown is populated from.",
+    "responses": {
+     "200": {
+      "description": "the shards",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "required": [
+          "data"
+         ],
+         "properties": {
+          "data": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/shard"
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/shards/{shard_name}": {
+   "parameters": [
+    {
+     "name": "shard_name",
+     "in": "path",
+     "required": true,
+     "description": "the shard name",
+     "schema": {
+      "type": "string"
+     }
+    }
+   ],
+   "get": {
+    "operationId": "describeShard",
+    "summary": "Describes one shard",
+    "description": "The control-plane lookup that reports the host a shard's records are served from.",
+    "responses": {
+     "200": {
+      "description": "the shard",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/shard"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/records/query": {
+   "post": {
+    "operationId": "queryRecords",
+    "summary": "Queries the records in a shard",
+    "description": "A data-plane operation: it names no shard, because the shard is the host it is sent to.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "required": [
+         "query"
+        ],
+        "properties": {
+         "query": {
+          "type": "string",
+          "description": "the query text"
+         },
+         "top_k": {
+          "type": "integer",
+          "description": "the maximum number of matches to return"
+         }
+        }
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "the matches",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "matches": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "id": {
+              "type": "string"
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/records": {
+   "get": {
+    "operationId": "listRecords",
+    "summary": "Lists the records in a shard",
+    "description": "A second data-plane operation, so that two actions can be proven to share one host client.",
+    "parameters": [
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "description": "the maximum number of records to return",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "the records",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "data": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "id": {
+              "type": "string"
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
   }
  },
  "components": {
@@ -649,6 +807,28 @@
      "secret": {
       "type": "string",
       "description": "unused by this alternative"
+     }
+    }
+   },
+   "shard": {
+    "type": "object",
+    "description": "a shard of the widget store, addressed by its own host",
+    "required": [
+     "name",
+     "host"
+    ],
+    "properties": {
+     "name": {
+      "type": "string",
+      "description": "the shard name"
+     },
+     "host": {
+      "type": "string",
+      "description": "the host the shard's records are served from"
+     },
+     "ready": {
+      "type": "boolean",
+      "description": "whether the shard is ready to serve"
      }
     }
    }

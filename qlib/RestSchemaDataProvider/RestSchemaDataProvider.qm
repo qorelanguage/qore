@@ -85,6 +85,10 @@ module RestSchemaDataProvider {
       multiplexing against REST servers, and uses
       @ref RestClientIo::RestClientIo::restDoRawRequest() "restDoRawRequest()" to pass
       pre-serialized operation bodies through without triggering double schema validation
+    - added the \c rest_client request option to
+      @ref RestSchemaDataProvider::RestSchemaRequestDataProvider "RestSchemaRequestDataProvider", so that a
+      caller that has resolved a per-request host can send one request on a client copied from the
+      connection's own without changing anything else about the request
 
     @subsection restschemamdataprovider_v2_3 RestSchemaDataProvider v2.3
     - initial release of the module supporting both Swagger 2.0 and OpenAPI 3.0 schemas

@@ -108,7 +108,45 @@ public class RestSchemaPrunerTest inherits QUnit::Test {
         addTestCase("swagger 2 definitions", \swaggerTest());
         addTestCase("escaped member names", \escapedNameTest());
         addTestCase("negative cases", \negativeTest());
+        addTestCase("an operation naming its own host", \ownServersTest());
         set_return_value(main());
+    }
+
+    #! An operation that names its own host is refused rather than pruned and silently misrouted
+    /** Nothing in this stack reads a path- or operation-level \c "servers": the host comes from the
+        document's \c servers[0], or per request from a manifest host source.  Selecting an operation that
+        declares one would therefore publish an action whose requests go to the document's host, with the
+        connection's credentials, and say nothing about it.
+    */
+    ownServersTest() {
+        # "auto!" because a path item holds members of every type, and the fixture's own narrower type
+        # would reject the list a "servers" member is
+        const list<hash<auto>> Other = ({"url": "https://other.example.com"},);
+
+        hash<auto!> b_item = Schema.paths."/b";
+        b_item.servers = Other;
+        hash<auto!> b_paths = Schema.paths;
+        b_paths."/b" = b_item;
+        hash<auto!> at_path = Schema;
+        at_path.paths = b_paths;
+        assertThrows("REST-SCHEMA-PRUNE-ERROR", "path item declares its own",
+            \RestSchemaPruner::prune(), (at_path, (GetB,)));
+        # an operation that was not selected does not make the document unusable
+        assertEq(1, RestSchemaPruner::prune(at_path, (GetA,)).operations_kept);
+
+        hash<auto!> c_op = Schema.paths."/c"."delete";
+        c_op.servers = Other;
+        hash<auto!> c_item = Schema.paths."/c";
+        c_item."delete" = c_op;
+        hash<auto!> c_paths = Schema.paths;
+        c_paths."/c" = c_item;
+        hash<auto!> at_op = Schema;
+        at_op.paths = c_paths;
+        assertThrows("REST-SCHEMA-PRUNE-ERROR", "operation declares its own",
+            \RestSchemaPruner::prune(), (at_op, (DeleteC,)));
+
+        # the document's own servers are metadata and are kept, as before
+        assertEq(({"url": "https://api.example.com"},), RestSchemaPruner::prune(Schema, (GetA,)).schema.servers);
     }
 
     #! A Swagger 2 document keeps its reachable "definitions" and drops the rest

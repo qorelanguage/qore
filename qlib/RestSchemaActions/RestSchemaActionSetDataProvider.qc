@@ -57,15 +57,34 @@ public class RestSchemaActionSetDataProvider inherits AbstractDataProvider {
 
         #! The REST client used for API calls
         *AbstractRestClient rest;
+
+        #! Shared by every action under this root, so a resolved host is looked up once for all of them
+        /** Only created when the application actually has a host source and a client to copy from; every
+            other application - which is nearly all of them - carries nothing extra for this.
+        */
+        *RestSchemaHostRouter router;
     }
 
     #! Creates the object from the arguments
     /** @param action_set the action set to expose
         @param rest the REST client to use for API calls
+        @param router an existing host router to share; give one whose lifetime is the client's to keep a
+        resolved host cached across data provider instances, which is what an application whose data plane
+        is sharded per object wants.  A router of this root's own is created when none is given.
     */
-    constructor(RestSchemaActionSet action_set, *AbstractRestClient rest) {
+    constructor(RestSchemaActionSet action_set, *AbstractRestClient rest, *RestSchemaHostRouter router) {
         self.action_set = action_set;
         self.rest = rest;
+        if (router) {
+            self.router = router;
+        } else if (rest && action_set.getAllHostSourceDecls()) {
+            self.router = new RestSchemaHostRouter(rest);
+        }
+    }
+
+    #! Returns the host router shared by this root's actions, if any
+    *RestSchemaHostRouter getHostRouter() {
+        return router;
     }
 
     #! Returns the data provider name
@@ -94,7 +113,7 @@ public class RestSchemaActionSetDataProvider inherits AbstractDataProvider {
         if (!op) {
             return;
         }
-        return new RestSchemaActionDataProvider(action_set, op, rest);
+        return new RestSchemaActionDataProvider(action_set, op, rest, router);
     }
 
     #! Returns data provider static info

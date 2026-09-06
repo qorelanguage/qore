@@ -60,7 +60,10 @@ public namespace RestSchemaActions {
 public class RestSchemaActionOperation {
     public {
         #! The order in which transport locations contribute fields to the action request
-        const LocationOrder = (RSAL_PATH, RSAL_BODY, RSAL_BODY_ROOT, RSAL_QUERY, RSAL_HEADER);
+        /** The host key comes first: it names the object the request is addressed to, and until it has a
+            value there is no host for the request to go to at all.
+        */
+        const LocationOrder = (RSAL_HOST, RSAL_PATH, RSAL_BODY, RSAL_BODY_ROOT, RSAL_QUERY, RSAL_HEADER);
     }
 
     private {
@@ -122,18 +125,32 @@ public class RestSchemaActionOperation {
 
         #! Path variable names in the order they appear in the URI path template
         list<string> path_var_names = ();
+
+        #! The host source this action takes its request host from, if any
+        *hash<RestSchemaHostSourceInfo> host_source;
+
+        #! The published name of the synthesized host key option, if this action has one
+        /** Not the same as @ref RestSchemaActions::RestSchemaHostSourceInfo::key_option "key_option" when
+            an overlay renamed it, which is what the request carries.
+        */
+        *string host_key_option;
     }
 
     #! Resolves the manifest entry against the schema and derives the action's types
     /** @param schema the schema owning the operation
         @param info the manifest entry
+        @param host_source the host source named by
+        @ref RestSchemaActions::RestSchemaActionInfo::host_from "host_from", resolved by the action set;
+        required whenever the manifest entry names one, because the action gains an option from it
 
         @throw REST-SCHEMA-ACTION-ERROR the operation cannot be resolved, the overlay does not apply, or the
         output contract is ambiguous
     */
-    constructor(AbstractRestSchemaValidator schema, hash<RestSchemaActionInfo> info) {
+    constructor(AbstractRestSchemaValidator schema, hash<RestSchemaActionInfo> info,
+            *hash<RestSchemaHostSourceInfo> host_source) {
         self.schema = schema;
         self.info = info;
+        self.host_source = host_source;
         on_error rethrow $1.err, sprintf("%s (while building action %y from \"%s %s\")", $1.desc, info.action,
             info.method.upr(), info.path);
 
@@ -155,6 +172,24 @@ public class RestSchemaActionOperation {
     #! Returns the manifest entry
     hash<RestSchemaActionInfo> getInfo() {
         return info;
+    }
+
+    #! Returns the host source this action takes its request host from, if any
+    *hash<RestSchemaHostSourceInfo> getHostSource() {
+        return host_source;
+    }
+
+    #! Returns the published name of the option naming the object whose host the request goes to, if any
+    /** The option is synthesized from the host source rather than derived from the schema, so it is the
+        one option an action can have that the schema knows nothing about; it is consumed when the host is
+        resolved and never sent.
+
+        @return the option name, or @ref nothing when the action sends to the connection's own host
+
+        @see @ref RestSchemaActions::RSAL_HOST "RSAL_HOST"
+    */
+    *string getHostKeyOption() {
+        return host_key_option;
     }
 
     #! Returns the HTTP method in UPPER case
@@ -495,6 +530,9 @@ public class RestSchemaActionOperation {
             case RSAL_BODY_ROOT:
                 req.body = value;
                 break;
+            case RSAL_HOST:
+                # the host key is not sent: it was consumed when the request host was resolved
+                break;
         }
     }
 
@@ -600,6 +638,7 @@ public class RestSchemaActionOperation {
 
         # collect the derived fields per location, in transport order
         hash<string, list<hash<auto>>> derived = {};
+        addHostKeyField(\derived);
         foreach hash<auto> i in (params.pairIterator()) {
             OpenApi3::ParameterBase param = i.value;
             switch (param.inLoc) {
@@ -638,6 +677,12 @@ public class RestSchemaActionOperation {
                 # body, so that two levels of the envelope can both declare a property of the same name
                 string derived_name = entry.ov_name ?? entry.wire_name;
                 hash<RestSchemaFieldOverlayInfo> ov = getFieldOverlay(info.fields, loc, derived_name);
+                if (entry.base_overlay) {
+                    # the host source describes its key option once, for every action that names it; an
+                    # action's own overlay refines that rather than replacing it, so that a manifest does
+                    # not repeat the same display name and dropdown on two dozen actions
+                    ov = RestSchemaActionOperation::mergeOverlay(entry.base_overlay, ov);
+                }
                 if (ov.ignore) {
                     # a header the action does not ask for is one the connection supplies; the schema may
                     # still require it, and dropping it from the action must not produce a request the
@@ -682,6 +727,9 @@ public class RestSchemaActionOperation {
                     request_conv{name} = node;
                 }
                 origin{name} = loc;
+                if (loc == RSAL_HOST) {
+                    host_key_option = name;
+                }
                 flat_map{name} = <RestSchemaFlatFieldInfo>{
                     "name": name,
                     "loc": loc,
@@ -718,6 +766,69 @@ public class RestSchemaActionOperation {
         }
         request_type = new HashDataType(required ? AutoHashType : AutoHashOrNothingType,
             sprintf("%s: request", info.action), fields);
+    }
+
+    #! Adds the option naming the object whose host the request goes to, for an action that has a host source
+    /** The option is synthesized rather than derived, because the operation does not describe it: an API
+        that shards its data plane per object addresses the object with the **host**, so its description
+        declares no parameter for it anywhere.  Without this the action would offer no way to say which
+        object it is for, and the host could never be resolved.
+
+        It is a required string, presented first, and carries whatever presentation the host source
+        declares - a display name, a description, and usually a
+        @ref RestSchemaActions::RestSchemaFieldOverlayInfo::ref_data "ref_data" dropdown backed by the same
+        API's listing, so that the user picks the object by name and never sees a host at all.
+
+        A schema that happens to declare a value of the same name collides with it, and is reported exactly
+        as any other collision between two locations is.
+
+        @param derived the derived field map, added to here
+    */
+    private addHostKeyField(reference<hash<string, list<hash<auto>>>> derived) {
+        if (!info.host_from.val()) {
+            return;
+        }
+        if (!host_source) {
+            throw "REST-SCHEMA-ACTION-ERROR", sprintf("action %y takes its host from host source %y, but no "
+                "such host source was supplied; it has to be declared by this action set or one of its "
+                "peers", info.action, info.host_from);
+        }
+        hash<RestSchemaFieldOverlayInfo> base = host_source.key_overlay ?? <RestSchemaFieldOverlayInfo>{};
+        if (!base.desc.val()) {
+            base.desc = host_source.desc ?? sprintf("Names the object whose host this request is sent to; "
+                "resolved by the `%s` action.", host_source.action);
+        }
+        if (!exists base.required) {
+            base.required = True;
+        }
+        derived{RSAL_HOST} += {
+            "wire_name": host_source.key_option,
+            "required": True,
+            "base_overlay": base,
+            "field": new QoreDataField(host_source.key_option, base.desc,
+                AbstractDataProviderTypeMap."string"),
+        };
+    }
+
+    #! Returns an overlay with every value the second one actually sets applied over the first
+    /** A hashdecl always carries every key, so a plain hash addition would let the unset keys of the
+        refining overlay erase the values of the base one.
+
+        @param base the overlay to start from
+        @param over the overlay refining it
+
+        @return the merged overlay
+    */
+    private static hash<RestSchemaFieldOverlayInfo> mergeOverlay(hash<RestSchemaFieldOverlayInfo> base,
+            hash<RestSchemaFieldOverlayInfo> over) {
+        # "auto!" because the overlay's values are of every type
+        hash<auto!> rv = base;
+        foreach hash<auto> i in (over.pairIterator()) {
+            if (exists i.value) {
+                rv{i.key} = i.value;
+            }
+        }
+        return cast<hash<RestSchemaFieldOverlayInfo>>(rv);
     }
 
     #! Adds the request body's contribution to the derived field map

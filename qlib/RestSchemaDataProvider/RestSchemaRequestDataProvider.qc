@@ -386,7 +386,12 @@ public class RestSchemaRequestDataProvider inherits RestSchemaDataProviderBase {
 
     #! Makes a REST request and returns the response
     private *hash<auto> doRequestIntern(auto req, *hash<auto> options) {
-        AbstractRestClient rest = getRestClient();
+        # a caller that has to send this one request to a different host supplies the client to send it
+        # with; everything else about the request -- the schema, the base path, the validation -- is
+        # unchanged, because only the target host differs
+        AbstractRestClient rest = exists options.rest_client
+            ? cast<AbstractRestClient>(options.rest_client)
+            : getRestClient();
         # make URI path with any query args
         string uri_path = getUriPath();
         # a path variable is one path segment, so every reserved character in it has to be escaped: a
@@ -556,6 +561,25 @@ public class RestSchemaRequestDataProvider inherits RestSchemaDataProviderBase {
                     "type": AbstractDataProviderTypeMap."hash",
                     "required": False,
                     "desc": "URI path variables for generic paths",
+                },
+                "rest_client": hash<DataProviderOptionInfo>{
+                    "display_name": "REST Client Override",
+                    "short_desc": "The REST client to send this one request with",
+                    "type": AbstractDataProviderType::get(new Type("RestClient::AbstractRestClient"), NOTHING,
+                        {
+                            DTT_ClientOnly: True,
+                        }),
+                    "required": False,
+                    "desc": "The REST client to send this one request with, in place of the provider's own.\n"
+                        "\n"
+                        "An API whose data plane is sharded per object addresses a different host per "
+                        "request, and a client's URL is immutable by design because its connection manager "
+                        "pools by URL - so a request that has to go elsewhere travels on a client copied "
+                        "from the connection's own with `RestClientIo::copyWithUrl()`, which keeps the "
+                        "connection's credentials, headers and validator and shares its connection "
+                        "manager.  Nothing else about the request changes.\n"
+                        "\n"
+                        "This is set by the caller that resolved the host, not by a user.",
                 },
                 "include_response_headers": hash<DataProviderOptionInfo>{
                     "display_name": "Always Include Response Headers",

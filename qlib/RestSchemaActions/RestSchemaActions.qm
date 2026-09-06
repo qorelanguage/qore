@@ -103,6 +103,7 @@ module RestSchemaActions {
     one flat level and keeps a reverse map, so the exact transport request can be rebuilt:
 
     |!Location|!Where the value travels
+    |@ref RestSchemaActions::RSAL_HOST "host"|nowhere: it names the object whose host the request is sent to
     |@ref RestSchemaActions::RSAL_PATH "path"|substituted into the URI path template
     |@ref RestSchemaActions::RSAL_QUERY "query"|a URI query argument
     |@ref RestSchemaActions::RSAL_HEADER "header"|an HTTP header
@@ -156,6 +157,45 @@ module RestSchemaActions {
     @ref RestSchemaActions::RestSchemaReferenceDataInfo::options_from "options_from" declares that:
     it forwards named options of the action being filled in into the listing action, and the dropdown
     stays empty until they have values, rather than offering identifiers from some other scope.
+
+    @section restschemaactions_hosts A Host That Varies per Request
+
+    A connection addresses one host and every action on it sends there.  That is what makes a
+    connection's URL the boundary sandboxing and network allow-listing are expressed against, and it is
+    true of nearly every API.
+
+    It is not true of an API whose data plane is **sharded per object**.  Pinecone's control plane lives
+    at \c api.pinecone.io and describes indexes; the 24 operations that read and write vectors go to a
+    per-index host that only the control plane knows, and its own description says so, declaring the
+    data-plane server as the template \c "https://{index_host}".  None of those operations names an index
+    anywhere - the index *is* the host - so neither the connection nor the schema can supply it.
+
+    @ref RestSchemaActions::RestSchemaHostSourceInfo "RestSchemaHostSourceInfo" declares where the host
+    comes from: the action that resolves it, the option carrying the lookup key, and the field of the
+    response holding the host.  An action names one with
+    @ref RestSchemaActions::RestSchemaActionInfo::host_from "host_from" and gains the key option from it -
+    the one option an action has that the schema knows nothing about - presented first, and usually with a
+    @ref restschemaactions_refdata "dropdown" backed by the same API's listing, so that a user picks the
+    object by name and never sees a host at all.
+
+    Resolved hosts are cached by @ref RestSchemaActions::RestSchemaHostRouter "RestSchemaHostRouter", which
+    is bound to the connection's client and copies it with
+    @ref RestClient::AbstractRestClient::copyWithUrl() "copyWithUrl()" - so the copy keeps the connection's
+    credentials, headers and validator and shares its connection manager, and there is **one client per
+    host**, not one per endpoint.  Binding the router to the client is also what keeps two connections to
+    the same service apart: one account's resolved host can never be used with another's credentials.
+
+    @note A host that comes out of a response is a host the **service** chose, and the request that follows
+    carries the connection's credentials to it.
+    @ref RestSchemaActions::RestSchemaHostSourceInfo::allowed_host_suffixes "allowed_host_suffixes" is
+    therefore required, and is matched label by label so that \c "evil-pinecone.io" does not pass for
+    \c "pinecone.io"; the scheme comes from the declaration and never from the response, so a service
+    cannot move a credentialed request onto cleartext.  Anything else fails closed, before the request is
+    made.
+
+    This is deliberately narrow.  A server **variable** that the connection's own URL supplies - Confluence
+    declares \c "https://{your-domain}/wiki/api/v2" - already works and needs none of this, and a path- or
+    operation-level \c "servers" is refused at import time rather than silently ignored.
 
     @section restschemaactions_import Importing a Schema
 

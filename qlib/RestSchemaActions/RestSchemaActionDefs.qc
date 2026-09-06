@@ -45,6 +45,22 @@ public const RSAL_HEADER = "header";
 #! Transport location: a property of an object-valued request body
 public const RSAL_BODY = "body";
 
+#! Transport location: nowhere - the option names the host the request is sent to
+/** An option in this location is **not** sent: it names the object whose host the request goes to, and is
+    consumed when that host is resolved.
+
+    An API whose data plane is sharded per object usually does not describe the object in the operation at
+    all - every one of Pinecone's 24 data-plane operations declares the index nowhere, because the index
+    *is* the host - so the option cannot come from the schema and is synthesized from the action's
+    @ref RestSchemaActions::RestSchemaActionInfo::host_from "host source" instead.  It is presented first,
+    because nothing else about the request can be filled in sensibly before it.
+
+    @see @ref RestSchemaActions::RestSchemaHostSourceInfo "RestSchemaHostSourceInfo"
+
+    @since %RestSchemaActions 1.0
+*/
+public const RSAL_HOST = "host";
+
 #! Transport location: the entire request body, which is not an object
 /** Used when the request body schema is a scalar or an array, so that there are no properties to lift;
     the action then presents a single \c "body" option carrying the whole body.
@@ -53,6 +69,7 @@ public const RSAL_BODY_ROOT = "body-root";
 
 #! All valid transport locations
 public const RestSchemaActionLocations = {
+    RSAL_HOST: True,
     RSAL_PATH: True,
     RSAL_QUERY: True,
     RSAL_HEADER: True,
@@ -556,6 +573,23 @@ public hashdecl RestSchemaActionInfo {
         This changes only which options the action publishes; the request contract is unchanged.
     */
     *softlist<string> request_unwrap;
+
+    #! Names the host source supplying the host this action's requests are sent to
+    /** Nearly every action sends to the connection's own host, and leaving this unset is what says so.
+
+        Set it for an operation whose host is a function of the request rather than of the connection -
+        Pinecone's data plane is sharded per index, and its own description declares the data-plane server
+        as the template \c "https://{index_host}" - and the named
+        @ref RestSchemaActions::RestSchemaHostSourceInfo "host source" says which action resolves the host
+        and which option carries the lookup key.
+
+        The named host source must be declared by this action set or one of its peers, and this action must
+        declare the option the host source takes its key from; both are checked when the action set is
+        built.
+
+        @see @ref RestSchemaActions::RestSchemaHostSourceInfo "RestSchemaHostSourceInfo"
+    */
+    *string host_from;
 
     #! Free-form metadata attached to the generated action
     *hash<auto> metadata;

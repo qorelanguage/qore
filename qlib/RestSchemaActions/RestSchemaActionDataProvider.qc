@@ -55,19 +55,43 @@ public class RestSchemaActionDataProvider inherits AbstractDataProvider {
             can be shared between threads without synchronization
         */
         RestSchemaRequestDataProvider req_dp;
+
+        #! Resolves and caches the per-host clients an action with a host source needs
+        /** The resolved-host cache **is** mutable state, which is why it is not held here: the router owns
+            it and synchronizes it internally, so this object still holds none of its own and the invariant
+            above is unchanged.
+
+            @see @ref RestSchemaActions::RestSchemaHostRouter "RestSchemaHostRouter"
+        */
+        *RestSchemaHostRouter router;
     }
 
     #! Creates the object from the arguments
     /** @param action_set the action set the action belongs to
         @param op the operation to execute
         @param rest the REST client to use for API calls
+        @param router the host router shared by every action under one application root, for an action whose
+        host comes from a @ref RestSchemaActions::RestSchemaHostSourceInfo "host source"; when none is given
+        and the action needs one, a private router is created, which is correct but resolves each host again
+        for every provider instance
     */
-    constructor(RestSchemaActionSet action_set, RestSchemaActionOperation op, *AbstractRestClient rest) {
+    constructor(RestSchemaActionSet action_set, RestSchemaActionOperation op, *AbstractRestClient rest,
+            *RestSchemaHostRouter router) {
         self.action_set = action_set;
         self.op = op;
         self.rest = rest;
         req_dp = new RestSchemaRequestDataProvider(action_set.getSchema(), rest, op.getPath(),
             op.getPathItem(), op.getOperation());
+        if (router) {
+            self.router = router;
+        } else if (rest && op.getInfo().host_from.val()) {
+            self.router = new RestSchemaHostRouter(rest);
+        }
+    }
+
+    #! Returns the host router in use, if any
+    *RestSchemaHostRouter getHostRouter() {
+        return router;
     }
 
     #! Returns the action ID
@@ -152,8 +176,92 @@ public class RestSchemaActionDataProvider inherits AbstractDataProvider {
         # path variables travel as a request option, not as part of the request body
         *hash<auto> resp = req_dp.doRequest(wire.req, request_options + {
             "path_vars": wire.path_vars,
-        });
+        } + getHostClientOption(req));
         return op.processResponse(resp.body);
+    }
+
+    #! Returns the request option naming the client this action's request has to be sent with, if any
+    /** An action that does not declare a host source sends on the connection's own client, which is the
+        overwhelmingly common case and costs nothing here.
+
+        @param req the flattened action options, which is where the lookup key comes from
+
+        @return the \c rest_client request option, or @ref nothing when the connection's own client is used
+
+        @throw REST-SCHEMA-HOST-ERROR the action has no REST client at all, or the option the host source is
+        keyed by has no value
+    */
+    private *hash<auto> getHostClientOption(auto req) {
+        *string name = op.getInfo().host_from;
+        if (!name.val()) {
+            return;
+        }
+        *hash<RestSchemaHostSourceInfo> hs = action_set.getHostSourceDecl(name);
+        *RestSchemaActionSet owner = action_set.getHostSourceSet(name);
+        if (!hs || !owner) {
+            # unreachable through a validated action set; stated so that a hand-built one fails clearly
+            throw "REST-SCHEMA-HOST-ERROR", sprintf("action %y takes its host from host source %y, which is "
+                "not declared in this action set or any of its peers", getName(), name);
+        }
+        if (!router) {
+            throw "REST-SCHEMA-HOST-ERROR", sprintf("action %y takes its host from host source %y, which "
+                "needs a REST client to resolve it with; this provider has none", getName(), name);
+        }
+        # the published name, which an overlay may have changed; the declaration's own "key_option" names
+        # the option before any rename, and is what the lookup action is called with
+        string key_option = op.getHostKeyOption() ?? hs.key_option;
+        auto key = req{key_option};
+        if (!exists key || !key.toString().val()) {
+            throw "REST-SCHEMA-HOST-ERROR", sprintf("action %y is sent to the host that host source %y "
+                "resolves from option %y, and that option has no value; the request has no host to go to",
+                getName(), name, key_option);
+        }
+        # bound to non-optional locals, because a closure captures what it names by value and the
+        # resolution has to have the declaration and the set that owns the lookup action
+        string skey = key.toString();
+        hash<RestSchemaHostSourceInfo> src = hs;
+        RestSchemaActionSet lookup_set = owner;
+        return {
+            "rest_client": router.getClient(src, skey, string sub () {
+                return resolveHost(src, lookup_set, skey);
+            }),
+        };
+    }
+
+    #! Resolves the host for one lookup key by executing the host source's lookup action
+    /** The lookup runs on the **connection's** client, never on a routed one: a host source's action is
+        refused if it takes its own host from a host source, so this cannot recurse.
+
+        @param hs the host source declaration
+        @param owner the set that exports the lookup action, which is the set the lookup runs against
+        @param key the lookup key
+
+        @return the host as the service reported it, unchecked; validated by
+        @ref RestSchemaActions::RestSchemaHostRouter::checkResolvedHost() "checkResolvedHost()"
+
+        @throw REST-SCHEMA-HOST-ERROR the lookup response does not carry a host at the declared path
+    */
+    private string resolveHost(hash<RestSchemaHostSourceInfo> hs, RestSchemaActionSet owner, string key) {
+        on_error rethrow $1.err, sprintf("%s (while resolving the request host for action %y from host "
+            "source %y via action %y)", $1.desc, getName(), hs.name, hs.action);
+
+        RestSchemaActionDataProvider lookup = new RestSchemaActionDataProvider(owner,
+            owner.getOperationEx(hs.action), rest);
+        auto resp = lookup.doRequest((hs.options ?? {}) + {(hs.lookup_option ?? hs.key_option): key});
+        foreach string field in (hs.host_field) {
+            if (resp.typeCode() != NT_HASH) {
+                throw "REST-SCHEMA-HOST-ERROR", sprintf("cannot follow host field path %y: the value at %y "
+                    "has type %y, not a hash", hs.host_field, field, resp.type());
+            }
+            resp = resp{field};
+        }
+        if (resp.typeCode() != NT_STRING || !resp.val()) {
+            throw "REST-SCHEMA-HOST-ERROR", sprintf("the lookup response carries %s at host field path %y; "
+                "expected a non-empty string naming the host to send to",
+                resp.typeCode() == NT_STRING ? "an empty string" : sprintf("type %y", resp.type()),
+                hs.host_field);
+        }
+        return resp;
     }
 
     #! Fills in the headers the connection owns
@@ -244,7 +352,7 @@ public class RestSchemaActionDataProvider inherits AbstractDataProvider {
         # the listing runs against the schema that declares it, because the request URI takes its prefix
         # from that schema's base path
         RestSchemaActionDataProvider lister = new RestSchemaActionDataProvider(owner,
-            owner.getOperationEx(rd.action), rest);
+            owner.getOperationEx(rd.action), rest, router);
         # a collection an API will not list whole is read once per partition; see
         # RestSchemaReferenceDataInfo::option_sets
         list<auto> records = ();

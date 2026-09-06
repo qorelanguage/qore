@@ -122,6 +122,9 @@ public class RestSchemaActionSet {
 
         #! Other sets in the same application whose reference data this one may use
         list<RestSchemaActionSet> peers = ();
+
+        #! Host source declarations, keyed by host source name
+        hash<string, hash<RestSchemaHostSourceInfo>> host_sources;
     }
 
     #! Resolves and validates an application's manifest against a schema
@@ -129,6 +132,8 @@ public class RestSchemaActionSet {
         @param manifest the operations the application exports
         @param refdata reference data declarations, keyed by reference data name
         @param peers other sets in the same application whose reference data this one may use
+        @param host_sources host source declarations, keyed by host source name; declared by the set that
+        exports the action resolving the host, and reachable from a peer exactly as reference data is
 
         An application whose API is split across documents needs one set per document, because a set binds
         one schema and the request URI takes its prefix from that schema's base path.  Its dropdowns do not
@@ -144,11 +149,13 @@ public class RestSchemaActionSet {
         @throw REST-SCHEMA-ACTION-ERROR the manifest is inconsistent, or an entry does not resolve
     */
     constructor(AbstractRestSchemaValidator schema, list<hash<RestSchemaActionInfo>> manifest,
-            *hash<string, hash<RestSchemaReferenceDataInfo>> refdata, *softlist<RestSchemaActionSet> peers) {
+            *hash<string, hash<RestSchemaReferenceDataInfo>> refdata, *softlist<RestSchemaActionSet> peers,
+            *hash<string, hash<RestSchemaHostSourceInfo>> host_sources) {
         self.schema = schema;
         self.manifest = manifest;
         self.refdata = refdata ?? {};
         self.peers = peers ?? ();
+        self.host_sources = host_sources ?? {};
 
         hash<string, string> seen_ops = {};
         # manifest entries by action ID, for resolving "variant_of" against what came before
@@ -181,9 +188,22 @@ public class RestSchemaActionSet {
             if (!exists seen_ops{opkey}) {
                 seen_ops{opkey} = info.action;
             }
-            opmap{info.action} = new RestSchemaActionOperation(schema, info);
+            # an action with a host source gains an option from it, so the declaration has to be in hand
+            # before the operation is built; peers are already set, so a data-plane set can reach the
+            # declaration its control-plane peer makes
+            *hash<RestSchemaHostSourceInfo> hs;
+            if (info.host_from.val()) {
+                hs = getHostSourceDecl(info.host_from);
+                if (!hs) {
+                    throw "REST-SCHEMA-ACTION-ERROR", sprintf("action %y takes its host from host source %y, "
+                        "which is not declared in this action set or any of its peers; declared host "
+                        "sources: %y", info.action, info.host_from, sort(keys getAllHostSourceDecls()));
+                }
+            }
+            opmap{info.action} = new RestSchemaActionOperation(schema, info, hs);
         }
         checkReferenceData();
+        checkHostSources();
     }
 
     #! Returns the schema the actions are derived from
@@ -216,6 +236,11 @@ public class RestSchemaActionSet {
     #! Returns the reference data declarations
     hash<string, hash<RestSchemaReferenceDataInfo>> getReferenceDataDecls() {
         return refdata;
+    }
+
+    #! Returns the host source declarations made by this set
+    hash<string, hash<RestSchemaHostSourceInfo>> getHostSourceDecls() {
+        return host_sources;
     }
 
     #! Returns the action definitions to register for the given application
@@ -345,6 +370,131 @@ public class RestSchemaActionSet {
         foreach RestSchemaActionSet peer in (peers) {
             if (*RestSchemaActionSet rv = peer.getReferenceDataSet(name)) {
                 return rv;
+            }
+        }
+    }
+
+    #! Returns every host source declaration reachable from this set, including its peers'
+    hash<string, hash<RestSchemaHostSourceInfo>> getAllHostSourceDecls() {
+        hash<string, hash<RestSchemaHostSourceInfo>> rv = {};
+        foreach RestSchemaActionSet peer in (peers) {
+            rv += peer.getAllHostSourceDecls();
+        }
+        # this set's own declarations win, so a peer cannot shadow one
+        return rv + host_sources;
+    }
+
+    #! Returns the host source declaration of the given name, from this set or a peer
+    /** @param name the host source name
+
+        @return the declaration, or @ref nothing if no set in the application declares it
+    */
+    *hash<RestSchemaHostSourceInfo> getHostSourceDecl(string name) {
+        if (*hash<RestSchemaHostSourceInfo> rv = host_sources{name}) {
+            return rv;
+        }
+        foreach RestSchemaActionSet peer in (peers) {
+            if (*hash<RestSchemaHostSourceInfo> rv = peer.getHostSourceDecl(name)) {
+                return rv;
+            }
+        }
+    }
+
+    #! Returns the set that resolves the given host source, from this set or a peer
+    /** An application whose data plane is described in a different document than its control plane declares
+        the host source in the **control** set, because that is where the action resolving the host lives;
+        the data-plane set names it as a peer.  The lookup has to run against the schema that declares it,
+        for the same reason a reference-data listing does: the request URI takes its prefix from that
+        schema's base path.
+
+        @param name the host source name
+
+        @return the set, or @ref nothing if no set in the application declares it
+    */
+    *RestSchemaActionSet getHostSourceSet(string name) {
+        if (exists host_sources{name}) {
+            return self;
+        }
+        foreach RestSchemaActionSet peer in (peers) {
+            if (*RestSchemaActionSet rv = peer.getHostSourceSet(name)) {
+                return rv;
+            }
+        }
+    }
+
+    #! Validates the host source declarations against the manifest and the overlays
+    /** Everything a host source needs to work is checked here, so that a manifest that has drifted from its
+        schema fails when the module is loaded rather than at the moment a request would be sent to the
+        wrong host.
+
+        @throw REST-SCHEMA-ACTION-ERROR a declaration is inconsistent, does not resolve, or omits the
+        host suffixes that bound where the connection's credentials may be sent
+    */
+    private checkHostSources() {
+        foreach hash<auto> i in (host_sources.pairIterator()) {
+            hash<RestSchemaHostSourceInfo> hs = i.value;
+            if (hs.name != i.key) {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("host source is registered under key %y but names "
+                    "itself %y", i.key, hs.name);
+            }
+            if (!exists opmap{hs.action}) {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("host source %y is resolved by action %y, which "
+                    "the manifest does not export; exported actions: %y", i.key, hs.action, keys opmap);
+            }
+            if (!hs.host_field) {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("host source %y declares no \"host_field\", so "
+                    "there is nothing to read the host out of the lookup response with", i.key);
+            }
+            # not optional: the resolved host is where the connection's credentials are sent, and an
+            # unbounded host source would make the connection URL stop bounding that
+            if (!hs.allowed_host_suffixes) {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("host source %y declares no "
+                    "\"allowed_host_suffixes\"; a host taken from a response is a host the service chose, "
+                    "and the request that follows carries the connection's credentials to it, so the "
+                    "permitted hosts have to be stated", i.key);
+            }
+            if (hs.scheme != "http" && hs.scheme != "https") {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("host source %y declares scheme %y; only \"http\" "
+                    "and \"https\" are supported", i.key, hs.scheme);
+            }
+            RestSchemaActionOperation lop = opmap{hs.action};
+            # a lookup whose own host had to be resolved first could never be made
+            if (lop.getInfo().host_from.val()) {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("host source %y is resolved by action %y, which "
+                    "itself takes its host from host source %y; the lookup could never be made", i.key,
+                    hs.action, lop.getInfo().host_from);
+            }
+            hash<string, hash<RestSchemaFlatFieldInfo>> flat = lop.getFlatMap();
+            string lookup_option = hs.lookup_option ?? hs.key_option;
+            if (!exists flat{lookup_option}) {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("host source %y passes the lookup key to option %y "
+                    "of action %y, which does not declare it; options: %y", i.key, lookup_option, hs.action,
+                    sort(keys flat));
+            }
+            foreach string opt in (keys hs.options) {
+                if (!exists flat{opt}) {
+                    throw "REST-SCHEMA-ACTION-ERROR", sprintf("host source %y passes option %y to action %y, "
+                        "which does not declare it; options: %y", i.key, opt, hs.action, sort(keys flat));
+                }
+                if (opt == lookup_option) {
+                    throw "REST-SCHEMA-ACTION-ERROR", sprintf("host source %y both fixes option %y and passes "
+                        "the lookup key into it; one of the two would silently win", i.key, opt);
+                }
+            }
+        }
+
+        # the option the host is resolved from is synthesized when the operation is built, so every action
+        # naming a host source has one; a manifest that dropped it with "ignore" would leave the host
+        # unresolvable, and that is worth catching here rather than at the moment a request is made
+        foreach hash<auto> i in (opmap.pairIterator()) {
+            if (!i.value.getInfo().host_from.val()) {
+                continue;
+            }
+            *string key_option = i.value.getHostKeyOption();
+            if (!key_option.val()) {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("action %y takes its host from host source %y, but "
+                    "publishes no option to resolve it from; an overlay that drops the key option leaves "
+                    "the request with no host to go to", i.key, i.value.getInfo().host_from);
             }
         }
     }
