@@ -857,9 +857,10 @@ sub invalid_cursor(MongoCursor<int> cursor) {
         # Test insertMany with empty list
         assertThrows("MONGODB-COLLECTION-ERROR", \coll.insertMany(), ((),));
 
-        # Test insertMany with non-hash element
-        # Note: This is caught at parse time due to type checking, so we use cast<> to test runtime
-        assertThrows("MONGODB-COLLECTION-ERROR", sub() {
+        # Test insertMany with a non-hash element: the parameter is typed, so the runtime type
+        # check rejects the argument before the driver is entered - the module cannot raise an
+        # error of its own here, and asserting that it does made this test unreachable
+        assertThrows("RUNTIME-TYPE-ERROR", sub() {
             list<auto!> bad_list = ("not a hash",);
             coll.insertMany(cast<list<hash<auto>>>(bad_list));
         });

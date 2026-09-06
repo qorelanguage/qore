@@ -60,8 +60,12 @@ public:
         }
         // Set up interruptible streams for sandbox support
         qore_mongo_setup_interruptible_streams(client);
-        // Set application name
-        mongoc_client_set_appname(client, "qore-mongodb");
+        // Set the application name, but only when the URI does not already carry one: libmongoc
+        // refuses to set it twice and logs an ERROR for the attempt, and the name in the URI is the
+        // user's own - Atlas reports it in the cluster's monitoring, so it must not be overwritten
+        if (!mongoc_uri_get_option_as_utf8(uri, MONGOC_URI_APPNAME, nullptr)) {
+            mongoc_client_set_appname(client, "qore-mongodb");
+        }
     }
 
     //! Destructor

@@ -362,6 +362,31 @@ static std::string qore_mongo_exception_desc(ExceptionSink& xsink, const char* f
     return desc ? std::string(desc.c_str(), desc.size()) : std::string(fallback);
 }
 
+// applies the TLS options the URI carries over libmongoc's defaults
+/** This initiator is installed with mongoc_client_set_stream_initiator(), which replaces
+    libmongoc's own initiator and with it the code that reads these options out of the URI, so an
+    option a user wrote in the connection string would otherwise have no effect at all.
+*/
+static void qore_mongo_apply_uri_tls_opts(const mongoc_uri_t* uri, mongoc_ssl_opt_t& opt) {
+    if (const char* v = mongoc_uri_get_option_as_utf8(uri, MONGOC_URI_TLSCERTIFICATEKEYFILE, nullptr)) {
+        opt.pem_file = v;
+    }
+    if (const char* v = mongoc_uri_get_option_as_utf8(uri, MONGOC_URI_TLSCERTIFICATEKEYFILEPASSWORD,
+            nullptr)) {
+        opt.pem_pwd = v;
+    }
+    if (const char* v = mongoc_uri_get_option_as_utf8(uri, MONGOC_URI_TLSCAFILE, nullptr)) {
+        opt.ca_file = v;
+    }
+
+    // "tlsInsecure" is the documented shorthand for both of the checks below
+    bool insecure = mongoc_uri_get_option_as_bool(uri, MONGOC_URI_TLSINSECURE, false);
+    opt.weak_cert_validation = insecure
+        || mongoc_uri_get_option_as_bool(uri, MONGOC_URI_TLSALLOWINVALIDCERTIFICATES, false);
+    opt.allow_invalid_hostname = insecure
+        || mongoc_uri_get_option_as_bool(uri, MONGOC_URI_TLSALLOWINVALIDHOSTNAMES, false);
+}
+
 mongoc_stream_t* qore_mongo_stream_initiator(
     const mongoc_uri_t* uri,
     const mongoc_host_list_t* host,
@@ -478,8 +503,16 @@ mongoc_stream_t* qore_mongo_stream_initiator(
             return nullptr;
         }
 
-        // Use default SSL options (nullptr means use system defaults)
-        mongoc_stream_t* tls_stream = mongoc_stream_tls_new_with_hostname(base, host->host, nullptr, 1);
+        // NOTE: the options argument is dereferenced by libmongoc and must not be null; passing
+        // nullptr here crashed the process on the first TLS connection, which meant every Atlas
+        // cluster (mongodb+srv:// implies TLS) was unreachable.  libmongoc's own default initiator
+        // passes the client's options, which it fills in from the URI; this initiator replaces that
+        // code path entirely, so the URI's TLS options have to be applied here or they are silently
+        // ignored
+        mongoc_ssl_opt_t ssl_opt = *mongoc_ssl_opt_get_default();
+        qore_mongo_apply_uri_tls_opts(uri, ssl_opt);
+
+        mongoc_stream_t* tls_stream = mongoc_stream_tls_new_with_hostname(base, host->host, &ssl_opt, 1);
         if (!tls_stream) {
             mongoc_stream_destroy(base);
             bson_set_error(error, MONGOC_ERROR_STREAM, MONGOC_ERROR_STREAM_SOCKET,
