@@ -1,0 +1,141 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+# Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
+
+# Regression test for the stack size of the JIT background compilation thread.
+#
+# LLVM's analyses recurse over the IR without a depth bound; ScalarEvolution recurses once per
+# chained affine add-recurrence through
+# createSCEVIter() -> createNodeForPHI() -> createAddRecFromPHI() -> createSimpleAffineAddRec().
+# The background compile worker used to be started with std::thread, which cannot request a stack
+# size and so took the platform default: RLIMIT_STACK (8MB) on glibc, but a fixed 128KB on musl.
+# On musl the worker therefore died with SIGSEGV inside LLVM while analyzing a function with a long
+# chain of induction variables, with no qore frame beneath the LLVM frames.  A function like the one
+# below is far too small to be stopped by the native-compilation budget, so the budget check is no
+# protection against this: only a large enough compile-thread stack is.
+
+%modern
+
+%prepend-module-path "${SCRIPT_DIR}/../../../qlib"
+%requires QUnit
+
+%exec-class JitCompileThreadStackTest
+
+class JitCompileThreadStackTest inherits QUnit::Test {
+    public {
+        #! number of chained loops in the generated function
+        /** Each loop contributes one affine add-recurrence whose start value is the previous loop's
+            exit value, so this is also the depth of the ScalarEvolution recursion.  100 chained
+            recurrences are already enough to exhaust musl's 128KB default thread stack.
+        */
+        const int ChainLength = 150;
+
+        #! bound increment per loop; the function returns ChainLength * LoopBoundStep
+        const int LoopBoundStep = 10;
+
+        #! number of calls made to the generated function
+        const int CallCount = 8;
+    }
+
+    private {
+        string qore_bin;
+        string libqore_dir;
+        string script_path;
+    }
+
+    constructor() : QUnit::Test("JitCompileThreadStackTest", "1.0", \ARGV) {
+        qore_bin = ENV.QORE_BIN ?? ENV.QORE_BINARY ?? QORE_ARGV[0] ?? "qore";
+        libqore_dir = ENV.QORE_LIBDIR ?? dirname(qore_bin);
+        script_path = "/tmp/qore-jit-compile-thread-stack-" + string(getpid()) + ".qr";
+        addTestCase("deeply chained induction variables compile on the background thread",
+            \testDeepScalarEvolutionRecursion());
+        addTestCase("the natively compiled function returns the interpreted result",
+            \testNativeResultMatchesAst());
+        set_return_value(main());
+    }
+
+    destructor() {
+        try {
+            unlink(script_path);
+        } catch (hash<ExceptionInfo> ex) {
+        }
+    }
+
+    private static string shellQuote(string value) {
+        return "'" + replace(value, "'", "'\"'\"'") + "'";
+    }
+
+    #! Returns the expected value of the generated program's "total=" line
+    private static int expectedTotal() {
+        # every seed is below the first loop's bound, so each call runs every loop to its bound and
+        # returns the last bound
+        return CallCount * ChainLength * LoopBoundStep;
+    }
+
+    #! Returns a program whose hot function is a chain of ChainLength affine add-recurrences
+    /** Each loop starts from the value the previous loop left behind, which is exactly the pattern
+        that makes ScalarEvolution recurse once per loop while building the SCEV for the last one.
+    */
+    private static string chainedSource() {
+        list<string> source = ("%modern\nint sub chained(int seed) {\n    int v = seed;\n",);
+        for (int index = 1; index <= ChainLength; ++index) {
+            push source, sprintf("    while (v < %d) { v += 1; }\n", index * LoopBoundStep);
+        }
+        push source, "    return v;\n}\n\nint total = 0;\n";
+        push source, sprintf("for (int i = 0; i < %d; ++i) { total += chained(i); }\n", CallCount);
+        push source, "printf(\"total=%d\\n\", total);\n";
+        return join("", source);
+    }
+
+    private string writeScript(string source) {
+        File script();
+        script.open2(script_path, O_WRONLY | O_CREAT | O_TRUNC);
+        script.write(source);
+        script.close();
+        return script_path;
+    }
+
+    #! Runs the script in the given execution mode and appends the child's exit status
+    private string run(string mode, string path) {
+        return backquote(sprintf(
+            "QORE_JIT_THRESHOLD=1 QORE_JIT_TIMING=1 LD_LIBRARY_PATH=%s %s -b --exec-mode=%s %s 2>&1; "
+            "echo \"exit=$?\"",
+            shellQuote(libqore_dir), shellQuote(qore_bin), mode, shellQuote(path)));
+    }
+
+    #! Returns the value the run printed, or NOTHING when it printed none
+    private static *int totalFrom(string output) {
+        *list<*string> captured = (output =~ x/total=([0-9]+)/);
+        return captured ? captured[0].toInt() : NOTHING;
+    }
+
+    private testDeepScalarEvolutionRecursion() {
+        string output = run("jit", writeScript(chainedSource()));
+        # the function must actually reach LLVM on the background thread, otherwise this test would
+        # pass without exercising the compile thread's stack at all
+        assertTrue(output =~ /\[BG-JIT\] compiling 'chained@/,
+            "the chained function was handed to LLVM on the background thread: " + output);
+        assertTrue(output =~ /\[BG-JIT\] compiled 'chained@[^']*' and promoted to JIT tier/,
+            "the background compilation of the chained function completed: " + output);
+        assertEq(expectedTotal(), totalFrom(output),
+            "the program produced the right result: " + output);
+        # a stack overflow in the compile thread kills the process: SIGSEGV reaches the shell as 139
+        assertTrue(output =~ /exit=0$/, "the process exited normally: " + output);
+    }
+
+    private testNativeResultMatchesAst() {
+        string path = writeScript(chainedSource());
+        string ast_output = run("ast", path);
+        string jit_output = run("jit", path);
+        assertEq(expectedTotal(), totalFrom(ast_output),
+            "the AST tier produced the reference result: " + ast_output);
+        assertEq(totalFrom(ast_output), totalFrom(jit_output),
+            "the natively compiled chain returned the interpreted result: " + jit_output);
+        assertTrue(ast_output =~ /exit=0$/, "the AST run exited normally: " + ast_output);
+        # the result is printed before the compile thread reaches the deepest recursion, so a run
+        # that overflows the compile stack still prints the right total: the exit status is what
+        # separates a completed run from one the worker killed
+        assertTrue(jit_output =~ /exit=0$/, "the JIT run exited normally: " + jit_output);
+    }
+}

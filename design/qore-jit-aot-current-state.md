@@ -52,6 +52,16 @@ pending background compiles (matched via `QoreIRFunction::pgm`; a compile with n
 owning program is treated as matching any teardown), so destroying one Program
 never serializes behind unrelated Programs' compilation.
 
+Threads that run LLVM are started through `q_start_llvm_compile_thread()` with an
+explicit 8MB stack (`QORE_LLVM_COMPILE_STACK_SIZE`), never with `std::thread`, which
+cannot request a stack size and takes the platform default: `RLIMIT_STACK` (8MB) on
+glibc but a fixed 128KB on musl.  LLVM's analyses recurse over the IR without a depth
+bound -- ScalarEvolution recurses once per chained affine add-recurrence -- so a
+default-sized musl thread overflows its stack inside LLVM, with no qore frame beneath
+the LLVM frames.  Recursion depth follows the number of chained induction variables
+rather than function size, so the native-compilation budget is no substitute.  This
+applies to the JIT background compile worker and to the AOT codegen thread pools alike.
+
 Failed lowering or compilation disables promotion for that variant rather than
 retrying on every call. Debug attach can force dispatch back to AST so debugger
 semantics remain predictable; JIT-compiled native code also emits

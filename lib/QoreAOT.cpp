@@ -22060,10 +22060,10 @@ static bool codegenModuleSplit(llvm::Module& module, int jobs, const std::string
     };
     // nparts == concurrency (the cores we hold), so run exactly one thread per part. `objs` is
     // indexed by part, so the ld -r output is deterministic regardless of thread scheduling.
-    std::vector<std::thread> threads;
+    std::vector<llvm::thread> threads;
     threads.reserve(nparts);
     for (size_t i = 0; i < nparts; ++i) {
-        threads.emplace_back(worker, i);
+        threads.push_back(q_start_llvm_compile_thread(worker, i));
     }
     for (auto& th : threads) {
         th.join();
@@ -28225,9 +28225,9 @@ bool QoreAOT::compileScriptFilesBatch(
         // process's implicit make slot and admit new workers whenever tokens
         // become available. This also avoids blocking a make slot in a waiter;
         // the coordinator polls only while this qcc has unclaimed file emits.
-        std::vector<std::thread> pool;
+        std::vector<llvm::thread> pool;
         pool.reserve(requested_jobs);
-        pool.emplace_back(worker);
+        pool.push_back(q_start_llvm_compile_thread(worker));
         unsigned wait_iterations = 0;
         while (!stop.load() && jobs < requested_jobs) {
             if (++wait_iterations == 100) {
@@ -28253,7 +28253,7 @@ bool QoreAOT::compileScriptFilesBatch(
                 continue;
             }
             for (int i = 0; i < acquired; ++i) {
-                pool.emplace_back(worker);
+                pool.push_back(q_start_llvm_compile_thread(worker));
             }
             jobs += static_cast<unsigned>(acquired);
         }
@@ -28261,10 +28261,10 @@ bool QoreAOT::compileScriptFilesBatch(
             th.join();
         }
     } else {
-        std::vector<std::thread> pool;
+        std::vector<llvm::thread> pool;
         pool.reserve(jobs);
         for (unsigned t = 0; t < jobs; ++t) {
-            pool.emplace_back(worker);
+            pool.push_back(q_start_llvm_compile_thread(worker));
         }
         for (auto& th : pool) {
             th.join();

@@ -1748,7 +1748,7 @@ bool QoreJIT::startBackgroundThread() {
         return false;
     }
     if (!bg_thread_running.exchange(true, std::memory_order_acq_rel)) {
-        bg_compile_thread = std::thread(&QoreJIT::bgCompileThreadLoop, this);
+        bg_compile_thread = q_start_llvm_compile_thread([this]() { bgCompileThreadLoop(); });
     }
     return true;
 }
@@ -1778,6 +1778,14 @@ void QoreJIT::finishBgCompileWork(BgCompileWork& work) {
 }
 
 void QoreJIT::bgCompileThreadLoop() {
+#ifdef QORE_HAVE_GET_STACK_SIZE
+    // This worker runs LLVM's optimizer, which needs QORE_LLVM_COMPILE_STACK_SIZE of stack; a
+    // worker started with the platform default crashes inside ScalarEvolution on musl.  Platforms
+    // report the usable size net of the guard page and TLS block, so check a lower bound well
+    // above any platform default rather than the exact request; the point is to fail here on a
+    // regression instead of as a SIGSEGV in LLVM frames with no qore frame beneath them.
+    assert(QorePThreadAttr::getCurrentThreadStackSize() >= QORE_LLVM_COMPILE_STACK_SIZE / 2);
+#endif
     // Background worker thread loop — compiles functions while main thread executes IR
     while (bg_thread_running.load(std::memory_order_acquire)) {
         BgCompileWork work;

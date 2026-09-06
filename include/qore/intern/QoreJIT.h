@@ -60,6 +60,30 @@ class QoreTypeInfo;
 struct QoreTypeParamInstantiation;
 
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
+#include <llvm/Support/thread.h>
+
+//! Stack size for threads that run LLVM compilation
+/** LLVM's analyses recurse over the IR without a depth bound; ScalarEvolution in particular
+    recurses once per chained affine add-recurrence through
+    createSCEVIter() -> createNodeForPHI() -> createAddRecFromPHI() -> createSimpleAffineAddRec(),
+    so a thread running the optimizer needs a large stack.  std::thread cannot request one and
+    takes the platform default: the 8MB RLIMIT_STACK on glibc, but a fixed 128KB on musl.  128KB
+    is not enough to analyze a large function, so background JIT compilation died with SIGSEGV
+    inside LLVM on alpine while the identical code was fine on glibc.  Every thread qore starts
+    itself already gets 8MB (STACK_SIZE in thread.cpp); LLVM compilation threads must not be the
+    exception.
+*/
+constexpr unsigned QORE_LLVM_COMPILE_STACK_SIZE = 8 * 1024 * 1024;
+
+//! Starts a thread with a stack large enough for LLVM compilation
+/** @note llvm::thread calls the callable directly rather than with INVOKE semantics, so bind any
+    member function in a lambda instead of passing a pointer-to-member.
+*/
+template <typename Function, typename... Args>
+DLLLOCAL llvm::thread q_start_llvm_compile_thread(Function&& f, Args&&... args) {
+    return llvm::thread(std::optional<unsigned>(QORE_LLVM_COMPILE_STACK_SIZE),
+        std::forward<Function>(f), std::forward<Args>(args)...);
+}
 
 //! JIT-compiled function signature: takes ExceptionSink*, returns NaN-boxed QoreValue as uint64_t
 using JitFunctionPtr = uint64_t (*)(ExceptionSink*);
@@ -727,7 +751,7 @@ private:
     };
 
     // Background compilation thread management
-    std::thread bg_compile_thread;                          //!< dedicated background worker thread
+    llvm::thread bg_compile_thread;                         //!< dedicated background worker thread
     std::queue<BgCompileWork> bg_compile_queue;             //!< pending compilation work
     std::mutex bg_queue_mutex;                              //!< protects the queue
     std::condition_variable bg_queue_cv;                    //!< signals new work or queue empty
