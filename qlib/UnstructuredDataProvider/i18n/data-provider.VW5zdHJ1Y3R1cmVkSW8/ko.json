@@ -327,17 +327,469 @@
           "source": "Make a custom API call to Unstructured.io",
           "message": "Unstructured.io에 사용자 정의 API 호출 수행"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.desc": {
+          "source": "Submits a document to [Unstructured.io](https://unstructured.io) and returns it as a list of typed elements — `Title`, `NarrativeText`, `ListItem`, `Table`, `Image` and so on — each with its own metadata.\n\nThis is the action to use for **PDFs, Office documents, images, emails** and every other format Unstructured supports; use `partition-text` for content already held as text.\n\n**Typical uses**:\n- Turning a document archive into records a RAG pipeline can index, with `chunking_strategy` producing retrieval-sized chunks directly\n- Pulling tables out of reports as HTML with `pdf_infer_table_structure`\n- Reading scans and photographs with the `ocr_only` or `hi_res` strategies\n\nGive the document either inline as `file_data` or by `file_path`.",
+          "message": "문서를 [Unstructured.io](https://unstructured.io)에 전송하고 형식화된 요소 목록(`Title`, `NarrativeText`, `ListItem`, `Table`, `Image` 등)으로 반환합니다. 각 요소는 고유한 메타데이터를 가집니다.\n\n**PDF, Office 문서, 이미지, 이메일**을 비롯해 Unstructured가 지원하는 모든 형식에는 이 작업을 사용하십시오. 이미 텍스트로 보유한 내용에는 `partition-text`를 사용하십시오.\n\n**일반적인 용도**:\n- 문서 아카이브를 RAG 파이프라인이 색인할 수 있는 레코드로 변환(`chunking_strategy`가 검색에 적합한 크기의 청크를 바로 생성)\n- `pdf_infer_table_structure`로 보고서에서 표를 HTML로 추출\n- `ocr_only` 또는 `hi_res` 전략으로 스캔본과 사진을 판독\n\n문서는 `file_data`로 직접 전달하거나 `file_path`로 지정하십시오."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.display_name": {
+          "source": "Partition Document",
+          "message": "문서 분할"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.desc": {
+          "source": "Consecutive chunks are combined until they reach this length, so that a short section does not become a chunk of its own.  Applies only when `chunking_strategy` is set.",
+          "message": "짧은 섹션이 단독 청크가 되지 않도록, 연속된 청크는 이 길이에 도달할 때까지 결합됩니다. `chunking_strategy`가 설정된 경우에만 적용됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.display_name": {
+          "source": "Combine Under N Characters",
+          "message": "N자 미만 결합"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.short_desc": {
+          "source": "Merge chunks smaller than this",
+          "message": "이보다 작은 청크 병합"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29udGVudF90eXBl.desc": {
+          "source": "MIME type of the document content, in `type/subtype` form.\n\nUnstructured uses this to decide how to parse the input, so setting it matters for any text format that carries structure.  Content submitted as `text/plain` is not parsed for markup: HTML returns as a single element holding the raw markup, and Markdown keeps its `#` and `-` markers in the element text.",
+          "message": "문서 내용의 MIME 유형이며 `type/subtype` 형식입니다.\n\nUnstructured는 이를 기준으로 입력을 구문 분석하는 방법을 결정하므로, 구조를 가진 텍스트 형식에서는 설정이 중요합니다. `text/plain`으로 전송된 내용은 마크업이 구문 분석되지 않습니다. HTML은 원시 마크업을 담은 단일 요소로 반환되고, Markdown은 요소 텍스트에 `#` 및 `-` 기호를 그대로 유지합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29udGVudF90eXBl.display_name": {
+          "source": "Content Type",
+          "message": "콘텐츠 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29udGVudF90eXBl.short_desc": {
+          "source": "MIME type hint for the document",
+          "message": "문서의 MIME 유형 힌트"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29vcmRpbmF0ZXM.desc": {
+          "source": "When `True`, each element includes its bounding box in `metadata.coordinates`.",
+          "message": "`True`이면 각 요소가 `metadata.coordinates`에 자신의 경계 상자를 포함합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29vcmRpbmF0ZXM.display_name": {
+          "source": "Coordinates",
+          "message": "좌표"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29vcmRpbmF0ZXM.short_desc": {
+          "source": "Include layout coordinates in each element",
+          "message": "각 요소에 레이아웃 좌표 포함"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3BhZ2U.display_name": {
+          "source": "By Page",
+          "message": "페이지 기준"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3NpbWlsYXJpdHk.display_name": {
+          "source": "By Similarity",
+          "message": "유사도 기준"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3RpdGxl.display_name": {
+          "source": "By Title",
+          "message": "제목 기준"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "기본"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.desc": {
+          "source": "Groups the partitioned elements into chunks server-side, returning `CompositeElement` chunks instead of the raw element tree.\n\n- `basic` — fill each chunk up to the size limits\n- `by_title` — start a new chunk at each section heading\n- `by_page` — start a new chunk at each page boundary\n- `by_similarity` — group topically similar elements; see `similarity_threshold`\n\nWhen unset, no chunking is performed and the other chunking options are ignored.",
+          "message": "분할된 요소를 서버 측에서 청크로 묶어 원시 요소 트리 대신 `CompositeElement` 청크를 반환합니다.\n\n- `basic` — 크기 한도까지 각 청크를 채움\n- `by_title` — 각 섹션 제목에서 새 청크를 시작함\n- `by_page` — 각 페이지 경계에서 새 청크를 시작함\n- `by_similarity` — 주제가 유사한 요소를 묶음. `similarity_threshold` 참조\n\n설정하지 않으면 청크 처리를 수행하지 않으며 다른 청크 옵션은 무시됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.display_name": {
+          "source": "Chunking Strategy",
+          "message": "청크 전략"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.short_desc": {
+          "source": "Server-side chunking strategy",
+          "message": "서버 측 청크 전략"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZW5jb2Rpbmc.desc": {
+          "source": "Character encoding used to decode the document text; defaults to `utf-8`.",
+          "message": "문서 텍스트를 디코딩하는 데 사용하는 문자 인코딩이며 기본값은 `utf-8`입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZW5jb2Rpbmc.display_name": {
+          "source": "Text Encoding",
+          "message": "텍스트 인코딩"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZW5jb2Rpbmc.short_desc": {
+          "source": "Character encoding used to decode the input",
+          "message": "입력을 디코딩하는 데 사용하는 문자 인코딩"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.desc": {
+          "source": "Element types to extract as images, returned base64-encoded in `metadata.image_base64`.\n\nUse it to keep figures and tables that carry meaning no text extraction can recover — charts, diagrams, scanned tables — alongside the text.",
+          "message": "이미지로 추출하여 `metadata.image_base64`에 base64로 인코딩해 반환할 요소 유형입니다.\n\n텍스트 추출로는 복원할 수 없는 의미를 지닌 그림과 표(차트, 도해, 스캔된 표)를 텍스트와 함께 보존하는 데 사용하십시오."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.display_name": {
+          "source": "Extract Image Block Types",
+          "message": "추출할 이미지 블록 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.short_desc": {
+          "source": "Element types to return as base64 images",
+          "message": "base64 이미지로 반환할 요소 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9kYXRh.desc": {
+          "source": "Raw content of the document to partition — a PDF, DOCX, PPTX, XLSX, image, email or any other format Unstructured supports.\n\nMutually exclusive with `file_path`; exactly one of the two is required.",
+          "message": "분할할 문서의 원본 내용 — PDF, DOCX, PPTX, XLSX, 이미지, 이메일 등 Unstructured가 지원하는 모든 형식입니다.\n\n`file_path`와 상호 배타적이며, 둘 중 정확히 하나가 필요합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9kYXRh.display_name": {
+          "source": "File Data",
+          "message": "파일 데이터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9kYXRh.short_desc": {
+          "source": "Document content to partition",
+          "message": "분할할 문서 내용"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9wYXRo.desc": {
+          "source": "Local path of the document to read and partition.\n\nMutually exclusive with `file_data`; exactly one of the two is required.",
+          "message": "읽어서 분할할 문서의 로컬 경로입니다.\n\n`file_data`와 상호 배타적이며, 둘 중 정확히 하나가 필요합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9wYXRo.display_name": {
+          "source": "File Path",
+          "message": "파일 경로"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9wYXRo.short_desc": {
+          "source": "Local path of the document to partition",
+          "message": "분할할 문서의 로컬 경로"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZW5hbWU.desc": {
+          "source": "Name reported to Unstructured for the document and returned in `metadata.filename`.  Defaults to the base name of `file_path`, or to `document` when `file_data` is used.",
+          "message": "이 문서에 대해 Unstructured에 보고되고 `metadata.filename`으로 반환되는 이름입니다. 기본값은 `file_path`의 기본 이름이며, `file_data`를 사용하는 경우 `document`입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZW5hbWU.display_name": {
+          "source": "File Name",
+          "message": "파일 이름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZW5hbWU.short_desc": {
+          "source": "Name to report for the document",
+          "message": "문서에 대해 보고할 이름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aGlfcmVzX21vZGVsX25hbWU.desc": {
+          "source": "Name of the layout inference model used when `strategy` is `hi_res`.",
+          "message": "`strategy`가 `hi_res`일 때 사용되는 레이아웃 추론 모델의 이름입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aGlfcmVzX21vZGVsX25hbWU.display_name": {
+          "source": "Hi-Res Model Name",
+          "message": "고해상도 모델 이름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aGlfcmVzX21vZGVsX25hbWU.short_desc": {
+          "source": "Layout model to use with the hi_res strategy",
+          "message": "hi_res 전략에 사용할 레이아웃 모델"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.desc": {
+          "source": "When `True` (the API default), each chunk carries the elements it was assembled from in `metadata.orig_elements`.",
+          "message": "`True`(API 기본값)이면 각 청크가 구성 요소들을 `metadata.orig_elements`에 담습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.display_name": {
+          "source": "Include Original Elements",
+          "message": "원본 요소 포함"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.short_desc": {
+          "source": "Return the elements each chunk was built from",
+          "message": "각 청크를 구성한 요소 반환"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.desc": {
+          "source": "When `True`, a `PageBreak` element is emitted at each page boundary.",
+          "message": "`True`이면 각 페이지 경계에서 `PageBreak` 요소가 생성됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.display_name": {
+          "source": "Include Page Breaks",
+          "message": "페이지 나누기 포함"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.short_desc": {
+          "source": "Emit an element at each page boundary",
+          "message": "각 페이지 경계에서 요소 생성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.desc": {
+          "source": "When `True` (the API default), presenter notes in PPTX documents are partitioned along with the slides.",
+          "message": "`True`(API 기본값)이면 PPTX 문서의 발표자 노트가 슬라이드와 함께 분할됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.display_name": {
+          "source": "Include Slide Notes",
+          "message": "슬라이드 노트 포함"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.short_desc": {
+          "source": "Include presenter notes from presentations",
+          "message": "프레젠테이션의 발표자 노트 포함"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcA.desc": {
+          "source": "Number of characters drawn from the end of one chunk and prefixed to the next, so that context is not lost at a chunk boundary.  By default this applies only to chunks produced by splitting an oversized element; see `overlap_all`.",
+          "message": "청크 경계에서 문맥이 유실되지 않도록 한 청크의 끝에서 가져와 다음 청크 앞에 붙이는 문자 수입니다. 기본적으로 크기가 너무 큰 요소를 분할해 생성된 청크에만 적용됩니다. `overlap_all`을 참조하십시오."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcA.display_name": {
+          "source": "Chunk Overlap",
+          "message": "청크 중첩"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcA.short_desc": {
+          "source": "Characters carried over between chunks",
+          "message": "청크 간에 이월되는 문자"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcF9hbGw.desc": {
+          "source": "When `True`, `overlap` is applied between every pair of adjacent chunks, not only those produced by splitting an oversized element.",
+          "message": "`True`이면 `overlap`이 인접한 모든 청크 쌍에 적용되며, 크기가 너무 큰 요소의 분할로 생성된 청크에만 국한되지 않습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcF9hbGw.display_name": {
+          "source": "Overlap All Chunks",
+          "message": "모든 청크 중첩"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcF9hbGw.short_desc": {
+          "source": "Apply the overlap between every pair of chunks",
+          "message": "모든 청크 쌍 사이에 중첩 적용"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bGFuZ3VhZ2Vz.desc": {
+          "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
+          "message": "문서에 포함된 ISO 639 언어 코드 목록으로, 분할 및 OCR을 안내하는 데 사용됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bGFuZ3VhZ2Vz.display_name": {
+          "source": "Languages",
+          "message": "언어"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bGFuZ3VhZ2Vz.short_desc": {
+          "source": "Document language hints (ISO codes)",
+          "message": "문서 언어 힌트(ISO 코드)"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bWF4X2NoYXJhY3RlcnM.desc": {
+          "source": "Hard maximum number of characters in a chunk; a larger element is split.  Applies only when `chunking_strategy` is set.",
+          "message": "청크의 하드 최대 문자 수이며, 이를 초과하는 요소는 분할됩니다. `chunking_strategy`가 설정된 경우에만 적용됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bWF4X2NoYXJhY3RlcnM.display_name": {
+          "source": "Maximum Chunk Size",
+          "message": "최대 청크 크기"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bWF4X2NoYXJhY3RlcnM.short_desc": {
+          "source": "Hard character limit per chunk",
+          "message": "청크당 문자 수 하드 한도"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bXVsdGlwYWdlX3NlY3Rpb25z.desc": {
+          "source": "When `True` (the API default), a chunk may span more than one page.",
+          "message": "`True`(API 기본값)이면 청크가 두 페이지 이상에 걸칠 수 있습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bXVsdGlwYWdlX3NlY3Rpb25z.display_name": {
+          "source": "Multipage Sections",
+          "message": "다중 페이지 섹션"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bXVsdGlwYWdlX3NlY3Rpb25z.short_desc": {
+          "source": "Allow a chunk to span pages",
+          "message": "청크가 여러 페이지에 걸치도록 허용"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bmV3X2FmdGVyX25fY2hhcnM.desc": {
+          "source": "Soft maximum: a chunk is closed once it reaches this length, without splitting the element that crosses it.  Applies only when `chunking_strategy` is set.",
+          "message": "소프트 최대값입니다. 청크는 이 길이에 도달하면 닫히며, 경계를 넘는 요소는 분할되지 않습니다. `chunking_strategy`가 설정된 경우에만 적용됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bmV3X2FmdGVyX25fY2hhcnM.display_name": {
+          "source": "Soft Chunk Size",
+          "message": "소프트 청크 크기"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bmV3X2FmdGVyX25fY2hhcnM.short_desc": {
+          "source": "Soft character limit per chunk",
+          "message": "청크당 문자 수 소프트 한도"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.desc": {
+          "source": "Value between `0.0` and `1.0` giving the minimum similarity two elements must have to land in the same chunk.  Applies only when `chunking_strategy` is `by_similarity`.",
+          "message": "두 요소가 같은 청크에 포함되기 위해 필요한 최소 유사도를 나타내는 `0.0`에서 `1.0` 사이의 값입니다. `chunking_strategy`가 `by_similarity`인 경우에만 적용됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.display_name": {
+          "source": "Similarity Threshold",
+          "message": "유사도 임계값"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.short_desc": {
+          "source": "Minimum similarity for by_similarity chunking",
+          "message": "유사도 기준 청크 처리의 최소 유사도"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF90YWJsZV9jaHVua2luZw.desc": {
+          "source": "When `True`, `Table` elements are returned whole instead of being chunked.",
+          "message": "`True`이면 `Table` 요소가 청크로 나뉘지 않고 통째로 반환됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF90YWJsZV9jaHVua2luZw.display_name": {
+          "source": "Skip Table Chunking",
+          "message": "표 청크 처리 건너뛰기"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF90YWJsZV9jaHVua2luZw.short_desc": {
+          "source": "Leave table elements unchunked",
+          "message": "표 요소를 청크로 나누지 않음"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.desc": {
+          "source": "Document types to skip table extraction for, for example `pdf`, `jpg` or `heic`.",
+          "message": "표 추출을 건너뛸 문서 유형입니다. 예를 들어 `pdf`, `jpg`, `heic` 등입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.display_name": {
+          "source": "Skip Table Inference For",
+          "message": "표 추론을 건너뛸 대상"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.short_desc": {
+          "source": "Document types to skip table extraction for",
+          "message": "표 추출을 건너뛸 문서 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.desc": {
+          "source": "Page number to assign to the first page of the submitted document.  Set it when submitting a slice of a larger document so that `metadata.page_number` stays correct.",
+          "message": "전송한 문서의 첫 페이지에 할당할 페이지 번호입니다. 더 큰 문서의 일부를 전송할 때 설정하면 `metadata.page_number`가 정확하게 유지됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.display_name": {
+          "source": "Starting Page Number",
+          "message": "시작 페이지 번호"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.short_desc": {
+          "source": "Page number to assign to the first page",
+          "message": "첫 페이지에 할당할 페이지 번호"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9jcl9vbmx5.display_name": {
+          "source": "OCR Only",
+          "message": "OCR 전용"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9kX29ubHk.display_name": {
+          "source": "Object Detection Only",
+          "message": "객체 탐지 전용"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "자동"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "빠름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmhpX3Jlcw.display_name": {
+          "source": "Hi-Res",
+          "message": "고해상도"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOnZsbQ.display_name": {
+          "source": "Vision Language Model",
+          "message": "비전 언어 모델"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.desc": {
+          "source": "How the document is analyzed.\n\n- `auto` — let Unstructured choose based on the document\n- `fast` — text extraction only; fastest and cheapest, but no OCR\n- `hi_res` — layout-model inference; needed for accurate tables and element types (the API default)\n- `ocr_only` — OCR the whole document; for scans with no text layer\n- `od_only` — object detection only\n- `vlm` — use a vision language model; see `vlm_model_provider` and `vlm_model`",
+          "message": "문서를 분석하는 방식입니다.\n\n- `auto` — 문서에 따라 Unstructured가 선택하도록 함\n- `fast` — 텍스트 추출만 수행. 가장 빠르고 저렴하지만 OCR은 하지 않음\n- `hi_res` — 레이아웃 모델 추론. 정확한 표와 요소 유형에 필요함(API 기본값)\n- `ocr_only` — 문서 전체를 OCR 처리. 텍스트 레이어가 없는 스캔본에 적합\n- `od_only` — 객체 탐지만 수행\n- `vlm` — 비전 언어 모델 사용. `vlm_model_provider` 및 `vlm_model` 참조"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.display_name": {
+          "source": "Strategy",
+          "message": "전략"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.short_desc": {
+          "source": "Partitioning strategy",
+          "message": "분할 전략"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.desc": {
+          "source": "When `True` (the API default), `Table` elements from PDFs carry an HTML rendering of the table in `metadata.text_as_html`.  Requires the `hi_res` strategy.",
+          "message": "`True`(API 기본값)이면 PDF에서 나온 `Table` 요소가 표의 HTML 표현을 `metadata.text_as_html`에 담습니다. `hi_res` 전략이 필요합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.display_name": {
+          "source": "Infer PDF Table Structure",
+          "message": "PDF 표 구조 추론"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.short_desc": {
+          "source": "Reconstruct table structure in PDFs",
+          "message": "PDF의 표 구조 재구성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dW5pcXVlX2VsZW1lbnRfaWRz.desc": {
+          "source": "When `True`, every element gets a UUID.  By default the ID is a hash of the element's text, so identical text produces identical IDs.",
+          "message": "`True`이면 모든 요소에 UUID가 부여됩니다. 기본적으로 ID는 요소 텍스트의 해시이므로 동일한 텍스트는 동일한 ID를 생성합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dW5pcXVlX2VsZW1lbnRfaWRz.display_name": {
+          "source": "Unique Element IDs",
+          "message": "고유 요소 ID"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dW5pcXVlX2VsZW1lbnRfaWRz.short_desc": {
+          "source": "Assign a unique ID to every element",
+          "message": "모든 요소에 고유 ID 할당"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVs.desc": {
+          "source": "Vision language model to use when `strategy` is `vlm`; must be available from `vlm_model_provider`.",
+          "message": "`strategy`가 `vlm`일 때 사용되는 비전 언어 모델이며, `vlm_model_provider`에서 사용할 수 있어야 합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVs.display_name": {
+          "source": "VLM Model",
+          "message": "VLM 모델"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVs.short_desc": {
+          "source": "Vision language model to use",
+          "message": "사용할 비전 언어 모델"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOm9wZW5haQ.display_name": {
+          "source": "OpenAI",
+          "message": "OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmF6dXJlX29wZW5haQ.display_name": {
+          "source": "Azure OpenAI",
+          "message": "Azure OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpY19iZWRyb2Nr.display_name": {
+          "source": "Anthropic on Bedrock",
+          "message": "Bedrock의 Anthropic"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpYw.display_name": {
+          "source": "Anthropic",
+          "message": "Anthropic"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmJlZHJvY2s.display_name": {
+          "source": "AWS Bedrock",
+          "message": "AWS Bedrock"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmdvb2dsZQ.display_name": {
+          "source": "Google",
+          "message": "Google"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOnZlcnRleGFp.display_name": {
+          "source": "Google Vertex AI",
+          "message": "Google Vertex AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.desc": {
+          "source": "Provider of the vision language model used when `strategy` is `vlm`.",
+          "message": "`strategy`가 `vlm`일 때 사용되는 비전 언어 모델의 공급자입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.display_name": {
+          "source": "VLM Provider",
+          "message": "VLM 공급자"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.short_desc": {
+          "source": "Vision language model provider",
+          "message": "비전 언어 모델 공급자"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.eG1sX2tlZXBfdGFncw.desc": {
+          "source": "When `True`, XML tags are retained in the extracted text instead of being stripped.",
+          "message": "`True`이면 XML 태그가 제거되지 않고 추출된 텍스트에 유지됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.eG1sX2tlZXBfdGFncw.display_name": {
+          "source": "Keep XML Tags",
+          "message": "XML 태그 유지"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.eG1sX2tlZXBfdGFncw.short_desc": {
+          "source": "Retain XML tags in extracted text",
+          "message": "추출된 텍스트에 XML 태그 유지"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.short_desc": {
+          "source": "Partition a document file into a typed element tree",
+          "message": "문서 파일을 형식화된 요소 트리로 분할합니다"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.desc": {
-          "source": "Submits raw text to Unstructured.io for partitioning.  Returns the document as a list of typed elements (Title, NarrativeText, ListItem, Table, etc.).\n\nFor PDFs and other binary formats, use the lower-level @ref UnstructuredRestClient::UnstructuredRestClientIo::partitionFile() method directly.",
-          "message": "파티셔닝을 위해 원시 텍스트를 Unstructured.io에 제출합니다. 문서를 유형화된 요소(Title, NarrativeText, ListItem, Table 등) 목록으로 반환합니다.\n\nPDF 및 기타 바이너리 형식의 경우 하위 수준의 @ref UnstructuredRestClient::UnstructuredRestClientIo::partitionFile() 메서드를 직접 사용하십시오."
+          "source": "Submits text to [Unstructured.io](https://unstructured.io) and returns it as a list of typed elements — `Title`, `NarrativeText`, `ListItem`, `Table` and so on — each with its own metadata.\n\nUse this when the content is already text; for **PDFs, Office documents, images and emails** use `partition-file`.\n\n**Note**: set `content_type` when the text carries structure, or the markup is not parsed — HTML submitted as `text/plain` comes back as a single element holding the raw markup, and Markdown keeps its `#` and `-` markers in the element text.",
+          "message": "텍스트를 [Unstructured.io](https://unstructured.io)에 전송하고 형식화된 요소 목록(`Title`, `NarrativeText`, `ListItem`, `Table` 등)으로 반환합니다. 각 요소는 고유한 메타데이터를 가집니다.\n\n내용이 이미 텍스트인 경우 이 작업을 사용하십시오. **PDF, Office 문서, 이미지, 이메일**에는 `partition-file`을 사용하십시오.\n\n**참고**: 텍스트가 구조를 가진 경우 `content_type`을 설정하십시오. 설정하지 않으면 마크업이 구문 분석되지 않습니다. `text/plain`으로 전송된 HTML은 원시 마크업을 담은 단일 요소로 반환되고, Markdown은 요소 텍스트에 `#` 및 `-` 기호를 그대로 유지합니다."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.display_name": {
           "source": "Partition Text",
           "message": "텍스트 파티셔닝"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.desc": {
+          "source": "Consecutive chunks are combined until they reach this length, so that a short section does not become a chunk of its own.  Applies only when `chunking_strategy` is set.",
+          "message": "짧은 섹션이 단독 청크가 되지 않도록, 연속된 청크는 이 길이에 도달할 때까지 결합됩니다. `chunking_strategy`가 설정된 경우에만 적용됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.display_name": {
+          "source": "Combine Under N Characters",
+          "message": "N자 미만 결합"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.short_desc": {
+          "source": "Merge chunks smaller than this",
+          "message": "이보다 작은 청크 병합"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29udGVudF90eXBl.desc": {
+          "source": "MIME type of the document content, in `type/subtype` form.\n\nUnstructured uses this to decide how to parse the input, so setting it matters for any text format that carries structure.  Content submitted as `text/plain` is not parsed for markup: HTML returns as a single element holding the raw markup, and Markdown keeps its `#` and `-` markers in the element text.",
+          "message": "문서 내용의 MIME 유형이며 `type/subtype` 형식입니다.\n\nUnstructured는 이를 기준으로 입력을 구문 분석하는 방법을 결정하므로, 구조를 가진 텍스트 형식에서는 설정이 중요합니다. `text/plain`으로 전송된 내용은 마크업이 구문 분석되지 않습니다. HTML은 원시 마크업을 담은 단일 요소로 반환되고, Markdown은 요소 텍스트에 `#` 및 `-` 기호를 그대로 유지합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29udGVudF90eXBl.display_name": {
+          "source": "Content Type",
+          "message": "콘텐츠 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29udGVudF90eXBl.short_desc": {
+          "source": "MIME type hint for the document",
+          "message": "문서의 MIME 유형 힌트"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29vcmRpbmF0ZXM.desc": {
-          "source": "When `True`, each element includes layout coordinates in its metadata.",
-          "message": "`True`인 경우, 각 요소의 메타데이터에 레이아웃 좌표가 포함됩니다."
+          "source": "When `True`, each element includes its bounding box in `metadata.coordinates`.",
+          "message": "`True`이면 각 요소가 `metadata.coordinates`에 자신의 경계 상자를 포함합니다."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29vcmRpbmF0ZXM.display_name": {
           "source": "Coordinates",
@@ -346,6 +798,14 @@
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29vcmRpbmF0ZXM.short_desc": {
           "source": "Include layout coordinates in each element",
           "message": "각 요소에 레이아웃 좌표 포함"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3BhZ2U.display_name": {
+          "source": "By Page",
+          "message": "페이지 기준"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3NpbWlsYXJpdHk.display_name": {
+          "source": "By Similarity",
+          "message": "유사도 기준"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3RpdGxl.display_name": {
           "source": "By Title",
@@ -356,8 +816,8 @@
           "message": "기본"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.desc": {
-          "source": "Server-side chunking strategy — `by_title` or `basic`.  When set, Unstructured groups elements into chunks server-side.",
-          "message": "서버 측 청킹 전략 — `by_title` 또는 `basic`. 설정 시 Unstructured가 서버 측에서 요소를 청크로 그룹화합니다."
+          "source": "Groups the partitioned elements into chunks server-side, returning `CompositeElement` chunks instead of the raw element tree.\n\n- `basic` — fill each chunk up to the size limits\n- `by_title` — start a new chunk at each section heading\n- `by_page` — start a new chunk at each page boundary\n- `by_similarity` — group topically similar elements; see `similarity_threshold`\n\nWhen unset, no chunking is performed and the other chunking options are ignored.",
+          "message": "분할된 요소를 서버 측에서 청크로 묶어 원시 요소 트리 대신 `CompositeElement` 청크를 반환합니다.\n\n- `basic` — 크기 한도까지 각 청크를 채움\n- `by_title` — 각 섹션 제목에서 새 청크를 시작함\n- `by_page` — 각 페이지 경계에서 새 청크를 시작함\n- `by_similarity` — 주제가 유사한 요소를 묶음. `similarity_threshold` 참조\n\n설정하지 않으면 청크 처리를 수행하지 않으며 다른 청크 옵션은 무시됩니다."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.display_name": {
           "source": "Chunking Strategy",
@@ -366,6 +826,102 @@
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.short_desc": {
           "source": "Server-side chunking strategy",
           "message": "서버 측 청킹 전략"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZW5jb2Rpbmc.desc": {
+          "source": "Character encoding used to decode the document text; defaults to `utf-8`.",
+          "message": "문서 텍스트를 디코딩하는 데 사용하는 문자 인코딩이며 기본값은 `utf-8`입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZW5jb2Rpbmc.display_name": {
+          "source": "Text Encoding",
+          "message": "텍스트 인코딩"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZW5jb2Rpbmc.short_desc": {
+          "source": "Character encoding used to decode the input",
+          "message": "입력을 디코딩하는 데 사용하는 문자 인코딩"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.desc": {
+          "source": "Element types to extract as images, returned base64-encoded in `metadata.image_base64`.\n\nUse it to keep figures and tables that carry meaning no text extraction can recover — charts, diagrams, scanned tables — alongside the text.",
+          "message": "이미지로 추출하여 `metadata.image_base64`에 base64로 인코딩해 반환할 요소 유형입니다.\n\n텍스트 추출로는 복원할 수 없는 의미를 지닌 그림과 표(차트, 도해, 스캔된 표)를 텍스트와 함께 보존하는 데 사용하십시오."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.display_name": {
+          "source": "Extract Image Block Types",
+          "message": "추출할 이미지 블록 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.short_desc": {
+          "source": "Element types to return as base64 images",
+          "message": "base64 이미지로 반환할 요소 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aGlfcmVzX21vZGVsX25hbWU.desc": {
+          "source": "Name of the layout inference model used when `strategy` is `hi_res`.",
+          "message": "`strategy`가 `hi_res`일 때 사용되는 레이아웃 추론 모델의 이름입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aGlfcmVzX21vZGVsX25hbWU.display_name": {
+          "source": "Hi-Res Model Name",
+          "message": "고해상도 모델 이름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aGlfcmVzX21vZGVsX25hbWU.short_desc": {
+          "source": "Layout model to use with the hi_res strategy",
+          "message": "hi_res 전략에 사용할 레이아웃 모델"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.desc": {
+          "source": "When `True` (the API default), each chunk carries the elements it was assembled from in `metadata.orig_elements`.",
+          "message": "`True`(API 기본값)이면 각 청크가 구성 요소들을 `metadata.orig_elements`에 담습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.display_name": {
+          "source": "Include Original Elements",
+          "message": "원본 요소 포함"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.short_desc": {
+          "source": "Return the elements each chunk was built from",
+          "message": "각 청크를 구성한 요소 반환"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.desc": {
+          "source": "When `True`, a `PageBreak` element is emitted at each page boundary.",
+          "message": "`True`이면 각 페이지 경계에서 `PageBreak` 요소가 생성됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.display_name": {
+          "source": "Include Page Breaks",
+          "message": "페이지 나누기 포함"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.short_desc": {
+          "source": "Emit an element at each page boundary",
+          "message": "각 페이지 경계에서 요소 생성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.desc": {
+          "source": "When `True` (the API default), presenter notes in PPTX documents are partitioned along with the slides.",
+          "message": "`True`(API 기본값)이면 PPTX 문서의 발표자 노트가 슬라이드와 함께 분할됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.display_name": {
+          "source": "Include Slide Notes",
+          "message": "슬라이드 노트 포함"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.short_desc": {
+          "source": "Include presenter notes from presentations",
+          "message": "프레젠테이션의 발표자 노트 포함"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcA.desc": {
+          "source": "Number of characters drawn from the end of one chunk and prefixed to the next, so that context is not lost at a chunk boundary.  By default this applies only to chunks produced by splitting an oversized element; see `overlap_all`.",
+          "message": "청크 경계에서 문맥이 유실되지 않도록 한 청크의 끝에서 가져와 다음 청크 앞에 붙이는 문자 수입니다. 기본적으로 크기가 너무 큰 요소를 분할해 생성된 청크에만 적용됩니다. `overlap_all`을 참조하십시오."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcA.display_name": {
+          "source": "Chunk Overlap",
+          "message": "청크 중첩"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcA.short_desc": {
+          "source": "Characters carried over between chunks",
+          "message": "청크 간에 이월되는 문자"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcF9hbGw.desc": {
+          "source": "When `True`, `overlap` is applied between every pair of adjacent chunks, not only those produced by splitting an oversized element.",
+          "message": "`True`이면 `overlap`이 인접한 모든 청크 쌍에 적용되며, 크기가 너무 큰 요소의 분할로 생성된 청크에만 국한되지 않습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcF9hbGw.display_name": {
+          "source": "Overlap All Chunks",
+          "message": "모든 청크 중첩"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcF9hbGw.short_desc": {
+          "source": "Apply the overlap between every pair of chunks",
+          "message": "모든 청크 쌍 사이에 중첩 적용"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.desc": {
           "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
@@ -379,9 +935,97 @@
           "source": "Document language hints (ISO codes)",
           "message": "문서 언어 힌트 (ISO 코드)"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bWF4X2NoYXJhY3RlcnM.desc": {
+          "source": "Hard maximum number of characters in a chunk; a larger element is split.  Applies only when `chunking_strategy` is set.",
+          "message": "청크의 하드 최대 문자 수이며, 이를 초과하는 요소는 분할됩니다. `chunking_strategy`가 설정된 경우에만 적용됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bWF4X2NoYXJhY3RlcnM.display_name": {
+          "source": "Maximum Chunk Size",
+          "message": "최대 청크 크기"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bWF4X2NoYXJhY3RlcnM.short_desc": {
+          "source": "Hard character limit per chunk",
+          "message": "청크당 문자 수 하드 한도"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bXVsdGlwYWdlX3NlY3Rpb25z.desc": {
+          "source": "When `True` (the API default), a chunk may span more than one page.",
+          "message": "`True`(API 기본값)이면 청크가 두 페이지 이상에 걸칠 수 있습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bXVsdGlwYWdlX3NlY3Rpb25z.display_name": {
+          "source": "Multipage Sections",
+          "message": "다중 페이지 섹션"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bXVsdGlwYWdlX3NlY3Rpb25z.short_desc": {
+          "source": "Allow a chunk to span pages",
+          "message": "청크가 여러 페이지에 걸치도록 허용"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bmV3X2FmdGVyX25fY2hhcnM.desc": {
+          "source": "Soft maximum: a chunk is closed once it reaches this length, without splitting the element that crosses it.  Applies only when `chunking_strategy` is set.",
+          "message": "소프트 최대값입니다. 청크는 이 길이에 도달하면 닫히며, 경계를 넘는 요소는 분할되지 않습니다. `chunking_strategy`가 설정된 경우에만 적용됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bmV3X2FmdGVyX25fY2hhcnM.display_name": {
+          "source": "Soft Chunk Size",
+          "message": "소프트 청크 크기"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bmV3X2FmdGVyX25fY2hhcnM.short_desc": {
+          "source": "Soft character limit per chunk",
+          "message": "청크당 문자 수 소프트 한도"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.desc": {
+          "source": "Value between `0.0` and `1.0` giving the minimum similarity two elements must have to land in the same chunk.  Applies only when `chunking_strategy` is `by_similarity`.",
+          "message": "두 요소가 같은 청크에 포함되기 위해 필요한 최소 유사도를 나타내는 `0.0`에서 `1.0` 사이의 값입니다. `chunking_strategy`가 `by_similarity`인 경우에만 적용됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.display_name": {
+          "source": "Similarity Threshold",
+          "message": "유사도 임계값"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.short_desc": {
+          "source": "Minimum similarity for by_similarity chunking",
+          "message": "유사도 기준 청크 처리의 최소 유사도"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF90YWJsZV9jaHVua2luZw.desc": {
+          "source": "When `True`, `Table` elements are returned whole instead of being chunked.",
+          "message": "`True`이면 `Table` 요소가 청크로 나뉘지 않고 통째로 반환됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF90YWJsZV9jaHVua2luZw.display_name": {
+          "source": "Skip Table Chunking",
+          "message": "표 청크 처리 건너뛰기"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF90YWJsZV9jaHVua2luZw.short_desc": {
+          "source": "Leave table elements unchunked",
+          "message": "표 요소를 청크로 나누지 않음"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.desc": {
+          "source": "Document types to skip table extraction for, for example `pdf`, `jpg` or `heic`.",
+          "message": "표 추출을 건너뛸 문서 유형입니다. 예를 들어 `pdf`, `jpg`, `heic` 등입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.display_name": {
+          "source": "Skip Table Inference For",
+          "message": "표 추론을 건너뛸 대상"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.short_desc": {
+          "source": "Document types to skip table extraction for",
+          "message": "표 추출을 건너뛸 문서 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.desc": {
+          "source": "Page number to assign to the first page of the submitted document.  Set it when submitting a slice of a larger document so that `metadata.page_number` stays correct.",
+          "message": "전송한 문서의 첫 페이지에 할당할 페이지 번호입니다. 더 큰 문서의 일부를 전송할 때 설정하면 `metadata.page_number`가 정확하게 유지됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.display_name": {
+          "source": "Starting Page Number",
+          "message": "시작 페이지 번호"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.short_desc": {
+          "source": "Page number to assign to the first page",
+          "message": "첫 페이지에 할당할 페이지 번호"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9jcl9vbmx5.display_name": {
           "source": "OCR Only",
           "message": "OCR 전용"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9kX29ubHk.display_name": {
+          "source": "Object Detection Only",
+          "message": "객체 탐지 전용"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmF1dG8.display_name": {
           "source": "Auto",
@@ -395,9 +1039,13 @@
           "source": "Hi-Res",
           "message": "고해상도"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOnZsbQ.display_name": {
+          "source": "Vision Language Model",
+          "message": "비전 언어 모델"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.desc": {
-          "source": "Partitioning strategy — `auto`, `fast`, `hi_res`, or `ocr_only`.",
-          "message": "파티셔닝 전략 — `auto`, `fast`, `hi_res` 또는 `ocr_only`."
+          "source": "How the document is analyzed.\n\n- `auto` — let Unstructured choose based on the document\n- `fast` — text extraction only; fastest and cheapest, but no OCR\n- `hi_res` — layout-model inference; needed for accurate tables and element types (the API default)\n- `ocr_only` — OCR the whole document; for scans with no text layer\n- `od_only` — object detection only\n- `vlm` — use a vision language model; see `vlm_model_provider` and `vlm_model`",
+          "message": "문서를 분석하는 방식입니다.\n\n- `auto` — 문서에 따라 Unstructured가 선택하도록 함\n- `fast` — 텍스트 추출만 수행. 가장 빠르고 저렴하지만 OCR은 하지 않음\n- `hi_res` — 레이아웃 모델 추론. 정확한 표와 요소 유형에 필요함(API 기본값)\n- `ocr_only` — 문서 전체를 OCR 처리. 텍스트 레이어가 없는 스캔본에 적합\n- `od_only` — 객체 탐지만 수행\n- `vlm` — 비전 언어 모델 사용. `vlm_model_provider` 및 `vlm_model` 참조"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.display_name": {
           "source": "Strategy",
@@ -407,9 +1055,21 @@
           "source": "Partitioning strategy",
           "message": "파티셔닝 전략"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.desc": {
+          "source": "When `True` (the API default), `Table` elements from PDFs carry an HTML rendering of the table in `metadata.text_as_html`.  Requires the `hi_res` strategy.",
+          "message": "`True`(API 기본값)이면 PDF에서 나온 `Table` 요소가 표의 HTML 표현을 `metadata.text_as_html`에 담습니다. `hi_res` 전략이 필요합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.display_name": {
+          "source": "Infer PDF Table Structure",
+          "message": "PDF 표 구조 추론"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.short_desc": {
+          "source": "Reconstruct table structure in PDFs",
+          "message": "PDF의 표 구조 재구성"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dGV4dA.desc": {
-          "source": "Raw text content of the document to partition.",
-          "message": "파티셔닝할 문서의 원시 텍스트 콘텐츠입니다."
+          "source": "Raw text content of the document to partition.\n\nSet `content_type` when the text carries structure — Markdown, HTML or CSV — otherwise it is submitted as plain text and its markup is not parsed.",
+          "message": "분할할 문서의 원본 텍스트 내용입니다.\n\n텍스트가 구조(Markdown, HTML, CSV)를 가진 경우 `content_type`을 설정하십시오. 설정하지 않으면 일반 텍스트로 전송되며 마크업이 구문 분석되지 않습니다."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dGV4dA.display_name": {
           "source": "Text",
@@ -418,6 +1078,82 @@
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dGV4dA.short_desc": {
           "source": "Document text content to partition",
           "message": "파티셔닝할 문서 텍스트 콘텐츠"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dW5pcXVlX2VsZW1lbnRfaWRz.desc": {
+          "source": "When `True`, every element gets a UUID.  By default the ID is a hash of the element's text, so identical text produces identical IDs.",
+          "message": "`True`이면 모든 요소에 UUID가 부여됩니다. 기본적으로 ID는 요소 텍스트의 해시이므로 동일한 텍스트는 동일한 ID를 생성합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dW5pcXVlX2VsZW1lbnRfaWRz.display_name": {
+          "source": "Unique Element IDs",
+          "message": "고유 요소 ID"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dW5pcXVlX2VsZW1lbnRfaWRz.short_desc": {
+          "source": "Assign a unique ID to every element",
+          "message": "모든 요소에 고유 ID 할당"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVs.desc": {
+          "source": "Vision language model to use when `strategy` is `vlm`; must be available from `vlm_model_provider`.",
+          "message": "`strategy`가 `vlm`일 때 사용되는 비전 언어 모델이며, `vlm_model_provider`에서 사용할 수 있어야 합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVs.display_name": {
+          "source": "VLM Model",
+          "message": "VLM 모델"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVs.short_desc": {
+          "source": "Vision language model to use",
+          "message": "사용할 비전 언어 모델"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOm9wZW5haQ.display_name": {
+          "source": "OpenAI",
+          "message": "OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmF6dXJlX29wZW5haQ.display_name": {
+          "source": "Azure OpenAI",
+          "message": "Azure OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpY19iZWRyb2Nr.display_name": {
+          "source": "Anthropic on Bedrock",
+          "message": "Bedrock의 Anthropic"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpYw.display_name": {
+          "source": "Anthropic",
+          "message": "Anthropic"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmJlZHJvY2s.display_name": {
+          "source": "AWS Bedrock",
+          "message": "AWS Bedrock"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmdvb2dsZQ.display_name": {
+          "source": "Google",
+          "message": "Google"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOnZlcnRleGFp.display_name": {
+          "source": "Google Vertex AI",
+          "message": "Google Vertex AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.desc": {
+          "source": "Provider of the vision language model used when `strategy` is `vlm`.",
+          "message": "`strategy`가 `vlm`일 때 사용되는 비전 언어 모델의 공급자입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.display_name": {
+          "source": "VLM Provider",
+          "message": "VLM 공급자"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.short_desc": {
+          "source": "Vision language model provider",
+          "message": "비전 언어 모델 공급자"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.eG1sX2tlZXBfdGFncw.desc": {
+          "source": "When `True`, XML tags are retained in the extracted text instead of being stripped.",
+          "message": "`True`이면 XML 태그가 제거되지 않고 추출된 텍스트에 유지됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.eG1sX2tlZXBfdGFncw.display_name": {
+          "source": "Keep XML Tags",
+          "message": "XML 태그 유지"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.eG1sX2tlZXBfdGFncw.short_desc": {
+          "source": "Retain XML tags in extracted text",
+          "message": "추출된 텍스트에 XML 태그 유지"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.short_desc": {
           "source": "Partition raw text into a typed element tree",

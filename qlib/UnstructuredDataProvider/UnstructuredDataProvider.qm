@@ -59,16 +59,53 @@ module UnstructuredDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": UnstructuredDataProvider::AppName,
+            "path": "/partition-file",
+            "action": "partition-file",
+            "display_name": "Partition Document",
+            "short_desc": "Partition a document file into a typed element tree",
+            "desc": "Submits a document to [Unstructured.io](https://unstructured.io) and "
+                "returns it as a list of typed elements — `Title`, `NarrativeText`, "
+                "`ListItem`, `Table`, `Image` and so on — each with its own metadata.\n\n"
+                "This is the action to use for **PDFs, Office documents, images, emails** "
+                "and every other format Unstructured supports; use `partition-text` for "
+                "content already held as text.\n\n"
+                "**Typical uses**:\n"
+                "- Turning a document archive into records a RAG pipeline can index, with "
+                "`chunking_strategy` producing retrieval-sized chunks directly\n"
+                "- Pulling tables out of reports as HTML with `pdf_infer_table_structure`\n"
+                "- Reading scans and photographs with the `ocr_only` or `hi_res` strategies\n\n"
+                "Give the document either inline as `file_data` or by `file_path`.",
+            "action_code": DPAT_API,
+            "groups": ("Document Extraction",),
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
+                UnstructuredPartitionFileRequestDataType::Fields{
+                    "file_data", "file_path", "filename",
+                }, {
+                    "preselected": True,
+                }
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
+                UnstructuredPartitionFileRequestDataType::Fields - (
+                    "file_data", "file_path", "filename",
+                )
+            ),
+            "output_type": UnstructuredPartitionFileDataProvider::ResponseType,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": UnstructuredDataProvider::AppName,
             "path": "/partition-text",
             "action": "partition-text",
             "display_name": "Partition Text",
             "short_desc": "Partition raw text into a typed element tree",
-            "desc": "Submits raw text to Unstructured.io for partitioning.  Returns "
-                "the document as a list of typed elements (Title, NarrativeText, "
-                "ListItem, Table, etc.).\n\n"
-                "For PDFs and other binary formats, use the lower-level "
-                "@ref UnstructuredRestClient::UnstructuredRestClientIo::partitionFile() "
-                "method directly.",
+            "desc": "Submits text to [Unstructured.io](https://unstructured.io) and returns it "
+                "as a list of typed elements — `Title`, `NarrativeText`, `ListItem`, `Table` "
+                "and so on — each with its own metadata.\n\n"
+                "Use this when the content is already text; for **PDFs, Office documents, "
+                "images and emails** use `partition-file`.\n\n"
+                "**Note**: set `content_type` when the text carries structure, or the "
+                "markup is not parsed — HTML submitted as `text/plain` comes back as a single "
+                "element holding the raw markup, and Markdown keeps its `#` and `-` markers "
+                "in the element text.",
             "action_code": DPAT_API,
             "groups": ("Document Extraction",),
             "options": DataProviderActionCatalog::getActionOptionFromFields(
@@ -76,15 +113,7 @@ module UnstructuredDataProvider {
                     "preselected": True, "required": True,
                 }
             ) + DataProviderActionCatalog::getActionOptionFromFields(
-                UnstructuredPartitionTextRequestDataType::Fields{
-                    "strategy", "chunking_strategy",
-                }, {
-                    "preselected": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                UnstructuredPartitionTextRequestDataType::Fields - (
-                    "text", "strategy", "chunking_strategy",
-                )
+                UnstructuredPartitionTextRequestDataType::Fields - ("text",)
             ),
             "output_type": UnstructuredPartitionTextDataProvider::ResponseType,
         });
@@ -98,9 +127,21 @@ module UnstructuredDataProvider {
     @section unstructureddataproviderintro UnstructuredDataProvider Introduction
 
     Data-provider integration for
-    [Unstructured.io](https://unstructured.io).  Exposes a single
-    `partition-text` DPAT_API action that posts text to Unstructured's
-    `/general/v0/general` endpoint.
+    [Unstructured.io](https://unstructured.io), which breaks a document into
+    a typed element tree suitable for RAG ingestion.
+
+    Two `DPAT_API` actions post to Unstructured's `/general/v0/general`
+    endpoint:
+
+    - `partition-file` — for PDFs, Office documents, images, emails and every
+      other format Unstructured supports; the document is given either inline
+      or by local path
+    - `partition-text` — for content already held as text; set `content_type`
+      when that text carries structure, or its markup is not parsed
+
+    Both accept the endpoint's full option set: partitioning strategy, OCR
+    languages, table-structure inference, image-block extraction, and
+    server-side chunking with its size, overlap and similarity controls.
 
     For RAG-pipeline integration, prefer the
     @ref QoreRagUtils::UnstructuredChunker "UnstructuredChunker" backend

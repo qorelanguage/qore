@@ -158,6 +158,11 @@ public class UnstructuredRestClient inherits RestClient::RestClient, Unstructure
     `POST /general/v0/general` endpoint.
 */
 public class UnstructuredRestClientIo inherits RestClientIo::RestClientIo, UnstructuredRestClientBase {
+    public {
+        #! File name used for the multipart part synthesized by @ref partitionText()
+        const TextFilename = "input.txt";
+    }
+
     constructor(hash<auto> opts, *HttpClientIo::HttpClientConnectionManager shared_mgr)
             : RestClientIo(UnstructuredRestClientBase::getOptions(opts), shared_mgr) {
     }
@@ -207,14 +212,16 @@ public class UnstructuredRestClientIo inherits RestClientIo::RestClientIo, Unstr
             {"body": resp.body};
     }
 
-    #! Partitions raw text by synthesizing a text/plain multipart upload
+    #! Partitions raw text by synthesizing a multipart upload from it
     /** @param text the document text to partition
-        @param options optional Unstructured fields
+        @param options optional Unstructured fields; \c content_type sets the MIME type the
+            text is submitted as, which decides how Unstructured parses it — content submitted
+            as \c "text/plain" has its markup left unparsed
 
         @return list of element hashes
     */
     list<hash<auto>> partitionText(string text, *hash<auto> options) {
-        return partition("input.txt", "text/plain", text, options);
+        return partition(TextFilename, options.content_type ?? MimeTypeText, text, options);
     }
 
     #! Partitions a file on disk (reads the file, then calls @ref partition())

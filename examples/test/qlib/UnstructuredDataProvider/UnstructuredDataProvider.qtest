@@ -6,6 +6,8 @@
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
 %requires Util
+%requires FsUtil
+%requires Mime
 %requires QUnit
 %requires Logger
 %requires ConnectionProvider
@@ -20,6 +22,9 @@
 class FakeUnstructuredRestClientIo inherits UnstructuredRestClient::UnstructuredRestClientIo {
     public {
         string last_text;
+        *string last_filename;
+        *string last_content_type;
+        *data last_body;
         *hash<auto> last_options;
         list<hash<auto>> canned_elements;
     }
@@ -27,6 +32,15 @@ class FakeUnstructuredRestClientIo inherits UnstructuredRestClient::Unstructured
 
     list<hash<auto>> partitionText(string text, *hash<auto> options) {
         last_text = text;
+        last_options = options;
+        return canned_elements;
+    }
+
+    list<hash<auto>> partition(string filename, string content_type, data body,
+            *hash<auto> options) {
+        last_filename = filename;
+        last_content_type = content_type;
+        last_body = body;
         last_options = options;
         return canned_elements;
     }
@@ -39,6 +53,24 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         };
 
         const OptionColumn = 22;
+
+        #! A minimal, valid one-page PDF carrying a heading and two paragraphs
+        /** Base64-encoded so the fixture needs no binary file in the repository and keeps its
+            \c xref table intact; Unstructured rejects a PDF without \c startxref.
+        */
+        const TestPdfBase64 =
+            "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoK"
+            "PDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUg"
+            "L1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8"
+            "IC9GMSA1IDAgUiA+PiA+PiAvQ29udGVudHMgNCAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAxOTQg"
+            "Pj4Kc3RyZWFtCkJUIC9GMSAxOCBUZiA3MiA3MjAgVGQgKFF1YXJ0ZXJseSBSZXBvcnQpIFRqIEVUCkJUIC9GMSAx"
+            "MSBUZiA3MiA2OTAgVGQgKFJldmVudWUgZ3JldyBieSB0d2VsdmUgcGVyY2VudCB0aGlzIHF1YXJ0ZXIuKSBUaiBF"
+            "VApCVCAvRjEgMTEgVGYgNzIgNjcwIFRkIChDb3N0cyByZW1haW5lZCBmbGF0IGFjcm9zcyBhbGwgcmVnaW9ucy4p"
+            "IFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKNSAwIG9iago8PCAvVHlwZSAvRm9udCAvU3VidHlwZSAvVHlwZTEgL0Jh"
+            "c2VGb250IC9IZWx2ZXRpY2EgPj4KZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAw"
+            "OSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTUgMDAwMDAgbiAKMDAwMDAwMDI0MSAwMDAw"
+            "MCBuIAowMDAwMDAwNDg2IDAwMDAwIG4gCnRyYWlsZXIKPDwgL1NpemUgNiAvUm9vdCAxIDAgUiA+PgpzdGFydHhy"
+            "ZWYKNTU2CiUlRU9GCg==";
 
         const TestElements = (
             {"type": "Title", "text": "Section One", "element_id": "e1",
@@ -60,12 +92,16 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         addTestCase("constructor requires an API key", \constructorOptionsTest());
         addTestCase("request and response types", \providerTypesTest());
         addTestCase("partition-text forwards to partitionText()", \partitionTextTest());
+        addTestCase("partition-file accepts inline data and a path", \partitionFileTest());
+        addTestCase("partition-file rejects an ambiguous document argument",
+            \partitionFileArgumentTest());
 
         # Live tests require a real Unstructured connection.  Unstructured Serverless free tier:
         # 1000 pages/month; these tests submit a few bytes of text.
         if (conn_name) {
             addTestCase("live: connection provides the data provider", \liveConnectionTest());
             addTestCase("live: partition-text round trip", \livePartitionTextTest());
+            addTestCase("live: partition-file round trip", \livePartitionFileTest());
         }
         set_return_value(main());
     }
@@ -91,11 +127,36 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("UnstructuredIo"),
             $1.action != AbstractDataProvider::GenericApiCallActionName;
-        assertEq(1, actions.size());
-        assertEq("partition-text", actions[0].action);
-        assertEq(DPAT_API, actions[0].action_code);
-        # "text" is the required input of the action
-        assertTrue(actions[0].options.text.required);
+        assertEq(("partition-file", "partition-text"), sort((map $1.action, actions)));
+        map assertEq(DPAT_API, $1.action_code, $1.action), actions;
+
+        hash<DataProviderActionInfo> text_action =
+            (select actions, $1.action == "partition-text")[0];
+        hash<DataProviderActionInfo> file_action =
+            (select actions, $1.action == "partition-file")[0];
+
+        # "text" is the required input of the text action
+        assertTrue(text_action.options.text.required);
+        # the document is given either inline or by path, so neither is required on its own,
+        # but both must be shown upfront
+        assertTrue(file_action.options.file_data.preselected);
+        assertTrue(file_action.options.file_path.preselected);
+
+        # the endpoint's option set is exposed, not just a handful of it
+        map assertTrue(exists text_action.options{$1}, $1),
+            ("strategy", "content_type", "chunking_strategy", "max_characters", "overlap",
+             "extract_image_block_types", "pdf_infer_table_structure", "coordinates");
+        map assertTrue(exists file_action.options{$1}, $1),
+            ("strategy", "content_type", "chunking_strategy", "max_characters", "overlap",
+             "extract_image_block_types", "pdf_infer_table_structure", "coordinates");
+        assertTrue(text_action.options.size() > 20,
+            sprintf("partition-text exposes %d options", text_action.options.size()));
+
+        # the strategies the API actually accepts, verified against its OpenAPI schema
+        assertEq(("auto", "fast", "hi_res", "ocr_only", "od_only", "vlm"),
+            (map $1.value, text_action.options.strategy.allowed_values));
+        assertEq(("basic", "by_title", "by_page", "by_similarity"),
+            (map $1.value, text_action.options.chunking_strategy.allowed_values));
     }
 
     private providerHierarchyTest() {
@@ -108,9 +169,12 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         assertEq("partition-text", child.getName());
         assertTrue(child.getInfo().supports_request);
 
-        # summary info is published for the child
-        assertEq(("partition-text",),
-            (map $1.name, prov.getChildProviderSummaryInfo()));
+        assertTrue(prov.getChildProviderNames().contains("partition-file"));
+        assertEq("partition-file", prov.getChildProviderEx("partition-file").getName());
+
+        # summary info is published for every child
+        assertEq(("partition-file", "partition-text"),
+            sort((map $1.name, prov.getChildProviderSummaryInfo())));
 
         assertThrows("INVALID-CHILD-PROVIDER", sub () {
             prov.getChildProviderEx("does-not-exist");
@@ -147,18 +211,34 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         assertEq("string", req.getFields().text.getType().getName());
         assertTrue(req.getFields().text.isMandatory());
         assertFalse(req.getFields().strategy.isMandatory());
-        # the partitioning strategies Unstructured accepts
-        assertEq(("auto", "fast", "hi_res", "ocr_only"),
+        # the partitioning strategies Unstructured accepts, verified against its OpenAPI schema
+        assertEq(("auto", "fast", "hi_res", "ocr_only", "od_only", "vlm"),
             (map $1.value, req.getFields().strategy.getAllowedValues()));
-        assertEq(("by_title", "basic"),
+        assertEq(("basic", "by_title", "by_page", "by_similarity"),
             (map $1.value, req.getFields().chunking_strategy.getAllowedValues()));
+
+        # the file action shares the same option set and adds the document arguments
+        AbstractDataProvider pf =
+            new UnstructuredDataProvider::UnstructuredPartitionFileDataProvider(fake);
+        AbstractDataProviderType freq = pf.getRequestType();
+        assertEq("UnstructuredPartitionFileRequest", freq.getName());
+        map assertTrue(exists freq.getFields(){$1}, $1),
+            ("file_data", "file_path", "filename");
+        # neither document argument is mandatory on its own; the provider enforces the choice
+        map assertFalse(freq.getFields(){$1}.isMandatory(), $1),
+            ("file_data", "file_path");
+        # both actions expose the identical partition option set
+        assertEq(keys (req.getFields() - "text"),
+            keys (freq.getFields() - ("file_data", "file_path", "filename")));
+        assertEq("UnstructuredPartitionResponse", pf.getResponseType().getName());
 
         # types must be named; an unnamed HashDataType reports as "hash<auto>" and the UI has
         # no schema to render
         assertEq("UnstructuredPartitionTextRequest", req.getName());
 
         AbstractDataProviderType resp = pt.getResponseType();
-        assertEq("UnstructuredPartitionTextResponse", resp.getName());
+        # both actions share one response type
+        assertEq("UnstructuredPartitionResponse", resp.getName());
         assertEq(("elt_list",), keys resp.getFields());
         assertEq("UnstructuredElementList", resp.getFields().elt_list.getType().getName());
 
@@ -193,6 +273,53 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         assertEq(1, resp.elt_list[0].metadata.page_number);
     }
 
+    private partitionFileTest() {
+        FakeUnstructuredRestClientIo fake();
+        fake.canned_elements = TestElements;
+        UnstructuredDataProvider::UnstructuredPartitionFileDataProvider prov(fake);
+
+        # inline content: the caller's filename and content type are used
+        auto resp = prov.doRequest({
+            "file_data": binary("%PDF-1.4 fake"),
+            "filename": "q3.pdf",
+            "content_type": MimeTypePdf,
+            "strategy": "fast",
+        });
+        assertEq("q3.pdf", fake.last_filename);
+        assertEq(MimeTypePdf, fake.last_content_type);
+        assertEq(binary("%PDF-1.4 fake"), fake.last_body);
+        assertEq("fast", fake.last_options.strategy);
+        # the content type stays in the options: it is also Unstructured's own hint field
+        assertEq(MimeTypePdf, fake.last_options.content_type);
+        # the document arguments are not forwarded as partition options
+        map assertEq(NOTHING, fake.last_options{$1}, $1),
+            ("file_data", "file_path", "filename");
+        assertEq(2, resp.elt_list.size());
+
+        # by path: the file is read and the base name is used when no filename is given
+        TmpFile tmp("unstructured-", ".pdf");
+        File f();
+        f.open2(tmp.path, O_WRONLY | O_TRUNC);
+        f.write("%PDF-1.4 on disk");
+        f.close();
+        prov.doRequest({"file_path": tmp.path, "content_type": MimeTypePdf});
+        assertEq(basename(tmp.path), fake.last_filename);
+        assertFalse(fake.last_filename =~ /\//);
+        assertEq(binary("%PDF-1.4 on disk"), fake.last_body);
+    }
+
+    private partitionFileArgumentTest() {
+        FakeUnstructuredRestClientIo fake();
+        UnstructuredDataProvider::UnstructuredPartitionFileDataProvider prov(fake);
+
+        assertThrows("PARTITION-FILE-ERROR", "mutually exclusive", sub () {
+            prov.doRequest({"file_data": <00>, "file_path": "/tmp/does-not-matter"});
+        });
+        assertThrows("PARTITION-FILE-ERROR", "is required", sub () {
+            prov.doRequest({"strategy": "fast"});
+        });
+    }
+
     private liveConnectionTest() {
         AbstractConnection conn = get_connection(conn_name);
         assertEq("unstructured", conn.getType());
@@ -221,5 +348,72 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         assertTrue(resp.elt_list.size() >= 1, "Unstructured returned at least one element");
         assertTrue(resp.elt_list[0].type.val(), "Unstructured element has a type");
         assertTrue(resp.elt_list[0].text.val(), "Unstructured element has text");
+
+        # content_type decides how the text is parsed.  Submitted as plain text, HTML is not
+        # parsed at all and returns as one element holding the raw markup
+        string html = "<html><body><h1>Heading</h1><p>Some narrative text here.</p>"
+            "<ul><li>bullet one</li><li>bullet two</li></ul></body></html>";
+        auto plain = pt.doRequest({"text": html, "strategy": "fast"});
+        assertEq(1, plain.elt_list.size());
+        assertTrue(plain.elt_list[0].text =~ /<h1>/, "plain text keeps the raw markup");
+
+        auto parsed = pt.doRequest({
+            "text": html,
+            "content_type": MimeTypeHtml,
+            "strategy": "fast",
+        });
+        assertTrue(parsed.elt_list.size() > plain.elt_list.size(),
+            sprintf("HTML yielded %d elements, plain text %d",
+                parsed.elt_list.size(), plain.elt_list.size()));
+        assertEq("Title", parsed.elt_list[0]."type");
+        assertEq("Heading", parsed.elt_list[0].text);
+        assertEq(("ListItem", "ListItem"),
+            (map $1."type", (select parsed.elt_list, $1."type" == "ListItem")));
+    }
+
+    #! Exercises the action that matters most: a real binary document
+    private livePartitionFileTest() {
+        AbstractConnection conn = get_connection(conn_name);
+        AbstractDataProvider pf = conn.getDataProvider().getChildProviderEx("partition-file");
+
+        TmpFile tmp("unstructured-", ".pdf");
+        File f();
+        f.open2(tmp.path, O_WRONLY | O_TRUNC);
+        f.write(parse_base64_string(TestPdfBase64));
+        f.close();
+
+        auto resp = pf.doRequest({
+            "file_path": tmp.path,
+            "content_type": MimeTypePdf,
+            "strategy": "fast",
+        });
+        assertTrue(resp.elt_list.size() >= 2,
+            sprintf("Unstructured returned %d elements from the PDF", resp.elt_list.size()));
+        assertEq("Title", resp.elt_list[0]."type");
+        assertEq("Quarterly Report", resp.elt_list[0].text);
+        # typed metadata carries the page and source file
+        assertEq(1, resp.elt_list[0].metadata.page_number);
+        assertEq(basename(tmp.path), resp.elt_list[0].metadata.filename);
+
+        # the same document supplied inline, with the reported name overridden
+        auto inline_resp = pf.doRequest({
+            "file_data": ReadOnlyFile::readBinaryFile(tmp.path),
+            "filename": "q3.pdf",
+            "content_type": MimeTypePdf,
+            "strategy": "fast",
+        });
+        assertEq(resp.elt_list.size(), inline_resp.elt_list.size());
+        assertEq("q3.pdf", inline_resp.elt_list[0].metadata.filename);
+
+        # server-side chunking returns composite chunks instead of the raw element tree
+        auto chunked = pf.doRequest({
+            "file_path": tmp.path,
+            "content_type": MimeTypePdf,
+            "strategy": "fast",
+            "chunking_strategy": "basic",
+            "max_characters": 2000,
+        });
+        assertEq("CompositeElement", chunked.elt_list[0]."type");
+        assertTrue(chunked.elt_list.size() <= resp.elt_list.size());
     }
 }

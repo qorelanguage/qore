@@ -215,6 +215,7 @@ public class UnstructuredRestClientTest inherits QUnit::Test {
             \knownApiUrlsTest());
         addTestCase("partition sends a well-formed multipart request", \wireFormatTest());
         addTestCase("partition sends repeated fields for list options", \wireListOptionTest());
+        addTestCase("partitionText honors the content type", \wireContentTypeTest());
         addTestCase("partitionFile sends the file basename", \partitionFileTest());
         addTestCase("partition accepts both response shapes", \responseShapeTest());
         addTestCase("partition rejects an unknown response shape", \badResponseShapeTest());
@@ -476,6 +477,46 @@ public class UnstructuredRestClientTest inherits QUnit::Test {
         assertTrue(body =~ /\r\ndeu\r\n/);
         # the file part is still there alongside them
         assertEq(1, body.split("name=\"files\"").size() - 1);
+    }
+
+    #! content_type must set the multipart part's own type, not just the API hint field
+    /** Unstructured decides how to parse the input from the part's Content-Type, so submitting
+        Markdown or HTML without it leaves the markup unparsed.
+    */
+    private wireContentTypeTest() {
+        CaptureServer server();
+        UnstructuredRestClient::UnstructuredRestClientIo client({
+            "url": server.getUrl(),
+            "apikey": "wire-key",
+            "http_version": "1.1",
+        });
+        client.partitionText("# Heading\n\ntext", {"content_type": MimeTypeHtml});
+        server.wait();
+        assertEq(NOTHING, server.error);
+
+        hash<string, hash<FormDataMessageInfo>> parts = MultiPartFormDataMessage::parseMessage(
+            server.req_hdr."content-type", server.getBodyString());
+        string part_ct = parts.files.hdr."content-type";
+        assertEq(MimeTypeHtml, part_ct.substr(0, MimeTypeHtml.size()),
+            sprintf("part Content-Type: %y", part_ct));
+        # ... and it is still sent as Unstructured's own content_type hint field
+        assertEq(MimeTypeHtml, parts.content_type.body);
+
+        # with no content type the part defaults to text/plain
+        CaptureServer plain_server();
+        UnstructuredRestClient::UnstructuredRestClientIo plain_client({
+            "url": plain_server.getUrl(),
+            "apikey": "wire-key",
+            "http_version": "1.1",
+        });
+        plain_client.partitionText("just text");
+        plain_server.wait();
+        assertEq(NOTHING, plain_server.error);
+        parts = MultiPartFormDataMessage::parseMessage(
+            plain_server.req_hdr."content-type", plain_server.getBodyString());
+        part_ct = parts.files.hdr."content-type";
+        assertEq(MimeTypeText, part_ct.substr(0, MimeTypeText.size()),
+            sprintf("part Content-Type: %y", part_ct));
     }
 
     private partitionFileTest() {

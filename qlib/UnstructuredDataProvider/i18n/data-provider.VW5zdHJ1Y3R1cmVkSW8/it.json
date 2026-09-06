@@ -327,17 +327,469 @@
           "source": "Make a custom API call to Unstructured.io",
           "message": "Esegui una chiamata API personalizzata a Unstructured.io"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.desc": {
+          "source": "Submits a document to [Unstructured.io](https://unstructured.io) and returns it as a list of typed elements — `Title`, `NarrativeText`, `ListItem`, `Table`, `Image` and so on — each with its own metadata.\n\nThis is the action to use for **PDFs, Office documents, images, emails** and every other format Unstructured supports; use `partition-text` for content already held as text.\n\n**Typical uses**:\n- Turning a document archive into records a RAG pipeline can index, with `chunking_strategy` producing retrieval-sized chunks directly\n- Pulling tables out of reports as HTML with `pdf_infer_table_structure`\n- Reading scans and photographs with the `ocr_only` or `hi_res` strategies\n\nGive the document either inline as `file_data` or by `file_path`.",
+          "message": "Invia un documento a [Unstructured.io](https://unstructured.io) e lo restituisce come elenco di elementi tipizzati — `Title`, `NarrativeText`, `ListItem`, `Table`, `Image` e così via — ciascuno con i propri metadati.\n\nQuesta è l'azione da usare per **PDF, documenti Office, immagini ed e-mail** e per ogni altro formato supportato da Unstructured; per contenuti già disponibili come testo usare `partition-text`.\n\n**Usi tipici**:\n- Trasformare un archivio documentale in record indicizzabili da una pipeline RAG, con `chunking_strategy` che produce direttamente frammenti della dimensione adatta al recupero\n- Estrarre le tabelle dai report in HTML con `pdf_infer_table_structure`\n- Leggere scansioni e fotografie con le strategie `ocr_only` o `hi_res`\n\nIndicare il documento in linea con `file_data` oppure tramite `file_path`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.display_name": {
+          "source": "Partition Document",
+          "message": "Partiziona documento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.desc": {
+          "source": "Consecutive chunks are combined until they reach this length, so that a short section does not become a chunk of its own.  Applies only when `chunking_strategy` is set.",
+          "message": "I frammenti consecutivi vengono uniti finché non raggiungono questa lunghezza, in modo che una sezione breve non diventi un frammento a sé.  Si applica solo quando `chunking_strategy` è impostata."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.display_name": {
+          "source": "Combine Under N Characters",
+          "message": "Unire sotto N caratteri"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.short_desc": {
+          "source": "Merge chunks smaller than this",
+          "message": "Unire i frammenti più piccoli di questa dimensione"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29udGVudF90eXBl.desc": {
+          "source": "MIME type of the document content, in `type/subtype` form.\n\nUnstructured uses this to decide how to parse the input, so setting it matters for any text format that carries structure.  Content submitted as `text/plain` is not parsed for markup: HTML returns as a single element holding the raw markup, and Markdown keeps its `#` and `-` markers in the element text.",
+          "message": "Tipo MIME del contenuto del documento, nella forma `type/subtype`.\n\nUnstructured lo usa per decidere come analizzare l'input, quindi impostarlo è importante per qualunque formato di testo dotato di struttura.  Il contenuto inviato come `text/plain` non viene analizzato per il markup: l'HTML torna come un unico elemento contenente il markup grezzo e il Markdown mantiene i suoi marcatori `#` e `-` nel testo dell'elemento."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29udGVudF90eXBl.display_name": {
+          "source": "Content Type",
+          "message": "Tipo di contenuto"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29udGVudF90eXBl.short_desc": {
+          "source": "MIME type hint for the document",
+          "message": "Suggerimento di tipo MIME per il documento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29vcmRpbmF0ZXM.desc": {
+          "source": "When `True`, each element includes its bounding box in `metadata.coordinates`.",
+          "message": "Se `True`, ogni elemento include il proprio rettangolo di delimitazione in `metadata.coordinates`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29vcmRpbmF0ZXM.display_name": {
+          "source": "Coordinates",
+          "message": "Coordinate"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29vcmRpbmF0ZXM.short_desc": {
+          "source": "Include layout coordinates in each element",
+          "message": "Includere le coordinate di layout in ogni elemento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3BhZ2U.display_name": {
+          "source": "By Page",
+          "message": "Per pagina"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3NpbWlsYXJpdHk.display_name": {
+          "source": "By Similarity",
+          "message": "Per somiglianza"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3RpdGxl.display_name": {
+          "source": "By Title",
+          "message": "Per titolo"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "Base"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.desc": {
+          "source": "Groups the partitioned elements into chunks server-side, returning `CompositeElement` chunks instead of the raw element tree.\n\n- `basic` — fill each chunk up to the size limits\n- `by_title` — start a new chunk at each section heading\n- `by_page` — start a new chunk at each page boundary\n- `by_similarity` — group topically similar elements; see `similarity_threshold`\n\nWhen unset, no chunking is performed and the other chunking options are ignored.",
+          "message": "Raggruppa lato server gli elementi partizionati in frammenti, restituendo frammenti `CompositeElement` anziché l'albero di elementi grezzo.\n\n- `basic` — riempire ogni frammento fino ai limiti di dimensione\n- `by_title` — iniziare un nuovo frammento a ogni intestazione di sezione\n- `by_page` — iniziare un nuovo frammento a ogni cambio pagina\n- `by_similarity` — raggruppare elementi tematicamente simili; vedere `similarity_threshold`\n\nSe non impostata, non viene eseguita alcuna suddivisione e le altre opzioni di suddivisione vengono ignorate."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.display_name": {
+          "source": "Chunking Strategy",
+          "message": "Strategia di suddivisione"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.short_desc": {
+          "source": "Server-side chunking strategy",
+          "message": "Strategia di suddivisione lato server"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZW5jb2Rpbmc.desc": {
+          "source": "Character encoding used to decode the document text; defaults to `utf-8`.",
+          "message": "Codifica dei caratteri usata per decodificare il testo del documento; il valore predefinito è `utf-8`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZW5jb2Rpbmc.display_name": {
+          "source": "Text Encoding",
+          "message": "Codifica del testo"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZW5jb2Rpbmc.short_desc": {
+          "source": "Character encoding used to decode the input",
+          "message": "Codifica dei caratteri usata per decodificare l'input"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.desc": {
+          "source": "Element types to extract as images, returned base64-encoded in `metadata.image_base64`.\n\nUse it to keep figures and tables that carry meaning no text extraction can recover — charts, diagrams, scanned tables — alongside the text.",
+          "message": "Tipi di elemento da estrarre come immagini, restituite codificate in base64 in `metadata.image_base64`.\n\nUsarlo per conservare, accanto al testo, figure e tabelle il cui significato nessuna estrazione testuale può recuperare: grafici, diagrammi, tabelle scansionate."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.display_name": {
+          "source": "Extract Image Block Types",
+          "message": "Tipi di blocco immagine da estrarre"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.short_desc": {
+          "source": "Element types to return as base64 images",
+          "message": "Tipi di elemento da restituire come immagini base64"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9kYXRh.desc": {
+          "source": "Raw content of the document to partition — a PDF, DOCX, PPTX, XLSX, image, email or any other format Unstructured supports.\n\nMutually exclusive with `file_path`; exactly one of the two is required.",
+          "message": "Contenuto grezzo del documento da partizionare: un PDF, DOCX, PPTX, XLSX, un'immagine, un'e-mail o qualsiasi altro formato supportato da Unstructured.\n\nMutuamente esclusivo con `file_path`; è richiesto esattamente uno dei due."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9kYXRh.display_name": {
+          "source": "File Data",
+          "message": "Dati del file"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9kYXRh.short_desc": {
+          "source": "Document content to partition",
+          "message": "Contenuto del documento da partizionare"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9wYXRo.desc": {
+          "source": "Local path of the document to read and partition.\n\nMutually exclusive with `file_data`; exactly one of the two is required.",
+          "message": "Percorso locale del documento da leggere e partizionare.\n\nMutuamente esclusivo con `file_data`; è richiesto esattamente uno dei due."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9wYXRo.display_name": {
+          "source": "File Path",
+          "message": "Percorso del file"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9wYXRo.short_desc": {
+          "source": "Local path of the document to partition",
+          "message": "Percorso locale del documento da partizionare"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZW5hbWU.desc": {
+          "source": "Name reported to Unstructured for the document and returned in `metadata.filename`.  Defaults to the base name of `file_path`, or to `document` when `file_data` is used.",
+          "message": "Nome comunicato a Unstructured per il documento e restituito in `metadata.filename`.  Per impostazione predefinita il nome base di `file_path`, oppure `document` quando si usa `file_data`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZW5hbWU.display_name": {
+          "source": "File Name",
+          "message": "Nome del file"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZW5hbWU.short_desc": {
+          "source": "Name to report for the document",
+          "message": "Nome da indicare per il documento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aGlfcmVzX21vZGVsX25hbWU.desc": {
+          "source": "Name of the layout inference model used when `strategy` is `hi_res`.",
+          "message": "Nome del modello di inferenza del layout usato quando `strategy` è `hi_res`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aGlfcmVzX21vZGVsX25hbWU.display_name": {
+          "source": "Hi-Res Model Name",
+          "message": "Nome del modello ad alta risoluzione"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aGlfcmVzX21vZGVsX25hbWU.short_desc": {
+          "source": "Layout model to use with the hi_res strategy",
+          "message": "Modello di layout da usare con la strategia hi_res"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.desc": {
+          "source": "When `True` (the API default), each chunk carries the elements it was assembled from in `metadata.orig_elements`.",
+          "message": "Se `True` (valore predefinito dell'API), ogni frammento riporta in `metadata.orig_elements` gli elementi da cui è stato composto."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.display_name": {
+          "source": "Include Original Elements",
+          "message": "Includere gli elementi originali"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.short_desc": {
+          "source": "Return the elements each chunk was built from",
+          "message": "Restituire gli elementi da cui è stato costruito ogni frammento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.desc": {
+          "source": "When `True`, a `PageBreak` element is emitted at each page boundary.",
+          "message": "Se `True`, viene emesso un elemento `PageBreak` a ogni cambio pagina."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.display_name": {
+          "source": "Include Page Breaks",
+          "message": "Includere le interruzioni di pagina"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.short_desc": {
+          "source": "Emit an element at each page boundary",
+          "message": "Emettere un elemento a ogni cambio pagina"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.desc": {
+          "source": "When `True` (the API default), presenter notes in PPTX documents are partitioned along with the slides.",
+          "message": "Se `True` (valore predefinito dell'API), le note del relatore nei documenti PPTX vengono partizionate insieme alle diapositive."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.display_name": {
+          "source": "Include Slide Notes",
+          "message": "Includere le note delle diapositive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.short_desc": {
+          "source": "Include presenter notes from presentations",
+          "message": "Includere le note del relatore delle presentazioni"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcA.desc": {
+          "source": "Number of characters drawn from the end of one chunk and prefixed to the next, so that context is not lost at a chunk boundary.  By default this applies only to chunks produced by splitting an oversized element; see `overlap_all`.",
+          "message": "Numero di caratteri presi dalla fine di un frammento e anteposti al successivo, in modo che al confine tra frammenti non si perda contesto.  Per impostazione predefinita si applica solo ai frammenti prodotti dividendo un elemento troppo grande; vedere `overlap_all`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcA.display_name": {
+          "source": "Chunk Overlap",
+          "message": "Sovrapposizione dei frammenti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcA.short_desc": {
+          "source": "Characters carried over between chunks",
+          "message": "Caratteri riportati da un frammento al successivo"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcF9hbGw.desc": {
+          "source": "When `True`, `overlap` is applied between every pair of adjacent chunks, not only those produced by splitting an oversized element.",
+          "message": "Se `True`, `overlap` viene applicata tra ogni coppia di frammenti adiacenti e non solo a quelli prodotti dividendo un elemento troppo grande."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcF9hbGw.display_name": {
+          "source": "Overlap All Chunks",
+          "message": "Sovrapporre tutti i frammenti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcF9hbGw.short_desc": {
+          "source": "Apply the overlap between every pair of chunks",
+          "message": "Applicare la sovrapposizione tra ogni coppia di frammenti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bGFuZ3VhZ2Vz.desc": {
+          "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
+          "message": "Elenco dei codici lingua ISO 639 presenti nel documento, usati per guidare il partizionamento e l'OCR."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bGFuZ3VhZ2Vz.display_name": {
+          "source": "Languages",
+          "message": "Lingue"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bGFuZ3VhZ2Vz.short_desc": {
+          "source": "Document language hints (ISO codes)",
+          "message": "Suggerimenti di lingua del documento (codici ISO)"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bWF4X2NoYXJhY3RlcnM.desc": {
+          "source": "Hard maximum number of characters in a chunk; a larger element is split.  Applies only when `chunking_strategy` is set.",
+          "message": "Numero massimo rigido di caratteri in un frammento; un elemento più grande viene diviso.  Si applica solo quando `chunking_strategy` è impostata."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bWF4X2NoYXJhY3RlcnM.display_name": {
+          "source": "Maximum Chunk Size",
+          "message": "Dimensione massima del frammento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bWF4X2NoYXJhY3RlcnM.short_desc": {
+          "source": "Hard character limit per chunk",
+          "message": "Limite rigido di caratteri per frammento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bXVsdGlwYWdlX3NlY3Rpb25z.desc": {
+          "source": "When `True` (the API default), a chunk may span more than one page.",
+          "message": "Se `True` (valore predefinito dell'API), un frammento può estendersi su più di una pagina."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bXVsdGlwYWdlX3NlY3Rpb25z.display_name": {
+          "source": "Multipage Sections",
+          "message": "Sezioni su più pagine"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bXVsdGlwYWdlX3NlY3Rpb25z.short_desc": {
+          "source": "Allow a chunk to span pages",
+          "message": "Consentire a un frammento di estendersi su più pagine"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bmV3X2FmdGVyX25fY2hhcnM.desc": {
+          "source": "Soft maximum: a chunk is closed once it reaches this length, without splitting the element that crosses it.  Applies only when `chunking_strategy` is set.",
+          "message": "Massimo flessibile: un frammento viene chiuso non appena raggiunge questa lunghezza, senza dividere l'elemento che oltrepassa il limite.  Si applica solo quando `chunking_strategy` è impostata."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bmV3X2FmdGVyX25fY2hhcnM.display_name": {
+          "source": "Soft Chunk Size",
+          "message": "Dimensione flessibile del frammento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bmV3X2FmdGVyX25fY2hhcnM.short_desc": {
+          "source": "Soft character limit per chunk",
+          "message": "Limite flessibile di caratteri per frammento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.desc": {
+          "source": "Value between `0.0` and `1.0` giving the minimum similarity two elements must have to land in the same chunk.  Applies only when `chunking_strategy` is `by_similarity`.",
+          "message": "Valore compreso tra `0.0` e `1.0` che indica la somiglianza minima che due elementi devono avere per finire nello stesso frammento.  Si applica solo quando `chunking_strategy` è `by_similarity`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.display_name": {
+          "source": "Similarity Threshold",
+          "message": "Soglia di somiglianza"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.short_desc": {
+          "source": "Minimum similarity for by_similarity chunking",
+          "message": "Somiglianza minima per la suddivisione per somiglianza"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF90YWJsZV9jaHVua2luZw.desc": {
+          "source": "When `True`, `Table` elements are returned whole instead of being chunked.",
+          "message": "Se `True`, gli elementi `Table` vengono restituiti interi anziché essere suddivisi."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF90YWJsZV9jaHVua2luZw.display_name": {
+          "source": "Skip Table Chunking",
+          "message": "Saltare la suddivisione delle tabelle"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF90YWJsZV9jaHVua2luZw.short_desc": {
+          "source": "Leave table elements unchunked",
+          "message": "Lasciare gli elementi tabella non suddivisi"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.desc": {
+          "source": "Document types to skip table extraction for, for example `pdf`, `jpg` or `heic`.",
+          "message": "Tipi di documento per cui saltare l'estrazione delle tabelle, ad esempio `pdf`, `jpg` o `heic`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.display_name": {
+          "source": "Skip Table Inference For",
+          "message": "Saltare la deduzione delle tabelle per"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.short_desc": {
+          "source": "Document types to skip table extraction for",
+          "message": "Tipi di documento per cui saltare l'estrazione delle tabelle"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.desc": {
+          "source": "Page number to assign to the first page of the submitted document.  Set it when submitting a slice of a larger document so that `metadata.page_number` stays correct.",
+          "message": "Numero di pagina da assegnare alla prima pagina del documento inviato.  Impostarlo quando si invia una porzione di un documento più grande, in modo che `metadata.page_number` resti corretto."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.display_name": {
+          "source": "Starting Page Number",
+          "message": "Numero della prima pagina"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.short_desc": {
+          "source": "Page number to assign to the first page",
+          "message": "Numero di pagina da assegnare alla prima pagina"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9jcl9vbmx5.display_name": {
+          "source": "OCR Only",
+          "message": "Solo OCR"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9kX29ubHk.display_name": {
+          "source": "Object Detection Only",
+          "message": "Solo rilevamento di oggetti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Automatica"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "Veloce"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmhpX3Jlcw.display_name": {
+          "source": "Hi-Res",
+          "message": "Alta risoluzione"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOnZsbQ.display_name": {
+          "source": "Vision Language Model",
+          "message": "Modello visione-linguaggio"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.desc": {
+          "source": "How the document is analyzed.\n\n- `auto` — let Unstructured choose based on the document\n- `fast` — text extraction only; fastest and cheapest, but no OCR\n- `hi_res` — layout-model inference; needed for accurate tables and element types (the API default)\n- `ocr_only` — OCR the whole document; for scans with no text layer\n- `od_only` — object detection only\n- `vlm` — use a vision language model; see `vlm_model_provider` and `vlm_model`",
+          "message": "Come viene analizzato il documento.\n\n- `auto` — lasciare che Unstructured scelga in base al documento\n- `fast` — solo estrazione del testo; la più rapida ed economica, ma senza OCR\n- `hi_res` — inferenza con modello di layout; necessaria per tabelle e tipi di elemento accurati (valore predefinito dell'API)\n- `ocr_only` — applicare l'OCR all'intero documento; per scansioni prive di livello testuale\n- `od_only` — solo rilevamento di oggetti\n- `vlm` — usare un modello visione-linguaggio; vedere `vlm_model_provider` e `vlm_model`"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.display_name": {
+          "source": "Strategy",
+          "message": "Strategia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.short_desc": {
+          "source": "Partitioning strategy",
+          "message": "Strategia di partizionamento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.desc": {
+          "source": "When `True` (the API default), `Table` elements from PDFs carry an HTML rendering of the table in `metadata.text_as_html`.  Requires the `hi_res` strategy.",
+          "message": "Se `True` (valore predefinito dell'API), gli elementi `Table` provenienti da PDF riportano una resa HTML della tabella in `metadata.text_as_html`.  Richiede la strategia `hi_res`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.display_name": {
+          "source": "Infer PDF Table Structure",
+          "message": "Dedurre la struttura delle tabelle PDF"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.short_desc": {
+          "source": "Reconstruct table structure in PDFs",
+          "message": "Ricostruire la struttura delle tabelle nei PDF"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dW5pcXVlX2VsZW1lbnRfaWRz.desc": {
+          "source": "When `True`, every element gets a UUID.  By default the ID is a hash of the element's text, so identical text produces identical IDs.",
+          "message": "Se `True`, ogni elemento riceve un UUID.  Per impostazione predefinita l'ID è un hash del testo dell'elemento, quindi testi identici producono ID identici."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dW5pcXVlX2VsZW1lbnRfaWRz.display_name": {
+          "source": "Unique Element IDs",
+          "message": "ID elemento univoci"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dW5pcXVlX2VsZW1lbnRfaWRz.short_desc": {
+          "source": "Assign a unique ID to every element",
+          "message": "Assegnare un ID univoco a ogni elemento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVs.desc": {
+          "source": "Vision language model to use when `strategy` is `vlm`; must be available from `vlm_model_provider`.",
+          "message": "Modello visione-linguaggio da usare quando `strategy` è `vlm`; deve essere disponibile presso `vlm_model_provider`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVs.display_name": {
+          "source": "VLM Model",
+          "message": "Modello VLM"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVs.short_desc": {
+          "source": "Vision language model to use",
+          "message": "Modello visione-linguaggio da usare"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOm9wZW5haQ.display_name": {
+          "source": "OpenAI",
+          "message": "OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmF6dXJlX29wZW5haQ.display_name": {
+          "source": "Azure OpenAI",
+          "message": "Azure OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpY19iZWRyb2Nr.display_name": {
+          "source": "Anthropic on Bedrock",
+          "message": "Anthropic su Bedrock"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpYw.display_name": {
+          "source": "Anthropic",
+          "message": "Anthropic"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmJlZHJvY2s.display_name": {
+          "source": "AWS Bedrock",
+          "message": "AWS Bedrock"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmdvb2dsZQ.display_name": {
+          "source": "Google",
+          "message": "Google"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOnZlcnRleGFp.display_name": {
+          "source": "Google Vertex AI",
+          "message": "Google Vertex AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.desc": {
+          "source": "Provider of the vision language model used when `strategy` is `vlm`.",
+          "message": "Provider del modello visione-linguaggio usato quando `strategy` è `vlm`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.display_name": {
+          "source": "VLM Provider",
+          "message": "Provider VLM"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.short_desc": {
+          "source": "Vision language model provider",
+          "message": "Provider del modello visione-linguaggio"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.eG1sX2tlZXBfdGFncw.desc": {
+          "source": "When `True`, XML tags are retained in the extracted text instead of being stripped.",
+          "message": "Se `True`, i tag XML vengono mantenuti nel testo estratto anziché essere rimossi."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.eG1sX2tlZXBfdGFncw.display_name": {
+          "source": "Keep XML Tags",
+          "message": "Mantenere i tag XML"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.eG1sX2tlZXBfdGFncw.short_desc": {
+          "source": "Retain XML tags in extracted text",
+          "message": "Mantenere i tag XML nel testo estratto"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.short_desc": {
+          "source": "Partition a document file into a typed element tree",
+          "message": "Partiziona un file di documento in un albero di elementi tipizzati"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.desc": {
-          "source": "Submits raw text to Unstructured.io for partitioning.  Returns the document as a list of typed elements (Title, NarrativeText, ListItem, Table, etc.).\n\nFor PDFs and other binary formats, use the lower-level @ref UnstructuredRestClient::UnstructuredRestClientIo::partitionFile() method directly.",
-          "message": "Invia testo non elaborato a Unstructured.io per il partizionamento. Restituisce il documento come elenco di elementi tipizzati (Title, NarrativeText, ListItem, Table, ecc.).\n\nPer PDF e altri formati binari, utilizza direttamente il metodo di livello inferiore @ref UnstructuredRestClient::UnstructuredRestClientIo::partitionFile()."
+          "source": "Submits text to [Unstructured.io](https://unstructured.io) and returns it as a list of typed elements — `Title`, `NarrativeText`, `ListItem`, `Table` and so on — each with its own metadata.\n\nUse this when the content is already text; for **PDFs, Office documents, images and emails** use `partition-file`.\n\n**Note**: set `content_type` when the text carries structure, or the markup is not parsed — HTML submitted as `text/plain` comes back as a single element holding the raw markup, and Markdown keeps its `#` and `-` markers in the element text.",
+          "message": "Invia del testo a [Unstructured.io](https://unstructured.io) e lo restituisce come elenco di elementi tipizzati — `Title`, `NarrativeText`, `ListItem`, `Table` e così via — ciascuno con i propri metadati.\n\nUsare questa azione quando il contenuto è già testo; per **PDF, documenti Office, immagini ed e-mail** usare `partition-file`.\n\n**Nota**: impostare `content_type` quando il testo è dotato di struttura, altrimenti il markup non viene analizzato — l'HTML inviato come `text/plain` torna come un unico elemento contenente il markup grezzo e il Markdown mantiene i marcatori `#` e `-` nel testo dell'elemento."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.display_name": {
           "source": "Partition Text",
           "message": "Partiziona testo"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.desc": {
+          "source": "Consecutive chunks are combined until they reach this length, so that a short section does not become a chunk of its own.  Applies only when `chunking_strategy` is set.",
+          "message": "I frammenti consecutivi vengono uniti finché non raggiungono questa lunghezza, in modo che una sezione breve non diventi un frammento a sé.  Si applica solo quando `chunking_strategy` è impostata."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.display_name": {
+          "source": "Combine Under N Characters",
+          "message": "Unire sotto N caratteri"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.short_desc": {
+          "source": "Merge chunks smaller than this",
+          "message": "Unire i frammenti più piccoli di questa dimensione"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29udGVudF90eXBl.desc": {
+          "source": "MIME type of the document content, in `type/subtype` form.\n\nUnstructured uses this to decide how to parse the input, so setting it matters for any text format that carries structure.  Content submitted as `text/plain` is not parsed for markup: HTML returns as a single element holding the raw markup, and Markdown keeps its `#` and `-` markers in the element text.",
+          "message": "Tipo MIME del contenuto del documento, nella forma `type/subtype`.\n\nUnstructured lo usa per decidere come analizzare l'input, quindi impostarlo è importante per qualunque formato di testo dotato di struttura.  Il contenuto inviato come `text/plain` non viene analizzato per il markup: l'HTML torna come un unico elemento contenente il markup grezzo e il Markdown mantiene i suoi marcatori `#` e `-` nel testo dell'elemento."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29udGVudF90eXBl.display_name": {
+          "source": "Content Type",
+          "message": "Tipo di contenuto"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29udGVudF90eXBl.short_desc": {
+          "source": "MIME type hint for the document",
+          "message": "Suggerimento di tipo MIME per il documento"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29vcmRpbmF0ZXM.desc": {
-          "source": "When `True`, each element includes layout coordinates in its metadata.",
-          "message": "Quando è impostato su `True`, ogni elemento include le coordinate di layout nei propri metadati."
+          "source": "When `True`, each element includes its bounding box in `metadata.coordinates`.",
+          "message": "Se `True`, ogni elemento include il proprio rettangolo di delimitazione in `metadata.coordinates`."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29vcmRpbmF0ZXM.display_name": {
           "source": "Coordinates",
@@ -346,6 +798,14 @@
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29vcmRpbmF0ZXM.short_desc": {
           "source": "Include layout coordinates in each element",
           "message": "Includi le coordinate di layout in ogni elemento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3BhZ2U.display_name": {
+          "source": "By Page",
+          "message": "Per pagina"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3NpbWlsYXJpdHk.display_name": {
+          "source": "By Similarity",
+          "message": "Per somiglianza"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3RpdGxl.display_name": {
           "source": "By Title",
@@ -356,8 +816,8 @@
           "message": "Base"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.desc": {
-          "source": "Server-side chunking strategy — `by_title` or `basic`.  When set, Unstructured groups elements into chunks server-side.",
-          "message": "Strategia di chunking lato server — `by_title` o `basic`. Se impostata, Unstructured raggruppa gli elementi in blocchi sul lato server."
+          "source": "Groups the partitioned elements into chunks server-side, returning `CompositeElement` chunks instead of the raw element tree.\n\n- `basic` — fill each chunk up to the size limits\n- `by_title` — start a new chunk at each section heading\n- `by_page` — start a new chunk at each page boundary\n- `by_similarity` — group topically similar elements; see `similarity_threshold`\n\nWhen unset, no chunking is performed and the other chunking options are ignored.",
+          "message": "Raggruppa lato server gli elementi partizionati in frammenti, restituendo frammenti `CompositeElement` anziché l'albero di elementi grezzo.\n\n- `basic` — riempire ogni frammento fino ai limiti di dimensione\n- `by_title` — iniziare un nuovo frammento a ogni intestazione di sezione\n- `by_page` — iniziare un nuovo frammento a ogni cambio pagina\n- `by_similarity` — raggruppare elementi tematicamente simili; vedere `similarity_threshold`\n\nSe non impostata, non viene eseguita alcuna suddivisione e le altre opzioni di suddivisione vengono ignorate."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.display_name": {
           "source": "Chunking Strategy",
@@ -366,6 +826,102 @@
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.short_desc": {
           "source": "Server-side chunking strategy",
           "message": "Strategia di chunking lato server"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZW5jb2Rpbmc.desc": {
+          "source": "Character encoding used to decode the document text; defaults to `utf-8`.",
+          "message": "Codifica dei caratteri usata per decodificare il testo del documento; il valore predefinito è `utf-8`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZW5jb2Rpbmc.display_name": {
+          "source": "Text Encoding",
+          "message": "Codifica del testo"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZW5jb2Rpbmc.short_desc": {
+          "source": "Character encoding used to decode the input",
+          "message": "Codifica dei caratteri usata per decodificare l'input"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.desc": {
+          "source": "Element types to extract as images, returned base64-encoded in `metadata.image_base64`.\n\nUse it to keep figures and tables that carry meaning no text extraction can recover — charts, diagrams, scanned tables — alongside the text.",
+          "message": "Tipi di elemento da estrarre come immagini, restituite codificate in base64 in `metadata.image_base64`.\n\nUsarlo per conservare, accanto al testo, figure e tabelle il cui significato nessuna estrazione testuale può recuperare: grafici, diagrammi, tabelle scansionate."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.display_name": {
+          "source": "Extract Image Block Types",
+          "message": "Tipi di blocco immagine da estrarre"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.short_desc": {
+          "source": "Element types to return as base64 images",
+          "message": "Tipi di elemento da restituire come immagini base64"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aGlfcmVzX21vZGVsX25hbWU.desc": {
+          "source": "Name of the layout inference model used when `strategy` is `hi_res`.",
+          "message": "Nome del modello di inferenza del layout usato quando `strategy` è `hi_res`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aGlfcmVzX21vZGVsX25hbWU.display_name": {
+          "source": "Hi-Res Model Name",
+          "message": "Nome del modello ad alta risoluzione"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aGlfcmVzX21vZGVsX25hbWU.short_desc": {
+          "source": "Layout model to use with the hi_res strategy",
+          "message": "Modello di layout da usare con la strategia hi_res"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.desc": {
+          "source": "When `True` (the API default), each chunk carries the elements it was assembled from in `metadata.orig_elements`.",
+          "message": "Se `True` (valore predefinito dell'API), ogni frammento riporta in `metadata.orig_elements` gli elementi da cui è stato composto."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.display_name": {
+          "source": "Include Original Elements",
+          "message": "Includere gli elementi originali"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.short_desc": {
+          "source": "Return the elements each chunk was built from",
+          "message": "Restituire gli elementi da cui è stato costruito ogni frammento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.desc": {
+          "source": "When `True`, a `PageBreak` element is emitted at each page boundary.",
+          "message": "Se `True`, viene emesso un elemento `PageBreak` a ogni cambio pagina."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.display_name": {
+          "source": "Include Page Breaks",
+          "message": "Includere le interruzioni di pagina"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.short_desc": {
+          "source": "Emit an element at each page boundary",
+          "message": "Emettere un elemento a ogni cambio pagina"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.desc": {
+          "source": "When `True` (the API default), presenter notes in PPTX documents are partitioned along with the slides.",
+          "message": "Se `True` (valore predefinito dell'API), le note del relatore nei documenti PPTX vengono partizionate insieme alle diapositive."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.display_name": {
+          "source": "Include Slide Notes",
+          "message": "Includere le note delle diapositive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.short_desc": {
+          "source": "Include presenter notes from presentations",
+          "message": "Includere le note del relatore delle presentazioni"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcA.desc": {
+          "source": "Number of characters drawn from the end of one chunk and prefixed to the next, so that context is not lost at a chunk boundary.  By default this applies only to chunks produced by splitting an oversized element; see `overlap_all`.",
+          "message": "Numero di caratteri presi dalla fine di un frammento e anteposti al successivo, in modo che al confine tra frammenti non si perda contesto.  Per impostazione predefinita si applica solo ai frammenti prodotti dividendo un elemento troppo grande; vedere `overlap_all`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcA.display_name": {
+          "source": "Chunk Overlap",
+          "message": "Sovrapposizione dei frammenti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcA.short_desc": {
+          "source": "Characters carried over between chunks",
+          "message": "Caratteri riportati da un frammento al successivo"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcF9hbGw.desc": {
+          "source": "When `True`, `overlap` is applied between every pair of adjacent chunks, not only those produced by splitting an oversized element.",
+          "message": "Se `True`, `overlap` viene applicata tra ogni coppia di frammenti adiacenti e non solo a quelli prodotti dividendo un elemento troppo grande."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcF9hbGw.display_name": {
+          "source": "Overlap All Chunks",
+          "message": "Sovrapporre tutti i frammenti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcF9hbGw.short_desc": {
+          "source": "Apply the overlap between every pair of chunks",
+          "message": "Applicare la sovrapposizione tra ogni coppia di frammenti"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.desc": {
           "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
@@ -379,9 +935,97 @@
           "source": "Document language hints (ISO codes)",
           "message": "Suggerimenti per la lingua del documento (codici ISO)"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bWF4X2NoYXJhY3RlcnM.desc": {
+          "source": "Hard maximum number of characters in a chunk; a larger element is split.  Applies only when `chunking_strategy` is set.",
+          "message": "Numero massimo rigido di caratteri in un frammento; un elemento più grande viene diviso.  Si applica solo quando `chunking_strategy` è impostata."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bWF4X2NoYXJhY3RlcnM.display_name": {
+          "source": "Maximum Chunk Size",
+          "message": "Dimensione massima del frammento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bWF4X2NoYXJhY3RlcnM.short_desc": {
+          "source": "Hard character limit per chunk",
+          "message": "Limite rigido di caratteri per frammento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bXVsdGlwYWdlX3NlY3Rpb25z.desc": {
+          "source": "When `True` (the API default), a chunk may span more than one page.",
+          "message": "Se `True` (valore predefinito dell'API), un frammento può estendersi su più di una pagina."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bXVsdGlwYWdlX3NlY3Rpb25z.display_name": {
+          "source": "Multipage Sections",
+          "message": "Sezioni su più pagine"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bXVsdGlwYWdlX3NlY3Rpb25z.short_desc": {
+          "source": "Allow a chunk to span pages",
+          "message": "Consentire a un frammento di estendersi su più pagine"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bmV3X2FmdGVyX25fY2hhcnM.desc": {
+          "source": "Soft maximum: a chunk is closed once it reaches this length, without splitting the element that crosses it.  Applies only when `chunking_strategy` is set.",
+          "message": "Massimo flessibile: un frammento viene chiuso non appena raggiunge questa lunghezza, senza dividere l'elemento che oltrepassa il limite.  Si applica solo quando `chunking_strategy` è impostata."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bmV3X2FmdGVyX25fY2hhcnM.display_name": {
+          "source": "Soft Chunk Size",
+          "message": "Dimensione flessibile del frammento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bmV3X2FmdGVyX25fY2hhcnM.short_desc": {
+          "source": "Soft character limit per chunk",
+          "message": "Limite flessibile di caratteri per frammento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.desc": {
+          "source": "Value between `0.0` and `1.0` giving the minimum similarity two elements must have to land in the same chunk.  Applies only when `chunking_strategy` is `by_similarity`.",
+          "message": "Valore compreso tra `0.0` e `1.0` che indica la somiglianza minima che due elementi devono avere per finire nello stesso frammento.  Si applica solo quando `chunking_strategy` è `by_similarity`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.display_name": {
+          "source": "Similarity Threshold",
+          "message": "Soglia di somiglianza"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.short_desc": {
+          "source": "Minimum similarity for by_similarity chunking",
+          "message": "Somiglianza minima per la suddivisione per somiglianza"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF90YWJsZV9jaHVua2luZw.desc": {
+          "source": "When `True`, `Table` elements are returned whole instead of being chunked.",
+          "message": "Se `True`, gli elementi `Table` vengono restituiti interi anziché essere suddivisi."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF90YWJsZV9jaHVua2luZw.display_name": {
+          "source": "Skip Table Chunking",
+          "message": "Saltare la suddivisione delle tabelle"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF90YWJsZV9jaHVua2luZw.short_desc": {
+          "source": "Leave table elements unchunked",
+          "message": "Lasciare gli elementi tabella non suddivisi"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.desc": {
+          "source": "Document types to skip table extraction for, for example `pdf`, `jpg` or `heic`.",
+          "message": "Tipi di documento per cui saltare l'estrazione delle tabelle, ad esempio `pdf`, `jpg` o `heic`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.display_name": {
+          "source": "Skip Table Inference For",
+          "message": "Saltare la deduzione delle tabelle per"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.short_desc": {
+          "source": "Document types to skip table extraction for",
+          "message": "Tipi di documento per cui saltare l'estrazione delle tabelle"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.desc": {
+          "source": "Page number to assign to the first page of the submitted document.  Set it when submitting a slice of a larger document so that `metadata.page_number` stays correct.",
+          "message": "Numero di pagina da assegnare alla prima pagina del documento inviato.  Impostarlo quando si invia una porzione di un documento più grande, in modo che `metadata.page_number` resti corretto."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.display_name": {
+          "source": "Starting Page Number",
+          "message": "Numero della prima pagina"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.short_desc": {
+          "source": "Page number to assign to the first page",
+          "message": "Numero di pagina da assegnare alla prima pagina"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9jcl9vbmx5.display_name": {
           "source": "OCR Only",
           "message": "Solo OCR"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9kX29ubHk.display_name": {
+          "source": "Object Detection Only",
+          "message": "Solo rilevamento di oggetti"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmF1dG8.display_name": {
           "source": "Auto",
@@ -395,9 +1039,13 @@
           "source": "Hi-Res",
           "message": "Alta risoluzione"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOnZsbQ.display_name": {
+          "source": "Vision Language Model",
+          "message": "Modello visione-linguaggio"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.desc": {
-          "source": "Partitioning strategy — `auto`, `fast`, `hi_res`, or `ocr_only`.",
-          "message": "Strategia di partizionamento — `auto`, `fast`, `hi_res` o `ocr_only`."
+          "source": "How the document is analyzed.\n\n- `auto` — let Unstructured choose based on the document\n- `fast` — text extraction only; fastest and cheapest, but no OCR\n- `hi_res` — layout-model inference; needed for accurate tables and element types (the API default)\n- `ocr_only` — OCR the whole document; for scans with no text layer\n- `od_only` — object detection only\n- `vlm` — use a vision language model; see `vlm_model_provider` and `vlm_model`",
+          "message": "Come viene analizzato il documento.\n\n- `auto` — lasciare che Unstructured scelga in base al documento\n- `fast` — solo estrazione del testo; la più rapida ed economica, ma senza OCR\n- `hi_res` — inferenza con modello di layout; necessaria per tabelle e tipi di elemento accurati (valore predefinito dell'API)\n- `ocr_only` — applicare l'OCR all'intero documento; per scansioni prive di livello testuale\n- `od_only` — solo rilevamento di oggetti\n- `vlm` — usare un modello visione-linguaggio; vedere `vlm_model_provider` e `vlm_model`"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.display_name": {
           "source": "Strategy",
@@ -407,9 +1055,21 @@
           "source": "Partitioning strategy",
           "message": "Strategia di partizionamento"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.desc": {
+          "source": "When `True` (the API default), `Table` elements from PDFs carry an HTML rendering of the table in `metadata.text_as_html`.  Requires the `hi_res` strategy.",
+          "message": "Se `True` (valore predefinito dell'API), gli elementi `Table` provenienti da PDF riportano una resa HTML della tabella in `metadata.text_as_html`.  Richiede la strategia `hi_res`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.display_name": {
+          "source": "Infer PDF Table Structure",
+          "message": "Dedurre la struttura delle tabelle PDF"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.short_desc": {
+          "source": "Reconstruct table structure in PDFs",
+          "message": "Ricostruire la struttura delle tabelle nei PDF"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dGV4dA.desc": {
-          "source": "Raw text content of the document to partition.",
-          "message": "Contenuto di testo non elaborato del documento da partizionare."
+          "source": "Raw text content of the document to partition.\n\nSet `content_type` when the text carries structure — Markdown, HTML or CSV — otherwise it is submitted as plain text and its markup is not parsed.",
+          "message": "Contenuto testuale grezzo del documento da partizionare.\n\nImpostare `content_type` quando il testo è dotato di struttura — Markdown, HTML o CSV — altrimenti viene inviato come testo semplice e il suo markup non viene analizzato."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dGV4dA.display_name": {
           "source": "Text",
@@ -418,6 +1078,82 @@
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dGV4dA.short_desc": {
           "source": "Document text content to partition",
           "message": "Contenuto di testo del documento da partizionare"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dW5pcXVlX2VsZW1lbnRfaWRz.desc": {
+          "source": "When `True`, every element gets a UUID.  By default the ID is a hash of the element's text, so identical text produces identical IDs.",
+          "message": "Se `True`, ogni elemento riceve un UUID.  Per impostazione predefinita l'ID è un hash del testo dell'elemento, quindi testi identici producono ID identici."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dW5pcXVlX2VsZW1lbnRfaWRz.display_name": {
+          "source": "Unique Element IDs",
+          "message": "ID elemento univoci"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dW5pcXVlX2VsZW1lbnRfaWRz.short_desc": {
+          "source": "Assign a unique ID to every element",
+          "message": "Assegnare un ID univoco a ogni elemento"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVs.desc": {
+          "source": "Vision language model to use when `strategy` is `vlm`; must be available from `vlm_model_provider`.",
+          "message": "Modello visione-linguaggio da usare quando `strategy` è `vlm`; deve essere disponibile presso `vlm_model_provider`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVs.display_name": {
+          "source": "VLM Model",
+          "message": "Modello VLM"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVs.short_desc": {
+          "source": "Vision language model to use",
+          "message": "Modello visione-linguaggio da usare"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOm9wZW5haQ.display_name": {
+          "source": "OpenAI",
+          "message": "OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmF6dXJlX29wZW5haQ.display_name": {
+          "source": "Azure OpenAI",
+          "message": "Azure OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpY19iZWRyb2Nr.display_name": {
+          "source": "Anthropic on Bedrock",
+          "message": "Anthropic su Bedrock"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpYw.display_name": {
+          "source": "Anthropic",
+          "message": "Anthropic"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmJlZHJvY2s.display_name": {
+          "source": "AWS Bedrock",
+          "message": "AWS Bedrock"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmdvb2dsZQ.display_name": {
+          "source": "Google",
+          "message": "Google"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOnZlcnRleGFp.display_name": {
+          "source": "Google Vertex AI",
+          "message": "Google Vertex AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.desc": {
+          "source": "Provider of the vision language model used when `strategy` is `vlm`.",
+          "message": "Provider del modello visione-linguaggio usato quando `strategy` è `vlm`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.display_name": {
+          "source": "VLM Provider",
+          "message": "Provider VLM"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.short_desc": {
+          "source": "Vision language model provider",
+          "message": "Provider del modello visione-linguaggio"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.eG1sX2tlZXBfdGFncw.desc": {
+          "source": "When `True`, XML tags are retained in the extracted text instead of being stripped.",
+          "message": "Se `True`, i tag XML vengono mantenuti nel testo estratto anziché essere rimossi."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.eG1sX2tlZXBfdGFncw.display_name": {
+          "source": "Keep XML Tags",
+          "message": "Mantenere i tag XML"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.eG1sX2tlZXBfdGFncw.short_desc": {
+          "source": "Retain XML tags in extracted text",
+          "message": "Mantenere i tag XML nel testo estratto"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.short_desc": {
           "source": "Partition raw text into a typed element tree",

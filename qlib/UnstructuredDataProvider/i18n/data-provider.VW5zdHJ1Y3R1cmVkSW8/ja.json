@@ -327,17 +327,469 @@
           "source": "Make a custom API call to Unstructured.io",
           "message": "Unstructured.io へのカスタム API 呼び出しを実行"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.desc": {
+          "source": "Submits a document to [Unstructured.io](https://unstructured.io) and returns it as a list of typed elements — `Title`, `NarrativeText`, `ListItem`, `Table`, `Image` and so on — each with its own metadata.\n\nThis is the action to use for **PDFs, Office documents, images, emails** and every other format Unstructured supports; use `partition-text` for content already held as text.\n\n**Typical uses**:\n- Turning a document archive into records a RAG pipeline can index, with `chunking_strategy` producing retrieval-sized chunks directly\n- Pulling tables out of reports as HTML with `pdf_infer_table_structure`\n- Reading scans and photographs with the `ocr_only` or `hi_res` strategies\n\nGive the document either inline as `file_data` or by `file_path`.",
+          "message": "ドキュメントを [Unstructured.io](https://unstructured.io) に送信し、型付き要素のリスト（`Title`、`NarrativeText`、`ListItem`、`Table`、`Image` など）として返します。各要素は独自のメタデータを持ちます。\n\n**PDF、Office ドキュメント、画像、電子メール** をはじめ、Unstructured が対応するあらゆる形式にはこのアクションを使用します。すでにテキストとして保持している内容には `partition-text` を使用してください。\n\n**主な用途**:\n- ドキュメントアーカイブを RAG パイプラインが索引付けできるレコードに変換する（`chunking_strategy` により検索に適したサイズのチャンクを直接生成）\n- `pdf_infer_table_structure` を使ってレポートから表を HTML として抽出する\n- `ocr_only` または `hi_res` ストラテジーでスキャンや写真を読み取る\n\nドキュメントは `file_data` としてインラインで渡すか、`file_path` で指定します。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.display_name": {
+          "source": "Partition Document",
+          "message": "ドキュメントを分割"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.desc": {
+          "source": "Consecutive chunks are combined until they reach this length, so that a short section does not become a chunk of its own.  Applies only when `chunking_strategy` is set.",
+          "message": "短いセクションが単独のチャンクにならないよう、連続するチャンクはこの長さに達するまで結合されます。`chunking_strategy` が設定されている場合にのみ適用されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.display_name": {
+          "source": "Combine Under N Characters",
+          "message": "N 文字未満を結合"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.short_desc": {
+          "source": "Merge chunks smaller than this",
+          "message": "これより小さいチャンクを結合する"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29udGVudF90eXBl.desc": {
+          "source": "MIME type of the document content, in `type/subtype` form.\n\nUnstructured uses this to decide how to parse the input, so setting it matters for any text format that carries structure.  Content submitted as `text/plain` is not parsed for markup: HTML returns as a single element holding the raw markup, and Markdown keeps its `#` and `-` markers in the element text.",
+          "message": "ドキュメント内容の MIME タイプ（`type/subtype` 形式）。\n\nUnstructured はこれをもとに入力の解析方法を決めるため、構造を持つテキスト形式では設定が重要です。`text/plain` として送信された内容はマークアップが解析されません。HTML は生のマークアップを含む単一要素として返り、Markdown は要素テキスト内に `#` や `-` の記号を残したままになります。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29udGVudF90eXBl.display_name": {
+          "source": "Content Type",
+          "message": "コンテンツタイプ"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29udGVudF90eXBl.short_desc": {
+          "source": "MIME type hint for the document",
+          "message": "ドキュメントの MIME タイプのヒント"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29vcmRpbmF0ZXM.desc": {
+          "source": "When `True`, each element includes its bounding box in `metadata.coordinates`.",
+          "message": "`True` の場合、各要素は自身の境界ボックスを `metadata.coordinates` に含めます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29vcmRpbmF0ZXM.display_name": {
+          "source": "Coordinates",
+          "message": "座標"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29vcmRpbmF0ZXM.short_desc": {
+          "source": "Include layout coordinates in each element",
+          "message": "各要素にレイアウト座標を含める"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3BhZ2U.display_name": {
+          "source": "By Page",
+          "message": "ページ単位"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3NpbWlsYXJpdHk.display_name": {
+          "source": "By Similarity",
+          "message": "類似度単位"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3RpdGxl.display_name": {
+          "source": "By Title",
+          "message": "タイトル単位"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "基本"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.desc": {
+          "source": "Groups the partitioned elements into chunks server-side, returning `CompositeElement` chunks instead of the raw element tree.\n\n- `basic` — fill each chunk up to the size limits\n- `by_title` — start a new chunk at each section heading\n- `by_page` — start a new chunk at each page boundary\n- `by_similarity` — group topically similar elements; see `similarity_threshold`\n\nWhen unset, no chunking is performed and the other chunking options are ignored.",
+          "message": "分割された要素をサーバー側でチャンクにまとめ、生の要素ツリーではなく `CompositeElement` チャンクを返します。\n\n- `basic` — サイズ上限まで各チャンクを埋める\n- `by_title` — セクション見出しごとに新しいチャンクを開始する\n- `by_page` — ページ区切りごとに新しいチャンクを開始する\n- `by_similarity` — 主題が近い要素をまとめる。`similarity_threshold` を参照\n\n未設定の場合はチャンク化を行わず、他のチャンク化オプションは無視されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.display_name": {
+          "source": "Chunking Strategy",
+          "message": "チャンク化ストラテジー"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.short_desc": {
+          "source": "Server-side chunking strategy",
+          "message": "サーバー側のチャンク化ストラテジー"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZW5jb2Rpbmc.desc": {
+          "source": "Character encoding used to decode the document text; defaults to `utf-8`.",
+          "message": "ドキュメントテキストのデコードに使用する文字エンコーディング。既定は `utf-8` です。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZW5jb2Rpbmc.display_name": {
+          "source": "Text Encoding",
+          "message": "テキストエンコーディング"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZW5jb2Rpbmc.short_desc": {
+          "source": "Character encoding used to decode the input",
+          "message": "入力のデコードに使用する文字エンコーディング"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.desc": {
+          "source": "Element types to extract as images, returned base64-encoded in `metadata.image_base64`.\n\nUse it to keep figures and tables that carry meaning no text extraction can recover — charts, diagrams, scanned tables — alongside the text.",
+          "message": "画像として抽出し、base64 エンコードして `metadata.image_base64` に返す要素種別。\n\nテキスト抽出では取り戻せない意味を持つ図表（グラフ、図解、スキャンされた表）をテキストと併せて保持するために使用します。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.display_name": {
+          "source": "Extract Image Block Types",
+          "message": "抽出する画像ブロック種別"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.short_desc": {
+          "source": "Element types to return as base64 images",
+          "message": "base64 画像として返す要素種別"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9kYXRh.desc": {
+          "source": "Raw content of the document to partition — a PDF, DOCX, PPTX, XLSX, image, email or any other format Unstructured supports.\n\nMutually exclusive with `file_path`; exactly one of the two is required.",
+          "message": "分割するドキュメントの生データ（PDF、DOCX、PPTX、XLSX、画像、電子メールなど、Unstructured が対応するあらゆる形式）。\n\n`file_path` とは排他的です。いずれか一方が必須です。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9kYXRh.display_name": {
+          "source": "File Data",
+          "message": "ファイルデータ"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9kYXRh.short_desc": {
+          "source": "Document content to partition",
+          "message": "分割するドキュメントの内容"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9wYXRo.desc": {
+          "source": "Local path of the document to read and partition.\n\nMutually exclusive with `file_data`; exactly one of the two is required.",
+          "message": "読み込んで分割するドキュメントのローカルパス。\n\n`file_data` とは排他的です。いずれか一方が必須です。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9wYXRo.display_name": {
+          "source": "File Path",
+          "message": "ファイルパス"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9wYXRo.short_desc": {
+          "source": "Local path of the document to partition",
+          "message": "分割するドキュメントのローカルパス"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZW5hbWU.desc": {
+          "source": "Name reported to Unstructured for the document and returned in `metadata.filename`.  Defaults to the base name of `file_path`, or to `document` when `file_data` is used.",
+          "message": "このドキュメントについて Unstructured に報告され、`metadata.filename` として返される名前。既定では `file_path` のベース名、`file_data` を使用する場合は `document` になります。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZW5hbWU.display_name": {
+          "source": "File Name",
+          "message": "ファイル名"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZW5hbWU.short_desc": {
+          "source": "Name to report for the document",
+          "message": "ドキュメントに対して報告する名前"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aGlfcmVzX21vZGVsX25hbWU.desc": {
+          "source": "Name of the layout inference model used when `strategy` is `hi_res`.",
+          "message": "`strategy` が `hi_res` のときに使用されるレイアウト推論モデルの名前。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aGlfcmVzX21vZGVsX25hbWU.display_name": {
+          "source": "Hi-Res Model Name",
+          "message": "高解像度モデル名"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aGlfcmVzX21vZGVsX25hbWU.short_desc": {
+          "source": "Layout model to use with the hi_res strategy",
+          "message": "hi_res ストラテジーで使用するレイアウトモデル"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.desc": {
+          "source": "When `True` (the API default), each chunk carries the elements it was assembled from in `metadata.orig_elements`.",
+          "message": "`True`（API の既定値）の場合、各チャンクは構成元となった要素を `metadata.orig_elements` に保持します。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.display_name": {
+          "source": "Include Original Elements",
+          "message": "元の要素を含める"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.short_desc": {
+          "source": "Return the elements each chunk was built from",
+          "message": "各チャンクの構成元となった要素を返す"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.desc": {
+          "source": "When `True`, a `PageBreak` element is emitted at each page boundary.",
+          "message": "`True` の場合、ページ区切りごとに `PageBreak` 要素が出力されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.display_name": {
+          "source": "Include Page Breaks",
+          "message": "改ページを含める"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.short_desc": {
+          "source": "Emit an element at each page boundary",
+          "message": "ページ区切りごとに要素を出力する"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.desc": {
+          "source": "When `True` (the API default), presenter notes in PPTX documents are partitioned along with the slides.",
+          "message": "`True`（API の既定値）の場合、PPTX ドキュメントの発表者ノートもスライドとともに分割されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.display_name": {
+          "source": "Include Slide Notes",
+          "message": "スライドノートを含める"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.short_desc": {
+          "source": "Include presenter notes from presentations",
+          "message": "プレゼンテーションの発表者ノートを含める"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcA.desc": {
+          "source": "Number of characters drawn from the end of one chunk and prefixed to the next, so that context is not lost at a chunk boundary.  By default this applies only to chunks produced by splitting an oversized element; see `overlap_all`.",
+          "message": "チャンク境界で文脈が失われないよう、あるチャンクの末尾から取り出して次のチャンクの先頭に付加する文字数。既定では、大きすぎる要素を分割して生じたチャンクにのみ適用されます。`overlap_all` を参照してください。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcA.display_name": {
+          "source": "Chunk Overlap",
+          "message": "チャンクの重なり"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcA.short_desc": {
+          "source": "Characters carried over between chunks",
+          "message": "チャンク間で引き継がれる文字数"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcF9hbGw.desc": {
+          "source": "When `True`, `overlap` is applied between every pair of adjacent chunks, not only those produced by splitting an oversized element.",
+          "message": "`True` の場合、`overlap` は隣接するすべてのチャンクの組み合わせに適用され、大きすぎる要素の分割で生じたものに限られません。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcF9hbGw.display_name": {
+          "source": "Overlap All Chunks",
+          "message": "すべてのチャンクを重ねる"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcF9hbGw.short_desc": {
+          "source": "Apply the overlap between every pair of chunks",
+          "message": "すべてのチャンクの組み合わせに重なりを適用する"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bGFuZ3VhZ2Vz.desc": {
+          "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
+          "message": "ドキュメントに含まれる ISO 639 言語コードのリストです。パーティショニングと OCR の判定に使用されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bGFuZ3VhZ2Vz.display_name": {
+          "source": "Languages",
+          "message": "言語"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bGFuZ3VhZ2Vz.short_desc": {
+          "source": "Document language hints (ISO codes)",
+          "message": "ドキュメントの言語ヒント（ISO コード）"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bWF4X2NoYXJhY3RlcnM.desc": {
+          "source": "Hard maximum number of characters in a chunk; a larger element is split.  Applies only when `chunking_strategy` is set.",
+          "message": "1 チャンクの文字数のハード上限。これを超える要素は分割されます。`chunking_strategy` が設定されている場合にのみ適用されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bWF4X2NoYXJhY3RlcnM.display_name": {
+          "source": "Maximum Chunk Size",
+          "message": "チャンクの最大サイズ"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bWF4X2NoYXJhY3RlcnM.short_desc": {
+          "source": "Hard character limit per chunk",
+          "message": "チャンクあたりの文字数の上限（ハード）"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bXVsdGlwYWdlX3NlY3Rpb25z.desc": {
+          "source": "When `True` (the API default), a chunk may span more than one page.",
+          "message": "`True`（API の既定値）の場合、チャンクは複数のページにまたがることができます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bXVsdGlwYWdlX3NlY3Rpb25z.display_name": {
+          "source": "Multipage Sections",
+          "message": "複数ページにまたがるセクション"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bXVsdGlwYWdlX3NlY3Rpb25z.short_desc": {
+          "source": "Allow a chunk to span pages",
+          "message": "チャンクが複数ページにまたがることを許可する"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bmV3X2FmdGVyX25fY2hhcnM.desc": {
+          "source": "Soft maximum: a chunk is closed once it reaches this length, without splitting the element that crosses it.  Applies only when `chunking_strategy` is set.",
+          "message": "ソフト上限。チャンクはこの長さに達した時点で閉じられ、境界をまたぐ要素は分割されません。`chunking_strategy` が設定されている場合にのみ適用されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bmV3X2FmdGVyX25fY2hhcnM.display_name": {
+          "source": "Soft Chunk Size",
+          "message": "チャンクのソフトサイズ"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bmV3X2FmdGVyX25fY2hhcnM.short_desc": {
+          "source": "Soft character limit per chunk",
+          "message": "チャンクあたりの文字数の上限（ソフト）"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.desc": {
+          "source": "Value between `0.0` and `1.0` giving the minimum similarity two elements must have to land in the same chunk.  Applies only when `chunking_strategy` is `by_similarity`.",
+          "message": "2 つの要素が同一チャンクに入るために必要な最小類似度を表す `0.0` から `1.0` の値。`chunking_strategy` が `by_similarity` の場合にのみ適用されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.display_name": {
+          "source": "Similarity Threshold",
+          "message": "類似度のしきい値"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.short_desc": {
+          "source": "Minimum similarity for by_similarity chunking",
+          "message": "類似度によるチャンク化の最小類似度"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF90YWJsZV9jaHVua2luZw.desc": {
+          "source": "When `True`, `Table` elements are returned whole instead of being chunked.",
+          "message": "`True` の場合、`Table` 要素はチャンク化されずそのまま返されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF90YWJsZV9jaHVua2luZw.display_name": {
+          "source": "Skip Table Chunking",
+          "message": "表のチャンク化をスキップ"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF90YWJsZV9jaHVua2luZw.short_desc": {
+          "source": "Leave table elements unchunked",
+          "message": "表要素をチャンク化しない"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.desc": {
+          "source": "Document types to skip table extraction for, for example `pdf`, `jpg` or `heic`.",
+          "message": "表抽出をスキップするドキュメント種別。たとえば `pdf`、`jpg`、`heic` など。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.display_name": {
+          "source": "Skip Table Inference For",
+          "message": "表の推定をスキップする対象"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.short_desc": {
+          "source": "Document types to skip table extraction for",
+          "message": "表抽出をスキップするドキュメント種別"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.desc": {
+          "source": "Page number to assign to the first page of the submitted document.  Set it when submitting a slice of a larger document so that `metadata.page_number` stays correct.",
+          "message": "送信したドキュメントの最初のページに割り当てるページ番号。大きなドキュメントの一部を送信する場合に設定すると、`metadata.page_number` が正しく保たれます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.display_name": {
+          "source": "Starting Page Number",
+          "message": "開始ページ番号"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.short_desc": {
+          "source": "Page number to assign to the first page",
+          "message": "最初のページに割り当てるページ番号"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9jcl9vbmx5.display_name": {
+          "source": "OCR Only",
+          "message": "OCR のみ"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9kX29ubHk.display_name": {
+          "source": "Object Detection Only",
+          "message": "物体検出のみ"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "自動"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "高速"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmhpX3Jlcw.display_name": {
+          "source": "Hi-Res",
+          "message": "高解像度"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOnZsbQ.display_name": {
+          "source": "Vision Language Model",
+          "message": "視覚言語モデル"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.desc": {
+          "source": "How the document is analyzed.\n\n- `auto` — let Unstructured choose based on the document\n- `fast` — text extraction only; fastest and cheapest, but no OCR\n- `hi_res` — layout-model inference; needed for accurate tables and element types (the API default)\n- `ocr_only` — OCR the whole document; for scans with no text layer\n- `od_only` — object detection only\n- `vlm` — use a vision language model; see `vlm_model_provider` and `vlm_model`",
+          "message": "ドキュメントの解析方法。\n\n- `auto` — ドキュメントに応じて Unstructured に選ばせる\n- `fast` — テキスト抽出のみ。最も高速かつ低コストですが OCR は行いません\n- `hi_res` — レイアウトモデルによる推論。正確な表と要素種別に必要です（API の既定値）\n- `ocr_only` — ドキュメント全体を OCR 処理する。テキストレイヤーのないスキャン向け\n- `od_only` — 物体検出のみ\n- `vlm` — 視覚言語モデルを使用する。`vlm_model_provider` と `vlm_model` を参照"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.display_name": {
+          "source": "Strategy",
+          "message": "ストラテジー"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.short_desc": {
+          "source": "Partitioning strategy",
+          "message": "分割ストラテジー"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.desc": {
+          "source": "When `True` (the API default), `Table` elements from PDFs carry an HTML rendering of the table in `metadata.text_as_html`.  Requires the `hi_res` strategy.",
+          "message": "`True`（API の既定値）の場合、PDF 由来の `Table` 要素は表の HTML 表現を `metadata.text_as_html` に保持します。`hi_res` ストラテジーが必要です。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.display_name": {
+          "source": "Infer PDF Table Structure",
+          "message": "PDF の表構造を推定する"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.short_desc": {
+          "source": "Reconstruct table structure in PDFs",
+          "message": "PDF 内の表構造を再構成する"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dW5pcXVlX2VsZW1lbnRfaWRz.desc": {
+          "source": "When `True`, every element gets a UUID.  By default the ID is a hash of the element's text, so identical text produces identical IDs.",
+          "message": "`True` の場合、各要素に UUID が割り当てられます。既定では ID は要素テキストのハッシュであるため、同一のテキストは同一の ID になります。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dW5pcXVlX2VsZW1lbnRfaWRz.display_name": {
+          "source": "Unique Element IDs",
+          "message": "一意の要素 ID"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dW5pcXVlX2VsZW1lbnRfaWRz.short_desc": {
+          "source": "Assign a unique ID to every element",
+          "message": "すべての要素に一意の ID を割り当てる"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVs.desc": {
+          "source": "Vision language model to use when `strategy` is `vlm`; must be available from `vlm_model_provider`.",
+          "message": "`strategy` が `vlm` のときに使用される視覚言語モデル。`vlm_model_provider` から利用可能である必要があります。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVs.display_name": {
+          "source": "VLM Model",
+          "message": "VLM モデル"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVs.short_desc": {
+          "source": "Vision language model to use",
+          "message": "使用する視覚言語モデル"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOm9wZW5haQ.display_name": {
+          "source": "OpenAI",
+          "message": "OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmF6dXJlX29wZW5haQ.display_name": {
+          "source": "Azure OpenAI",
+          "message": "Azure OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpY19iZWRyb2Nr.display_name": {
+          "source": "Anthropic on Bedrock",
+          "message": "Bedrock 上の Anthropic"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpYw.display_name": {
+          "source": "Anthropic",
+          "message": "Anthropic"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmJlZHJvY2s.display_name": {
+          "source": "AWS Bedrock",
+          "message": "AWS Bedrock"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmdvb2dsZQ.display_name": {
+          "source": "Google",
+          "message": "Google"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOnZlcnRleGFp.display_name": {
+          "source": "Google Vertex AI",
+          "message": "Google Vertex AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.desc": {
+          "source": "Provider of the vision language model used when `strategy` is `vlm`.",
+          "message": "`strategy` が `vlm` のときに使用される視覚言語モデルのプロバイダー。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.display_name": {
+          "source": "VLM Provider",
+          "message": "VLM プロバイダー"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.short_desc": {
+          "source": "Vision language model provider",
+          "message": "視覚言語モデルのプロバイダー"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.eG1sX2tlZXBfdGFncw.desc": {
+          "source": "When `True`, XML tags are retained in the extracted text instead of being stripped.",
+          "message": "`True` の場合、XML タグは除去されずに抽出テキスト内に保持されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.eG1sX2tlZXBfdGFncw.display_name": {
+          "source": "Keep XML Tags",
+          "message": "XML タグを保持"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.eG1sX2tlZXBfdGFncw.short_desc": {
+          "source": "Retain XML tags in extracted text",
+          "message": "抽出テキスト内の XML タグを保持する"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.short_desc": {
+          "source": "Partition a document file into a typed element tree",
+          "message": "ドキュメントファイルを型付き要素ツリーに分割します"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.desc": {
-          "source": "Submits raw text to Unstructured.io for partitioning.  Returns the document as a list of typed elements (Title, NarrativeText, ListItem, Table, etc.).\n\nFor PDFs and other binary formats, use the lower-level @ref UnstructuredRestClient::UnstructuredRestClientIo::partitionFile() method directly.",
-          "message": "パーティショニングのために生テキストを Unstructured.io に送信します。ドキュメントを型付き要素（Title、NarrativeText、ListItem、Table など）のリストとして返します。\n\nPDF やその他のバイナリ形式の場合は、低レベルの @ref UnstructuredRestClient::UnstructuredRestClientIo::partitionFile() メソッドを直接使用してください。"
+          "source": "Submits text to [Unstructured.io](https://unstructured.io) and returns it as a list of typed elements — `Title`, `NarrativeText`, `ListItem`, `Table` and so on — each with its own metadata.\n\nUse this when the content is already text; for **PDFs, Office documents, images and emails** use `partition-file`.\n\n**Note**: set `content_type` when the text carries structure, or the markup is not parsed — HTML submitted as `text/plain` comes back as a single element holding the raw markup, and Markdown keeps its `#` and `-` markers in the element text.",
+          "message": "テキストを [Unstructured.io](https://unstructured.io) に送信し、型付き要素のリスト（`Title`、`NarrativeText`、`ListItem`、`Table` など）として返します。各要素は独自のメタデータを持ちます。\n\n内容がすでにテキストである場合はこのアクションを使用します。**PDF、Office ドキュメント、画像、電子メール** には `partition-file` を使用してください。\n\n**注意**: テキストが構造を持つ場合は `content_type` を設定してください。設定しないとマークアップは解析されません。`text/plain` として送信された HTML は生のマークアップを含む単一要素として返り、Markdown は要素テキスト内に `#` や `-` の記号を残したままになります。"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.display_name": {
           "source": "Partition Text",
           "message": "テキストをパーティション分割"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.desc": {
+          "source": "Consecutive chunks are combined until they reach this length, so that a short section does not become a chunk of its own.  Applies only when `chunking_strategy` is set.",
+          "message": "短いセクションが単独のチャンクにならないよう、連続するチャンクはこの長さに達するまで結合されます。`chunking_strategy` が設定されている場合にのみ適用されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.display_name": {
+          "source": "Combine Under N Characters",
+          "message": "N 文字未満を結合"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.short_desc": {
+          "source": "Merge chunks smaller than this",
+          "message": "これより小さいチャンクを結合する"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29udGVudF90eXBl.desc": {
+          "source": "MIME type of the document content, in `type/subtype` form.\n\nUnstructured uses this to decide how to parse the input, so setting it matters for any text format that carries structure.  Content submitted as `text/plain` is not parsed for markup: HTML returns as a single element holding the raw markup, and Markdown keeps its `#` and `-` markers in the element text.",
+          "message": "ドキュメント内容の MIME タイプ（`type/subtype` 形式）。\n\nUnstructured はこれをもとに入力の解析方法を決めるため、構造を持つテキスト形式では設定が重要です。`text/plain` として送信された内容はマークアップが解析されません。HTML は生のマークアップを含む単一要素として返り、Markdown は要素テキスト内に `#` や `-` の記号を残したままになります。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29udGVudF90eXBl.display_name": {
+          "source": "Content Type",
+          "message": "コンテンツタイプ"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29udGVudF90eXBl.short_desc": {
+          "source": "MIME type hint for the document",
+          "message": "ドキュメントの MIME タイプのヒント"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29vcmRpbmF0ZXM.desc": {
-          "source": "When `True`, each element includes layout coordinates in its metadata.",
-          "message": "`True` の場合、各要素のメタデータにレイアウト座標が含まれます。"
+          "source": "When `True`, each element includes its bounding box in `metadata.coordinates`.",
+          "message": "`True` の場合、各要素は自身の境界ボックスを `metadata.coordinates` に含めます。"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29vcmRpbmF0ZXM.display_name": {
           "source": "Coordinates",
@@ -346,6 +798,14 @@
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29vcmRpbmF0ZXM.short_desc": {
           "source": "Include layout coordinates in each element",
           "message": "各要素にレイアウト座標を含める"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3BhZ2U.display_name": {
+          "source": "By Page",
+          "message": "ページ単位"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3NpbWlsYXJpdHk.display_name": {
+          "source": "By Similarity",
+          "message": "類似度単位"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3RpdGxl.display_name": {
           "source": "By Title",
@@ -356,8 +816,8 @@
           "message": "ベーシック"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.desc": {
-          "source": "Server-side chunking strategy — `by_title` or `basic`.  When set, Unstructured groups elements into chunks server-side.",
-          "message": "サーバー側チャンキング戦略 — `by_title` または `basic`。設定すると、Unstructured はサーバー側で要素をチャンクにグループ化します。"
+          "source": "Groups the partitioned elements into chunks server-side, returning `CompositeElement` chunks instead of the raw element tree.\n\n- `basic` — fill each chunk up to the size limits\n- `by_title` — start a new chunk at each section heading\n- `by_page` — start a new chunk at each page boundary\n- `by_similarity` — group topically similar elements; see `similarity_threshold`\n\nWhen unset, no chunking is performed and the other chunking options are ignored.",
+          "message": "分割された要素をサーバー側でチャンクにまとめ、生の要素ツリーではなく `CompositeElement` チャンクを返します。\n\n- `basic` — サイズ上限まで各チャンクを埋める\n- `by_title` — セクション見出しごとに新しいチャンクを開始する\n- `by_page` — ページ区切りごとに新しいチャンクを開始する\n- `by_similarity` — 主題が近い要素をまとめる。`similarity_threshold` を参照\n\n未設定の場合はチャンク化を行わず、他のチャンク化オプションは無視されます。"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.display_name": {
           "source": "Chunking Strategy",
@@ -366,6 +826,102 @@
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.short_desc": {
           "source": "Server-side chunking strategy",
           "message": "サーバー側のチャンキング戦略"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZW5jb2Rpbmc.desc": {
+          "source": "Character encoding used to decode the document text; defaults to `utf-8`.",
+          "message": "ドキュメントテキストのデコードに使用する文字エンコーディング。既定は `utf-8` です。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZW5jb2Rpbmc.display_name": {
+          "source": "Text Encoding",
+          "message": "テキストエンコーディング"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZW5jb2Rpbmc.short_desc": {
+          "source": "Character encoding used to decode the input",
+          "message": "入力のデコードに使用する文字エンコーディング"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.desc": {
+          "source": "Element types to extract as images, returned base64-encoded in `metadata.image_base64`.\n\nUse it to keep figures and tables that carry meaning no text extraction can recover — charts, diagrams, scanned tables — alongside the text.",
+          "message": "画像として抽出し、base64 エンコードして `metadata.image_base64` に返す要素種別。\n\nテキスト抽出では取り戻せない意味を持つ図表（グラフ、図解、スキャンされた表）をテキストと併せて保持するために使用します。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.display_name": {
+          "source": "Extract Image Block Types",
+          "message": "抽出する画像ブロック種別"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.short_desc": {
+          "source": "Element types to return as base64 images",
+          "message": "base64 画像として返す要素種別"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aGlfcmVzX21vZGVsX25hbWU.desc": {
+          "source": "Name of the layout inference model used when `strategy` is `hi_res`.",
+          "message": "`strategy` が `hi_res` のときに使用されるレイアウト推論モデルの名前。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aGlfcmVzX21vZGVsX25hbWU.display_name": {
+          "source": "Hi-Res Model Name",
+          "message": "高解像度モデル名"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aGlfcmVzX21vZGVsX25hbWU.short_desc": {
+          "source": "Layout model to use with the hi_res strategy",
+          "message": "hi_res ストラテジーで使用するレイアウトモデル"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.desc": {
+          "source": "When `True` (the API default), each chunk carries the elements it was assembled from in `metadata.orig_elements`.",
+          "message": "`True`（API の既定値）の場合、各チャンクは構成元となった要素を `metadata.orig_elements` に保持します。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.display_name": {
+          "source": "Include Original Elements",
+          "message": "元の要素を含める"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.short_desc": {
+          "source": "Return the elements each chunk was built from",
+          "message": "各チャンクの構成元となった要素を返す"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.desc": {
+          "source": "When `True`, a `PageBreak` element is emitted at each page boundary.",
+          "message": "`True` の場合、ページ区切りごとに `PageBreak` 要素が出力されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.display_name": {
+          "source": "Include Page Breaks",
+          "message": "改ページを含める"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.short_desc": {
+          "source": "Emit an element at each page boundary",
+          "message": "ページ区切りごとに要素を出力する"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.desc": {
+          "source": "When `True` (the API default), presenter notes in PPTX documents are partitioned along with the slides.",
+          "message": "`True`（API の既定値）の場合、PPTX ドキュメントの発表者ノートもスライドとともに分割されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.display_name": {
+          "source": "Include Slide Notes",
+          "message": "スライドノートを含める"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.short_desc": {
+          "source": "Include presenter notes from presentations",
+          "message": "プレゼンテーションの発表者ノートを含める"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcA.desc": {
+          "source": "Number of characters drawn from the end of one chunk and prefixed to the next, so that context is not lost at a chunk boundary.  By default this applies only to chunks produced by splitting an oversized element; see `overlap_all`.",
+          "message": "チャンク境界で文脈が失われないよう、あるチャンクの末尾から取り出して次のチャンクの先頭に付加する文字数。既定では、大きすぎる要素を分割して生じたチャンクにのみ適用されます。`overlap_all` を参照してください。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcA.display_name": {
+          "source": "Chunk Overlap",
+          "message": "チャンクの重なり"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcA.short_desc": {
+          "source": "Characters carried over between chunks",
+          "message": "チャンク間で引き継がれる文字数"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcF9hbGw.desc": {
+          "source": "When `True`, `overlap` is applied between every pair of adjacent chunks, not only those produced by splitting an oversized element.",
+          "message": "`True` の場合、`overlap` は隣接するすべてのチャンクの組み合わせに適用され、大きすぎる要素の分割で生じたものに限られません。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcF9hbGw.display_name": {
+          "source": "Overlap All Chunks",
+          "message": "すべてのチャンクを重ねる"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcF9hbGw.short_desc": {
+          "source": "Apply the overlap between every pair of chunks",
+          "message": "すべてのチャンクの組み合わせに重なりを適用する"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.desc": {
           "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
@@ -379,9 +935,97 @@
           "source": "Document language hints (ISO codes)",
           "message": "ドキュメント言語ヒント (ISO コード)"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bWF4X2NoYXJhY3RlcnM.desc": {
+          "source": "Hard maximum number of characters in a chunk; a larger element is split.  Applies only when `chunking_strategy` is set.",
+          "message": "1 チャンクの文字数のハード上限。これを超える要素は分割されます。`chunking_strategy` が設定されている場合にのみ適用されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bWF4X2NoYXJhY3RlcnM.display_name": {
+          "source": "Maximum Chunk Size",
+          "message": "チャンクの最大サイズ"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bWF4X2NoYXJhY3RlcnM.short_desc": {
+          "source": "Hard character limit per chunk",
+          "message": "チャンクあたりの文字数の上限（ハード）"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bXVsdGlwYWdlX3NlY3Rpb25z.desc": {
+          "source": "When `True` (the API default), a chunk may span more than one page.",
+          "message": "`True`（API の既定値）の場合、チャンクは複数のページにまたがることができます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bXVsdGlwYWdlX3NlY3Rpb25z.display_name": {
+          "source": "Multipage Sections",
+          "message": "複数ページにまたがるセクション"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bXVsdGlwYWdlX3NlY3Rpb25z.short_desc": {
+          "source": "Allow a chunk to span pages",
+          "message": "チャンクが複数ページにまたがることを許可する"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bmV3X2FmdGVyX25fY2hhcnM.desc": {
+          "source": "Soft maximum: a chunk is closed once it reaches this length, without splitting the element that crosses it.  Applies only when `chunking_strategy` is set.",
+          "message": "ソフト上限。チャンクはこの長さに達した時点で閉じられ、境界をまたぐ要素は分割されません。`chunking_strategy` が設定されている場合にのみ適用されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bmV3X2FmdGVyX25fY2hhcnM.display_name": {
+          "source": "Soft Chunk Size",
+          "message": "チャンクのソフトサイズ"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bmV3X2FmdGVyX25fY2hhcnM.short_desc": {
+          "source": "Soft character limit per chunk",
+          "message": "チャンクあたりの文字数の上限（ソフト）"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.desc": {
+          "source": "Value between `0.0` and `1.0` giving the minimum similarity two elements must have to land in the same chunk.  Applies only when `chunking_strategy` is `by_similarity`.",
+          "message": "2 つの要素が同一チャンクに入るために必要な最小類似度を表す `0.0` から `1.0` の値。`chunking_strategy` が `by_similarity` の場合にのみ適用されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.display_name": {
+          "source": "Similarity Threshold",
+          "message": "類似度のしきい値"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.short_desc": {
+          "source": "Minimum similarity for by_similarity chunking",
+          "message": "類似度によるチャンク化の最小類似度"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF90YWJsZV9jaHVua2luZw.desc": {
+          "source": "When `True`, `Table` elements are returned whole instead of being chunked.",
+          "message": "`True` の場合、`Table` 要素はチャンク化されずそのまま返されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF90YWJsZV9jaHVua2luZw.display_name": {
+          "source": "Skip Table Chunking",
+          "message": "表のチャンク化をスキップ"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF90YWJsZV9jaHVua2luZw.short_desc": {
+          "source": "Leave table elements unchunked",
+          "message": "表要素をチャンク化しない"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.desc": {
+          "source": "Document types to skip table extraction for, for example `pdf`, `jpg` or `heic`.",
+          "message": "表抽出をスキップするドキュメント種別。たとえば `pdf`、`jpg`、`heic` など。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.display_name": {
+          "source": "Skip Table Inference For",
+          "message": "表の推定をスキップする対象"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.short_desc": {
+          "source": "Document types to skip table extraction for",
+          "message": "表抽出をスキップするドキュメント種別"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.desc": {
+          "source": "Page number to assign to the first page of the submitted document.  Set it when submitting a slice of a larger document so that `metadata.page_number` stays correct.",
+          "message": "送信したドキュメントの最初のページに割り当てるページ番号。大きなドキュメントの一部を送信する場合に設定すると、`metadata.page_number` が正しく保たれます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.display_name": {
+          "source": "Starting Page Number",
+          "message": "開始ページ番号"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.short_desc": {
+          "source": "Page number to assign to the first page",
+          "message": "最初のページに割り当てるページ番号"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9jcl9vbmx5.display_name": {
           "source": "OCR Only",
           "message": "OCR のみ"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9kX29ubHk.display_name": {
+          "source": "Object Detection Only",
+          "message": "物体検出のみ"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmF1dG8.display_name": {
           "source": "Auto",
@@ -395,9 +1039,13 @@
           "source": "Hi-Res",
           "message": "高解像度"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOnZsbQ.display_name": {
+          "source": "Vision Language Model",
+          "message": "視覚言語モデル"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.desc": {
-          "source": "Partitioning strategy — `auto`, `fast`, `hi_res`, or `ocr_only`.",
-          "message": "パーティショニング戦略 — `auto`、`fast`、`hi_res`、または `ocr_only`。"
+          "source": "How the document is analyzed.\n\n- `auto` — let Unstructured choose based on the document\n- `fast` — text extraction only; fastest and cheapest, but no OCR\n- `hi_res` — layout-model inference; needed for accurate tables and element types (the API default)\n- `ocr_only` — OCR the whole document; for scans with no text layer\n- `od_only` — object detection only\n- `vlm` — use a vision language model; see `vlm_model_provider` and `vlm_model`",
+          "message": "ドキュメントの解析方法。\n\n- `auto` — ドキュメントに応じて Unstructured に選ばせる\n- `fast` — テキスト抽出のみ。最も高速かつ低コストですが OCR は行いません\n- `hi_res` — レイアウトモデルによる推論。正確な表と要素種別に必要です（API の既定値）\n- `ocr_only` — ドキュメント全体を OCR 処理する。テキストレイヤーのないスキャン向け\n- `od_only` — 物体検出のみ\n- `vlm` — 視覚言語モデルを使用する。`vlm_model_provider` と `vlm_model` を参照"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.display_name": {
           "source": "Strategy",
@@ -407,9 +1055,21 @@
           "source": "Partitioning strategy",
           "message": "パーティショニング戦略"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.desc": {
+          "source": "When `True` (the API default), `Table` elements from PDFs carry an HTML rendering of the table in `metadata.text_as_html`.  Requires the `hi_res` strategy.",
+          "message": "`True`（API の既定値）の場合、PDF 由来の `Table` 要素は表の HTML 表現を `metadata.text_as_html` に保持します。`hi_res` ストラテジーが必要です。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.display_name": {
+          "source": "Infer PDF Table Structure",
+          "message": "PDF の表構造を推定する"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.short_desc": {
+          "source": "Reconstruct table structure in PDFs",
+          "message": "PDF 内の表構造を再構成する"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dGV4dA.desc": {
-          "source": "Raw text content of the document to partition.",
-          "message": "パーティション分割するドキュメントの生テキストコンテンツ。"
+          "source": "Raw text content of the document to partition.\n\nSet `content_type` when the text carries structure — Markdown, HTML or CSV — otherwise it is submitted as plain text and its markup is not parsed.",
+          "message": "分割するドキュメントの生テキスト内容。\n\nテキストが構造（Markdown、HTML、CSV）を持つ場合は `content_type` を設定してください。設定しない場合はプレーンテキストとして送信され、マークアップは解析されません。"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dGV4dA.display_name": {
           "source": "Text",
@@ -418,6 +1078,82 @@
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dGV4dA.short_desc": {
           "source": "Document text content to partition",
           "message": "パーティション分割するドキュメントのテキストコンテンツ"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dW5pcXVlX2VsZW1lbnRfaWRz.desc": {
+          "source": "When `True`, every element gets a UUID.  By default the ID is a hash of the element's text, so identical text produces identical IDs.",
+          "message": "`True` の場合、各要素に UUID が割り当てられます。既定では ID は要素テキストのハッシュであるため、同一のテキストは同一の ID になります。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dW5pcXVlX2VsZW1lbnRfaWRz.display_name": {
+          "source": "Unique Element IDs",
+          "message": "一意の要素 ID"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dW5pcXVlX2VsZW1lbnRfaWRz.short_desc": {
+          "source": "Assign a unique ID to every element",
+          "message": "すべての要素に一意の ID を割り当てる"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVs.desc": {
+          "source": "Vision language model to use when `strategy` is `vlm`; must be available from `vlm_model_provider`.",
+          "message": "`strategy` が `vlm` のときに使用される視覚言語モデル。`vlm_model_provider` から利用可能である必要があります。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVs.display_name": {
+          "source": "VLM Model",
+          "message": "VLM モデル"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVs.short_desc": {
+          "source": "Vision language model to use",
+          "message": "使用する視覚言語モデル"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOm9wZW5haQ.display_name": {
+          "source": "OpenAI",
+          "message": "OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmF6dXJlX29wZW5haQ.display_name": {
+          "source": "Azure OpenAI",
+          "message": "Azure OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpY19iZWRyb2Nr.display_name": {
+          "source": "Anthropic on Bedrock",
+          "message": "Bedrock 上の Anthropic"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpYw.display_name": {
+          "source": "Anthropic",
+          "message": "Anthropic"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmJlZHJvY2s.display_name": {
+          "source": "AWS Bedrock",
+          "message": "AWS Bedrock"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmdvb2dsZQ.display_name": {
+          "source": "Google",
+          "message": "Google"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOnZlcnRleGFp.display_name": {
+          "source": "Google Vertex AI",
+          "message": "Google Vertex AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.desc": {
+          "source": "Provider of the vision language model used when `strategy` is `vlm`.",
+          "message": "`strategy` が `vlm` のときに使用される視覚言語モデルのプロバイダー。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.display_name": {
+          "source": "VLM Provider",
+          "message": "VLM プロバイダー"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.short_desc": {
+          "source": "Vision language model provider",
+          "message": "視覚言語モデルのプロバイダー"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.eG1sX2tlZXBfdGFncw.desc": {
+          "source": "When `True`, XML tags are retained in the extracted text instead of being stripped.",
+          "message": "`True` の場合、XML タグは除去されずに抽出テキスト内に保持されます。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.eG1sX2tlZXBfdGFncw.display_name": {
+          "source": "Keep XML Tags",
+          "message": "XML タグを保持"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.eG1sX2tlZXBfdGFncw.short_desc": {
+          "source": "Retain XML tags in extracted text",
+          "message": "抽出テキスト内の XML タグを保持する"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.short_desc": {
           "source": "Partition raw text into a typed element tree",

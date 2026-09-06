@@ -327,17 +327,469 @@
           "source": "Make a custom API call to Unstructured.io",
           "message": "Vytvoriť vlastné volanie API do Unstructured.io"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.desc": {
+          "source": "Submits a document to [Unstructured.io](https://unstructured.io) and returns it as a list of typed elements — `Title`, `NarrativeText`, `ListItem`, `Table`, `Image` and so on — each with its own metadata.\n\nThis is the action to use for **PDFs, Office documents, images, emails** and every other format Unstructured supports; use `partition-text` for content already held as text.\n\n**Typical uses**:\n- Turning a document archive into records a RAG pipeline can index, with `chunking_strategy` producing retrieval-sized chunks directly\n- Pulling tables out of reports as HTML with `pdf_infer_table_structure`\n- Reading scans and photographs with the `ocr_only` or `hi_res` strategies\n\nGive the document either inline as `file_data` or by `file_path`.",
+          "message": "Odošle dokument službe [Unstructured.io](https://unstructured.io) a vráti ho ako zoznam typovaných prvkov — `Title`, `NarrativeText`, `ListItem`, `Table`, `Image` a ďalších — z ktorých každý má vlastné metadáta.\n\nToto je akcia určená pre **PDF, dokumenty Office, obrázky a e-maily** a pre každý ďalší formát, ktorý Unstructured podporuje; pre obsah, ktorý už je textom, použite `partition-text`.\n\n**Typické použitie**:\n- Prevod archívu dokumentov na záznamy, ktoré dokáže indexovať RAG pipeline, pričom `chunking_strategy` rovno vytvára časti vhodnej veľkosti na vyhľadávanie\n- Získanie tabuliek zo správ ako HTML pomocou `pdf_infer_table_structure`\n- Čítanie skenov a fotografií pomocou stratégií `ocr_only` alebo `hi_res`\n\nDokument zadajte buď priamo ako `file_data`, alebo pomocou `file_path`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.display_name": {
+          "source": "Partition Document",
+          "message": "Rozdeliť dokument"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.desc": {
+          "source": "Consecutive chunks are combined until they reach this length, so that a short section does not become a chunk of its own.  Applies only when `chunking_strategy` is set.",
+          "message": "Po sebe idúce časti sa zlučujú, kým nedosiahnu túto dĺžku, aby sa krátky oddiel nestal samostatnou časťou.  Uplatní sa iba vtedy, ak je nastavená `chunking_strategy`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.display_name": {
+          "source": "Combine Under N Characters",
+          "message": "Zlúčiť pod N znakov"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.short_desc": {
+          "source": "Merge chunks smaller than this",
+          "message": "Zlúčiť časti menšie než táto hodnota"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29udGVudF90eXBl.desc": {
+          "source": "MIME type of the document content, in `type/subtype` form.\n\nUnstructured uses this to decide how to parse the input, so setting it matters for any text format that carries structure.  Content submitted as `text/plain` is not parsed for markup: HTML returns as a single element holding the raw markup, and Markdown keeps its `#` and `-` markers in the element text.",
+          "message": "Typ MIME obsahu dokumentu v tvare `type/subtype`.\n\nUnstructured podľa neho rozhoduje, ako vstup analyzovať, takže je dôležitý pre každý textový formát, ktorý nesie štruktúru.  Obsah odoslaný ako `text/plain` sa na značky neanalyzuje: HTML sa vráti ako jediný prvok obsahujúci nespracované značky a Markdown si ponechá znaky `#` a `-` v texte prvku."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29udGVudF90eXBl.display_name": {
+          "source": "Content Type",
+          "message": "Typ obsahu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29udGVudF90eXBl.short_desc": {
+          "source": "MIME type hint for the document",
+          "message": "Pomôcka k typu MIME dokumentu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29vcmRpbmF0ZXM.desc": {
+          "source": "When `True`, each element includes its bounding box in `metadata.coordinates`.",
+          "message": "Ak je `True`, každý prvok obsahuje svoj ohraničujúci obdĺžnik v `metadata.coordinates`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29vcmRpbmF0ZXM.display_name": {
+          "source": "Coordinates",
+          "message": "Súradnice"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y29vcmRpbmF0ZXM.short_desc": {
+          "source": "Include layout coordinates in each element",
+          "message": "Zahrnúť do každého prvku súradnice rozloženia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3BhZ2U.display_name": {
+          "source": "By Page",
+          "message": "Podľa strany"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3NpbWlsYXJpdHk.display_name": {
+          "source": "By Similarity",
+          "message": "Podľa podobnosti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3RpdGxl.display_name": {
+          "source": "By Title",
+          "message": "Podľa názvu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "Základná"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.desc": {
+          "source": "Groups the partitioned elements into chunks server-side, returning `CompositeElement` chunks instead of the raw element tree.\n\n- `basic` — fill each chunk up to the size limits\n- `by_title` — start a new chunk at each section heading\n- `by_page` — start a new chunk at each page boundary\n- `by_similarity` — group topically similar elements; see `similarity_threshold`\n\nWhen unset, no chunking is performed and the other chunking options are ignored.",
+          "message": "Zoskupí rozdelené prvky do častí na strane servera a vráti časti `CompositeElement` namiesto nespracovaného stromu prvkov.\n\n- `basic` — naplniť každú časť až po veľkostné limity\n- `by_title` — začať novú časť pri každom nadpise oddielu\n- `by_page` — začať novú časť na každom zlome strany\n- `by_similarity` — zoskupiť tematicky podobné prvky; pozri `similarity_threshold`\n\nAk nie je nastavená, delenie na časti sa nevykonáva a ostatné voľby delenia sa ignorujú."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.display_name": {
+          "source": "Chunking Strategy",
+          "message": "Stratégia delenia na časti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.Y2h1bmtpbmdfc3RyYXRlZ3k.short_desc": {
+          "source": "Server-side chunking strategy",
+          "message": "Stratégia delenia na časti na strane servera"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZW5jb2Rpbmc.desc": {
+          "source": "Character encoding used to decode the document text; defaults to `utf-8`.",
+          "message": "Kódovanie znakov použité na dekódovanie textu dokumentu; predvolené je `utf-8`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZW5jb2Rpbmc.display_name": {
+          "source": "Text Encoding",
+          "message": "Kódovanie textu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZW5jb2Rpbmc.short_desc": {
+          "source": "Character encoding used to decode the input",
+          "message": "Kódovanie znakov použité na dekódovanie vstupu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.desc": {
+          "source": "Element types to extract as images, returned base64-encoded in `metadata.image_base64`.\n\nUse it to keep figures and tables that carry meaning no text extraction can recover — charts, diagrams, scanned tables — alongside the text.",
+          "message": "Typy prvkov, ktoré sa extrahujú ako obrázky a vracajú zakódované v base64 v `metadata.image_base64`.\n\nSlúži na to, aby sa popri texte zachovali obrázky a tabuľky, ktorých význam žiadna textová extrakcia neobnoví — grafy, schémy, naskenované tabuľky."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.display_name": {
+          "source": "Extract Image Block Types",
+          "message": "Typy obrazových blokov na extrakciu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.short_desc": {
+          "source": "Element types to return as base64 images",
+          "message": "Typy prvkov vracané ako obrázky v kódovaní base64"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9kYXRh.desc": {
+          "source": "Raw content of the document to partition — a PDF, DOCX, PPTX, XLSX, image, email or any other format Unstructured supports.\n\nMutually exclusive with `file_path`; exactly one of the two is required.",
+          "message": "Nespracovaný obsah dokumentu na rozdelenie — PDF, DOCX, PPTX, XLSX, obrázok, e-mail alebo akýkoľvek iný formát, ktorý Unstructured podporuje.\n\nVzájomne sa vylučuje s `file_path`; vyžaduje sa práve jedna z týchto možností."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9kYXRh.display_name": {
+          "source": "File Data",
+          "message": "Údaje súboru"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9kYXRh.short_desc": {
+          "source": "Document content to partition",
+          "message": "Obsah dokumentu na rozdelenie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9wYXRo.desc": {
+          "source": "Local path of the document to read and partition.\n\nMutually exclusive with `file_data`; exactly one of the two is required.",
+          "message": "Lokálna cesta k dokumentu, ktorý sa má načítať a rozdeliť.\n\nVzájomne sa vylučuje s `file_data`; vyžaduje sa práve jedna z týchto možností."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9wYXRo.display_name": {
+          "source": "File Path",
+          "message": "Cesta k súboru"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZV9wYXRo.short_desc": {
+          "source": "Local path of the document to partition",
+          "message": "Lokálna cesta k dokumentu, ktorý sa má rozdeliť"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZW5hbWU.desc": {
+          "source": "Name reported to Unstructured for the document and returned in `metadata.filename`.  Defaults to the base name of `file_path`, or to `document` when `file_data` is used.",
+          "message": "Názov nahlásený službe Unstructured pre tento dokument a vrátený v `metadata.filename`.  Predvolene základný názov z `file_path`, alebo `document`, ak sa použije `file_data`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZW5hbWU.display_name": {
+          "source": "File Name",
+          "message": "Názov súboru"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.ZmlsZW5hbWU.short_desc": {
+          "source": "Name to report for the document",
+          "message": "Názov, ktorý sa pre dokument uvedie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aGlfcmVzX21vZGVsX25hbWU.desc": {
+          "source": "Name of the layout inference model used when `strategy` is `hi_res`.",
+          "message": "Názov modelu na odvodenie rozloženia, ktorý sa použije, keď sa `strategy` rovná `hi_res`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aGlfcmVzX21vZGVsX25hbWU.display_name": {
+          "source": "Hi-Res Model Name",
+          "message": "Názov modelu pre vysoké rozlíšenie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aGlfcmVzX21vZGVsX25hbWU.short_desc": {
+          "source": "Layout model to use with the hi_res strategy",
+          "message": "Model rozloženia používaný so stratégiou hi_res"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.desc": {
+          "source": "When `True` (the API default), each chunk carries the elements it was assembled from in `metadata.orig_elements`.",
+          "message": "Ak je `True` (predvolená hodnota API), každá časť nesie v `metadata.orig_elements` prvky, z ktorých bola zostavená."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.display_name": {
+          "source": "Include Original Elements",
+          "message": "Zahrnúť pôvodné prvky"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.short_desc": {
+          "source": "Return the elements each chunk was built from",
+          "message": "Vrátiť prvky, z ktorých bola každá časť zostavená"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.desc": {
+          "source": "When `True`, a `PageBreak` element is emitted at each page boundary.",
+          "message": "Ak je `True`, na každom zlome strany sa vygeneruje prvok `PageBreak`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.display_name": {
+          "source": "Include Page Breaks",
+          "message": "Zahrnúť zlomy strán"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.short_desc": {
+          "source": "Emit an element at each page boundary",
+          "message": "Vygenerovať prvok na každom zlome strany"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.desc": {
+          "source": "When `True` (the API default), presenter notes in PPTX documents are partitioned along with the slides.",
+          "message": "Ak je `True` (predvolená hodnota API), poznámky prednášajúceho v dokumentoch PPTX sa rozdeľujú spolu so snímkami."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.display_name": {
+          "source": "Include Slide Notes",
+          "message": "Zahrnúť poznámky k snímkam"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.short_desc": {
+          "source": "Include presenter notes from presentations",
+          "message": "Zahrnúť poznámky prednášajúceho z prezentácií"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcA.desc": {
+          "source": "Number of characters drawn from the end of one chunk and prefixed to the next, so that context is not lost at a chunk boundary.  By default this applies only to chunks produced by splitting an oversized element; see `overlap_all`.",
+          "message": "Počet znakov prevzatých z konca jednej časti a predradených nasledujúcej časti, aby sa na hranici častí nestratil kontext.  Predvolene sa to týka iba častí vzniknutých rozdelením nadmerného prvku; pozri `overlap_all`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcA.display_name": {
+          "source": "Chunk Overlap",
+          "message": "Prekryv častí"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcA.short_desc": {
+          "source": "Characters carried over between chunks",
+          "message": "Znaky prenášané medzi časťami"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcF9hbGw.desc": {
+          "source": "When `True`, `overlap` is applied between every pair of adjacent chunks, not only those produced by splitting an oversized element.",
+          "message": "Ak je `True`, `overlap` sa uplatní medzi každou dvojicou susedných častí, nielen pri tých, ktoré vznikli rozdelením nadmerného prvku."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcF9hbGw.display_name": {
+          "source": "Overlap All Chunks",
+          "message": "Prekrývať všetky časti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.b3ZlcmxhcF9hbGw.short_desc": {
+          "source": "Apply the overlap between every pair of chunks",
+          "message": "Uplatniť prekryv medzi každou dvojicou častí"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bGFuZ3VhZ2Vz.desc": {
+          "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
+          "message": "Zoznam kódov jazykov ISO 639 prítomných v dokumente, ktoré sa používajú na riadenie delenia na časti a OCR."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bGFuZ3VhZ2Vz.display_name": {
+          "source": "Languages",
+          "message": "Jazyky"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bGFuZ3VhZ2Vz.short_desc": {
+          "source": "Document language hints (ISO codes)",
+          "message": "Pomôcky k jazykom dokumentu (kódy ISO)"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bWF4X2NoYXJhY3RlcnM.desc": {
+          "source": "Hard maximum number of characters in a chunk; a larger element is split.  Applies only when `chunking_strategy` is set.",
+          "message": "Pevný maximálny počet znakov v časti; väčší prvok sa rozdelí.  Uplatní sa iba vtedy, ak je nastavená `chunking_strategy`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bWF4X2NoYXJhY3RlcnM.display_name": {
+          "source": "Maximum Chunk Size",
+          "message": "Maximálna veľkosť časti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bWF4X2NoYXJhY3RlcnM.short_desc": {
+          "source": "Hard character limit per chunk",
+          "message": "Pevný limit znakov na časť"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bXVsdGlwYWdlX3NlY3Rpb25z.desc": {
+          "source": "When `True` (the API default), a chunk may span more than one page.",
+          "message": "Ak je `True` (predvolená hodnota API), časť sa môže rozprestierať cez viac než jednu stranu."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bXVsdGlwYWdlX3NlY3Rpb25z.display_name": {
+          "source": "Multipage Sections",
+          "message": "Oddiely cez viac strán"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bXVsdGlwYWdlX3NlY3Rpb25z.short_desc": {
+          "source": "Allow a chunk to span pages",
+          "message": "Povoliť, aby sa časť rozprestierala cez viac strán"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bmV3X2FmdGVyX25fY2hhcnM.desc": {
+          "source": "Soft maximum: a chunk is closed once it reaches this length, without splitting the element that crosses it.  Applies only when `chunking_strategy` is set.",
+          "message": "Mäkké maximum: časť sa uzavrie, len čo dosiahne túto dĺžku, bez rozdelenia prvku, ktorý hranicu prekračuje.  Uplatní sa iba vtedy, ak je nastavená `chunking_strategy`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bmV3X2FmdGVyX25fY2hhcnM.display_name": {
+          "source": "Soft Chunk Size",
+          "message": "Mäkká veľkosť časti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.bmV3X2FmdGVyX25fY2hhcnM.short_desc": {
+          "source": "Soft character limit per chunk",
+          "message": "Mäkký limit znakov na časť"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.desc": {
+          "source": "Value between `0.0` and `1.0` giving the minimum similarity two elements must have to land in the same chunk.  Applies only when `chunking_strategy` is `by_similarity`.",
+          "message": "Hodnota medzi `0.0` a `1.0` udávajúca minimálnu podobnosť, ktorú musia dva prvky mať, aby sa dostali do tej istej časti.  Uplatní sa iba vtedy, ak sa `chunking_strategy` rovná `by_similarity`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.display_name": {
+          "source": "Similarity Threshold",
+          "message": "Prah podobnosti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.short_desc": {
+          "source": "Minimum similarity for by_similarity chunking",
+          "message": "Minimálna podobnosť pre delenie podľa podobnosti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF90YWJsZV9jaHVua2luZw.desc": {
+          "source": "When `True`, `Table` elements are returned whole instead of being chunked.",
+          "message": "Ak je `True`, prvky `Table` sa vracajú vcelku namiesto delenia na časti."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF90YWJsZV9jaHVua2luZw.display_name": {
+          "source": "Skip Table Chunking",
+          "message": "Preskočiť delenie tabuliek"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF90YWJsZV9jaHVua2luZw.short_desc": {
+          "source": "Leave table elements unchunked",
+          "message": "Ponechať prvky tabuliek nerozdelené"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.desc": {
+          "source": "Document types to skip table extraction for, for example `pdf`, `jpg` or `heic`.",
+          "message": "Typy dokumentov, pri ktorých sa extrakcia tabuliek preskočí, napríklad `pdf`, `jpg` alebo `heic`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.display_name": {
+          "source": "Skip Table Inference For",
+          "message": "Preskočiť odvodenie tabuliek pre"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.short_desc": {
+          "source": "Document types to skip table extraction for",
+          "message": "Typy dokumentov, pri ktorých sa extrakcia tabuliek preskočí"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.desc": {
+          "source": "Page number to assign to the first page of the submitted document.  Set it when submitting a slice of a larger document so that `metadata.page_number` stays correct.",
+          "message": "Číslo strany, ktoré sa priradí prvej strane odoslaného dokumentu.  Nastavte ho, ak odosielate výrez väčšieho dokumentu, aby `metadata.page_number` zostalo správne."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.display_name": {
+          "source": "Starting Page Number",
+          "message": "Číslo prvej strany"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.short_desc": {
+          "source": "Page number to assign to the first page",
+          "message": "Číslo strany priradené prvej strane"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9jcl9vbmx5.display_name": {
+          "source": "OCR Only",
+          "message": "Iba OCR"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9kX29ubHk.display_name": {
+          "source": "Object Detection Only",
+          "message": "Iba detekcia objektov"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Automaticky"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "Rýchle"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmhpX3Jlcw.display_name": {
+          "source": "Hi-Res",
+          "message": "Vysoké rozlíšenie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOnZsbQ.display_name": {
+          "source": "Vision Language Model",
+          "message": "Vizuálno-jazykový model"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.desc": {
+          "source": "How the document is analyzed.\n\n- `auto` — let Unstructured choose based on the document\n- `fast` — text extraction only; fastest and cheapest, but no OCR\n- `hi_res` — layout-model inference; needed for accurate tables and element types (the API default)\n- `ocr_only` — OCR the whole document; for scans with no text layer\n- `od_only` — object detection only\n- `vlm` — use a vision language model; see `vlm_model_provider` and `vlm_model`",
+          "message": "Spôsob analýzy dokumentu.\n\n- `auto` — nechať Unstructured rozhodnúť podľa dokumentu\n- `fast` — iba extrakcia textu; najrýchlejšie a najlacnejšie, ale bez OCR\n- `hi_res` — odvodenie pomocou modelu rozloženia; potrebné pre presné tabuľky a typy prvkov (predvolená hodnota API)\n- `ocr_only` — spracovať celý dokument pomocou OCR; pre skeny bez textovej vrstvy\n- `od_only` — iba detekcia objektov\n- `vlm` — použiť vizuálno-jazykový model; pozri `vlm_model_provider` a `vlm_model`"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.display_name": {
+          "source": "Strategy",
+          "message": "Stratégia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.c3RyYXRlZ3k.short_desc": {
+          "source": "Partitioning strategy",
+          "message": "Stratégia rozdelenia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.desc": {
+          "source": "When `True` (the API default), `Table` elements from PDFs carry an HTML rendering of the table in `metadata.text_as_html`.  Requires the `hi_res` strategy.",
+          "message": "Ak je `True` (predvolená hodnota API), prvky `Table` z PDF nesú v `metadata.text_as_html` vykreslenie tabuľky v HTML.  Vyžaduje stratégiu `hi_res`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.display_name": {
+          "source": "Infer PDF Table Structure",
+          "message": "Odvodiť štruktúru tabuliek v PDF"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.short_desc": {
+          "source": "Reconstruct table structure in PDFs",
+          "message": "Rekonštruovať štruktúru tabuliek v PDF"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dW5pcXVlX2VsZW1lbnRfaWRz.desc": {
+          "source": "When `True`, every element gets a UUID.  By default the ID is a hash of the element's text, so identical text produces identical IDs.",
+          "message": "Ak je `True`, každý prvok dostane UUID.  Predvolene je ID hash textu prvku, takže zhodný text dáva zhodné ID."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dW5pcXVlX2VsZW1lbnRfaWRz.display_name": {
+          "source": "Unique Element IDs",
+          "message": "Jedinečné ID prvkov"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dW5pcXVlX2VsZW1lbnRfaWRz.short_desc": {
+          "source": "Assign a unique ID to every element",
+          "message": "Priradiť každému prvku jedinečné ID"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVs.desc": {
+          "source": "Vision language model to use when `strategy` is `vlm`; must be available from `vlm_model_provider`.",
+          "message": "Vizuálno-jazykový model, ktorý sa použije, keď sa `strategy` rovná `vlm`; musí byť dostupný u `vlm_model_provider`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVs.display_name": {
+          "source": "VLM Model",
+          "message": "Model VLM"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVs.short_desc": {
+          "source": "Vision language model to use",
+          "message": "Vizuálno-jazykový model, ktorý sa má použiť"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOm9wZW5haQ.display_name": {
+          "source": "OpenAI",
+          "message": "OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmF6dXJlX29wZW5haQ.display_name": {
+          "source": "Azure OpenAI",
+          "message": "Azure OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpY19iZWRyb2Nr.display_name": {
+          "source": "Anthropic on Bedrock",
+          "message": "Anthropic na Bedrocku"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpYw.display_name": {
+          "source": "Anthropic",
+          "message": "Anthropic"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmJlZHJvY2s.display_name": {
+          "source": "AWS Bedrock",
+          "message": "AWS Bedrock"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmdvb2dsZQ.display_name": {
+          "source": "Google",
+          "message": "Google"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOnZlcnRleGFp.display_name": {
+          "source": "Google Vertex AI",
+          "message": "Google Vertex AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.desc": {
+          "source": "Provider of the vision language model used when `strategy` is `vlm`.",
+          "message": "Poskytovateľ vizuálno-jazykového modelu, ktorý sa použije, keď sa `strategy` rovná `vlm`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.display_name": {
+          "source": "VLM Provider",
+          "message": "Poskytovateľ VLM"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.dmxtX21vZGVsX3Byb3ZpZGVy.short_desc": {
+          "source": "Vision language model provider",
+          "message": "Poskytovateľ vizuálno-jazykového modelu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.eG1sX2tlZXBfdGFncw.desc": {
+          "source": "When `True`, XML tags are retained in the extracted text instead of being stripped.",
+          "message": "Ak je `True`, značky XML sa v extrahovanom texte zachovajú namiesto odstránenia."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.eG1sX2tlZXBfdGFncw.display_name": {
+          "source": "Keep XML Tags",
+          "message": "Zachovať značky XML"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.option.eG1sX2tlZXBfdGFncw.short_desc": {
+          "source": "Retain XML tags in extracted text",
+          "message": "Zachovať značky XML v extrahovanom texte"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLWZpbGU.short_desc": {
+          "source": "Partition a document file into a typed element tree",
+          "message": "Rozdeliť súbor dokumentu na typovaný strom prvkov"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.desc": {
-          "source": "Submits raw text to Unstructured.io for partitioning.  Returns the document as a list of typed elements (Title, NarrativeText, ListItem, Table, etc.).\n\nFor PDFs and other binary formats, use the lower-level @ref UnstructuredRestClient::UnstructuredRestClientIo::partitionFile() method directly.",
-          "message": "Odošle nespracovaný text do Unstructured.io na rozdelenie na partície. Vracia dokument ako zoznam typovaných prvkov (Title, NarrativeText, ListItem, Table atď.).\n\nPre súbory PDF a iné binárne formáty použite priamo nízkoúrovňovú metódu @ref UnstructuredRestClient::UnstructuredRestClientIo::partitionFile()."
+          "source": "Submits text to [Unstructured.io](https://unstructured.io) and returns it as a list of typed elements — `Title`, `NarrativeText`, `ListItem`, `Table` and so on — each with its own metadata.\n\nUse this when the content is already text; for **PDFs, Office documents, images and emails** use `partition-file`.\n\n**Note**: set `content_type` when the text carries structure, or the markup is not parsed — HTML submitted as `text/plain` comes back as a single element holding the raw markup, and Markdown keeps its `#` and `-` markers in the element text.",
+          "message": "Odošle text službe [Unstructured.io](https://unstructured.io) a vráti ho ako zoznam typovaných prvkov — `Title`, `NarrativeText`, `ListItem`, `Table` a ďalších — z ktorých každý má vlastné metadáta.\n\nPoužite túto akciu, ak je obsah už textom; pre **PDF, dokumenty Office, obrázky a e-maily** použite `partition-file`.\n\n**Poznámka**: nastavte `content_type`, ak text nesie štruktúru, inak sa značky neanalyzujú — HTML odoslané ako `text/plain` sa vráti ako jediný prvok obsahujúci nespracované značky a Markdown si ponechá znaky `#` a `-` v texte prvku."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.display_name": {
           "source": "Partition Text",
           "message": "Rozdeliť text na partície"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.desc": {
+          "source": "Consecutive chunks are combined until they reach this length, so that a short section does not become a chunk of its own.  Applies only when `chunking_strategy` is set.",
+          "message": "Po sebe idúce časti sa zlučujú, kým nedosiahnu túto dĺžku, aby sa krátky oddiel nestal samostatnou časťou.  Uplatní sa iba vtedy, ak je nastavená `chunking_strategy`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.display_name": {
+          "source": "Combine Under N Characters",
+          "message": "Zlúčiť pod N znakov"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29tYmluZV91bmRlcl9uX2NoYXJz.short_desc": {
+          "source": "Merge chunks smaller than this",
+          "message": "Zlúčiť časti menšie než táto hodnota"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29udGVudF90eXBl.desc": {
+          "source": "MIME type of the document content, in `type/subtype` form.\n\nUnstructured uses this to decide how to parse the input, so setting it matters for any text format that carries structure.  Content submitted as `text/plain` is not parsed for markup: HTML returns as a single element holding the raw markup, and Markdown keeps its `#` and `-` markers in the element text.",
+          "message": "Typ MIME obsahu dokumentu v tvare `type/subtype`.\n\nUnstructured podľa neho rozhoduje, ako vstup analyzovať, takže je dôležitý pre každý textový formát, ktorý nesie štruktúru.  Obsah odoslaný ako `text/plain` sa na značky neanalyzuje: HTML sa vráti ako jediný prvok obsahujúci nespracované značky a Markdown si ponechá znaky `#` a `-` v texte prvku."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29udGVudF90eXBl.display_name": {
+          "source": "Content Type",
+          "message": "Typ obsahu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29udGVudF90eXBl.short_desc": {
+          "source": "MIME type hint for the document",
+          "message": "Pomôcka k typu MIME dokumentu"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29vcmRpbmF0ZXM.desc": {
-          "source": "When `True`, each element includes layout coordinates in its metadata.",
-          "message": "Keď je `True`, každý prvok obsahuje vo svojich metadátach súradnice rozloženia."
+          "source": "When `True`, each element includes its bounding box in `metadata.coordinates`.",
+          "message": "Ak je `True`, každý prvok obsahuje svoj ohraničujúci obdĺžnik v `metadata.coordinates`."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29vcmRpbmF0ZXM.display_name": {
           "source": "Coordinates",
@@ -346,6 +798,14 @@
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y29vcmRpbmF0ZXM.short_desc": {
           "source": "Include layout coordinates in each element",
           "message": "Zahrnúť súradnice rozloženia do každého prvku"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3BhZ2U.display_name": {
+          "source": "By Page",
+          "message": "Podľa strany"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3NpbWlsYXJpdHk.display_name": {
+          "source": "By Similarity",
+          "message": "Podľa podobnosti"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.allowed-value.c3RyaW5nOmJ5X3RpdGxl.display_name": {
           "source": "By Title",
@@ -356,8 +816,8 @@
           "message": "Základný"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.desc": {
-          "source": "Server-side chunking strategy — `by_title` or `basic`.  When set, Unstructured groups elements into chunks server-side.",
-          "message": "Stratégia delenia na bloky na strane servera — `by_title` alebo `basic`. Keď je nastavená, Unstructured zoskupuje prvky do blokov na strane servera."
+          "source": "Groups the partitioned elements into chunks server-side, returning `CompositeElement` chunks instead of the raw element tree.\n\n- `basic` — fill each chunk up to the size limits\n- `by_title` — start a new chunk at each section heading\n- `by_page` — start a new chunk at each page boundary\n- `by_similarity` — group topically similar elements; see `similarity_threshold`\n\nWhen unset, no chunking is performed and the other chunking options are ignored.",
+          "message": "Zoskupí rozdelené prvky do častí na strane servera a vráti časti `CompositeElement` namiesto nespracovaného stromu prvkov.\n\n- `basic` — naplniť každú časť až po veľkostné limity\n- `by_title` — začať novú časť pri každom nadpise oddielu\n- `by_page` — začať novú časť na každom zlome strany\n- `by_similarity` — zoskupiť tematicky podobné prvky; pozri `similarity_threshold`\n\nAk nie je nastavená, delenie na časti sa nevykonáva a ostatné voľby delenia sa ignorujú."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.display_name": {
           "source": "Chunking Strategy",
@@ -366,6 +826,102 @@
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.Y2h1bmtpbmdfc3RyYXRlZ3k.short_desc": {
           "source": "Server-side chunking strategy",
           "message": "Stratégia delenia na bloky na strane servera"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZW5jb2Rpbmc.desc": {
+          "source": "Character encoding used to decode the document text; defaults to `utf-8`.",
+          "message": "Kódovanie znakov použité na dekódovanie textu dokumentu; predvolené je `utf-8`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZW5jb2Rpbmc.display_name": {
+          "source": "Text Encoding",
+          "message": "Kódovanie textu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZW5jb2Rpbmc.short_desc": {
+          "source": "Character encoding used to decode the input",
+          "message": "Kódovanie znakov použité na dekódovanie vstupu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.desc": {
+          "source": "Element types to extract as images, returned base64-encoded in `metadata.image_base64`.\n\nUse it to keep figures and tables that carry meaning no text extraction can recover — charts, diagrams, scanned tables — alongside the text.",
+          "message": "Typy prvkov, ktoré sa extrahujú ako obrázky a vracajú zakódované v base64 v `metadata.image_base64`.\n\nSlúži na to, aby sa popri texte zachovali obrázky a tabuľky, ktorých význam žiadna textová extrakcia neobnoví — grafy, schémy, naskenované tabuľky."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.display_name": {
+          "source": "Extract Image Block Types",
+          "message": "Typy obrazových blokov na extrakciu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.ZXh0cmFjdF9pbWFnZV9ibG9ja190eXBlcw.short_desc": {
+          "source": "Element types to return as base64 images",
+          "message": "Typy prvkov vracané ako obrázky v kódovaní base64"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aGlfcmVzX21vZGVsX25hbWU.desc": {
+          "source": "Name of the layout inference model used when `strategy` is `hi_res`.",
+          "message": "Názov modelu na odvodenie rozloženia, ktorý sa použije, keď sa `strategy` rovná `hi_res`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aGlfcmVzX21vZGVsX25hbWU.display_name": {
+          "source": "Hi-Res Model Name",
+          "message": "Názov modelu pre vysoké rozlíšenie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aGlfcmVzX21vZGVsX25hbWU.short_desc": {
+          "source": "Layout model to use with the hi_res strategy",
+          "message": "Model rozloženia používaný so stratégiou hi_res"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.desc": {
+          "source": "When `True` (the API default), each chunk carries the elements it was assembled from in `metadata.orig_elements`.",
+          "message": "Ak je `True` (predvolená hodnota API), každá časť nesie v `metadata.orig_elements` prvky, z ktorých bola zostavená."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.display_name": {
+          "source": "Include Original Elements",
+          "message": "Zahrnúť pôvodné prvky"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9vcmlnX2VsZW1lbnRz.short_desc": {
+          "source": "Return the elements each chunk was built from",
+          "message": "Vrátiť prvky, z ktorých bola každá časť zostavená"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.desc": {
+          "source": "When `True`, a `PageBreak` element is emitted at each page boundary.",
+          "message": "Ak je `True`, na každom zlome strany sa vygeneruje prvok `PageBreak`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.display_name": {
+          "source": "Include Page Breaks",
+          "message": "Zahrnúť zlomy strán"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9wYWdlX2JyZWFrcw.short_desc": {
+          "source": "Emit an element at each page boundary",
+          "message": "Vygenerovať prvok na každom zlome strany"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.desc": {
+          "source": "When `True` (the API default), presenter notes in PPTX documents are partitioned along with the slides.",
+          "message": "Ak je `True` (predvolená hodnota API), poznámky prednášajúceho v dokumentoch PPTX sa rozdeľujú spolu so snímkami."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.display_name": {
+          "source": "Include Slide Notes",
+          "message": "Zahrnúť poznámky k snímkam"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.aW5jbHVkZV9zbGlkZV9ub3Rlcw.short_desc": {
+          "source": "Include presenter notes from presentations",
+          "message": "Zahrnúť poznámky prednášajúceho z prezentácií"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcA.desc": {
+          "source": "Number of characters drawn from the end of one chunk and prefixed to the next, so that context is not lost at a chunk boundary.  By default this applies only to chunks produced by splitting an oversized element; see `overlap_all`.",
+          "message": "Počet znakov prevzatých z konca jednej časti a predradených nasledujúcej časti, aby sa na hranici častí nestratil kontext.  Predvolene sa to týka iba častí vzniknutých rozdelením nadmerného prvku; pozri `overlap_all`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcA.display_name": {
+          "source": "Chunk Overlap",
+          "message": "Prekryv častí"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcA.short_desc": {
+          "source": "Characters carried over between chunks",
+          "message": "Znaky prenášané medzi časťami"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcF9hbGw.desc": {
+          "source": "When `True`, `overlap` is applied between every pair of adjacent chunks, not only those produced by splitting an oversized element.",
+          "message": "Ak je `True`, `overlap` sa uplatní medzi každou dvojicou susedných častí, nielen pri tých, ktoré vznikli rozdelením nadmerného prvku."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcF9hbGw.display_name": {
+          "source": "Overlap All Chunks",
+          "message": "Prekrývať všetky časti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.b3ZlcmxhcF9hbGw.short_desc": {
+          "source": "Apply the overlap between every pair of chunks",
+          "message": "Uplatniť prekryv medzi každou dvojicou častí"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bGFuZ3VhZ2Vz.desc": {
           "source": "List of ISO 639 language codes present in the document, used to guide partitioning and OCR.",
@@ -379,9 +935,97 @@
           "source": "Document language hints (ISO codes)",
           "message": "Nápovedy k jazyku dokumentu (ISO kódy)"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bWF4X2NoYXJhY3RlcnM.desc": {
+          "source": "Hard maximum number of characters in a chunk; a larger element is split.  Applies only when `chunking_strategy` is set.",
+          "message": "Pevný maximálny počet znakov v časti; väčší prvok sa rozdelí.  Uplatní sa iba vtedy, ak je nastavená `chunking_strategy`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bWF4X2NoYXJhY3RlcnM.display_name": {
+          "source": "Maximum Chunk Size",
+          "message": "Maximálna veľkosť časti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bWF4X2NoYXJhY3RlcnM.short_desc": {
+          "source": "Hard character limit per chunk",
+          "message": "Pevný limit znakov na časť"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bXVsdGlwYWdlX3NlY3Rpb25z.desc": {
+          "source": "When `True` (the API default), a chunk may span more than one page.",
+          "message": "Ak je `True` (predvolená hodnota API), časť sa môže rozprestierať cez viac než jednu stranu."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bXVsdGlwYWdlX3NlY3Rpb25z.display_name": {
+          "source": "Multipage Sections",
+          "message": "Oddiely cez viac strán"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bXVsdGlwYWdlX3NlY3Rpb25z.short_desc": {
+          "source": "Allow a chunk to span pages",
+          "message": "Povoliť, aby sa časť rozprestierala cez viac strán"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bmV3X2FmdGVyX25fY2hhcnM.desc": {
+          "source": "Soft maximum: a chunk is closed once it reaches this length, without splitting the element that crosses it.  Applies only when `chunking_strategy` is set.",
+          "message": "Mäkké maximum: časť sa uzavrie, len čo dosiahne túto dĺžku, bez rozdelenia prvku, ktorý hranicu prekračuje.  Uplatní sa iba vtedy, ak je nastavená `chunking_strategy`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bmV3X2FmdGVyX25fY2hhcnM.display_name": {
+          "source": "Soft Chunk Size",
+          "message": "Mäkká veľkosť časti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.bmV3X2FmdGVyX25fY2hhcnM.short_desc": {
+          "source": "Soft character limit per chunk",
+          "message": "Mäkký limit znakov na časť"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.desc": {
+          "source": "Value between `0.0` and `1.0` giving the minimum similarity two elements must have to land in the same chunk.  Applies only when `chunking_strategy` is `by_similarity`.",
+          "message": "Hodnota medzi `0.0` a `1.0` udávajúca minimálnu podobnosť, ktorú musia dva prvky mať, aby sa dostali do tej istej časti.  Uplatní sa iba vtedy, ak sa `chunking_strategy` rovná `by_similarity`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.display_name": {
+          "source": "Similarity Threshold",
+          "message": "Prah podobnosti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2ltaWxhcml0eV90aHJlc2hvbGQ.short_desc": {
+          "source": "Minimum similarity for by_similarity chunking",
+          "message": "Minimálna podobnosť pre delenie podľa podobnosti"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF90YWJsZV9jaHVua2luZw.desc": {
+          "source": "When `True`, `Table` elements are returned whole instead of being chunked.",
+          "message": "Ak je `True`, prvky `Table` sa vracajú vcelku namiesto delenia na časti."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF90YWJsZV9jaHVua2luZw.display_name": {
+          "source": "Skip Table Chunking",
+          "message": "Preskočiť delenie tabuliek"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF90YWJsZV9jaHVua2luZw.short_desc": {
+          "source": "Leave table elements unchunked",
+          "message": "Ponechať prvky tabuliek nerozdelené"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.desc": {
+          "source": "Document types to skip table extraction for, for example `pdf`, `jpg` or `heic`.",
+          "message": "Typy dokumentov, pri ktorých sa extrakcia tabuliek preskočí, napríklad `pdf`, `jpg` alebo `heic`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.display_name": {
+          "source": "Skip Table Inference For",
+          "message": "Preskočiť odvodenie tabuliek pre"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c2tpcF9pbmZlcl90YWJsZV90eXBlcw.short_desc": {
+          "source": "Document types to skip table extraction for",
+          "message": "Typy dokumentov, pri ktorých sa extrakcia tabuliek preskočí"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.desc": {
+          "source": "Page number to assign to the first page of the submitted document.  Set it when submitting a slice of a larger document so that `metadata.page_number` stays correct.",
+          "message": "Číslo strany, ktoré sa priradí prvej strane odoslaného dokumentu.  Nastavte ho, ak odosielate výrez väčšieho dokumentu, aby `metadata.page_number` zostalo správne."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.display_name": {
+          "source": "Starting Page Number",
+          "message": "Číslo prvej strany"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RhcnRpbmdfcGFnZV9udW1iZXI.short_desc": {
+          "source": "Page number to assign to the first page",
+          "message": "Číslo strany priradené prvej strane"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9jcl9vbmx5.display_name": {
           "source": "OCR Only",
           "message": "Iba OCR"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOm9kX29ubHk.display_name": {
+          "source": "Object Detection Only",
+          "message": "Iba detekcia objektov"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOmF1dG8.display_name": {
           "source": "Auto",
@@ -395,9 +1039,13 @@
           "source": "Hi-Res",
           "message": "Vysoké rozlíšenie"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.allowed-value.c3RyaW5nOnZsbQ.display_name": {
+          "source": "Vision Language Model",
+          "message": "Vizuálno-jazykový model"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.desc": {
-          "source": "Partitioning strategy — `auto`, `fast`, `hi_res`, or `ocr_only`.",
-          "message": "Stratégia rozdelenia — `auto`, `fast`, `hi_res` alebo `ocr_only`."
+          "source": "How the document is analyzed.\n\n- `auto` — let Unstructured choose based on the document\n- `fast` — text extraction only; fastest and cheapest, but no OCR\n- `hi_res` — layout-model inference; needed for accurate tables and element types (the API default)\n- `ocr_only` — OCR the whole document; for scans with no text layer\n- `od_only` — object detection only\n- `vlm` — use a vision language model; see `vlm_model_provider` and `vlm_model`",
+          "message": "Spôsob analýzy dokumentu.\n\n- `auto` — nechať Unstructured rozhodnúť podľa dokumentu\n- `fast` — iba extrakcia textu; najrýchlejšie a najlacnejšie, ale bez OCR\n- `hi_res` — odvodenie pomocou modelu rozloženia; potrebné pre presné tabuľky a typy prvkov (predvolená hodnota API)\n- `ocr_only` — spracovať celý dokument pomocou OCR; pre skeny bez textovej vrstvy\n- `od_only` — iba detekcia objektov\n- `vlm` — použiť vizuálno-jazykový model; pozri `vlm_model_provider` a `vlm_model`"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.c3RyYXRlZ3k.display_name": {
           "source": "Strategy",
@@ -407,9 +1055,21 @@
           "source": "Partitioning strategy",
           "message": "Stratégia rozdelenia"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.desc": {
+          "source": "When `True` (the API default), `Table` elements from PDFs carry an HTML rendering of the table in `metadata.text_as_html`.  Requires the `hi_res` strategy.",
+          "message": "Ak je `True` (predvolená hodnota API), prvky `Table` z PDF nesú v `metadata.text_as_html` vykreslenie tabuľky v HTML.  Vyžaduje stratégiu `hi_res`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.display_name": {
+          "source": "Infer PDF Table Structure",
+          "message": "Odvodiť štruktúru tabuliek v PDF"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.cGRmX2luZmVyX3RhYmxlX3N0cnVjdHVyZQ.short_desc": {
+          "source": "Reconstruct table structure in PDFs",
+          "message": "Rekonštruovať štruktúru tabuliek v PDF"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dGV4dA.desc": {
-          "source": "Raw text content of the document to partition.",
-          "message": "Nespracovaný textový obsah dokumentu na rozdelenie."
+          "source": "Raw text content of the document to partition.\n\nSet `content_type` when the text carries structure — Markdown, HTML or CSV — otherwise it is submitted as plain text and its markup is not parsed.",
+          "message": "Nespracovaný textový obsah dokumentu na rozdelenie.\n\nNastavte `content_type`, ak text nesie štruktúru — Markdown, HTML alebo CSV — inak sa odošle ako čistý text a jeho značky sa neanalyzujú."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dGV4dA.display_name": {
           "source": "Text",
@@ -418,6 +1078,82 @@
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dGV4dA.short_desc": {
           "source": "Document text content to partition",
           "message": "Textový obsah dokumentu na rozdelenie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dW5pcXVlX2VsZW1lbnRfaWRz.desc": {
+          "source": "When `True`, every element gets a UUID.  By default the ID is a hash of the element's text, so identical text produces identical IDs.",
+          "message": "Ak je `True`, každý prvok dostane UUID.  Predvolene je ID hash textu prvku, takže zhodný text dáva zhodné ID."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dW5pcXVlX2VsZW1lbnRfaWRz.display_name": {
+          "source": "Unique Element IDs",
+          "message": "Jedinečné ID prvkov"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dW5pcXVlX2VsZW1lbnRfaWRz.short_desc": {
+          "source": "Assign a unique ID to every element",
+          "message": "Priradiť každému prvku jedinečné ID"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVs.desc": {
+          "source": "Vision language model to use when `strategy` is `vlm`; must be available from `vlm_model_provider`.",
+          "message": "Vizuálno-jazykový model, ktorý sa použije, keď sa `strategy` rovná `vlm`; musí byť dostupný u `vlm_model_provider`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVs.display_name": {
+          "source": "VLM Model",
+          "message": "Model VLM"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVs.short_desc": {
+          "source": "Vision language model to use",
+          "message": "Vizuálno-jazykový model, ktorý sa má použiť"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOm9wZW5haQ.display_name": {
+          "source": "OpenAI",
+          "message": "OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmF6dXJlX29wZW5haQ.display_name": {
+          "source": "Azure OpenAI",
+          "message": "Azure OpenAI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpY19iZWRyb2Nr.display_name": {
+          "source": "Anthropic on Bedrock",
+          "message": "Anthropic na Bedrocku"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFudGhyb3BpYw.display_name": {
+          "source": "Anthropic",
+          "message": "Anthropic"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmJlZHJvY2s.display_name": {
+          "source": "AWS Bedrock",
+          "message": "AWS Bedrock"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmdvb2dsZQ.display_name": {
+          "source": "Google",
+          "message": "Google"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.allowed-value.c3RyaW5nOnZlcnRleGFp.display_name": {
+          "source": "Google Vertex AI",
+          "message": "Google Vertex AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.desc": {
+          "source": "Provider of the vision language model used when `strategy` is `vlm`.",
+          "message": "Poskytovateľ vizuálno-jazykového modelu, ktorý sa použije, keď sa `strategy` rovná `vlm`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.display_name": {
+          "source": "VLM Provider",
+          "message": "Poskytovateľ VLM"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.dmxtX21vZGVsX3Byb3ZpZGVy.short_desc": {
+          "source": "Vision language model provider",
+          "message": "Poskytovateľ vizuálno-jazykového modelu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.eG1sX2tlZXBfdGFncw.desc": {
+          "source": "When `True`, XML tags are retained in the extracted text instead of being stripped.",
+          "message": "Ak je `True`, značky XML sa v extrahovanom texte zachovajú namiesto odstránenia."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.eG1sX2tlZXBfdGFncw.display_name": {
+          "source": "Keep XML Tags",
+          "message": "Zachovať značky XML"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.option.eG1sX2tlZXBfdGFncw.short_desc": {
+          "source": "Retain XML tags in extracted text",
+          "message": "Zachovať značky XML v extrahovanom texte"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.cGFydGl0aW9uLXRleHQ.short_desc": {
           "source": "Partition raw text into a typed element tree",
