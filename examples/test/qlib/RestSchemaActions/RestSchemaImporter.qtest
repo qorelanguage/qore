@@ -129,6 +129,8 @@ public class TestSchema {
         addTestCase("serialize", \serializeTest());
         addTestCase("import", \importTest());
         addTestCase("normalization", \normalizationTest());
+        addTestCase("replacing a parameter the vendor declares wrongly",
+            \replaceParameterTest());
         addTestCase("importAll", \importAllTest());
         addTestCase("provenance", \provenanceTest());
         addTestCase("report", \reportTest());
@@ -343,6 +345,78 @@ public class TestSchema {
         assertThrows("REST-SCHEMA-IMPORT-ERROR", "declares no such path", \RestSchemaImporter::import(),
             cast<hash<RestSchemaImportInfo>>(doc + {"operations":
                 RestSchemaImporter::parseOperations(("GET /nope",))}));
+    }
+
+    #! Replaces a parameter the vendor declares, but declares wrongly
+    /** The shape of the real case: Exa declares "search" on "POST /v0/websets/preview" as a path
+        parameter with "required: false", on a path with no "{search}" template variable, which is not a
+        valid OpenAPI document and does not load.  An overlay cannot reach it - a parameter in the wrong
+        location changes the request, not its presentation - so the repair happens at import.
+    */
+    private replaceParameterTest() {
+        TmpDir tmp("rest-schema-importer-");
+        string src_path = tmp.path + DirSep + "src.json";
+        string out_path = tmp.path + DirSep + "out.json";
+
+        # a document declaring a query argument as a path parameter of a path that has no such variable
+        hash<auto> schema = Schema;
+        schema.paths."/boards/".get.parameters = (
+            {
+                "name": "detail",
+                "in": "path",
+                "required": False,
+                "description": "whether to include detail",
+                "schema": {"type": "boolean"},
+            },
+        );
+        FileLocationHandler::writeFileToLocation(src_path, make_json(schema, JGF_ADD_FORMATTING));
+
+        hash<auto> fixed = {
+            "name": "detail",
+            "in": "query",
+            "required": False,
+            "description": "whether to include detail",
+            "schema": {"type": "boolean"},
+        };
+        hash<RestSchemaImportInfo> doc = <RestSchemaImportInfo>{
+            "name": "test",
+            "source": src_path,
+            "output": out_path,
+            "operations": RestSchemaImporter::parseOperations(("GET /boards/",)),
+            "normalize": (
+                <RestSchemaNormalizationInfo>{
+                    "reason": "the vendor declares a query argument as a path parameter",
+                    "operations": RestSchemaImporter::parseOperations(("GET /boards/",)),
+                    "replace_parameters": (fixed,),
+                },
+            ),
+        };
+        hash<RestSchemaImportResultInfo> res = RestSchemaImporter::import(doc);
+        assertEq(1, res.normalized_operations);
+
+        hash<auto> written = parse_json(File::readTextFile(out_path));
+        list<auto> params = written.paths."/boards/".get.parameters;
+        assertEq(1, params.size(), "the parameter is replaced, not added alongside");
+        assertEq("query", params[0]."in", "the parameter is where it belongs");
+        assertEq("detail", params[0].name);
+
+        # the artifact records what was repaired
+        list<auto> applied = written{RestSchemaImporter::NormalizationMarker};
+        assertEq(("detail",), applied[0].replace_parameters);
+
+        # naming a parameter the operation does not declare is an error, so the repair disappears by
+        # failing the next import once upstream corrects the document
+        hash<RestSchemaImportInfo> stale = doc;
+        stale.normalize = (
+            <RestSchemaNormalizationInfo>{
+                "reason": "already fixed upstream",
+                "operations": RestSchemaImporter::parseOperations(("GET /boards/",)),
+                "replace_parameters": ({"name": "nonesuch", "in": "query"},),
+            },
+        );
+        assertThrows("REST-SCHEMA-IMPORT-ERROR", "does not declare it", sub () {
+            RestSchemaImporter::import(stale);
+        });
     }
 
     private normalizationTest() {

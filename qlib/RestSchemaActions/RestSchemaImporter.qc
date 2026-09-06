@@ -113,6 +113,21 @@ public hashdecl RestSchemaNormalizationInfo {
     #! Parameters to add, each an OpenAPI parameter object
     *list<hash<auto>> add_parameters;
 
+    #! Parameters to replace, each a complete OpenAPI parameter object matched by \c name
+    /** For a parameter the vendor declares, but declares wrongly, in a way no overlay can reach: an
+        overlay expresses presentation, and a parameter in the wrong **location** changes the request.
+
+        Exa declares \c search on \c "POST /v0/websets/preview" as a \c path parameter with
+        \c "required: false", on a path that has no \c {search} template variable at all - which is
+        not a valid %OpenAPI document, so it does not load.  The description says what it is: a
+        boolean saying whether to search for a preview list of items, which is a query parameter.
+
+        Like @ref add_parameters it is **checked**: naming a parameter the operation does not declare
+        is an error, so the repair disappears by failing the next import once upstream corrects the
+        document.
+    */
+    *list<hash<auto>> replace_parameters;
+
     #! JSON pointers to compositions whose \c "oneOf" is really an \c "anyOf"
     /** \c oneOf means *exactly* one branch matches, and a document that writes it where the branches
         overlap describes a value that can never be valid.  Confluence declares a page body as
@@ -320,6 +335,7 @@ public class RestSchemaImporter {
                     "reason": n.reason,
                     "operations": (map sprintf("%s %s", $1.method.upr(), $1.path), n.operations),
                     "add_parameters": (map $1.name, n.add_parameters ?? ()),
+                    "replace_parameters": (map $1.name, n.replace_parameters ?? ()),
                     "relax_oneof": n.relax_oneof ?? (),
                 };
             }
@@ -489,6 +505,19 @@ public class RestSchemaImporter {
                     add += p;
                 }
                 operation.parameters = (operation.parameters ?? ()) + add;
+                foreach hash<auto> p in (n.replace_parameters) {
+                    if (!p.name.val()) {
+                        throw "REST-SCHEMA-IMPORT-ERROR", sprintf("the repair %y replaces a parameter "
+                            "with no name", n.reason);
+                    }
+                    if (!declared{p.name}) {
+                        throw "REST-SCHEMA-IMPORT-ERROR", sprintf("the repair %y replaces parameter %y "
+                            "on \"%s %s\", which does not declare it; the document has been fixed "
+                            "upstream, so the repair must be removed", n.reason, p.name,
+                            op.method.upr(), op.path);
+                    }
+                    operation.parameters = map $1.name == p.name ? p : $1, operation.parameters;
+                }
                 rv.paths{op.path}{method} = operation;
                 ++operations_normalized;
             }

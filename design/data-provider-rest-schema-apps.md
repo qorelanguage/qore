@@ -309,6 +309,20 @@ Three properties make this safe to do:
 - the provenance checksum still describes the *unmodified* upstream document, because that is the
   baseline the next import has to be diffed against.
 
+`replace_parameters` covers the case where the vendor declares a parameter but declares it *wrongly*, in
+a way no overlay can reach - an overlay expresses presentation, and a parameter in the wrong **location**
+changes the request. Exa declares `search` on `POST /v0/websets/preview` as a `path` parameter with
+`required: false`, on a path with no `{search}` template variable, which is not a valid OpenAPI document
+and so does not load at all; the description says plainly that it is a boolean asking whether to search
+for a preview list of items - a query parameter. The entry is a complete parameter object matched by
+`name`, and it is checked the same way `add_parameters` is: naming a parameter the operation does not
+declare fails the import, so the repair disappears the moment upstream corrects the document.
+
+That operation was later descoped from the Exa application for an unrelated reason - every `/v0` path in
+that document answers 404 - so no shipped import spec currently declares a `replace_parameters` repair;
+the mechanism is there because the class of defect is not rare, and a document that will not load at all
+cannot be worked around anywhere else.
+
 `relax_oneof` covers the other repair the ports have needed: a `oneOf` whose branches overlap. `oneOf`
 means *exactly* one branch matches, so a composition whose branches share every value describes something
 that can never be valid - Confluence declares a page body as `oneOf: [PageBodyWrite, PageNestedBodyWrite]`

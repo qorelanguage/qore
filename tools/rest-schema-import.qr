@@ -262,6 +262,14 @@ class RestSchemaImport {
                 }
                 params += p;
             }
+            list<hash<auto>> replace = ();
+            foreach auto p in (n.replace_parameters ?? ()) {
+                if (p.typeCode() != NT_HASH) {
+                    error("every entry of \"replace_parameters\" in the repair %y must be an OpenAPI "
+                        "parameter object", n.reason);
+                }
+                replace += p;
+            }
             list<string> relax = ();
             foreach auto ptr in (n.relax_oneof ?? ()) {
                 relax += ptr.toString();
@@ -270,6 +278,7 @@ class RestSchemaImport {
                 "reason": n.reason,
                 "operations": n.operations ? RestSchemaImporter::parseOperations(n.operations) : (),
                 "add_parameters": params,
+                "replace_parameters": replace,
                 "relax_oneof": relax,
             };
         }
