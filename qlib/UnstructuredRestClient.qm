@@ -79,10 +79,24 @@ module UnstructuredRestClient {
     Self-hosted deployments are configured by URL as usual and are never
     moved, as there is nowhere else to try.
 
-    Note also that the Unstructured **Platform API** (workflows, sources,
-    destinations and jobs) is a different service with its own host and
-    no partition endpoint; this module implements the partition API only,
-    so a Platform API base URL will not work here.
+    @par The Platform API
+
+    Unstructured's **Platform API** (connectors, workflows and their runs)
+    is a different service on a different host, with no partition endpoint
+    and a versioned base path, so a Platform API base URL will not work as
+    the connection URL.
+
+    It does not have to be configured separately.  The two hosts pair up
+    one to one, so
+    @ref UnstructuredRestClient::UnstructuredRestConnection::getPlatformClient() "getPlatformClient()"
+    derives the Platform host from the configured partition host and
+    returns an
+    @ref UnstructuredRestClient::UnstructuredPlatformRestClientIo "UnstructuredPlatformRestClientIo"
+    that carries the same API key and the `/api/v1` base path — including
+    when the connection has moved itself to another deployment.  A
+    deployment whose Platform host cannot be derived (a self-hosted one,
+    say) is configured explicitly with the `platform_url` connection
+    option.
 
     @par Submission shapes
 
@@ -241,6 +255,61 @@ public class UnstructuredRestClientIo inherits RestClientIo::RestClientIo, Unstr
     }
 }
 
+#! REST client for the Unstructured.io Platform API
+/** The Platform API manages connectors, workflows and the jobs that run them.  It is a different
+    service on a different host from the partition API that
+    @ref UnstructuredRestClient::UnstructuredRestClientIo "UnstructuredRestClientIo" talks to, but
+    it takes the same API key in the same header, so one connection serves both.
+
+    @since %UnstructuredRestClient 1.0
+*/
+public class UnstructuredPlatformRestClientIo inherits RestClientIo::RestClientIo,
+        UnstructuredRestClientBase {
+    public {
+        #! The default Platform API URL
+        const DefaultPlatformUrl = "https://platform-api.transform.unstructured.io";
+
+        #! Maps a partition API host to the Platform API host of the same deployment
+        /** Unstructured runs its two APIs on separate hosts, paired per deployment.  A connection
+            configured for one partition host therefore already determines its platform host, and
+            the \c platform_url option only has to be set for a self-hosted deployment.
+        */
+        const PlatformUrlMap = {
+            "https://api.transform.unstructured.io": DefaultPlatformUrl,
+            "https://api.unstructuredapp.io": "https://platform.unstructuredapp.io",
+        };
+
+        #! The path prefix every Platform API operation is served under
+        const ApiPath = "/api/v1";
+    }
+
+    constructor(hash<auto> opts, *HttpClientIo::HttpClientConnectionManager shared_mgr)
+            : RestClientIo(UnstructuredPlatformRestClientIo::getPlatformOptions(opts), shared_mgr) {
+    }
+
+    #! Returns the Platform API URL paired with the given partition API URL
+    /** @param url a partition API URL, or @ref nothing
+
+        @return the paired Platform API URL, or @ref DefaultPlatformUrl when the partition URL is
+        not one of Unstructured's own deployments - a self-hosted deployment has to set
+        \c platform_url explicitly, and there is nothing to derive it from
+    */
+    static string getPlatformUrl(*string url) {
+        return (url.val() ? PlatformUrlMap{url} : NOTHING) ?? DefaultPlatformUrl;
+    }
+
+    #! Returns options for the Platform API client
+    /** Replaces the partition API URL with the paired Platform API URL unless \c platform_url
+        says otherwise, then applies the shared API key header mapping.
+    */
+    static hash<auto> getPlatformOptions(hash<auto> opts) {
+        hash<auto!> rv = opts;
+        rv.url = (remove rv.platform_url)
+            ?? UnstructuredPlatformRestClientIo::getPlatformUrl(opts.url);
+        return UnstructuredRestClientBase::getOptions(rv);
+    }
+}
+
 #! Class for Unstructured.io REST connections
 public class UnstructuredRestConnection inherits RestClient::RestConnection {
     public {
@@ -262,17 +331,21 @@ public class UnstructuredRestConnection inherits RestClient::RestConnection {
         );
 
         const ConnectionScheme = <ConnectionSchemeInfo>{
-            "display_name": "Unstructured.io Document Partitioning Connection",
-            "short_desc": "A connection to the Unstructured.io REST API",
-            "desc": "A connection to [Unstructured.io](https://unstructured.io) — a "
-                "document partitioning service that breaks PDFs, docx, HTML, and "
-                "images into a typed element tree.\n\n"
+            "display_name": "Unstructured.io Connection",
+            "short_desc": "A connection to the Unstructured.io REST APIs",
+            "desc": "A connection to [Unstructured.io](https://unstructured.io), which turns "
+                "documents into data an AI application can use.\n\n"
+                "One connection serves both of Unstructured's APIs with the same key:\n"
+                "- the **Partition API**, which breaks PDFs, Office files, HTML, images and "
+                "emails into a typed element tree\n"
+                "- the **Platform API**, which manages the source and destination connectors, "
+                "the workflows that join them and the jobs that run them\n\n"
                 "Works against Unstructured's hosted deployments and self-hosted "
                 "deployments — same module, different URL.  An API key is issued for one "
                 "deployment and is rejected by the others; when the configured deployment "
                 "rejects the key, the connection tries the other known deployments on the "
                 "next ping and moves itself to whichever one accepts it.\n\n"
-                "Auth: the `unstructured-api-key` header.",
+                "Auth: the `unstructured-api-key` header, which the ping verifies.",
             "cls": Class::forName("UnstructuredRestConnection"),
             "auto_url": True,
             "schemes": {"unstructured": True},
@@ -286,6 +359,17 @@ public class UnstructuredRestConnection inherits RestClient::RestConnection {
                         "`unstructured-api-key` header.",
                     "sensitive": True,
                     "preselected": True,
+                },
+                "platform_url": <ConnectionOptionInfo>{
+                    "display_name": "Platform API URL",
+                    "short_desc": "Overrides the derived Unstructured Platform API URL",
+                    "type": "string",
+                    "desc": "URL of the Unstructured **Platform API**, which manages connectors, "
+                        "workflows and jobs.\n\n"
+                        "Unstructured serves its two APIs on separate hosts, paired per "
+                        "deployment, so this is derived from the connection's own URL and only "
+                        "has to be set for a self-hosted deployment.",
+                    "example_value": "https://platform-api.transform.unstructured.io",
                 },
             },
             "required_options": "apikey",
@@ -326,7 +410,14 @@ public class UnstructuredRestConnection inherits RestClient::RestConnection {
 
     DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
         load_module("UnstructuredDataProvider");
-        return create_object("UnstructuredDataProvider", getAsync());
+        # both APIs take this connection's credentials, so the provider is given a client for each;
+        # the key is passed as well because the provider declares it required, and the clients take
+        # precedence over it
+        return create_object("UnstructuredDataProvider", {
+            "restclient": getAsync(),
+            "platformclient": getPlatformClient(),
+            "apikey": opts.apikey,
+        });
     }
 
     private setChildCapabilities() {
@@ -377,6 +468,21 @@ public class UnstructuredRestConnection inherits RestClient::RestConnection {
             }
         }
         authSuccess();
+    }
+
+    #! Returns a client for the Unstructured Platform API
+    /** @param rtopts runtime options for connection acquisition
+
+        @return a @ref UnstructuredRestClient::UnstructuredPlatformRestClientIo
+        "UnstructuredPlatformRestClientIo" for the deployment this connection targets
+
+        The Platform API takes the same API key as the partition API, so this reuses the
+        connection's credentials; its host is derived from the connection URL unless the
+        \c platform_url option overrides it.
+    */
+    UnstructuredPlatformRestClientIo getPlatformClient(*hash<auto> rtopts) {
+        return new UnstructuredPlatformRestClientIo(
+            RestConnection::getConnectionOptions(rtopts) ?? {});
     }
 
     #! Returns the deployments to try when the configured one rejects the API key

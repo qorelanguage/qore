@@ -3,6 +3,1686 @@
   "locales": {
     "ko": {
       "messages": {
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.desc": {
+          "source": "Cancels a job that is scheduled or in progress.  Documents already written to the destination stay there.",
+          "message": "예약되었거나 진행 중인 작업을 취소합니다. 이미 대상에 기록된 문서는 그대로 남습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.display_name": {
+          "source": "Cancel Job",
+          "message": "작업 취소"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "작업"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.option.am9iX2lk.short_desc": {
+          "source": "The job to cancel",
+          "message": "취소할 작업"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.short_desc": {
+          "source": "Cancel a running job",
+          "message": "실행 중인 작업을 취소합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.desc": {
+          "source": "Asks Unstructured to try connecting to the destination and report whether the credentials and location work.  The check runs asynchronously; read the result with **Get Destination Connector Check**.",
+          "message": "Unstructured가 대상에 연결을 시도해 자격 증명과 위치가 유효한지 보고하도록 합니다. 점검은 비동기로 실행되며, 결과는 **Get Destination Connector Check**로 확인하세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.display_name": {
+          "source": "Check Destination Connector",
+          "message": "대상 커넥터 점검"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "대상 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector to check",
+          "message": "점검할 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.short_desc": {
+          "source": "Start a connection check for a destination connector",
+          "message": "대상 커넥터의 연결 점검을 시작합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.desc": {
+          "source": "Asks Unstructured to try connecting to the source and report whether the credentials and location work.  The check runs asynchronously; read the result with **Get Source Connector Check**.",
+          "message": "Unstructured가 소스에 연결을 시도해 자격 증명과 위치가 유효한지 보고하도록 합니다. 점검은 비동기로 실행되며, 결과는 **Get Source Connector Check**로 확인하세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.display_name": {
+          "source": "Check Source Connector",
+          "message": "소스 커넥터 점검"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "소스 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector to check",
+          "message": "점검할 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.short_desc": {
+          "source": "Start a connection check for a source connector",
+          "message": "소스 커넥터의 연결 점검을 시작합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Creates a channel Unstructured sends job notifications to.\n\nThe settings depend on the kind of channel: a webhook channel takes a `url` and a signing `secret`, an email channel takes an `email_config`.  Both take `channel_type`, `description` and the `event_types` to subscribe to.\n\nA channel receives nothing until it has been verified; use **Verify Notification Channel** with the code Unstructured sends.",
+          "message": "Unstructured가 작업 알림을 보낼 채널을 생성합니다.\n\n설정은 채널 종류에 따라 다릅니다. 웹훅 채널은 `url`과 서명용 `secret`이 필요하고, 이메일 채널은 `email_config`가 필요합니다. 둘 다 `channel_type`, `description`, 구독할 `event_types`가 필요합니다.\n\n채널은 확인을 마치기 전까지 아무것도 받지 않습니다. Unstructured가 보낸 코드로 **Verify Notification Channel**을 실행하세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Create Notification Channel",
+          "message": "알림 채널 생성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Ym9keQ.desc": {
+          "source": "The channel to create.\n\nFor a webhook channel: `channel_type` `webhook`, a `url` to post to, an optional signing `secret`, and the `event_types` to subscribe to.  For an email channel: `channel_type` `email`, an `email_config` naming the recipients, and the same `event_types`.\n\nSupplied whole because Unstructured describes the two kinds as different request bodies rather than one with optional fields.",
+          "message": "생성할 채널입니다.\n\n웹훅 채널의 경우: `channel_type`은 `webhook`, 게시할 `url`, 선택적인 서명용 `secret`, 구독할 `event_types`. 이메일 채널의 경우: `channel_type`은 `email`, 수신자를 지정하는 `email_config`, 그리고 같은 `event_types`.\n\nUnstructured가 두 종류를 선택적 필드를 가진 하나의 요청 본문이 아니라 서로 다른 요청 본문으로 기술하기 때문에 이렇게 함께 지정합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Ym9keQ.display_name": {
+          "source": "Channel",
+          "message": "채널"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Ym9keQ.short_desc": {
+          "source": "The channel to create",
+          "message": "생성할 채널"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Create a notification channel",
+          "message": "알림 채널을 생성합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.desc": {
+          "source": "Creates a destination connector for a workflow to write its output to.\n\n`config` is specific to the connector type chosen in `type` - a Pinecone connector takes an index and an API key, an S3 connector a bucket URL.  Use **Get Connector Configuration Fields** to see what a given type requires.",
+          "message": "워크플로가 결과를 기록할 대상 커넥터를 생성합니다.\n\n`config`는 `type`으로 고른 커넥터 유형마다 다릅니다. Pinecone 커넥터는 인덱스와 API 키가 필요하고, S3 커넥터는 버킷 URL이 필요합니다. **Get Connector Configuration Fields**로 해당 유형이 무엇을 요구하는지 확인하세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.display_name": {
+          "source": "Create Destination Connector",
+          "message": "대상 커넥터 생성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.desc": {
+          "source": "Connector settings, whose fields depend on `type`.  **Get Connector Configuration Fields** lists them for any type.",
+          "message": "커넥터 설정이며, 필드는 `type`에 따라 달라집니다. **Get Connector Configuration Fields**가 모든 유형에 대해 필드를 나열합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.display_name": {
+          "source": "Configuration",
+          "message": "구성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.short_desc": {
+          "source": "Connector settings for the chosen type",
+          "message": "선택한 유형에 맞는 커넥터 설정"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.a2V5.desc": {
+          "source": "A stable identifier that survives being exported to another environment, where the generated ID would not.\n\nDerived from `name` when left unset, and immutable once set.  Up to 63 characters: lowercase letters, digits and hyphens, with no leading, trailing or repeated hyphens.",
+          "message": "다른 환경으로 내보내도 유지되는 안정적인 식별자입니다. 생성된 ID는 유지되지 않습니다.\n\n설정하지 않으면 `name`에서 파생되며, 한 번 설정하면 변경할 수 없습니다. 최대 63자이며 소문자, 숫자, 하이픈을 쓸 수 있고 하이픈으로 시작하거나 끝나거나 연속될 수 없습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.a2V5.display_name": {
+          "source": "Stable Key",
+          "message": "안정 키"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.a2V5.short_desc": {
+          "source": "A stable identifier for exporting between environments",
+          "message": "환경 간 내보내기를 위한 안정적인 식별자"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.bmFtZQ.short_desc": {
+          "source": "A name for the connector",
+          "message": "커넥터 이름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm1pbHZ1cw.display_name": {
+          "source": "Milvus",
+          "message": "Milvus"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm1vdGhlcmR1Y2s.display_name": {
+          "source": "MotherDuck",
+          "message": "MotherDuck"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm5lbzRq.display_name": {
+          "source": "Neo4j",
+          "message": "Neo4j"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmNocm9tYQ.display_name": {
+          "source": "Chroma",
+          "message": "Chroma"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lX2RlbHRhX3RhYmxlcw.display_name": {
+          "source": "Databricks Delta Tables",
+          "message": "Databricks Delta Tables"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmRlbHRhX3RhYmxl.display_name": {
+          "source": "Delta Table",
+          "message": "Delta Table"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmlibV93YXRzb254X3Mz.display_name": {
+          "source": "IBM watsonx.data",
+          "message": "IBM watsonx.data"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmtkYmFp.display_name": {
+          "source": "KDB.AI",
+          "message": "KDB.AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnBpbmVjb25l.display_name": {
+          "source": "Pinecone",
+          "message": "Pinecone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnFkcmFudC1jbG91ZA.display_name": {
+          "source": "Qdrant Cloud",
+          "message": "Qdrant Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnJlZGlz.display_name": {
+          "source": "Redis",
+          "message": "Redis"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnNpbmdsZXN0b3Jl.display_name": {
+          "source": "SingleStore",
+          "message": "SingleStore"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnVuc3RydWN0dXJlZF9ibG9iX3N0b3JhZ2U.display_name": {
+          "source": "Unstructured Blob Storage",
+          "message": "Unstructured Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOndlYXZpYXRlLWNsb3Vk.display_name": {
+          "source": "Weaviate Cloud",
+          "message": "Weaviate Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.display_name": {
+          "source": "Connector Type",
+          "message": "커넥터 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.short_desc": {
+          "source": "The kind of system output is written to",
+          "message": "결과를 기록할 시스템의 종류"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.short_desc": {
+          "source": "Create a destination connector",
+          "message": "대상 커넥터를 생성합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.desc": {
+          "source": "Creates a source connector for a workflow to read documents from.\n\n`config` is specific to the connector type chosen in `type` - an S3 connector takes a bucket URL and credentials, a Confluence connector a site URL and an API token.  Use **Get Connector Configuration Fields** to see what a given type requires before filling this in.",
+          "message": "워크플로가 문서를 읽어 올 소스 커넥터를 생성합니다.\n\n`config`는 `type`으로 고른 커넥터 유형마다 다릅니다. S3 커넥터는 버킷 URL과 자격 증명이 필요하고, Confluence 커넥터는 사이트 URL과 API 토큰이 필요합니다. 값을 채우기 전에 **Get Connector Configuration Fields**로 해당 유형이 무엇을 요구하는지 확인하세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.display_name": {
+          "source": "Create Source Connector",
+          "message": "소스 커넥터 생성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.Y29uZmln.desc": {
+          "source": "Connector settings, whose fields depend on `type`.  **Get Connector Configuration Fields** lists them for any type.",
+          "message": "커넥터 설정이며, 필드는 `type`에 따라 달라집니다. **Get Connector Configuration Fields**가 모든 유형에 대해 필드를 나열합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.Y29uZmln.display_name": {
+          "source": "Configuration",
+          "message": "구성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.Y29uZmln.short_desc": {
+          "source": "Connector settings for the chosen type",
+          "message": "선택한 유형에 맞는 커넥터 설정"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.a2V5.desc": {
+          "source": "A stable identifier that survives being exported to another environment, where the generated ID would not.\n\nDerived from `name` when left unset, and immutable once set.  Up to 63 characters: lowercase letters, digits and hyphens, with no leading, trailing or repeated hyphens.",
+          "message": "다른 환경으로 내보내도 유지되는 안정적인 식별자입니다. 생성된 ID는 유지되지 않습니다.\n\n설정하지 않으면 `name`에서 파생되며, 한 번 설정하면 변경할 수 없습니다. 최대 63자이며 소문자, 숫자, 하이픈을 쓸 수 있고 하이픈으로 시작하거나 끝나거나 연속될 수 없습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.a2V5.display_name": {
+          "source": "Stable Key",
+          "message": "안정 키"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.a2V5.short_desc": {
+          "source": "A stable identifier for exporting between environments",
+          "message": "환경 간 내보내기를 위한 안정적인 식별자"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.bmFtZQ.short_desc": {
+          "source": "A name for the connector",
+          "message": "커넥터 이름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOm91dGxvb2s.display_name": {
+          "source": "Outlook",
+          "message": "Outlook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmFpcnRhYmxl.display_name": {
+          "source": "Airtable",
+          "message": "Airtable"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmJveA.display_name": {
+          "source": "Box",
+          "message": "Box"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmNvbmZsdWVuY2U.display_name": {
+          "source": "Confluence",
+          "message": "Confluence"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmdpdGh1Yg.display_name": {
+          "source": "GitHub",
+          "message": "GitHub"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmdpdGxhYg.display_name": {
+          "source": "GitLab",
+          "message": "GitLab"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmdvb2dsZV9kcml2ZQ.display_name": {
+          "source": "Google Drive",
+          "message": "Google Drive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmppcmE.display_name": {
+          "source": "Jira",
+          "message": "Jira"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNhbGVzZm9yY2U.display_name": {
+          "source": "Salesforce",
+          "message": "Salesforce"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNoYXJlcG9pbnQ.display_name": {
+          "source": "SharePoint",
+          "message": "SharePoint"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNsYWNr.display_name": {
+          "source": "Slack",
+          "message": "Slack"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnplbmRlc2s.display_name": {
+          "source": "Zendesk",
+          "message": "Zendesk"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.display_name": {
+          "source": "Connector Type",
+          "message": "커넥터 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.short_desc": {
+          "source": "The kind of system documents are read from",
+          "message": "문서를 읽어 올 시스템의 종류"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.short_desc": {
+          "source": "Create a source connector",
+          "message": "소스 커넥터를 생성합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.desc": {
+          "source": "Creates a workflow that reads from a source connector, processes documents through a chain of nodes, and writes to a destination connector.\n\nThere are two ways to describe the processing: pick a `workflow_type`, which applies Unstructured's own preset chain, or supply `workflow_nodes` to build the chain yourself.  A `schedule` makes the workflow recurring; without one it runs only when it is run explicitly.",
+          "message": "소스 커넥터에서 읽어 노드 체인으로 문서를 처리한 뒤 대상 커넥터에 쓰는 워크플로를 생성합니다.\n\n처리 방식은 두 가지로 지정합니다. `workflow_type`을 고르면 Unstructured가 미리 만들어 둔 체인이 적용되고, `workflow_nodes`를 지정하면 체인을 직접 구성합니다. `schedule`을 설정하면 주기적으로 실행되며, 설정하지 않으면 명시적으로 실행할 때만 동작합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.display_name": {
+          "source": "Create Workflow",
+          "message": "워크플로 생성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "대상 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector results are written to",
+          "message": "결과를 기록할 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.a2V5.desc": {
+          "source": "A stable identifier that survives being exported to another environment, where the generated ID would not.\n\nDerived from `name` when left unset, and immutable once set.  Up to 63 characters: lowercase letters, digits and hyphens, with no leading, trailing or repeated hyphens.",
+          "message": "다른 환경으로 내보내도 유지되는 안정적인 식별자입니다. 생성된 ID는 유지되지 않습니다.\n\n설정하지 않으면 `name`에서 파생되며, 한 번 설정하면 변경할 수 없습니다. 최대 63자이며 소문자, 숫자, 하이픈을 쓸 수 있고 하이픈으로 시작하거나 끝나거나 연속될 수 없습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.a2V5.display_name": {
+          "source": "Stable Key",
+          "message": "안정 키"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.a2V5.short_desc": {
+          "source": "A stable identifier for exporting between environments",
+          "message": "환경 간 내보내기를 위한 안정적인 식별자"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.bmFtZQ.short_desc": {
+          "source": "A name for the workflow",
+          "message": "워크플로 이름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "소스 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector documents are read from",
+          "message": "문서를 읽어 올 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IDE1IG1pbnV0ZXM.display_name": {
+          "source": "Every 15 Minutes",
+          "message": "15분마다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IDYgaG91cnM.display_name": {
+          "source": "Every 6 Hours",
+          "message": "6시간마다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IG1vbnRo.display_name": {
+          "source": "Monthly",
+          "message": "매월"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IGRheQ.display_name": {
+          "source": "Daily",
+          "message": "매일"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IGhvdXI.display_name": {
+          "source": "Hourly",
+          "message": "1시간마다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IHdlZWs.display_name": {
+          "source": "Weekly",
+          "message": "매주"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.desc": {
+          "source": "How often the workflow runs on its own.  Leave unset for a workflow that runs only when it is run explicitly.",
+          "message": "워크플로가 자동으로 실행되는 주기입니다. 명시적으로 실행할 때만 동작시키려면 설정하지 마세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.display_name": {
+          "source": "Schedule",
+          "message": "일정"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.short_desc": {
+          "source": "How often the workflow runs by itself",
+          "message": "워크플로가 자동으로 실행되는 주기"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.cmVwcm9jZXNzX2FsbA.display_name": {
+          "source": "Reprocess All",
+          "message": "전체 재처리"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.cmVwcm9jZXNzX2FsbA.short_desc": {
+          "source": "Reprocess documents that have already been processed",
+          "message": "이미 처리한 문서를 다시 처리합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfbm9kZXM.desc": {
+          "source": "The processing chain to run, described node by node.  Supply this instead of `workflow_type` to build the chain yourself.",
+          "message": "실행할 처리 체인을 노드 단위로 기술한 내용입니다. 체인을 직접 구성하려면 `workflow_type` 대신 이 값을 지정하세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfbm9kZXM.display_name": {
+          "source": "Processing Nodes",
+          "message": "처리 노드"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfbm9kZXM.short_desc": {
+          "source": "The processing chain to run, described node by node",
+          "message": "실행할 처리 체인을 노드 단위로 기술한 내용"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
+          "source": "Advanced",
+          "message": "어드밴스드"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "베이직"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmN1c3RvbQ.display_name": {
+          "source": "Custom",
+          "message": "사용자 지정"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOnBsYXRpbnVt.display_name": {
+          "source": "Platinum",
+          "message": "플래티넘"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.desc": {
+          "source": "The preset processing chain to apply.  Supply `workflow_nodes` instead to build the chain yourself.",
+          "message": "적용할 사전 정의 처리 체인입니다. 체인을 직접 구성하려면 대신 `workflow_nodes`를 지정하세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.display_name": {
+          "source": "Workflow Type",
+          "message": "워크플로 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.short_desc": {
+          "source": "The preset processing chain to apply",
+          "message": "적용할 사전 정의 처리 체인"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.dGVtcGxhdGVfaWQ.display_name": {
+          "source": "Template",
+          "message": "템플릿"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.dGVtcGxhdGVfaWQ.short_desc": {
+          "source": "The workflow template to build from",
+          "message": "기반으로 사용할 워크플로 템플릿"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.short_desc": {
+          "source": "Create a workflow",
+          "message": "워크플로를 생성합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Returns one notification channel and the events it is subscribed to.",
+          "message": "알림 채널 하나와 그 채널이 구독 중인 이벤트를 반환합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Get Notification Channel",
+          "message": "알림 채널 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.display_name": {
+          "source": "Channel",
+          "message": "채널"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.short_desc": {
+          "source": "The channel to return",
+          "message": "반환할 채널"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Get one notification channel by ID",
+          "message": "ID로 알림 채널 하나를 조회합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.desc": {
+          "source": "Lists the configuration fields a given connector type accepts, so that a connector can be created without guessing at its `config` hash.\n\nUnstructured types a connector's configuration as a union over one schema per connector type — an S3 source takes a bucket URL and credentials, a Confluence source a site URL and an API token — so there is no single field list to show until the type is known.\n\nThis action answers from the API description shipped with this module and makes no request to Unstructured.",
+          "message": "지정한 커넥터 유형이 받아들이는 구성 필드를 나열하므로, `config` 해시의 내용을 추측하지 않고 커넥터를 만들 수 있습니다.\n\nUnstructured는 커넥터 구성을 커넥터 유형마다 스키마가 하나씩 있는 합집합으로 정의합니다. S3 소스는 버킷 URL과 자격 증명이 필요하고 Confluence 소스는 사이트 URL과 API 토큰이 필요하므로, 유형이 정해지기 전에는 보여 줄 수 있는 단일 필드 목록이 존재하지 않습니다.\n\n이 액션은 이 모듈에 함께 제공되는 API 기술서로 응답하며, Unstructured에 요청을 보내지 않습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.display_name": {
+          "source": "Get Connector Configuration Fields",
+          "message": "커넥터 구성 필드 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm1pbHZ1cw.display_name": {
+          "source": "Milvus",
+          "message": "Milvus"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm1vdGhlcmR1Y2s.display_name": {
+          "source": "MotherDuck",
+          "message": "MotherDuck"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm5lbzRq.display_name": {
+          "source": "Neo4j",
+          "message": "Neo4j"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm91dGxvb2s.display_name": {
+          "source": "Outlook",
+          "message": "Outlook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmFpcnRhYmxl.display_name": {
+          "source": "Airtable",
+          "message": "Airtable"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmJveA.display_name": {
+          "source": "Box",
+          "message": "Box"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmNocm9tYQ.display_name": {
+          "source": "Chroma",
+          "message": "Chroma"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmNvbmZsdWVuY2U.display_name": {
+          "source": "Confluence",
+          "message": "Confluence"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lX2RlbHRhX3RhYmxlcw.display_name": {
+          "source": "Databricks Delta Tables",
+          "message": "Databricks Delta Tables"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmRlbHRhX3RhYmxl.display_name": {
+          "source": "Delta Table",
+          "message": "Delta Table"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmdpdGh1Yg.display_name": {
+          "source": "GitHub",
+          "message": "GitHub"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmdpdGxhYg.display_name": {
+          "source": "GitLab",
+          "message": "GitLab"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmdvb2dsZV9kcml2ZQ.display_name": {
+          "source": "Google Drive",
+          "message": "Google Drive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmlibV93YXRzb254X3Mz.display_name": {
+          "source": "IBM watsonx.data",
+          "message": "IBM watsonx.data"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmppcmE.display_name": {
+          "source": "Jira",
+          "message": "Jira"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmtkYmFp.display_name": {
+          "source": "KDB.AI",
+          "message": "KDB.AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnBpbmVjb25l.display_name": {
+          "source": "Pinecone",
+          "message": "Pinecone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnFkcmFudC1jbG91ZA.display_name": {
+          "source": "Qdrant Cloud",
+          "message": "Qdrant Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnJlZGlz.display_name": {
+          "source": "Redis",
+          "message": "Redis"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNhbGVzZm9yY2U.display_name": {
+          "source": "Salesforce",
+          "message": "Salesforce"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNoYXJlcG9pbnQ.display_name": {
+          "source": "SharePoint",
+          "message": "SharePoint"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNpbmdsZXN0b3Jl.display_name": {
+          "source": "SingleStore",
+          "message": "SingleStore"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNsYWNr.display_name": {
+          "source": "Slack",
+          "message": "Slack"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnVuc3RydWN0dXJlZF9ibG9iX3N0b3JhZ2U.display_name": {
+          "source": "Unstructured Blob Storage",
+          "message": "Unstructured Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOndlYXZpYXRlLWNsb3Vk.display_name": {
+          "source": "Weaviate Cloud",
+          "message": "Weaviate Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnplbmRlc2s.display_name": {
+          "source": "Zendesk",
+          "message": "Zendesk"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.desc": {
+          "source": "The connector type whose configuration fields to return, as given to `create-source` or `create-destination`.",
+          "message": "구성 필드를 반환할 커넥터 유형이며, `create-source` 또는 `create-destination`에 전달하는 값과 같습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.display_name": {
+          "source": "Connector Type",
+          "message": "커넥터 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.short_desc": {
+          "source": "The connector type to describe",
+          "message": "설명할 커넥터 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.allowed-value.c3RyaW5nOmRlc3RpbmF0aW9u.display_name": {
+          "source": "Destination",
+          "message": "대상"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.allowed-value.c3RyaW5nOnNvdXJjZQ.display_name": {
+          "source": "Source",
+          "message": "소스"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.desc": {
+          "source": "Several connector types exist in both directions and take different settings in each - an S3 source declares `recursive`, an S3 destination does not.  Naming the direction picks the right one.",
+          "message": "일부 커넥터 유형은 양방향으로 존재하며 각각 다른 설정을 받습니다. S3 소스는 `recursive`를 선언하지만 S3 대상은 선언하지 않습니다. 방향을 지정하면 알맞은 쪽이 선택됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.display_name": {
+          "source": "Direction",
+          "message": "방향"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.short_desc": {
+          "source": "Whether to describe the source or destination form of the type",
+          "message": "해당 유형의 소스 형태와 대상 형태 중 무엇을 설명할지"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.short_desc": {
+          "source": "List the settings a connector type needs",
+          "message": "커넥터 유형에 필요한 설정을 나열합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.desc": {
+          "source": "Returns one destination connector and its configuration.  Secrets in the configuration are returned redacted.",
+          "message": "대상 커넥터 하나와 그 구성을 반환합니다. 구성에 포함된 비밀 값은 가려진 상태로 반환됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.display_name": {
+          "source": "Get Destination Connector",
+          "message": "대상 커넥터 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "대상 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector to return",
+          "message": "반환할 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.short_desc": {
+          "source": "Get one destination connector by ID",
+          "message": "ID로 대상 커넥터 하나를 조회합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.desc": {
+          "source": "Returns the most recent connection check for the connector, with its status and any error reported.",
+          "message": "커넥터의 가장 최근 연결 점검 결과를 상태 및 보고된 오류와 함께 반환합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.display_name": {
+          "source": "Get Destination Connector Check",
+          "message": "대상 커넥터 점검 결과 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "대상 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector whose check to read",
+          "message": "점검 결과를 읽을 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.short_desc": {
+          "source": "Read the latest connection check for a destination connector",
+          "message": "대상 커넥터의 최근 연결 점검 결과를 읽습니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.desc": {
+          "source": "Returns one job, including its status and runtime.",
+          "message": "작업 하나를 반환하며, 상태와 실행 시간을 포함합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.display_name": {
+          "source": "Get Job",
+          "message": "작업 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "작업"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.option.am9iX2lk.short_desc": {
+          "source": "The job to return",
+          "message": "반환할 작업"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.short_desc": {
+          "source": "Get one job by ID",
+          "message": "ID로 작업 하나를 조회합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.desc": {
+          "source": "Returns how far each processing node in the workflow has got for this job.  Use it to see where a long-running job is spending its time, and which node failed when one did.",
+          "message": "이 작업에 대해 워크플로의 각 처리 노드가 어디까지 진행했는지 반환합니다. 오래 걸리는 작업이 어디에서 시간을 쓰는지, 어떤 노드가 실패했는지 확인할 때 사용하세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.display_name": {
+          "source": "Get Job Details",
+          "message": "작업 상세 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "작업"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.option.am9iX2lk.short_desc": {
+          "source": "The job to describe",
+          "message": "설명할 작업"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.short_desc": {
+          "source": "Get a job's per-node processing detail",
+          "message": "작업의 노드별 처리 상세를 조회합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.desc": {
+          "source": "Lists the files this job could not process, with the error for each.\n\nA job that completes with errors still writes everything that succeeded, so this is how to find out what is missing from the destination.",
+          "message": "이 작업이 처리하지 못한 파일을 각각의 오류와 함께 나열합니다.\n\n오류가 있어도 완료된 작업은 성공한 부분을 기록하므로, 대상에 무엇이 빠졌는지는 여기에서 확인합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.display_name": {
+          "source": "Get Job Failed Files",
+          "message": "작업 실패 파일 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "작업"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.option.am9iX2lk.short_desc": {
+          "source": "The job to report on",
+          "message": "보고할 작업"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.short_desc": {
+          "source": "List the files a job could not process",
+          "message": "작업이 처리하지 못한 파일을 나열합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.desc": {
+          "source": "Returns one source connector and its configuration.  Secrets in the configuration are returned redacted.",
+          "message": "소스 커넥터 하나와 그 구성을 반환합니다. 구성에 포함된 비밀 값은 가려진 상태로 반환됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.display_name": {
+          "source": "Get Source Connector",
+          "message": "소스 커넥터 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "소스 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector to return",
+          "message": "반환할 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.short_desc": {
+          "source": "Get one source connector by ID",
+          "message": "ID로 소스 커넥터 하나를 조회합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.desc": {
+          "source": "Returns the most recent connection check for the connector, with its status and any error reported.",
+          "message": "커넥터의 가장 최근 연결 점검 결과를 상태 및 보고된 오류와 함께 반환합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.display_name": {
+          "source": "Get Source Connector Check",
+          "message": "소스 커넥터 점검 결과 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "소스 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector whose check to read",
+          "message": "점검 결과를 읽을 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.short_desc": {
+          "source": "Read the latest connection check for a source connector",
+          "message": "소스 커넥터의 최근 연결 점검 결과를 읽습니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.desc": {
+          "source": "Returns one workflow template and the processing chain it describes.",
+          "message": "워크플로 템플릿 하나와 그것이 기술하는 처리 체인을 반환합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.display_name": {
+          "source": "Get Workflow Template",
+          "message": "워크플로 템플릿 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.option.dGVtcGxhdGVfaWQ.display_name": {
+          "source": "Template",
+          "message": "템플릿"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.option.dGVtcGxhdGVfaWQ.short_desc": {
+          "source": "The template to return",
+          "message": "반환할 템플릿"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.short_desc": {
+          "source": "Get one workflow template by ID",
+          "message": "ID로 워크플로 템플릿 하나를 조회합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.desc": {
+          "source": "Returns one workflow, including its processing nodes, its schedule and the connectors it is wired to.",
+          "message": "워크플로 하나를 반환하며, 처리 노드와 일정, 연결된 커넥터를 포함합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.display_name": {
+          "source": "Get Workflow",
+          "message": "워크플로 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "워크플로"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "The workflow to return",
+          "message": "반환할 워크플로"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.short_desc": {
+          "source": "Get one workflow by ID",
+          "message": "ID로 워크플로 하나를 조회합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.desc": {
+          "source": "Downloads one output file produced by a job.\n\nA job reports the files it produced as `output_node_files`, so choosing the job first fills the file and node lists from it.",
+          "message": "작업이 생성한 출력 파일 하나를 다운로드합니다.\n\n작업은 자신이 생성한 파일을 `output_node_files`로 보고하므로, 작업을 먼저 고르면 파일과 노드 목록이 그로부터 채워집니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.display_name": {
+          "source": "Download Job Output",
+          "message": "작업 출력 다운로드"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.ZmlsZV9pZA.desc": {
+          "source": "The output file to download; the list is the `output_node_files` of the selected job.",
+          "message": "다운로드할 출력 파일이며, 목록은 선택한 작업의 `output_node_files`입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.ZmlsZV9pZA.display_name": {
+          "source": "Output File",
+          "message": "출력 파일"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.ZmlsZV9pZA.short_desc": {
+          "source": "The output file to download",
+          "message": "다운로드할 출력 파일"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "작업"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.am9iX2lk.short_desc": {
+          "source": "The job that produced the file",
+          "message": "파일을 생성한 작업"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.bm9kZV9pZA.desc": {
+          "source": "The processing node that produced the file.  Defaults to the last node in the workflow, which is the one that writes the output.",
+          "message": "파일을 생성한 처리 노드입니다. 기본값은 워크플로의 마지막 노드, 즉 출력을 기록하는 노드입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.bm9kZV9pZA.display_name": {
+          "source": "Processing Node",
+          "message": "처리 노드"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.bm9kZV9pZA.short_desc": {
+          "source": "The processing node that produced the file",
+          "message": "파일을 생성한 처리 노드"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.short_desc": {
+          "source": "Download a processed file from a job",
+          "message": "작업이 생성한 처리 완료 파일을 다운로드합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Deletes a notification channel.  Workflows subscribed through it stop being notified.",
+          "message": "알림 채널을 삭제합니다. 이 채널로 구독하던 워크플로는 더 이상 알림을 받지 않습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Delete Notification Channel",
+          "message": "알림 채널 삭제"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.display_name": {
+          "source": "Channel",
+          "message": "채널"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.short_desc": {
+          "source": "The channel to delete",
+          "message": "삭제할 채널"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Delete a notification channel",
+          "message": "알림 채널을 삭제합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.desc": {
+          "source": "Deletes a destination connector.  A workflow still using it will fail on its next run.",
+          "message": "대상 커넥터를 삭제합니다. 아직 이 커넥터를 사용하는 워크플로는 다음 실행에서 실패합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.display_name": {
+          "source": "Delete Destination Connector",
+          "message": "대상 커넥터 삭제"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "대상 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector to delete",
+          "message": "삭제할 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.short_desc": {
+          "source": "Delete a destination connector",
+          "message": "대상 커넥터를 삭제합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.desc": {
+          "source": "Deletes a source connector.  A workflow still using it will fail on its next run.",
+          "message": "소스 커넥터를 삭제합니다. 아직 이 커넥터를 사용하는 워크플로는 다음 실행에서 실패합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.display_name": {
+          "source": "Delete Source Connector",
+          "message": "소스 커넥터 삭제"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "소스 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector to delete",
+          "message": "삭제할 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.short_desc": {
+          "source": "Delete a source connector",
+          "message": "소스 커넥터를 삭제합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.desc": {
+          "source": "Deletes a workflow.  The connectors it used are not deleted.",
+          "message": "워크플로를 삭제합니다. 사용하던 커넥터는 삭제되지 않습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.display_name": {
+          "source": "Delete Workflow",
+          "message": "워크플로 삭제"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "워크플로"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "The workflow to delete",
+          "message": "삭제할 워크플로"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.short_desc": {
+          "source": "Delete a workflow",
+          "message": "워크플로를 삭제합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.desc": {
+          "source": "Fires once for each workflow run that finishes, whether it succeeded, failed, was stopped or was rejected.\n\nA workflow run is asynchronous, so this is the point at which the documents it processed are available at the destination and an integration can act on them.  A `COMPLETED` job may still have failed on individual files; **Get Job Failed Files** says which.\n\nSet `workflow_id` to watch one workflow rather than every run in the account.",
+          "message": "종료된 워크플로 실행마다 한 번씩 발생하며, 성공했든 실패했든 중지되었든 거부되었든 발생합니다.\n\n워크플로 실행은 비동기이므로, 이 시점이 처리된 문서를 대상에서 사용할 수 있게 되어 연동이 움직일 수 있는 때입니다. `COMPLETED` 작업도 개별 파일에서는 실패했을 수 있으며, 어떤 파일인지는 **Get Job Failed Files**가 알려 줍니다.\n\n계정의 모든 실행이 아니라 워크플로 하나만 감시하려면 `workflow_id`를 설정하세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.display_name": {
+          "source": "Job Finished",
+          "message": "작업 완료"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.c3RhcnRfZGF0ZQ.desc": {
+          "source": "Only fire for jobs created on or after this date.  Without it, the first cycle fires for every finished job in the account.",
+          "message": "이 날짜 이후에 생성된 작업에 대해서만 발생합니다. 지정하지 않으면 첫 주기에서 계정의 모든 완료된 작업에 대해 발생합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.c3RhcnRfZGF0ZQ.display_name": {
+          "source": "Start Date",
+          "message": "시작일"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.c3RhcnRfZGF0ZQ.short_desc": {
+          "source": "Only fire for jobs created after this date",
+          "message": "이 날짜 이후에 생성된 작업에 대해서만 발생합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.cG9sbF9pbnRlcnZhbA.desc": {
+          "source": "How often to check for finished jobs, in seconds; the minimum is `15`.",
+          "message": "완료된 작업을 확인하는 간격(초)이며, 최솟값은 `15`입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.cG9sbF9pbnRlcnZhbA.display_name": {
+          "source": "Poll Interval",
+          "message": "폴링 간격"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.cG9sbF9pbnRlcnZhbA.short_desc": {
+          "source": "How often to check for finished jobs, in seconds",
+          "message": "완료된 작업을 확인하는 간격(초)"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.d29ya2Zsb3dfaWQ.desc": {
+          "source": "Watch only the runs of this workflow.  Leave unset to fire for every workflow in the account.",
+          "message": "이 워크플로의 실행만 감시합니다. 설정하지 않으면 계정의 모든 워크플로에 대해 발생합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "워크플로"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "Watch only this workflow's runs",
+          "message": "이 워크플로의 실행만 감시합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.short_desc": {
+          "source": "Fires when a workflow run reaches a terminal status",
+          "message": "워크플로 실행이 종료 상태에 도달하면 발생합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC10ZW1wbGF0ZXM.desc": {
+          "source": "Lists workflow templates - Unstructured's ready-made processing chains, which a workflow can be built from instead of describing its nodes by hand.",
+          "message": "워크플로 템플릿을 나열합니다. Unstructured가 미리 만들어 둔 처리 체인으로, 노드를 직접 기술하는 대신 이를 기반으로 워크플로를 만들 수 있습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC10ZW1wbGF0ZXM.display_name": {
+          "source": "List Workflow Templates",
+          "message": "워크플로 템플릿 목록 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC10ZW1wbGF0ZXM.short_desc": {
+          "source": "List the workflow templates available to this account",
+          "message": "이 계정에서 사용할 수 있는 워크플로 템플릿을 나열합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.desc": {
+          "source": "Lists workflows, with optional filtering by state, by the connectors they use, and by when they were created.\n\nA workflow ties a source connector to a destination connector through a chain of processing nodes, and is what actually runs when documents are ingested.",
+          "message": "워크플로를 나열합니다. 상태, 사용하는 커넥터, 생성 시점으로 걸러낼 수 있습니다.\n\n워크플로는 소스 커넥터와 대상 커넥터를 처리 노드 체인으로 연결한 것으로, 문서를 수집할 때 실제로 실행되는 대상입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.display_name": {
+          "source": "List Workflows",
+          "message": "워크플로 목록 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.Y3JlYXRlZF9iZWZvcmU.display_name": {
+          "source": "Created Before",
+          "message": "생성 종료일"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.Y3JlYXRlZF9iZWZvcmU.short_desc": {
+          "source": "Return only workflows created before this date",
+          "message": "이 날짜 이전에 생성된 워크플로만 반환합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.Y3JlYXRlZF9zaW5jZQ.display_name": {
+          "source": "Created Since",
+          "message": "생성 시작일"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.Y3JlYXRlZF9zaW5jZQ.short_desc": {
+          "source": "Return only workflows created on or after this date",
+          "message": "이 날짜 이후에 생성된 워크플로만 반환합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGFnX25vZGVfY29uZmlndXJhdGlvbl9pZA.desc": {
+          "source": "Return only workflows using this node configuration.\n\nUnstructured publishes no listing of node configurations, so this value has to come from a workflow that already uses it - the `workflow_nodes` of a workflow returned by **Get Workflow**.",
+          "message": "이 노드 구성을 사용하는 워크플로만 반환합니다.\n\nUnstructured는 노드 구성 목록을 공개하지 않으므로, 이 값은 이미 그것을 사용하는 워크플로, 즉 **Get Workflow**가 반환하는 워크플로의 `workflow_nodes`에서 가져와야 합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGFnX25vZGVfY29uZmlndXJhdGlvbl9pZA.display_name": {
+          "source": "Node Configuration ID",
+          "message": "노드 구성 ID"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGFnX25vZGVfY29uZmlndXJhdGlvbl9pZA.short_desc": {
+          "source": "Return only workflows using this node configuration",
+          "message": "이 노드 구성을 사용하는 워크플로만 반환합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "대상 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "Return only workflows writing to this destination connector",
+          "message": "이 대상 커넥터에 쓰는 워크플로만 반환합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.bmFtZQ.short_desc": {
+          "source": "Return only workflows whose name matches",
+          "message": "이름이 일치하는 워크플로만 반환합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "소스 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c291cmNlX2lk.short_desc": {
+          "source": "Return only workflows reading from this source connector",
+          "message": "이 소스 커넥터에서 읽는 워크플로만 반환합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.allowed-value.c3RyaW5nOm5hbWU.display_name": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.allowed-value.c3RyaW5nOmNyZWF0ZWRfYXQ.display_name": {
+          "source": "Created",
+          "message": "생성일"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.allowed-value.c3RyaW5nOmlk.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.allowed-value.c3RyaW5nOnVwZGF0ZWRfYXQ.display_name": {
+          "source": "Updated",
+          "message": "수정일"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.display_name": {
+          "source": "Sort By",
+          "message": "정렬 기준"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.short_desc": {
+          "source": "The field to sort the results on",
+          "message": "결과를 정렬할 필드"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9kaXJlY3Rpb24.allowed-value.c3RyaW5nOmFzYw.display_name": {
+          "source": "Ascending",
+          "message": "오름차순"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9kaXJlY3Rpb24.allowed-value.c3RyaW5nOmRlc2M.display_name": {
+          "source": "Descending",
+          "message": "내림차순"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9kaXJlY3Rpb24.display_name": {
+          "source": "Sort Direction",
+          "message": "정렬 방향"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9kaXJlY3Rpb24.short_desc": {
+          "source": "The direction to sort in",
+          "message": "정렬 방향"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c2hvd19vbmx5X3NvZnRfZGVsZXRlZA.display_name": {
+          "source": "Only Deleted",
+          "message": "삭제된 항목만"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c2hvd19vbmx5X3NvZnRfZGVsZXRlZA.short_desc": {
+          "source": "Return only workflows that have been deleted",
+          "message": "삭제된 워크플로만 반환합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
+          "source": "Active",
+          "message": "활성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.allowed-value.c3RyaW5nOmluYWN0aXZl.display_name": {
+          "source": "Inactive",
+          "message": "비활성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.desc": {
+          "source": "Return only workflows in this state.  An `inactive` workflow is not run on its schedule.",
+          "message": "이 상태인 워크플로만 반환합니다. `inactive` 워크플로는 일정에 따라 실행되지 않습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.display_name": {
+          "source": "State",
+          "message": "상태"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.short_desc": {
+          "source": "Return only workflows in this state",
+          "message": "이 상태인 워크플로만 반환합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.cGFnZQ.display_name": {
+          "source": "Page",
+          "message": "페이지"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.cGFnZV9zaXpl.display_name": {
+          "source": "Page Size",
+          "message": "페이지 크기"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.cGFnZV9zaXpl.short_desc": {
+          "source": "The number of workflows to return per page",
+          "message": "페이지당 반환할 워크플로 수"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.short_desc": {
+          "source": "List the workflows in this Unstructured account",
+          "message": "이 Unstructured 계정의 워크플로를 나열합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.desc": {
+          "source": "Lists destination connectors, optionally narrowed to one connector type.\n\nA destination connector is where a workflow writes its processed output - typically a vector store for retrieval.",
+          "message": "대상 커넥터를 나열하며, 커넥터 유형으로 좁힐 수 있습니다.\n\n대상 커넥터는 워크플로가 처리한 결과를 기록하는 곳으로, 보통 검색용 벡터 저장소입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.display_name": {
+          "source": "List Destination Connectors",
+          "message": "대상 커넥터 목록 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm1pbHZ1cw.display_name": {
+          "source": "Milvus",
+          "message": "Milvus"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm1vdGhlcmR1Y2s.display_name": {
+          "source": "MotherDuck",
+          "message": "MotherDuck"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm5lbzRq.display_name": {
+          "source": "Neo4j",
+          "message": "Neo4j"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmNocm9tYQ.display_name": {
+          "source": "Chroma",
+          "message": "Chroma"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lX2RlbHRhX3RhYmxlcw.display_name": {
+          "source": "Databricks Delta Tables",
+          "message": "Databricks Delta Tables"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmRlbHRhX3RhYmxl.display_name": {
+          "source": "Delta Table",
+          "message": "Delta Table"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmlibV93YXRzb254X3Mz.display_name": {
+          "source": "IBM watsonx.data",
+          "message": "IBM watsonx.data"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmtkYmFp.display_name": {
+          "source": "KDB.AI",
+          "message": "KDB.AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnBpbmVjb25l.display_name": {
+          "source": "Pinecone",
+          "message": "Pinecone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnFkcmFudC1jbG91ZA.display_name": {
+          "source": "Qdrant Cloud",
+          "message": "Qdrant Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnJlZGlz.display_name": {
+          "source": "Redis",
+          "message": "Redis"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnNpbmdsZXN0b3Jl.display_name": {
+          "source": "SingleStore",
+          "message": "SingleStore"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnVuc3RydWN0dXJlZF9ibG9iX3N0b3JhZ2U.display_name": {
+          "source": "Unstructured Blob Storage",
+          "message": "Unstructured Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOndlYXZpYXRlLWNsb3Vk.display_name": {
+          "source": "Weaviate Cloud",
+          "message": "Weaviate Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.display_name": {
+          "source": "Connector Type",
+          "message": "커넥터 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.short_desc": {
+          "source": "Return only connectors of this type",
+          "message": "이 유형의 커넥터만 반환합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.short_desc": {
+          "source": "List the destination connectors in this account",
+          "message": "이 계정의 대상 커넥터를 나열합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.desc": {
+          "source": "Lists jobs, optionally narrowed to one workflow or one status.\n\nA job is one run of a workflow, scheduled or explicit.",
+          "message": "작업을 나열하며, 워크플로 하나 또는 상태 하나로 좁힐 수 있습니다.\n\n작업은 워크플로의 한 번의 실행으로, 일정에 따른 실행일 수도 명시적인 실행일 수도 있습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.display_name": {
+          "source": "List Jobs",
+          "message": "작업 목록 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOkNPTVBMRVRFRA.display_name": {
+          "source": "Completed",
+          "message": "완료됨"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOkZBSUxFRA.display_name": {
+          "source": "Failed",
+          "message": "실패"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOklOX1BST0dSRVNT.display_name": {
+          "source": "In Progress",
+          "message": "진행 중"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOlJFSkVDVEVE.display_name": {
+          "source": "Rejected",
+          "message": "거부됨"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOlNDSEVEVUxFRA.display_name": {
+          "source": "Scheduled",
+          "message": "예약됨"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOlNUT1BQRUQ.display_name": {
+          "source": "Stopped",
+          "message": "중지됨"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "상태"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.short_desc": {
+          "source": "Return only jobs in this status",
+          "message": "이 상태인 작업만 반환합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "워크플로"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "Return only jobs for this workflow",
+          "message": "이 워크플로의 작업만 반환합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.short_desc": {
+          "source": "List workflow runs",
+          "message": "워크플로 실행 내역을 나열합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.desc": {
+          "source": "Lists notification channels of one kind.  A channel is where Unstructured sends job notifications: a webhook URL, or an email address.",
+          "message": "한 종류의 알림 채널을 나열합니다. 채널은 Unstructured가 작업 알림을 보내는 곳, 즉 웹훅 URL 또는 이메일 주소입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.display_name": {
+          "source": "List Notification Channels",
+          "message": "알림 채널 목록 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.allowed-value.c3RyaW5nOmVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.allowed-value.c3RyaW5nOndlYmhvb2s.display_name": {
+          "source": "Webhook",
+          "message": "Webhook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.desc": {
+          "source": "The kind of channel to list.  Channels of different kinds are listed separately.",
+          "message": "나열할 채널의 종류입니다. 종류가 다른 채널은 각각 따로 나열됩니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.display_name": {
+          "source": "Channel Type",
+          "message": "채널 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.short_desc": {
+          "source": "The kind of channel to list",
+          "message": "나열할 채널의 종류"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.ZW5hYmxlZA.display_name": {
+          "source": "Enabled",
+          "message": "사용"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.short_desc": {
+          "source": "List the notification channels in this account",
+          "message": "이 계정의 알림 채널을 나열합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.desc": {
+          "source": "Lists source connectors, optionally narrowed to one connector type.\n\nA source connector is where a workflow reads documents from.",
+          "message": "소스 커넥터를 나열하며, 커넥터 유형으로 좁힐 수 있습니다.\n\n소스 커넥터는 워크플로가 문서를 읽어 오는 곳입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.display_name": {
+          "source": "List Source Connectors",
+          "message": "소스 커넥터 목록 조회"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOm91dGxvb2s.display_name": {
+          "source": "Outlook",
+          "message": "Outlook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmFpcnRhYmxl.display_name": {
+          "source": "Airtable",
+          "message": "Airtable"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmJveA.display_name": {
+          "source": "Box",
+          "message": "Box"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmNvbmZsdWVuY2U.display_name": {
+          "source": "Confluence",
+          "message": "Confluence"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmdpdGh1Yg.display_name": {
+          "source": "GitHub",
+          "message": "GitHub"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmdpdGxhYg.display_name": {
+          "source": "GitLab",
+          "message": "GitLab"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmdvb2dsZV9kcml2ZQ.display_name": {
+          "source": "Google Drive",
+          "message": "Google Drive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmppcmE.display_name": {
+          "source": "Jira",
+          "message": "Jira"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNhbGVzZm9yY2U.display_name": {
+          "source": "Salesforce",
+          "message": "Salesforce"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNoYXJlcG9pbnQ.display_name": {
+          "source": "SharePoint",
+          "message": "SharePoint"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNsYWNr.display_name": {
+          "source": "Slack",
+          "message": "Slack"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnplbmRlc2s.display_name": {
+          "source": "Zendesk",
+          "message": "Zendesk"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.display_name": {
+          "source": "Connector Type",
+          "message": "커넥터 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.short_desc": {
+          "source": "Return only connectors of this type",
+          "message": "이 유형의 커넥터만 반환합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.short_desc": {
+          "source": "List the source connectors in this account",
+          "message": "이 계정의 소스 커넥터를 나열합니다"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.bWFrZS1hcGktY2FsbA.desc": {
           "source": "Make a custom HTTP / REST API call to **Unstructured.io** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
           "message": "구성된 연결의 인증을 사용하여 **Unstructured.io**에 사용자 정의 HTTP / REST API 호출을 수행합니다.\n\nHTTP 메소드, URI 경로(연결의 API 기본 URL 기준 상대 경로), 선택적 쿼리 매개변수, 헤더 및 요청 본문을 지정하십시오. 응답은 상태 코드, 응답 헤더 및 응답 본문을 포함하는 해시로 반환됩니다.\n\n이 앱에서 아직 최고 수준 작업으로 노출되지 않은 엔드포인트에 이 작업을 사용하십시오."
@@ -1159,17 +2839,373 @@
           "source": "Partition raw text into a typed element tree",
           "message": "원시 텍스트를 유형화된 요소 트리로 파티셔닝"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.desc": {
+          "source": "Runs a workflow immediately, whatever its schedule says, and returns the job that was started.\n\nThe job runs asynchronously: use `get-job` to follow it, or the **Job Status Change** event to be told when it finishes.",
+          "message": "일정과 관계없이 워크플로를 즉시 실행하고, 시작된 작업을 반환합니다.\n\n작업은 비동기로 실행됩니다. `get-job`으로 진행 상황을 확인하거나 **Job Status Change** 이벤트로 완료 알림을 받으세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.display_name": {
+          "source": "Run Workflow",
+          "message": "워크플로 실행"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.aW5wdXRfZmlsZXM.desc": {
+          "source": "Restrict the run to these file IDs.  Leave unset to process everything the source connector offers.",
+          "message": "실행 대상을 이 파일 ID들로 제한합니다. 설정하지 않으면 소스 커넥터가 제공하는 모든 항목을 처리합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.aW5wdXRfZmlsZXM.display_name": {
+          "source": "Input Files",
+          "message": "입력 파일"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.aW5wdXRfZmlsZXM.short_desc": {
+          "source": "Restrict the run to these file IDs",
+          "message": "실행 대상을 이 파일 ID들로 제한합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "워크플로"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "The workflow to run",
+          "message": "실행할 워크플로"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.short_desc": {
+          "source": "Run a workflow now and return the job it started",
+          "message": "워크플로를 지금 실행하고 시작된 작업을 반환합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Updates a notification channel's destination or the events it is subscribed to.",
+          "message": "알림 채널의 수신 위치 또는 구독 중인 이벤트를 수정합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Update Notification Channel",
+          "message": "알림 채널 수정"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.allowed-value.c3RyaW5nOmVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.allowed-value.c3RyaW5nOndlYmhvb2s.display_name": {
+          "source": "Webhook",
+          "message": "Webhook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.desc": {
+          "source": "How notifications are delivered.  A channel's type cannot be changed once it is created; this only names it.",
+          "message": "알림을 전달하는 방식입니다. 채널 유형은 생성 후 변경할 수 없으며, 여기서는 이름만 나타냅니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.display_name": {
+          "source": "Channel Type",
+          "message": "채널 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.short_desc": {
+          "source": "How notifications are delivered",
+          "message": "알림을 전달하는 방식"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.display_name": {
+          "source": "Channel",
+          "message": "채널"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.short_desc": {
+          "source": "The channel to update",
+          "message": "수정할 채널"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZGVzY3JpcHRpb24.desc": {
+          "source": "A description of the channel, up to 255 characters.",
+          "message": "채널에 대한 설명이며 최대 255자입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "설명"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "A description of the channel",
+          "message": "채널에 대한 설명"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW1haWxfY29uZmln.desc": {
+          "source": "Additional recipients and the reply-to address for an email channel.",
+          "message": "이메일 채널의 추가 수신자와 회신 주소입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW1haWxfY29uZmln.display_name": {
+          "source": "Email Settings",
+          "message": "이메일 설정"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW1haWxfY29uZmln.short_desc": {
+          "source": "Recipients and reply-to for an email channel",
+          "message": "이메일 채널의 수신자와 회신 주소"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW5hYmxlZA.desc": {
+          "source": "Whether the channel receives notifications.  A disabled channel keeps its definition and its subscriptions.",
+          "message": "채널이 알림을 수신하는지 여부입니다. 사용 중지된 채널도 정의와 구독은 그대로 유지합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW5hYmxlZA.display_name": {
+          "source": "Enabled",
+          "message": "사용"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW5hYmxlZA.short_desc": {
+          "source": "Whether the channel receives notifications",
+          "message": "채널이 알림을 수신하는지 여부"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5jb21wbGV0ZWQ.display_name": {
+          "source": "Job Completed",
+          "message": "작업 완료됨"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5mYWlsZWQ.display_name": {
+          "source": "Job Failed",
+          "message": "작업 실패"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5pbl9wcm9ncmVzcw.display_name": {
+          "source": "Job In Progress",
+          "message": "작업 진행 중"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5wcm9ncmVzcw.display_name": {
+          "source": "Job Progress",
+          "message": "작업 진행률"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5zY2hlZHVsZWQ.display_name": {
+          "source": "Job Scheduled",
+          "message": "작업 예약됨"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5zdG9wcGVk.display_name": {
+          "source": "Job Stopped",
+          "message": "작업 중지됨"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.desc": {
+          "source": "The job events this channel is notified about; at least one is required.",
+          "message": "이 채널이 알림을 받을 작업 이벤트이며, 최소 하나가 필요합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.display_name": {
+          "source": "Event Types",
+          "message": "이벤트 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.short_desc": {
+          "source": "The job events to be notified about",
+          "message": "알림을 받을 작업 이벤트"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.c2VjcmV0.desc": {
+          "source": "The secret Unstructured signs webhook payloads with, 24 to 75 bytes.  Send an empty string to drop a secret already set.",
+          "message": "Unstructured가 웹훅 페이로드에 서명할 때 사용하는 24~75바이트의 비밀 값입니다. 이미 설정된 비밀 값을 없애려면 빈 문자열을 보내세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.c2VjcmV0.display_name": {
+          "source": "Signing Secret",
+          "message": "서명 비밀 값"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.c2VjcmV0.short_desc": {
+          "source": "The secret webhook payloads are signed with",
+          "message": "웹훅 페이로드에 서명할 때 사용하는 비밀 값"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.dXJs.desc": {
+          "source": "Where webhook notifications are posted.  HTTPS is required.",
+          "message": "웹훅 알림을 게시할 위치이며, HTTPS가 필요합니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.dXJs.display_name": {
+          "source": "Webhook URL",
+          "message": "웹훅 URL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.dXJs.short_desc": {
+          "source": "Where webhook notifications are posted",
+          "message": "웹훅 알림을 게시할 위치"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Update a notification channel",
+          "message": "알림 채널을 수정합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.desc": {
+          "source": "Updates a destination connector's configuration.  The connector type cannot be changed; create a new connector instead.",
+          "message": "대상 커넥터의 구성을 수정합니다. 커넥터 유형은 변경할 수 없으므로 새 커넥터를 만드세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.display_name": {
+          "source": "Update Destination Connector",
+          "message": "대상 커넥터 수정"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.display_name": {
+          "source": "Configuration",
+          "message": "구성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.short_desc": {
+          "source": "Connector settings for the connector's type",
+          "message": "해당 커넥터 유형에 맞는 설정"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "대상 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector to update",
+          "message": "수정할 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.short_desc": {
+          "source": "Update a destination connector's configuration",
+          "message": "대상 커넥터의 구성을 수정합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.desc": {
+          "source": "Updates a source connector's configuration.  The connector type cannot be changed; create a new connector instead.",
+          "message": "소스 커넥터의 구성을 수정합니다. 커넥터 유형은 변경할 수 없으므로 새 커넥터를 만드세요."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.display_name": {
+          "source": "Update Source Connector",
+          "message": "소스 커넥터 수정"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.option.Y29uZmln.display_name": {
+          "source": "Configuration",
+          "message": "구성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.option.Y29uZmln.short_desc": {
+          "source": "Connector settings for the connector's type",
+          "message": "해당 커넥터 유형에 맞는 설정"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "소스 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector to update",
+          "message": "수정할 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.short_desc": {
+          "source": "Update a source connector's configuration",
+          "message": "소스 커넥터의 구성을 수정합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.desc": {
+          "source": "Updates a workflow.  Use `state` to activate or deactivate it without deleting it: an `inactive` workflow keeps its definition but does not run on its schedule.",
+          "message": "워크플로를 수정합니다. 삭제하지 않고 활성화하거나 비활성화하려면 `state`를 사용하세요. `inactive` 워크플로는 정의를 그대로 유지하지만 일정에 따라 실행되지 않습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.display_name": {
+          "source": "Update Workflow",
+          "message": "워크플로 수정"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "대상 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector results are written to",
+          "message": "결과를 기록할 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "소스 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector documents are read from",
+          "message": "문서를 읽어 올 커넥터"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.display_name": {
+          "source": "Schedule",
+          "message": "일정"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c3RhdGU.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
+          "source": "Active",
+          "message": "활성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c3RhdGU.allowed-value.c3RyaW5nOmluYWN0aXZl.display_name": {
+          "source": "Inactive",
+          "message": "비활성"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c3RhdGU.display_name": {
+          "source": "State",
+          "message": "상태"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c3RhdGU.short_desc": {
+          "source": "Whether the workflow runs on its schedule",
+          "message": "워크플로가 일정에 따라 실행되는지 여부"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.cmVwcm9jZXNzX2FsbA.display_name": {
+          "source": "Reprocess All",
+          "message": "전체 재처리"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "워크플로"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "The workflow to update",
+          "message": "수정할 워크플로"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfbm9kZXM.display_name": {
+          "source": "Workflow Nodes",
+          "message": "워크플로 노드"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
+          "source": "Advanced",
+          "message": "어드밴스드"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "베이직"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmN1c3RvbQ.display_name": {
+          "source": "Custom",
+          "message": "사용자 지정"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOnBsYXRpbnVt.display_name": {
+          "source": "Platinum",
+          "message": "플래티넘"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.display_name": {
+          "source": "Workflow Type",
+          "message": "워크플로 유형"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.short_desc": {
+          "source": "The preset processing chain to apply",
+          "message": "적용할 사전 정의 처리 체인"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.dGVtcGxhdGVfaWQ.display_name": {
+          "source": "Template",
+          "message": "템플릿"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.dGVtcGxhdGVfaWQ.short_desc": {
+          "source": "The workflow template to rebuild from",
+          "message": "다시 구성할 기반이 되는 워크플로 템플릿"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.short_desc": {
+          "source": "Update a workflow",
+          "message": "워크플로를 수정합니다"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Confirms a channel with the code Unstructured sent to it.  A channel does not receive job notifications until it has been verified.",
+          "message": "Unstructured가 채널로 보낸 코드로 채널을 확인합니다. 채널은 확인을 마치기 전까지 작업 알림을 받지 않습니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Verify Notification Channel",
+          "message": "알림 채널 확인"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y29kZQ.desc": {
+          "source": "The six-digit code Unstructured sent to the channel's address.",
+          "message": "Unstructured가 채널 주소로 보낸 여섯 자리 코드입니다."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y29kZQ.display_name": {
+          "source": "Verification Code",
+          "message": "확인 코드"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y29kZQ.short_desc": {
+          "source": "The six-digit code Unstructured sent to the channel",
+          "message": "Unstructured가 채널로 보낸 여섯 자리 코드"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.display_name": {
+          "source": "Channel",
+          "message": "채널"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.short_desc": {
+          "source": "The channel to verify",
+          "message": "확인할 채널"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Send a verification message to a notification channel",
+          "message": "알림 채널로 확인 메시지를 보냅니다"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.desc": {
-          "source": "Provides access to [Unstructured.io](https://unstructured.io) — a document partitioning service that breaks PDFs, docx, HTML, and images into a typed element tree (Title / NarrativeText / ListItem / Table / ...).\n\nUse the @ref QoreRagUtils::UnstructuredChunker \"UnstructuredChunker\" backend for the RAG ingestion path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
-          "message": "PDF, docx, HTML 및 이미지를 유형화된 요소 트리(Title / NarrativeText / ListItem / Table / ...)로 분할하는 문서 파티셔닝 서비스인 [Unstructured.io](https://unstructured.io)에 대한 액세스를 제공합니다.\n\n@ref QoreRagUtils::RagPipeline \"RagPipeline\"을 통한 RAG 수집 경로에는 @ref QoreRagUtils::UnstructuredChunker \"UnstructuredChunker\" 백엔드를 사용하십시오."
+          "source": "Provides access to [Unstructured.io](https://unstructured.io), which turns documents into data an AI application can use.\n\n- **Partition documents** — break PDFs, Office files, HTML, images and emails into a typed element tree (`Title` / `NarrativeText` / `ListItem` / `Table` / ...), with optional OCR, table-structure inference and retrieval-sized chunking\n- **Build ingestion pipelines** — connect a source system to a vector store through a workflow, run it on a schedule or on demand, and follow each run\n- **React to finished runs** — fire an event when a workflow run completes, so processed documents are picked up as soon as they land\n\nUse the @ref QoreRagUtils::UnstructuredChunker \"UnstructuredChunker\" backend for the RAG ingestion path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
+          "message": "[Unstructured.io](https://unstructured.io)에 대한 액세스를 제공합니다. 문서를 AI 애플리케이션이 사용할 수 있는 데이터로 바꿔 주는 서비스입니다.\n\n- **문서 분할** — PDF, Office 파일, HTML, 이미지, 이메일을 타입이 지정된 요소 트리(`Title` / `NarrativeText` / `ListItem` / `Table` / ...)로 분해하며, OCR과 표 구조 추론, 검색에 알맞은 크기의 청크 분할을 선택할 수 있습니다\n- **수집 파이프라인 구축** — 워크플로로 소스 시스템과 벡터 저장소를 연결하고, 일정에 따라 또는 필요할 때 실행하며, 각 실행을 추적합니다\n- **완료된 실행에 대한 대응** — 워크플로 실행이 끝나면 이벤트를 발생시켜, 처리된 문서를 도착 즉시 가져갈 수 있게 합니다\n\n@ref QoreRagUtils::RagPipeline \"RagPipeline\"을 통한 RAG 수집 경로에는 @ref QoreRagUtils::UnstructuredChunker \"UnstructuredChunker\" 백엔드를 사용하세요."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.display_name": {
           "source": "Unstructured.io",
           "message": "Unstructured.io"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.short_desc": {
-          "source": "Unstructured.io document partitioning (element-tree extraction)",
-          "message": "Unstructured.io 문서 파티셔닝 (요소 트리 추출)"
+          "source": "Unstructured.io document partitioning and ingestion workflows",
+          "message": "Unstructured.io 문서 분할 및 수집 워크플로"
         }
       }
     }

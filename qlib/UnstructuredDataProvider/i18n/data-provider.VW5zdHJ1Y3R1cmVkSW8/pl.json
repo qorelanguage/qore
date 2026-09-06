@@ -3,6 +3,1686 @@
   "locales": {
     "pl": {
       "messages": {
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.desc": {
+          "source": "Cancels a job that is scheduled or in progress.  Documents already written to the destination stay there.",
+          "message": "Anuluje zadanie zaplanowane lub trwające.  Dokumenty już zapisane w miejscu docelowym tam pozostają."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.display_name": {
+          "source": "Cancel Job",
+          "message": "Anuluj zadanie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "Zadanie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.option.am9iX2lk.short_desc": {
+          "source": "The job to cancel",
+          "message": "Zadanie do anulowania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.short_desc": {
+          "source": "Cancel a running job",
+          "message": "Anuluj działające zadanie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.desc": {
+          "source": "Asks Unstructured to try connecting to the destination and report whether the credentials and location work.  The check runs asynchronously; read the result with **Get Destination Connector Check**.",
+          "message": "Prosi Unstructured o próbę połączenia z miejscem docelowym i zgłoszenie, czy poświadczenia i lokalizacja działają.  Sprawdzanie przebiega asynchronicznie; odczytaj wynik za pomocą **Get Destination Connector Check**."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.display_name": {
+          "source": "Check Destination Connector",
+          "message": "Sprawdź konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "Konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector to check",
+          "message": "Konektor do sprawdzenia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.short_desc": {
+          "source": "Start a connection check for a destination connector",
+          "message": "Rozpocznij sprawdzanie połączenia konektora docelowego"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.desc": {
+          "source": "Asks Unstructured to try connecting to the source and report whether the credentials and location work.  The check runs asynchronously; read the result with **Get Source Connector Check**.",
+          "message": "Prosi Unstructured o próbę połączenia ze źródłem i zgłoszenie, czy poświadczenia i lokalizacja działają.  Sprawdzanie przebiega asynchronicznie; odczytaj wynik za pomocą **Get Source Connector Check**."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.display_name": {
+          "source": "Check Source Connector",
+          "message": "Sprawdź konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "Konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector to check",
+          "message": "Konektor do sprawdzenia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.short_desc": {
+          "source": "Start a connection check for a source connector",
+          "message": "Rozpocznij sprawdzanie połączenia konektora źródłowego"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Creates a channel Unstructured sends job notifications to.\n\nThe settings depend on the kind of channel: a webhook channel takes a `url` and a signing `secret`, an email channel takes an `email_config`.  Both take `channel_type`, `description` and the `event_types` to subscribe to.\n\nA channel receives nothing until it has been verified; use **Verify Notification Channel** with the code Unstructured sends.",
+          "message": "Tworzy kanał, do którego Unstructured wysyła powiadomienia o zadaniach.\n\nUstawienia zależą od rodzaju kanału: kanał webhook wymaga `url` i podpisującego `secret`, kanał e-mail – `email_config`.  Oba wymagają `channel_type`, `description` i `event_types` do subskrypcji.\n\nKanał niczego nie odbiera, dopóki nie zostanie zweryfikowany; użyj **Verify Notification Channel** z kodem wysłanym przez Unstructured."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Create Notification Channel",
+          "message": "Utwórz kanał powiadomień"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Ym9keQ.desc": {
+          "source": "The channel to create.\n\nFor a webhook channel: `channel_type` `webhook`, a `url` to post to, an optional signing `secret`, and the `event_types` to subscribe to.  For an email channel: `channel_type` `email`, an `email_config` naming the recipients, and the same `event_types`.\n\nSupplied whole because Unstructured describes the two kinds as different request bodies rather than one with optional fields.",
+          "message": "Kanał do utworzenia.\n\nDla kanału webhook: `channel_type` `webhook`, `url`, pod który mają trafiać powiadomienia, opcjonalny podpisujący `secret` oraz `event_types` do subskrypcji.  Dla kanału e-mail: `channel_type` `email`, `email_config` z odbiorcami i te same `event_types`.\n\nPrzekazywany w całości, ponieważ Unstructured opisuje oba rodzaje jako odrębne treści żądania, a nie jedną z polami opcjonalnymi."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Ym9keQ.display_name": {
+          "source": "Channel",
+          "message": "Kanał"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Ym9keQ.short_desc": {
+          "source": "The channel to create",
+          "message": "Kanał do utworzenia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Create a notification channel",
+          "message": "Utwórz kanał powiadomień"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.desc": {
+          "source": "Creates a destination connector for a workflow to write its output to.\n\n`config` is specific to the connector type chosen in `type` - a Pinecone connector takes an index and an API key, an S3 connector a bucket URL.  Use **Get Connector Configuration Fields** to see what a given type requires.",
+          "message": "Tworzy konektor docelowy, do którego przepływ pracy będzie zapisywał swój wynik.\n\n`config` zależy od typu konektora wybranego w `type` – konektor Pinecone wymaga indeksu i klucza API, konektor S3 adresu URL zasobnika.  Użyj **Get Connector Configuration Fields**, aby zobaczyć, czego wymaga dany typ."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.display_name": {
+          "source": "Create Destination Connector",
+          "message": "Utwórz konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.desc": {
+          "source": "Connector settings, whose fields depend on `type`.  **Get Connector Configuration Fields** lists them for any type.",
+          "message": "Ustawienia konektora, których pola zależą od `type`.  **Get Connector Configuration Fields** wyświetla je dla dowolnego typu."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.display_name": {
+          "source": "Configuration",
+          "message": "Konfiguracja"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.short_desc": {
+          "source": "Connector settings for the chosen type",
+          "message": "Ustawienia konektora dla wybranego typu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.a2V5.desc": {
+          "source": "A stable identifier that survives being exported to another environment, where the generated ID would not.\n\nDerived from `name` when left unset, and immutable once set.  Up to 63 characters: lowercase letters, digits and hyphens, with no leading, trailing or repeated hyphens.",
+          "message": "Stabilny identyfikator, który przetrwa eksport do innego środowiska, czego wygenerowany identyfikator nie robi.\n\nWyprowadzany z `name`, gdy nie zostanie ustawiony, i niezmienny po ustawieniu.  Do 63 znaków: małe litery, cyfry i myślniki, bez myślników wiodących, końcowych ani powtórzonych."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.a2V5.display_name": {
+          "source": "Stable Key",
+          "message": "Stabilny klucz"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.a2V5.short_desc": {
+          "source": "A stable identifier for exporting between environments",
+          "message": "Stabilny identyfikator do eksportu między środowiskami"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Nazwa"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.bmFtZQ.short_desc": {
+          "source": "A name for the connector",
+          "message": "Nazwa konektora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm1pbHZ1cw.display_name": {
+          "source": "Milvus",
+          "message": "Milvus"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm1vdGhlcmR1Y2s.display_name": {
+          "source": "MotherDuck",
+          "message": "MotherDuck"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm5lbzRq.display_name": {
+          "source": "Neo4j",
+          "message": "Neo4j"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmNocm9tYQ.display_name": {
+          "source": "Chroma",
+          "message": "Chroma"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lX2RlbHRhX3RhYmxlcw.display_name": {
+          "source": "Databricks Delta Tables",
+          "message": "Databricks Delta Tables"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmRlbHRhX3RhYmxl.display_name": {
+          "source": "Delta Table",
+          "message": "Delta Table"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmlibV93YXRzb254X3Mz.display_name": {
+          "source": "IBM watsonx.data",
+          "message": "IBM watsonx.data"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmtkYmFp.display_name": {
+          "source": "KDB.AI",
+          "message": "KDB.AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnBpbmVjb25l.display_name": {
+          "source": "Pinecone",
+          "message": "Pinecone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnFkcmFudC1jbG91ZA.display_name": {
+          "source": "Qdrant Cloud",
+          "message": "Qdrant Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnJlZGlz.display_name": {
+          "source": "Redis",
+          "message": "Redis"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnNpbmdsZXN0b3Jl.display_name": {
+          "source": "SingleStore",
+          "message": "SingleStore"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnVuc3RydWN0dXJlZF9ibG9iX3N0b3JhZ2U.display_name": {
+          "source": "Unstructured Blob Storage",
+          "message": "Unstructured Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOndlYXZpYXRlLWNsb3Vk.display_name": {
+          "source": "Weaviate Cloud",
+          "message": "Weaviate Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.display_name": {
+          "source": "Connector Type",
+          "message": "Typ konektora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.short_desc": {
+          "source": "The kind of system output is written to",
+          "message": "Rodzaj systemu, do którego zapisywany jest wynik"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.short_desc": {
+          "source": "Create a destination connector",
+          "message": "Utwórz konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.desc": {
+          "source": "Creates a source connector for a workflow to read documents from.\n\n`config` is specific to the connector type chosen in `type` - an S3 connector takes a bucket URL and credentials, a Confluence connector a site URL and an API token.  Use **Get Connector Configuration Fields** to see what a given type requires before filling this in.",
+          "message": "Tworzy konektor źródłowy, z którego przepływ pracy będzie czytał dokumenty.\n\n`config` zależy od typu konektora wybranego w `type` – konektor S3 wymaga adresu URL zasobnika i poświadczeń, konektor Confluence adresu URL witryny i tokenu API.  Użyj **Get Connector Configuration Fields**, aby zobaczyć, czego wymaga dany typ, zanim to wypełnisz."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.display_name": {
+          "source": "Create Source Connector",
+          "message": "Utwórz konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.Y29uZmln.desc": {
+          "source": "Connector settings, whose fields depend on `type`.  **Get Connector Configuration Fields** lists them for any type.",
+          "message": "Ustawienia konektora, których pola zależą od `type`.  **Get Connector Configuration Fields** wyświetla je dla dowolnego typu."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.Y29uZmln.display_name": {
+          "source": "Configuration",
+          "message": "Konfiguracja"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.Y29uZmln.short_desc": {
+          "source": "Connector settings for the chosen type",
+          "message": "Ustawienia konektora dla wybranego typu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.a2V5.desc": {
+          "source": "A stable identifier that survives being exported to another environment, where the generated ID would not.\n\nDerived from `name` when left unset, and immutable once set.  Up to 63 characters: lowercase letters, digits and hyphens, with no leading, trailing or repeated hyphens.",
+          "message": "Stabilny identyfikator, który przetrwa eksport do innego środowiska, czego wygenerowany identyfikator nie robi.\n\nWyprowadzany z `name`, gdy nie zostanie ustawiony, i niezmienny po ustawieniu.  Do 63 znaków: małe litery, cyfry i myślniki, bez myślników wiodących, końcowych ani powtórzonych."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.a2V5.display_name": {
+          "source": "Stable Key",
+          "message": "Stabilny klucz"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.a2V5.short_desc": {
+          "source": "A stable identifier for exporting between environments",
+          "message": "Stabilny identyfikator do eksportu między środowiskami"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Nazwa"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.bmFtZQ.short_desc": {
+          "source": "A name for the connector",
+          "message": "Nazwa konektora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOm91dGxvb2s.display_name": {
+          "source": "Outlook",
+          "message": "Outlook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmFpcnRhYmxl.display_name": {
+          "source": "Airtable",
+          "message": "Airtable"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmJveA.display_name": {
+          "source": "Box",
+          "message": "Box"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmNvbmZsdWVuY2U.display_name": {
+          "source": "Confluence",
+          "message": "Confluence"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmdpdGh1Yg.display_name": {
+          "source": "GitHub",
+          "message": "GitHub"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmdpdGxhYg.display_name": {
+          "source": "GitLab",
+          "message": "GitLab"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmdvb2dsZV9kcml2ZQ.display_name": {
+          "source": "Google Drive",
+          "message": "Google Drive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmppcmE.display_name": {
+          "source": "Jira",
+          "message": "Jira"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNhbGVzZm9yY2U.display_name": {
+          "source": "Salesforce",
+          "message": "Salesforce"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNoYXJlcG9pbnQ.display_name": {
+          "source": "SharePoint",
+          "message": "SharePoint"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNsYWNr.display_name": {
+          "source": "Slack",
+          "message": "Slack"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnplbmRlc2s.display_name": {
+          "source": "Zendesk",
+          "message": "Zendesk"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.display_name": {
+          "source": "Connector Type",
+          "message": "Typ konektora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.short_desc": {
+          "source": "The kind of system documents are read from",
+          "message": "Rodzaj systemu, z którego czytane są dokumenty"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.short_desc": {
+          "source": "Create a source connector",
+          "message": "Utwórz konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.desc": {
+          "source": "Creates a workflow that reads from a source connector, processes documents through a chain of nodes, and writes to a destination connector.\n\nThere are two ways to describe the processing: pick a `workflow_type`, which applies Unstructured's own preset chain, or supply `workflow_nodes` to build the chain yourself.  A `schedule` makes the workflow recurring; without one it runs only when it is run explicitly.",
+          "message": "Tworzy przepływ pracy, który czyta z konektora źródłowego, przetwarza dokumenty przez łańcuch węzłów i zapisuje do konektora docelowego.\n\nPrzetwarzanie można opisać na dwa sposoby: wybrać `workflow_type`, który stosuje gotowy łańcuch Unstructured, albo podać `workflow_nodes` i zbudować łańcuch samodzielnie.  `schedule` sprawia, że przepływ jest cykliczny; bez niego uruchamia się tylko wtedy, gdy zostanie uruchomiony jawnie."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.display_name": {
+          "source": "Create Workflow",
+          "message": "Utwórz przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "Konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector results are written to",
+          "message": "Konektor, do którego zapisywane są wyniki"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.a2V5.desc": {
+          "source": "A stable identifier that survives being exported to another environment, where the generated ID would not.\n\nDerived from `name` when left unset, and immutable once set.  Up to 63 characters: lowercase letters, digits and hyphens, with no leading, trailing or repeated hyphens.",
+          "message": "Stabilny identyfikator, który przetrwa eksport do innego środowiska, czego wygenerowany identyfikator nie robi.\n\nWyprowadzany z `name`, gdy nie zostanie ustawiony, i niezmienny po ustawieniu.  Do 63 znaków: małe litery, cyfry i myślniki, bez myślników wiodących, końcowych ani powtórzonych."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.a2V5.display_name": {
+          "source": "Stable Key",
+          "message": "Stabilny klucz"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.a2V5.short_desc": {
+          "source": "A stable identifier for exporting between environments",
+          "message": "Stabilny identyfikator do eksportu między środowiskami"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Nazwa"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.bmFtZQ.short_desc": {
+          "source": "A name for the workflow",
+          "message": "Nazwa przepływu pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "Konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector documents are read from",
+          "message": "Konektor, z którego czytane są dokumenty"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IDE1IG1pbnV0ZXM.display_name": {
+          "source": "Every 15 Minutes",
+          "message": "Co 15 minut"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IDYgaG91cnM.display_name": {
+          "source": "Every 6 Hours",
+          "message": "Co 6 godzin"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IG1vbnRo.display_name": {
+          "source": "Monthly",
+          "message": "Co miesiąc"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IGRheQ.display_name": {
+          "source": "Daily",
+          "message": "Codziennie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IGhvdXI.display_name": {
+          "source": "Hourly",
+          "message": "Co godzinę"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IHdlZWs.display_name": {
+          "source": "Weekly",
+          "message": "Co tydzień"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.desc": {
+          "source": "How often the workflow runs on its own.  Leave unset for a workflow that runs only when it is run explicitly.",
+          "message": "Jak często przepływ pracy uruchamia się sam.  Pozostaw puste dla przepływu, który uruchamia się tylko wtedy, gdy zostanie uruchomiony jawnie."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.display_name": {
+          "source": "Schedule",
+          "message": "Harmonogram"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.short_desc": {
+          "source": "How often the workflow runs by itself",
+          "message": "Jak często przepływ pracy uruchamia się sam"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.cmVwcm9jZXNzX2FsbA.display_name": {
+          "source": "Reprocess All",
+          "message": "Przetwórz wszystko ponownie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.cmVwcm9jZXNzX2FsbA.short_desc": {
+          "source": "Reprocess documents that have already been processed",
+          "message": "Przetwórz ponownie dokumenty, które już zostały przetworzone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfbm9kZXM.desc": {
+          "source": "The processing chain to run, described node by node.  Supply this instead of `workflow_type` to build the chain yourself.",
+          "message": "Łańcuch przetwarzania do wykonania, opisany węzeł po węźle.  Podaj to zamiast `workflow_type`, aby zbudować łańcuch samodzielnie."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfbm9kZXM.display_name": {
+          "source": "Processing Nodes",
+          "message": "Węzły przetwarzania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfbm9kZXM.short_desc": {
+          "source": "The processing chain to run, described node by node",
+          "message": "Łańcuch przetwarzania do wykonania, opisany węzeł po węźle"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
+          "source": "Advanced",
+          "message": "Zaawansowany"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "Podstawowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmN1c3RvbQ.display_name": {
+          "source": "Custom",
+          "message": "Niestandardowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOnBsYXRpbnVt.display_name": {
+          "source": "Platinum",
+          "message": "Platynowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.desc": {
+          "source": "The preset processing chain to apply.  Supply `workflow_nodes` instead to build the chain yourself.",
+          "message": "Gotowy łańcuch przetwarzania do zastosowania.  Aby zbudować łańcuch samodzielnie, podaj zamiast tego `workflow_nodes`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.display_name": {
+          "source": "Workflow Type",
+          "message": "Typ przepływu pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.short_desc": {
+          "source": "The preset processing chain to apply",
+          "message": "Gotowy łańcuch przetwarzania do zastosowania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.dGVtcGxhdGVfaWQ.display_name": {
+          "source": "Template",
+          "message": "Szablon"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.dGVtcGxhdGVfaWQ.short_desc": {
+          "source": "The workflow template to build from",
+          "message": "Szablon przepływu pracy, na którym się opiera"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.short_desc": {
+          "source": "Create a workflow",
+          "message": "Utwórz przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Returns one notification channel and the events it is subscribed to.",
+          "message": "Zwraca jeden kanał powiadomień i zdarzenia, które subskrybuje."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Get Notification Channel",
+          "message": "Pobierz kanał powiadomień"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.display_name": {
+          "source": "Channel",
+          "message": "Kanał"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.short_desc": {
+          "source": "The channel to return",
+          "message": "Kanał do zwrócenia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Get one notification channel by ID",
+          "message": "Pobierz jeden kanał powiadomień według jego identyfikatora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.desc": {
+          "source": "Lists the configuration fields a given connector type accepts, so that a connector can be created without guessing at its `config` hash.\n\nUnstructured types a connector's configuration as a union over one schema per connector type — an S3 source takes a bucket URL and credentials, a Confluence source a site URL and an API token — so there is no single field list to show until the type is known.\n\nThis action answers from the API description shipped with this module and makes no request to Unstructured.",
+          "message": "Wyświetla pola konfiguracji akceptowane przez dany typ konektora, dzięki czemu można utworzyć konektor bez zgadywania zawartości jego hasza `config`.\n\nUnstructured typuje konfigurację konektora jako sumę jednego schematu na każdy typ konektora — źródło S3 wymaga adresu URL zasobnika i poświadczeń, źródło Confluence adresu URL witryny i tokenu API — nie istnieje więc jedna lista pól, którą można by pokazać przed poznaniem typu.\n\nTa akcja odpowiada na podstawie opisu API dostarczonego z tym modułem i nie wysyła żadnego żądania do Unstructured."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.display_name": {
+          "source": "Get Connector Configuration Fields",
+          "message": "Pobierz pola konfiguracji konektora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm1pbHZ1cw.display_name": {
+          "source": "Milvus",
+          "message": "Milvus"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm1vdGhlcmR1Y2s.display_name": {
+          "source": "MotherDuck",
+          "message": "MotherDuck"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm5lbzRq.display_name": {
+          "source": "Neo4j",
+          "message": "Neo4j"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm91dGxvb2s.display_name": {
+          "source": "Outlook",
+          "message": "Outlook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmFpcnRhYmxl.display_name": {
+          "source": "Airtable",
+          "message": "Airtable"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmJveA.display_name": {
+          "source": "Box",
+          "message": "Box"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmNocm9tYQ.display_name": {
+          "source": "Chroma",
+          "message": "Chroma"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmNvbmZsdWVuY2U.display_name": {
+          "source": "Confluence",
+          "message": "Confluence"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lX2RlbHRhX3RhYmxlcw.display_name": {
+          "source": "Databricks Delta Tables",
+          "message": "Databricks Delta Tables"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmRlbHRhX3RhYmxl.display_name": {
+          "source": "Delta Table",
+          "message": "Delta Table"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmdpdGh1Yg.display_name": {
+          "source": "GitHub",
+          "message": "GitHub"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmdpdGxhYg.display_name": {
+          "source": "GitLab",
+          "message": "GitLab"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmdvb2dsZV9kcml2ZQ.display_name": {
+          "source": "Google Drive",
+          "message": "Google Drive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmlibV93YXRzb254X3Mz.display_name": {
+          "source": "IBM watsonx.data",
+          "message": "IBM watsonx.data"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmppcmE.display_name": {
+          "source": "Jira",
+          "message": "Jira"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmtkYmFp.display_name": {
+          "source": "KDB.AI",
+          "message": "KDB.AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnBpbmVjb25l.display_name": {
+          "source": "Pinecone",
+          "message": "Pinecone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnFkcmFudC1jbG91ZA.display_name": {
+          "source": "Qdrant Cloud",
+          "message": "Qdrant Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnJlZGlz.display_name": {
+          "source": "Redis",
+          "message": "Redis"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNhbGVzZm9yY2U.display_name": {
+          "source": "Salesforce",
+          "message": "Salesforce"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNoYXJlcG9pbnQ.display_name": {
+          "source": "SharePoint",
+          "message": "SharePoint"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNpbmdsZXN0b3Jl.display_name": {
+          "source": "SingleStore",
+          "message": "SingleStore"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNsYWNr.display_name": {
+          "source": "Slack",
+          "message": "Slack"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnVuc3RydWN0dXJlZF9ibG9iX3N0b3JhZ2U.display_name": {
+          "source": "Unstructured Blob Storage",
+          "message": "Unstructured Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOndlYXZpYXRlLWNsb3Vk.display_name": {
+          "source": "Weaviate Cloud",
+          "message": "Weaviate Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnplbmRlc2s.display_name": {
+          "source": "Zendesk",
+          "message": "Zendesk"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.desc": {
+          "source": "The connector type whose configuration fields to return, as given to `create-source` or `create-destination`.",
+          "message": "Typ konektora, którego pola konfiguracji mają zostać zwrócone, taki jak przekazywany do `create-source` lub `create-destination`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.display_name": {
+          "source": "Connector Type",
+          "message": "Typ konektora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.short_desc": {
+          "source": "The connector type to describe",
+          "message": "Typ konektora do opisania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.allowed-value.c3RyaW5nOmRlc3RpbmF0aW9u.display_name": {
+          "source": "Destination",
+          "message": "Miejsce docelowe"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.allowed-value.c3RyaW5nOnNvdXJjZQ.display_name": {
+          "source": "Source",
+          "message": "Źródło"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.desc": {
+          "source": "Several connector types exist in both directions and take different settings in each - an S3 source declares `recursive`, an S3 destination does not.  Naming the direction picks the right one.",
+          "message": "Kilka typów konektorów istnieje w obu kierunkach i w każdym wymaga innych ustawień – źródło S3 deklaruje `recursive`, a miejsce docelowe S3 nie.  Podanie kierunku wybiera właściwy."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.display_name": {
+          "source": "Direction",
+          "message": "Kierunek"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.short_desc": {
+          "source": "Whether to describe the source or destination form of the type",
+          "message": "Czy opisać źródłową, czy docelową postać typu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.short_desc": {
+          "source": "List the settings a connector type needs",
+          "message": "Wyświetl ustawienia wymagane przez typ konektora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.desc": {
+          "source": "Returns one destination connector and its configuration.  Secrets in the configuration are returned redacted.",
+          "message": "Zwraca jeden konektor docelowy i jego konfigurację.  Sekrety w konfiguracji są zwracane w postaci zamaskowanej."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.display_name": {
+          "source": "Get Destination Connector",
+          "message": "Pobierz konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "Konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector to return",
+          "message": "Konektor do zwrócenia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.short_desc": {
+          "source": "Get one destination connector by ID",
+          "message": "Pobierz jeden konektor docelowy według jego identyfikatora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.desc": {
+          "source": "Returns the most recent connection check for the connector, with its status and any error reported.",
+          "message": "Zwraca najnowsze sprawdzenie połączenia konektora, wraz z jego statusem i ewentualnym zgłoszonym błędem."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.display_name": {
+          "source": "Get Destination Connector Check",
+          "message": "Pobierz sprawdzenie konektora docelowego"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "Konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector whose check to read",
+          "message": "Konektor, którego sprawdzenie ma zostać odczytane"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.short_desc": {
+          "source": "Read the latest connection check for a destination connector",
+          "message": "Odczytaj ostatnie sprawdzenie połączenia konektora docelowego"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.desc": {
+          "source": "Returns one job, including its status and runtime.",
+          "message": "Zwraca jedno zadanie wraz z jego statusem i czasem działania."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.display_name": {
+          "source": "Get Job",
+          "message": "Pobierz zadanie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "Zadanie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.option.am9iX2lk.short_desc": {
+          "source": "The job to return",
+          "message": "Zadanie do zwrócenia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.short_desc": {
+          "source": "Get one job by ID",
+          "message": "Pobierz jedno zadanie według jego identyfikatora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.desc": {
+          "source": "Returns how far each processing node in the workflow has got for this job.  Use it to see where a long-running job is spending its time, and which node failed when one did.",
+          "message": "Zwraca, jak daleko dla tego zadania doszedł każdy węzeł przetwarzania przepływu pracy.  Służy do sprawdzenia, gdzie długo trwające zadanie spędza czas i który węzeł zawiódł, jeśli któryś zawiódł."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.display_name": {
+          "source": "Get Job Details",
+          "message": "Pobierz szczegóły zadania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "Zadanie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.option.am9iX2lk.short_desc": {
+          "source": "The job to describe",
+          "message": "Zadanie do opisania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.short_desc": {
+          "source": "Get a job's per-node processing detail",
+          "message": "Pobierz szczegóły przetwarzania zadania w rozbiciu na węzły"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.desc": {
+          "source": "Lists the files this job could not process, with the error for each.\n\nA job that completes with errors still writes everything that succeeded, so this is how to find out what is missing from the destination.",
+          "message": "Wyświetla pliki, których to zadanie nie zdołało przetworzyć, każdy wraz z błędem.\n\nZadanie zakończone z błędami mimo to zapisuje wszystko, co się powiodło, więc w ten sposób można ustalić, czego brakuje w miejscu docelowym."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.display_name": {
+          "source": "Get Job Failed Files",
+          "message": "Pobierz nieudane pliki zadania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "Zadanie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.option.am9iX2lk.short_desc": {
+          "source": "The job to report on",
+          "message": "Zadanie, o którym ma powstać raport"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.short_desc": {
+          "source": "List the files a job could not process",
+          "message": "Wyświetl pliki, których zadanie nie zdołało przetworzyć"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.desc": {
+          "source": "Returns one source connector and its configuration.  Secrets in the configuration are returned redacted.",
+          "message": "Zwraca jeden konektor źródłowy i jego konfigurację.  Sekrety w konfiguracji są zwracane w postaci zamaskowanej."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.display_name": {
+          "source": "Get Source Connector",
+          "message": "Pobierz konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "Konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector to return",
+          "message": "Konektor do zwrócenia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.short_desc": {
+          "source": "Get one source connector by ID",
+          "message": "Pobierz jeden konektor źródłowy według jego identyfikatora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.desc": {
+          "source": "Returns the most recent connection check for the connector, with its status and any error reported.",
+          "message": "Zwraca najnowsze sprawdzenie połączenia konektora, wraz z jego statusem i ewentualnym zgłoszonym błędem."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.display_name": {
+          "source": "Get Source Connector Check",
+          "message": "Pobierz sprawdzenie konektora źródłowego"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "Konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector whose check to read",
+          "message": "Konektor, którego sprawdzenie ma zostać odczytane"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.short_desc": {
+          "source": "Read the latest connection check for a source connector",
+          "message": "Odczytaj ostatnie sprawdzenie połączenia konektora źródłowego"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.desc": {
+          "source": "Returns one workflow template and the processing chain it describes.",
+          "message": "Zwraca jeden szablon przepływu pracy i opisywany przez niego łańcuch przetwarzania."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.display_name": {
+          "source": "Get Workflow Template",
+          "message": "Pobierz szablon przepływu pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.option.dGVtcGxhdGVfaWQ.display_name": {
+          "source": "Template",
+          "message": "Szablon"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.option.dGVtcGxhdGVfaWQ.short_desc": {
+          "source": "The template to return",
+          "message": "Szablon do zwrócenia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.short_desc": {
+          "source": "Get one workflow template by ID",
+          "message": "Pobierz jeden szablon przepływu pracy według jego identyfikatora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.desc": {
+          "source": "Returns one workflow, including its processing nodes, its schedule and the connectors it is wired to.",
+          "message": "Zwraca jeden przepływ pracy wraz z jego węzłami przetwarzania, harmonogramem i konektorami, do których jest podłączony."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.display_name": {
+          "source": "Get Workflow",
+          "message": "Pobierz przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "Przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "The workflow to return",
+          "message": "Przepływ pracy do zwrócenia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.short_desc": {
+          "source": "Get one workflow by ID",
+          "message": "Pobierz jeden przepływ pracy według jego identyfikatora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.desc": {
+          "source": "Downloads one output file produced by a job.\n\nA job reports the files it produced as `output_node_files`, so choosing the job first fills the file and node lists from it.",
+          "message": "Pobiera jeden plik wyjściowy utworzony przez zadanie.\n\nZadanie zgłasza utworzone przez siebie pliki w `output_node_files`, więc wybranie najpierw zadania wypełnia z nich listy plików i węzłów."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.display_name": {
+          "source": "Download Job Output",
+          "message": "Pobierz wynik zadania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.ZmlsZV9pZA.desc": {
+          "source": "The output file to download; the list is the `output_node_files` of the selected job.",
+          "message": "Plik wyjściowy do pobrania; lista pochodzi z `output_node_files` wybranego zadania."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.ZmlsZV9pZA.display_name": {
+          "source": "Output File",
+          "message": "Plik wyjściowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.ZmlsZV9pZA.short_desc": {
+          "source": "The output file to download",
+          "message": "Plik wynikowy do pobrania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "Zadanie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.am9iX2lk.short_desc": {
+          "source": "The job that produced the file",
+          "message": "Zadanie, które utworzyło plik"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.bm9kZV9pZA.desc": {
+          "source": "The processing node that produced the file.  Defaults to the last node in the workflow, which is the one that writes the output.",
+          "message": "Węzeł przetwarzania, który utworzył plik.  Domyślnie ostatni węzeł przepływu pracy, czyli ten, który zapisuje wynik."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.bm9kZV9pZA.display_name": {
+          "source": "Processing Node",
+          "message": "Węzeł przetwarzania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.bm9kZV9pZA.short_desc": {
+          "source": "The processing node that produced the file",
+          "message": "Węzeł przetwarzania, który utworzył plik"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.short_desc": {
+          "source": "Download a processed file from a job",
+          "message": "Pobierz przetworzony plik z zadania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Deletes a notification channel.  Workflows subscribed through it stop being notified.",
+          "message": "Usuwa kanał powiadomień.  Przepływy pracy subskrybujące przez niego przestają być powiadamiane."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Delete Notification Channel",
+          "message": "Usuń kanał powiadomień"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.display_name": {
+          "source": "Channel",
+          "message": "Kanał"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.short_desc": {
+          "source": "The channel to delete",
+          "message": "Kanał do usunięcia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Delete a notification channel",
+          "message": "Usuń kanał powiadomień"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.desc": {
+          "source": "Deletes a destination connector.  A workflow still using it will fail on its next run.",
+          "message": "Usuwa konektor docelowy.  Przepływ pracy, który nadal go używa, zawiedzie przy następnym przebiegu."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.display_name": {
+          "source": "Delete Destination Connector",
+          "message": "Usuń konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "Konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector to delete",
+          "message": "Konektor do usunięcia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.short_desc": {
+          "source": "Delete a destination connector",
+          "message": "Usuń konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.desc": {
+          "source": "Deletes a source connector.  A workflow still using it will fail on its next run.",
+          "message": "Usuwa konektor źródłowy.  Przepływ pracy, który nadal go używa, zawiedzie przy następnym przebiegu."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.display_name": {
+          "source": "Delete Source Connector",
+          "message": "Usuń konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "Konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector to delete",
+          "message": "Konektor do usunięcia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.short_desc": {
+          "source": "Delete a source connector",
+          "message": "Usuń konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.desc": {
+          "source": "Deletes a workflow.  The connectors it used are not deleted.",
+          "message": "Usuwa przepływ pracy.  Konektory, których używał, nie są usuwane."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.display_name": {
+          "source": "Delete Workflow",
+          "message": "Usuń przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "Przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "The workflow to delete",
+          "message": "Przepływ pracy do usunięcia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.short_desc": {
+          "source": "Delete a workflow",
+          "message": "Usuń przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.desc": {
+          "source": "Fires once for each workflow run that finishes, whether it succeeded, failed, was stopped or was rejected.\n\nA workflow run is asynchronous, so this is the point at which the documents it processed are available at the destination and an integration can act on them.  A `COMPLETED` job may still have failed on individual files; **Get Job Failed Files** says which.\n\nSet `workflow_id` to watch one workflow rather than every run in the account.",
+          "message": "Wyzwalane raz dla każdego zakończonego przebiegu przepływu pracy, niezależnie od tego, czy się powiódł, nie powiódł, został zatrzymany czy odrzucony.\n\nPrzebieg przepływu pracy jest asynchroniczny, więc jest to moment, w którym przetworzone dokumenty są dostępne w miejscu docelowym i integracja może na nie zareagować.  Zadanie `COMPLETED` mogło mimo to zawieść na pojedynczych plikach; **Get Job Failed Files** wskazuje, na których.\n\nUstaw `workflow_id`, aby obserwować jeden przepływ pracy zamiast wszystkich przebiegów na koncie."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.display_name": {
+          "source": "Job Finished",
+          "message": "Zadanie zakończone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.c3RhcnRfZGF0ZQ.desc": {
+          "source": "Only fire for jobs created on or after this date.  Without it, the first cycle fires for every finished job in the account.",
+          "message": "Wyzwalaj tylko dla zadań utworzonych w tym dniu lub później.  Bez tego pierwszy cykl wyzwoli się dla każdego zakończonego zadania na koncie."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.c3RhcnRfZGF0ZQ.display_name": {
+          "source": "Start Date",
+          "message": "Data początkowa"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.c3RhcnRfZGF0ZQ.short_desc": {
+          "source": "Only fire for jobs created after this date",
+          "message": "Wyzwalaj tylko dla zadań utworzonych po tej dacie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.cG9sbF9pbnRlcnZhbA.desc": {
+          "source": "How often to check for finished jobs, in seconds; the minimum is `15`.",
+          "message": "Jak często sprawdzane są zakończone zadania, w sekundach; minimum to `15`."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.cG9sbF9pbnRlcnZhbA.display_name": {
+          "source": "Poll Interval",
+          "message": "Interwał odpytywania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.cG9sbF9pbnRlcnZhbA.short_desc": {
+          "source": "How often to check for finished jobs, in seconds",
+          "message": "Jak często sprawdzane są zakończone zadania, w sekundach"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.d29ya2Zsb3dfaWQ.desc": {
+          "source": "Watch only the runs of this workflow.  Leave unset to fire for every workflow in the account.",
+          "message": "Obserwuj tylko przebiegi tego przepływu pracy.  Pozostaw puste, aby wyzwalać dla każdego przepływu na koncie."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "Przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "Watch only this workflow's runs",
+          "message": "Obserwuj tylko przebiegi tego przepływu pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.short_desc": {
+          "source": "Fires when a workflow run reaches a terminal status",
+          "message": "Wyzwalane, gdy przebieg przepływu pracy osiągnie stan końcowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC10ZW1wbGF0ZXM.desc": {
+          "source": "Lists workflow templates - Unstructured's ready-made processing chains, which a workflow can be built from instead of describing its nodes by hand.",
+          "message": "Wyświetla szablony przepływów pracy – gotowe łańcuchy przetwarzania Unstructured, na których można oprzeć przepływ zamiast opisywać jego węzły ręcznie."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC10ZW1wbGF0ZXM.display_name": {
+          "source": "List Workflow Templates",
+          "message": "Wyświetl szablony przepływów pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC10ZW1wbGF0ZXM.short_desc": {
+          "source": "List the workflow templates available to this account",
+          "message": "Wyświetl szablony przepływów pracy dostępne dla tego konta"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.desc": {
+          "source": "Lists workflows, with optional filtering by state, by the connectors they use, and by when they were created.\n\nA workflow ties a source connector to a destination connector through a chain of processing nodes, and is what actually runs when documents are ingested.",
+          "message": "Wyświetla przepływy pracy, opcjonalnie filtrowane według stanu, używanych konektorów i daty utworzenia.\n\nPrzepływ pracy łączy konektor źródłowy z konektorem docelowym łańcuchem węzłów przetwarzania i jest tym, co faktycznie się wykonuje podczas pobierania dokumentów."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.display_name": {
+          "source": "List Workflows",
+          "message": "Wyświetl przepływy pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.Y3JlYXRlZF9iZWZvcmU.display_name": {
+          "source": "Created Before",
+          "message": "Utworzono przed"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.Y3JlYXRlZF9iZWZvcmU.short_desc": {
+          "source": "Return only workflows created before this date",
+          "message": "Zwróć tylko przepływy pracy utworzone przed tą datą"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.Y3JlYXRlZF9zaW5jZQ.display_name": {
+          "source": "Created Since",
+          "message": "Utworzono od"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.Y3JlYXRlZF9zaW5jZQ.short_desc": {
+          "source": "Return only workflows created on or after this date",
+          "message": "Zwróć tylko przepływy pracy utworzone w tym dniu lub później"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGFnX25vZGVfY29uZmlndXJhdGlvbl9pZA.desc": {
+          "source": "Return only workflows using this node configuration.\n\nUnstructured publishes no listing of node configurations, so this value has to come from a workflow that already uses it - the `workflow_nodes` of a workflow returned by **Get Workflow**.",
+          "message": "Zwraca tylko przepływy pracy używające tej konfiguracji węzła.\n\nUnstructured nie publikuje żadnej listy konfiguracji węzłów, więc ta wartość musi pochodzić z przepływu pracy, który już jej używa — z `workflow_nodes` przepływu pracy zwróconego przez **Get Workflow**."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGFnX25vZGVfY29uZmlndXJhdGlvbl9pZA.display_name": {
+          "source": "Node Configuration ID",
+          "message": "ID konfiguracji węzła"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGFnX25vZGVfY29uZmlndXJhdGlvbl9pZA.short_desc": {
+          "source": "Return only workflows using this node configuration",
+          "message": "Zwróć tylko przepływy pracy używające tej konfiguracji węzła"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "Konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "Return only workflows writing to this destination connector",
+          "message": "Zwróć tylko przepływy pracy zapisujące do tego konektora docelowego"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Nazwa"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.bmFtZQ.short_desc": {
+          "source": "Return only workflows whose name matches",
+          "message": "Zwróć tylko przepływy pracy o pasującej nazwie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "Konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c291cmNlX2lk.short_desc": {
+          "source": "Return only workflows reading from this source connector",
+          "message": "Zwróć tylko przepływy pracy czytające z tego konektora źródłowego"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.allowed-value.c3RyaW5nOm5hbWU.display_name": {
+          "source": "Name",
+          "message": "Nazwa"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.allowed-value.c3RyaW5nOmNyZWF0ZWRfYXQ.display_name": {
+          "source": "Created",
+          "message": "Utworzono"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.allowed-value.c3RyaW5nOmlk.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.allowed-value.c3RyaW5nOnVwZGF0ZWRfYXQ.display_name": {
+          "source": "Updated",
+          "message": "Zaktualizowano"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.display_name": {
+          "source": "Sort By",
+          "message": "Sortuj według"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.short_desc": {
+          "source": "The field to sort the results on",
+          "message": "Pole, według którego sortowane są wyniki"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9kaXJlY3Rpb24.allowed-value.c3RyaW5nOmFzYw.display_name": {
+          "source": "Ascending",
+          "message": "Rosnąco"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9kaXJlY3Rpb24.allowed-value.c3RyaW5nOmRlc2M.display_name": {
+          "source": "Descending",
+          "message": "Malejąco"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9kaXJlY3Rpb24.display_name": {
+          "source": "Sort Direction",
+          "message": "Kierunek sortowania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9kaXJlY3Rpb24.short_desc": {
+          "source": "The direction to sort in",
+          "message": "Kierunek sortowania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c2hvd19vbmx5X3NvZnRfZGVsZXRlZA.display_name": {
+          "source": "Only Deleted",
+          "message": "Tylko usunięte"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c2hvd19vbmx5X3NvZnRfZGVsZXRlZA.short_desc": {
+          "source": "Return only workflows that have been deleted",
+          "message": "Zwróć tylko przepływy pracy, które zostały usunięte"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
+          "source": "Active",
+          "message": "Aktywny"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.allowed-value.c3RyaW5nOmluYWN0aXZl.display_name": {
+          "source": "Inactive",
+          "message": "Nieaktywny"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.desc": {
+          "source": "Return only workflows in this state.  An `inactive` workflow is not run on its schedule.",
+          "message": "Zwróć tylko przepływy pracy w tym stanie.  Przepływ `inactive` nie jest uruchamiany według swojego harmonogramu."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.display_name": {
+          "source": "State",
+          "message": "Stan"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.short_desc": {
+          "source": "Return only workflows in this state",
+          "message": "Zwróć tylko przepływy pracy w tym stanie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.cGFnZQ.display_name": {
+          "source": "Page",
+          "message": "Strona"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.cGFnZV9zaXpl.display_name": {
+          "source": "Page Size",
+          "message": "Rozmiar strony"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.cGFnZV9zaXpl.short_desc": {
+          "source": "The number of workflows to return per page",
+          "message": "Liczba przepływów pracy zwracanych na stronę"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.short_desc": {
+          "source": "List the workflows in this Unstructured account",
+          "message": "Wyświetl przepływy pracy na tym koncie Unstructured"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.desc": {
+          "source": "Lists destination connectors, optionally narrowed to one connector type.\n\nA destination connector is where a workflow writes its processed output - typically a vector store for retrieval.",
+          "message": "Wyświetla konektory docelowe, opcjonalnie zawężone do jednego typu konektora.\n\nKonektor docelowy to miejsce, w którym przepływ pracy zapisuje przetworzony wynik – zwykle magazyn wektorowy na potrzeby wyszukiwania."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.display_name": {
+          "source": "List Destination Connectors",
+          "message": "Wyświetl konektory docelowe"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm1pbHZ1cw.display_name": {
+          "source": "Milvus",
+          "message": "Milvus"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm1vdGhlcmR1Y2s.display_name": {
+          "source": "MotherDuck",
+          "message": "MotherDuck"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm5lbzRq.display_name": {
+          "source": "Neo4j",
+          "message": "Neo4j"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmNocm9tYQ.display_name": {
+          "source": "Chroma",
+          "message": "Chroma"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lX2RlbHRhX3RhYmxlcw.display_name": {
+          "source": "Databricks Delta Tables",
+          "message": "Databricks Delta Tables"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmRlbHRhX3RhYmxl.display_name": {
+          "source": "Delta Table",
+          "message": "Delta Table"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmlibV93YXRzb254X3Mz.display_name": {
+          "source": "IBM watsonx.data",
+          "message": "IBM watsonx.data"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmtkYmFp.display_name": {
+          "source": "KDB.AI",
+          "message": "KDB.AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnBpbmVjb25l.display_name": {
+          "source": "Pinecone",
+          "message": "Pinecone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnFkcmFudC1jbG91ZA.display_name": {
+          "source": "Qdrant Cloud",
+          "message": "Qdrant Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnJlZGlz.display_name": {
+          "source": "Redis",
+          "message": "Redis"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnNpbmdsZXN0b3Jl.display_name": {
+          "source": "SingleStore",
+          "message": "SingleStore"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnVuc3RydWN0dXJlZF9ibG9iX3N0b3JhZ2U.display_name": {
+          "source": "Unstructured Blob Storage",
+          "message": "Unstructured Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOndlYXZpYXRlLWNsb3Vk.display_name": {
+          "source": "Weaviate Cloud",
+          "message": "Weaviate Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.display_name": {
+          "source": "Connector Type",
+          "message": "Typ konektora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.short_desc": {
+          "source": "Return only connectors of this type",
+          "message": "Zwróć tylko konektory tego typu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.short_desc": {
+          "source": "List the destination connectors in this account",
+          "message": "Wyświetl konektory docelowe na tym koncie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.desc": {
+          "source": "Lists jobs, optionally narrowed to one workflow or one status.\n\nA job is one run of a workflow, scheduled or explicit.",
+          "message": "Wyświetla zadania, opcjonalnie zawężone do jednego przepływu pracy lub jednego statusu.\n\nZadanie to jeden przebieg przepływu pracy, zaplanowany lub uruchomiony jawnie."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.display_name": {
+          "source": "List Jobs",
+          "message": "Wyświetl zadania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOkNPTVBMRVRFRA.display_name": {
+          "source": "Completed",
+          "message": "Ukończone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOkZBSUxFRA.display_name": {
+          "source": "Failed",
+          "message": "Nieudane"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOklOX1BST0dSRVNT.display_name": {
+          "source": "In Progress",
+          "message": "W toku"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOlJFSkVDVEVE.display_name": {
+          "source": "Rejected",
+          "message": "Odrzucone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOlNDSEVEVUxFRA.display_name": {
+          "source": "Scheduled",
+          "message": "Zaplanowane"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOlNUT1BQRUQ.display_name": {
+          "source": "Stopped",
+          "message": "Zatrzymane"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Status"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.short_desc": {
+          "source": "Return only jobs in this status",
+          "message": "Zwróć tylko zadania o tym statusie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "Przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "Return only jobs for this workflow",
+          "message": "Zwróć tylko zadania tego przepływu pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.short_desc": {
+          "source": "List workflow runs",
+          "message": "Wyświetl przebiegi przepływów pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.desc": {
+          "source": "Lists notification channels of one kind.  A channel is where Unstructured sends job notifications: a webhook URL, or an email address.",
+          "message": "Wyświetla kanały powiadomień jednego rodzaju.  Kanał to miejsce, do którego Unstructured wysyła powiadomienia o zadaniach: adres URL webhooka albo adres e-mail."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.display_name": {
+          "source": "List Notification Channels",
+          "message": "Wyświetl kanały powiadomień"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.allowed-value.c3RyaW5nOmVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.allowed-value.c3RyaW5nOndlYmhvb2s.display_name": {
+          "source": "Webhook",
+          "message": "Webhook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.desc": {
+          "source": "The kind of channel to list.  Channels of different kinds are listed separately.",
+          "message": "Rodzaj kanału do wyświetlenia.  Kanały różnych rodzajów są wyświetlane osobno."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.display_name": {
+          "source": "Channel Type",
+          "message": "Typ kanału"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.short_desc": {
+          "source": "The kind of channel to list",
+          "message": "Rodzaj kanału do wyświetlenia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.ZW5hYmxlZA.display_name": {
+          "source": "Enabled",
+          "message": "Włączony"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.short_desc": {
+          "source": "List the notification channels in this account",
+          "message": "Wyświetl kanały powiadomień na tym koncie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.desc": {
+          "source": "Lists source connectors, optionally narrowed to one connector type.\n\nA source connector is where a workflow reads documents from.",
+          "message": "Wyświetla konektory źródłowe, opcjonalnie zawężone do jednego typu konektora.\n\nKonektor źródłowy to miejsce, z którego przepływ pracy czyta dokumenty."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.display_name": {
+          "source": "List Source Connectors",
+          "message": "Wyświetl konektory źródłowe"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOm91dGxvb2s.display_name": {
+          "source": "Outlook",
+          "message": "Outlook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmFpcnRhYmxl.display_name": {
+          "source": "Airtable",
+          "message": "Airtable"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmJveA.display_name": {
+          "source": "Box",
+          "message": "Box"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmNvbmZsdWVuY2U.display_name": {
+          "source": "Confluence",
+          "message": "Confluence"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmdpdGh1Yg.display_name": {
+          "source": "GitHub",
+          "message": "GitHub"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmdpdGxhYg.display_name": {
+          "source": "GitLab",
+          "message": "GitLab"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmdvb2dsZV9kcml2ZQ.display_name": {
+          "source": "Google Drive",
+          "message": "Google Drive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmppcmE.display_name": {
+          "source": "Jira",
+          "message": "Jira"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNhbGVzZm9yY2U.display_name": {
+          "source": "Salesforce",
+          "message": "Salesforce"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNoYXJlcG9pbnQ.display_name": {
+          "source": "SharePoint",
+          "message": "SharePoint"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNsYWNr.display_name": {
+          "source": "Slack",
+          "message": "Slack"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnplbmRlc2s.display_name": {
+          "source": "Zendesk",
+          "message": "Zendesk"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.display_name": {
+          "source": "Connector Type",
+          "message": "Typ konektora"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.short_desc": {
+          "source": "Return only connectors of this type",
+          "message": "Zwróć tylko konektory tego typu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.short_desc": {
+          "source": "List the source connectors in this account",
+          "message": "Wyświetl konektory źródłowe na tym koncie"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.bWFrZS1hcGktY2FsbA.desc": {
           "source": "Make a custom HTTP / REST API call to **Unstructured.io** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
           "message": "Wykonaj niestandardowe wywołanie HTTP / REST API do **Unstructured.io** przy użyciu uwierzytelniania skonfigurowanego połączenia.\n\nOkreśl metodę HTTP, ścieżkę URI (względną wobec bazowego adresu URL API połączenia), opcjonalne parametry zapytania, nagłówki oraz treść żądania. Odpowiedź jest zwracana jako hash zawierający kod statusu, nagłówki odpowiedzi oraz treść odpowiedzi.\n\nUżyj tej akcji dla punktów końcowych, które nie są jeszcze udostępnione jako bezpośrednie akcje w tej aplikacji."
@@ -1159,17 +2839,373 @@
           "source": "Partition raw text into a typed element tree",
           "message": "Podziel niesformatowany tekst na typowane drzewo elementów"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.desc": {
+          "source": "Runs a workflow immediately, whatever its schedule says, and returns the job that was started.\n\nThe job runs asynchronously: use `get-job` to follow it, or the **Job Status Change** event to be told when it finishes.",
+          "message": "Uruchamia przepływ pracy natychmiast, niezależnie od jego harmonogramu, i zwraca rozpoczęte zadanie.\n\nZadanie działa asynchronicznie: śledź je za pomocą `get-job` albo pozwól, aby zdarzenie **Job Status Change** powiadomiło o jego zakończeniu."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.display_name": {
+          "source": "Run Workflow",
+          "message": "Uruchom przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.aW5wdXRfZmlsZXM.desc": {
+          "source": "Restrict the run to these file IDs.  Leave unset to process everything the source connector offers.",
+          "message": "Ogranicz przebieg do tych identyfikatorów plików.  Pozostaw puste, aby przetworzyć wszystko, co oferuje konektor źródłowy."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.aW5wdXRfZmlsZXM.display_name": {
+          "source": "Input Files",
+          "message": "Pliki wejściowe"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.aW5wdXRfZmlsZXM.short_desc": {
+          "source": "Restrict the run to these file IDs",
+          "message": "Ogranicz przebieg do tych identyfikatorów plików"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "Przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "The workflow to run",
+          "message": "Przepływ pracy do uruchomienia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.short_desc": {
+          "source": "Run a workflow now and return the job it started",
+          "message": "Uruchom przepływ pracy teraz i zwróć rozpoczęte zadanie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Updates a notification channel's destination or the events it is subscribed to.",
+          "message": "Aktualizuje miejsce docelowe kanału powiadomień lub subskrybowane przez niego zdarzenia."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Update Notification Channel",
+          "message": "Zaktualizuj kanał powiadomień"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.allowed-value.c3RyaW5nOmVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.allowed-value.c3RyaW5nOndlYmhvb2s.display_name": {
+          "source": "Webhook",
+          "message": "Webhook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.desc": {
+          "source": "How notifications are delivered.  A channel's type cannot be changed once it is created; this only names it.",
+          "message": "Sposób dostarczania powiadomień.  Rodzaju kanału nie można zmienić po jego utworzeniu; tutaj jest tylko nazwany."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.display_name": {
+          "source": "Channel Type",
+          "message": "Typ kanału"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.short_desc": {
+          "source": "How notifications are delivered",
+          "message": "Sposób dostarczania powiadomień"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.display_name": {
+          "source": "Channel",
+          "message": "Kanał"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.short_desc": {
+          "source": "The channel to update",
+          "message": "Kanał do zaktualizowania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZGVzY3JpcHRpb24.desc": {
+          "source": "A description of the channel, up to 255 characters.",
+          "message": "Opis kanału, do 255 znaków."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "Opis"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "A description of the channel",
+          "message": "Opis kanału"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW1haWxfY29uZmln.desc": {
+          "source": "Additional recipients and the reply-to address for an email channel.",
+          "message": "Dodatkowi odbiorcy i adres zwrotny dla kanału e-mail."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW1haWxfY29uZmln.display_name": {
+          "source": "Email Settings",
+          "message": "Ustawienia e-mail"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW1haWxfY29uZmln.short_desc": {
+          "source": "Recipients and reply-to for an email channel",
+          "message": "Odbiorcy i adres zwrotny dla kanału e-mail"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW5hYmxlZA.desc": {
+          "source": "Whether the channel receives notifications.  A disabled channel keeps its definition and its subscriptions.",
+          "message": "Czy kanał odbiera powiadomienia.  Wyłączony kanał zachowuje swoją definicję i subskrypcje."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW5hYmxlZA.display_name": {
+          "source": "Enabled",
+          "message": "Włączony"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW5hYmxlZA.short_desc": {
+          "source": "Whether the channel receives notifications",
+          "message": "Czy kanał odbiera powiadomienia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5jb21wbGV0ZWQ.display_name": {
+          "source": "Job Completed",
+          "message": "Zadanie ukończone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5mYWlsZWQ.display_name": {
+          "source": "Job Failed",
+          "message": "Zadanie nieudane"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5pbl9wcm9ncmVzcw.display_name": {
+          "source": "Job In Progress",
+          "message": "Zadanie w toku"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5wcm9ncmVzcw.display_name": {
+          "source": "Job Progress",
+          "message": "Postęp zadania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5zY2hlZHVsZWQ.display_name": {
+          "source": "Job Scheduled",
+          "message": "Zadanie zaplanowane"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5zdG9wcGVk.display_name": {
+          "source": "Job Stopped",
+          "message": "Zadanie zatrzymane"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.desc": {
+          "source": "The job events this channel is notified about; at least one is required.",
+          "message": "Zdarzenia zadań, o których powiadamiany jest ten kanał; wymagane jest co najmniej jedno."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.display_name": {
+          "source": "Event Types",
+          "message": "Typy zdarzeń"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.short_desc": {
+          "source": "The job events to be notified about",
+          "message": "Zdarzenia zadań, o których mają być wysyłane powiadomienia"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.c2VjcmV0.desc": {
+          "source": "The secret Unstructured signs webhook payloads with, 24 to 75 bytes.  Send an empty string to drop a secret already set.",
+          "message": "Sekret, którym Unstructured podpisuje ładunki webhooka, od 24 do 75 bajtów.  Wyślij pusty ciąg, aby usunąć już ustawiony sekret."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.c2VjcmV0.display_name": {
+          "source": "Signing Secret",
+          "message": "Sekret podpisujący"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.c2VjcmV0.short_desc": {
+          "source": "The secret webhook payloads are signed with",
+          "message": "Sekret, którym podpisywane są ładunki webhooka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.dXJs.desc": {
+          "source": "Where webhook notifications are posted.  HTTPS is required.",
+          "message": "Gdzie wysyłane są powiadomienia webhooka.  Wymagany jest HTTPS."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.dXJs.display_name": {
+          "source": "Webhook URL",
+          "message": "Adres URL webhooka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.dXJs.short_desc": {
+          "source": "Where webhook notifications are posted",
+          "message": "Gdzie wysyłane są powiadomienia webhooka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Update a notification channel",
+          "message": "Zaktualizuj kanał powiadomień"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.desc": {
+          "source": "Updates a destination connector's configuration.  The connector type cannot be changed; create a new connector instead.",
+          "message": "Aktualizuje konfigurację konektora docelowego.  Typu konektora nie można zmienić; utwórz zamiast tego nowy konektor."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.display_name": {
+          "source": "Update Destination Connector",
+          "message": "Zaktualizuj konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.display_name": {
+          "source": "Configuration",
+          "message": "Konfiguracja"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.short_desc": {
+          "source": "Connector settings for the connector's type",
+          "message": "Ustawienia konektora dla jego typu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "Konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector to update",
+          "message": "Konektor do zaktualizowania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.short_desc": {
+          "source": "Update a destination connector's configuration",
+          "message": "Zaktualizuj konfigurację konektora docelowego"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.desc": {
+          "source": "Updates a source connector's configuration.  The connector type cannot be changed; create a new connector instead.",
+          "message": "Aktualizuje konfigurację konektora źródłowego.  Typu konektora nie można zmienić; utwórz zamiast tego nowy konektor."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.display_name": {
+          "source": "Update Source Connector",
+          "message": "Zaktualizuj konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.option.Y29uZmln.display_name": {
+          "source": "Configuration",
+          "message": "Konfiguracja"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.option.Y29uZmln.short_desc": {
+          "source": "Connector settings for the connector's type",
+          "message": "Ustawienia konektora dla jego typu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "Konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector to update",
+          "message": "Konektor do zaktualizowania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.short_desc": {
+          "source": "Update a source connector's configuration",
+          "message": "Zaktualizuj konfigurację konektora źródłowego"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.desc": {
+          "source": "Updates a workflow.  Use `state` to activate or deactivate it without deleting it: an `inactive` workflow keeps its definition but does not run on its schedule.",
+          "message": "Aktualizuje przepływ pracy.  Użyj `state`, aby go włączyć lub wyłączyć bez usuwania: przepływ `inactive` zachowuje swoją definicję, ale nie uruchamia się według harmonogramu."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.display_name": {
+          "source": "Update Workflow",
+          "message": "Zaktualizuj przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "Konektor docelowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector results are written to",
+          "message": "Konektor, do którego zapisywane są wyniki"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Nazwa"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "Konektor źródłowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector documents are read from",
+          "message": "Konektor, z którego czytane są dokumenty"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.display_name": {
+          "source": "Schedule",
+          "message": "Harmonogram"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c3RhdGU.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
+          "source": "Active",
+          "message": "Aktywny"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c3RhdGU.allowed-value.c3RyaW5nOmluYWN0aXZl.display_name": {
+          "source": "Inactive",
+          "message": "Nieaktywny"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c3RhdGU.display_name": {
+          "source": "State",
+          "message": "Stan"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c3RhdGU.short_desc": {
+          "source": "Whether the workflow runs on its schedule",
+          "message": "Czy przepływ pracy uruchamia się według swojego harmonogramu"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.cmVwcm9jZXNzX2FsbA.display_name": {
+          "source": "Reprocess All",
+          "message": "Przetwórz wszystko ponownie"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "Przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "The workflow to update",
+          "message": "Przepływ pracy do zaktualizowania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfbm9kZXM.display_name": {
+          "source": "Workflow Nodes",
+          "message": "Węzły przepływu pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
+          "source": "Advanced",
+          "message": "Zaawansowany"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "Podstawowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmN1c3RvbQ.display_name": {
+          "source": "Custom",
+          "message": "Niestandardowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOnBsYXRpbnVt.display_name": {
+          "source": "Platinum",
+          "message": "Platynowy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.display_name": {
+          "source": "Workflow Type",
+          "message": "Typ przepływu pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.short_desc": {
+          "source": "The preset processing chain to apply",
+          "message": "Gotowy łańcuch przetwarzania do zastosowania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.dGVtcGxhdGVfaWQ.display_name": {
+          "source": "Template",
+          "message": "Szablon"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.dGVtcGxhdGVfaWQ.short_desc": {
+          "source": "The workflow template to rebuild from",
+          "message": "Szablon przepływu pracy, na którym opiera się przebudowa"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.short_desc": {
+          "source": "Update a workflow",
+          "message": "Zaktualizuj przepływ pracy"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Confirms a channel with the code Unstructured sent to it.  A channel does not receive job notifications until it has been verified.",
+          "message": "Potwierdza kanał kodem, który Unstructured do niego wysłał.  Kanał nie odbiera powiadomień o zadaniach, dopóki nie zostanie zweryfikowany."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Verify Notification Channel",
+          "message": "Zweryfikuj kanał powiadomień"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y29kZQ.desc": {
+          "source": "The six-digit code Unstructured sent to the channel's address.",
+          "message": "Sześciocyfrowy kod, który Unstructured wysłał na adres kanału."
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y29kZQ.display_name": {
+          "source": "Verification Code",
+          "message": "Kod weryfikacyjny"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y29kZQ.short_desc": {
+          "source": "The six-digit code Unstructured sent to the channel",
+          "message": "Sześciocyfrowy kod, który Unstructured wysłał do kanału"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.display_name": {
+          "source": "Channel",
+          "message": "Kanał"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.short_desc": {
+          "source": "The channel to verify",
+          "message": "Kanał do zweryfikowania"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Send a verification message to a notification channel",
+          "message": "Wyślij wiadomość weryfikacyjną do kanału powiadomień"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.desc": {
-          "source": "Provides access to [Unstructured.io](https://unstructured.io) — a document partitioning service that breaks PDFs, docx, HTML, and images into a typed element tree (Title / NarrativeText / ListItem / Table / ...).\n\nUse the @ref QoreRagUtils::UnstructuredChunker \"UnstructuredChunker\" backend for the RAG ingestion path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
-          "message": "Zapewnia dostęp do [Unstructured.io](https://unstructured.io) — usługi partycjonowania dokumentów, która dzieli pliki PDF, docx, HTML i obrazy na typowane drzewo elementów (Title / NarrativeText / ListItem / Table / ...).\n\nUżyj backendu @ref QoreRagUtils::UnstructuredChunker \"UnstructuredChunker\" dla ścieżki wprowadzania danych RAG za pośrednictwem @ref QoreRagUtils::RagPipeline \"RagPipeline\"."
+          "source": "Provides access to [Unstructured.io](https://unstructured.io), which turns documents into data an AI application can use.\n\n- **Partition documents** — break PDFs, Office files, HTML, images and emails into a typed element tree (`Title` / `NarrativeText` / `ListItem` / `Table` / ...), with optional OCR, table-structure inference and retrieval-sized chunking\n- **Build ingestion pipelines** — connect a source system to a vector store through a workflow, run it on a schedule or on demand, and follow each run\n- **React to finished runs** — fire an event when a workflow run completes, so processed documents are picked up as soon as they land\n\nUse the @ref QoreRagUtils::UnstructuredChunker \"UnstructuredChunker\" backend for the RAG ingestion path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
+          "message": "Zapewnia dostęp do usługi [Unstructured.io](https://unstructured.io), która zamienia dokumenty w dane nadające się do użycia przez aplikacje sztucznej inteligencji.\n\n- **Dzielenie dokumentów** – rozbijanie plików PDF, plików pakietu Office, HTML, obrazów i wiadomości e-mail na typowane drzewo elementów (`Title` / `NarrativeText` / `ListItem` / `Table` / ...), opcjonalnie z OCR, wykrywaniem struktury tabel i podziałem na fragmenty dopasowane do wyszukiwania\n- **Budowanie potoków pozyskiwania danych** – połączenie systemu źródłowego z magazynem wektorów za pomocą przepływu pracy, uruchamianie go zgodnie z harmonogramem lub na żądanie oraz śledzenie każdego uruchomienia\n- **Reagowanie na zakończone uruchomienia** – wywołanie zdarzenia po zakończeniu uruchomienia przepływu pracy, aby przetworzone dokumenty były odbierane zaraz po ich dostarczeniu\n\nDo ścieżki pozyskiwania danych RAG przez @ref QoreRagUtils::RagPipeline \"RagPipeline\" użyj backendu @ref QoreRagUtils::UnstructuredChunker \"UnstructuredChunker\"."
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.display_name": {
           "source": "Unstructured.io",
           "message": "Unstructured.io"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.short_desc": {
-          "source": "Unstructured.io document partitioning (element-tree extraction)",
-          "message": "Partycjonowanie dokumentów Unstructured.io (ekstrakcja drzewa elementów)"
+          "source": "Unstructured.io document partitioning and ingestion workflows",
+          "message": "Dzielenie dokumentów i przepływy pozyskiwania danych Unstructured.io"
         }
       }
     }

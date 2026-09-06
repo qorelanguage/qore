@@ -14,6 +14,7 @@
 %requires DataProvider
 %requires UnstructuredRestClient
 %requires UnstructuredDataProvider
+%requires RestSchemaActions
 
 %exec-class UnstructuredDataProviderTest
 
@@ -95,6 +96,12 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         addTestCase("partition-file accepts inline data and a path", \partitionFileTest());
         addTestCase("partition-file rejects an ambiguous document argument",
             \partitionFileArgumentTest());
+        addTestCase("platform action set is generated from the vendored schema",
+            \platformActionSetTest());
+        addTestCase("platform action options are usable", \platformActionOptionTest());
+        addTestCase("platform record tables", \platformRecordTableTest());
+        addTestCase("platform job event provider", \platformEventTest());
+        addTestCase("connector configuration fields", \connectorFieldsTest());
 
         # Live tests require a real Unstructured connection.  Unstructured Serverless free tier:
         # 1000 pages/month; these tests submit a few bytes of text.
@@ -102,6 +109,9 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
             addTestCase("live: connection provides the data provider", \liveConnectionTest());
             addTestCase("live: partition-text round trip", \livePartitionTextTest());
             addTestCase("live: partition-file round trip", \livePartitionFileTest());
+            addTestCase("live: platform connector and workflow lifecycle",
+                \livePlatformLifecycleTest());
+            addTestCase("live: platform record tables read", \livePlatformTableTest());
         }
         set_return_value(main());
     }
@@ -127,13 +137,20 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("UnstructuredIo"),
             $1.action != AbstractDataProvider::GenericApiCallActionName;
-        assertEq(("partition-file", "partition-text"), sort((map $1.action, actions)));
-        map assertEq(DPAT_API, $1.action_code, $1.action), actions;
+        # the partition side; the Platform API actions live under /platform and are covered by
+        # platformActionOptionTest()
+        list<hash<DataProviderActionInfo>> partition_actions = select actions,
+            $1.path !~ /^\/platform/;
+        assertEq(("partition-file", "partition-text"),
+            sort((map $1.action, partition_actions)));
+        map assertEq(DPAT_API, $1.action_code, $1.action), partition_actions;
+        assertTrue(actions.size() > partition_actions.size(),
+            "the platform actions are registered for the same app");
 
         hash<DataProviderActionInfo> text_action =
-            (select actions, $1.action == "partition-text")[0];
+            (select partition_actions, $1.action == "partition-text")[0];
         hash<DataProviderActionInfo> file_action =
-            (select actions, $1.action == "partition-file")[0];
+            (select partition_actions, $1.action == "partition-file")[0];
 
         # "text" is the required input of the text action
         assertTrue(text_action.options.text.required);
@@ -172,8 +189,10 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         assertTrue(prov.getChildProviderNames().contains("partition-file"));
         assertEq("partition-file", prov.getChildProviderEx("partition-file").getName());
 
+        assertTrue(prov.getChildProviderNames().contains("platform"));
+
         # summary info is published for every child
-        assertEq(("partition-file", "partition-text"),
+        assertEq(("partition-file", "partition-text", "platform"),
             sort((map $1.name, prov.getChildProviderSummaryInfo())));
 
         assertThrows("INVALID-CHILD-PROVIDER", sub () {
@@ -320,6 +339,267 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         });
     }
 
+    #! Returns a platform subtree built on a client that is never used
+    private AbstractDataProvider getPlatformProvider() {
+        return new UnstructuredDataProvider::UnstructuredPlatformDataProvider(
+            new UnstructuredRestClient::UnstructuredPlatformRestClientIo({"apikey": "fake-key"}));
+    }
+
+    private platformActionSetTest() {
+        # the vendored schema is pinned, so its provenance is part of the module's contract
+        hash<UnstructuredPlatformSchemaProvenanceInfo> p =
+            UnstructuredDataProvider::UnstructuredPlatformSchema::Provenance;
+        assertEq("3.1.1", p.api_version);
+        assertEq(64, p.source_sha256.size());
+        assertTrue(p.source_url =~ /openapi\.json$/);
+        assertTrue(is_file(UnstructuredDataProvider::UnstructuredPlatformSchema::getSchemaPath()),
+            "the vendored schema ships beside the module");
+
+        RestSchemaActions::RestSchemaActionSet aset =
+            UnstructuredDataProvider::UnstructuredPlatformSchema::getActionSet();
+        # every action in the manifest resolves against the pinned document
+        assertEq(UnstructuredPlatformManifest::Manifest.size(),
+            aset.getActionInfoList(UnstructuredDataProvider::AppName).size());
+
+        AbstractDataProvider plat = getPlatformProvider();
+        assertEq("platform", plat.getName());
+        list<string> kids = plat.getChildProviderNames();
+        map assertTrue(kids.contains($1), $1),
+            ("list-workflows", "create-workflow", "run-workflow", "list-jobs", "create-source",
+             "create-destination", "list-templates", "connector-fields", "tables", "events");
+    }
+
+    #! The generated options have to be usable, which is what the manifest overlay is for
+    private platformActionOptionTest() {
+        list<hash<DataProviderActionInfo>> actions = select
+            DataProvider::DataProviderActionCatalog::getActions("UnstructuredIo"),
+            $1.path =~ /^\/platform/;
+        assertTrue(actions.size() >= 35, sprintf("%d platform actions registered", actions.size()));
+
+        # the connection owns the API key; every operation in this API declares it as a parameter,
+        # so without the overlay every action would ask the user to type it again
+        map assertEq(NOTHING, $1.options{"unstructured-api-key"}, $1.action), actions;
+
+        hash<DataProviderActionInfo> create_source =
+            (select actions, $1.action == "create-source")[0];
+        # the connector type is written as anyOf [enum, string], which loses the enum's values
+        assertTrue(create_source.options.type.allowed_values.size() >= 25);
+        assertTrue(create_source.options.type.allowed_values_creatable);
+        map assertTrue($1.display_name.val(), $1.value),
+            create_source.options.type.allowed_values;
+        assertTrue(create_source.options.config.sensitive);
+
+        # the job listing declares status as a bare string although JobStatus exists
+        hash<DataProviderActionInfo> list_jobs = (select actions, $1.action == "list-jobs")[0];
+        assertEq(("SCHEDULED", "IN_PROGRESS", "COMPLETED", "STOPPED", "FAILED", "REJECTED"),
+            (map $1.value, list_jobs.options.status.allowed_values));
+        # ... and identifies its workflow with a dropdown rather than asking for a UUID
+        assertEq(UnstructuredPlatformManifest::RefWorkflow, list_jobs.options.workflow_id.ref_data);
+
+        # every action that names another object offers a dropdown for it
+        foreach hash<DataProviderActionInfo> a in (actions) {
+            foreach hash<auto> o in ((a.options ?? {}).pairIterator()) {
+                if (o.key =~ /^(source_id|destination_id|workflow_id|template_id|channel_id|job_id)$/) {
+                    assertTrue(o.value.ref_data.val(),
+                        sprintf("%s.%s offers a dropdown", a.action, o.key));
+                }
+            }
+        }
+
+        # a list-valued field enumerates its ELEMENTS: "allowed_values" here would make each event a
+        # one-element list, and a two-event subscription a list of lists
+        hash<DataProviderActionInfo> upd =
+            (select actions, $1.action == "update-notification-channel")[0];
+        hash<auto> ev = upd.options.event_types;
+        assertEq(NOTHING, ev.allowed_values);
+        assertEq(("job.scheduled", "job.in_progress", "job.progress", "job.completed",
+            "job.stopped", "job.failed"), (map $1.value, ev.element_allowed_values));
+        map assertEq(NT_STRING, $1.value.typeCode(), sprintf("%y is a string, not a list", $1.value)),
+            ev.element_allowed_values;
+        map assertTrue($1.display_name.val(), $1.value), ev.element_allowed_values;
+        assertTrue(ev.element_allowed_values_creatable);
+
+        # a signing secret is a credential wherever it is typed: the create action supplies the whole
+        # channel as a discriminated union, and the webhook alternative's secret must be masked there
+        # just as the update action's own copy is
+        hash<DataProviderActionInfo> cr =
+            (select actions, $1.action == "create-notification-channel")[0];
+        assertTrue(upd.options.secret.sensitive);
+        list<AbstractDataProviderType> branches =
+            cast<QoreUnionDataType>(cr.options.body.type).getUnionTypes();
+        assertEq(2, branches.size());
+        hash<string, AbstractDataField> webhook = branches[0].getFields();
+        assertEq("Signing Secret", webhook.secret.getDisplayName());
+        assertTrue(webhook.secret.getAttributes().sensitive);
+        # the email alternative declares no secret, so nothing there was disturbed
+        assertEq(NOTHING, branches[1].getFields().url);
+        assertTrue(exists branches[1].getFields().email_config);
+
+        # the file and node of a download come from the chosen job's own output listing, so both are
+        # dropdowns scoped by it rather than UUIDs to be found elsewhere
+        hash<DataProviderActionInfo> dl = (select actions, $1.action == "download-job-output")[0];
+        assertEq(UnstructuredPlatformManifest::RefJob, dl.options.job_id.ref_data);
+        assertEq(UnstructuredPlatformManifest::RefJobOutputFile, dl.options.file_id.ref_data);
+        assertEq(UnstructuredPlatformManifest::RefJobOutputNode, dl.options.node_id.ref_data);
+        assertEq(("job_id",), dl.options.file_id.depends_on);
+        assertEq(("job_id",), dl.options.node_id.depends_on);
+
+        # both are backed by get-job, which is what actually carries output_node_files
+        AbstractDataProvider dlp =
+            getPlatformProvider().getChildProviderEx("download-job-output");
+        *hash<string, bool> ref = dlp.getSupportedReferenceData();
+        map assertTrue(ref{$1}, $1), (UnstructuredPlatformManifest::RefJob,
+            UnstructuredPlatformManifest::RefJobOutputFile,
+            UnstructuredPlatformManifest::RefJobOutputNode);
+        # a scoped dropdown cannot be listed before the option it is scoped by has a value, and
+        # listing everything would offer files from other jobs
+        assertEq(NOTHING, dlp.getReferenceData(UnstructuredPlatformManifest::RefJobOutputFile));
+    }
+
+    private platformRecordTableTest() {
+        AbstractDataProvider tables = getPlatformProvider().getChildProviderEx("tables");
+        assertEq(("destinations", "jobs", "sources", "workflows"),
+            sort(tables.getChildProviderNames()));
+
+        AbstractDataProvider wf = tables.getChildProviderEx("workflows");
+        hash<DataProviderInfo> i = wf.getInfo();
+        map assertTrue(i{$1}, $1),
+            ("supports_read", "supports_create", "supports_update", "supports_delete");
+        # the Platform API has no filter-expression language, only query arguments
+        assertFalse(i.supports_native_search,
+            "no table may claim native search: where_cond would never reach the server");
+        map assertTrue(exists wf.getRecordType(){$1}, $1),
+            ("id", "name", "status", "sources", "destinations", "created_at");
+
+        # a job is started by running a workflow, never by writing a record
+        hash<DataProviderInfo> ji = tables.getChildProviderEx("jobs").getInfo();
+        assertTrue(ji.supports_read);
+        map assertFalse(ji{$1}, $1), ("supports_create", "supports_update", "supports_delete");
+    }
+
+    private platformEventTest() {
+        AbstractDataProvider events = getPlatformProvider().getChildProviderEx("events");
+        assertEq(("job-finished",), events.getChildProviderNames());
+
+        AbstractDataProvider jw = events.getChildProviderEx("job-finished");
+        assertTrue(jw.getInfo().supports_observable);
+        hash<string, hash<DataProviderMessageInfo>> types = jw.getEventTypes();
+        assertEq(("job-finished",), keys types);
+        assertEq("UnstructuredJobEvent", types."job-finished".type.getName());
+        map assertTrue(exists types."job-finished".type.getFields(){$1}, $1),
+            ("id", "workflow_id", "workflow_name", "status", "created_at");
+
+        # the example must be real data shaped like the event, not an empty stub
+        auto example = jw.getExampleEventData("job-finished");
+        assertTrue(example.id.val());
+        assertTrue(UnstructuredJobWatchDataProvider::TerminalStatuses{example.status},
+            sprintf("example status %y is terminal", example.status));
+
+        # the trigger is configurable from the action form
+        hash<DataProviderActionInfo> a = (select
+            DataProvider::DataProviderActionCatalog::getActions("UnstructuredIo"),
+            $1.action == "job-finished")[0];
+        assertEq(DPAT_EVENT, a.action_code);
+        assertEq(UnstructuredPlatformManifest::RefWorkflow, a.options.workflow_id.ref_data);
+        assertEq(UnstructuredJobWatchDataProvider::DefaultPollInterval,
+            a.options.poll_interval.default_value);
+    }
+
+    #! Unstructured types a connector config as a union over one schema per connector type
+    private connectorFieldsTest() {
+        AbstractDataProvider cf = getPlatformProvider().getChildProviderEx("connector-fields");
+
+        # this action answers from the pinned document and makes no request
+        auto r = cf.doRequest({"connector_type": "s3", "direction": "source"});
+        assertEq("s3", r.connector_type);
+        assertEq("S3SourceConnectorConfigInput", r.schema);
+        hash<string, hash<auto>> by_name = map {$1.name: $1}, r.fields;
+        assertEq("softstring", by_name.remote_url.type);
+        assertTrue(by_name.remote_url.required);
+        assertFalse(by_name.recursive.required);
+
+        # the same type in the other direction is a different schema with different settings
+        auto d = cf.doRequest({"connector_type": "s3", "direction": "destination"});
+        assertEq("S3DestinationConnectorConfigInput", d.schema);
+        assertTrue(exists (map {$1.name: True}, d.fields).remote_url);
+        assertFalse(exists (map {$1.name: True}, d.fields).recursive);
+
+        # a type whose schema is not named after it still resolves
+        assertEq("KafkaCloudSourceConnectorConfigInput",
+            cf.doRequest({"connector_type": "kafka-cloud", "direction": "source"}).schema);
+        assertEq("QdrantCloudDestinationConnectorConfigInput",
+            cf.doRequest({"connector_type": "qdrant-cloud", "direction": "destination"}).schema);
+
+        # the type lists are the schema's own enums, so they must match it exactly - a value that
+        # is not in the enum would be rejected by the API, and a missing one hides a real connector
+        assertEq(29, UnstructuredPlatformManifest::SourceTypeValues.size());
+        assertEq(31, UnstructuredPlatformManifest::DestinationTypeValues.size());
+
+        # Unstructured accepts these but declares no configuration schema for them anywhere in its
+        # own API description; the action says so rather than failing, because the connector can
+        # still be created - its settings just have to come from Unstructured's documentation
+        const hash<string, bool> UndescribedSources = {
+            "airtable": True, "github": True, "gitlab": True, "local": True, "sftp": True,
+            "vastdb": True,
+        };
+        const hash<string, bool> UndescribedDestinations = {
+            "unstructured_blob_storage": True, "chroma": True, "dropbox": True, "kdbai": True,
+            "local": True, "motherduck": True, "sftp": True, "singlestore": True, "vastdb": True,
+        };
+        foreach hash<AllowedValueInfo> v in (UnstructuredPlatformManifest::SourceTypeValues) {
+            auto res = cf.doRequest({"connector_type": v.value, "direction": "source"});
+            if (UndescribedSources{v.value}) {
+                assertEq(NOTHING, res.schema, sprintf("source %y is undescribed", v.value));
+                assertEq((), res.fields, sprintf("source %y has no fields", v.value));
+            } else {
+                assertTrue(res.fields.size() > 0, sprintf("source %y has fields", v.value));
+            }
+        }
+        foreach hash<AllowedValueInfo> v in (UnstructuredPlatformManifest::DestinationTypeValues) {
+            auto res = cf.doRequest({"connector_type": v.value, "direction": "destination"});
+            if (UndescribedDestinations{v.value}) {
+                assertEq(NOTHING, res.schema, sprintf("destination %y is undescribed", v.value));
+            } else {
+                assertTrue(res.fields.size() > 0, sprintf("destination %y has fields", v.value));
+            }
+        }
+
+        # a type the API would reject is an error, not an empty answer
+        assertThrows("CONNECTOR-TYPE-ERROR", "not a source connector type", sub () {
+            cf.doRequest({"connector_type": "not-a-connector", "direction": "source"});
+        });
+
+        # the control offers every type in either direction, so a real type picked with the wrong
+        # direction must be named as such rather than reported as unknown
+        assertThrows("CONNECTOR-TYPE-ERROR", "is a destination connector type", sub () {
+            cf.doRequest({"connector_type": "pinecone", "direction": "source"});
+        });
+        assertThrows("CONNECTOR-TYPE-ERROR", "is a source connector type", sub () {
+            cf.doRequest({"connector_type": "confluence", "direction": "destination"});
+        });
+
+        # 17 types exist in both directions; offering the union must not list any of them twice
+        list<hash<AllowedValueInfo>> all_types = UnstructuredPlatformManifest::ConnectorTypeValues;
+        hash<string, bool> seen;
+        foreach hash<AllowedValueInfo> v in (all_types) {
+            assertFalse(seen{v.value} ?? False,
+                sprintf("connector type %y is listed once", v.value));
+            seen{v.value} = True;
+        }
+        # the union covers both enums and drops only the overlap
+        assertEq(43, all_types.size());
+        map assertTrue(exists seen{$1.value}, sprintf("source %y is offered", $1.value)),
+            UnstructuredPlatformManifest::SourceTypeValues;
+        map assertTrue(exists seen{$1.value}, sprintf("destination %y is offered", $1.value)),
+            UnstructuredPlatformManifest::DestinationTypeValues;
+
+        # the action's own option carries that list, so the form shows each type once
+        hash<DataProviderActionInfo> action = (select
+            DataProvider::DataProviderActionCatalog::getActions("UnstructuredIo"),
+            $1.action == "get-connector-fields")[0];
+        assertEq(all_types.size(), action.options.connector_type.allowed_values.size());
+    }
+
     private liveConnectionTest() {
         AbstractConnection conn = get_connection(conn_name);
         assertEq("unstructured", conn.getType());
@@ -369,6 +649,141 @@ public class UnstructuredDataProviderTest inherits QUnit::Test {
         assertEq("Heading", parsed.elt_list[0].text);
         assertEq(("ListItem", "ListItem"),
             (map $1."type", (select parsed.elt_list, $1."type" == "ListItem")));
+    }
+
+    #! Creates a connector pair and a workflow, then removes them again
+    /** Everything created here is named with a per-run tag and deleted in an \c on_exit block, so a
+        failure part-way through does not leave objects behind in the account.
+    */
+    private livePlatformLifecycleTest() {
+        AbstractConnection conn = get_connection(conn_name);
+        AbstractDataProvider plat = conn.getDataProvider().getChildProviderEx("platform");
+
+        string tag = "qore-qtest-" + get_random_string(6, 3).lwr();
+        *string source_id;
+        *string dest_id;
+        *string workflow_id;
+
+        on_exit {
+            # deleted innermost-first: a workflow references its connectors
+            if (workflow_id) {
+                try {
+                    plat.getChildProviderEx("delete-workflow").doRequest(
+                        {"workflow_id": workflow_id});
+                } catch (hash<ExceptionInfo> ex) {
+                    printf("WARNING: could not delete workflow %y: %s: %s\n", workflow_id, ex.err,
+                        ex.desc);
+                }
+            }
+            foreach hash<auto> c in ((
+                ("action": "delete-destination", "opt": "destination_id", "id": dest_id),
+                ("action": "delete-source", "opt": "source_id", "id": source_id),
+            )) {
+                if (!c.id) {
+                    continue;
+                }
+                try {
+                    plat.getChildProviderEx(c.action).doRequest({c.opt: c.id});
+                } catch (hash<ExceptionInfo> ex) {
+                    printf("WARNING: could not run %y for %y: %s: %s\n", c.action, c.id, ex.err,
+                        ex.desc);
+                }
+            }
+        }
+
+        # the settings sent here are the ones connector-fields says an S3 source takes
+        auto src_res = plat.getChildProviderEx("create-source").doRequest({
+            "name": tag + "-src",
+            "type": "s3",
+            "config": {
+                "remote_url": "s3://qore-unstructured-test/docs",
+                "anonymous": True,
+                "recursive": True,
+            },
+        });
+        source_id = src_res.id;
+        assertTrue(source_id.val());
+        assertEq(tag + "-src", src_res.name);
+        assertEq("s3", src_res.type);
+        assertEq("s3://qore-unstructured-test/docs", src_res.config.remote_url);
+
+        auto dst_res = plat.getChildProviderEx("create-destination").doRequest({
+            "name": tag + "-dst",
+            "type": "s3",
+            "config": {"remote_url": "s3://qore-unstructured-test/out", "anonymous": True},
+        });
+        dest_id = dst_res.id;
+        assertTrue(dest_id.val());
+        assertEq("s3", dst_res.type);
+
+        # the dropdowns are backed by these listings, so they must now see what was just created
+        AbstractDataProvider create_wf = plat.getChildProviderEx("create-workflow");
+        list<hash<AllowedValueInfo>> sources =
+            create_wf.getReferenceData(UnstructuredPlatformManifest::RefSource);
+        assertTrue((select sources, $1.value == source_id).size() == 1,
+            "the source dropdown lists the connector just created");
+        list<hash<AllowedValueInfo>> dests =
+            create_wf.getReferenceData(UnstructuredPlatformManifest::RefDestination);
+        assertTrue((select dests, $1.value == dest_id).size() == 1,
+            "the destination dropdown lists the connector just created");
+
+        # a read of one connector returns what the listing said
+        auto got = plat.getChildProviderEx("get-source").doRequest({"source_id": source_id});
+        assertEq(tag + "-src", got.name);
+
+        # ... and the type filter really narrows server-side
+        auto filtered = plat.getChildProviderEx("list-sources").doRequest({"source_type": "s3"});
+        assertTrue((select filtered, $1.id == source_id).size() == 1);
+
+        auto wf = create_wf.doRequest({
+            "name": tag + "-wf",
+            "workflow_type": "basic",
+            "source_id": source_id,
+            "destination_id": dest_id,
+        });
+        workflow_id = wf.id;
+        assertTrue(workflow_id.val());
+        assertEq(tag + "-wf", wf.name);
+        # "basic" is a preset chain, so Unstructured fills the nodes in
+        assertTrue(wf.workflow_nodes.size() > 0, "the preset workflow type built a node chain");
+        assertEq("active", wf.status);
+
+        # the listing filters on the connectors a workflow uses
+        auto by_source = plat.getChildProviderEx("list-workflows").doRequest(
+            {"source_id": source_id});
+        assertTrue((select by_source, $1.id == workflow_id).size() == 1);
+
+        # deactivating stops it running on its schedule without deleting it
+        auto updated = plat.getChildProviderEx("update-workflow").doRequest({
+            "workflow_id": workflow_id,
+            "state": "inactive",
+        });
+        assertEq("inactive", updated.status);
+
+        # a workflow that has never run has no jobs; the API answers an empty result with no body
+        # at all rather than an empty list
+        auto jobs = plat.getChildProviderEx("list-jobs").doRequest({"workflow_id": workflow_id});
+        assertEq(0, jobs.size());
+    }
+
+    #! Reads every record table against the live account
+    private livePlatformTableTest() {
+        AbstractConnection conn = get_connection(conn_name);
+        AbstractDataProvider tables =
+            conn.getDataProvider().getChildProviderEx("platform").getChildProviderEx("tables");
+
+        foreach string name in (tables.getChildProviderNames()) {
+            AbstractDataProvider t = tables.getChildProviderEx(name);
+            int n = 0;
+            AbstractDataProviderRecordIterator i = t.searchRecords();
+            while (i.next()) {
+                ++n;
+                # a record must match the declared record type, or mappers built on it break
+                map assertTrue(exists t.getRecordType(){$1.key}, sprintf("%s.%s", name, $1.key)),
+                    i.getValue().pairIterator();
+            }
+            assertTrue(n >= 0, sprintf("%s read %d record(s)", name, n));
+        }
     }
 
     #! Exercises the action that matters most: a real binary document

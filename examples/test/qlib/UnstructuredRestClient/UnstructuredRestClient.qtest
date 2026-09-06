@@ -244,7 +244,7 @@ public class UnstructuredRestClientTest inherits QUnit::Test {
     private connectionSchemeTest() {
         hash<ConnectionSchemeInfo> info =
             ConnectionProvider::ConnectionSchemeCache::getScheme("unstructured");
-        assertEq("Unstructured.io Document Partitioning Connection", info.display_name);
+        assertEq("Unstructured.io Connection", info.display_name);
         assertTrue(info.schemes.unstructured);
         # the API key is mandatory, so a connection cannot be created without it
         assertEq("apikey", info.required_options);

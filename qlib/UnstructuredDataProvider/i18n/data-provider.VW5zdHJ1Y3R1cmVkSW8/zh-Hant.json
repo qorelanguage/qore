@@ -3,6 +3,1686 @@
   "locales": {
     "zh-Hant": {
       "messages": {
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.desc": {
+          "source": "Cancels a job that is scheduled or in progress.  Documents already written to the destination stay there.",
+          "message": "取消已排程或進行中的作業。已寫入目的地的文件會保留在原處。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.display_name": {
+          "source": "Cancel Job",
+          "message": "取消作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.option.am9iX2lk.short_desc": {
+          "source": "The job to cancel",
+          "message": "要取消的作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2FuY2VsLWpvYg.short_desc": {
+          "source": "Cancel a running job",
+          "message": "取消執行中的作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.desc": {
+          "source": "Asks Unstructured to try connecting to the destination and report whether the credentials and location work.  The check runs asynchronously; read the result with **Get Destination Connector Check**.",
+          "message": "要求 Unstructured 嘗試連線至目的地，並回報認證資訊與位置是否可用。檢查以非同步方式執行；請以 **Get Destination Connector Check** 讀取結果。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.display_name": {
+          "source": "Check Destination Connector",
+          "message": "檢查目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector to check",
+          "message": "要檢查的連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stZGVzdGluYXRpb24.short_desc": {
+          "source": "Start a connection check for a destination connector",
+          "message": "開始目的地連接器的連線檢查"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.desc": {
+          "source": "Asks Unstructured to try connecting to the source and report whether the credentials and location work.  The check runs asynchronously; read the result with **Get Source Connector Check**.",
+          "message": "要求 Unstructured 嘗試連線至來源，並回報認證資訊與位置是否可用。檢查以非同步方式執行；請以 **Get Source Connector Check** 讀取結果。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.display_name": {
+          "source": "Check Source Connector",
+          "message": "檢查來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector to check",
+          "message": "要檢查的連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y2hlY2stc291cmNl.short_desc": {
+          "source": "Start a connection check for a source connector",
+          "message": "開始來源連接器的連線檢查"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Creates a channel Unstructured sends job notifications to.\n\nThe settings depend on the kind of channel: a webhook channel takes a `url` and a signing `secret`, an email channel takes an `email_config`.  Both take `channel_type`, `description` and the `event_types` to subscribe to.\n\nA channel receives nothing until it has been verified; use **Verify Notification Channel** with the code Unstructured sends.",
+          "message": "建立 Unstructured 傳送作業通知的管道。\n\n設定會因管道種類而異：Webhook 管道需要 `url` 與用於簽署的 `secret`，電子郵件管道需要 `email_config`。兩者都需要 `channel_type`、`description`，以及要訂閱的 `event_types`。\n\n管道在通過確認之前不會收到任何內容；請使用 Unstructured 寄送的代碼執行 **Verify Notification Channel**。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Create Notification Channel",
+          "message": "建立通知管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Ym9keQ.desc": {
+          "source": "The channel to create.\n\nFor a webhook channel: `channel_type` `webhook`, a `url` to post to, an optional signing `secret`, and the `event_types` to subscribe to.  For an email channel: `channel_type` `email`, an `email_config` naming the recipients, and the same `event_types`.\n\nSupplied whole because Unstructured describes the two kinds as different request bodies rather than one with optional fields.",
+          "message": "要建立的管道。\n\nWebhook 管道：`channel_type` 為 `webhook`、要傳送到的 `url`、選用的簽署 `secret`，以及要訂閱的 `event_types`。電子郵件管道：`channel_type` 為 `email`、指定收件者的 `email_config`，以及同樣的 `event_types`。\n\n之所以一併指定，是因為 Unstructured 將這兩種管道描述為不同的請求主體，而非一個含有選用欄位的請求主體。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Ym9keQ.display_name": {
+          "source": "Channel",
+          "message": "管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Ym9keQ.short_desc": {
+          "source": "The channel to create",
+          "message": "要建立的管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Create a notification channel",
+          "message": "建立通知管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.desc": {
+          "source": "Creates a destination connector for a workflow to write its output to.\n\n`config` is specific to the connector type chosen in `type` - a Pinecone connector takes an index and an API key, an S3 connector a bucket URL.  Use **Get Connector Configuration Fields** to see what a given type requires.",
+          "message": "建立供工作流程寫出結果的目的地連接器。\n\n`config` 會因 `type` 所選的連接器類型而異：Pinecone 連接器需要索引與 API 金鑰，S3 連接器需要儲存貯體 URL。請以 **Get Connector Configuration Fields** 查看該類型需要哪些欄位。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.display_name": {
+          "source": "Create Destination Connector",
+          "message": "建立目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.desc": {
+          "source": "Connector settings, whose fields depend on `type`.  **Get Connector Configuration Fields** lists them for any type.",
+          "message": "連接器設定，其欄位取決於 `type`。**Get Connector Configuration Fields** 會針對任一類型列出這些欄位。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.display_name": {
+          "source": "Configuration",
+          "message": "設定"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.short_desc": {
+          "source": "Connector settings for the chosen type",
+          "message": "所選類型對應的連接器設定"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.a2V5.desc": {
+          "source": "A stable identifier that survives being exported to another environment, where the generated ID would not.\n\nDerived from `name` when left unset, and immutable once set.  Up to 63 characters: lowercase letters, digits and hyphens, with no leading, trailing or repeated hyphens.",
+          "message": "在匯出至另一個環境後仍會保留的穩定識別碼；系統產生的 ID 則不會保留。\n\n若未設定，會由 `name` 衍生，且一旦設定即無法變更。最多 63 個字元，可使用小寫字母、數字與連字號，但不可以連字號開頭或結尾，也不可連續使用連字號。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.a2V5.display_name": {
+          "source": "Stable Key",
+          "message": "穩定索引鍵"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.a2V5.short_desc": {
+          "source": "A stable identifier for exporting between environments",
+          "message": "用於在環境之間匯出的穩定識別碼"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.bmFtZQ.short_desc": {
+          "source": "A name for the connector",
+          "message": "連接器的名稱"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm1pbHZ1cw.display_name": {
+          "source": "Milvus",
+          "message": "Milvus"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm1vdGhlcmR1Y2s.display_name": {
+          "source": "MotherDuck",
+          "message": "MotherDuck"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm5lbzRq.display_name": {
+          "source": "Neo4j",
+          "message": "Neo4j"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmNocm9tYQ.display_name": {
+          "source": "Chroma",
+          "message": "Chroma"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lX2RlbHRhX3RhYmxlcw.display_name": {
+          "source": "Databricks Delta Tables",
+          "message": "Databricks Delta Tables"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmRlbHRhX3RhYmxl.display_name": {
+          "source": "Delta Table",
+          "message": "Delta Table"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmlibV93YXRzb254X3Mz.display_name": {
+          "source": "IBM watsonx.data",
+          "message": "IBM watsonx.data"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmtkYmFp.display_name": {
+          "source": "KDB.AI",
+          "message": "KDB.AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnBpbmVjb25l.display_name": {
+          "source": "Pinecone",
+          "message": "Pinecone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnFkcmFudC1jbG91ZA.display_name": {
+          "source": "Qdrant Cloud",
+          "message": "Qdrant Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnJlZGlz.display_name": {
+          "source": "Redis",
+          "message": "Redis"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnNpbmdsZXN0b3Jl.display_name": {
+          "source": "SingleStore",
+          "message": "SingleStore"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnVuc3RydWN0dXJlZF9ibG9iX3N0b3JhZ2U.display_name": {
+          "source": "Unstructured Blob Storage",
+          "message": "Unstructured Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.allowed-value.c3RyaW5nOndlYXZpYXRlLWNsb3Vk.display_name": {
+          "source": "Weaviate Cloud",
+          "message": "Weaviate Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.display_name": {
+          "source": "Connector Type",
+          "message": "連接器類型"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.option.dHlwZQ.short_desc": {
+          "source": "The kind of system output is written to",
+          "message": "寫出結果的系統種類"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLWRlc3RpbmF0aW9u.short_desc": {
+          "source": "Create a destination connector",
+          "message": "建立目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.desc": {
+          "source": "Creates a source connector for a workflow to read documents from.\n\n`config` is specific to the connector type chosen in `type` - an S3 connector takes a bucket URL and credentials, a Confluence connector a site URL and an API token.  Use **Get Connector Configuration Fields** to see what a given type requires before filling this in.",
+          "message": "建立供工作流程讀取文件的來源連接器。\n\n`config` 會因 `type` 所選的連接器類型而異：S3 連接器需要儲存貯體 URL 與認證資訊，Confluence 連接器需要網站 URL 與 API 權杖。填寫之前，請先以 **Get Connector Configuration Fields** 查看該類型需要哪些欄位。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.display_name": {
+          "source": "Create Source Connector",
+          "message": "建立來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.Y29uZmln.desc": {
+          "source": "Connector settings, whose fields depend on `type`.  **Get Connector Configuration Fields** lists them for any type.",
+          "message": "連接器設定，其欄位取決於 `type`。**Get Connector Configuration Fields** 會針對任一類型列出這些欄位。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.Y29uZmln.display_name": {
+          "source": "Configuration",
+          "message": "設定"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.Y29uZmln.short_desc": {
+          "source": "Connector settings for the chosen type",
+          "message": "所選類型對應的連接器設定"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.a2V5.desc": {
+          "source": "A stable identifier that survives being exported to another environment, where the generated ID would not.\n\nDerived from `name` when left unset, and immutable once set.  Up to 63 characters: lowercase letters, digits and hyphens, with no leading, trailing or repeated hyphens.",
+          "message": "在匯出至另一個環境後仍會保留的穩定識別碼；系統產生的 ID 則不會保留。\n\n若未設定，會由 `name` 衍生，且一旦設定即無法變更。最多 63 個字元，可使用小寫字母、數字與連字號，但不可以連字號開頭或結尾，也不可連續使用連字號。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.a2V5.display_name": {
+          "source": "Stable Key",
+          "message": "穩定索引鍵"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.a2V5.short_desc": {
+          "source": "A stable identifier for exporting between environments",
+          "message": "用於在環境之間匯出的穩定識別碼"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.bmFtZQ.short_desc": {
+          "source": "A name for the connector",
+          "message": "連接器的名稱"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOm91dGxvb2s.display_name": {
+          "source": "Outlook",
+          "message": "Outlook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmFpcnRhYmxl.display_name": {
+          "source": "Airtable",
+          "message": "Airtable"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmJveA.display_name": {
+          "source": "Box",
+          "message": "Box"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmNvbmZsdWVuY2U.display_name": {
+          "source": "Confluence",
+          "message": "Confluence"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmdpdGh1Yg.display_name": {
+          "source": "GitHub",
+          "message": "GitHub"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmdpdGxhYg.display_name": {
+          "source": "GitLab",
+          "message": "GitLab"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmdvb2dsZV9kcml2ZQ.display_name": {
+          "source": "Google Drive",
+          "message": "Google Drive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmppcmE.display_name": {
+          "source": "Jira",
+          "message": "Jira"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNhbGVzZm9yY2U.display_name": {
+          "source": "Salesforce",
+          "message": "Salesforce"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNoYXJlcG9pbnQ.display_name": {
+          "source": "SharePoint",
+          "message": "SharePoint"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNsYWNr.display_name": {
+          "source": "Slack",
+          "message": "Slack"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.allowed-value.c3RyaW5nOnplbmRlc2s.display_name": {
+          "source": "Zendesk",
+          "message": "Zendesk"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.display_name": {
+          "source": "Connector Type",
+          "message": "連接器類型"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.option.dHlwZQ.short_desc": {
+          "source": "The kind of system documents are read from",
+          "message": "讀取文件的系統種類"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXNvdXJjZQ.short_desc": {
+          "source": "Create a source connector",
+          "message": "建立來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.desc": {
+          "source": "Creates a workflow that reads from a source connector, processes documents through a chain of nodes, and writes to a destination connector.\n\nThere are two ways to describe the processing: pick a `workflow_type`, which applies Unstructured's own preset chain, or supply `workflow_nodes` to build the chain yourself.  A `schedule` makes the workflow recurring; without one it runs only when it is run explicitly.",
+          "message": "建立一個工作流程，從來源連接器讀取文件，透過一連串節點處理，再寫入目的地連接器。\n\n處理方式有兩種指定方法：選擇 `workflow_type` 會套用 Unstructured 預先備妥的處理鏈；指定 `workflow_nodes` 則可自行組裝處理鏈。設定 `schedule` 可讓工作流程定期執行；若不設定，則只有在明確執行時才會運作。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.display_name": {
+          "source": "Create Workflow",
+          "message": "建立工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector results are written to",
+          "message": "寫入結果的目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.a2V5.desc": {
+          "source": "A stable identifier that survives being exported to another environment, where the generated ID would not.\n\nDerived from `name` when left unset, and immutable once set.  Up to 63 characters: lowercase letters, digits and hyphens, with no leading, trailing or repeated hyphens.",
+          "message": "在匯出至另一個環境後仍會保留的穩定識別碼；系統產生的 ID 則不會保留。\n\n若未設定，會由 `name` 衍生，且一旦設定即無法變更。最多 63 個字元，可使用小寫字母、數字與連字號，但不可以連字號開頭或結尾，也不可連續使用連字號。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.a2V5.display_name": {
+          "source": "Stable Key",
+          "message": "穩定索引鍵"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.a2V5.short_desc": {
+          "source": "A stable identifier for exporting between environments",
+          "message": "用於在環境之間匯出的穩定識別碼"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.bmFtZQ.short_desc": {
+          "source": "A name for the workflow",
+          "message": "工作流程的名稱"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector documents are read from",
+          "message": "讀取文件的來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IDE1IG1pbnV0ZXM.display_name": {
+          "source": "Every 15 Minutes",
+          "message": "每 15 分鐘"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IDYgaG91cnM.display_name": {
+          "source": "Every 6 Hours",
+          "message": "每 6 小時"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IG1vbnRo.display_name": {
+          "source": "Monthly",
+          "message": "每月"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IGRheQ.display_name": {
+          "source": "Daily",
+          "message": "每天"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IGhvdXI.display_name": {
+          "source": "Hourly",
+          "message": "每小時"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.allowed-value.c3RyaW5nOmV2ZXJ5IHdlZWs.display_name": {
+          "source": "Weekly",
+          "message": "每週"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.desc": {
+          "source": "How often the workflow runs on its own.  Leave unset for a workflow that runs only when it is run explicitly.",
+          "message": "工作流程自行執行的頻率。若希望只有在明確執行時才運作，請不要設定。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.display_name": {
+          "source": "Schedule",
+          "message": "排程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.short_desc": {
+          "source": "How often the workflow runs by itself",
+          "message": "工作流程自行執行的頻率"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.cmVwcm9jZXNzX2FsbA.display_name": {
+          "source": "Reprocess All",
+          "message": "全部重新處理"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.cmVwcm9jZXNzX2FsbA.short_desc": {
+          "source": "Reprocess documents that have already been processed",
+          "message": "重新處理已處理過的文件"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfbm9kZXM.desc": {
+          "source": "The processing chain to run, described node by node.  Supply this instead of `workflow_type` to build the chain yourself.",
+          "message": "逐一節點描述的處理鏈。若要自行組裝處理鏈，請以此取代 `workflow_type`。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfbm9kZXM.display_name": {
+          "source": "Processing Nodes",
+          "message": "處理節點"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfbm9kZXM.short_desc": {
+          "source": "The processing chain to run, described node by node",
+          "message": "逐一節點描述的處理鏈"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
+          "source": "Advanced",
+          "message": "進階"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "基本"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmN1c3RvbQ.display_name": {
+          "source": "Custom",
+          "message": "自訂"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOnBsYXRpbnVt.display_name": {
+          "source": "Platinum",
+          "message": "白金"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.desc": {
+          "source": "The preset processing chain to apply.  Supply `workflow_nodes` instead to build the chain yourself.",
+          "message": "要套用的預設處理鏈。若要自行組裝處理鏈，請改為指定 `workflow_nodes`。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.display_name": {
+          "source": "Workflow Type",
+          "message": "工作流程類型"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.short_desc": {
+          "source": "The preset processing chain to apply",
+          "message": "要套用的預設處理鏈"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.dGVtcGxhdGVfaWQ.display_name": {
+          "source": "Template",
+          "message": "範本"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.option.dGVtcGxhdGVfaWQ.short_desc": {
+          "source": "The workflow template to build from",
+          "message": "作為建立基礎的工作流程範本"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Y3JlYXRlLXdvcmtmbG93.short_desc": {
+          "source": "Create a workflow",
+          "message": "建立工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Returns one notification channel and the events it is subscribed to.",
+          "message": "傳回單一通知管道及其訂閱的事件。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Get Notification Channel",
+          "message": "取得通知管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.display_name": {
+          "source": "Channel",
+          "message": "管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.short_desc": {
+          "source": "The channel to return",
+          "message": "要傳回的管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Get one notification channel by ID",
+          "message": "依 ID 取得單一通知管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.desc": {
+          "source": "Lists the configuration fields a given connector type accepts, so that a connector can be created without guessing at its `config` hash.\n\nUnstructured types a connector's configuration as a union over one schema per connector type — an S3 source takes a bucket URL and credentials, a Confluence source a site URL and an API token — so there is no single field list to show until the type is known.\n\nThis action answers from the API description shipped with this module and makes no request to Unstructured.",
+          "message": "列出指定連接器類型可接受的設定欄位，讓您不必猜測 `config` 雜湊的內容就能建立連接器。\n\nUnstructured 將連接器設定定義為聯集，每種連接器類型各有一個結構描述：S3 來源需要儲存貯體 URL 與認證資訊，Confluence 來源需要網站 URL 與 API 權杖，因此在類型確定之前，並不存在一份可顯示的單一欄位清單。\n\n此動作由本模組隨附的 API 描述回答，不會向 Unstructured 發出請求。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.display_name": {
+          "source": "Get Connector Configuration Fields",
+          "message": "取得連接器設定欄位"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm1pbHZ1cw.display_name": {
+          "source": "Milvus",
+          "message": "Milvus"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm1vdGhlcmR1Y2s.display_name": {
+          "source": "MotherDuck",
+          "message": "MotherDuck"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm5lbzRq.display_name": {
+          "source": "Neo4j",
+          "message": "Neo4j"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm91dGxvb2s.display_name": {
+          "source": "Outlook",
+          "message": "Outlook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmFpcnRhYmxl.display_name": {
+          "source": "Airtable",
+          "message": "Airtable"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmJveA.display_name": {
+          "source": "Box",
+          "message": "Box"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmNocm9tYQ.display_name": {
+          "source": "Chroma",
+          "message": "Chroma"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmNvbmZsdWVuY2U.display_name": {
+          "source": "Confluence",
+          "message": "Confluence"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lX2RlbHRhX3RhYmxlcw.display_name": {
+          "source": "Databricks Delta Tables",
+          "message": "Databricks Delta Tables"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmRlbHRhX3RhYmxl.display_name": {
+          "source": "Delta Table",
+          "message": "Delta Table"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmdpdGh1Yg.display_name": {
+          "source": "GitHub",
+          "message": "GitHub"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmdpdGxhYg.display_name": {
+          "source": "GitLab",
+          "message": "GitLab"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmdvb2dsZV9kcml2ZQ.display_name": {
+          "source": "Google Drive",
+          "message": "Google Drive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmlibV93YXRzb254X3Mz.display_name": {
+          "source": "IBM watsonx.data",
+          "message": "IBM watsonx.data"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmppcmE.display_name": {
+          "source": "Jira",
+          "message": "Jira"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmtkYmFp.display_name": {
+          "source": "KDB.AI",
+          "message": "KDB.AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnBpbmVjb25l.display_name": {
+          "source": "Pinecone",
+          "message": "Pinecone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnFkcmFudC1jbG91ZA.display_name": {
+          "source": "Qdrant Cloud",
+          "message": "Qdrant Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnJlZGlz.display_name": {
+          "source": "Redis",
+          "message": "Redis"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNhbGVzZm9yY2U.display_name": {
+          "source": "Salesforce",
+          "message": "Salesforce"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNoYXJlcG9pbnQ.display_name": {
+          "source": "SharePoint",
+          "message": "SharePoint"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNpbmdsZXN0b3Jl.display_name": {
+          "source": "SingleStore",
+          "message": "SingleStore"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNsYWNr.display_name": {
+          "source": "Slack",
+          "message": "Slack"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnVuc3RydWN0dXJlZF9ibG9iX3N0b3JhZ2U.display_name": {
+          "source": "Unstructured Blob Storage",
+          "message": "Unstructured Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOndlYXZpYXRlLWNsb3Vk.display_name": {
+          "source": "Weaviate Cloud",
+          "message": "Weaviate Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.allowed-value.c3RyaW5nOnplbmRlc2s.display_name": {
+          "source": "Zendesk",
+          "message": "Zendesk"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.desc": {
+          "source": "The connector type whose configuration fields to return, as given to `create-source` or `create-destination`.",
+          "message": "要傳回設定欄位的連接器類型，與傳給 `create-source` 或 `create-destination` 的值相同。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.display_name": {
+          "source": "Connector Type",
+          "message": "連接器類型"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.Y29ubmVjdG9yX3R5cGU.short_desc": {
+          "source": "The connector type to describe",
+          "message": "要描述的連接器類型"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.allowed-value.c3RyaW5nOmRlc3RpbmF0aW9u.display_name": {
+          "source": "Destination",
+          "message": "目的地"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.allowed-value.c3RyaW5nOnNvdXJjZQ.display_name": {
+          "source": "Source",
+          "message": "來源"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.desc": {
+          "source": "Several connector types exist in both directions and take different settings in each - an S3 source declares `recursive`, an S3 destination does not.  Naming the direction picks the right one.",
+          "message": "有些連接器類型在兩個方向都存在，且各自接受不同的設定：S3 來源會宣告 `recursive`，S3 目的地則不會。指定方向即可選出正確的一方。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.display_name": {
+          "source": "Direction",
+          "message": "方向"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.option.ZGlyZWN0aW9u.short_desc": {
+          "source": "Whether to describe the source or destination form of the type",
+          "message": "要描述該類型的來源形式或目的地形式"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWNvbm5lY3Rvci1maWVsZHM.short_desc": {
+          "source": "List the settings a connector type needs",
+          "message": "列出連接器類型所需的設定"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.desc": {
+          "source": "Returns one destination connector and its configuration.  Secrets in the configuration are returned redacted.",
+          "message": "傳回單一目的地連接器及其設定。設定中的密鑰會以遮蔽後的形式傳回。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.display_name": {
+          "source": "Get Destination Connector",
+          "message": "取得目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector to return",
+          "message": "要傳回的連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9u.short_desc": {
+          "source": "Get one destination connector by ID",
+          "message": "依 ID 取得單一目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.desc": {
+          "source": "Returns the most recent connection check for the connector, with its status and any error reported.",
+          "message": "傳回該連接器最近一次的連線檢查，包含其狀態與所回報的任何錯誤。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.display_name": {
+          "source": "Get Destination Connector Check",
+          "message": "取得目的地連接器檢查結果"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector whose check to read",
+          "message": "要讀取檢查結果的連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWRlc3RpbmF0aW9uLWNoZWNr.short_desc": {
+          "source": "Read the latest connection check for a destination connector",
+          "message": "讀取目的地連接器最近一次的連線檢查"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.desc": {
+          "source": "Returns one job, including its status and runtime.",
+          "message": "傳回單一作業，包含其狀態與執行時間。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.display_name": {
+          "source": "Get Job",
+          "message": "取得作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.option.am9iX2lk.short_desc": {
+          "source": "The job to return",
+          "message": "要傳回的作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYg.short_desc": {
+          "source": "Get one job by ID",
+          "message": "依 ID 取得單一作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.desc": {
+          "source": "Returns how far each processing node in the workflow has got for this job.  Use it to see where a long-running job is spending its time, and which node failed when one did.",
+          "message": "傳回此作業在工作流程中各處理節點的進度。可用來查看長時間執行的作業把時間花在哪裡，以及哪個節點失敗。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.display_name": {
+          "source": "Get Job Details",
+          "message": "取得作業詳細資料"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.option.am9iX2lk.short_desc": {
+          "source": "The job to describe",
+          "message": "要描述的作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1kZXRhaWxz.short_desc": {
+          "source": "Get a job's per-node processing detail",
+          "message": "取得作業在各節點的處理詳細資料"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.desc": {
+          "source": "Lists the files this job could not process, with the error for each.\n\nA job that completes with errors still writes everything that succeeded, so this is how to find out what is missing from the destination.",
+          "message": "列出此作業無法處理的檔案，並附上各自的錯誤。\n\n即使作業帶著錯誤完成，成功的部分仍會寫出，因此要知道目的地少了什麼，就看這裡。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.display_name": {
+          "source": "Get Job Failed Files",
+          "message": "取得作業失敗檔案"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.option.am9iX2lk.short_desc": {
+          "source": "The job to report on",
+          "message": "要回報的作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LWpvYi1mYWlsZWQtZmlsZXM.short_desc": {
+          "source": "List the files a job could not process",
+          "message": "列出作業無法處理的檔案"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.desc": {
+          "source": "Returns one source connector and its configuration.  Secrets in the configuration are returned redacted.",
+          "message": "傳回單一來源連接器及其設定。設定中的密鑰會以遮蔽後的形式傳回。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.display_name": {
+          "source": "Get Source Connector",
+          "message": "取得來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector to return",
+          "message": "要傳回的連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZQ.short_desc": {
+          "source": "Get one source connector by ID",
+          "message": "依 ID 取得單一來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.desc": {
+          "source": "Returns the most recent connection check for the connector, with its status and any error reported.",
+          "message": "傳回該連接器最近一次的連線檢查，包含其狀態與所回報的任何錯誤。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.display_name": {
+          "source": "Get Source Connector Check",
+          "message": "取得來源連接器檢查結果"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector whose check to read",
+          "message": "要讀取檢查結果的連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXNvdXJjZS1jaGVjaw.short_desc": {
+          "source": "Read the latest connection check for a source connector",
+          "message": "讀取來源連接器最近一次的連線檢查"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.desc": {
+          "source": "Returns one workflow template and the processing chain it describes.",
+          "message": "傳回單一工作流程範本及其所描述的處理鏈。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.display_name": {
+          "source": "Get Workflow Template",
+          "message": "取得工作流程範本"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.option.dGVtcGxhdGVfaWQ.display_name": {
+          "source": "Template",
+          "message": "範本"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.option.dGVtcGxhdGVfaWQ.short_desc": {
+          "source": "The template to return",
+          "message": "要傳回的範本"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXRlbXBsYXRl.short_desc": {
+          "source": "Get one workflow template by ID",
+          "message": "依 ID 取得單一工作流程範本"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.desc": {
+          "source": "Returns one workflow, including its processing nodes, its schedule and the connectors it is wired to.",
+          "message": "傳回單一工作流程，包含其處理節點、排程，以及所連接的連接器。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.display_name": {
+          "source": "Get Workflow",
+          "message": "取得工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "The workflow to return",
+          "message": "要傳回的工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.Z2V0LXdvcmtmbG93.short_desc": {
+          "source": "Get one workflow by ID",
+          "message": "依 ID 取得單一工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.desc": {
+          "source": "Downloads one output file produced by a job.\n\nA job reports the files it produced as `output_node_files`, so choosing the job first fills the file and node lists from it.",
+          "message": "下載作業產生的一個輸出檔案。\n\n作業會以 `output_node_files` 回報它產生的檔案，因此先選擇作業，就會從中填入檔案與節點的清單。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.display_name": {
+          "source": "Download Job Output",
+          "message": "下載作業輸出"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.ZmlsZV9pZA.desc": {
+          "source": "The output file to download; the list is the `output_node_files` of the selected job.",
+          "message": "要下載的輸出檔案；清單來自所選作業的 `output_node_files`。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.ZmlsZV9pZA.display_name": {
+          "source": "Output File",
+          "message": "輸出檔案"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.ZmlsZV9pZA.short_desc": {
+          "source": "The output file to download",
+          "message": "要下載的輸出檔案"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.am9iX2lk.display_name": {
+          "source": "Job",
+          "message": "作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.am9iX2lk.short_desc": {
+          "source": "The job that produced the file",
+          "message": "產生該檔案的作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.bm9kZV9pZA.desc": {
+          "source": "The processing node that produced the file.  Defaults to the last node in the workflow, which is the one that writes the output.",
+          "message": "產生該檔案的處理節點。預設為工作流程中的最後一個節點，也就是寫出輸出的節點。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.bm9kZV9pZA.display_name": {
+          "source": "Processing Node",
+          "message": "處理節點"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.option.bm9kZV9pZA.short_desc": {
+          "source": "The processing node that produced the file",
+          "message": "產生該檔案的處理節點"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZG93bmxvYWQtam9iLW91dHB1dA.short_desc": {
+          "source": "Download a processed file from a job",
+          "message": "下載作業產生的已處理檔案"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Deletes a notification channel.  Workflows subscribed through it stop being notified.",
+          "message": "刪除通知管道。透過它訂閱的工作流程將不再收到通知。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Delete Notification Channel",
+          "message": "刪除通知管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.display_name": {
+          "source": "Channel",
+          "message": "管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.short_desc": {
+          "source": "The channel to delete",
+          "message": "要刪除的管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Delete a notification channel",
+          "message": "刪除通知管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.desc": {
+          "source": "Deletes a destination connector.  A workflow still using it will fail on its next run.",
+          "message": "刪除目的地連接器。仍在使用它的工作流程會在下次執行時失敗。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.display_name": {
+          "source": "Delete Destination Connector",
+          "message": "刪除目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector to delete",
+          "message": "要刪除的連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLWRlc3RpbmF0aW9u.short_desc": {
+          "source": "Delete a destination connector",
+          "message": "刪除目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.desc": {
+          "source": "Deletes a source connector.  A workflow still using it will fail on its next run.",
+          "message": "刪除來源連接器。仍在使用它的工作流程會在下次執行時失敗。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.display_name": {
+          "source": "Delete Source Connector",
+          "message": "刪除來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector to delete",
+          "message": "要刪除的連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXNvdXJjZQ.short_desc": {
+          "source": "Delete a source connector",
+          "message": "刪除來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.desc": {
+          "source": "Deletes a workflow.  The connectors it used are not deleted.",
+          "message": "刪除工作流程。其所使用的連接器不會一併刪除。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.display_name": {
+          "source": "Delete Workflow",
+          "message": "刪除工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "The workflow to delete",
+          "message": "要刪除的工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.ZGVsZXRlLXdvcmtmbG93.short_desc": {
+          "source": "Delete a workflow",
+          "message": "刪除工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.desc": {
+          "source": "Fires once for each workflow run that finishes, whether it succeeded, failed, was stopped or was rejected.\n\nA workflow run is asynchronous, so this is the point at which the documents it processed are available at the destination and an integration can act on them.  A `COMPLETED` job may still have failed on individual files; **Get Job Failed Files** says which.\n\nSet `workflow_id` to watch one workflow rather than every run in the account.",
+          "message": "每個結束的工作流程執行都會觸發一次，無論成功、失敗、被停止或被拒絕。\n\n由於工作流程執行是非同步的，這正是已處理文件可在目的地取用、後續整合得以啟動的時點。`COMPLETED` 的作業仍可能有個別檔案失敗，**Get Job Failed Files** 會指出是哪些檔案。\n\n若只想監看單一工作流程而非帳戶中的所有執行，請設定 `workflow_id`。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.display_name": {
+          "source": "Job Finished",
+          "message": "作業完成"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.c3RhcnRfZGF0ZQ.desc": {
+          "source": "Only fire for jobs created on or after this date.  Without it, the first cycle fires for every finished job in the account.",
+          "message": "僅針對此日期當日或之後建立的作業觸發。若未指定，第一個週期會針對帳戶中所有已完成的作業觸發。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.c3RhcnRfZGF0ZQ.display_name": {
+          "source": "Start Date",
+          "message": "開始日期"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.c3RhcnRfZGF0ZQ.short_desc": {
+          "source": "Only fire for jobs created after this date",
+          "message": "僅針對此日期之後建立的作業觸發"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.cG9sbF9pbnRlcnZhbA.desc": {
+          "source": "How often to check for finished jobs, in seconds; the minimum is `15`.",
+          "message": "檢查已完成作業的間隔（秒）；最小值為 `15`。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.cG9sbF9pbnRlcnZhbA.display_name": {
+          "source": "Poll Interval",
+          "message": "輪詢間隔"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.cG9sbF9pbnRlcnZhbA.short_desc": {
+          "source": "How often to check for finished jobs, in seconds",
+          "message": "檢查已完成作業的間隔（秒）"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.d29ya2Zsb3dfaWQ.desc": {
+          "source": "Watch only the runs of this workflow.  Leave unset to fire for every workflow in the account.",
+          "message": "僅監看此工作流程的執行。若未設定，帳戶中的每個工作流程都會觸發。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "Watch only this workflow's runs",
+          "message": "僅監看此工作流程的執行"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.am9iLWZpbmlzaGVk.short_desc": {
+          "source": "Fires when a workflow run reaches a terminal status",
+          "message": "工作流程執行達到終止狀態時觸發"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC10ZW1wbGF0ZXM.desc": {
+          "source": "Lists workflow templates - Unstructured's ready-made processing chains, which a workflow can be built from instead of describing its nodes by hand.",
+          "message": "列出工作流程範本，也就是 Unstructured 預先備妥的處理鏈；工作流程可直接以範本為基礎建立，不必逐一描述節點。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC10ZW1wbGF0ZXM.display_name": {
+          "source": "List Workflow Templates",
+          "message": "列出工作流程範本"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC10ZW1wbGF0ZXM.short_desc": {
+          "source": "List the workflow templates available to this account",
+          "message": "列出此帳戶可使用的工作流程範本"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.desc": {
+          "source": "Lists workflows, with optional filtering by state, by the connectors they use, and by when they were created.\n\nA workflow ties a source connector to a destination connector through a chain of processing nodes, and is what actually runs when documents are ingested.",
+          "message": "列出工作流程，可依狀態、所使用的連接器，以及建立時間篩選。\n\n工作流程透過一連串處理節點將來源連接器與目的地連接器串接起來，也就是擷取文件時實際執行的對象。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.display_name": {
+          "source": "List Workflows",
+          "message": "列出工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.Y3JlYXRlZF9iZWZvcmU.display_name": {
+          "source": "Created Before",
+          "message": "建立時間迄"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.Y3JlYXRlZF9iZWZvcmU.short_desc": {
+          "source": "Return only workflows created before this date",
+          "message": "僅傳回在此日期之前建立的工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.Y3JlYXRlZF9zaW5jZQ.display_name": {
+          "source": "Created Since",
+          "message": "建立時間起"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.Y3JlYXRlZF9zaW5jZQ.short_desc": {
+          "source": "Return only workflows created on or after this date",
+          "message": "僅傳回在此日期當日或之後建立的工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGFnX25vZGVfY29uZmlndXJhdGlvbl9pZA.desc": {
+          "source": "Return only workflows using this node configuration.\n\nUnstructured publishes no listing of node configurations, so this value has to come from a workflow that already uses it - the `workflow_nodes` of a workflow returned by **Get Workflow**.",
+          "message": "僅傳回使用此節點設定的工作流程。\n\nUnstructured 未公開節點設定的清單，因此這個值必須來自已經使用它的工作流程，也就是 **Get Workflow** 傳回的工作流程的 `workflow_nodes`。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGFnX25vZGVfY29uZmlndXJhdGlvbl9pZA.display_name": {
+          "source": "Node Configuration ID",
+          "message": "節點設定 ID"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGFnX25vZGVfY29uZmlndXJhdGlvbl9pZA.short_desc": {
+          "source": "Return only workflows using this node configuration",
+          "message": "僅傳回使用此節點設定的工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "Return only workflows writing to this destination connector",
+          "message": "僅傳回寫入此目的地連接器的工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.bmFtZQ.short_desc": {
+          "source": "Return only workflows whose name matches",
+          "message": "僅傳回名稱相符的工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c291cmNlX2lk.short_desc": {
+          "source": "Return only workflows reading from this source connector",
+          "message": "僅傳回從此來源連接器讀取的工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.allowed-value.c3RyaW5nOm5hbWU.display_name": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.allowed-value.c3RyaW5nOmNyZWF0ZWRfYXQ.display_name": {
+          "source": "Created",
+          "message": "建立時間"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.allowed-value.c3RyaW5nOmlk.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.allowed-value.c3RyaW5nOnVwZGF0ZWRfYXQ.display_name": {
+          "source": "Updated",
+          "message": "更新時間"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.display_name": {
+          "source": "Sort By",
+          "message": "排序依據"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9ieQ.short_desc": {
+          "source": "The field to sort the results on",
+          "message": "用來排序結果的欄位"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9kaXJlY3Rpb24.allowed-value.c3RyaW5nOmFzYw.display_name": {
+          "source": "Ascending",
+          "message": "遞增"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9kaXJlY3Rpb24.allowed-value.c3RyaW5nOmRlc2M.display_name": {
+          "source": "Descending",
+          "message": "遞減"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9kaXJlY3Rpb24.display_name": {
+          "source": "Sort Direction",
+          "message": "排序方向"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c29ydF9kaXJlY3Rpb24.short_desc": {
+          "source": "The direction to sort in",
+          "message": "排序的方向"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c2hvd19vbmx5X3NvZnRfZGVsZXRlZA.display_name": {
+          "source": "Only Deleted",
+          "message": "僅已刪除"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c2hvd19vbmx5X3NvZnRfZGVsZXRlZA.short_desc": {
+          "source": "Return only workflows that have been deleted",
+          "message": "僅傳回已刪除的工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
+          "source": "Active",
+          "message": "啟用"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.allowed-value.c3RyaW5nOmluYWN0aXZl.display_name": {
+          "source": "Inactive",
+          "message": "停用"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.desc": {
+          "source": "Return only workflows in this state.  An `inactive` workflow is not run on its schedule.",
+          "message": "僅傳回處於此狀態的工作流程。`inactive` 的工作流程不會依排程執行。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.display_name": {
+          "source": "State",
+          "message": "狀態"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.c3RhdHVz.short_desc": {
+          "source": "Return only workflows in this state",
+          "message": "僅傳回處於此狀態的工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.cGFnZQ.display_name": {
+          "source": "Page",
+          "message": "頁次"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.cGFnZV9zaXpl.display_name": {
+          "source": "Page Size",
+          "message": "每頁筆數"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.option.cGFnZV9zaXpl.short_desc": {
+          "source": "The number of workflows to return per page",
+          "message": "每頁傳回的工作流程數量"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC13b3JrZmxvd3M.short_desc": {
+          "source": "List the workflows in this Unstructured account",
+          "message": "列出此 Unstructured 帳戶中的工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.desc": {
+          "source": "Lists destination connectors, optionally narrowed to one connector type.\n\nA destination connector is where a workflow writes its processed output - typically a vector store for retrieval.",
+          "message": "列出目的地連接器，可縮小至單一連接器類型。\n\n目的地連接器是工作流程寫出處理結果的地方，通常是供搜尋使用的向量儲存庫。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.display_name": {
+          "source": "List Destination Connectors",
+          "message": "列出目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm1pbHZ1cw.display_name": {
+          "source": "Milvus",
+          "message": "Milvus"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm1vdGhlcmR1Y2s.display_name": {
+          "source": "MotherDuck",
+          "message": "MotherDuck"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm5lbzRq.display_name": {
+          "source": "Neo4j",
+          "message": "Neo4j"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmNocm9tYQ.display_name": {
+          "source": "Chroma",
+          "message": "Chroma"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lX2RlbHRhX3RhYmxlcw.display_name": {
+          "source": "Databricks Delta Tables",
+          "message": "Databricks Delta Tables"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmRlbHRhX3RhYmxl.display_name": {
+          "source": "Delta Table",
+          "message": "Delta Table"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmlibV93YXRzb254X3Mz.display_name": {
+          "source": "IBM watsonx.data",
+          "message": "IBM watsonx.data"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmtkYmFp.display_name": {
+          "source": "KDB.AI",
+          "message": "KDB.AI"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnBpbmVjb25l.display_name": {
+          "source": "Pinecone",
+          "message": "Pinecone"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnFkcmFudC1jbG91ZA.display_name": {
+          "source": "Qdrant Cloud",
+          "message": "Qdrant Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnJlZGlz.display_name": {
+          "source": "Redis",
+          "message": "Redis"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnNpbmdsZXN0b3Jl.display_name": {
+          "source": "SingleStore",
+          "message": "SingleStore"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnVuc3RydWN0dXJlZF9ibG9iX3N0b3JhZ2U.display_name": {
+          "source": "Unstructured Blob Storage",
+          "message": "Unstructured Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.allowed-value.c3RyaW5nOndlYXZpYXRlLWNsb3Vk.display_name": {
+          "source": "Weaviate Cloud",
+          "message": "Weaviate Cloud"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.display_name": {
+          "source": "Connector Type",
+          "message": "連接器類型"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.option.ZGVzdGluYXRpb25fdHlwZQ.short_desc": {
+          "source": "Return only connectors of this type",
+          "message": "僅傳回此類型的連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1kZXN0aW5hdGlvbnM.short_desc": {
+          "source": "List the destination connectors in this account",
+          "message": "列出此帳戶中的目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.desc": {
+          "source": "Lists jobs, optionally narrowed to one workflow or one status.\n\nA job is one run of a workflow, scheduled or explicit.",
+          "message": "列出作業，可縮小至單一工作流程或單一狀態。\n\n作業是工作流程的一次執行，可能來自排程，也可能是明確執行。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.display_name": {
+          "source": "List Jobs",
+          "message": "列出作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOkNPTVBMRVRFRA.display_name": {
+          "source": "Completed",
+          "message": "已完成"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOkZBSUxFRA.display_name": {
+          "source": "Failed",
+          "message": "失敗"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOklOX1BST0dSRVNT.display_name": {
+          "source": "In Progress",
+          "message": "進行中"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOlJFSkVDVEVE.display_name": {
+          "source": "Rejected",
+          "message": "已拒絕"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOlNDSEVEVUxFRA.display_name": {
+          "source": "Scheduled",
+          "message": "已排程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.allowed-value.c3RyaW5nOlNUT1BQRUQ.display_name": {
+          "source": "Stopped",
+          "message": "已停止"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "狀態"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.c3RhdHVz.short_desc": {
+          "source": "Return only jobs in this status",
+          "message": "僅傳回處於此狀態的作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "Return only jobs for this workflow",
+          "message": "僅傳回此工作流程的作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1qb2Jz.short_desc": {
+          "source": "List workflow runs",
+          "message": "列出工作流程的執行紀錄"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.desc": {
+          "source": "Lists notification channels of one kind.  A channel is where Unstructured sends job notifications: a webhook URL, or an email address.",
+          "message": "列出單一種類的通知管道。管道是 Unstructured 傳送作業通知的目的地：Webhook URL 或電子郵件地址。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.display_name": {
+          "source": "List Notification Channels",
+          "message": "列出通知管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.allowed-value.c3RyaW5nOmVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.allowed-value.c3RyaW5nOndlYmhvb2s.display_name": {
+          "source": "Webhook",
+          "message": "Webhook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.desc": {
+          "source": "The kind of channel to list.  Channels of different kinds are listed separately.",
+          "message": "要列出的管道種類。不同種類的管道會分開列出。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.display_name": {
+          "source": "Channel Type",
+          "message": "管道類型"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.Y2hhbm5lbF90eXBl.short_desc": {
+          "source": "The kind of channel to list",
+          "message": "要列出的管道種類"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.option.ZW5hYmxlZA.display_name": {
+          "source": "Enabled",
+          "message": "啟用"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1ub3RpZmljYXRpb24tY2hhbm5lbHM.short_desc": {
+          "source": "List the notification channels in this account",
+          "message": "列出此帳戶中的通知管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.desc": {
+          "source": "Lists source connectors, optionally narrowed to one connector type.\n\nA source connector is where a workflow reads documents from.",
+          "message": "列出來源連接器，可縮小至單一連接器類型。\n\n來源連接器是工作流程讀取文件的地方。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.display_name": {
+          "source": "List Source Connectors",
+          "message": "列出來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOm1vbmdvZGI.display_name": {
+          "source": "MongoDB",
+          "message": "MongoDB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOm91dGxvb2s.display_name": {
+          "source": "Outlook",
+          "message": "Outlook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOm9uZWRyaXZl.display_name": {
+          "source": "OneDrive",
+          "message": "OneDrive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmF6dXJl.display_name": {
+          "source": "Azure Blob Storage",
+          "message": "Azure Blob Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmFpcnRhYmxl.display_name": {
+          "source": "Airtable",
+          "message": "Airtable"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmFzdHJhZGI.display_name": {
+          "source": "DataStax Astra DB",
+          "message": "DataStax Astra DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmJveA.display_name": {
+          "source": "Box",
+          "message": "Box"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmNvbmZsdWVuY2U.display_name": {
+          "source": "Confluence",
+          "message": "Confluence"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmNvdWNoYmFzZQ.display_name": {
+          "source": "Couchbase",
+          "message": "Couchbase"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmRhdGFicmlja3Nfdm9sdW1lcw.display_name": {
+          "source": "Databricks Volumes",
+          "message": "Databricks Volumes"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmRyb3Bib3g.display_name": {
+          "source": "Dropbox",
+          "message": "Dropbox"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmVsYXN0aWNzZWFyY2g.display_name": {
+          "source": "Elasticsearch",
+          "message": "Elasticsearch"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmdjcw.display_name": {
+          "source": "Google Cloud Storage",
+          "message": "Google Cloud Storage"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmdpdGh1Yg.display_name": {
+          "source": "GitHub",
+          "message": "GitHub"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmdpdGxhYg.display_name": {
+          "source": "GitLab",
+          "message": "GitLab"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmdvb2dsZV9kcml2ZQ.display_name": {
+          "source": "Google Drive",
+          "message": "Google Drive"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmppcmE.display_name": {
+          "source": "Jira",
+          "message": "Jira"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmthZmthLWNsb3Vk.display_name": {
+          "source": "Confluent Kafka",
+          "message": "Confluent Kafka"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOmxvY2Fs.display_name": {
+          "source": "Local Files",
+          "message": "Local Files"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnBvc3RncmVz.display_name": {
+          "source": "PostgreSQL",
+          "message": "PostgreSQL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "Amazon S3",
+          "message": "Amazon S3"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNhbGVzZm9yY2U.display_name": {
+          "source": "Salesforce",
+          "message": "Salesforce"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNmdHA.display_name": {
+          "source": "SFTP",
+          "message": "SFTP"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNoYXJlcG9pbnQ.display_name": {
+          "source": "SharePoint",
+          "message": "SharePoint"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNsYWNr.display_name": {
+          "source": "Slack",
+          "message": "Slack"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnNub3dmbGFrZQ.display_name": {
+          "source": "Snowflake",
+          "message": "Snowflake"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnRlcmFkYXRh.display_name": {
+          "source": "Teradata",
+          "message": "Teradata"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnZhc3RkYg.display_name": {
+          "source": "VAST DB",
+          "message": "VAST DB"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.allowed-value.c3RyaW5nOnplbmRlc2s.display_name": {
+          "source": "Zendesk",
+          "message": "Zendesk"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.display_name": {
+          "source": "Connector Type",
+          "message": "連接器類型"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.option.c291cmNlX3R5cGU.short_desc": {
+          "source": "Return only connectors of this type",
+          "message": "僅傳回此類型的連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.bGlzdC1zb3VyY2Vz.short_desc": {
+          "source": "List the source connectors in this account",
+          "message": "列出此帳戶中的來源連接器"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.action.bWFrZS1hcGktY2FsbA.desc": {
           "source": "Make a custom HTTP / REST API call to **Unstructured.io** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
           "message": "使用已設定連線的驗證向 **Unstructured.io** 發出自訂 HTTP / REST API 呼叫。\n\n指定 HTTP 方法、URI 路徑（相對於連線的 API 基本 URL）、選用查詢參數、標頭和請求主體。回應將以包含狀態碼、回應標頭和回應主體的雜湊形式傳回。\n\n當端點尚未在此應用程式中作為一級動作公開時，請使用此動作。"
@@ -1159,17 +2839,373 @@
           "source": "Partition raw text into a typed element tree",
           "message": "將原始文字分割為具類型的元素樹"
         },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.desc": {
+          "source": "Runs a workflow immediately, whatever its schedule says, and returns the job that was started.\n\nThe job runs asynchronously: use `get-job` to follow it, or the **Job Status Change** event to be told when it finishes.",
+          "message": "無論排程為何，立即執行工作流程，並傳回所啟動的作業。\n\n作業以非同步方式執行；請使用 `get-job` 追蹤進度，或透過 **Job Status Change** 事件在完成時收到通知。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.display_name": {
+          "source": "Run Workflow",
+          "message": "執行工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.aW5wdXRfZmlsZXM.desc": {
+          "source": "Restrict the run to these file IDs.  Leave unset to process everything the source connector offers.",
+          "message": "將此次執行限制在這些檔案 ID。若未設定，會處理來源連接器提供的所有內容。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.aW5wdXRfZmlsZXM.display_name": {
+          "source": "Input Files",
+          "message": "輸入檔案"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.aW5wdXRfZmlsZXM.short_desc": {
+          "source": "Restrict the run to these file IDs",
+          "message": "將此次執行限制在這些檔案 ID"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "The workflow to run",
+          "message": "要執行的工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.cnVuLXdvcmtmbG93.short_desc": {
+          "source": "Run a workflow now and return the job it started",
+          "message": "立即執行工作流程並傳回所啟動的作業"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Updates a notification channel's destination or the events it is subscribed to.",
+          "message": "更新通知管道的傳送目的地，或其所訂閱的事件。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Update Notification Channel",
+          "message": "更新通知管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.allowed-value.c3RyaW5nOmVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.allowed-value.c3RyaW5nOndlYmhvb2s.display_name": {
+          "source": "Webhook",
+          "message": "Webhook"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.desc": {
+          "source": "How notifications are delivered.  A channel's type cannot be changed once it is created; this only names it.",
+          "message": "通知的傳送方式。管道類型建立後即無法變更，此處僅用於標示。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.display_name": {
+          "source": "Channel Type",
+          "message": "管道類型"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF90eXBl.short_desc": {
+          "source": "How notifications are delivered",
+          "message": "通知的傳送方式"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.display_name": {
+          "source": "Channel",
+          "message": "管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.short_desc": {
+          "source": "The channel to update",
+          "message": "要更新的管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZGVzY3JpcHRpb24.desc": {
+          "source": "A description of the channel, up to 255 characters.",
+          "message": "管道的說明，最多 255 個字元。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "說明"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "A description of the channel",
+          "message": "管道的說明"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW1haWxfY29uZmln.desc": {
+          "source": "Additional recipients and the reply-to address for an email channel.",
+          "message": "電子郵件管道的其他收件者與回覆地址。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW1haWxfY29uZmln.display_name": {
+          "source": "Email Settings",
+          "message": "電子郵件設定"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW1haWxfY29uZmln.short_desc": {
+          "source": "Recipients and reply-to for an email channel",
+          "message": "電子郵件管道的收件者與回覆地址"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW5hYmxlZA.desc": {
+          "source": "Whether the channel receives notifications.  A disabled channel keeps its definition and its subscriptions.",
+          "message": "管道是否接收通知。已停用的管道仍會保留其定義與訂閱。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW5hYmxlZA.display_name": {
+          "source": "Enabled",
+          "message": "啟用"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZW5hYmxlZA.short_desc": {
+          "source": "Whether the channel receives notifications",
+          "message": "管道是否接收通知"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5jb21wbGV0ZWQ.display_name": {
+          "source": "Job Completed",
+          "message": "作業已完成"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5mYWlsZWQ.display_name": {
+          "source": "Job Failed",
+          "message": "作業失敗"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5pbl9wcm9ncmVzcw.display_name": {
+          "source": "Job In Progress",
+          "message": "作業進行中"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5wcm9ncmVzcw.display_name": {
+          "source": "Job Progress",
+          "message": "作業進度"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5zY2hlZHVsZWQ.display_name": {
+          "source": "Job Scheduled",
+          "message": "作業已排程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.allowed-value.c3RyaW5nOmpvYi5zdG9wcGVk.display_name": {
+          "source": "Job Stopped",
+          "message": "作業已停止"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.desc": {
+          "source": "The job events this channel is notified about; at least one is required.",
+          "message": "此管道會收到通知的作業事件；至少需要一項。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.display_name": {
+          "source": "Event Types",
+          "message": "事件類型"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.ZXZlbnRfdHlwZXM.short_desc": {
+          "source": "The job events to be notified about",
+          "message": "要接收通知的作業事件"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.c2VjcmV0.desc": {
+          "source": "The secret Unstructured signs webhook payloads with, 24 to 75 bytes.  Send an empty string to drop a secret already set.",
+          "message": "Unstructured 用來簽署 Webhook 內容的密鑰，長度為 24 到 75 個位元組。若要移除已設定的密鑰，請傳送空字串。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.c2VjcmV0.display_name": {
+          "source": "Signing Secret",
+          "message": "簽署密鑰"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.c2VjcmV0.short_desc": {
+          "source": "The secret webhook payloads are signed with",
+          "message": "用來簽署 Webhook 內容的密鑰"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.dXJs.desc": {
+          "source": "Where webhook notifications are posted.  HTTPS is required.",
+          "message": "Webhook 通知的傳送目的地。必須使用 HTTPS。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.dXJs.display_name": {
+          "source": "Webhook URL",
+          "message": "Webhook URL"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.option.dXJs.short_desc": {
+          "source": "Where webhook notifications are posted",
+          "message": "Webhook 通知的傳送目的地"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Update a notification channel",
+          "message": "更新通知管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.desc": {
+          "source": "Updates a destination connector's configuration.  The connector type cannot be changed; create a new connector instead.",
+          "message": "更新目的地連接器的設定。連接器類型無法變更，請改為建立新的連接器。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.display_name": {
+          "source": "Update Destination Connector",
+          "message": "更新目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.display_name": {
+          "source": "Configuration",
+          "message": "設定"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.option.Y29uZmln.short_desc": {
+          "source": "Connector settings for the connector's type",
+          "message": "該連接器類型對應的連接器設定"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector to update",
+          "message": "要更新的連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLWRlc3RpbmF0aW9u.short_desc": {
+          "source": "Update a destination connector's configuration",
+          "message": "更新目的地連接器的設定"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.desc": {
+          "source": "Updates a source connector's configuration.  The connector type cannot be changed; create a new connector instead.",
+          "message": "更新來源連接器的設定。連接器類型無法變更，請改為建立新的連接器。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.display_name": {
+          "source": "Update Source Connector",
+          "message": "更新來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.option.Y29uZmln.display_name": {
+          "source": "Configuration",
+          "message": "設定"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.option.Y29uZmln.short_desc": {
+          "source": "Connector settings for the connector's type",
+          "message": "該連接器類型對應的連接器設定"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector to update",
+          "message": "要更新的連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXNvdXJjZQ.short_desc": {
+          "source": "Update a source connector's configuration",
+          "message": "更新來源連接器的設定"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.desc": {
+          "source": "Updates a workflow.  Use `state` to activate or deactivate it without deleting it: an `inactive` workflow keeps its definition but does not run on its schedule.",
+          "message": "更新工作流程。若要在不刪除的情況下啟用或停用，請使用 `state`：`inactive` 的工作流程會保留其定義，但不會依排程執行。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.display_name": {
+          "source": "Update Workflow",
+          "message": "更新工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.ZGVzdGluYXRpb25faWQ.display_name": {
+          "source": "Destination Connector",
+          "message": "目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.ZGVzdGluYXRpb25faWQ.short_desc": {
+          "source": "The connector results are written to",
+          "message": "寫入結果的目的地連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c291cmNlX2lk.display_name": {
+          "source": "Source Connector",
+          "message": "來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c291cmNlX2lk.short_desc": {
+          "source": "The connector documents are read from",
+          "message": "讀取文件的來源連接器"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c2NoZWR1bGU.display_name": {
+          "source": "Schedule",
+          "message": "排程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c3RhdGU.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
+          "source": "Active",
+          "message": "啟用"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c3RhdGU.allowed-value.c3RyaW5nOmluYWN0aXZl.display_name": {
+          "source": "Inactive",
+          "message": "停用"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c3RhdGU.display_name": {
+          "source": "State",
+          "message": "狀態"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.c3RhdGU.short_desc": {
+          "source": "Whether the workflow runs on its schedule",
+          "message": "工作流程是否依其排程執行"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.cmVwcm9jZXNzX2FsbA.display_name": {
+          "source": "Reprocess All",
+          "message": "全部重新處理"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.display_name": {
+          "source": "Workflow",
+          "message": "工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfaWQ.short_desc": {
+          "source": "The workflow to update",
+          "message": "要更新的工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfbm9kZXM.display_name": {
+          "source": "Workflow Nodes",
+          "message": "工作流程節點"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
+          "source": "Advanced",
+          "message": "進階"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "基本"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOmN1c3RvbQ.display_name": {
+          "source": "Custom",
+          "message": "自訂"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.allowed-value.c3RyaW5nOnBsYXRpbnVt.display_name": {
+          "source": "Platinum",
+          "message": "白金"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.display_name": {
+          "source": "Workflow Type",
+          "message": "工作流程類型"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.d29ya2Zsb3dfdHlwZQ.short_desc": {
+          "source": "The preset processing chain to apply",
+          "message": "要套用的預設處理鏈"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.dGVtcGxhdGVfaWQ.display_name": {
+          "source": "Template",
+          "message": "範本"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.option.dGVtcGxhdGVfaWQ.short_desc": {
+          "source": "The workflow template to rebuild from",
+          "message": "作為重新建立基礎的工作流程範本"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dXBkYXRlLXdvcmtmbG93.short_desc": {
+          "source": "Update a workflow",
+          "message": "更新工作流程"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.desc": {
+          "source": "Confirms a channel with the code Unstructured sent to it.  A channel does not receive job notifications until it has been verified.",
+          "message": "使用 Unstructured 寄送的代碼確認管道。管道在通過確認之前不會收到作業通知。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.display_name": {
+          "source": "Verify Notification Channel",
+          "message": "確認通知管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y29kZQ.desc": {
+          "source": "The six-digit code Unstructured sent to the channel's address.",
+          "message": "Unstructured 寄送至該管道位址的六位數代碼。"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y29kZQ.display_name": {
+          "source": "Verification Code",
+          "message": "確認代碼"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y29kZQ.short_desc": {
+          "source": "The six-digit code Unstructured sent to the channel",
+          "message": "Unstructured 寄送至該管道的六位數代碼"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.display_name": {
+          "source": "Channel",
+          "message": "管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.option.Y2hhbm5lbF9pZA.short_desc": {
+          "source": "The channel to verify",
+          "message": "要確認的管道"
+        },
+        "app.VW5zdHJ1Y3R1cmVkSW8.action.dmVyaWZ5LW5vdGlmaWNhdGlvbi1jaGFubmVs.short_desc": {
+          "source": "Send a verification message to a notification channel",
+          "message": "傳送確認訊息至通知管道"
+        },
         "app.VW5zdHJ1Y3R1cmVkSW8.desc": {
-          "source": "Provides access to [Unstructured.io](https://unstructured.io) — a document partitioning service that breaks PDFs, docx, HTML, and images into a typed element tree (Title / NarrativeText / ListItem / Table / ...).\n\nUse the @ref QoreRagUtils::UnstructuredChunker \"UnstructuredChunker\" backend for the RAG ingestion path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
-          "message": "提供對 [Unstructured.io](https://unstructured.io) 的存取 — 這是一項文件分割服務，可將 PDF、docx、HTML 和影像分解為具類型的元素樹 (Title / NarrativeText / ListItem / Table / ...)。\n\n透過 @ref QoreRagUtils::RagPipeline \"RagPipeline\" 的 RAG 擷取路徑使用 @ref QoreRagUtils::UnstructuredChunker \"UnstructuredChunker\" 後端。"
+          "source": "Provides access to [Unstructured.io](https://unstructured.io), which turns documents into data an AI application can use.\n\n- **Partition documents** — break PDFs, Office files, HTML, images and emails into a typed element tree (`Title` / `NarrativeText` / `ListItem` / `Table` / ...), with optional OCR, table-structure inference and retrieval-sized chunking\n- **Build ingestion pipelines** — connect a source system to a vector store through a workflow, run it on a schedule or on demand, and follow each run\n- **React to finished runs** — fire an event when a workflow run completes, so processed documents are picked up as soon as they land\n\nUse the @ref QoreRagUtils::UnstructuredChunker \"UnstructuredChunker\" backend for the RAG ingestion path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
+          "message": "提供對 [Unstructured.io](https://unstructured.io) 的存取；這項服務可將文件轉換為 AI 應用程式能夠使用的資料。\n\n- **分割文件** — 將 PDF、Office 檔案、HTML、影像與電子郵件拆解為具類型的元素樹（`Title` / `NarrativeText` / `ListItem` / `Table` / ...），並可選用 OCR、表格結構推斷，以及適合檢索的區塊大小分割\n- **建立擷取管線** — 透過工作流程將來源系統連接至向量儲存庫，依排程或隨需執行，並追蹤每一次執行\n- **回應已完成的執行** — 在工作流程執行完成時觸發事件，讓已處理的文件一送達就能被接手\n\n若要透過 @ref QoreRagUtils::RagPipeline \"RagPipeline\" 進行 RAG 擷取路徑，請使用 @ref QoreRagUtils::UnstructuredChunker \"UnstructuredChunker\" 後端。"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.display_name": {
           "source": "Unstructured.io",
           "message": "Unstructured.io"
         },
         "app.VW5zdHJ1Y3R1cmVkSW8.short_desc": {
-          "source": "Unstructured.io document partitioning (element-tree extraction)",
-          "message": "Unstructured.io 文件分割（元素樹擷取）"
+          "source": "Unstructured.io document partitioning and ingestion workflows",
+          "message": "Unstructured.io 文件分割與擷取工作流程"
         }
       }
     }

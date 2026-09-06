@@ -292,11 +292,32 @@ public class UnstructuredDataProviderCommon inherits DataProvider::AbstractDataP
                     NOTHING, {DTT_ClientOnly: True}),
                 "desc": "The Unstructured REST client to use",
             },
+            "platform_url": <DataProviderOptionInfo>{
+                "display_name": "Platform API URL",
+                "short_desc": "Overrides the derived Unstructured Platform API URL",
+                "type": AbstractDataProviderTypeMap."*string",
+                "desc": "URL of the Unstructured Platform API, which manages connectors, workflows "
+                    "and jobs.  Derived from `url` unless set here.",
+            },
+            "platformclient": <DataProviderOptionInfo>{
+                "display_name": "Platform REST Client",
+                "short_desc": "The Platform API REST client object to use",
+                "type": AbstractDataProviderType::get(
+                    new Type("UnstructuredRestClient::UnstructuredPlatformRestClientIo"),
+                    NOTHING, {DTT_ClientOnly: True}),
+                "desc": "The Unstructured Platform API REST client to use",
+            },
         };
     }
 
     private {
         *UnstructuredRestClient::UnstructuredRestClientIo rest;
+
+        #! The Platform API client, built on demand from the same credentials
+        *UnstructuredRestClient::UnstructuredPlatformRestClientIo platform_rest;
+
+        #! Options to build the Platform API client from, when one was not supplied
+        *hash<auto> platform_opts;
     }
 
     constructor(UnstructuredRestClient::UnstructuredRestClientIo rest) {
@@ -318,6 +339,36 @@ public class UnstructuredDataProviderCommon inherits DataProvider::AbstractDataP
                 "apikey": copts.apikey,
             });
         }
+        if (copts.platformclient) {
+            platform_rest = copts.platformclient;
+        } else if (copts.apikey.val()) {
+            platform_opts = {
+                "apikey": copts.apikey,
+                "url": copts.url,
+                "platform_url": copts.platform_url,
+            };
+        }
+    }
+
+    #! Returns the Platform API client, building it on first use
+    /** @throw PLATFORM-CLIENT-ERROR the provider was built from a partition client alone, so there are
+        no credentials to build a Platform API client from; supply \c platformclient or \c apikey
+    */
+    UnstructuredRestClient::UnstructuredPlatformRestClientIo getPlatformClient() {
+        if (!platform_rest) {
+            if (!platform_opts) {
+                throw "PLATFORM-CLIENT-ERROR", "this data provider was created from a partition API "
+                    "client alone, which carries no credentials for the Unstructured Platform API; "
+                    "create it from a connection, or pass 'apikey' or 'platformclient'";
+            }
+            platform_rest = new UnstructuredRestClient::UnstructuredPlatformRestClientIo(platform_opts);
+        }
+        return platform_rest;
+    }
+
+    #! Sets the Platform API client
+    setPlatformClient(UnstructuredRestClient::UnstructuredPlatformRestClientIo platform_rest) {
+        self.platform_rest = platform_rest;
     }
 }
 
@@ -329,6 +380,7 @@ public class UnstructuredDataProvider inherits UnstructuredDataProviderCommon {
             "supports_children": True,
             "constructor_options": ConstructorOptions,
             "children_can_support_apis": True,
+            "children_can_support_observers": True,
         };
     }
 
@@ -348,10 +400,18 @@ public class UnstructuredDataProvider inherits UnstructuredDataProviderCommon {
     string getName() { return ProviderInfo.name; }
 
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator();
+        return (map $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator())
+            + cast<hash<DataProviderSummaryInfo>>(UnstructuredPlatformDataProvider::ProviderInfo{
+                AbstractDataProvider::DataProviderSummaryInfoKeys
+            });
     }
-    private *list<string> getChildProviderNamesImpl() { return keys childMap; }
+    private *list<string> getChildProviderNamesImpl() {
+        return (keys childMap) + UnstructuredPlatformDataProvider::ProviderName;
+    }
     private *AbstractDataProvider getChildProviderImpl(string name) {
+        if (name == UnstructuredPlatformDataProvider::ProviderName) {
+            return new UnstructuredPlatformDataProvider(getPlatformClient());
+        }
         *Class cls = childMap{name};
         return cls ? cls.newObject(rest) : NOTHING;
     }

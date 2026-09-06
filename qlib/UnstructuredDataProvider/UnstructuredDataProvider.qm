@@ -27,6 +27,8 @@
 
 %requires(reexport) DataProvider
 %requires(reexport) UnstructuredRestClient
+%requires(reexport) RestSchemaActions
+%requires OpenApi3
 %requires RestClientIo
 
 module UnstructuredDataProvider {
@@ -42,11 +44,17 @@ module UnstructuredDataProvider {
             "name": UnstructuredDataProvider::AppName,
             "presentation_source_locale": "en",
             "display_name": "Unstructured.io",
-            "short_desc": "Unstructured.io document partitioning (element-tree extraction)",
-            "desc": "Provides access to [Unstructured.io](https://unstructured.io) — "
-                "a document partitioning service that breaks PDFs, docx, HTML, and "
-                "images into a typed element tree (Title / NarrativeText / ListItem "
-                "/ Table / ...).\n\n"
+            "short_desc": "Unstructured.io document partitioning and ingestion workflows",
+            "desc": "Provides access to [Unstructured.io](https://unstructured.io), which turns "
+                "documents into data an AI application can use.\n\n"
+                "- **Partition documents** — break PDFs, Office files, HTML, images and emails "
+                "into a typed element tree (`Title` / `NarrativeText` / `ListItem` / `Table` / "
+                "...), with optional OCR, table-structure inference and retrieval-sized "
+                "chunking\n"
+                "- **Build ingestion pipelines** — connect a source system to a vector store "
+                "through a workflow, run it on a schedule or on demand, and follow each run\n"
+                "- **React to finished runs** — fire an event when a workflow run completes, so "
+                "processed documents are picked up as soon as they land\n\n"
                 "Use the @ref QoreRagUtils::UnstructuredChunker \"UnstructuredChunker\" "
                 "backend for the RAG ingestion path through "
                 "@ref QoreRagUtils::RagPipeline \"RagPipeline\".",
@@ -117,6 +125,83 @@ module UnstructuredDataProvider {
             ),
             "output_type": UnstructuredPartitionTextDataProvider::ResponseType,
         });
+
+        # Platform API actions, generated from the vendored schema.  The generator paths them at the
+        # root, and they live under the "platform" child, so each path is prefixed here.
+        map DataProviderActionCatalog::registerAction(cast<hash<DataProviderActionInfo>>($1 + {
+            "path": "/" + UnstructuredPlatformDataProvider::ProviderName + $1.path,
+        })), UnstructuredPlatformSchema::getActionSet().getActionInfoList(
+            UnstructuredDataProvider::AppName);
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": UnstructuredDataProvider::AppName,
+            "path": "/" + UnstructuredPlatformDataProvider::ProviderName + "/"
+                + UnstructuredConnectorFieldsDataProvider::ProviderName,
+            "action": "get-connector-fields",
+            "display_name": "Get Connector Configuration Fields",
+            "short_desc": "List the settings a connector type needs",
+            "desc": "Lists the configuration fields a given connector type accepts, so that a "
+                "connector can be created without guessing at its `config` hash.\n\n"
+                "Unstructured types a connector's configuration as a union over one schema per "
+                "connector type — an S3 source takes a bucket URL and credentials, a Confluence "
+                "source a site URL and an API token — so there is no single field list to show "
+                "until the type is known.\n\n"
+                "This action answers from the API description shipped with this module and makes "
+                "no request to Unstructured.",
+            "action_code": DPAT_API,
+            "groups": (UnstructuredPlatformManifest::GroupConnectors,),
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
+                UnstructuredConnectorFieldsRequestDataType::Fields
+            ),
+            "output_type": UnstructuredConnectorFieldsDataProvider::ResponseType,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": UnstructuredDataProvider::AppName,
+            "path": "/" + UnstructuredPlatformDataProvider::ProviderName + "/"
+                + UnstructuredPlatformDataProvider::EventsChildName + "/"
+                + UnstructuredJobWatchDataProvider::ProviderName,
+            "action": "job-finished",
+            "display_name": "Job Finished",
+            "short_desc": "Fires when a workflow run reaches a terminal status",
+            "desc": "Fires once for each workflow run that finishes, whether it succeeded, failed, "
+                "was stopped or was rejected.\n\n"
+                "A workflow run is asynchronous, so this is the point at which the documents it "
+                "processed are available at the destination and an integration can act on them.  "
+                "A `COMPLETED` job may still have failed on individual files; **Get Job Failed "
+                "Files** says which.\n\n"
+                "Set `workflow_id` to watch one workflow rather than every run in the account.",
+            "action_code": DPAT_EVENT,
+            "action_val": UnstructuredJobWatchDataProvider::EventJobFinished,
+            "groups": (UnstructuredPlatformManifest::GroupJobs,),
+            "options": {
+                "workflow_id": <ActionOptionInfo>{
+                    "display_name": "Workflow",
+                    "short_desc": "Watch only this workflow's runs",
+                    "desc": "Watch only the runs of this workflow.  Leave unset to fire for every "
+                        "workflow in the account.",
+                    "type": AbstractDataProviderTypeMap."*string",
+                    "ref_data": UnstructuredPlatformManifest::RefWorkflow,
+                    "preselected": True,
+                },
+                "poll_interval": <ActionOptionInfo>{
+                    "display_name": "Poll Interval",
+                    "short_desc": "How often to check for finished jobs, in seconds",
+                    "desc": "How often to check for finished jobs, in seconds; the minimum is `"
+                        + UnstructuredJobWatchDataProvider::MinPollInterval + "`.",
+                    "type": AbstractDataProviderTypeMap."*softint",
+                    "default_value": UnstructuredJobWatchDataProvider::DefaultPollInterval,
+                },
+                "start_date": <ActionOptionInfo>{
+                    "display_name": "Start Date",
+                    "short_desc": "Only fire for jobs created after this date",
+                    "desc": "Only fire for jobs created on or after this date.  Without it, the "
+                        "first cycle fires for every finished job in the account.",
+                    "type": AbstractDataProviderTypeMap."*date",
+                },
+            },
+            "output_type": UnstructuredJobEventDataType,
+        });
     };
 }
 
@@ -126,26 +211,111 @@ module UnstructuredDataProvider {
 
     @section unstructureddataproviderintro UnstructuredDataProvider Introduction
 
-    Data-provider integration for
-    [Unstructured.io](https://unstructured.io), which breaks a document into
-    a typed element tree suitable for RAG ingestion.
+    Data-provider integration for [Unstructured.io](https://unstructured.io), which turns
+    documents into typed element trees and runs the ingestion pipelines that deliver them to a
+    vector store.
 
-    Two `DPAT_API` actions post to Unstructured's `/general/v0/general`
-    endpoint:
+    Unstructured publishes two APIs, and this module covers both from the same connection:
 
-    - `partition-file` — for PDFs, Office documents, images, emails and every
-      other format Unstructured supports; the document is given either inline
-      or by local path
-    - `partition-text` — for content already held as text; set `content_type`
-      when that text carries structure, or its markup is not parsed
+    |!API|!Host|!What it is
+    |Partition API|@c api.transform.unstructured.io|one document in, a typed element tree out
+    |Platform API|@c platform-api.transform.unstructured.io|connectors, workflows and their runs
 
-    Both accept the endpoint's full option set: partitioning strategy, OCR
-    languages, table-structure inference, image-block extraction, and
-    server-side chunking with its size, overlap and similarity controls.
+    @section unstructureddataproviderpartition Partitioning Documents
+
+    Two `DPAT_API` actions post to the Partition API's
+    @c /general/v0/general endpoint:
+
+    - @c partition-file — for PDFs, Office documents, images, emails and every other format
+      Unstructured supports; the document is given either inline as @c file_data or by
+      @c file_path
+    - @c partition-text — for content already held as text; set @c content_type when that text
+      carries structure, or its markup is not parsed
+
+    Both accept the endpoint's full option set: partitioning strategy, OCR languages,
+    table-structure inference, image-block extraction, and server-side chunking with its size,
+    overlap and similarity controls.
 
     For RAG-pipeline integration, prefer the
-    @ref QoreRagUtils::UnstructuredChunker "UnstructuredChunker" backend
-    (lazy-loaded via the @c "unstructured" chunker strategy).
+    @ref QoreRagUtils::UnstructuredChunker "UnstructuredChunker" backend (lazy-loaded via the
+    @c "unstructured" chunker strategy).
+
+    @section unstructureddataproviderplatform The Platform API
+
+    Where the Partition API processes one document per call, the Platform API is where continuous
+    ingestion is configured: a **source connector** says where documents are read from, a
+    **destination connector** where the processed output is written (typically a vector store),
+    and a **workflow** ties the two together through a chain of processing nodes.  Running a
+    workflow creates a **job**.
+
+    Everything Platform lives under the @c "platform" child of the connection's data provider:
+
+    @code{.py}
+AbstractDataProvider platform = conn.getDataProvider().getChildProviderEx("platform");
+hash<auto> workflow = platform.getChildProviderEx("create-workflow").doRequest({
+    "name": "Contracts to Pinecone",
+    "workflow_type": "basic",
+    "source_id": source_id,
+    "destination_id": destination_id,
+});
+    @endcode
+
+    The actions are generated from the API description vendored with this module through
+    @ref restschemaactionsintro "RestSchemaActions", so their options and result types are the
+    vendor's own:
+
+    |!Group|!Actions
+    |Workflows|list, get, create, update, delete, run
+    |Jobs|list, get, details, failed files, download output, cancel
+    |Source Connectors|list, get, create, update, delete, check, read check
+    |Destination Connectors|list, get, create, update, delete, check, read check
+    |Notification Channels|list, get, create, update, delete, verify
+    |Workflow Templates|list, get
+
+    @subsection unstructureddataproviderconnectorfields Connector Configuration Fields
+
+    A connector's @c config hash is typed as a union over one schema per connector type - an S3
+    source takes a bucket URL and credentials, a Confluence source a site URL and an API token -
+    so there is no single field list to present until the type is chosen.  The
+    @c get-connector-fields action closes that gap: given a connector type and a direction, it
+    returns the fields that type accepts, answering from the vendored API description without
+    making a request.
+
+    @subsection unstructureddataproviderrecords Record Tables
+
+    Workflows, jobs, sources and destinations are also exposed as records under the
+    @c "platform/tables" child, so they can be searched and, where the API allows it, written:
+
+    @code{.py}
+AbstractDataProvider workflows = conn.getDataProvider().getChildProviderPath("platform/tables/workflows");
+list<hash<auto>> active = map $1, workflows.searchRecords({"status": "active"});
+    @endcode
+
+    @note No table declares @c supports_native_search.  The Platform API has no filter-expression
+    language: its listings narrow by query argument, and every other criterion is evaluated
+    client-side.  The @c jobs table is read-only, because a job is created by running a workflow
+    rather than by writing a record.
+
+    @subsection unstructureddataproviderevents Job Events
+
+    @ref UnstructuredDataProvider::UnstructuredJobWatchDataProvider "UnstructuredJobWatchDataProvider",
+    under the @c "platform/events" child, fires a @c job-finished event for each workflow run
+    that reaches a terminal status.  A workflow run is asynchronous, so this is the point at
+    which the documents it processed are available at the destination.
+
+    The events are derived from the API's own job listing rather than from Unstructured's webhook
+    deliveries; see
+    @ref unstructured_events_why_polling "Why Polling and Not Webhooks" for why.  The actions
+    that manage notification channels are still exposed, so Unstructured's webhooks can be routed
+    to an endpoint that verifies them.
+
+    @section unstructureddataproviderapiurl API Hosts
+
+    Unstructured serves different customers from different hosts, and an API key is only valid on
+    the deployment it was issued for.  The connection defaults to
+    @c api.transform.unstructured.io and derives the Platform host from it; if the key is
+    rejected there, the ping tries the other known hosts and adopts the one that accepts it, so a
+    connection created with the default URL keeps working on either deployment.
 
     @section UnstructuredDataProviderRelnotes Release Notes
 
