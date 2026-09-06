@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 public namespace MongoDbDataProvider {
 #! MongoDB record iterator for iterating through collection documents
 public class MongoDbRecordIterator inherits DataProvider::AbstractDataProviderRecordIterator<hash<auto>> {

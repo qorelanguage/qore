@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 public namespace MongoDbDataProvider {
 #! MongoDB database data provider - provides access to collections in a database
 public class MongoDbDatabaseDataProvider inherits DataProvider::AbstractDataProvider {

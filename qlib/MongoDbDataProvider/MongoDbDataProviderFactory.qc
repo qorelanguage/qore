@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 public namespace MongoDbDataProvider {
 #! The MongoDB data provider factory: \c mongodb
 public class MongoDbDataProviderFactory inherits DataProvider::AbstractDataProviderFactory {

@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 public namespace MongoDbDataProvider {
 #! MongoDB delete data provider - deletes documents from a collection
 public class MongoDbDeleteDataProvider inherits DataProvider::AbstractDataProvider {

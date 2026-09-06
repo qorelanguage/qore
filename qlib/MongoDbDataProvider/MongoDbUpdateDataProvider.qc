@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 public namespace MongoDbDataProvider {
 #! MongoDB update data provider - updates documents in a collection
 public class MongoDbUpdateDataProvider inherits DataProvider::AbstractDataProvider {

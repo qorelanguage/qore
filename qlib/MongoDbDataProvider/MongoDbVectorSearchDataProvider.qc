@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 public namespace MongoDbDataProvider {
 #! MongoDB Atlas Vector Search data provider — runs a `$vectorSearch` pipeline
 /** Wraps a MongoDB collection's aggregation pipeline with a single

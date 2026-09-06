@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 public namespace MongoDbDataProvider {
 #! MongoDB bulk data provider - executes bulk write operations on a collection
 public class MongoDbBulkDataProvider inherits DataProvider::AbstractDataProvider {

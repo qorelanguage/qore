@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 public namespace QoreRagUtils {
 #! MongoDB Atlas Vector Search-backed vector store
 /** Adapter that turns a MongoDB collection with an Atlas Vector Search

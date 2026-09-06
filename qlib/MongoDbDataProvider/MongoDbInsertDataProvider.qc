@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 public namespace MongoDbDataProvider {
 #! MongoDB insert data provider - inserts documents into a collection
 public class MongoDbInsertDataProvider inherits DataProvider::AbstractDataProvider {

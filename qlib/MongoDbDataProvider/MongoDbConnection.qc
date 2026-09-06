@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 public namespace MongoDbDataProvider {
 #! MongoDB connection class
 /** Provides connection support for MongoDB servers using the mongodb:// URL scheme.

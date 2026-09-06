@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 public namespace MongoDbDataProvider {
 #! MongoDB aggregate data provider - runs aggregation pipelines on a collection
 public class MongoDbAggregateDataProvider inherits DataProvider::AbstractDataProvider {
