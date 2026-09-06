@@ -145,6 +145,10 @@ printf("%Y\n", ans.body);
     @section restclientrelnotes Release Notes
 
     @subsection restclientv2_7 RestClient v2.7
+    - fixed a \c charset parameter being appended to a \c "multipart/*" \c Content-Type header;
+      \c charset is not defined for multipart types, and appending it after the \c boundary
+      parameter breaks strict multipart parsers.  @ref Qore::HTTPClient "HTTPClient" already
+      applied this rule when adding the charset itself, so the two disagreed
     - fixed connections that always use the authorization code grant reporting that they cannot be
       authorized; their \c checkAuthCodeFeature() overrides set only the authorization code feature
       and not the general \c oauth2-auth feature a UI reads to offer an \c Authorize control, so
@@ -3295,7 +3299,11 @@ hash<auto> ans = rest.doSignedRequest("X-Signature", signer, "DELETE", "/orders/
             if (!hdr{ct}) {
                 hdr{ct} = req.content;
             }
-            if (!noCharset && body.typeCode() == NT_STRING && hdr{ct} !~ /;charset=/) {
+            # NOTE a "charset" parameter is not defined for "multipart/*" types, and appending
+            # one after the "boundary" parameter breaks strict parsers; QoreHttpClientObject
+            # applies the same "boundary=" guard when it adds the charset itself
+            if (!noCharset && body.typeCode() == NT_STRING && hdr{ct} !~ /;charset=/
+                    && hdr{ct} !~ /boundary=/) {
                 hdr{ct} += ";charset=" + body.encoding();
             }
             if (seh.ce && body.size() > CompressionThreshold) {

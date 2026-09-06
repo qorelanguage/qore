@@ -717,6 +717,10 @@ RestClientIo rest2({"url": "https://api.example.com", "data": "xml"}, shared_mgr
                 "apikey": True,
                 "x-auth-token": True,
                 "x-amz-security-token": True,
+                # vendor-specific API key headers used by RestClientIo subclasses
+                "unstructured-api-key": True,
+                "ocp-apim-subscription-key": True,
+                "x-key": True,
             };
 
             #! Accept header list
@@ -2927,9 +2931,14 @@ rest.restSseStream("GET", "/events", sub (hash<SseMessageInfo> evt) {
                         hdr."content-type" = req.content;
                     }
                 }
+                # NOTE a "charset" parameter is not defined for "multipart/*" types, and
+                # appending one after the "boundary" parameter breaks strict parsers;
+                # QoreHttpClientObject applies the same "boundary=" guard when it adds the
+                # charset itself
                 if (!req_no_charset && serialized_body.typeCode() == NT_STRING
                         && hdr."content-type".val()
-                        && hdr."content-type" !~ /;charset=/) {
+                        && hdr."content-type" !~ /;charset=/
+                        && hdr."content-type" !~ /boundary=/) {
                     hdr."content-type" += ";charset=" + serialized_body.encoding();
                 }
                 if (req_seh.ce && serialized_body.size() > RestClient::RestClient::CompressionThreshold) {
