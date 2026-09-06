@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore Tavily sub-provider class definitions (search / extract / crawl / map)
+#! Qore Tavily sub-provider class definitions
 
 /** TavilySubProviders.qc Copyright 2026 Qore Technologies, s.r.o.
 
@@ -133,6 +133,126 @@ public class TavilyMapDataProvider inherits TavilyDataProviderCommon {
 
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
         return doRestCommand("POST", "map", req).body;
+    }
+}
+
+#! Starts a research task
+public class TavilyResearchDataProvider inherits TavilyDataProviderCommon {
+    public {
+        const ProviderInfo = <DataProviderInfo>{
+            "name": "research",
+            "type": "TavilyResearchDataProvider",
+            "constructor_options": ConstructorOptions,
+            "supports_request": True,
+        };
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
+        static TavilyResearchRequestDataType RequestType = new TavilyResearchRequestDataType();
+        static TavilyResearchTaskDataType ResponseType = new TavilyResearchTaskDataType();
+    }
+
+    constructor(RestClientIo::RestClientIo rest) : TavilyDataProviderCommon(rest) {}
+    constructor(*hash<auto> options) : TavilyDataProviderCommon(options) {}
+
+    string getName() { return ProviderInfo.name; }
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() { return RequestType; }
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() { return ResponseType; }
+    private hash<DataProviderInfo> getStaticInfoImpl() { return ProviderInfo; }
+
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        return doRestCommand("POST", "research", req).body;
+    }
+}
+
+#! Reads a research task and, once it has finished, its report
+public class TavilyGetResearchDataProvider inherits TavilyDataProviderCommon {
+    public {
+        const ProviderInfo = <DataProviderInfo>{
+            "name": "get-research",
+            "type": "TavilyGetResearchDataProvider",
+            "constructor_options": ConstructorOptions,
+            "supports_request": True,
+        };
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
+        static TavilyGetResearchRequestDataType RequestType = new TavilyGetResearchRequestDataType();
+        static TavilyResearchReportDataType ResponseType = new TavilyResearchReportDataType();
+    }
+
+    constructor(RestClientIo::RestClientIo rest) : TavilyDataProviderCommon(rest) {}
+    constructor(*hash<auto> options) : TavilyDataProviderCommon(options) {}
+
+    string getName() { return ProviderInfo.name; }
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() { return RequestType; }
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() { return ResponseType; }
+    private hash<DataProviderInfo> getStaticInfoImpl() { return ProviderInfo; }
+
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        # a task that has not finished answers 202 with only its status, which is not an error;
+        # the caller reads "status" and asks again
+        return doRestCommand("GET", "research/" + encode_url(req.request_id, True)).body;
+    }
+}
+
+#! Reports what the API key and the account have spent
+public class TavilyUsageDataProvider inherits TavilyDataProviderCommon {
+    public {
+        const ProviderInfo = <DataProviderInfo>{
+            "name": "usage",
+            "type": "TavilyUsageDataProvider",
+            "constructor_options": ConstructorOptions,
+            "supports_request": True,
+        };
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
+        static TavilyUsageRequestDataType RequestType = new TavilyUsageRequestDataType();
+        static TavilyUsageResponseDataType ResponseType = new TavilyUsageResponseDataType();
+    }
+
+    constructor(RestClientIo::RestClientIo rest) : TavilyDataProviderCommon(rest) {}
+    constructor(*hash<auto> options) : TavilyDataProviderCommon(options) {}
+
+    string getName() { return ProviderInfo.name; }
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() { return RequestType; }
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() { return ResponseType; }
+    private hash<DataProviderInfo> getStaticInfoImpl() { return ProviderInfo; }
+
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        # the project is named in a header rather than in the query string
+        *hash<auto> hdr = req.project_id.val() ? {"X-Project-ID": req.project_id} : NOTHING;
+        return doRestCommand("GET", "usage", NOTHING, hdr).body;
+    }
+}
+
+#! Lists the requests made against the account
+public class TavilyLogsDataProvider inherits TavilyDataProviderCommon {
+    public {
+        const ProviderInfo = <DataProviderInfo>{
+            "name": "logs",
+            "type": "TavilyLogsDataProvider",
+            "constructor_options": ConstructorOptions,
+            "supports_request": True,
+        };
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
+        static TavilyLogsRequestDataType RequestType = new TavilyLogsRequestDataType();
+        static TavilyLogsResponseDataType ResponseType = new TavilyLogsResponseDataType();
+    }
+
+    constructor(RestClientIo::RestClientIo rest) : TavilyDataProviderCommon(rest) {}
+    constructor(*hash<auto> options) : TavilyDataProviderCommon(options) {}
+
+    string getName() { return ProviderInfo.name; }
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() { return RequestType; }
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() { return ResponseType; }
+    private hash<DataProviderInfo> getStaticInfoImpl() { return ProviderInfo; }
+
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        return doRestCommand("POST", "logs", req).body;
     }
 }
 }

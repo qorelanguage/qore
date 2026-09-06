@@ -42,17 +42,27 @@ module TavilyDataProvider {
             "name": TavilyDataProvider::AppName,
             "presentation_source_locale": "en",
             "display_name": "Tavily",
-            "short_desc": "Tavily real-time web search for AI agents",
-            "desc": "Provides access to [Tavily](https://www.tavily.com) — the "
-                "agentic web-search API used by AI agents to retrieve real-time "
-                "information.\n\n"
-                "**Common use cases**:\n"
-                "- **Agent tools**: register `tavily_search` / `tavily_extract` as "
-                "tools an LLM can invoke (see @ref tavilyrestclientintro "
-                "\"TavilyRestClient\" docs)\n"
-                "- **RAG ingestion**: fetch fresh sources before embedding\n"
-                "- **Background research** in workflows: get current information "
-                "about products, competitors, news, regulations",
+            "short_desc": "Tavily web search, page reading, site crawling and research agents",
+            "desc": "Provides access to [Tavily](https://www.tavily.com) — a search API built for "
+                "programs rather than for people: the query is meaning, not keywords, and the "
+                "result can be the page content, or the answer, rather than a list of links.\n\n"
+                "**What it covers**:\n"
+                "- **Search** the web semantically, with an answer written over the results and "
+                "each page's full text returned alongside them\n"
+                "- **Read pages** already in hand, reduced to their main content with the "
+                "navigation and advertising removed\n"
+                "- **Crawl and map sites**: walk a site from one URL, either reading every page or "
+                "just listing what is there\n"
+                "- **Research tasks**: an agent that searches, reads and reasons until it can "
+                "answer, returning prose or data shaped by a JSON schema you supply, and able to "
+                "read documents of your own alongside the web\n"
+                "- **Credit usage and logs**: what the key and the account have spent, and the "
+                "individual requests behind it\n\n"
+                "**Where this earns its place**: a model answering from what it was trained on "
+                "cannot know what happened this week, and scraping the pages it would need means "
+                "writing and maintaining an extractor per site.  Tavily returns clean content and "
+                "citations, so the retrieval step of a RAG pipeline or an agent tool becomes one "
+                "call — and the research tasks handle the questions that no single search settles.",
             "scheme": "tavily",
             "logo": TavilyLogo,
             "logo_file_name": "tavily-logo.svg",
@@ -64,12 +74,17 @@ module TavilyDataProvider {
             "app": TavilyDataProvider::AppName,
             "path": "/search",
             "action": "search",
-            "display_name": "Web Search",
-            "short_desc": "Search the web via Tavily",
-            "desc": "Performs a real-time web search via Tavily's `/search` endpoint "
-                "and returns ranked results with title, url, content snippet, and "
-                "relevance score.  Optionally includes an AI-summarized answer over "
-                "the top results.",
+            "display_name": "Search the Web",
+            "short_desc": "Search the web and optionally get an answer written over the results",
+            "desc": "Searches the web on meaning rather than keywords and returns ranked results, "
+                "each with the passage that matched.\n\n"
+                "`search_depth` is the trade between latency, cost and recall - `ultra-fast` "
+                "answers in well under a second, `advanced` reads and re-ranks more of each page.  "
+                "`topic` narrows the corpus to news or finance, which is usually a better filter "
+                "than adding words to the query.\n\n"
+                "Set `include_answer` to get a written answer over the results rather than a list "
+                "to read, and `include_raw_content` to get each page's full text back with the "
+                "results instead of fetching it separately with **Read Pages**.",
             "action_code": DPAT_API,
             "groups": ("Search",),
             "options": DataProviderActionCatalog::getActionOptionFromFields(
@@ -78,13 +93,15 @@ module TavilyDataProvider {
                 }
             ) + DataProviderActionCatalog::getActionOptionFromFields(
                 TavilySearchRequestDataType::Fields{
-                    "search_depth", "max_results", "include_answer",
+                    "search_depth", "topic", "max_results", "include_answer",
+                    "include_raw_content",
                 }, {
                     "preselected": True,
                 }
             ) + DataProviderActionCatalog::getActionOptionFromFields(
                 TavilySearchRequestDataType::Fields - (
-                    "query", "search_depth", "max_results", "include_answer",
+                    "query", "search_depth", "topic", "max_results", "include_answer",
+                    "include_raw_content",
                 )
             ),
             "output_type": TavilySearchDataProvider::ResponseType,
@@ -94,11 +111,16 @@ module TavilyDataProvider {
             "app": TavilyDataProvider::AppName,
             "path": "/extract",
             "action": "extract",
-            "display_name": "Extract URLs",
-            "short_desc": "Extract main content from URLs via Tavily",
-            "desc": "Extracts the main readable content from a list of URLs via "
-                "Tavily's `/extract` endpoint.  Useful as a follow-up to a `search` "
-                "result when the agent decides to read specific pages in full.",
+            "display_name": "Read Pages",
+            "short_desc": "Fetch pages and return their main content",
+            "desc": "Fetches the given pages and returns the main content of each, with the "
+                "navigation, advertising and boilerplate removed.\n\n"
+                "Use this on URLs already in hand - typically the ones **Search the Web** "
+                "returned.  Give a `query` to keep only the parts of each page relevant to it, "
+                "which is what stops a long page from filling a model's context window with the "
+                "rest.\n\n"
+                "Pages that cannot be read are reported in `failed_results` rather than failing "
+                "the request, so a partial success is normal and worth checking.",
             "action_code": DPAT_API,
             "groups": ("Extract",),
             "options": DataProviderActionCatalog::getActionOptionFromFields(
@@ -106,7 +128,13 @@ module TavilyDataProvider {
                     "preselected": True, "required": True,
                 }
             ) + DataProviderActionCatalog::getActionOptionFromFields(
-                TavilyExtractRequestDataType::Fields - ("urls",)
+                TavilyExtractRequestDataType::Fields{"query", "extract_depth", "format",}, {
+                    "preselected": True,
+                }
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
+                TavilyExtractRequestDataType::Fields - (
+                    "urls", "query", "extract_depth", "format",
+                )
             ),
             "output_type": TavilyExtractDataProvider::ResponseType,
         });
@@ -115,11 +143,15 @@ module TavilyDataProvider {
             "app": TavilyDataProvider::AppName,
             "path": "/crawl",
             "action": "crawl",
-            "display_name": "Crawl Site",
-            "short_desc": "Crawl a site starting from a seed URL",
-            "desc": "Multi-page web crawl starting from a seed URL via Tavily's "
-                "`/crawl` endpoint.  Returns a tree of discovered pages with their "
-                "extracted content.",
+            "display_name": "Crawl a Site",
+            "short_desc": "Follow links from a page and return the content of everything found",
+            "desc": "Follows links from a starting page and returns the content of every page it "
+                "reads - a site walked and read in one call, rather than one request per URL.\n\n"
+                "`instructions` describes in natural language which pages are wanted, and is "
+                "usually easier to get right than the path and domain patterns; the two can be "
+                "combined.  `limit` is the ceiling on what the crawl costs, so set it first.\n\n"
+                "`allow_external` defaults to `True`, so a crawl meant to stay on one site must "
+                "set it to `False`.  Use **Map a Site** first when only the URLs are wanted.",
             "action_code": DPAT_API,
             "groups": ("Crawl",),
             "options": DataProviderActionCatalog::getActionOptionFromFields(
@@ -128,13 +160,13 @@ module TavilyDataProvider {
                 }
             ) + DataProviderActionCatalog::getActionOptionFromFields(
                 TavilyCrawlRequestDataType::Fields{
-                    "max_depth", "max_breadth", "limit",
+                    "instructions", "max_depth", "limit", "allow_external",
                 }, {
                     "preselected": True,
                 }
             ) + DataProviderActionCatalog::getActionOptionFromFields(
                 TavilyCrawlRequestDataType::Fields - (
-                    "url", "max_depth", "max_breadth", "limit",
+                    "url", "instructions", "max_depth", "limit", "allow_external",
                 )
             ),
             "output_type": TavilyCrawlDataProvider::ResponseType,
@@ -144,11 +176,12 @@ module TavilyDataProvider {
             "app": TavilyDataProvider::AppName,
             "path": "/map",
             "action": "map",
-            "display_name": "Map Site URLs",
-            "short_desc": "Enumerate URLs reachable from a seed URL",
-            "desc": "Enumerates URLs reachable from a seed URL via Tavily's `/map` "
-                "endpoint without fetching page content.  Useful for site discovery "
-                "before a targeted `/extract` or `/crawl` call.",
+            "display_name": "Map a Site",
+            "short_desc": "List the URLs reachable from a page without reading them",
+            "desc": "Follows links from a starting page and returns the URLs it finds, without "
+                "fetching any page content.\n\n"
+                "This is the cheap survey step: map a site first to see what is there, then read "
+                "the pages that matter with **Read Pages** rather than crawling everything.",
             "action_code": DPAT_API,
             "groups": ("Crawl",),
             "options": DataProviderActionCatalog::getActionOptionFromFields(
@@ -156,9 +189,109 @@ module TavilyDataProvider {
                     "preselected": True, "required": True,
                 }
             ) + DataProviderActionCatalog::getActionOptionFromFields(
-                TavilyMapRequestDataType::Fields - ("url",)
+                TavilyMapRequestDataType::Fields{
+                    "instructions", "max_depth", "limit", "allow_external",
+                }, {
+                    "preselected": True,
+                }
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
+                TavilyMapRequestDataType::Fields - (
+                    "url", "instructions", "max_depth", "limit", "allow_external",
+                )
             ),
             "output_type": TavilyMapDataProvider::ResponseType,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": TavilyDataProvider::AppName,
+            "path": "/research",
+            "action": "research",
+            "display_name": "Start Research",
+            "short_desc": "Set an agent to research a question and return the task it started",
+            "desc": "Starts a research task: an agent searches, reads and reasons over the web "
+                "until it can answer, rather than returning what one search found.\n\n"
+                "Use this where **Search the Web** is not enough - a question that needs several "
+                "searches, or whose answer has to be assembled from many pages.  `model` is the "
+                "budget: `mini` is quick, `pro` works harder, `auto` decides from the task.\n\n"
+                "The task runs asynchronously and this action returns immediately with its "
+                "`request_id`; read the report with **Get Research Report**.  Set `output_schema` "
+                "to get structured data back rather than prose, and `files` to have the agent read "
+                "documents of your own alongside what it finds.",
+            "action_code": DPAT_API,
+            "groups": ("Research",),
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
+                TavilyResearchRequestDataType::Fields{"input",}, {
+                    "preselected": True, "required": True,
+                }
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
+                TavilyResearchRequestDataType::Fields{"model", "output_length",}, {
+                    "preselected": True,
+                }
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
+                TavilyResearchRequestDataType::Fields - ("input", "model", "output_length",)
+            ),
+            "output_type": TavilyResearchDataProvider::ResponseType,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": TavilyDataProvider::AppName,
+            "path": "/get-research",
+            "action": "get-research",
+            "display_name": "Get Research Report",
+            "short_desc": "Read a research task and its report once it has finished",
+            "desc": "Reads a research task started by **Start Research**.\n\n"
+                "`status` says where it has got to - `pending`, `in_progress`, `completed` or "
+                "`failed` - and `content` and `sources` are present once it is `completed`.  A "
+                "task that is still running is not an error: read `status` and ask again.",
+            "action_code": DPAT_API,
+            "groups": ("Research",),
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
+                TavilyGetResearchRequestDataType::Fields{"request_id",}, {
+                    "preselected": True, "required": True,
+                }
+            ),
+            "output_type": TavilyGetResearchDataProvider::ResponseType,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": TavilyDataProvider::AppName,
+            "path": "/usage",
+            "action": "usage",
+            "display_name": "Get Credit Usage",
+            "short_desc": "Report what the API key and the account have spent",
+            "desc": "Reports what this API key and the whole account have spent in the current "
+                "billing period, broken down by endpoint, together with the plan's allowance.\n\n"
+                "Comparing `account.plan_usage` with `account.plan_limit` is what lets a flow "
+                "stop before it runs out of credits rather than discovering it mid-run.",
+            "action_code": DPAT_API,
+            "groups": ("Account",),
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
+                TavilyUsageRequestDataType::Fields
+            ),
+            "output_type": TavilyUsageDataProvider::ResponseType,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": TavilyDataProvider::AppName,
+            "path": "/logs",
+            "action": "logs",
+            "display_name": "List API Usage Logs",
+            "short_desc": "List the requests made against the account, newest first",
+            "desc": "Lists the requests made against the account, newest first, each with the "
+                "endpoint it called, what it cost and how long it took.\n\n"
+                "This is where a credit total from **Get Credit Usage** is broken down into the "
+                "individual requests that produced it.  Narrow the listing with `endpoints`, a "
+                "date window, or `filter_by_api_key` to see only this key's own requests.",
+            "action_code": DPAT_API,
+            "groups": ("Account",),
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
+                TavilyLogsRequestDataType::Fields{"limit", "endpoints",}, {
+                    "preselected": True,
+                }
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
+                TavilyLogsRequestDataType::Fields - ("limit", "endpoints",)
+            ),
+            "output_type": TavilyLogsDataProvider::ResponseType,
         });
     };
 }
@@ -169,18 +302,80 @@ module TavilyDataProvider {
 
     @section tavilydataproviderintro TavilyDataProvider Introduction
 
-    The %TavilyDataProvider module provides a data provider API for
-    [Tavily](https://www.tavily.com) web-search services.
+    Data-provider integration for [Tavily](https://www.tavily.com), a search API built for programs:
+    the query is meaning rather than keywords, and the result can be the page content, or the
+    answer, rather than a list of links.
 
-    The following data providers are exposed:
-    - @ref TavilyDataProvider::TavilyDataProvider "TavilyDataProvider" — root
-    - @ref TavilyDataProvider::TavilySearchDataProvider "TavilySearchDataProvider"
-    - @ref TavilyDataProvider::TavilyExtractDataProvider "TavilyExtractDataProvider"
-    - @ref TavilyDataProvider::TavilyCrawlDataProvider "TavilyCrawlDataProvider"
-    - @ref TavilyDataProvider::TavilyMapDataProvider "TavilyMapDataProvider"
+    The application covers the Tavily API:
 
-    For agent-tool wiring see the @ref tavilyrestclientintro
-    "TavilyRestClient" module's `TavilyAgentTools` namespace.
+    |!Group|!What it does
+    |Search|search the web semantically, with an answer and each page's full text returned alongside the results
+    |Extract|fetch pages already in hand and return their main content, with the boilerplate removed
+    |Crawl|walk a site from one URL and read every page it finds
+    |Research|set an agent to search, read and reason until it can answer, then collect the report
+    |Account|report credit usage, and list the requests behind it
+
+    @section tavilydataproviderpicking Which Action to Use
+
+    The reading actions overlap, and the difference is how much is already known:
+
+    |!Action|!Returns|!Use it when
+    |\c search|ranked results, with an answer or full text on request|the pages are not known yet
+    |\c extract|the content of the pages given|the URLs are already in hand
+    |\c map|the URLs reachable from a page|only the shape of a site is wanted
+    |\c crawl|the content of everything reachable|a whole section has to be read
+    |\c research|a written or structured report, with sources|no single search settles the question
+
+    @section tavilydataproviderusage Searching and Reading
+
+    @code{.py}
+AbstractDataProvider tavily = conn.getDataProvider();
+
+# one call: search, and get the pages' text back with the results
+hash<auto> res = tavily.getChildProviderEx("search").doRequest({
+    "query": "what changed in the EU AI Act in 2026?",
+    "topic": "news",
+    "search_depth": "advanced",
+    "include_answer": "advanced",
+    "include_raw_content": "markdown",
+    "max_results": 5,
+});
+printf("%s\n", res.answer);
+map printf("  %s (%s)\n", $1.title, $1.url), res.results;
+    @endcode
+
+    @section tavilydataproviderresearch Research Tasks
+
+    A research task is asynchronous: \c research starts it and returns a \c request_id, and
+    \c get-research reads it.  \c status is \c pending, \c in_progress, \c completed or
+    \c failed, and the report is present once it has completed — a task that is still running is
+    not an error.
+
+    @code{.py}
+hash<auto> task = tavily.getChildProviderEx("research").doRequest({
+    "input": "Compare the licence terms of the three largest commercial alternatives",
+    "model": "pro",
+    "citation_format": "apa",
+});
+hash<auto> report = tavily.getChildProviderEx("get-research").doRequest({
+    "request_id": task.request_id,
+});
+if (report.status == "completed") {
+    printf("%s\n", report.content);
+}
+    @endcode
+
+    Set \c output_schema to get \c content back as structured data rather than prose, and
+    \c files to have the agent read documents of your own alongside what it finds on the web.
+
+    @section tavilydataproviderscope What Is Not Covered
+
+    Tavily's enterprise key-management endpoints (\c generate-keys, \c deactivate-keys and
+    \c key-info) are not exposed: they live on a different host and answer
+    <tt>"This service is available for enterprise customers only."</tt>
+
+    For agent-tool wiring see the @ref tavilyrestclientintro "TavilyRestClient" module's
+    \c TavilyAgentTools namespace.
 
     @section TavilyDataProviderRelnotes Release Notes
 

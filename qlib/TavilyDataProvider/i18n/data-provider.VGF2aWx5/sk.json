@@ -4,12 +4,36 @@
     "sk": {
       "messages": {
         "app.VGF2aWx5.action.Y3Jhd2w.desc": {
-          "source": "Multi-page web crawl starting from a seed URL via Tavily's `/crawl` endpoint.  Returns a tree of discovered pages with their extracted content.",
-          "message": "Viacstránkové prechádzanie webu začínajúce od počiatočnej adresy URL cez koncový bod `/crawl` služby Tavily. Vracia strom objavených stránok s ich extrahovaným obsahom."
+          "source": "Follows links from a starting page and returns the content of every page it reads - a site walked and read in one call, rather than one request per URL.\n\n`instructions` describes in natural language which pages are wanted, and is usually easier to get right than the path and domain patterns; the two can be combined.  `limit` is the ceiling on what the crawl costs, so set it first.\n\n`allow_external` defaults to `True`, so a crawl meant to stay on one site must set it to `False`.  Use **Map a Site** first when only the URLs are wanted.",
+          "message": "Sleduje odkazy z východiskovej stránky a vracia obsah každej prečítanej stránky – web prejdený a prečítaný jedným volaním namiesto jednej požiadavky na každú adresu URL.\n\n`instructions` popisuje prirodzeným jazykom, ktoré stránky sú žiadané, a býva ľahšie ich trafiť než vzory ciest a domén; oboje sa dá kombinovať.  `limit` je strop toho, koľko prechádzanie stojí, nastavte ho teda ako prvý.\n\n`allow_external` je predvolene `True`, takže prechádzanie, ktoré má zostať na jednom webe, ho musí nastaviť na `False`.  Ak chcete len adresy URL, použite najprv akciu **Zmapovať web**."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.display_name": {
-          "source": "Crawl Site",
-          "message": "Prechádzať stránku"
+          "source": "Crawl a Site",
+          "message": "Prejsť web"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Y2h1bmtzX3Blcl9zb3VyY2U.desc": {
+          "source": "How many separately-scored chunks to keep from each page, from 1 to 5.  Defaults to 3.",
+          "message": "Koľko samostatne hodnotených častí sa z každej stránky ponechá, od 1 do 5.  Predvolená hodnota je 3."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Y2h1bmtzX3Blcl9zb3VyY2U.display_name": {
+          "source": "Chunks per Page",
+          "message": "Časti na stránku"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Y2h1bmtzX3Blcl9zb3VyY2U.short_desc": {
+          "source": "How many relevant chunks to keep from each page",
+          "message": "Koľko relevantných častí sa z každej stránky ponechá"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.YWxsb3dfZXh0ZXJuYWw.desc": {
+          "source": "Whether the crawl may follow links off the starting site.  Defaults to `True`, so a crawl meant to stay on one site should set this to `False`.",
+          "message": "Či prechádzanie smie sledovať odkazy vedúce mimo východiskového webu.  Predvolená hodnota je `True`, takže prechádzanie, ktoré má zostať na jednom webe, by ju malo nastaviť na `False`."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.YWxsb3dfZXh0ZXJuYWw.display_name": {
+          "source": "Follow External Links",
+          "message": "Sledovať externé odkazy"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.YWxsb3dfZXh0ZXJuYWw.short_desc": {
+          "source": "Whether the crawl may leave the starting site",
+          "message": "Či prechádzanie smie opustiť východiskový web"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXh0cmFjdF9kZXB0aA.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
           "source": "Advanced",
@@ -20,112 +44,240 @@
           "message": "Základný"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXh0cmFjdF9kZXB0aA.desc": {
-          "source": "Extraction depth applied to each crawled page.",
-          "message": "Hĺbka extrakcie aplikovaná na každú prejdenú stránku."
+          "source": "How hard Tavily works to read each page it fetches.  `advanced` recovers content from pages that render it with scripts, at higher cost and latency.",
+          "message": "Koľko práce Tavily venuje čítaniu každej načítanej stránky.  `advanced` získa obsah aj zo stránok, ktoré ho vykresľujú skriptami, za vyššiu cenu a odozvu."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXh0cmFjdF9kZXB0aA.display_name": {
-          "source": "Extract Depth",
+          "source": "Extraction Depth",
           "message": "Hĺbka extrakcie"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXh0cmFjdF9kZXB0aA.short_desc": {
-          "source": "Per-page extraction depth",
-          "message": "Hĺbka extrakcie na stránku"
+          "source": "How hard Tavily works to read each page",
+          "message": "Koľko práce Tavily venuje čítaniu každej stránky"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9kb21haW5z.desc": {
+          "source": "Regular expressions that exclude a domain from the crawl.",
+          "message": "Regulárne výrazy, ktoré doménu z prechádzania vylučujú."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+          "source": "Exclude Domains",
+          "message": "Vylúčiť domény"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
+          "source": "Regular expressions that exclude a domain",
+          "message": "Regulárne výrazy, ktoré doménu vylučujú"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9wYXRocw.desc": {
-          "source": "List of URL path patterns to exclude.",
-          "message": "Zoznam vzorov ciest URL, ktoré sa majú vylúčiť."
+          "source": "Regular expressions that exclude a page from the crawl by its URL path.",
+          "message": "Regulárne výrazy, ktoré stránku z prechádzania vylučujú podľa cesty jej adresy URL."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9wYXRocw.display_name": {
           "source": "Exclude Paths",
           "message": "Vylúčiť cesty"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9wYXRocw.short_desc": {
-          "source": "URL path patterns to exclude",
-          "message": "Vzory ciest URL na vylúčenie"
+          "source": "Regular expressions that exclude a path",
+          "message": "Regulárne výrazy, ktoré cestu vylučujú"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "Obyčajný text"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.desc": {
+          "source": "The form each page's text is returned in.  `markdown` keeps headings, lists and links; `text` is prose only.",
+          "message": "Podoba, v ktorej sa text každej stránky vracia.  `markdown` zachová nadpisy, zoznamy a odkazy; `text` dá len súvislý text."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.display_name": {
+          "source": "Format",
+          "message": "Formát"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.short_desc": {
+          "source": "The form each page's text is returned in",
+          "message": "Podoba, v ktorej sa text každej stránky vracia"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV91c2FnZQ.desc": {
+          "source": "Return what this request cost in credits, as `usage`.",
+          "message": "Vrátiť, koľko táto požiadavka stála kreditov, ako `usage`."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV91c2FnZQ.display_name": {
+          "source": "Credit Usage",
+          "message": "Spotreba kreditov"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV91c2FnZQ.short_desc": {
+          "source": "Return what this request cost",
+          "message": "Vrátiť, koľko táto požiadavka stála"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9mYXZpY29u.desc": {
+          "source": "Return each page's favicon URL, for rendering a source list.",
+          "message": "Vracať adresu URL favikony každej stránky na zobrazenie zoznamu zdrojov."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9mYXZpY29u.display_name": {
+          "source": "Favicons",
+          "message": "Favikony"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9mYXZpY29u.short_desc": {
+          "source": "Return each page's favicon URL",
+          "message": "Vracať adresu URL favikony každej stránky"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9pbWFnZXM.desc": {
+          "source": "Return the images found on each page.",
+          "message": "Vracať obrázky nájdené na každej stránke."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9pbWFnZXM.display_name": {
+          "source": "Images",
+          "message": "Obrázky"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9pbWFnZXM.short_desc": {
+          "source": "Return the images found on each page",
+          "message": "Vracať obrázky nájdené na každej stránke"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.aW5zdHJ1Y3Rpb25z.desc": {
-          "source": "Optional natural-language hints to guide the crawler (e.g. \"focus on API reference pages\").",
-          "message": "Voliteľné pokyny v prirodzenom jazyku na usmernenie crawlera (napr. „zameraj sa na referenčné stránky API“)."
+          "source": "Describe in natural language which pages are wanted - \"the API reference pages\", \"anything about pricing\" - and Tavily decides which links to follow.  This is usually easier to get right than the path and domain patterns below, and can be combined with them.",
+          "message": "Popísať prirodzeným jazykom, ktoré stránky sú žiadané – „referenčné stránky API“, „čokoľvek o cenách“ – a Tavily rozhodne, ktoré odkazy sledovať.  Býva to ľahšie trafiť než nižšie uvedené vzory ciest a domén a dá sa to s nimi kombinovať."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.aW5zdHJ1Y3Rpb25z.display_name": {
           "source": "Instructions",
           "message": "Pokyny"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.aW5zdHJ1Y3Rpb25z.short_desc": {
-          "source": "Natural-language instructions for the crawl agent",
-          "message": "Pokyny v prirodzenom jazyku pre agenta prechádzania"
+          "source": "Describe in natural language which pages are wanted",
+          "message": "Popísať prirodzeným jazykom, ktoré stránky sú žiadané"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bGltaXQ.desc": {
-          "source": "Maximum total pages to fetch across the crawl.",
-          "message": "Maximálny celkový počet stránok, ktoré sa majú načítať v rámci prechádzania."
+          "source": "How many pages to read in total.  Defaults to 50.  This is the ceiling on what the crawl costs, so set it before setting the depth and breadth.",
+          "message": "Koľko stránok sa celkovo prečíta.  Predvolená hodnota je 50.  Je to strop toho, koľko prechádzanie stojí, nastavte ho teda skôr než hĺbku a šírku."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bGltaXQ.display_name": {
-          "source": "Limit",
-          "message": "Limit"
+          "source": "Page Limit",
+          "message": "Limit stránok"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bGltaXQ.short_desc": {
-          "source": "Overall page limit",
-          "message": "Celkový limit stránok"
+          "source": "How many pages to read in total",
+          "message": "Koľko stránok sa celkovo prečíta"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2JyZWFkdGg.desc": {
-          "source": "Maximum number of outgoing links to follow per page.",
-          "message": "Maximálny počet odchádzajúcich odkazov, ktoré sa majú sledovať na stránku."
+          "source": "How many links to follow from each page, from 1 to 500.  Defaults to 20.",
+          "message": "Koľko odkazov sa sleduje z každej stránky, od 1 do 500.  Predvolená hodnota je 20."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2JyZWFkdGg.display_name": {
-          "source": "Max Breadth",
-          "message": "Maximálna šírka"
+          "source": "Maximum Breadth",
+          "message": "Najvyššia šírka"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2JyZWFkdGg.short_desc": {
-          "source": "Maximum links to follow per page",
-          "message": "Maximálny počet odkazov na sledovanie na stránku"
+          "source": "How many links to follow from each page",
+          "message": "Koľko odkazov sa sleduje z každej stránky"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2RlcHRo.desc": {
-          "source": "Maximum link-graph depth from the seed URL.",
-          "message": "Maximálna hĺbka grafu odkazov od počiatočnej adresy URL."
+          "source": "How many links away from the start URL the crawl may go, from 1 to 5.  Defaults to 1, which reads only the pages the start URL links to directly.",
+          "message": "Koľko odkazov od východiskovej adresy URL smie prechádzanie zájsť, od 1 do 5.  Predvolená hodnota je 1, takže sa prečítajú len stránky priamo odkazované z východiskovej adresy URL."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2RlcHRo.display_name": {
-          "source": "Max Depth",
-          "message": "Maximálna hĺbka"
+          "source": "Maximum Depth",
+          "message": "Najvyššia hĺbka"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2RlcHRo.short_desc": {
-          "source": "Maximum crawl depth from the seed",
-          "message": "Maximálna hĺbka prechádzania od počiatočnej URL"
+          "source": "How many links away from the start URL to go",
+          "message": "Koľko odkazov od východiskovej adresy URL sa smie zájsť"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X2RvbWFpbnM.desc": {
+          "source": "Regular expressions the domain must match for a page to be read, for example `^docs\\.qore\\.org$`.",
+          "message": "Regulárne výrazy, ktorým musí doména zodpovedať, aby sa stránka prečítala, napríklad `^docs\\.qore\\.org$`."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X2RvbWFpbnM.display_name": {
+          "source": "Only These Domains",
+          "message": "Iba tieto domény"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X2RvbWFpbnM.short_desc": {
+          "source": "Regular expressions the domain must match",
+          "message": "Regulárne výrazy, ktorým musí doména zodpovedať"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X3BhdGhz.desc": {
-          "source": "List of URL path patterns to include.",
-          "message": "Zoznam vzorov ciest URL, ktoré sa majú zahrnúť."
+          "source": "Regular expressions the URL path must match for a page to be read, for example `/docs/.*`.",
+          "message": "Regulárne výrazy, ktorým musí cesta adresy URL zodpovedať, aby sa stránka prečítala, napríklad `/docs/.*`."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X3BhdGhz.display_name": {
-          "source": "Select Paths",
-          "message": "Vybrať cesty"
+          "source": "Only These Paths",
+          "message": "Iba tieto cesty"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X3BhdGhz.short_desc": {
-          "source": "URL path patterns to include",
-          "message": "Vzory ciest URL na zahrnutie"
+          "source": "Regular expressions the path must match",
+          "message": "Regulárne výrazy, ktorým musí cesta zodpovedať"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.dGltZW91dA.desc": {
+          "source": "How long the whole crawl may take, in seconds, from 10 to 150.  Defaults to 150.  A crawl that runs out of time returns what it has.",
+          "message": "Ako dlho smie celé prechádzanie trvať, v sekundách, od 10 do 150.  Predvolená hodnota je 150.  Prechádzanie, ktorému dôjde čas, vráti, čo má."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.dGltZW91dA.display_name": {
+          "source": "Timeout",
+          "message": "Časový limit"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.dGltZW91dA.short_desc": {
+          "source": "How long the whole crawl may take, in seconds",
+          "message": "Ako dlho smie celé prechádzanie trvať, v sekundách"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.dXJs.desc": {
-          "source": "Seed URL the crawl begins at.",
-          "message": "Východisková adresa URL, na ktorej začína prechádzanie."
+          "source": "The page the crawl starts from.  Everything reachable from it, within the limits below, is fetched and read.",
+          "message": "Stránka, ktorou sa prechádzanie začína.  Všetko z nej dosiahnuteľné sa v rámci nižšie uvedených limitov načíta a prečíta."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.dXJs.display_name": {
-          "source": "Seed URL",
-          "message": "Zdrojová URL"
+          "source": "Start URL",
+          "message": "Východisková adresa URL"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.dXJs.short_desc": {
-          "source": "URL to start the crawl from",
-          "message": "URL, z ktorej sa má začať prechádzanie"
+          "source": "The page the crawl starts from",
+          "message": "Stránka, ktorou sa prechádzanie začína"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.short_desc": {
-          "source": "Crawl a site starting from a seed URL",
-          "message": "Prechádzať lokalitu od východiskovej adresy URL"
+          "source": "Follow links from a page and return the content of everything found",
+          "message": "Sledovať odkazy zo stránky a vrátiť obsah všetkého nájdeného"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.desc": {
+          "source": "Reads a research task started by **Start Research**.\n\n`status` says where it has got to - `pending`, `in_progress`, `completed` or `failed` - and `content` and `sources` are present once it is `completed`.  A task that is still running is not an error: read `status` and ask again.",
+          "message": "Prečíta výskumnú úlohu spustenú akciou **Spustiť výskum**.\n\n`status` hovorí, kde sa nachádza – `pending`, `in_progress`, `completed` alebo `failed` – a `content` so `sources` sú k dispozícii, hneď ako je `completed`.  Doteraz bežiaca úloha nie je chyba: prečítajte `status` a spýtajte sa znova."
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.display_name": {
+          "source": "Get Research Report",
+          "message": "Získať výskumnú správu"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.option.cmVxdWVzdF9pZA.desc": {
+          "source": "The research task to read, as returned by **Start Research** in `request_id`.\n\nThe dropdown lists the research tasks this account has started, taken from the usage log.  The log is written a few minutes after a task starts, so a task begun moments ago is not in it yet: use the `request_id` **Start Research** returned.",
+          "message": "Výskumná úloha, ktorá sa má prečítať, tak ako ju akcia **Spustiť výskum** vrátila v `request_id`.\n\nRozbaľovací zoznam ukazuje výskumné úlohy spustené týmto účtom, prevzaté z protokolu využitia.  Protokol sa zapisuje niekoľko minút po spustení úlohy, takže práve spustená úloha v ňom ešte nie je: použite potom `request_id`, ktoré vrátila akcia **Spustiť výskum**."
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.option.cmVxdWVzdF9pZA.display_name": {
+          "source": "Task ID",
+          "message": "ID úlohy"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.option.cmVxdWVzdF9pZA.short_desc": {
+          "source": "The research task to read",
+          "message": "Výskumná úloha, ktorá sa má prečítať"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.short_desc": {
+          "source": "Read a research task and its report once it has finished",
+          "message": "Prečítať výskumnú úlohu a jej správu, hneď ako skončí"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.desc": {
-          "source": "Extracts the main readable content from a list of URLs via Tavily's `/extract` endpoint.  Useful as a follow-up to a `search` result when the agent decides to read specific pages in full.",
-          "message": "Extrahuje hlavný čitateľný obsah zo zoznamu adries URL cez koncový bod `/extract` služby Tavily. Užitočné ako nadväznosť na výsledok `search`, keď sa agent rozhodne prečítať konkrétne stránky v plnom rozsahu."
+          "source": "Fetches the given pages and returns the main content of each, with the navigation, advertising and boilerplate removed.\n\nUse this on URLs already in hand - typically the ones **Search the Web** returned.  Give a `query` to keep only the parts of each page relevant to it, which is what stops a long page from filling a model's context window with the rest.\n\nPages that cannot be read are reported in `failed_results` rather than failing the request, so a partial success is normal and worth checking.",
+          "message": "Načíta zadané stránky a vráti hlavný obsah každej z nich, bez navigácie, reklamy a opakujúcich sa prvkov.\n\nPoužite to na adresy URL, ktoré už máte – typicky tie vrátené akciou **Hľadať na webe**.  Zadajte `query`, ak chcete z každej stránky ponechať len časti, ktoré sa jej týkajú; to zabráni tomu, aby dlhá stránka zaplnila kontextové okno modelu zvyškom.\n\nStránky, ktoré sa nedajú prečítať, sa hlásia v `failed_results`, namiesto toho, aby požiadavka zlyhala; čiastočný úspech je teda bežný a stojí za kontrolu."
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.display_name": {
-          "source": "Extract URLs",
-          "message": "Extrahovať adresy URL"
+          "source": "Read Pages",
+          "message": "Čítať stránky"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Y2h1bmtzX3Blcl9zb3VyY2U.desc": {
+          "source": "How many separately-scored chunks to keep from each page, from 1 to 5.  Has an effect only together with `query`.  Defaults to 3.",
+          "message": "Koľko samostatne hodnotených častí sa z každej stránky ponechá, od 1 do 5.  Má vplyv len spolu s `query`.  Predvolená hodnota je 3."
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Y2h1bmtzX3Blcl9zb3VyY2U.display_name": {
+          "source": "Chunks per Source",
+          "message": "Časti na zdroj"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Y2h1bmtzX3Blcl9zb3VyY2U.short_desc": {
+          "source": "How many relevant chunks to keep from each page",
+          "message": "Koľko relevantných častí sa z každej stránky ponechá"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.ZXh0cmFjdF9kZXB0aA.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
           "source": "Advanced",
@@ -136,44 +288,220 @@
           "message": "Základný"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.ZXh0cmFjdF9kZXB0aA.desc": {
-          "source": "Extraction depth.",
-          "message": "Hĺbka extrakcie."
+          "source": "How hard Tavily works to read the page.  `advanced` recovers content from pages that render it with scripts, at higher cost and latency; `basic` is enough for ordinary articles and documentation.",
+          "message": "Koľko práce Tavily venuje čítaniu stránky.  `advanced` získa obsah aj zo stránok, ktoré ho vykresľujú skriptami, za vyššiu cenu a odozvu; `basic` stačí na bežné články a dokumentáciu."
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.ZXh0cmFjdF9kZXB0aA.display_name": {
-          "source": "Extract Depth",
+          "source": "Extraction Depth",
           "message": "Hĺbka extrakcie"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.ZXh0cmFjdF9kZXB0aA.short_desc": {
-          "source": "Extraction depth: 'basic' or 'advanced'",
-          "message": "Hĺbka extrakcie: 'basic' alebo 'advanced'"
+          "source": "How hard Tavily works to read the page",
+          "message": "Koľko práce Tavily venuje čítaniu stránky"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.allowed-value.c3RyaW5nOmh0bWxfdGFncw.display_name": {
+          "source": "HTML Tags",
+          "message": "Značky HTML"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "Obyčajný text"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.desc": {
+          "source": "The form the page text is returned in.  `markdown` keeps headings, lists and links; `text` is prose only; `html_tags` keeps the original tags.",
+          "message": "Podoba, v ktorej sa text stránky vracia.  `markdown` zachová nadpisy, zoznamy a odkazy; `text` dá len súvislý text; `html_tags` zachová pôvodné značky."
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.display_name": {
+          "source": "Format",
+          "message": "Formát"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.short_desc": {
+          "source": "The form the page text is returned in",
+          "message": "Podoba, v ktorej sa text stránky vracia"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV91c2FnZQ.desc": {
+          "source": "Return what this request cost in credits, as `usage`.",
+          "message": "Vrátiť, koľko táto požiadavka stála kreditov, ako `usage`."
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV91c2FnZQ.display_name": {
+          "source": "Credit Usage",
+          "message": "Spotreba kreditov"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV91c2FnZQ.short_desc": {
+          "source": "Return what this request cost",
+          "message": "Vrátiť, koľko táto požiadavka stála"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9mYXZpY29u.desc": {
+          "source": "Return each page's favicon URL, for rendering a source list.",
+          "message": "Vracať adresu URL favikony každej stránky na zobrazenie zoznamu zdrojov."
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9mYXZpY29u.display_name": {
+          "source": "Favicons",
+          "message": "Favikony"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9mYXZpY29u.short_desc": {
+          "source": "Return each page's favicon URL",
+          "message": "Vracať adresu URL favikony každej stránky"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9pbWFnZXM.desc": {
-          "source": "When `True`, each result includes image URLs found on the page.",
-          "message": "Ak je `True`, každý výsledok obsahuje adresy URL obrázkov nájdených na stránke."
+          "source": "Return the images found on each page.",
+          "message": "Vracať obrázky nájdené na každej stránke."
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9pbWFnZXM.display_name": {
-          "source": "Include Images",
-          "message": "Zahrnúť obrázky"
+          "source": "Images",
+          "message": "Obrázky"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9pbWFnZXM.short_desc": {
-          "source": "Return image URLs alongside extracted text",
-          "message": "Vrátiť adresy URL obrázkov spolu s extrahovaným textom"
+          "source": "Return the images found on each page",
+          "message": "Vracať obrázky nájdené na každej stránke"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.cXVlcnk.desc": {
+          "source": "Keep only the parts of each page relevant to this query, rather than the whole of it.  This is what keeps a long page from filling a model's context window with the parts nobody asked about.",
+          "message": "Ponechať len časti každej stránky, ktoré sa týkajú tohto dotazu, namiesto celej stránky.  To zabráni tomu, aby dlhá stránka zaplnila kontextové okno modelu časťami, na ktoré sa nikto nepýtal."
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.cXVlcnk.display_name": {
+          "source": "Query",
+          "message": "Dotaz"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.cXVlcnk.short_desc": {
+          "source": "Keep only the parts of each page relevant to this",
+          "message": "Ponechať len časti každej stránky, ktoré sa toho týkajú"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.dGltZW91dA.desc": {
+          "source": "How long to wait for each page, in seconds, from 1 to 60.",
+          "message": "Ako dlho sa čaká na každú stránku, v sekundách, od 1 do 60."
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.dGltZW91dA.display_name": {
+          "source": "Timeout",
+          "message": "Časový limit"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.dGltZW91dA.short_desc": {
+          "source": "How long to wait for each page, in seconds",
+          "message": "Ako dlho sa čaká na každú stránku, v sekundách"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.dXJscw.desc": {
-          "source": "Absolute URLs whose main content should be extracted.",
-          "message": "Absolútne adresy URL, z ktorých sa má extrahovať hlavný obsah."
+          "source": "The pages to read.  Each is fetched and reduced to its main content, with the navigation, advertising and boilerplate removed.",
+          "message": "Stránky, ktoré sa majú prečítať.  Každá sa načíta a zredukuje na hlavný obsah, bez navigácie, reklamy a opakujúcich sa prvkov."
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.dXJscw.display_name": {
           "source": "URLs",
           "message": "Adresy URL"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.dXJscw.short_desc": {
-          "source": "List of URLs to extract content from",
-          "message": "Zoznam adries URL, z ktorých sa má extrahovať obsah"
+          "source": "The pages to read",
+          "message": "Stránky, ktoré sa majú prečítať"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.short_desc": {
-          "source": "Extract main content from URLs via Tavily",
-          "message": "Extrahovať hlavný obsah z adries URL cez Tavily"
+          "source": "Fetch pages and return their main content",
+          "message": "Načítať stránky a vrátiť ich hlavný obsah"
+        },
+        "app.VGF2aWx5.action.bG9ncw.desc": {
+          "source": "Lists the requests made against the account, newest first, each with the endpoint it called, what it cost and how long it took.\n\nThis is where a credit total from **Get Credit Usage** is broken down into the individual requests that produced it.  Narrow the listing with `endpoints`, a date window, or `filter_by_api_key` to see only this key's own requests.",
+          "message": "Vypíše požiadavky vykonané na účte, najnovšie prvé, každú s koncovým bodom, ktorý volala, s jej cenou a dĺžkou trvania.\n\nTu sa súhrn kreditov z akcie **Získať spotrebu kreditov** rozpadne na jednotlivé požiadavky, ktoré ho vytvorili.  Výpis zúžite pomocou `endpoints`, časového okna alebo `filter_by_api_key`, ak chcete vidieť len požiadavky tohto kľúča."
+        },
+        "app.VGF2aWx5.action.bG9ncw.display_name": {
+          "source": "List API Usage Logs",
+          "message": "Vypísať protokoly využitia API"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kX2RhdGU.desc": {
+          "source": "Return only entries on or before this date, as `YYYY-MM-DD`.",
+          "message": "Vracať len záznamy k tomuto dátumu alebo skoršie, v tvare `YYYY-MM-DD`."
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kX2RhdGU.display_name": {
+          "source": "To",
+          "message": "Do"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kX2RhdGU.short_desc": {
+          "source": "Return only entries on or before this date",
+          "message": "Vracať len záznamy k tomuto dátumu alebo skoršie"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOm1hcA.display_name": {
+          "source": "Map",
+          "message": "Mapovanie"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOmNyYXds.display_name": {
+          "source": "Crawl",
+          "message": "Prechádzanie"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOmV4dHJhY3Q.display_name": {
+          "source": "Extract",
+          "message": "Extrakcia"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOnJlc2VhcmNo.display_name": {
+          "source": "Research",
+          "message": "Výskum"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOnNlYXJjaA.display_name": {
+          "source": "Search",
+          "message": "Hľadanie"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.desc": {
+          "source": "Return only entries for these endpoints.  All of them are returned when this is left empty.",
+          "message": "Vracať len záznamy pre tieto koncové body.  Ak zostane prázdne, vrátia sa všetky."
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.display_name": {
+          "source": "Endpoints",
+          "message": "Koncové body"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.short_desc": {
+          "source": "Return only entries for these endpoints",
+          "message": "Vracať len záznamy pre tieto koncové body"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZmlsdGVyX2J5X2FwaV9rZXk.desc": {
+          "source": "Return only entries for the API key making the request, rather than for every key on the account.",
+          "message": "Vracať len záznamy pre kľúč API, ktorý požiadavku podáva, nie pre každý kľúč na účte."
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZmlsdGVyX2J5X2FwaV9rZXk.display_name": {
+          "source": "This Key Only",
+          "message": "Iba tento kľúč"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZmlsdGVyX2J5X2FwaV9rZXk.short_desc": {
+          "source": "Return only entries for the key making the request",
+          "message": "Vracať len záznamy pre kľúč, ktorý požiadavku podáva"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.bGltaXQ.desc": {
+          "source": "How many entries to return, newest first, from 1 to 10000.  Defaults to 10.",
+          "message": "Koľko záznamov sa vráti, najnovšie prvé, od 1 do 10000.  Predvolená hodnota je 10."
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.bGltaXQ.display_name": {
+          "source": "Entry Count",
+          "message": "Počet záznamov"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.bGltaXQ.short_desc": {
+          "source": "How many entries to return, newest first",
+          "message": "Koľko záznamov sa vráti, najnovšie prvé"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.c3RhcnRfZGF0ZQ.desc": {
+          "source": "Return only entries on or after this date, as `YYYY-MM-DD`.",
+          "message": "Vracať len záznamy k tomuto dátumu alebo neskoršie, v tvare `YYYY-MM-DD`."
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.c3RhcnRfZGF0ZQ.display_name": {
+          "source": "From",
+          "message": "Od"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.c3RhcnRfZGF0ZQ.short_desc": {
+          "source": "Return only entries on or after this date",
+          "message": "Vracať len záznamy k tomuto dátumu alebo neskoršie"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.cHJvamVjdF9pZA.desc": {
+          "source": "Return only entries for this project.\n\nTavily publishes no endpoint that lists projects, so this cannot be offered as a dropdown; take the value from the Tavily dashboard.",
+          "message": "Vracať len záznamy pre tento projekt.\n\nTavily nezverejňuje koncový bod, ktorý by projekty vypisoval, takže to nemožno ponúknuť ako rozbaľovací zoznam; hodnotu vezmite z nástenky Tavily."
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project",
+          "message": "Projekt"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Return only entries for this project",
+          "message": "Vracať len záznamy pre tento projekt"
+        },
+        "app.VGF2aWx5.action.bG9ncw.short_desc": {
+          "source": "List the requests made against the account, newest first",
+          "message": "Vypísať požiadavky vykonané na účte, najnovšie prvé"
         },
         "app.VGF2aWx5.action.bWFrZS1hcGktY2FsbA.desc": {
           "source": "Make a custom HTTP / REST API call to **Tavily** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
@@ -500,192 +828,1084 @@
           "message": "Vykonať vlastné volanie API do Tavily"
         },
         "app.VGF2aWx5.action.bWFw.desc": {
-          "source": "Enumerates URLs reachable from a seed URL via Tavily's `/map` endpoint without fetching page content.  Useful for site discovery before a targeted `/extract` or `/crawl` call.",
-          "message": "Zosumarizuje adresy URL dosiahnuteľné z východiskovej adresy URL cez koncový bod `/map` služby Tavily bez sťahovania obsahu stránky. Užitočné na prieskum lokality pred cieleným volaním `/extract` alebo `/crawl`."
+          "source": "Follows links from a starting page and returns the URLs it finds, without fetching any page content.\n\nThis is the cheap survey step: map a site first to see what is there, then read the pages that matter with **Read Pages** rather than crawling everything.",
+          "message": "Sleduje odkazy z východiskovej stránky a vracia nájdené adresy URL bez načítavania obsahu stránok.\n\nJe to lacný prieskumný krok: najprv web zmapujte, nech vidíte, čo tam je, a potom akciou **Čítať stránky** prečítajte stránky, na ktorých záleží, namiesto prechádzania všetkého."
         },
         "app.VGF2aWx5.action.bWFw.display_name": {
-          "source": "Map Site URLs",
-          "message": "Mapovať adresy URL lokality"
+          "source": "Map a Site",
+          "message": "Zmapovať web"
+        },
+        "app.VGF2aWx5.action.bWFw.option.YWxsb3dfZXh0ZXJuYWw.desc": {
+          "source": "Whether the map may follow links off the starting site.  Defaults to `True`, so a map meant to stay on one site should set this to `False`.",
+          "message": "Či mapovanie smie sledovať odkazy vedúce mimo východiskového webu.  Predvolená hodnota je `True`, takže mapovanie, ktoré má zostať na jednom webe, by ju malo nastaviť na `False`."
+        },
+        "app.VGF2aWx5.action.bWFw.option.YWxsb3dfZXh0ZXJuYWw.display_name": {
+          "source": "Follow External Links",
+          "message": "Sledovať externé odkazy"
+        },
+        "app.VGF2aWx5.action.bWFw.option.YWxsb3dfZXh0ZXJuYWw.short_desc": {
+          "source": "Whether the map may leave the starting site",
+          "message": "Či mapovanie smie opustiť východiskový web"
+        },
+        "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9kb21haW5z.desc": {
+          "source": "Regular expressions that exclude a domain.",
+          "message": "Regulárne výrazy, ktoré doménu vylučujú."
+        },
+        "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+          "source": "Exclude Domains",
+          "message": "Vylúčiť domény"
+        },
+        "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
+          "source": "Regular expressions that exclude a domain",
+          "message": "Regulárne výrazy, ktoré doménu vylučujú"
         },
         "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9wYXRocw.desc": {
-          "source": "List of URL path patterns to exclude.",
-          "message": "Zoznam vzorov ciest URL, ktoré sa majú vylúčiť."
+          "source": "Regular expressions that exclude a URL by its path.",
+          "message": "Regulárne výrazy, ktoré adresu URL vylučujú podľa jej cesty."
         },
         "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9wYXRocw.display_name": {
           "source": "Exclude Paths",
           "message": "Vylúčiť cesty"
         },
         "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9wYXRocw.short_desc": {
-          "source": "URL path patterns to exclude",
-          "message": "Vzory ciest URL na vylúčenie"
+          "source": "Regular expressions that exclude a path",
+          "message": "Regulárne výrazy, ktoré cestu vylučujú"
+        },
+        "app.VGF2aWx5.action.bWFw.option.aW5jbHVkZV91c2FnZQ.desc": {
+          "source": "Return what this request cost in credits, as `usage`.",
+          "message": "Vrátiť, koľko táto požiadavka stála kreditov, ako `usage`."
+        },
+        "app.VGF2aWx5.action.bWFw.option.aW5jbHVkZV91c2FnZQ.display_name": {
+          "source": "Credit Usage",
+          "message": "Spotreba kreditov"
+        },
+        "app.VGF2aWx5.action.bWFw.option.aW5jbHVkZV91c2FnZQ.short_desc": {
+          "source": "Return what this request cost",
+          "message": "Vrátiť, koľko táto požiadavka stála"
         },
         "app.VGF2aWx5.action.bWFw.option.aW5zdHJ1Y3Rpb25z.desc": {
-          "source": "Optional natural-language hints.",
-          "message": "Voliteľné pokyny v prirodzenom jazyku."
+          "source": "Describe in natural language which pages are wanted, and Tavily decides which links to follow.",
+          "message": "Popísať prirodzeným jazykom, ktoré stránky sú žiadané, a Tavily rozhodne, ktoré odkazy sledovať."
         },
         "app.VGF2aWx5.action.bWFw.option.aW5zdHJ1Y3Rpb25z.display_name": {
           "source": "Instructions",
           "message": "Pokyny"
         },
         "app.VGF2aWx5.action.bWFw.option.aW5zdHJ1Y3Rpb25z.short_desc": {
-          "source": "Natural-language instructions for the mapper",
-          "message": "Inštrukcie v prirodzenom jazyku pre mapovač"
+          "source": "Describe in natural language which pages are wanted",
+          "message": "Popísať prirodzeným jazykom, ktoré stránky sú žiadané"
         },
         "app.VGF2aWx5.action.bWFw.option.bGltaXQ.desc": {
-          "source": "Maximum total URLs to enumerate.",
-          "message": "Maximálny celkový počet adries URL na enumeráciu."
+          "source": "How many URLs to return in total.  Defaults to 50.",
+          "message": "Koľko adries URL sa celkovo vráti.  Predvolená hodnota je 50."
         },
         "app.VGF2aWx5.action.bWFw.option.bGltaXQ.display_name": {
-          "source": "Limit",
-          "message": "Limit"
+          "source": "URL Limit",
+          "message": "Limit adries URL"
         },
         "app.VGF2aWx5.action.bWFw.option.bGltaXQ.short_desc": {
-          "source": "Overall URL limit",
-          "message": "Celkový limit URL"
+          "source": "How many URLs to return in total",
+          "message": "Koľko adries URL sa celkovo vráti"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2JyZWFkdGg.desc": {
-          "source": "Maximum links per page.",
-          "message": "Maximálny počet odkazov na stránku."
+          "source": "How many links to follow from each page, from 1 to 500.  Defaults to 20.",
+          "message": "Koľko odkazov sa sleduje z každej stránky, od 1 do 500.  Predvolená hodnota je 20."
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2JyZWFkdGg.display_name": {
-          "source": "Max Breadth",
-          "message": "Maximálna šírka"
+          "source": "Maximum Breadth",
+          "message": "Najvyššia šírka"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2JyZWFkdGg.short_desc": {
-          "source": "Maximum links to follow per page",
-          "message": "Maximálny počet odkazov na sledovanie na stránku"
+          "source": "How many links to follow from each page",
+          "message": "Koľko odkazov sa sleduje z každej stránky"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2RlcHRo.desc": {
-          "source": "Maximum link-graph depth.",
-          "message": "Maximálna hĺbka grafu odkazov."
+          "source": "How many links away from the start URL the map may go, from 1 to 5.  Defaults to 1.",
+          "message": "Koľko odkazov od východiskovej adresy URL smie mapovanie zájsť, od 1 do 5.  Predvolená hodnota je 1."
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2RlcHRo.display_name": {
-          "source": "Max Depth",
-          "message": "Maximálna hĺbka"
+          "source": "Maximum Depth",
+          "message": "Najvyššia hĺbka"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2RlcHRo.short_desc": {
-          "source": "Maximum link-graph depth",
-          "message": "Maximálna hĺbka grafu odkazov"
+          "source": "How many links away from the start URL to go",
+          "message": "Koľko odkazov od východiskovej adresy URL sa smie zájsť"
+        },
+        "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X2RvbWFpbnM.desc": {
+          "source": "Regular expressions the domain must match for a URL to be returned.",
+          "message": "Regulárne výrazy, ktorým musí doména zodpovedať, aby sa adresa URL vrátila."
+        },
+        "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X2RvbWFpbnM.display_name": {
+          "source": "Only These Domains",
+          "message": "Iba tieto domény"
+        },
+        "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X2RvbWFpbnM.short_desc": {
+          "source": "Regular expressions the domain must match",
+          "message": "Regulárne výrazy, ktorým musí doména zodpovedať"
         },
         "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X3BhdGhz.desc": {
-          "source": "List of URL path patterns to include.",
-          "message": "Zoznam vzorov ciest URL, ktoré sa majú zahrnúť."
+          "source": "Regular expressions the URL path must match for a URL to be returned.",
+          "message": "Regulárne výrazy, ktorým musí cesta adresy URL zodpovedať, aby sa adresa URL vrátila."
         },
         "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X3BhdGhz.display_name": {
-          "source": "Select Paths",
-          "message": "Vybrať cesty"
+          "source": "Only These Paths",
+          "message": "Iba tieto cesty"
         },
         "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X3BhdGhz.short_desc": {
-          "source": "URL path patterns to include",
-          "message": "Vzory ciest URL na zahrnutie"
+          "source": "Regular expressions the path must match",
+          "message": "Regulárne výrazy, ktorým musí cesta zodpovedať"
+        },
+        "app.VGF2aWx5.action.bWFw.option.dGltZW91dA.desc": {
+          "source": "How long the whole map may take, in seconds, from 10 to 150.  Defaults to 150.",
+          "message": "Ako dlho smie celé mapovanie trvať, v sekundách, od 10 do 150.  Predvolená hodnota je 150."
+        },
+        "app.VGF2aWx5.action.bWFw.option.dGltZW91dA.display_name": {
+          "source": "Timeout",
+          "message": "Časový limit"
+        },
+        "app.VGF2aWx5.action.bWFw.option.dGltZW91dA.short_desc": {
+          "source": "How long the whole map may take, in seconds",
+          "message": "Ako dlho smie celé mapovanie trvať, v sekundách"
         },
         "app.VGF2aWx5.action.bWFw.option.dXJs.desc": {
-          "source": "Seed URL.",
-          "message": "Zdrojová URL."
+          "source": "The page the map starts from.  Only the links are followed; no page content is fetched, which is what makes this far cheaper than a crawl.",
+          "message": "Stránka, ktorou sa mapovanie začína.  Sledujú sa iba odkazy; obsah stránok sa nenačítava, čo je dôvod, prečo je to oveľa lacnejšie než prechádzanie."
         },
         "app.VGF2aWx5.action.bWFw.option.dXJs.display_name": {
-          "source": "Seed URL",
-          "message": "Zdrojová URL"
+          "source": "Start URL",
+          "message": "Východisková adresa URL"
         },
         "app.VGF2aWx5.action.bWFw.option.dXJs.short_desc": {
-          "source": "URL to start the URL map from",
-          "message": "URL, z ktorej sa má začať mapovanie URL"
+          "source": "The page the map starts from",
+          "message": "Stránka, ktorou sa mapovanie začína"
         },
         "app.VGF2aWx5.action.bWFw.short_desc": {
-          "source": "Enumerate URLs reachable from a seed URL",
-          "message": "Zosumarizovať adresy URL dosiahnuteľné z východiskovej adresy URL"
+          "source": "List the URLs reachable from a page without reading them",
+          "message": "Vypísať adresy URL dosiahnuteľné zo stránky bez toho, aby sa čítali"
         },
         "app.VGF2aWx5.action.c2VhcmNo.desc": {
-          "source": "Performs a real-time web search via Tavily's `/search` endpoint and returns ranked results with title, url, content snippet, and relevance score.  Optionally includes an AI-summarized answer over the top results.",
-          "message": "Vykoná vyhľadávanie na webe v reálnom čase cez koncový bod `/search` služby Tavily a vráti zoradené výsledky s názvom, adresou URL, úryvkom obsahu a skóre relevancie. Voliteľne zahŕňa odpoveď zosumarizovanú pomocou AI z najlepších výsledkov."
+          "source": "Searches the web on meaning rather than keywords and returns ranked results, each with the passage that matched.\n\n`search_depth` is the trade between latency, cost and recall - `ultra-fast` answers in well under a second, `advanced` reads and re-ranks more of each page.  `topic` narrows the corpus to news or finance, which is usually a better filter than adding words to the query.\n\nSet `include_answer` to get a written answer over the results rather than a list to read, and `include_raw_content` to get each page's full text back with the results instead of fetching it separately with **Read Pages**.",
+          "message": "Prehľadá web podľa významu namiesto podľa kľúčových slov a vráti zoradené výsledky, každý s pasážou, ktorá zodpovedala.\n\n`search_depth` je kompromis medzi odozvou, cenou a úplnosťou: `ultra-fast` odpovie výrazne pod jednu sekundu, `advanced` prečíta a preusporiada väčšiu časť každej stránky.  `topic` zúži korpus na správy alebo financie, čo zvyčajne filtruje lepšie než pridávanie slov do dotazu.\n\nNastavte `include_answer`, ak chcete napísanú odpoveď namiesto zoznamu na čítanie, a `include_raw_content`, ak chcete plný text každej stránky rovno s výsledkami namiesto jeho osobitného načítania akciou **Čítať stránky**."
         },
         "app.VGF2aWx5.action.c2VhcmNo.display_name": {
-          "source": "Web Search",
-          "message": "Vyhľadávanie na webe"
+          "source": "Search the Web",
+          "message": "Hľadať na webe"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm15YW5tYXI.display_name": {
+          "source": "Myanmar",
+          "message": "Mjanmarsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hZGFnYXNjYXI.display_name": {
+          "source": "Madagascar",
+          "message": "Madagaskar"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbGF3aQ.display_name": {
+          "source": "Malawi",
+          "message": "Malawi"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbGF5c2lh.display_name": {
+          "source": "Malaysia",
+          "message": "Malajzia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbGRpdmVz.display_name": {
+          "source": "Maldives",
+          "message": "Maldivy"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbGk.display_name": {
+          "source": "Mali",
+          "message": "Mali"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbHRh.display_name": {
+          "source": "Malta",
+          "message": "Malta"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hdXJpdGFuaWE.display_name": {
+          "source": "Mauritania",
+          "message": "Mauritánia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hdXJpdGl1cw.display_name": {
+          "source": "Mauritius",
+          "message": "Maurícius"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1leGljbw.display_name": {
+          "source": "Mexico",
+          "message": "Mexiko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vbGRvdmE.display_name": {
+          "source": "Moldova",
+          "message": "Moldavsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vbmFjbw.display_name": {
+          "source": "Monaco",
+          "message": "Monako"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vbmdvbGlh.display_name": {
+          "source": "Mongolia",
+          "message": "Mongolsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vbnRlbmVncm8.display_name": {
+          "source": "Montenegro",
+          "message": "Čierna Hora"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vcm9jY28.display_name": {
+          "source": "Morocco",
+          "message": "Maroko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vemFtYmlxdWU.display_name": {
+          "source": "Mozambique",
+          "message": "Mozambik"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5hbWliaWE.display_name": {
+          "source": "Namibia",
+          "message": "Namíbia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5lcGFs.display_name": {
+          "source": "Nepal",
+          "message": "Nepál"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5ldGhlcmxhbmRz.display_name": {
+          "source": "Netherlands",
+          "message": "Holandsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5ldyB6ZWFsYW5k.display_name": {
+          "source": "New Zealand",
+          "message": "Nový Zéland"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5pY2FyYWd1YQ.display_name": {
+          "source": "Nicaragua",
+          "message": "Nikaragua"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5pZ2Vy.display_name": {
+          "source": "Niger",
+          "message": "Niger"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5pZ2VyaWE.display_name": {
+          "source": "Nigeria",
+          "message": "Nigéria"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5vcnRoIG1hY2Vkb25pYQ.display_name": {
+          "source": "North Macedonia",
+          "message": "Severné Macedónsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5vcnRoIGtvcmVh.display_name": {
+          "source": "North Korea",
+          "message": "Severná Kórea"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5vcndheQ.display_name": {
+          "source": "Norway",
+          "message": "Nórsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm9tYW4.display_name": {
+          "source": "Oman",
+          "message": "Omán"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmF1c3RyYWxpYQ.display_name": {
+          "source": "Australia",
+          "message": "Austrália"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmF1c3RyaWE.display_name": {
+          "source": "Austria",
+          "message": "Rakúsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmF6ZXJiYWlqYW4.display_name": {
+          "source": "Azerbaijan",
+          "message": "Azerbajdžan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFmZ2hhbmlzdGFu.display_name": {
+          "source": "Afghanistan",
+          "message": "Afganistan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFsYmFuaWE.display_name": {
+          "source": "Albania",
+          "message": "Albánsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFsZ2VyaWE.display_name": {
+          "source": "Algeria",
+          "message": "Alžírsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFuZ29sYQ.display_name": {
+          "source": "Angola",
+          "message": "Angola"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFuZG9ycmE.display_name": {
+          "source": "Andorra",
+          "message": "Andorra"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFyZ2VudGluYQ.display_name": {
+          "source": "Argentina",
+          "message": "Argentína"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFybWVuaWE.display_name": {
+          "source": "Armenia",
+          "message": "Arménsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJ1bGdhcmlh.display_name": {
+          "source": "Bulgaria",
+          "message": "Bulharsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJ1cmtpbmEgZmFzbw.display_name": {
+          "source": "Burkina Faso",
+          "message": "Burkina Faso"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJ1cnVuZGk.display_name": {
+          "source": "Burundi",
+          "message": "Burundi"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJhaGFtYXM.display_name": {
+          "source": "Bahamas",
+          "message": "Bahamy"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJhaHJhaW4.display_name": {
+          "source": "Bahrain",
+          "message": "Bahrajn"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJhbmdsYWRlc2g.display_name": {
+          "source": "Bangladesh",
+          "message": "Bangladéš"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJhcmJhZG9z.display_name": {
+          "source": "Barbados",
+          "message": "Barbados"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJlbGFydXM.display_name": {
+          "source": "Belarus",
+          "message": "Bielorusko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJlbGdpdW0.display_name": {
+          "source": "Belgium",
+          "message": "Belgicko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJlbGl6ZQ.display_name": {
+          "source": "Belize",
+          "message": "Belize"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJlbmlu.display_name": {
+          "source": "Benin",
+          "message": "Benin"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJodXRhbg.display_name": {
+          "source": "Bhutan",
+          "message": "Bhután"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJvbGl2aWE.display_name": {
+          "source": "Bolivia",
+          "message": "Bolívia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJvc25pYSBhbmQgaGVyemVnb3ZpbmE.display_name": {
+          "source": "Bosnia and Herzegovina",
+          "message": "Bosna a Hercegovina"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJvdHN3YW5h.display_name": {
+          "source": "Botswana",
+          "message": "Botswana"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJyYXppbA.display_name": {
+          "source": "Brazil",
+          "message": "Brazília"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJydW5laQ.display_name": {
+          "source": "Brunei",
+          "message": "Brunej"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmN1YmE.display_name": {
+          "source": "Cuba",
+          "message": "Kuba"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmN5cHJ1cw.display_name": {
+          "source": "Cyprus",
+          "message": "Cyprus"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmN6ZWNoIHJlcHVibGlj.display_name": {
+          "source": "Czech Republic",
+          "message": "Česká republika"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNhbWJvZGlh.display_name": {
+          "source": "Cambodia",
+          "message": "Kambodža"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNhbWVyb29u.display_name": {
+          "source": "Cameroon",
+          "message": "Kamerun"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNhbmFkYQ.display_name": {
+          "source": "Canada",
+          "message": "Kanada"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNhcGUgdmVyZGU.display_name": {
+          "source": "Cape Verde",
+          "message": "Kapverdy"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNlbnRyYWwgYWZyaWNhbiByZXB1YmxpYw.display_name": {
+          "source": "Central African Republic",
+          "message": "Stredoafrická republika"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNoYWQ.display_name": {
+          "source": "Chad",
+          "message": "Čad"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNoaW5h.display_name": {
+          "source": "China",
+          "message": "Čína"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNoaWxl.display_name": {
+          "source": "Chile",
+          "message": "Čile"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNvbG9tYmlh.display_name": {
+          "source": "Colombia",
+          "message": "Kolumbia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNvbW9yb3M.display_name": {
+          "source": "Comoros",
+          "message": "Komory"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNvbmdv.display_name": {
+          "source": "Congo",
+          "message": "Kongo"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNvc3RhIHJpY2E.display_name": {
+          "source": "Costa Rica",
+          "message": "Kostarika"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNyb2F0aWE.display_name": {
+          "source": "Croatia",
+          "message": "Chorvátsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmRlbm1hcms.display_name": {
+          "source": "Denmark",
+          "message": "Dánsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmRqaWJvdXRp.display_name": {
+          "source": "Djibouti",
+          "message": "Džibutsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmRvbWluaWNhbiByZXB1YmxpYw.display_name": {
+          "source": "Dominican Republic",
+          "message": "Dominikánska republika"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmV0aGlvcGlh.display_name": {
+          "source": "Ethiopia",
+          "message": "Etiópia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVjdWFkb3I.display_name": {
+          "source": "Ecuador",
+          "message": "Ekvádor"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVneXB0.display_name": {
+          "source": "Egypt",
+          "message": "Egypt"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVsIHNhbHZhZG9y.display_name": {
+          "source": "El Salvador",
+          "message": "Salvádor"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVxdWF0b3JpYWwgZ3VpbmVh.display_name": {
+          "source": "Equatorial Guinea",
+          "message": "Rovníková Guinea"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVyaXRyZWE.display_name": {
+          "source": "Eritrea",
+          "message": "Eritrea"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVzdG9uaWE.display_name": {
+          "source": "Estonia",
+          "message": "Estónsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmZpamk.display_name": {
+          "source": "Fiji",
+          "message": "Fidži"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmZpbmxhbmQ.display_name": {
+          "source": "Finland",
+          "message": "Fínsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmZyYW5jZQ.display_name": {
+          "source": "France",
+          "message": "Francúzsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmd1YXRlbWFsYQ.display_name": {
+          "source": "Guatemala",
+          "message": "Guatemala"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmd1aW5lYQ.display_name": {
+          "source": "Guinea",
+          "message": "Guinea"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdhYm9u.display_name": {
+          "source": "Gabon",
+          "message": "Gabon"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdhbWJpYQ.display_name": {
+          "source": "Gambia",
+          "message": "Gambia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdlb3JnaWE.display_name": {
+          "source": "Georgia",
+          "message": "Gruzínsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdlcm1hbnk.display_name": {
+          "source": "Germany",
+          "message": "Nemecko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdoYW5h.display_name": {
+          "source": "Ghana",
+          "message": "Ghana"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdyZWVjZQ.display_name": {
+          "source": "Greece",
+          "message": "Grécko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmh1bmdhcnk.display_name": {
+          "source": "Hungary",
+          "message": "Maďarsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmhhaXRp.display_name": {
+          "source": "Haiti",
+          "message": "Haiti"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmhvbmR1cmFz.display_name": {
+          "source": "Honduras",
+          "message": "Honduras"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOml0YWx5.display_name": {
+          "source": "Italy",
+          "message": "Taliansko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmljZWxhbmQ.display_name": {
+          "source": "Iceland",
+          "message": "Island"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmluZG9uZXNpYQ.display_name": {
+          "source": "Indonesia",
+          "message": "Indonézia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmluZGlh.display_name": {
+          "source": "India",
+          "message": "India"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmlyYW4.display_name": {
+          "source": "Iran",
+          "message": "Irán"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmlyYXE.display_name": {
+          "source": "Iraq",
+          "message": "Irak"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmlyZWxhbmQ.display_name": {
+          "source": "Ireland",
+          "message": "Írsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmlzcmFlbA.display_name": {
+          "source": "Israel",
+          "message": "Izrael"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmphbWFpY2E.display_name": {
+          "source": "Jamaica",
+          "message": "Jamajka"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmphcGFu.display_name": {
+          "source": "Japan",
+          "message": "Japonsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmpvcmRhbg.display_name": {
+          "source": "Jordan",
+          "message": "Jordánsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmt1d2FpdA.display_name": {
+          "source": "Kuwait",
+          "message": "Kuvajt"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmt5cmd5enN0YW4.display_name": {
+          "source": "Kyrgyzstan",
+          "message": "Kirgizsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmthemFraHN0YW4.display_name": {
+          "source": "Kazakhstan",
+          "message": "Kazachstan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmtlbnlh.display_name": {
+          "source": "Kenya",
+          "message": "Keňa"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmx1eGVtYm91cmc.display_name": {
+          "source": "Luxembourg",
+          "message": "Luxembursko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxhdHZpYQ.display_name": {
+          "source": "Latvia",
+          "message": "Lotyšsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxlYmFub24.display_name": {
+          "source": "Lebanon",
+          "message": "Libanon"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxlc290aG8.display_name": {
+          "source": "Lesotho",
+          "message": "Lesotho"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxpYmVyaWE.display_name": {
+          "source": "Liberia",
+          "message": "Libéria"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxpYnlh.display_name": {
+          "source": "Libya",
+          "message": "Líbya"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxpZWNodGVuc3RlaW4.display_name": {
+          "source": "Liechtenstein",
+          "message": "Lichtenštajnsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxpdGh1YW5pYQ.display_name": {
+          "source": "Lithuania",
+          "message": "Litva"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBha2lzdGFu.display_name": {
+          "source": "Pakistan",
+          "message": "Pakistan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBhbmFtYQ.display_name": {
+          "source": "Panama",
+          "message": "Panama"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBhcHVhIG5ldyBndWluZWE.display_name": {
+          "source": "Papua New Guinea",
+          "message": "Papua-Nová Guinea"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBhcmFndWF5.display_name": {
+          "source": "Paraguay",
+          "message": "Paraguaj"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBlcnU.display_name": {
+          "source": "Peru",
+          "message": "Peru"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBoaWxpcHBpbmVz.display_name": {
+          "source": "Philippines",
+          "message": "Filipíny"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBvbGFuZA.display_name": {
+          "source": "Poland",
+          "message": "Poľsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBvcnR1Z2Fs.display_name": {
+          "source": "Portugal",
+          "message": "Portugalsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnFhdGFy.display_name": {
+          "source": "Qatar",
+          "message": "Katar"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnJ1c3NpYQ.display_name": {
+          "source": "Russia",
+          "message": "Rusko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnJ3YW5kYQ.display_name": {
+          "source": "Rwanda",
+          "message": "Rwanda"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnJvbWFuaWE.display_name": {
+          "source": "Romania",
+          "message": "Rumunsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnN1ZGFu.display_name": {
+          "source": "Sudan",
+          "message": "Sudán"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnN3ZWRlbg.display_name": {
+          "source": "Sweden",
+          "message": "Švédsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnN3aXR6ZXJsYW5k.display_name": {
+          "source": "Switzerland",
+          "message": "Švajčiarsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnN5cmlh.display_name": {
+          "source": "Syria",
+          "message": "Sýria"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNhdWRpIGFyYWJpYQ.display_name": {
+          "source": "Saudi Arabia",
+          "message": "Saudská Arábia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNlbmVnYWw.display_name": {
+          "source": "Senegal",
+          "message": "Senegal"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNlcmJpYQ.display_name": {
+          "source": "Serbia",
+          "message": "Srbsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNpbmdhcG9yZQ.display_name": {
+          "source": "Singapore",
+          "message": "Singapur"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNsb3Zha2lh.display_name": {
+          "source": "Slovakia",
+          "message": "Slovensko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNsb3Zlbmlh.display_name": {
+          "source": "Slovenia",
+          "message": "Slovinsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNvbWFsaWE.display_name": {
+          "source": "Somalia",
+          "message": "Somálsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNvdXRoIGFmcmljYQ.display_name": {
+          "source": "South Africa",
+          "message": "Juhoafrická republika"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNvdXRoIGtvcmVh.display_name": {
+          "source": "South Korea",
+          "message": "Južná Kórea"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNvdXRoIHN1ZGFu.display_name": {
+          "source": "South Sudan",
+          "message": "Južný Sudán"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNwYWlu.display_name": {
+          "source": "Spain",
+          "message": "Španielsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNyaSBsYW5rYQ.display_name": {
+          "source": "Sri Lanka",
+          "message": "Srí Lanka"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnR1bmlzaWE.display_name": {
+          "source": "Tunisia",
+          "message": "Tunisko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnR1cmtleQ.display_name": {
+          "source": "Turkey",
+          "message": "Turecko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnR1cmttZW5pc3Rhbg.display_name": {
+          "source": "Turkmenistan",
+          "message": "Turkménsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRhaXdhbg.display_name": {
+          "source": "Taiwan",
+          "message": "Taiwan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRhamlraXN0YW4.display_name": {
+          "source": "Tajikistan",
+          "message": "Tadžikistan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRhbnphbmlh.display_name": {
+          "source": "Tanzania",
+          "message": "Tanzánia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRoYWlsYW5k.display_name": {
+          "source": "Thailand",
+          "message": "Thajsko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRvZ28.display_name": {
+          "source": "Togo",
+          "message": "Togo"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRyaW5pZGFkIGFuZCB0b2JhZ28.display_name": {
+          "source": "Trinidad and Tobago",
+          "message": "Trinidad a Tobago"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnV6YmVraXN0YW4.display_name": {
+          "source": "Uzbekistan",
+          "message": "Uzbekistan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVnYW5kYQ.display_name": {
+          "source": "Uganda",
+          "message": "Uganda"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVrcmFpbmU.display_name": {
+          "source": "Ukraine",
+          "message": "Ukrajina"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVuaXRlZCBhcmFiIGVtaXJhdGVz.display_name": {
+          "source": "United Arab Emirates",
+          "message": "Spojené arabské emiráty"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVuaXRlZCBraW5nZG9t.display_name": {
+          "source": "United Kingdom",
+          "message": "Spojené kráľovstvo"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVuaXRlZCBzdGF0ZXM.display_name": {
+          "source": "United States",
+          "message": "Spojené štáty"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVydWd1YXk.display_name": {
+          "source": "Uruguay",
+          "message": "Uruguaj"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnZlbmV6dWVsYQ.display_name": {
+          "source": "Venezuela",
+          "message": "Venezuela"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnZpZXRuYW0.display_name": {
+          "source": "Vietnam",
+          "message": "Vietnam"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnllbWVu.display_name": {
+          "source": "Yemen",
+          "message": "Jemen"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnphbWJpYQ.display_name": {
+          "source": "Zambia",
+          "message": "Zambia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnppbWJhYndl.display_name": {
+          "source": "Zimbabwe",
+          "message": "Zimbabwe"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.desc": {
+          "source": "Boost results from this country.  Tavily accepts only the names in this list and rejects anything else.",
+          "message": "Zvýhodniť výsledky z tejto krajiny.  Tavily prijíma iba názvy z tohto zoznamu a všetko ostatné odmieta."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Krajina"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.short_desc": {
+          "source": "Boost results from this country",
+          "message": "Zvýhodniť výsledky z tejto krajiny"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y2h1bmtzX3Blcl9zb3VyY2U.desc": {
+          "source": "How many separately-scored content chunks to keep from each source, from 1 to 5, or `auto`.  Only has an effect at `advanced` search depth.  Defaults to 3.",
+          "message": "Koľko samostatne hodnotených častí obsahu sa z každého zdroja ponechá, od 1 do 5, alebo `auto`.  Má vplyv len pri hĺbke hľadania `advanced`.  Predvolená hodnota je 3."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y2h1bmtzX3Blcl9zb3VyY2U.display_name": {
+          "source": "Chunks per Source",
+          "message": "Časti na zdroj"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y2h1bmtzX3Blcl9zb3VyY2U.short_desc": {
+          "source": "How many content chunks to keep from each source",
+          "message": "Koľko častí obsahu sa z každého zdroja ponechá"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.YXV0b19wYXJhbWV0ZXJz.desc": {
+          "source": "Let Tavily infer the search parameters - depth, topic and the rest - from the query itself, and report what it chose as `auto_parameters` in the response.  Anything set explicitly still wins.",
+          "message": "Nechať Tavily odvodiť parametre hľadania – hĺbku, tému a ďalšie – zo samotného dotazu a ohlásiť zvolené hodnoty ako `auto_parameters` v odpovedi.  Čokoľvek nastavené výslovne má stále prednosť."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.YXV0b19wYXJhbWV0ZXJz.display_name": {
+          "source": "Automatic Parameters",
+          "message": "Automatické parametre"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.YXV0b19wYXJhbWV0ZXJz.short_desc": {
+          "source": "Let Tavily choose the search parameters from the query",
+          "message": "Nechať Tavily zvoliť parametre hľadania podľa dotazu"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZGF5cw.desc": {
-          "source": "For `topic: news`, restrict results to the last N days.",
-          "message": "V prípade `topic: news` obmedzí výsledky na posledných N dní."
+          "source": "Restricts a `news` search to the last N days.\n\n**Superseded by `time_range`**, which applies to every topic; this option is still accepted so that existing flows keep working.",
+          "message": "Obmedzuje hľadanie s témou `news` na posledných N dní.\n\n**Nahradené parametrom `time_range`**, ktorý platí pre každú tému; táto voľba sa stále prijíma, aby existujúce postupy naďalej fungovali."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZGF5cw.display_name": {
-          "source": "Days (news topic)",
-          "message": "Dni (téma správ)"
+          "source": "Days (legacy)",
+          "message": "Dni (zastarané)"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZGF5cw.short_desc": {
-          "source": "Restrict 'news' searches to the last N days",
-          "message": "Obmedziť vyhľadávania typu „news“ na posledných N dní"
+          "source": "Superseded by Time Range; restricts news searches to the last N days",
+          "message": "Nahradené Časovým rozmedzím; obmedzuje hľadanie správ na posledných N dní"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZW5kX2RhdGU.desc": {
+          "source": "Return only pages published on or before this date, as `YYYY-MM-DD`.",
+          "message": "Vracať len stránky publikované k tomuto dátumu alebo skôr, v tvare `YYYY-MM-DD`."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZW5kX2RhdGU.display_name": {
+          "source": "Published Before",
+          "message": "Publikované do"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZW5kX2RhdGU.short_desc": {
+          "source": "Return only pages published on or before this date",
+          "message": "Vracať len stránky publikované k tomuto dátumu alebo skôr"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZXhhY3RfbWF0Y2g.desc": {
+          "source": "Require the quoted phrase in the query to appear verbatim.\n\n**The query must contain a quoted phrase** - for example `\"John Smith\" CEO` - or Tavily rejects the request.",
+          "message": "Vyžadovať, aby sa fráza v úvodzovkách vyskytla v dotaze doslova.\n\n**Dotaz musí obsahovať frázu v úvodzovkách** – napríklad `\"John Smith\" CEO` – inak Tavily požiadavku odmietne."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZXhhY3RfbWF0Y2g.display_name": {
+          "source": "Exact Phrase",
+          "message": "Presná fráza"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZXhhY3RfbWF0Y2g.short_desc": {
+          "source": "Require the quoted phrase in the query to appear verbatim",
+          "message": "Vyžadovať, aby sa fráza v úvodzovkách vyskytla v dotaze doslova"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to exclude.",
-          "message": "Zoznam domén na vylúčenie."
+          "source": "Domains never to return results from - up to 150.",
+          "message": "Domény, z ktorých sa nikdy nevracajú výsledky – až 150."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.display_name": {
           "source": "Exclude Domains",
           "message": "Vylúčiť domény"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
-          "source": "Exclude specific domains from results",
-          "message": "Vylúčiť konkrétne domény z výsledkov"
+          "source": "Domains never to return results from",
+          "message": "Domény, z ktorých sa nikdy nevracajú výsledky"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZmlsdGVyX2J5X2xhbmd1YWdl.desc": {
+          "source": "Exclude results that are not in `language`, rather than ranking them lower.  Has no effect unless `language` is set.",
+          "message": "Vylúčiť výsledky, ktoré nie sú v jazyku `language`, namiesto toho, aby boli len hodnotené nižšie.  Bez nastaveného `language` nemá vplyv."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZmlsdGVyX2J5X2xhbmd1YWdl.display_name": {
+          "source": "Only This Language",
+          "message": "Iba tento jazyk"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZmlsdGVyX2J5X2xhbmd1YWdl.short_desc": {
+          "source": "Exclude results not in the chosen language",
+          "message": "Vylúčiť výsledky, ktoré nie sú vo zvolenom jazyku"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV91c2FnZQ.desc": {
+          "source": "Return what this request cost in credits, as `usage`.",
+          "message": "Vrátiť, koľko táto požiadavka stála kreditov, ako `usage`."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV91c2FnZQ.display_name": {
+          "source": "Credit Usage",
+          "message": "Spotreba kreditov"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV91c2FnZQ.short_desc": {
+          "source": "Return what this request cost",
+          "message": "Vrátiť, koľko táto požiadavka stála"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
+          "source": "Advanced",
+          "message": "Rozšírená"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "Základná"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.desc": {
-          "source": "When `True`, Tavily generates an AI-summarized answer over the top results and includes it in the response under the `answer` field.",
-          "message": "Ak je `True`, Tavily vygeneruje zosumarizovanú odpoveď pomocou AI z najlepších výsledkov a zahrnie ju do odpovede v poli `answer`."
+          "source": "Have Tavily write an answer over the top results and return it as `answer`, rather than leaving the caller to read the results.\n\n`basic` is a short answer; `advanced` reads more of each source before writing.  `True` is accepted and means `basic`.",
+          "message": "Nechať Tavily napísať odpoveď nad najlepšími výsledkami a vrátiť ju ako `answer` namiesto toho, aby čítanie výsledkov zostalo na volajúcom.\n\n`basic` dá krátku odpoveď; `advanced` pred napísaním prečíta z každého zdroja viac.  `True` sa prijíma a znamená `basic`."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.display_name": {
-          "source": "Include Answer",
-          "message": "Zahrnúť odpoveď"
+          "source": "Answer",
+          "message": "Odpoveď"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.short_desc": {
-          "source": "AI-summarize the top results into a single answer",
-          "message": "Zosumarizovať najlepšie výsledky pomocou AI do jednej odpovede"
+          "source": "Have Tavily write an answer over the results",
+          "message": "Nechať Tavily napísať odpoveď nad výsledkami"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to restrict the search to (e.g. `(\"docs.qore.org\",)`).",
-          "message": "Zoznam domén, na ktoré sa má obmedziť vyhľadávanie (napr. `(\"docs.qore.org\",)`)."
+          "source": "Domains the results may come from - up to 300.  Whether this restricts the search or merely prefers those domains is decided by `include_domains_mode`.",
+          "message": "Domény, z ktorých môžu výsledky pochádzať – až 300.  Či to hľadanie obmedzuje, alebo tieto domény len uprednostňuje, rozhoduje `include_domains_mode`."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.display_name": {
           "source": "Include Domains",
           "message": "Zahrnúť domény"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.short_desc": {
-          "source": "Restrict search to specific domains",
-          "message": "Obmedziť vyhľadávanie na konkrétne domény"
+          "source": "Domains to restrict the search to, or prefer",
+          "message": "Domény, na ktoré sa hľadanie obmedzí alebo ktoré uprednostní"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.allowed-value.c3RyaW5nOmJvb3N0.display_name": {
+          "source": "Prefer These Domains",
+          "message": "Uprednostniť tieto domény"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.allowed-value.c3RyaW5nOmZpbHRlcg.display_name": {
+          "source": "Only These Domains",
+          "message": "Iba tieto domény"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.desc": {
+          "source": "Whether `include_domains` is a hard restriction (`filter`) or a preference Tavily weighs alongside relevance (`boost`).  A hard restriction on a small list can return nothing at all, which is usually why a domain-scoped search comes back empty.",
+          "message": "Či je `include_domains` tvrdé obmedzenie (`filter`), alebo preferencia, ktorú Tavily váži spolu s relevanciou (`boost`).  Tvrdé obmedzenie na krátky zoznam nemusí vrátiť vôbec nič, čo býva dôvod, prečo hľadanie obmedzené na domény skončí prázdne."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.display_name": {
+          "source": "Domain Mode",
+          "message": "Režim domén"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.short_desc": {
+          "source": "Whether the listed domains are required or merely preferred",
+          "message": "Či sú uvedené domény povinné, alebo len uprednostnené"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9mYXZpY29u.desc": {
+          "source": "Return each result's favicon URL, for rendering a source list.",
+          "message": "Vracať adresu URL favikony každého výsledku na zobrazenie zoznamu zdrojov."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9mYXZpY29u.display_name": {
+          "source": "Favicons",
+          "message": "Favikony"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9mYXZpY29u.short_desc": {
+          "source": "Return each result's favicon URL",
+          "message": "Vracať adresu URL favikony každého výsledku"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZV9kZXNjcmlwdGlvbnM.desc": {
+          "source": "Add a written description to each returned image.  Has no effect unless `include_images` is set.",
+          "message": "Doplniť ku každému vrátenému obrázku popis.  Bez nastaveného `include_images` nemá vplyv."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZV9kZXNjcmlwdGlvbnM.display_name": {
+          "source": "Image Descriptions",
+          "message": "Popisy obrázkov"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZV9kZXNjcmlwdGlvbnM.short_desc": {
+          "source": "Describe each returned image",
+          "message": "Popísať každý vrátený obrázok"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZXM.desc": {
-          "source": "When `True`, response includes a list of image URLs.",
-          "message": "Ak je `True`, odpoveď obsahuje zoznam adries URL obrázkov."
+          "source": "Return images found alongside the results, as an `images` list.",
+          "message": "Vracať obrázky nájdené spolu s výsledkami, ako zoznam `images`."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZXM.display_name": {
-          "source": "Include Images",
-          "message": "Zahrnúť obrázky"
+          "source": "Images",
+          "message": "Obrázky"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZXM.short_desc": {
-          "source": "Return image URLs alongside text results",
-          "message": "Vrátiť adresy URL obrázkov spolu s textovými výsledkami"
+          "source": "Return images found alongside the results",
+          "message": "Vracať obrázky nájdené spolu s výsledkami"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "Obyčajný text"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.desc": {
-          "source": "When `True`, each result includes `raw_content` with the full scraped HTML/text.  Larger response, useful for downstream parsing.",
-          "message": "Ak je `True`, každý výsledok obsahuje `raw_content` s úplným extrahovaným HTML/textom. Väčšia odpoveď, užitočná na následné spracovanie."
+          "source": "Return the full text of each result as `raw_content`, in the form named here.  This is what makes a search usable as a retrieval step: without it each result carries only a short snippet.  `True` is accepted and means `markdown`.",
+          "message": "Vrátiť pri každom výsledku plný text ako `raw_content` v tu uvedenej podobe.  Práve to robí z hľadania použiteľný krok získavania: bez toho nesie každý výsledok len krátky úryvok.  `True` sa prijíma a znamená `markdown`."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.display_name": {
-          "source": "Include Raw Content",
-          "message": "Zahrnúť nespracovaný obsah"
+          "source": "Full Page Text",
+          "message": "Plný text stránky"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.short_desc": {
-          "source": "Include raw scraped HTML in each result",
-          "message": "Zahrnúť nespracovaný extrahovaný HTML kód do každého výsledku"
+          "source": "Return the full text of each result, not just the snippet",
+          "message": "Vrátiť pri každom výsledku plný text, nielen úryvok"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.bGFuZ3VhZ2U.desc": {
+          "source": "Boost results in this language, as an ISO 639-1 code (`en`, `de`) or an English language name.  Set `filter_by_language` to exclude other languages rather than merely ranking them lower.",
+          "message": "Zvýhodniť výsledky v tomto jazyku, ako kód ISO 639-1 (`en`, `de`) alebo anglický názov jazyka.  Nastavte `filter_by_language`, ak chcete ostatné jazyky vylúčiť, a nielen ich hodnotiť nižšie."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.bGFuZ3VhZ2U.display_name": {
+          "source": "Language",
+          "message": "Jazyk"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.bGFuZ3VhZ2U.short_desc": {
+          "source": "Boost results in this language",
+          "message": "Zvýhodniť výsledky v tomto jazyku"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.bWF4X3Jlc3VsdHM.desc": {
-          "source": "Maximum number of results to return.  Range 1-20.  Default 5.",
-          "message": "Maximálny počet výsledkov, ktoré sa majú vrátiť. Rozsah 1 – 20. Predvolená hodnota 5."
+          "source": "How many results to return, from 0 to 20.  Defaults to 10.",
+          "message": "Koľko výsledkov sa vráti, od 0 do 20.  Predvolená hodnota je 10."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.bWF4X3Jlc3VsdHM.display_name": {
-          "source": "Max Results",
-          "message": "Maximálny počet výsledkov"
+          "source": "Result Count",
+          "message": "Počet výsledkov"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.bWF4X3Jlc3VsdHM.short_desc": {
-          "source": "Maximum number of search results (1-20)",
-          "message": "Maximálny počet výsledkov vyhľadávania (1 – 20)"
+          "source": "How many results to return",
+          "message": "Koľko výsledkov sa vráti"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2FmZV9zZWFyY2g.desc": {
+          "source": "Filter out adult and explicit results.",
+          "message": "Odfiltrovať výsledky pre dospelých a explicitný obsah."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2FmZV9zZWFyY2g.display_name": {
+          "source": "Safe Search",
+          "message": "Bezpečné hľadanie"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2FmZV9zZWFyY2g.short_desc": {
+          "source": "Filter out adult and explicit results",
+          "message": "Odfiltrovať výsledky pre dospelých a explicitný obsah"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
           "source": "Advanced",
@@ -695,65 +1915,289 @@
           "source": "Basic",
           "message": "Základný"
         },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "Rýchle"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.allowed-value.c3RyaW5nOnVsdHJhLWZhc3Q.display_name": {
+          "source": "Ultra Fast",
+          "message": "Ultrarýchle"
+        },
         "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.desc": {
-          "source": "Search depth.  `basic` returns faster, `advanced` does more iterative refinement at higher cost.",
-          "message": "Hĺbka vyhľadávania. `basic` vráti výsledky rýchlejšie, `advanced` vykonáva podrobnejšie iteračné spresnenie za vyššiu cenu."
+          "source": "How hard Tavily works on the query, trading latency and credits against recall.  `ultra-fast` and `fast` answer in well under a second; `advanced` re-ranks and reads more of each page, and is the only depth that makes `chunks_per_source` meaningful.",
+          "message": "Koľko práce Tavily dotazu venuje, čím vyvažuje odozvu a kredity proti úplnosti.  `ultra-fast` a `fast` odpovedia výrazne pod jednu sekundu; `advanced` preusporiada a prečíta väčšiu časť každej stránky a je jedinou hĺbkou, pri ktorej má `chunks_per_source` zmysel."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.display_name": {
           "source": "Search Depth",
           "message": "Hĺbka vyhľadávania"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.short_desc": {
-          "source": "Search depth: 'basic' (fast) or 'advanced' (higher recall)",
-          "message": "Hĺbka vyhľadávania: 'basic' (rýchle) alebo 'advanced' (vyššia úplnosť)"
+          "source": "How hard Tavily works on the query",
+          "message": "Koľko práce Tavily dotazu venuje"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c3RhcnRfZGF0ZQ.desc": {
+          "source": "Return only pages published on or after this date, as `YYYY-MM-DD`.",
+          "message": "Vracať len stránky publikované k tomuto dátumu alebo neskôr, v tvare `YYYY-MM-DD`."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c3RhcnRfZGF0ZQ.display_name": {
+          "source": "Published Since",
+          "message": "Publikované od"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c3RhcnRfZGF0ZQ.short_desc": {
+          "source": "Return only pages published on or after this date",
+          "message": "Vracať len stránky publikované k tomuto dátumu alebo neskôr"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.cXVlcnk.desc": {
-          "source": "Natural-language search query — what the agent wants to find on the web.",
-          "message": "Vyhľadávací dotaz v prirodzenom jazyku — čo chce agent nájsť na webe."
+          "source": "What to search for, in natural language.  Tavily searches on meaning, so a question reads better here than a list of keywords.\n\nMust be at least 2 characters.",
+          "message": "Čo hľadať, prirodzeným jazykom.  Tavily hľadá podľa významu, takže sa sem hodí skôr otázka než zoznam kľúčových slov.\n\nMusí mať aspoň 2 znaky."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.cXVlcnk.display_name": {
           "source": "Query",
           "message": "Dopyt"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.cXVlcnk.short_desc": {
-          "source": "Natural-language search query",
-          "message": "Vyhľadávací dotaz v prirodzenom jazyku"
+          "source": "What to search for, in natural language",
+          "message": "Čo hľadať, prirodzeným jazykom"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.allowed-value.c3RyaW5nOm5ld3M.display_name": {
           "source": "News",
           "message": "Správy"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.allowed-value.c3RyaW5nOmZpbmFuY2U.display_name": {
+          "source": "Finance",
+          "message": "Financie"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.allowed-value.c3RyaW5nOmdlbmVyYWw.display_name": {
           "source": "General",
           "message": "Všeobecné"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.desc": {
-          "source": "Topic-aware search.  `news` biases toward recent news sources.",
-          "message": "Vyhľadávanie zohľadňujúce tému. `news` uprednostňuje nedávne spravodajské zdroje."
+          "source": "The corpus the search runs against.  `news` favours recent journalism and returns a `published_date` with each result; `finance` favours market and company sources.  Narrowing here usually beats adding words to the query.",
+          "message": "Korpus, v ktorom sa hľadá.  `news` uprednostňuje aktuálnu žurnalistiku a ku každému výsledku vracia `published_date`; `finance` uprednostňuje trhové a firemné zdroje.  Zúžiť hľadanie tu je zvyčajne lepšie než pridávať slová do dotazu."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.display_name": {
           "source": "Topic",
           "message": "Téma"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.short_desc": {
-          "source": "Search topic: 'general' or 'news'",
-          "message": "Téma vyhľadávania: 'general' alebo 'news'"
+          "source": "The corpus the search runs against",
+          "message": "Korpus, v ktorom sa hľadá"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.allowed-value.c3RyaW5nOm1vbnRo.display_name": {
+          "source": "Past Month",
+          "message": "Posledný mesiac"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.allowed-value.c3RyaW5nOmRheQ.display_name": {
+          "source": "Past Day",
+          "message": "Posledný deň"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.allowed-value.c3RyaW5nOndlZWs.display_name": {
+          "source": "Past Week",
+          "message": "Posledný týždeň"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.allowed-value.c3RyaW5nOnllYXI.display_name": {
+          "source": "Past Year",
+          "message": "Posledný rok"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.desc": {
+          "source": "How far back the search reaches, relative to now.  Use `start_date` and `end_date` instead for a fixed window.",
+          "message": "Ako ďaleko do minulosti hľadanie siaha, vzhľadom na teraz.  Pre pevné obdobie použite namiesto toho `start_date` a `end_date`."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.display_name": {
+          "source": "Time Range",
+          "message": "Časové rozmedzie"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.short_desc": {
+          "source": "How far back the search reaches",
+          "message": "Ako ďaleko do minulosti hľadanie siaha"
         },
         "app.VGF2aWx5.action.c2VhcmNo.short_desc": {
-          "source": "Search the web via Tavily",
-          "message": "Vyhľadávať na webe cez Tavily"
+          "source": "Search the web and optionally get an answer written over the results",
+          "message": "Prehľadať web a prípadne získať odpoveď napísanú nad výsledkami"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.desc": {
+          "source": "Starts a research task: an agent searches, reads and reasons over the web until it can answer, rather than returning what one search found.\n\nUse this where **Search the Web** is not enough - a question that needs several searches, or whose answer has to be assembled from many pages.  `model` is the budget: `mini` is quick, `pro` works harder, `auto` decides from the task.\n\nThe task runs asynchronously and this action returns immediately with its `request_id`; read the report with **Get Research Report**.  Set `output_schema` to get structured data back rather than prose, and `files` to have the agent read documents of your own alongside what it finds.",
+          "message": "Spustí výskumnú úlohu: agent hľadá, číta a uvažuje nad webom, kým nedokáže odpovedať, namiesto toho, aby vrátil to, čo našlo jediné hľadanie.\n\nPoužite to tam, kde akcia **Hľadať na webe** nestačí – pri otázke, ktorá vyžaduje niekoľko hľadaní, alebo ktorej odpoveď treba poskladať z mnohých stránok.  `model` je rozpočet: `mini` je rýchly, `pro` pracuje dôkladnejšie, `auto` rozhodne podľa úlohy.\n\nÚloha beží asynchrónne a táto akcia sa okamžite vráti s jej `request_id`; správu prečítajte akciou **Získať výskumnú správu**.  Nastavte `output_schema`, ak chcete štruktúrované údaje namiesto súvislého textu, a `files`, aby agent popri svojich nálezoch čítal aj vaše vlastné dokumenty."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.display_name": {
+          "source": "Start Research",
+          "message": "Spustiť výskum"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.allowed-value.c3RyaW5nOm1sYQ.display_name": {
+          "source": "MLA",
+          "message": "MLA"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.allowed-value.c3RyaW5nOm51bWJlcmVk.display_name": {
+          "source": "Numbered",
+          "message": "Číslované"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.allowed-value.c3RyaW5nOmFwYQ.display_name": {
+          "source": "APA",
+          "message": "APA"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.allowed-value.c3RyaW5nOmNoaWNhZ28.display_name": {
+          "source": "Chicago",
+          "message": "Chicago"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.desc": {
+          "source": "How the report cites its sources within `content`.  The sources themselves are always returned separately as `sources`.",
+          "message": "Ako správa cituje svoje zdroje vnútri `content`.  Samotné zdroje sa vždy vracajú zvlášť ako `sources`."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.display_name": {
+          "source": "Citation Format",
+          "message": "Formát citácií"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.short_desc": {
+          "source": "How the report cites its sources",
+          "message": "Ako správa cituje svoje zdroje"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZXhjbHVkZV9kb21haW5z.desc": {
+          "source": "Domains the agent must not use - a hard blocklist - up to 20.",
+          "message": "Domény, ktoré agent nesmie použiť – tvrdý zoznam zakázaných – až 20."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+          "source": "Excluded Domains",
+          "message": "Vylúčené domény"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
+          "source": "Domains the agent must not use, up to 20",
+          "message": "Domény, ktoré agent nesmie použiť, až 20"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.desc": {
+          "source": "Documents of your own for the agent to read alongside what it finds on the web - up to 5 files and 80,000 words in total.  This is how a research task is grounded in something the web does not have.",
+          "message": "Vaše vlastné dokumenty, ktoré má agent prečítať popri tom, čo nájde na webe – až 5 súborov a celkovo 80 000 slov.  Takto sa výskumná úloha ukotví v niečom, čo web nemá."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.display_name": {
+          "source": "Files",
+          "message": "Súbory"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.short_desc": {
+          "source": "Documents of your own for the agent to read, up to 5",
+          "message": "Vaše vlastné dokumenty, ktoré má agent prečítať, až 5"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5jbHVkZV9kb21haW5z.desc": {
+          "source": "Domains the agent should prefer - a soft preference, not a restriction - up to 20.",
+          "message": "Domény, ktoré má agent uprednostniť – mäkká preferencia, nie obmedzenie – až 20."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5jbHVkZV9kb21haW5z.display_name": {
+          "source": "Preferred Domains",
+          "message": "Uprednostnené domény"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5jbHVkZV9kb21haW5z.short_desc": {
+          "source": "Domains the agent should prefer, up to 20",
+          "message": "Domény, ktoré má agent uprednostniť, až 20"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5wdXQ.desc": {
+          "source": "What to research, in natural language.  This is a task rather than a query: the agent searches, reads and reasons until it can answer, so it can be given something no single search would settle.",
+          "message": "Čo preskúmať, prirodzeným jazykom.  Je to úloha, nie dotaz: agent hľadá, číta a uvažuje, kým nedokáže odpovedať, takže mu možno zadať aj niečo, čo by žiadne jednotlivé hľadanie nevyriešilo."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5wdXQ.display_name": {
+          "source": "Task",
+          "message": "Úloha"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5wdXQ.short_desc": {
+          "source": "What to research, in natural language",
+          "message": "Čo preskúmať, prirodzeným jazykom"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.allowed-value.c3RyaW5nOmxvbmc.display_name": {
+          "source": "Long",
+          "message": "Dlhá"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.allowed-value.c3RyaW5nOnN0YW5kYXJk.display_name": {
+          "source": "Standard",
+          "message": "Štandardná"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.allowed-value.c3RyaW5nOnNob3J0.display_name": {
+          "source": "Short",
+          "message": "Krátka"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.desc": {
+          "source": "How long the report should be.  Defaults to `standard`.",
+          "message": "Aká dlhá má správa byť.  Predvolená hodnota je `standard`."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.display_name": {
+          "source": "Report Length",
+          "message": "Dĺžka správy"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.short_desc": {
+          "source": "How long the report should be",
+          "message": "Aká dlhá má správa byť"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X3NjaGVtYQ.desc": {
+          "source": "A JSON Schema describing the answer you want back, which makes `content` structured data rather than prose - the difference between a report someone reads and a result a flow can act on.",
+          "message": "Schéma JSON opisujúca požadovanú odpoveď, vďaka ktorej je `content` štruktúrovanými údajmi namiesto súvislého textu – rozdiel medzi správou, ktorú niekto číta, a výsledkom, s ktorým môže postup pracovať."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X3NjaGVtYQ.display_name": {
+          "source": "Output Schema",
+          "message": "Schéma výstupu"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X3NjaGVtYQ.short_desc": {
+          "source": "A JSON Schema describing the answer you want back",
+          "message": "Schéma JSON opisujúca požadovanú odpoveď"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.allowed-value.c3RyaW5nOm1pbmk.display_name": {
+          "source": "Mini",
+          "message": "Mini"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Automatic",
+          "message": "Automaticky"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.allowed-value.c3RyaW5nOnBybw.display_name": {
+          "source": "Pro",
+          "message": "Pro"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.desc": {
+          "source": "Which model runs the task, trading speed and cost against depth.  `auto` lets Tavily choose from the task itself.",
+          "message": "Ktorý model úlohu vykoná, čím vyvažuje rýchlosť a cenu proti hĺbke.  S hodnotou `auto` volí Tavily podľa samotnej úlohy."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.short_desc": {
+          "source": "Which model runs the task, trading speed against depth",
+          "message": "Ktorý model úlohu vykoná a ako pritom vyvažuje rýchlosť a hĺbku"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.short_desc": {
+          "source": "Set an agent to research a question and return the task it started",
+          "message": "Poveriť agenta preskúmaním otázky a vrátiť spustenú úlohu"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.desc": {
+          "source": "Reports what this API key and the whole account have spent in the current billing period, broken down by endpoint, together with the plan's allowance.\n\nComparing `account.plan_usage` with `account.plan_limit` is what lets a flow stop before it runs out of credits rather than discovering it mid-run.",
+          "message": "Ohlási, koľko tento kľúč API a celý účet minuli v aktuálnom zúčtovacom období, rozdelené podľa koncového bodu, spolu s objemom zahrnutým v tarife.\n\nPorovnanie `account.plan_usage` s `account.plan_limit` je to, čo postupu umožní skončiť skôr, než dôjdu kredity, namiesto toho, aby to zistil uprostred behu."
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.display_name": {
+          "source": "Get Credit Usage",
+          "message": "Získať spotrebu kreditov"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.option.cHJvamVjdF9pZA.desc": {
+          "source": "Report usage for this project only, rather than for the whole account.  Sent as the `X-Project-ID` header.\n\nTavily publishes no endpoint that lists projects, so this cannot be offered as a dropdown; take the value from the Tavily dashboard.",
+          "message": "Ohlásiť využitie iba tohto projektu, nie celého účtu.  Odosiela sa v hlavičke `X-Project-ID`.\n\nTavily nezverejňuje koncový bod, ktorý by projekty vypisoval, takže to nemožno ponúknuť ako rozbaľovací zoznam; hodnotu vezmite z nástenky Tavily."
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project",
+          "message": "Projekt"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Report usage for this project only",
+          "message": "Ohlásiť využitie iba tohto projektu"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.short_desc": {
+          "source": "Report what the API key and the account have spent",
+          "message": "Ohlásiť, koľko minul kľúč API a účet"
         },
         "app.VGF2aWx5.desc": {
-          "source": "Provides access to [Tavily](https://www.tavily.com) — the agentic web-search API used by AI agents to retrieve real-time information.\n\n**Common use cases**:\n- **Agent tools**: register `tavily_search` / `tavily_extract` as tools an LLM can invoke (see @ref tavilyrestclientintro \"TavilyRestClient\" docs)\n- **RAG ingestion**: fetch fresh sources before embedding\n- **Background research** in workflows: get current information about products, competitors, news, regulations",
-          "message": "Poskytuje prístup k službe [Tavily](https://www.tavily.com) — API pre vyhľadávanie na webe pre agentov, ktoré používajú agenti AI na získavanie informácií v reálnom čase.\n\n**Bežné prípady použitia**:\n- **Nástroje agenta**: zaregistrujte `tavily_search` / `tavily_extract` ako nástroje, ktoré môže LLM vyvolať (pozrite dokumentáciu @ref tavilyrestclientintro \"TavilyRestClient\")\n- **Ingescia RAG**: načítanie čerstvých zdrojov pred embeddingom\n- **Prieskum na pozadí** v pracovných postupoch: získavanie aktuálnych informácií o produktoch, konkurentoch, správach a predpisoch"
+          "source": "Provides access to [Tavily](https://www.tavily.com) — a search API built for programs rather than for people: the query is meaning, not keywords, and the result can be the page content, or the answer, rather than a list of links.\n\n**What it covers**:\n- **Search** the web semantically, with an answer written over the results and each page's full text returned alongside them\n- **Read pages** already in hand, reduced to their main content with the navigation and advertising removed\n- **Crawl and map sites**: walk a site from one URL, either reading every page or just listing what is there\n- **Research tasks**: an agent that searches, reads and reasons until it can answer, returning prose or data shaped by a JSON schema you supply, and able to read documents of your own alongside the web\n- **Credit usage and logs**: what the key and the account have spent, and the individual requests behind it\n\n**Where this earns its place**: a model answering from what it was trained on cannot know what happened this week, and scraping the pages it would need means writing and maintaining an extractor per site.  Tavily returns clean content and citations, so the retrieval step of a RAG pipeline or an agent tool becomes one call — and the research tasks handle the questions that no single search settles.",
+          "message": "Poskytuje prístup k službe [Tavily](https://www.tavily.com) — vyhľadávaciemu API postavenému pre programy, nie pre ľudí: dotazom je význam, nie kľúčové slová, a výsledkom môže byť obsah stránky alebo rovno odpoveď namiesto zoznamu odkazov.\n\n**Čo pokrýva**:\n- **Hľadanie** na webe podľa významu, s odpoveďou napísanou nad výsledkami a plným textom každej stránky rovno pri nich\n- **Čítanie stránok**, ktoré už poznáte, zredukovaných na hlavný obsah bez navigácie a reklamy\n- **Prechádzanie a mapovanie webov**: prejsť web od jednej adresy URL a buď prečítať každú stránku, alebo len vypísať, čo tam je\n- **Výskumné úlohy**: agent, ktorý hľadá, číta a uvažuje, kým nedokáže odpovedať, a vracia súvislý text alebo údaje v tvare schémy JSON, ktorú zadáte, a vie čítať aj vaše vlastné dokumenty popri webe\n- **Spotreba kreditov a protokoly**: koľko minul kľúč a účet a aké jednotlivé požiadavky za tým stoja\n\n**V čom je to prínosné**: model odpovedajúci z toho, na čom bol natrénovaný, nemôže vedieť, čo sa stalo tento týždeň, a získať potrebné stránky znamená napísať a udržiavať extraktor pre každý web. Tavily vracia čistý obsah aj so zdrojmi, takže krok získavania v RAG pipeline alebo v nástroji pre agenta sa scvrkne na jediné volanie — a výskumné úlohy zvládnu otázky, ktoré žiadne jednotlivé hľadanie nevyrieši."
         },
         "app.VGF2aWx5.display_name": {
           "source": "Tavily",
           "message": "Tavily"
         },
         "app.VGF2aWx5.short_desc": {
-          "source": "Tavily real-time web search for AI agents",
-          "message": "Tavily vyhľadávanie na webe v reálnom čase pre AI agentov"
+          "source": "Tavily web search, page reading, site crawling and research agents",
+          "message": "Tavily: vyhľadávanie na webe, čítanie stránok, prechádzanie webov a výskumní agenti"
         }
       }
     }

@@ -63,6 +63,12 @@ public class TavilyDataProviderCommon inherits DataProvider::AbstractDataProvide
             },
         };
 
+        #! The reference data name for the research tasks this account has started
+        const RefResearchTask = "tavily-research-tasks";
+
+        #! How many research tasks the dropdown offers
+        const ResearchTaskListLimit = 100;
+
         const RetrySet = {
             "SOCKET-SSL-ERROR": True,
             "SOCKET-CLOSED": True,
@@ -120,6 +126,57 @@ public class TavilyDataProviderCommon inherits DataProvider::AbstractDataProvide
                     ex.arg.request_path ?? path), ex.arg;
             }
         }
+    }
+
+    #! Returns the reference data this application can offer
+    *hash<string, bool> getSupportedReferenceData() {
+        return {
+            RefResearchTask: True,
+        };
+    }
+
+    #! Populates a dropdown from the usage log
+    /** @param type the reference data name
+        @param action_opts the options of the action being filled in
+
+        @return the values for the dropdown, or nothing when there are none
+    */
+    private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type, *hash<auto> action_opts) {
+        switch (type) {
+            case RefResearchTask: return getResearchTaskValues();
+        }
+    }
+
+    #! Returns the research tasks this account has started, most recent first
+    /** Tavily publishes no endpoint that lists research tasks, but every request it bills appears in
+        the usage log with its \c request_id - which for a research task is the very identifier
+        @ref TavilyGetResearchDataProvider "get-research" needs.  Narrowing the log to the research
+        endpoint therefore gives the listing the API does not otherwise offer.
+
+        @note the log is populated a few minutes after the request is made, so a task started moments
+        ago is not in it yet; the value returned by \c research is authoritative in the meantime
+    */
+    private *list<hash<AllowedValueInfo>> getResearchTaskValues() {
+        hash<auto> body = doRestCommand("POST", "logs", {
+            "endpoints": ("research",),
+            "limit": ResearchTaskListLimit,
+        }).body;
+        list<hash<AllowedValueInfo>> rv = ();
+        foreach hash<auto> entry in (body.logs ?? ()) {
+            if (!entry.request_id.val()) {
+                continue;
+            }
+            rv += <AllowedValueInfo>{
+                "value": entry.request_id,
+                # the log carries no task text, so the time it ran and the model that ran it are all
+                # there is to tell one task from another
+                "display_name": entry.depth.val()
+                    ? sprintf("%s (%s)", entry.timestamp ?? entry.request_id, entry.depth)
+                    : (entry.timestamp ?? entry.request_id),
+                "desc": sprintf("Research task `%s`", entry.request_id),
+            };
+        }
+        return rv ?: NOTHING;
     }
 
     private bool retry(hash<ExceptionInfo> ex, reference<int> retries) {

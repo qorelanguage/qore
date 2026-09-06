@@ -10,13 +10,16 @@
 %requires Logger
 %requires ConnectionProvider
 %requires DataProvider
+%requires TavilyRestClient
 %requires TavilyDataProvider
 
 %exec-class TavilyDataProviderTest
 
+#! A client that records the request instead of making it
 class FakeTavilyRestClientIo inherits RestClientIo::RestClientIo {
     public {
         *hash<auto> last_request;
+        *hash<auto> last_hdr;
         string last_method;
         string last_path;
         hash<auto> response_body;
@@ -30,6 +33,7 @@ class FakeTavilyRestClientIo inherits RestClientIo::RestClientIo {
         last_method = method;
         last_path = path;
         last_request = body;
+        last_hdr = hdr;
         return <RestClient::RestResponseInfo>{"body": response_body};
     }
     hash<RestClient::RestResponseInfo> restGet(string path, *hash<auto> hdr) {
@@ -53,6 +57,11 @@ public class TavilyDataProviderTest inherits QUnit::Test {
         };
 
         const OptionColumn = 22;
+
+        #! The actions the application exports, apart from the generic API call
+        const ExpectedActions = (
+            "crawl", "extract", "get-research", "logs", "map", "research", "search", "usage",
+        );
     }
 
     private {
@@ -62,18 +71,17 @@ public class TavilyDataProviderTest inherits QUnit::Test {
     constructor() : Test("TavilyDataProvider Test", "1.0", \ARGV, MyOpts) {
         conn_name = m_options.conn ?? ENV.TAVILY_CONNECTION;
 
-        addTestCase("factory + app + 4 actions registered", \registrationTest());
-        addTestCase("root provider lists 4 children",        \rootProviderTest());
-        addTestCase("search action POSTs to /search",        \searchTest());
-        addTestCase("extract action POSTs to /extract",      \extractTest());
-        addTestCase("crawl action POSTs to /crawl",          \crawlTest());
-        addTestCase("map action POSTs to /map",              \mapTest());
+        addTestCase("factory, app and actions registered", \registrationTest());
+        addTestCase("action presentation", \actionPresentationTest());
+        addTestCase("every action reaches its own endpoint", \wireFormatTest());
 
-        # Live test requires a real Tavily connection.
-        # Tavily free tier: 1000 search queries/month. ~$0 per run when within
-        # free tier.
+        # Live tests require a real Tavily connection; the calls below are the cheapest Tavily
+        # offers, and the research task is run at the "mini" model with a short report
         if (conn_name) {
-            addTestCase("live: ping + search", \liveTavilyTest());
+            addTestCase("live: the ping verifies the API key", \livePingTest());
+            addTestCase("live: search, read, map and crawl", \liveSearchTest());
+            addTestCase("live: research start and collect", \liveResearchTest());
+            addTestCase("live: usage, logs and the research dropdown", \liveAccountTest());
         }
         set_return_value(main());
     }
@@ -81,135 +89,255 @@ public class TavilyDataProviderTest inherits QUnit::Test {
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-c,--connection=ARG",
-            "set the Tavily connection name; without it (and without the "
-            "TAVILY_CONNECTION env var) the live test is skipped",
-            OptionColumn);
+            "set the Tavily connection name; without it (and without the TAVILY_CONNECTION "
+            "environment variable) the live tests are skipped", OptionColumn);
     }
 
     private registrationTest() {
-        DataProvider::AbstractDataProviderFactory f =
-            DataProvider::DataProvider::getFactory("tavily");
+        AbstractDataProviderFactory f = DataProvider::DataProvider::getFactory("tavily");
         assertEq("tavily", f.getInfo().name);
 
-        hash<DataProviderAppInfo> app =
-            DataProvider::DataProviderActionCatalog::getApp("Tavily");
+        hash<DataProviderAppInfo> app = DataProviderActionCatalog::getApp("Tavily");
         assertEq("Tavily", app.name);
         assertEq("tavily", app.scheme);
         assertEq("tavily-logo.svg", app.logo_file_name);
         assertTrue(app.logo.size() > 0);
 
-        # filter out the framework-injected make-api-call action (covered by
-        # GenericApiCallAutoInjection.qtest in RestClientDataProvider)
+        # the framework-injected make-api-call action is covered by
+        # GenericApiCallAutoInjection.qtest in RestClientDataProvider
         list<hash<DataProviderActionInfo>> actions = select
-            DataProvider::DataProviderActionCatalog::getActions("Tavily"),
+            DataProviderActionCatalog::getActions("Tavily"),
             $1.action != AbstractDataProvider::GenericApiCallActionName;
-        assertEq(4, actions.size());
-        list<string> action_names = sort(map $1.action, actions);
-        assertEq(("crawl", "extract", "map", "search"), action_names);
-    }
+        assertEq(ExpectedActions, sort(map $1.action, actions));
 
-    private rootProviderTest() {
         FakeTavilyRestClientIo fake();
         TavilyDataProvider::TavilyDataProvider prov(fake);
         assertEq("tavily", prov.getName());
-        # filter out the framework-injected __call__ child (covered by
-        # GenericApiCallAutoInjection.qtest in RestClientDataProvider)
-        list<string> children = sort(select prov.getChildProviderNames(),
-            $1 != AbstractDataProvider::GenericApiCallChildName);
-        assertEq(("crawl", "extract", "map", "search"), children);
-        AbstractDataProvider s = prov.getChildProvider("search");
-        assertTrue(s instanceof TavilyDataProvider::TavilySearchDataProvider);
+        assertEq(ExpectedActions, sort(select prov.getChildProviderNames(),
+            $1 != AbstractDataProvider::GenericApiCallChildName));
+        assertTrue(prov.getChildProvider("search") instanceof TavilySearchDataProvider);
+        assertTrue(prov.getChildProvider("research") instanceof TavilyResearchDataProvider);
     }
 
-    private searchTest() {
+    #! Every action must be usable without reading Tavily's documentation first
+    private actionPresentationTest() {
+        list<hash<DataProviderActionInfo>> actions = select
+            DataProviderActionCatalog::getActions("Tavily"),
+            $1.action != AbstractDataProvider::GenericApiCallActionName;
+        hash<string, hash<DataProviderActionInfo>> by_id = map {$1.action: $1}, actions;
+
+        foreach hash<DataProviderActionInfo> a in (actions) {
+            assertTrue(a.display_name.val(), sprintf("%s has a display name", a.action));
+            assertTrue(a.short_desc.val(), sprintf("%s has a short description", a.action));
+            assertTrue(a.desc.val(), sprintf("%s has a description", a.action));
+            assertTrue(a.options.size() > 0, sprintf("%s has options", a.action));
+            assertTrue(exists a.output_type, sprintf("%s has an output type", a.action));
+            foreach hash<auto> o in (a.options.pairIterator()) {
+                assertTrue(o.value.display_name.val(),
+                    sprintf("%s.%s has a display name", a.action, o.key));
+                assertTrue(o.value.desc.val(),
+                    sprintf("%s.%s has a description", a.action, o.key));
+            }
+        }
+
+        # Tavily accepts four search depths and rejects anything else, naming all four in the error;
+        # the application offered two of them until the API grew the faster pair
+        assertEq(("ultra-fast", "fast", "basic", "advanced"),
+            (map $1.value, by_id."search".options.search_depth.allowed_values));
+        assertEq(("Ultra Fast", "Fast", "Basic", "Advanced"),
+            (map $1.display_name, by_id."search".options.search_depth.allowed_values));
+        assertEq(("general", "news", "finance"),
+            (map $1.value, by_id."search".options.topic.allowed_values));
+
+        # "html_tags" is accepted by /extract but not by /crawl, so the two do not share a list
+        assertEq(("markdown", "text", "html_tags"),
+            (map $1.value, by_id."extract".options.format.allowed_values));
+        assertEq(("markdown", "text"),
+            (map $1.value, by_id."crawl".options.format.allowed_values));
+
+        # a closed set the user cannot otherwise know: Tavily takes "trinidad and tobago" but not
+        # "vatican city"
+        assertEq(166, by_id."search".options.country.allowed_values.size());
+        assertEq("Bosnia and Herzegovina",
+            (select by_id."search".options.country.allowed_values,
+                $1.value == "bosnia and herzegovina")[0].display_name);
+
+        assertEq(("auto", "mini", "pro"),
+            (map $1.value, by_id."research".options.model.allowed_values));
+        assertEq(("numbered", "mla", "apa", "chicago"),
+            (map $1.value, by_id."research".options.citation_format.allowed_values));
+
+        # the endpoints option is a list, so its values constrain the elements
+        assertEq(("search", "extract", "crawl", "map", "research"),
+            (map $1.value, by_id."logs".options.endpoints.element_allowed_values));
+
+        # the only identifier the API can list is a research task, and it comes from the usage log
+        assertEq(TavilyDataProviderCommon::RefResearchTask,
+            by_id."get-research".options.request_id.ref_data);
+    }
+
+    #! Each action must reach its own endpoint with the body the API expects
+    private wireFormatTest() {
         FakeTavilyRestClientIo fake();
-        fake.response_body = {
-            "query": "test",
-            "results": (
-                {"title": "T", "url": "https://t/", "content": "x", "score": 0.9},
-            ),
-        };
 
-        TavilyDataProvider::TavilySearchDataProvider prov(fake);
-        auto resp = prov.doRequest({"query": "test", "max_results": 5});
-
-        assertEq("POST", fake.last_method);
-        assertEq("search", fake.last_path);
+        new TavilySearchDataProvider(fake).doRequest({"query": "test", "max_results": 5});
+        assertEq(("POST", "search"), (fake.last_method, fake.last_path));
         assertEq("test", fake.last_request.query);
-        assertEq(5, fake.last_request.max_results);
-        assertEq(1, resp.results.size());
-        assertEq("https://t/", resp.results[0].url);
-    }
 
-    private extractTest() {
-        FakeTavilyRestClientIo fake();
-        fake.response_body = {
-            "results": ({"url": "https://q/", "raw_content": "..."},),
-        };
+        new TavilyExtractDataProvider(fake).doRequest({"urls": ("https://q/",), "format": "text"});
+        assertEq(("POST", "extract"), (fake.last_method, fake.last_path));
+        assertEq("text", fake.last_request.format);
 
-        TavilyDataProvider::TavilyExtractDataProvider prov(fake);
-        prov.doRequest({"urls": ("https://q/",)});
-
-        assertEq("POST", fake.last_method);
-        assertEq("extract", fake.last_path);
-        assertEq("https://q/", fake.last_request.urls[0]);
-    }
-
-    private crawlTest() {
-        FakeTavilyRestClientIo fake();
-        fake.response_body = {
-            "base_url": "https://docs.qore.org/",
-            "results": ({"url": "https://docs.qore.org/x", "raw_content": "..."},),
-        };
-
-        TavilyDataProvider::TavilyCrawlDataProvider prov(fake);
-        prov.doRequest({
-            "url": "https://docs.qore.org/",
-            "max_depth": 2,
-            "limit": 50,
-        });
-
-        assertEq("POST", fake.last_method);
-        assertEq("crawl", fake.last_path);
-        assertEq("https://docs.qore.org/", fake.last_request.url);
+        new TavilyCrawlDataProvider(fake).doRequest({"url": "https://q/", "max_depth": 2});
+        assertEq(("POST", "crawl"), (fake.last_method, fake.last_path));
         assertEq(2, fake.last_request.max_depth);
+
+        new TavilyMapDataProvider(fake).doRequest({"url": "https://q/"});
+        assertEq(("POST", "map"), (fake.last_method, fake.last_path));
+
+        new TavilyResearchDataProvider(fake).doRequest({"input": "why", "model": "mini"});
+        assertEq(("POST", "research"), (fake.last_method, fake.last_path));
+        assertEq("mini", fake.last_request.model);
+
+        # the task identifier belongs in the path, not the body
+        new TavilyGetResearchDataProvider(fake).doRequest({"request_id": "abc-123"});
+        assertEq(("GET", "research/abc-123"), (fake.last_method, fake.last_path));
+        assertNothing(fake.last_request);
+
+        # the project is named in a header, which is the only place Tavily reads it
+        new TavilyUsageDataProvider(fake).doRequest({"project_id": "proj-1"});
+        assertEq(("GET", "usage"), (fake.last_method, fake.last_path));
+        assertEq("proj-1", fake.last_hdr."X-Project-ID");
+        new TavilyUsageDataProvider(fake).doRequest({});
+        assertNothing(fake.last_hdr);
+
+        new TavilyLogsDataProvider(fake).doRequest({"limit": 5, "endpoints": ("research",)});
+        assertEq(("POST", "logs"), (fake.last_method, fake.last_path));
+        assertEq(("research",), fake.last_request.endpoints);
     }
 
-    private mapTest() {
-        FakeTavilyRestClientIo fake();
-        fake.response_body = {
-            "base_url": "https://docs.qore.org/",
-            "results": ("https://docs.qore.org/a", "https://docs.qore.org/b"),
-        };
-
-        TavilyDataProvider::TavilyMapDataProvider prov(fake);
-        auto resp = prov.doRequest({"url": "https://docs.qore.org/"});
-
-        assertEq("POST", fake.last_method);
-        assertEq("map", fake.last_path);
-        assertEq(2, resp.results.size());
-    }
-
-    #! Exercises Tavily's live `/search` endpoint
-    /** Verifies the actual wire format against Tavily's production API.
-        Tavily free tier: 1000 search queries/month.  ~$0 per run when
-        within free tier.
+    #! Verifies that the ping actually authenticates
+    /** This connection declared no ping at all, so every ping returned "OK" in well under a
+        millisecond without contacting the server - including with an API key Tavily would reject.
     */
-    private liveTavilyTest() {
+    private livePingTest() {
         AbstractConnection conn = get_connection(conn_name);
         hash<auto> ping = conn.ping(True);
-        assertTrue(ping.ok, sprintf("Tavily connection ping failed: %s",
-            ping.info ?? "no info"));
+        assertTrue(ping.ok, sprintf("Tavily connection ping failed: %s", ping.info ?? "no info"));
 
-        AbstractDataProvider prov = conn.getDataProvider();
-        AbstractDataProvider s = prov.getChildProvider("search");
-        auto resp = s.doRequest({
-            "query":       "hello world",
-            "max_results": 1,
+        # the point of the ping: a key the server rejects must fail it
+        TavilyRestConnection bad("tavily-bad", "invalid key", TavilyRestConnection::DefaultUrl, {},
+            {"apikey": "tvly-dev-000000000000000000000000000000000"});
+        hash<auto> bad_ping = bad.ping();
+        assertFalse(bad_ping.ok, "a rejected API key must fail the ping");
+        assertRegex("401", bad_ping.info ?? bad_ping.desc ?? "");
+    }
+
+    #! Exercises the four retrieval actions against the live API
+    private liveSearchTest() {
+        AbstractDataProvider prov = get_connection(conn_name).getDataProvider();
+
+        # one call that both searches and reads: this is what the application is for
+        hash<auto> res = prov.getChildProviderEx("search").doRequest({
+            "query": "Qore programming language",
+            "max_results": 2,
+            "search_depth": "basic",
+            "include_answer": "basic",
+            "include_raw_content": "markdown",
+            "include_usage": True,
         });
-        assertTrue(resp.results.size() >= 1,
-            "Tavily search returned at least one result");
-        assertTrue(resp.results[0].url.val(),
-            "Tavily search result has a URL");
+        assertTrue(res.results.size() > 0, "the search returned results");
+        assertTrue(res.results[0].url.val(), "a result carries its URL");
+        assertTrue(res.answer.val(), "an answer was written over the results");
+        assertTrue(res.results[0].raw_content.val(), "the full page text came back with the result");
+
+        hash<auto> ext = prov.getChildProviderEx("extract").doRequest({
+            "urls": ("https://qore.org",),
+            "format": "markdown",
+        });
+        assertTrue(ext.results.size() > 0, "the page was read");
+        assertTrue(ext.results[0].raw_content.val(), "the page carries its content");
+
+        hash<auto> m = prov.getChildProviderEx("map").doRequest({
+            "url": "https://qore.org",
+            "limit": 5,
+        });
+        assertEq("https://qore.org", m.base_url);
+        assertTrue(m.results.size() > 0, "the map found URLs");
+
+        hash<auto> c = prov.getChildProviderEx("crawl").doRequest({
+            "url": "https://qore.org",
+            "limit": 2,
+            "max_depth": 1,
+        });
+        assertTrue(c.results.size() > 0, "the crawl read pages");
+        assertTrue(c.results[0].raw_content.val(), "a crawled page carries its content");
+    }
+
+    #! Starts a research task and collects its report
+    private liveResearchTest() {
+        AbstractDataProvider prov = get_connection(conn_name).getDataProvider();
+
+        hash<auto> task = prov.getChildProviderEx("research").doRequest({
+            "input": "What is the Qore programming language?",
+            "model": "mini",
+            "output_length": "short",
+        });
+        assertTrue(task.request_id.val(), "the task was started and carries its identifier");
+        assertEq("pending", task.status);
+
+        AbstractDataProvider gr = prov.getChildProviderEx("get-research");
+        # a task that has not finished is not an error: the status says so and the caller asks again
+        hash<auto> report;
+        date timeout = now_us() + 5m;
+        while (True) {
+            report = gr.doRequest({"request_id": task.request_id});
+            assertTrue(inlist(report.status, ("pending", "in_progress", "completed", "failed")),
+                sprintf("the report carries a known status (%y)", report.status));
+            if (report.status == "completed" || report.status == "failed") {
+                break;
+            }
+            if (now_us() > timeout) {
+                throw "TAVILY-RESEARCH-TIMEOUT", sprintf("task %y was still %y after 5m",
+                    task.request_id, report.status);
+            }
+            usleep(15s);
+        }
+        assertEq("completed", report.status, "the research task completed");
+        assertTrue(report.content.val(), "the report has content");
+        assertTrue(report.sources.size() > 0, "the report cites its sources");
+        assertTrue(report.sources[0].url.val(), "a source carries its URL");
+    }
+
+    #! Reads the account endpoints and the dropdown the usage log backs
+    private liveAccountTest() {
+        AbstractDataProvider prov = get_connection(conn_name).getDataProvider();
+
+        hash<auto> usage = prov.getChildProviderEx("usage").doRequest({});
+        assertTrue(exists usage.key, "the usage report covers this key");
+        assertTrue(exists usage.account, "the usage report covers the account");
+        assertTrue(usage.account.current_plan.val(), "the account names its plan");
+
+        hash<auto> logs = prov.getChildProviderEx("logs").doRequest({
+            "limit": 5,
+            "endpoints": ("research",),
+        });
+        assertTrue(exists logs.count, "the log listing reports how many entries it returned");
+        # the log is written a few minutes after a request, so an empty window is normal here
+        foreach hash<auto> entry in (logs.logs ?? ()) {
+            assertEq("research", entry.endpoint, "the listing was narrowed to research tasks");
+            assertTrue(entry.request_id.val(), "a log entry carries the request identifier");
+        }
+
+        # the same listing is what backs the research dropdown, which is the only listing Tavily
+        # publishes that names an object an option refers to
+        AbstractDataProvider gr = prov.getChildProviderEx("get-research");
+        assertEq({TavilyDataProviderCommon::RefResearchTask: True}, gr.getSupportedReferenceData());
+        *list<hash<AllowedValueInfo>> tasks =
+            gr.getReferenceData(TavilyDataProviderCommon::RefResearchTask);
+        foreach hash<AllowedValueInfo> t in (tasks) {
+            assertTrue(t.value.val(), "a dropdown entry carries the task identifier");
+            assertTrue(t.display_name.val(), "a dropdown entry carries a readable label");
+        }
     }
 }

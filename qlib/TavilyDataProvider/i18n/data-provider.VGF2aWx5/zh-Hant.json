@@ -4,12 +4,36 @@
     "zh-Hant": {
       "messages": {
         "app.VGF2aWx5.action.Y3Jhd2w.desc": {
-          "source": "Multi-page web crawl starting from a seed URL via Tavily's `/crawl` endpoint.  Returns a tree of discovered pages with their extracted content.",
-          "message": "透過 Tavily 的 `/crawl` 端點從種子 URL 開始進行多頁面網路檢索。傳回已探索頁面及其擷取內容的樹狀結構。"
+          "source": "Follows links from a starting page and returns the content of every page it reads - a site walked and read in one call, rather than one request per URL.\n\n`instructions` describes in natural language which pages are wanted, and is usually easier to get right than the path and domain patterns; the two can be combined.  `limit` is the ceiling on what the crawl costs, so set it first.\n\n`allow_external` defaults to `True`, so a crawl meant to stay on one site must set it to `False`.  Use **Map a Site** first when only the URLs are wanted.",
+          "message": "從起始頁面沿著連結前進，並傳回它讀取的每個頁面的內容——一次呼叫就走完並讀完一個網站，而不是每個網址發一個請求。\n\n`instructions` 以自然語言描述需要哪些頁面，通常比路徑與網域樣式更容易設定到位，兩者也可以併用。`limit` 是爬取花費的上限，因此請先設定它。\n\n`allow_external` 預設為 `True`，所以要留在單一網站內的爬取必須把它設為 `False`。若只需要網址，請先使用 **繪製網站**。"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.display_name": {
-          "source": "Crawl Site",
-          "message": "檢索網站"
+          "source": "Crawl a Site",
+          "message": "爬取網站"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Y2h1bmtzX3Blcl9zb3VyY2U.desc": {
+          "source": "How many separately-scored chunks to keep from each page, from 1 to 5.  Defaults to 3.",
+          "message": "每個頁面要保留幾個各自評分的區塊，從 1 到 5。預設值為 3。"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Y2h1bmtzX3Blcl9zb3VyY2U.display_name": {
+          "source": "Chunks per Page",
+          "message": "每頁區塊數"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Y2h1bmtzX3Blcl9zb3VyY2U.short_desc": {
+          "source": "How many relevant chunks to keep from each page",
+          "message": "每個頁面要保留幾個相關區塊"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.YWxsb3dfZXh0ZXJuYWw.desc": {
+          "source": "Whether the crawl may follow links off the starting site.  Defaults to `True`, so a crawl meant to stay on one site should set this to `False`.",
+          "message": "爬取是否可以沿著連往起始網站以外的連結前進。預設值為 `True`，因此要留在單一網站內的爬取應將其設為 `False`。"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.YWxsb3dfZXh0ZXJuYWw.display_name": {
+          "source": "Follow External Links",
+          "message": "沿著外部連結前進"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.YWxsb3dfZXh0ZXJuYWw.short_desc": {
+          "source": "Whether the crawl may leave the starting site",
+          "message": "爬取是否可以離開起始網站"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXh0cmFjdF9kZXB0aA.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
           "source": "Advanced",
@@ -20,112 +44,240 @@
           "message": "基本"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXh0cmFjdF9kZXB0aA.desc": {
-          "source": "Extraction depth applied to each crawled page.",
-          "message": "套用至每個檢索頁面的擷取深度。"
+          "source": "How hard Tavily works to read each page it fetches.  `advanced` recovers content from pages that render it with scripts, at higher cost and latency.",
+          "message": "Tavily 為讀取每個抓到的頁面投入多少心力。`advanced` 連以指令碼算繪內容的頁面也能取回，但成本與延遲較高。"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXh0cmFjdF9kZXB0aA.display_name": {
-          "source": "Extract Depth",
+          "source": "Extraction Depth",
           "message": "擷取深度"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXh0cmFjdF9kZXB0aA.short_desc": {
-          "source": "Per-page extraction depth",
-          "message": "每頁擷取深度"
+          "source": "How hard Tavily works to read each page",
+          "message": "Tavily 為讀取每個頁面投入多少心力"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9kb21haW5z.desc": {
+          "source": "Regular expressions that exclude a domain from the crawl.",
+          "message": "將網域排除在爬取之外的正規表示式。"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+          "source": "Exclude Domains",
+          "message": "排除網域"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
+          "source": "Regular expressions that exclude a domain",
+          "message": "用來排除網域的正規表示式"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9wYXRocw.desc": {
-          "source": "List of URL path patterns to exclude.",
-          "message": "要排除的 URL 路徑模式清單。"
+          "source": "Regular expressions that exclude a page from the crawl by its URL path.",
+          "message": "依網址路徑將頁面排除在爬取之外的正規表示式。"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9wYXRocw.display_name": {
           "source": "Exclude Paths",
           "message": "排除路徑"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9wYXRocw.short_desc": {
-          "source": "URL path patterns to exclude",
-          "message": "要排除的 URL 路徑模式"
+          "source": "Regular expressions that exclude a path",
+          "message": "用來排除路徑的正規表示式"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "純文字"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.desc": {
+          "source": "The form each page's text is returned in.  `markdown` keeps headings, lists and links; `text` is prose only.",
+          "message": "每個頁面文字傳回的形式。`markdown` 會保留標題、清單與連結；`text` 只給純敘述文字。"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.display_name": {
+          "source": "Format",
+          "message": "格式"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.short_desc": {
+          "source": "The form each page's text is returned in",
+          "message": "每個頁面文字傳回的形式"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV91c2FnZQ.desc": {
+          "source": "Return what this request cost in credits, as `usage`.",
+          "message": "以 `usage` 傳回這個請求花費的點數。"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV91c2FnZQ.display_name": {
+          "source": "Credit Usage",
+          "message": "點數用量"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV91c2FnZQ.short_desc": {
+          "source": "Return what this request cost",
+          "message": "傳回這個請求的花費"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9mYXZpY29u.desc": {
+          "source": "Return each page's favicon URL, for rendering a source list.",
+          "message": "傳回每個頁面的網站圖示網址，以便呈現來源清單。"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9mYXZpY29u.display_name": {
+          "source": "Favicons",
+          "message": "網站圖示"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9mYXZpY29u.short_desc": {
+          "source": "Return each page's favicon URL",
+          "message": "傳回每個頁面的網站圖示網址"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9pbWFnZXM.desc": {
+          "source": "Return the images found on each page.",
+          "message": "傳回每個頁面上找到的圖片。"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9pbWFnZXM.display_name": {
+          "source": "Images",
+          "message": "圖片"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9pbWFnZXM.short_desc": {
+          "source": "Return the images found on each page",
+          "message": "傳回每個頁面上找到的圖片"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.aW5zdHJ1Y3Rpb25z.desc": {
-          "source": "Optional natural-language hints to guide the crawler (e.g. \"focus on API reference pages\").",
-          "message": "引導檢索器的選用自然語言提示（例如 \"focus on API reference pages\"）。"
+          "source": "Describe in natural language which pages are wanted - \"the API reference pages\", \"anything about pricing\" - and Tavily decides which links to follow.  This is usually easier to get right than the path and domain patterns below, and can be combined with them.",
+          "message": "以自然語言描述需要哪些頁面——「API 參考頁面」、「任何與定價有關的內容」——由 Tavily 決定要沿著哪些連結前進。這通常比下方的路徑與網域樣式更容易設定到位，也可以與它們併用。"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.aW5zdHJ1Y3Rpb25z.display_name": {
           "source": "Instructions",
           "message": "指示"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.aW5zdHJ1Y3Rpb25z.short_desc": {
-          "source": "Natural-language instructions for the crawl agent",
-          "message": "檢索代理程式的自然語言指令"
+          "source": "Describe in natural language which pages are wanted",
+          "message": "以自然語言描述需要哪些頁面"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bGltaXQ.desc": {
-          "source": "Maximum total pages to fetch across the crawl.",
-          "message": "整個檢索過程中要擷取的最大頁面總數。"
+          "source": "How many pages to read in total.  Defaults to 50.  This is the ceiling on what the crawl costs, so set it before setting the depth and breadth.",
+          "message": "總共要讀取幾個頁面。預設值為 50。這是爬取花費的上限，因此請在設定深度與廣度之前先設定它。"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bGltaXQ.display_name": {
-          "source": "Limit",
-          "message": "限制數量"
+          "source": "Page Limit",
+          "message": "頁面上限"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bGltaXQ.short_desc": {
-          "source": "Overall page limit",
-          "message": "整體頁面上限"
+          "source": "How many pages to read in total",
+          "message": "總共要讀取幾個頁面"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2JyZWFkdGg.desc": {
-          "source": "Maximum number of outgoing links to follow per page.",
-          "message": "每個頁面要追蹤的最大連出連結數。"
+          "source": "How many links to follow from each page, from 1 to 500.  Defaults to 20.",
+          "message": "每個頁面要沿著幾個連結前進，從 1 到 500。預設值為 20。"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2JyZWFkdGg.display_name": {
-          "source": "Max Breadth",
+          "source": "Maximum Breadth",
           "message": "最大廣度"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2JyZWFkdGg.short_desc": {
-          "source": "Maximum links to follow per page",
-          "message": "每頁要追蹤的最大連結數"
+          "source": "How many links to follow from each page",
+          "message": "每個頁面要沿著幾個連結前進"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2RlcHRo.desc": {
-          "source": "Maximum link-graph depth from the seed URL.",
-          "message": "從種子 URL 出發的最大連結圖深度。"
+          "source": "How many links away from the start URL the crawl may go, from 1 to 5.  Defaults to 1, which reads only the pages the start URL links to directly.",
+          "message": "爬取從起始網址最多可往外走幾層連結，從 1 到 5。預設值為 1，也就是只讀取起始網址直接連到的頁面。"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2RlcHRo.display_name": {
-          "source": "Max Depth",
+          "source": "Maximum Depth",
           "message": "最大深度"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2RlcHRo.short_desc": {
-          "source": "Maximum crawl depth from the seed",
-          "message": "從種子出發的最大檢索深度"
+          "source": "How many links away from the start URL to go",
+          "message": "從起始網址往外走幾層連結"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X2RvbWFpbnM.desc": {
+          "source": "Regular expressions the domain must match for a page to be read, for example `^docs\\.qore\\.org$`.",
+          "message": "頁面要被讀取，其網域必須符合的正規表示式，例如 `^docs\\.qore\\.org$`。"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X2RvbWFpbnM.display_name": {
+          "source": "Only These Domains",
+          "message": "僅限這些網域"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X2RvbWFpbnM.short_desc": {
+          "source": "Regular expressions the domain must match",
+          "message": "網域必須符合的正規表示式"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X3BhdGhz.desc": {
-          "source": "List of URL path patterns to include.",
-          "message": "要包含的 URL 路徑模式清單。"
+          "source": "Regular expressions the URL path must match for a page to be read, for example `/docs/.*`.",
+          "message": "頁面要被讀取，其網址路徑必須符合的正規表示式，例如 `/docs/.*`。"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X3BhdGhz.display_name": {
-          "source": "Select Paths",
-          "message": "選擇路徑"
+          "source": "Only These Paths",
+          "message": "僅限這些路徑"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X3BhdGhz.short_desc": {
-          "source": "URL path patterns to include",
-          "message": "要包含的 URL 路徑模式"
+          "source": "Regular expressions the path must match",
+          "message": "路徑必須符合的正規表示式"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.dGltZW91dA.desc": {
+          "source": "How long the whole crawl may take, in seconds, from 10 to 150.  Defaults to 150.  A crawl that runs out of time returns what it has.",
+          "message": "整個爬取最多可花多久，以秒為單位，從 10 到 150。預設值為 150。時間用盡的爬取會傳回已取得的內容。"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.dGltZW91dA.display_name": {
+          "source": "Timeout",
+          "message": "逾時"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.dGltZW91dA.short_desc": {
+          "source": "How long the whole crawl may take, in seconds",
+          "message": "整個爬取最多可花多久，以秒為單位"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.dXJs.desc": {
-          "source": "Seed URL the crawl begins at.",
-          "message": "編目開始的種子 URL。"
+          "source": "The page the crawl starts from.  Everything reachable from it, within the limits below, is fetched and read.",
+          "message": "爬取的起點頁面。凡是從它可以到達的內容，都會在以下限制範圍內被抓取並讀取。"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.dXJs.display_name": {
-          "source": "Seed URL",
-          "message": "種子 URL"
+          "source": "Start URL",
+          "message": "起始網址"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.dXJs.short_desc": {
-          "source": "URL to start the crawl from",
-          "message": "開始編目的 URL"
+          "source": "The page the crawl starts from",
+          "message": "爬取的起點頁面"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.short_desc": {
-          "source": "Crawl a site starting from a seed URL",
-          "message": "從種子 URL 開始編目網站"
+          "source": "Follow links from a page and return the content of everything found",
+          "message": "從一個頁面沿著連結前進，並傳回所有找到內容"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.desc": {
+          "source": "Reads a research task started by **Start Research**.\n\n`status` says where it has got to - `pending`, `in_progress`, `completed` or `failed` - and `content` and `sources` are present once it is `completed`.  A task that is still running is not an error: read `status` and ask again.",
+          "message": "讀取由 **啟動研究** 所啟動的研究工作。\n\n`status` 說明它進行到哪個階段——`pending`、`in_progress`、`completed` 或 `failed`——而 `content` 與 `sources` 會在狀態為 `completed` 後出現。仍在執行的工作並不是錯誤：請讀取 `status` 後再問一次。"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.display_name": {
+          "source": "Get Research Report",
+          "message": "取得研究報告"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.option.cmVxdWVzdF9pZA.desc": {
+          "source": "The research task to read, as returned by **Start Research** in `request_id`.\n\nThe dropdown lists the research tasks this account has started, taken from the usage log.  The log is written a few minutes after a task starts, so a task begun moments ago is not in it yet: use the `request_id` **Start Research** returned.",
+          "message": "要讀取的研究工作，也就是 **啟動研究** 在 `request_id` 中傳回的值。\n\n下拉式清單會列出這個帳戶已啟動的研究工作，資料取自用量紀錄。紀錄會在工作啟動數分鐘後才寫入，因此剛啟動的工作尚未出現在其中：此時請使用 **啟動研究** 傳回的 `request_id`。"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.option.cmVxdWVzdF9pZA.display_name": {
+          "source": "Task ID",
+          "message": "工作 ID"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.option.cmVxdWVzdF9pZA.short_desc": {
+          "source": "The research task to read",
+          "message": "要讀取的研究工作"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.short_desc": {
+          "source": "Read a research task and its report once it has finished",
+          "message": "讀取研究工作，以及完成後的報告"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.desc": {
-          "source": "Extracts the main readable content from a list of URLs via Tavily's `/extract` endpoint.  Useful as a follow-up to a `search` result when the agent decides to read specific pages in full.",
-          "message": "透過 Tavily 的 `/extract` 端點從 URL 清單中擷取主要可讀內容。當代理決定完整閱讀特定頁面時，適合作為 `search` 結果的後續操作。"
+          "source": "Fetches the given pages and returns the main content of each, with the navigation, advertising and boilerplate removed.\n\nUse this on URLs already in hand - typically the ones **Search the Web** returned.  Give a `query` to keep only the parts of each page relevant to it, which is what stops a long page from filling a model's context window with the rest.\n\nPages that cannot be read are reported in `failed_results` rather than failing the request, so a partial success is normal and worth checking.",
+          "message": "抓取指定的頁面，並傳回每個頁面的主要內容，去掉導覽、廣告與樣板文字。\n\n請將此動作用於你已握有的網址——通常是 **搜尋網頁** 傳回的那些。指定 `query` 可只保留每個頁面中與之相關的部分，避免一個很長的頁面用其餘內容塞滿模型的脈絡視窗。\n\n讀不到的頁面會回報在 `failed_results`，而不會讓整個請求失敗，因此部分成功是常態，值得一併檢查。"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.display_name": {
-          "source": "Extract URLs",
-          "message": "擷取 URL"
+          "source": "Read Pages",
+          "message": "讀取頁面"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Y2h1bmtzX3Blcl9zb3VyY2U.desc": {
+          "source": "How many separately-scored chunks to keep from each page, from 1 to 5.  Has an effect only together with `query`.  Defaults to 3.",
+          "message": "每個頁面要保留幾個各自評分的區塊，從 1 到 5。僅在與 `query` 併用時有作用。預設值為 3。"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Y2h1bmtzX3Blcl9zb3VyY2U.display_name": {
+          "source": "Chunks per Source",
+          "message": "每個來源的區塊數"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Y2h1bmtzX3Blcl9zb3VyY2U.short_desc": {
+          "source": "How many relevant chunks to keep from each page",
+          "message": "每個頁面要保留幾個相關區塊"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.ZXh0cmFjdF9kZXB0aA.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
           "source": "Advanced",
@@ -136,44 +288,220 @@
           "message": "基本"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.ZXh0cmFjdF9kZXB0aA.desc": {
-          "source": "Extraction depth.",
-          "message": "擷取深度。"
+          "source": "How hard Tavily works to read the page.  `advanced` recovers content from pages that render it with scripts, at higher cost and latency; `basic` is enough for ordinary articles and documentation.",
+          "message": "Tavily 為讀取頁面投入多少心力。`advanced` 連以指令碼算繪內容的頁面也能取回，但成本與延遲較高；一般文章與說明文件用 `basic` 就夠了。"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.ZXh0cmFjdF9kZXB0aA.display_name": {
-          "source": "Extract Depth",
+          "source": "Extraction Depth",
           "message": "擷取深度"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.ZXh0cmFjdF9kZXB0aA.short_desc": {
-          "source": "Extraction depth: 'basic' or 'advanced'",
-          "message": "擷取深度：'basic' 或 'advanced'"
+          "source": "How hard Tavily works to read the page",
+          "message": "Tavily 為讀取頁面投入多少心力"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.allowed-value.c3RyaW5nOmh0bWxfdGFncw.display_name": {
+          "source": "HTML Tags",
+          "message": "HTML 標籤"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "純文字"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.desc": {
+          "source": "The form the page text is returned in.  `markdown` keeps headings, lists and links; `text` is prose only; `html_tags` keeps the original tags.",
+          "message": "頁面文字傳回的形式。`markdown` 會保留標題、清單與連結；`text` 只給純敘述文字；`html_tags` 保留原始標籤。"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.display_name": {
+          "source": "Format",
+          "message": "格式"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.short_desc": {
+          "source": "The form the page text is returned in",
+          "message": "頁面文字傳回的形式"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV91c2FnZQ.desc": {
+          "source": "Return what this request cost in credits, as `usage`.",
+          "message": "以 `usage` 傳回這個請求花費的點數。"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV91c2FnZQ.display_name": {
+          "source": "Credit Usage",
+          "message": "點數用量"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV91c2FnZQ.short_desc": {
+          "source": "Return what this request cost",
+          "message": "傳回這個請求的花費"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9mYXZpY29u.desc": {
+          "source": "Return each page's favicon URL, for rendering a source list.",
+          "message": "傳回每個頁面的網站圖示網址，以便呈現來源清單。"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9mYXZpY29u.display_name": {
+          "source": "Favicons",
+          "message": "網站圖示"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9mYXZpY29u.short_desc": {
+          "source": "Return each page's favicon URL",
+          "message": "傳回每個頁面的網站圖示網址"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9pbWFnZXM.desc": {
-          "source": "When `True`, each result includes image URLs found on the page.",
-          "message": "設為 `True` 時，每個結果都會包含在頁面上找到的圖片 URL。"
+          "source": "Return the images found on each page.",
+          "message": "傳回每個頁面上找到的圖片。"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9pbWFnZXM.display_name": {
-          "source": "Include Images",
-          "message": "包含圖片"
+          "source": "Images",
+          "message": "圖片"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9pbWFnZXM.short_desc": {
-          "source": "Return image URLs alongside extracted text",
-          "message": "與擷取的文字一同返回圖片 URL"
+          "source": "Return the images found on each page",
+          "message": "傳回每個頁面上找到的圖片"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.cXVlcnk.desc": {
+          "source": "Keep only the parts of each page relevant to this query, rather than the whole of it.  This is what keeps a long page from filling a model's context window with the parts nobody asked about.",
+          "message": "只保留每個頁面中與這個查詢相關的部分，而非整個頁面。這能避免一個很長的頁面用沒人要看的部分塞滿模型的脈絡視窗。"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.cXVlcnk.display_name": {
+          "source": "Query",
+          "message": "查詢"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.cXVlcnk.short_desc": {
+          "source": "Keep only the parts of each page relevant to this",
+          "message": "只保留每個頁面中與此相關的部分"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.dGltZW91dA.desc": {
+          "source": "How long to wait for each page, in seconds, from 1 to 60.",
+          "message": "每個頁面要等待多久，以秒為單位，從 1 到 60。"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.dGltZW91dA.display_name": {
+          "source": "Timeout",
+          "message": "逾時"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.dGltZW91dA.short_desc": {
+          "source": "How long to wait for each page, in seconds",
+          "message": "每個頁面要等待多久，以秒為單位"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.dXJscw.desc": {
-          "source": "Absolute URLs whose main content should be extracted.",
-          "message": "應擷取其主要內容的絕對 URL。"
+          "source": "The pages to read.  Each is fetched and reduced to its main content, with the navigation, advertising and boilerplate removed.",
+          "message": "要讀取的頁面。每一個都會被抓取並整理成只剩主要內容，去掉導覽、廣告與樣板文字。"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.dXJscw.display_name": {
           "source": "URLs",
           "message": "URL"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.dXJscw.short_desc": {
-          "source": "List of URLs to extract content from",
-          "message": "要從中擷取內容的 URL 清單"
+          "source": "The pages to read",
+          "message": "要讀取的頁面"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.short_desc": {
-          "source": "Extract main content from URLs via Tavily",
-          "message": "透過 Tavily 從 URL 擷取主要內容"
+          "source": "Fetch pages and return their main content",
+          "message": "抓取頁面並傳回其主要內容"
+        },
+        "app.VGF2aWx5.action.bG9ncw.desc": {
+          "source": "Lists the requests made against the account, newest first, each with the endpoint it called, what it cost and how long it took.\n\nThis is where a credit total from **Get Credit Usage** is broken down into the individual requests that produced it.  Narrow the listing with `endpoints`, a date window, or `filter_by_api_key` to see only this key's own requests.",
+          "message": "列出對這個帳戶發出的請求，最新的在前，每一筆都附上所呼叫的端點、花費與耗時。\n\n**取得點數用量** 得到的點數總計，會在這裡拆解成產生它的個別請求。可用 `endpoints`、日期區間或 `filter_by_api_key` 縮小清單，以便只看這支金鑰自己的請求。"
+        },
+        "app.VGF2aWx5.action.bG9ncw.display_name": {
+          "source": "List API Usage Logs",
+          "message": "列出 API 用量紀錄"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kX2RhdGU.desc": {
+          "source": "Return only entries on or before this date, as `YYYY-MM-DD`.",
+          "message": "只傳回這個日期當天或之前的項目，格式為 `YYYY-MM-DD`。"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kX2RhdGU.display_name": {
+          "source": "To",
+          "message": "迄"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kX2RhdGU.short_desc": {
+          "source": "Return only entries on or before this date",
+          "message": "只傳回這個日期當天或之前的項目"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOm1hcA.display_name": {
+          "source": "Map",
+          "message": "繪製"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOmNyYXds.display_name": {
+          "source": "Crawl",
+          "message": "爬取"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOmV4dHJhY3Q.display_name": {
+          "source": "Extract",
+          "message": "擷取"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOnJlc2VhcmNo.display_name": {
+          "source": "Research",
+          "message": "研究"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOnNlYXJjaA.display_name": {
+          "source": "Search",
+          "message": "搜尋"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.desc": {
+          "source": "Return only entries for these endpoints.  All of them are returned when this is left empty.",
+          "message": "只傳回這些端點的項目。留空時會全部傳回。"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.display_name": {
+          "source": "Endpoints",
+          "message": "端點"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.short_desc": {
+          "source": "Return only entries for these endpoints",
+          "message": "只傳回這些端點的項目"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZmlsdGVyX2J5X2FwaV9rZXk.desc": {
+          "source": "Return only entries for the API key making the request, rather than for every key on the account.",
+          "message": "只傳回發出請求的 API 金鑰的項目，而非帳戶上所有金鑰的項目。"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZmlsdGVyX2J5X2FwaV9rZXk.display_name": {
+          "source": "This Key Only",
+          "message": "僅限這支金鑰"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZmlsdGVyX2J5X2FwaV9rZXk.short_desc": {
+          "source": "Return only entries for the key making the request",
+          "message": "只傳回發出請求的金鑰的項目"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.bGltaXQ.desc": {
+          "source": "How many entries to return, newest first, from 1 to 10000.  Defaults to 10.",
+          "message": "要傳回幾筆項目，最新的在前，從 1 到 10000。預設值為 10。"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.bGltaXQ.display_name": {
+          "source": "Entry Count",
+          "message": "項目數"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.bGltaXQ.short_desc": {
+          "source": "How many entries to return, newest first",
+          "message": "要傳回幾筆項目，最新的在前"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.c3RhcnRfZGF0ZQ.desc": {
+          "source": "Return only entries on or after this date, as `YYYY-MM-DD`.",
+          "message": "只傳回這個日期當天或之後的項目，格式為 `YYYY-MM-DD`。"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.c3RhcnRfZGF0ZQ.display_name": {
+          "source": "From",
+          "message": "起"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.c3RhcnRfZGF0ZQ.short_desc": {
+          "source": "Return only entries on or after this date",
+          "message": "只傳回這個日期當天或之後的項目"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.cHJvamVjdF9pZA.desc": {
+          "source": "Return only entries for this project.\n\nTavily publishes no endpoint that lists projects, so this cannot be offered as a dropdown; take the value from the Tavily dashboard.",
+          "message": "只傳回這個專案的項目。\n\nTavily 未提供列出專案的端點，因此無法以下拉式清單呈現；請自 Tavily 儀表板取得該值。"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project",
+          "message": "專案"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Return only entries for this project",
+          "message": "只傳回這個專案的項目"
+        },
+        "app.VGF2aWx5.action.bG9ncw.short_desc": {
+          "source": "List the requests made against the account, newest first",
+          "message": "列出對這個帳戶發出的請求，最新的在前"
         },
         "app.VGF2aWx5.action.bWFrZS1hcGktY2FsbA.desc": {
           "source": "Make a custom HTTP / REST API call to **Tavily** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
@@ -500,192 +828,1084 @@
           "message": "向 Tavily 發出自訂 API 呼叫"
         },
         "app.VGF2aWx5.action.bWFw.desc": {
-          "source": "Enumerates URLs reachable from a seed URL via Tavily's `/map` endpoint without fetching page content.  Useful for site discovery before a targeted `/extract` or `/crawl` call.",
-          "message": "透過 Tavily 的 `/map` 端點列舉可從種子 URL 到達的 URL，而無需擷取頁面內容。適用於進行目標 `/extract` 或 `/crawl` 呼叫之前的網站探索。"
+          "source": "Follows links from a starting page and returns the URLs it finds, without fetching any page content.\n\nThis is the cheap survey step: map a site first to see what is there, then read the pages that matter with **Read Pages** rather than crawling everything.",
+          "message": "從起始頁面沿著連結前進，並傳回找到的網址，不抓取任何頁面內容。\n\n這是成本低廉的探勘步驟：先繪製網站看看裡面有什麼，再用 **讀取頁面** 讀取真正重要的頁面，而不是把整個網站都爬一遍。"
         },
         "app.VGF2aWx5.action.bWFw.display_name": {
-          "source": "Map Site URLs",
-          "message": "對應網站 URL"
+          "source": "Map a Site",
+          "message": "繪製網站"
+        },
+        "app.VGF2aWx5.action.bWFw.option.YWxsb3dfZXh0ZXJuYWw.desc": {
+          "source": "Whether the map may follow links off the starting site.  Defaults to `True`, so a map meant to stay on one site should set this to `False`.",
+          "message": "繪製是否可以沿著連往起始網站以外的連結前進。預設值為 `True`，因此要留在單一網站內的繪製應將其設為 `False`。"
+        },
+        "app.VGF2aWx5.action.bWFw.option.YWxsb3dfZXh0ZXJuYWw.display_name": {
+          "source": "Follow External Links",
+          "message": "沿著外部連結前進"
+        },
+        "app.VGF2aWx5.action.bWFw.option.YWxsb3dfZXh0ZXJuYWw.short_desc": {
+          "source": "Whether the map may leave the starting site",
+          "message": "繪製是否可以離開起始網站"
+        },
+        "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9kb21haW5z.desc": {
+          "source": "Regular expressions that exclude a domain.",
+          "message": "用來排除網域的正規表示式。"
+        },
+        "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+          "source": "Exclude Domains",
+          "message": "排除網域"
+        },
+        "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
+          "source": "Regular expressions that exclude a domain",
+          "message": "用來排除網域的正規表示式"
         },
         "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9wYXRocw.desc": {
-          "source": "List of URL path patterns to exclude.",
-          "message": "要排除的 URL 路徑模式清單。"
+          "source": "Regular expressions that exclude a URL by its path.",
+          "message": "依路徑排除網址的正規表示式。"
         },
         "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9wYXRocw.display_name": {
           "source": "Exclude Paths",
           "message": "排除路徑"
         },
         "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9wYXRocw.short_desc": {
-          "source": "URL path patterns to exclude",
-          "message": "要排除的 URL 路徑模式"
+          "source": "Regular expressions that exclude a path",
+          "message": "用來排除路徑的正規表示式"
+        },
+        "app.VGF2aWx5.action.bWFw.option.aW5jbHVkZV91c2FnZQ.desc": {
+          "source": "Return what this request cost in credits, as `usage`.",
+          "message": "以 `usage` 傳回這個請求花費的點數。"
+        },
+        "app.VGF2aWx5.action.bWFw.option.aW5jbHVkZV91c2FnZQ.display_name": {
+          "source": "Credit Usage",
+          "message": "點數用量"
+        },
+        "app.VGF2aWx5.action.bWFw.option.aW5jbHVkZV91c2FnZQ.short_desc": {
+          "source": "Return what this request cost",
+          "message": "傳回這個請求的花費"
         },
         "app.VGF2aWx5.action.bWFw.option.aW5zdHJ1Y3Rpb25z.desc": {
-          "source": "Optional natural-language hints.",
-          "message": "選填的自然語言提示。"
+          "source": "Describe in natural language which pages are wanted, and Tavily decides which links to follow.",
+          "message": "以自然語言描述需要哪些頁面，由 Tavily 決定要沿著哪些連結前進。"
         },
         "app.VGF2aWx5.action.bWFw.option.aW5zdHJ1Y3Rpb25z.display_name": {
           "source": "Instructions",
           "message": "指示"
         },
         "app.VGF2aWx5.action.bWFw.option.aW5zdHJ1Y3Rpb25z.short_desc": {
-          "source": "Natural-language instructions for the mapper",
-          "message": "對應工具的自然語言指示"
+          "source": "Describe in natural language which pages are wanted",
+          "message": "以自然語言描述需要哪些頁面"
         },
         "app.VGF2aWx5.action.bWFw.option.bGltaXQ.desc": {
-          "source": "Maximum total URLs to enumerate.",
-          "message": "要列舉的最大 URL 總數。"
+          "source": "How many URLs to return in total.  Defaults to 50.",
+          "message": "總共要傳回幾個網址。預設值為 50。"
         },
         "app.VGF2aWx5.action.bWFw.option.bGltaXQ.display_name": {
-          "source": "Limit",
-          "message": "限制數量"
+          "source": "URL Limit",
+          "message": "網址上限"
         },
         "app.VGF2aWx5.action.bWFw.option.bGltaXQ.short_desc": {
-          "source": "Overall URL limit",
-          "message": "總體 URL 限制"
+          "source": "How many URLs to return in total",
+          "message": "總共要傳回幾個網址"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2JyZWFkdGg.desc": {
-          "source": "Maximum links per page.",
-          "message": "每頁最大連結數。"
+          "source": "How many links to follow from each page, from 1 to 500.  Defaults to 20.",
+          "message": "每個頁面要沿著幾個連結前進，從 1 到 500。預設值為 20。"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2JyZWFkdGg.display_name": {
-          "source": "Max Breadth",
+          "source": "Maximum Breadth",
           "message": "最大廣度"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2JyZWFkdGg.short_desc": {
-          "source": "Maximum links to follow per page",
-          "message": "每頁要追蹤的最大連結數"
+          "source": "How many links to follow from each page",
+          "message": "每個頁面要沿著幾個連結前進"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2RlcHRo.desc": {
-          "source": "Maximum link-graph depth.",
-          "message": "最大連結圖深度。"
+          "source": "How many links away from the start URL the map may go, from 1 to 5.  Defaults to 1.",
+          "message": "繪製從起始網址最多可往外走幾層連結，從 1 到 5。預設值為 1。"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2RlcHRo.display_name": {
-          "source": "Max Depth",
+          "source": "Maximum Depth",
           "message": "最大深度"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2RlcHRo.short_desc": {
-          "source": "Maximum link-graph depth",
-          "message": "最大連結圖深度"
+          "source": "How many links away from the start URL to go",
+          "message": "從起始網址往外走幾層連結"
+        },
+        "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X2RvbWFpbnM.desc": {
+          "source": "Regular expressions the domain must match for a URL to be returned.",
+          "message": "網址要被傳回，其網域必須符合的正規表示式。"
+        },
+        "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X2RvbWFpbnM.display_name": {
+          "source": "Only These Domains",
+          "message": "僅限這些網域"
+        },
+        "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X2RvbWFpbnM.short_desc": {
+          "source": "Regular expressions the domain must match",
+          "message": "網域必須符合的正規表示式"
         },
         "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X3BhdGhz.desc": {
-          "source": "List of URL path patterns to include.",
-          "message": "要包含的 URL 路徑模式清單。"
+          "source": "Regular expressions the URL path must match for a URL to be returned.",
+          "message": "網址要被傳回，其路徑必須符合的正規表示式。"
         },
         "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X3BhdGhz.display_name": {
-          "source": "Select Paths",
-          "message": "選擇路徑"
+          "source": "Only These Paths",
+          "message": "僅限這些路徑"
         },
         "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X3BhdGhz.short_desc": {
-          "source": "URL path patterns to include",
-          "message": "要包含的 URL 路徑模式"
+          "source": "Regular expressions the path must match",
+          "message": "路徑必須符合的正規表示式"
+        },
+        "app.VGF2aWx5.action.bWFw.option.dGltZW91dA.desc": {
+          "source": "How long the whole map may take, in seconds, from 10 to 150.  Defaults to 150.",
+          "message": "整個繪製最多可花多久，以秒為單位，從 10 到 150。預設值為 150。"
+        },
+        "app.VGF2aWx5.action.bWFw.option.dGltZW91dA.display_name": {
+          "source": "Timeout",
+          "message": "逾時"
+        },
+        "app.VGF2aWx5.action.bWFw.option.dGltZW91dA.short_desc": {
+          "source": "How long the whole map may take, in seconds",
+          "message": "整個繪製最多可花多久，以秒為單位"
         },
         "app.VGF2aWx5.action.bWFw.option.dXJs.desc": {
-          "source": "Seed URL.",
-          "message": "種子 URL。"
+          "source": "The page the map starts from.  Only the links are followed; no page content is fetched, which is what makes this far cheaper than a crawl.",
+          "message": "繪製的起點頁面。只會沿著連結前進，不抓取任何頁面內容，這正是它遠比爬取便宜的原因。"
         },
         "app.VGF2aWx5.action.bWFw.option.dXJs.display_name": {
-          "source": "Seed URL",
-          "message": "種子 URL"
+          "source": "Start URL",
+          "message": "起始網址"
         },
         "app.VGF2aWx5.action.bWFw.option.dXJs.short_desc": {
-          "source": "URL to start the URL map from",
-          "message": "開始建立 URL 對應的 URL"
+          "source": "The page the map starts from",
+          "message": "繪製的起點頁面"
         },
         "app.VGF2aWx5.action.bWFw.short_desc": {
-          "source": "Enumerate URLs reachable from a seed URL",
-          "message": "列舉可從種子 URL 到達的 URL"
+          "source": "List the URLs reachable from a page without reading them",
+          "message": "列出從一個頁面可以到達的網址，但不讀取它們"
         },
         "app.VGF2aWx5.action.c2VhcmNo.desc": {
-          "source": "Performs a real-time web search via Tavily's `/search` endpoint and returns ranked results with title, url, content snippet, and relevance score.  Optionally includes an AI-summarized answer over the top results.",
-          "message": "透過 Tavily 的 `/search` 端點執行即時網路搜尋，並返回包含標題、URL、內容摘要和相關性評分的排名結果。可選包含基於頂部結果的 AI 摘要解答。"
+          "source": "Searches the web on meaning rather than keywords and returns ranked results, each with the passage that matched.\n\n`search_depth` is the trade between latency, cost and recall - `ultra-fast` answers in well under a second, `advanced` reads and re-ranks more of each page.  `topic` narrows the corpus to news or finance, which is usually a better filter than adding words to the query.\n\nSet `include_answer` to get a written answer over the results rather than a list to read, and `include_raw_content` to get each page's full text back with the results instead of fetching it separately with **Read Pages**.",
+          "message": "以意義而非關鍵字搜尋網頁，並傳回排序後的結果，每一筆都附上相符的段落。\n\n`search_depth` 是延遲、成本與涵蓋率之間的取捨：`ultra-fast` 在遠少於一秒內回應，`advanced` 會讀取並重新排序每個頁面的更多內容。`topic` 可將語料範圍縮小到新聞或財經，通常比在查詢裡多加幾個字更有效。\n\n若想要寫好的答案而不是一份待讀清單，請設定 `include_answer`；若想連同結果一併取得每個頁面的全文，而不必再以 **讀取頁面** 另行抓取，請設定 `include_raw_content`。"
         },
         "app.VGF2aWx5.action.c2VhcmNo.display_name": {
-          "source": "Web Search",
-          "message": "網路搜尋"
+          "source": "Search the Web",
+          "message": "搜尋網頁"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm15YW5tYXI.display_name": {
+          "source": "Myanmar",
+          "message": "緬甸"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hZGFnYXNjYXI.display_name": {
+          "source": "Madagascar",
+          "message": "馬達加斯加"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbGF3aQ.display_name": {
+          "source": "Malawi",
+          "message": "馬拉威"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbGF5c2lh.display_name": {
+          "source": "Malaysia",
+          "message": "馬來西亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbGRpdmVz.display_name": {
+          "source": "Maldives",
+          "message": "馬爾地夫"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbGk.display_name": {
+          "source": "Mali",
+          "message": "馬利"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbHRh.display_name": {
+          "source": "Malta",
+          "message": "馬爾他"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hdXJpdGFuaWE.display_name": {
+          "source": "Mauritania",
+          "message": "茅利塔尼亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hdXJpdGl1cw.display_name": {
+          "source": "Mauritius",
+          "message": "模里西斯"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1leGljbw.display_name": {
+          "source": "Mexico",
+          "message": "墨西哥"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vbGRvdmE.display_name": {
+          "source": "Moldova",
+          "message": "摩爾多瓦"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vbmFjbw.display_name": {
+          "source": "Monaco",
+          "message": "摩納哥"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vbmdvbGlh.display_name": {
+          "source": "Mongolia",
+          "message": "蒙古"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vbnRlbmVncm8.display_name": {
+          "source": "Montenegro",
+          "message": "蒙特內哥羅"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vcm9jY28.display_name": {
+          "source": "Morocco",
+          "message": "摩洛哥"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vemFtYmlxdWU.display_name": {
+          "source": "Mozambique",
+          "message": "莫三比克"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5hbWliaWE.display_name": {
+          "source": "Namibia",
+          "message": "納米比亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5lcGFs.display_name": {
+          "source": "Nepal",
+          "message": "尼泊爾"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5ldGhlcmxhbmRz.display_name": {
+          "source": "Netherlands",
+          "message": "荷蘭"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5ldyB6ZWFsYW5k.display_name": {
+          "source": "New Zealand",
+          "message": "紐西蘭"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5pY2FyYWd1YQ.display_name": {
+          "source": "Nicaragua",
+          "message": "尼加拉瓜"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5pZ2Vy.display_name": {
+          "source": "Niger",
+          "message": "尼日"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5pZ2VyaWE.display_name": {
+          "source": "Nigeria",
+          "message": "奈及利亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5vcnRoIG1hY2Vkb25pYQ.display_name": {
+          "source": "North Macedonia",
+          "message": "北馬其頓"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5vcnRoIGtvcmVh.display_name": {
+          "source": "North Korea",
+          "message": "北韓"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5vcndheQ.display_name": {
+          "source": "Norway",
+          "message": "挪威"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm9tYW4.display_name": {
+          "source": "Oman",
+          "message": "阿曼"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmF1c3RyYWxpYQ.display_name": {
+          "source": "Australia",
+          "message": "澳洲"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmF1c3RyaWE.display_name": {
+          "source": "Austria",
+          "message": "奧地利"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmF6ZXJiYWlqYW4.display_name": {
+          "source": "Azerbaijan",
+          "message": "亞塞拜然"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFmZ2hhbmlzdGFu.display_name": {
+          "source": "Afghanistan",
+          "message": "阿富汗"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFsYmFuaWE.display_name": {
+          "source": "Albania",
+          "message": "阿爾巴尼亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFsZ2VyaWE.display_name": {
+          "source": "Algeria",
+          "message": "阿爾及利亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFuZ29sYQ.display_name": {
+          "source": "Angola",
+          "message": "安哥拉"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFuZG9ycmE.display_name": {
+          "source": "Andorra",
+          "message": "安道爾"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFyZ2VudGluYQ.display_name": {
+          "source": "Argentina",
+          "message": "阿根廷"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFybWVuaWE.display_name": {
+          "source": "Armenia",
+          "message": "亞美尼亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJ1bGdhcmlh.display_name": {
+          "source": "Bulgaria",
+          "message": "保加利亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJ1cmtpbmEgZmFzbw.display_name": {
+          "source": "Burkina Faso",
+          "message": "布吉納法索"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJ1cnVuZGk.display_name": {
+          "source": "Burundi",
+          "message": "蒲隆地"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJhaGFtYXM.display_name": {
+          "source": "Bahamas",
+          "message": "巴哈馬"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJhaHJhaW4.display_name": {
+          "source": "Bahrain",
+          "message": "巴林"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJhbmdsYWRlc2g.display_name": {
+          "source": "Bangladesh",
+          "message": "孟加拉"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJhcmJhZG9z.display_name": {
+          "source": "Barbados",
+          "message": "巴貝多"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJlbGFydXM.display_name": {
+          "source": "Belarus",
+          "message": "白俄羅斯"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJlbGdpdW0.display_name": {
+          "source": "Belgium",
+          "message": "比利時"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJlbGl6ZQ.display_name": {
+          "source": "Belize",
+          "message": "貝里斯"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJlbmlu.display_name": {
+          "source": "Benin",
+          "message": "貝南"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJodXRhbg.display_name": {
+          "source": "Bhutan",
+          "message": "不丹"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJvbGl2aWE.display_name": {
+          "source": "Bolivia",
+          "message": "玻利維亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJvc25pYSBhbmQgaGVyemVnb3ZpbmE.display_name": {
+          "source": "Bosnia and Herzegovina",
+          "message": "波士尼亞與赫塞哥維納"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJvdHN3YW5h.display_name": {
+          "source": "Botswana",
+          "message": "波札那"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJyYXppbA.display_name": {
+          "source": "Brazil",
+          "message": "巴西"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJydW5laQ.display_name": {
+          "source": "Brunei",
+          "message": "汶萊"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmN1YmE.display_name": {
+          "source": "Cuba",
+          "message": "古巴"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmN5cHJ1cw.display_name": {
+          "source": "Cyprus",
+          "message": "賽普勒斯"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmN6ZWNoIHJlcHVibGlj.display_name": {
+          "source": "Czech Republic",
+          "message": "捷克"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNhbWJvZGlh.display_name": {
+          "source": "Cambodia",
+          "message": "柬埔寨"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNhbWVyb29u.display_name": {
+          "source": "Cameroon",
+          "message": "喀麥隆"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNhbmFkYQ.display_name": {
+          "source": "Canada",
+          "message": "加拿大"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNhcGUgdmVyZGU.display_name": {
+          "source": "Cape Verde",
+          "message": "維德角"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNlbnRyYWwgYWZyaWNhbiByZXB1YmxpYw.display_name": {
+          "source": "Central African Republic",
+          "message": "中非共和國"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNoYWQ.display_name": {
+          "source": "Chad",
+          "message": "查德"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNoaW5h.display_name": {
+          "source": "China",
+          "message": "中國"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNoaWxl.display_name": {
+          "source": "Chile",
+          "message": "智利"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNvbG9tYmlh.display_name": {
+          "source": "Colombia",
+          "message": "哥倫比亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNvbW9yb3M.display_name": {
+          "source": "Comoros",
+          "message": "葛摩"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNvbmdv.display_name": {
+          "source": "Congo",
+          "message": "剛果"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNvc3RhIHJpY2E.display_name": {
+          "source": "Costa Rica",
+          "message": "哥斯大黎加"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNyb2F0aWE.display_name": {
+          "source": "Croatia",
+          "message": "克羅埃西亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmRlbm1hcms.display_name": {
+          "source": "Denmark",
+          "message": "丹麥"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmRqaWJvdXRp.display_name": {
+          "source": "Djibouti",
+          "message": "吉布地"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmRvbWluaWNhbiByZXB1YmxpYw.display_name": {
+          "source": "Dominican Republic",
+          "message": "多明尼加共和國"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmV0aGlvcGlh.display_name": {
+          "source": "Ethiopia",
+          "message": "衣索比亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVjdWFkb3I.display_name": {
+          "source": "Ecuador",
+          "message": "厄瓜多"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVneXB0.display_name": {
+          "source": "Egypt",
+          "message": "埃及"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVsIHNhbHZhZG9y.display_name": {
+          "source": "El Salvador",
+          "message": "薩爾瓦多"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVxdWF0b3JpYWwgZ3VpbmVh.display_name": {
+          "source": "Equatorial Guinea",
+          "message": "赤道幾內亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVyaXRyZWE.display_name": {
+          "source": "Eritrea",
+          "message": "厄利垂亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVzdG9uaWE.display_name": {
+          "source": "Estonia",
+          "message": "愛沙尼亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmZpamk.display_name": {
+          "source": "Fiji",
+          "message": "斐濟"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmZpbmxhbmQ.display_name": {
+          "source": "Finland",
+          "message": "芬蘭"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmZyYW5jZQ.display_name": {
+          "source": "France",
+          "message": "法國"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmd1YXRlbWFsYQ.display_name": {
+          "source": "Guatemala",
+          "message": "瓜地馬拉"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmd1aW5lYQ.display_name": {
+          "source": "Guinea",
+          "message": "幾內亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdhYm9u.display_name": {
+          "source": "Gabon",
+          "message": "加彭"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdhbWJpYQ.display_name": {
+          "source": "Gambia",
+          "message": "甘比亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdlb3JnaWE.display_name": {
+          "source": "Georgia",
+          "message": "喬治亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdlcm1hbnk.display_name": {
+          "source": "Germany",
+          "message": "德國"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdoYW5h.display_name": {
+          "source": "Ghana",
+          "message": "迦納"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdyZWVjZQ.display_name": {
+          "source": "Greece",
+          "message": "希臘"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmh1bmdhcnk.display_name": {
+          "source": "Hungary",
+          "message": "匈牙利"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmhhaXRp.display_name": {
+          "source": "Haiti",
+          "message": "海地"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmhvbmR1cmFz.display_name": {
+          "source": "Honduras",
+          "message": "宏都拉斯"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOml0YWx5.display_name": {
+          "source": "Italy",
+          "message": "義大利"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmljZWxhbmQ.display_name": {
+          "source": "Iceland",
+          "message": "冰島"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmluZG9uZXNpYQ.display_name": {
+          "source": "Indonesia",
+          "message": "印尼"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmluZGlh.display_name": {
+          "source": "India",
+          "message": "印度"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmlyYW4.display_name": {
+          "source": "Iran",
+          "message": "伊朗"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmlyYXE.display_name": {
+          "source": "Iraq",
+          "message": "伊拉克"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmlyZWxhbmQ.display_name": {
+          "source": "Ireland",
+          "message": "愛爾蘭"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmlzcmFlbA.display_name": {
+          "source": "Israel",
+          "message": "以色列"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmphbWFpY2E.display_name": {
+          "source": "Jamaica",
+          "message": "牙買加"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmphcGFu.display_name": {
+          "source": "Japan",
+          "message": "日本"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmpvcmRhbg.display_name": {
+          "source": "Jordan",
+          "message": "約旦"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmt1d2FpdA.display_name": {
+          "source": "Kuwait",
+          "message": "科威特"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmt5cmd5enN0YW4.display_name": {
+          "source": "Kyrgyzstan",
+          "message": "吉爾吉斯"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmthemFraHN0YW4.display_name": {
+          "source": "Kazakhstan",
+          "message": "哈薩克"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmtlbnlh.display_name": {
+          "source": "Kenya",
+          "message": "肯亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmx1eGVtYm91cmc.display_name": {
+          "source": "Luxembourg",
+          "message": "盧森堡"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxhdHZpYQ.display_name": {
+          "source": "Latvia",
+          "message": "拉脫維亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxlYmFub24.display_name": {
+          "source": "Lebanon",
+          "message": "黎巴嫩"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxlc290aG8.display_name": {
+          "source": "Lesotho",
+          "message": "賴索托"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxpYmVyaWE.display_name": {
+          "source": "Liberia",
+          "message": "賴比瑞亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxpYnlh.display_name": {
+          "source": "Libya",
+          "message": "利比亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxpZWNodGVuc3RlaW4.display_name": {
+          "source": "Liechtenstein",
+          "message": "列支敦斯登"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxpdGh1YW5pYQ.display_name": {
+          "source": "Lithuania",
+          "message": "立陶宛"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBha2lzdGFu.display_name": {
+          "source": "Pakistan",
+          "message": "巴基斯坦"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBhbmFtYQ.display_name": {
+          "source": "Panama",
+          "message": "巴拿馬"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBhcHVhIG5ldyBndWluZWE.display_name": {
+          "source": "Papua New Guinea",
+          "message": "巴布亞紐幾內亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBhcmFndWF5.display_name": {
+          "source": "Paraguay",
+          "message": "巴拉圭"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBlcnU.display_name": {
+          "source": "Peru",
+          "message": "秘魯"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBoaWxpcHBpbmVz.display_name": {
+          "source": "Philippines",
+          "message": "菲律賓"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBvbGFuZA.display_name": {
+          "source": "Poland",
+          "message": "波蘭"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBvcnR1Z2Fs.display_name": {
+          "source": "Portugal",
+          "message": "葡萄牙"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnFhdGFy.display_name": {
+          "source": "Qatar",
+          "message": "卡達"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnJ1c3NpYQ.display_name": {
+          "source": "Russia",
+          "message": "俄羅斯"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnJ3YW5kYQ.display_name": {
+          "source": "Rwanda",
+          "message": "盧安達"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnJvbWFuaWE.display_name": {
+          "source": "Romania",
+          "message": "羅馬尼亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnN1ZGFu.display_name": {
+          "source": "Sudan",
+          "message": "蘇丹"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnN3ZWRlbg.display_name": {
+          "source": "Sweden",
+          "message": "瑞典"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnN3aXR6ZXJsYW5k.display_name": {
+          "source": "Switzerland",
+          "message": "瑞士"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnN5cmlh.display_name": {
+          "source": "Syria",
+          "message": "敘利亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNhdWRpIGFyYWJpYQ.display_name": {
+          "source": "Saudi Arabia",
+          "message": "沙烏地阿拉伯"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNlbmVnYWw.display_name": {
+          "source": "Senegal",
+          "message": "塞內加爾"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNlcmJpYQ.display_name": {
+          "source": "Serbia",
+          "message": "塞爾維亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNpbmdhcG9yZQ.display_name": {
+          "source": "Singapore",
+          "message": "新加坡"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNsb3Zha2lh.display_name": {
+          "source": "Slovakia",
+          "message": "斯洛伐克"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNsb3Zlbmlh.display_name": {
+          "source": "Slovenia",
+          "message": "斯洛維尼亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNvbWFsaWE.display_name": {
+          "source": "Somalia",
+          "message": "索馬利亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNvdXRoIGFmcmljYQ.display_name": {
+          "source": "South Africa",
+          "message": "南非"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNvdXRoIGtvcmVh.display_name": {
+          "source": "South Korea",
+          "message": "南韓"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNvdXRoIHN1ZGFu.display_name": {
+          "source": "South Sudan",
+          "message": "南蘇丹"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNwYWlu.display_name": {
+          "source": "Spain",
+          "message": "西班牙"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNyaSBsYW5rYQ.display_name": {
+          "source": "Sri Lanka",
+          "message": "斯里蘭卡"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnR1bmlzaWE.display_name": {
+          "source": "Tunisia",
+          "message": "突尼西亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnR1cmtleQ.display_name": {
+          "source": "Turkey",
+          "message": "土耳其"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnR1cmttZW5pc3Rhbg.display_name": {
+          "source": "Turkmenistan",
+          "message": "土庫曼"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRhaXdhbg.display_name": {
+          "source": "Taiwan",
+          "message": "臺灣"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRhamlraXN0YW4.display_name": {
+          "source": "Tajikistan",
+          "message": "塔吉克"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRhbnphbmlh.display_name": {
+          "source": "Tanzania",
+          "message": "坦尚尼亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRoYWlsYW5k.display_name": {
+          "source": "Thailand",
+          "message": "泰國"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRvZ28.display_name": {
+          "source": "Togo",
+          "message": "多哥"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRyaW5pZGFkIGFuZCB0b2JhZ28.display_name": {
+          "source": "Trinidad and Tobago",
+          "message": "千里達及托巴哥"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnV6YmVraXN0YW4.display_name": {
+          "source": "Uzbekistan",
+          "message": "烏茲別克"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVnYW5kYQ.display_name": {
+          "source": "Uganda",
+          "message": "烏干達"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVrcmFpbmU.display_name": {
+          "source": "Ukraine",
+          "message": "烏克蘭"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVuaXRlZCBhcmFiIGVtaXJhdGVz.display_name": {
+          "source": "United Arab Emirates",
+          "message": "阿拉伯聯合大公國"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVuaXRlZCBraW5nZG9t.display_name": {
+          "source": "United Kingdom",
+          "message": "英國"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVuaXRlZCBzdGF0ZXM.display_name": {
+          "source": "United States",
+          "message": "美國"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVydWd1YXk.display_name": {
+          "source": "Uruguay",
+          "message": "烏拉圭"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnZlbmV6dWVsYQ.display_name": {
+          "source": "Venezuela",
+          "message": "委內瑞拉"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnZpZXRuYW0.display_name": {
+          "source": "Vietnam",
+          "message": "越南"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnllbWVu.display_name": {
+          "source": "Yemen",
+          "message": "葉門"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnphbWJpYQ.display_name": {
+          "source": "Zambia",
+          "message": "尚比亞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnppbWJhYndl.display_name": {
+          "source": "Zimbabwe",
+          "message": "辛巴威"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.desc": {
+          "source": "Boost results from this country.  Tavily accepts only the names in this list and rejects anything else.",
+          "message": "提高這個國家/地區結果的權重。Tavily 只接受這份清單中的名稱，其餘一律拒絕。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "國家/地區"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.short_desc": {
+          "source": "Boost results from this country",
+          "message": "提高這個國家/地區結果的權重"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y2h1bmtzX3Blcl9zb3VyY2U.desc": {
+          "source": "How many separately-scored content chunks to keep from each source, from 1 to 5, or `auto`.  Only has an effect at `advanced` search depth.  Defaults to 3.",
+          "message": "每個來源要保留幾個各自評分的內容區塊，從 1 到 5，或設為 `auto`。僅在搜尋深度為 `advanced` 時有作用。預設值為 3。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y2h1bmtzX3Blcl9zb3VyY2U.display_name": {
+          "source": "Chunks per Source",
+          "message": "每個來源的區塊數"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y2h1bmtzX3Blcl9zb3VyY2U.short_desc": {
+          "source": "How many content chunks to keep from each source",
+          "message": "每個來源要保留幾個內容區塊"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.YXV0b19wYXJhbWV0ZXJz.desc": {
+          "source": "Let Tavily infer the search parameters - depth, topic and the rest - from the query itself, and report what it chose as `auto_parameters` in the response.  Anything set explicitly still wins.",
+          "message": "讓 Tavily 從查詢本身推斷搜尋參數——深度、主題等等——並在回應中以 `auto_parameters` 回報所選的設定。明確指定的值仍然優先。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.YXV0b19wYXJhbWV0ZXJz.display_name": {
+          "source": "Automatic Parameters",
+          "message": "自動參數"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.YXV0b19wYXJhbWV0ZXJz.short_desc": {
+          "source": "Let Tavily choose the search parameters from the query",
+          "message": "讓 Tavily 依查詢內容自行選擇搜尋參數"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZGF5cw.desc": {
-          "source": "For `topic: news`, restrict results to the last N days.",
-          "message": "對於 `topic: news`，將結果限制在過去 N 天內。"
+          "source": "Restricts a `news` search to the last N days.\n\n**Superseded by `time_range`**, which applies to every topic; this option is still accepted so that existing flows keep working.",
+          "message": "將 `news` 搜尋限制在最近 N 天。\n\n**已由 `time_range` 取代**，後者適用於所有主題；為了讓既有流程繼續運作，這個選項仍可使用。"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZGF5cw.display_name": {
-          "source": "Days (news topic)",
-          "message": "天數（新聞主題）"
+          "source": "Days (legacy)",
+          "message": "天數（已淘汰）"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZGF5cw.short_desc": {
-          "source": "Restrict 'news' searches to the last N days",
-          "message": "將「新聞」搜尋限制在過去 N 天內"
+          "source": "Superseded by Time Range; restricts news searches to the last N days",
+          "message": "已由時間範圍取代；將新聞搜尋限制在最近 N 天"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZW5kX2RhdGU.desc": {
+          "source": "Return only pages published on or before this date, as `YYYY-MM-DD`.",
+          "message": "只傳回在這個日期當天或之前發布的頁面，格式為 `YYYY-MM-DD`。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZW5kX2RhdGU.display_name": {
+          "source": "Published Before",
+          "message": "發布迄日"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZW5kX2RhdGU.short_desc": {
+          "source": "Return only pages published on or before this date",
+          "message": "只傳回在這個日期當天或之前發布的頁面"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZXhhY3RfbWF0Y2g.desc": {
+          "source": "Require the quoted phrase in the query to appear verbatim.\n\n**The query must contain a quoted phrase** - for example `\"John Smith\" CEO` - or Tavily rejects the request.",
+          "message": "要求查詢中以引號括住的詞組必須原樣出現。\n\n**查詢必須包含以引號括住的詞組**——例如 `\"John Smith\" CEO`——否則 Tavily 會拒絕這個請求。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZXhhY3RfbWF0Y2g.display_name": {
+          "source": "Exact Phrase",
+          "message": "精確詞組"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZXhhY3RfbWF0Y2g.short_desc": {
+          "source": "Require the quoted phrase in the query to appear verbatim",
+          "message": "要求查詢中以引號括住的詞組必須原樣出現"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to exclude.",
-          "message": "要排除的網域清單。"
+          "source": "Domains never to return results from - up to 150.",
+          "message": "永不傳回結果的網域——最多 150 個。"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.display_name": {
           "source": "Exclude Domains",
           "message": "排除網域"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
-          "source": "Exclude specific domains from results",
-          "message": "從結果中排除特定網域"
+          "source": "Domains never to return results from",
+          "message": "永不傳回結果的網域"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZmlsdGVyX2J5X2xhbmd1YWdl.desc": {
+          "source": "Exclude results that are not in `language`, rather than ranking them lower.  Has no effect unless `language` is set.",
+          "message": "排除不屬於 `language` 的結果，而不只是降低其排序。未設定 `language` 時沒有作用。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZmlsdGVyX2J5X2xhbmd1YWdl.display_name": {
+          "source": "Only This Language",
+          "message": "僅限這個語言"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZmlsdGVyX2J5X2xhbmd1YWdl.short_desc": {
+          "source": "Exclude results not in the chosen language",
+          "message": "排除不屬於所選語言的結果"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV91c2FnZQ.desc": {
+          "source": "Return what this request cost in credits, as `usage`.",
+          "message": "以 `usage` 傳回這個請求花費的點數。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV91c2FnZQ.display_name": {
+          "source": "Credit Usage",
+          "message": "點數用量"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV91c2FnZQ.short_desc": {
+          "source": "Return what this request cost",
+          "message": "傳回這個請求的花費"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
+          "source": "Advanced",
+          "message": "進階"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "基本"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.desc": {
-          "source": "When `True`, Tavily generates an AI-summarized answer over the top results and includes it in the response under the `answer` field.",
-          "message": "設為 `True` 時，Tavily 會針對頂部結果生成 AI 摘要解答，並將其包含在回應的 `answer` 欄位中。"
+          "source": "Have Tavily write an answer over the top results and return it as `answer`, rather than leaving the caller to read the results.\n\n`basic` is a short answer; `advanced` reads more of each source before writing.  `True` is accepted and means `basic`.",
+          "message": "讓 Tavily 依最相關的結果寫出一則答案並以 `answer` 傳回，而不是把閱讀結果的工作留給呼叫端。\n\n`basic` 給出簡短的答案；`advanced` 會在下筆前讀取每個來源的更多內容。`True` 也可接受，等同於 `basic`。"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.display_name": {
-          "source": "Include Answer",
-          "message": "包含解答"
+          "source": "Answer",
+          "message": "答案"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.short_desc": {
-          "source": "AI-summarize the top results into a single answer",
-          "message": "將頂部結果由 AI 總結為單一解答"
+          "source": "Have Tavily write an answer over the results",
+          "message": "讓 Tavily 依結果寫出一則答案"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to restrict the search to (e.g. `(\"docs.qore.org\",)`).",
-          "message": "要限制搜尋的網域清單（例如 `(\"docs.qore.org\",)`）。"
+          "source": "Domains the results may come from - up to 300.  Whether this restricts the search or merely prefers those domains is decided by `include_domains_mode`.",
+          "message": "結果可以來自的網域——最多 300 個。這究竟是限定搜尋範圍，或只是優先採用這些網域，由 `include_domains_mode` 決定。"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.display_name": {
           "source": "Include Domains",
           "message": "包含網域"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.short_desc": {
-          "source": "Restrict search to specific domains",
-          "message": "將搜尋限制在特定網域"
+          "source": "Domains to restrict the search to, or prefer",
+          "message": "要將搜尋限定或優先採用的網域"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.allowed-value.c3RyaW5nOmJvb3N0.display_name": {
+          "source": "Prefer These Domains",
+          "message": "優先採用這些網域"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.allowed-value.c3RyaW5nOmZpbHRlcg.display_name": {
+          "source": "Only These Domains",
+          "message": "僅限這些網域"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.desc": {
+          "source": "Whether `include_domains` is a hard restriction (`filter`) or a preference Tavily weighs alongside relevance (`boost`).  A hard restriction on a small list can return nothing at all, which is usually why a domain-scoped search comes back empty.",
+          "message": "`include_domains` 是硬性限制（`filter`），或是 Tavily 會與相關性一併權衡的偏好（`boost`）。對一份很短的清單施加硬性限制，可能什麼都傳不回來，這通常正是限定網域的搜尋落空的原因。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.display_name": {
+          "source": "Domain Mode",
+          "message": "網域模式"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.short_desc": {
+          "source": "Whether the listed domains are required or merely preferred",
+          "message": "所列網域是必要條件，或只是優先採用"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9mYXZpY29u.desc": {
+          "source": "Return each result's favicon URL, for rendering a source list.",
+          "message": "傳回每筆結果的網站圖示網址，以便呈現來源清單。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9mYXZpY29u.display_name": {
+          "source": "Favicons",
+          "message": "網站圖示"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9mYXZpY29u.short_desc": {
+          "source": "Return each result's favicon URL",
+          "message": "傳回每筆結果的網站圖示網址"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZV9kZXNjcmlwdGlvbnM.desc": {
+          "source": "Add a written description to each returned image.  Has no effect unless `include_images` is set.",
+          "message": "為每張傳回的圖片加上文字說明。未設定 `include_images` 時沒有作用。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZV9kZXNjcmlwdGlvbnM.display_name": {
+          "source": "Image Descriptions",
+          "message": "圖片說明"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZV9kZXNjcmlwdGlvbnM.short_desc": {
+          "source": "Describe each returned image",
+          "message": "為每張傳回的圖片加上說明"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZXM.desc": {
-          "source": "When `True`, response includes a list of image URLs.",
-          "message": "設為 `True` 時，回應會包含圖片 URL 清單。"
+          "source": "Return images found alongside the results, as an `images` list.",
+          "message": "傳回與結果一併找到的圖片，形式為 `images` 清單。"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZXM.display_name": {
-          "source": "Include Images",
-          "message": "包含圖片"
+          "source": "Images",
+          "message": "圖片"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZXM.short_desc": {
-          "source": "Return image URLs alongside text results",
-          "message": "與文字結果一同返回圖片 URL"
+          "source": "Return images found alongside the results",
+          "message": "傳回與結果一併找到的圖片"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "純文字"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.desc": {
-          "source": "When `True`, each result includes `raw_content` with the full scraped HTML/text.  Larger response, useful for downstream parsing.",
-          "message": "設為 `True` 時，每個結果都會包含帶有完整爬取 HTML/文字的 `raw_content`。回應較大，適用於下游解析。"
+          "source": "Return the full text of each result as `raw_content`, in the form named here.  This is what makes a search usable as a retrieval step: without it each result carries only a short snippet.  `True` is accepted and means `markdown`.",
+          "message": "以此處指定的形式，將每筆結果的全文以 `raw_content` 傳回。這正是讓搜尋能作為取用步驟的關鍵：少了它，每筆結果只帶一小段摘錄。`True` 也可接受，等同於 `markdown`。"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.display_name": {
-          "source": "Include Raw Content",
-          "message": "包含原始內容"
+          "source": "Full Page Text",
+          "message": "頁面全文"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.short_desc": {
-          "source": "Include raw scraped HTML in each result",
-          "message": "在每個結果中包含原始爬取的 HTML"
+          "source": "Return the full text of each result, not just the snippet",
+          "message": "傳回每筆結果的全文，而不只是摘錄"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.bGFuZ3VhZ2U.desc": {
+          "source": "Boost results in this language, as an ISO 639-1 code (`en`, `de`) or an English language name.  Set `filter_by_language` to exclude other languages rather than merely ranking them lower.",
+          "message": "提高這個語言結果的權重，可用 ISO 639-1 代碼（`en`、`de`）或英文語言名稱。若要排除其他語言而不只是降低其排序，請設定 `filter_by_language`。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.bGFuZ3VhZ2U.display_name": {
+          "source": "Language",
+          "message": "語言"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.bGFuZ3VhZ2U.short_desc": {
+          "source": "Boost results in this language",
+          "message": "提高這個語言結果的權重"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.bWF4X3Jlc3VsdHM.desc": {
-          "source": "Maximum number of results to return.  Range 1-20.  Default 5.",
-          "message": "要返回的最大結果數。範圍 1-20。預設值為 5。"
+          "source": "How many results to return, from 0 to 20.  Defaults to 10.",
+          "message": "要傳回幾筆結果，從 0 到 20。預設值為 10。"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.bWF4X3Jlc3VsdHM.display_name": {
-          "source": "Max Results",
-          "message": "最大結果數"
+          "source": "Result Count",
+          "message": "結果數量"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.bWF4X3Jlc3VsdHM.short_desc": {
-          "source": "Maximum number of search results (1-20)",
-          "message": "最大搜尋結果數 (1-20)"
+          "source": "How many results to return",
+          "message": "要傳回幾筆結果"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2FmZV9zZWFyY2g.desc": {
+          "source": "Filter out adult and explicit results.",
+          "message": "濾掉成人與煽情的結果。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2FmZV9zZWFyY2g.display_name": {
+          "source": "Safe Search",
+          "message": "安全搜尋"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2FmZV9zZWFyY2g.short_desc": {
+          "source": "Filter out adult and explicit results",
+          "message": "濾掉成人與煽情的結果"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
           "source": "Advanced",
@@ -695,65 +1915,289 @@
           "source": "Basic",
           "message": "基本"
         },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "快速"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.allowed-value.c3RyaW5nOnVsdHJhLWZhc3Q.display_name": {
+          "source": "Ultra Fast",
+          "message": "超快速"
+        },
         "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.desc": {
-          "source": "Search depth.  `basic` returns faster, `advanced` does more iterative refinement at higher cost.",
-          "message": "搜尋深度。`basic` 返回速度較快，`advanced` 會進行更多反覆調整但成本較高。"
+          "source": "How hard Tavily works on the query, trading latency and credits against recall.  `ultra-fast` and `fast` answer in well under a second; `advanced` re-ranks and reads more of each page, and is the only depth that makes `chunks_per_source` meaningful.",
+          "message": "Tavily 為查詢投入多少心力，以延遲與點數換取涵蓋率。`ultra-fast` 與 `fast` 在遠少於一秒內回應；`advanced` 會重新排序並讀取每個頁面的更多內容，也是唯一讓 `chunks_per_source` 產生作用的深度。"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.display_name": {
           "source": "Search Depth",
           "message": "搜尋深度"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.short_desc": {
-          "source": "Search depth: 'basic' (fast) or 'advanced' (higher recall)",
-          "message": "搜尋深度：'basic'（快速）或 'advanced'（較高召回率）"
+          "source": "How hard Tavily works on the query",
+          "message": "Tavily 為查詢投入多少心力"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c3RhcnRfZGF0ZQ.desc": {
+          "source": "Return only pages published on or after this date, as `YYYY-MM-DD`.",
+          "message": "只傳回在這個日期當天或之後發布的頁面，格式為 `YYYY-MM-DD`。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c3RhcnRfZGF0ZQ.display_name": {
+          "source": "Published Since",
+          "message": "發布起日"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c3RhcnRfZGF0ZQ.short_desc": {
+          "source": "Return only pages published on or after this date",
+          "message": "只傳回在這個日期當天或之後發布的頁面"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.cXVlcnk.desc": {
-          "source": "Natural-language search query — what the agent wants to find on the web.",
-          "message": "自然語言搜尋查詢 — 代理希望在網路上尋找的內容。"
+          "source": "What to search for, in natural language.  Tavily searches on meaning, so a question reads better here than a list of keywords.\n\nMust be at least 2 characters.",
+          "message": "要搜尋的內容，以自然語言表達。Tavily 以意義進行搜尋，因此這裡用一個問句會比一串關鍵字更合適。\n\n至少須有 2 個字元。"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.cXVlcnk.display_name": {
           "source": "Query",
           "message": "查詢"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.cXVlcnk.short_desc": {
-          "source": "Natural-language search query",
-          "message": "自然語言搜尋查詢"
+          "source": "What to search for, in natural language",
+          "message": "要搜尋的內容，以自然語言表達"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.allowed-value.c3RyaW5nOm5ld3M.display_name": {
           "source": "News",
           "message": "新聞"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.allowed-value.c3RyaW5nOmZpbmFuY2U.display_name": {
+          "source": "Finance",
+          "message": "財經"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.allowed-value.c3RyaW5nOmdlbmVyYWw.display_name": {
           "source": "General",
           "message": "一般"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.desc": {
-          "source": "Topic-aware search.  `news` biases toward recent news sources.",
-          "message": "主題感知搜尋。`news` 偏向最新新聞來源。"
+          "source": "The corpus the search runs against.  `news` favours recent journalism and returns a `published_date` with each result; `finance` favours market and company sources.  Narrowing here usually beats adding words to the query.",
+          "message": "搜尋所使用的語料範圍。`news` 偏重近期新聞報導，並在每筆結果附上 `published_date`；`finance` 偏重市場與公司來源。在此縮小範圍，通常勝過在查詢裡多加幾個字。"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.display_name": {
           "source": "Topic",
           "message": "主題"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.short_desc": {
-          "source": "Search topic: 'general' or 'news'",
-          "message": "搜尋主題：'general' 或 'news'"
+          "source": "The corpus the search runs against",
+          "message": "搜尋所使用的語料範圍"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.allowed-value.c3RyaW5nOm1vbnRo.display_name": {
+          "source": "Past Month",
+          "message": "最近一個月"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.allowed-value.c3RyaW5nOmRheQ.display_name": {
+          "source": "Past Day",
+          "message": "最近一天"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.allowed-value.c3RyaW5nOndlZWs.display_name": {
+          "source": "Past Week",
+          "message": "最近一週"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.allowed-value.c3RyaW5nOnllYXI.display_name": {
+          "source": "Past Year",
+          "message": "最近一年"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.desc": {
+          "source": "How far back the search reaches, relative to now.  Use `start_date` and `end_date` instead for a fixed window.",
+          "message": "搜尋自現在起回溯多久以前。若要指定固定區間，請改用 `start_date` 與 `end_date`。"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.display_name": {
+          "source": "Time Range",
+          "message": "時間範圍"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.short_desc": {
+          "source": "How far back the search reaches",
+          "message": "搜尋回溯多久以前"
         },
         "app.VGF2aWx5.action.c2VhcmNo.short_desc": {
-          "source": "Search the web via Tavily",
-          "message": "透過 Tavily 搜尋網路"
+          "source": "Search the web and optionally get an answer written over the results",
+          "message": "搜尋網頁，並可選擇取得依結果寫成的答案"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.desc": {
+          "source": "Starts a research task: an agent searches, reads and reasons over the web until it can answer, rather than returning what one search found.\n\nUse this where **Search the Web** is not enough - a question that needs several searches, or whose answer has to be assembled from many pages.  `model` is the budget: `mini` is quick, `pro` works harder, `auto` decides from the task.\n\nThe task runs asynchronously and this action returns immediately with its `request_id`; read the report with **Get Research Report**.  Set `output_schema` to get structured data back rather than prose, and `files` to have the agent read documents of your own alongside what it finds.",
+          "message": "啟動一項研究工作：代理會搜尋、閱讀並就網頁內容推理，直到能夠作答，而不是傳回單次搜尋所找到的內容。\n\n當 **搜尋網頁** 不敷使用時請改用這個動作——例如需要多次搜尋的問題，或答案必須從許多頁面拼湊而成的問題。`model` 就是預算：`mini` 較快，`pro` 更下工夫，`auto` 依工作內容決定。\n\n這項工作以非同步方式執行，本動作會立即帶著它的 `request_id` 返回；請以 **取得研究報告** 讀取報告。設定 `output_schema` 可取得結構化資料而非敘述文字，設定 `files` 則讓代理在網頁之外一併讀取你自己的文件。"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.display_name": {
+          "source": "Start Research",
+          "message": "啟動研究"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.allowed-value.c3RyaW5nOm1sYQ.display_name": {
+          "source": "MLA",
+          "message": "MLA"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.allowed-value.c3RyaW5nOm51bWJlcmVk.display_name": {
+          "source": "Numbered",
+          "message": "編號"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.allowed-value.c3RyaW5nOmFwYQ.display_name": {
+          "source": "APA",
+          "message": "APA"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.allowed-value.c3RyaW5nOmNoaWNhZ28.display_name": {
+          "source": "Chicago",
+          "message": "芝加哥"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.desc": {
+          "source": "How the report cites its sources within `content`.  The sources themselves are always returned separately as `sources`.",
+          "message": "報告在 `content` 中如何標註其來源。來源本身一律另以 `sources` 傳回。"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.display_name": {
+          "source": "Citation Format",
+          "message": "引用格式"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.short_desc": {
+          "source": "How the report cites its sources",
+          "message": "報告如何標註其來源"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZXhjbHVkZV9kb21haW5z.desc": {
+          "source": "Domains the agent must not use - a hard blocklist - up to 20.",
+          "message": "代理不得使用的網域——這是硬性封鎖清單——最多 20 個。"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+          "source": "Excluded Domains",
+          "message": "排除的網域"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
+          "source": "Domains the agent must not use, up to 20",
+          "message": "代理不得使用的網域，最多 20 個"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.desc": {
+          "source": "Documents of your own for the agent to read alongside what it finds on the web - up to 5 files and 80,000 words in total.  This is how a research task is grounded in something the web does not have.",
+          "message": "要讓代理在網頁所找內容之外一併閱讀的你自己的文件——最多 5 個檔案、合計 80,000 字。這是讓研究工作立足於網頁所沒有的資料的方式。"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.display_name": {
+          "source": "Files",
+          "message": "檔案"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.short_desc": {
+          "source": "Documents of your own for the agent to read, up to 5",
+          "message": "要讓代理閱讀的你自己的文件，最多 5 份"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5jbHVkZV9kb21haW5z.desc": {
+          "source": "Domains the agent should prefer - a soft preference, not a restriction - up to 20.",
+          "message": "代理應優先採用的網域——這是柔性偏好而非限制——最多 20 個。"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5jbHVkZV9kb21haW5z.display_name": {
+          "source": "Preferred Domains",
+          "message": "優先採用的網域"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5jbHVkZV9kb21haW5z.short_desc": {
+          "source": "Domains the agent should prefer, up to 20",
+          "message": "代理應優先採用的網域，最多 20 個"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5wdXQ.desc": {
+          "source": "What to research, in natural language.  This is a task rather than a query: the agent searches, reads and reasons until it can answer, so it can be given something no single search would settle.",
+          "message": "要研究的內容，以自然語言表達。這是一項工作而非查詢：代理會持續搜尋、閱讀並推理，直到能夠作答，因此可以交付單一次搜尋無法解決的事情。"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5wdXQ.display_name": {
+          "source": "Task",
+          "message": "工作"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5wdXQ.short_desc": {
+          "source": "What to research, in natural language",
+          "message": "要研究的內容，以自然語言表達"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.allowed-value.c3RyaW5nOmxvbmc.display_name": {
+          "source": "Long",
+          "message": "詳盡"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.allowed-value.c3RyaW5nOnN0YW5kYXJk.display_name": {
+          "source": "Standard",
+          "message": "標準"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.allowed-value.c3RyaW5nOnNob3J0.display_name": {
+          "source": "Short",
+          "message": "簡短"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.desc": {
+          "source": "How long the report should be.  Defaults to `standard`.",
+          "message": "報告要寫多長。預設值為 `standard`。"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.display_name": {
+          "source": "Report Length",
+          "message": "報告長度"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.short_desc": {
+          "source": "How long the report should be",
+          "message": "報告要寫多長"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X3NjaGVtYQ.desc": {
+          "source": "A JSON Schema describing the answer you want back, which makes `content` structured data rather than prose - the difference between a report someone reads and a result a flow can act on.",
+          "message": "描述你想要的答案的 JSON 結構描述，可讓 `content` 成為結構化資料而非敘述文字——這正是「一份給人讀的報告」與「一個流程可以直接處理的結果」之間的差別。"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X3NjaGVtYQ.display_name": {
+          "source": "Output Schema",
+          "message": "輸出結構描述"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X3NjaGVtYQ.short_desc": {
+          "source": "A JSON Schema describing the answer you want back",
+          "message": "描述你想要的答案的 JSON 結構描述"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.allowed-value.c3RyaW5nOm1pbmk.display_name": {
+          "source": "Mini",
+          "message": "Mini"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Automatic",
+          "message": "自動"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.allowed-value.c3RyaW5nOnBybw.display_name": {
+          "source": "Pro",
+          "message": "Pro"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.desc": {
+          "source": "Which model runs the task, trading speed and cost against depth.  `auto` lets Tavily choose from the task itself.",
+          "message": "由哪個模型執行這項工作，以速度與成本換取深度。設為 `auto` 時由 Tavily 依工作本身選擇。"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "模型"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.short_desc": {
+          "source": "Which model runs the task, trading speed against depth",
+          "message": "由哪個模型執行這項工作，在速度與深度之間取捨"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.short_desc": {
+          "source": "Set an agent to research a question and return the task it started",
+          "message": "交由代理研究一個問題，並傳回已啟動的工作"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.desc": {
+          "source": "Reports what this API key and the whole account have spent in the current billing period, broken down by endpoint, together with the plan's allowance.\n\nComparing `account.plan_usage` with `account.plan_limit` is what lets a flow stop before it runs out of credits rather than discovering it mid-run.",
+          "message": "回報這支 API 金鑰與整個帳戶在目前帳務週期內的花費，依端點分項列出，並附上方案的額度。\n\n把 `account.plan_usage` 與 `account.plan_limit` 相比，能讓流程在點數用盡前先停下來，而不是執行到一半才發現。"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.display_name": {
+          "source": "Get Credit Usage",
+          "message": "取得點數用量"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.option.cHJvamVjdF9pZA.desc": {
+          "source": "Report usage for this project only, rather than for the whole account.  Sent as the `X-Project-ID` header.\n\nTavily publishes no endpoint that lists projects, so this cannot be offered as a dropdown; take the value from the Tavily dashboard.",
+          "message": "僅回報這個專案的用量，而非整個帳戶的用量。以 `X-Project-ID` 標頭送出。\n\nTavily 未提供列出專案的端點，因此無法以下拉式清單呈現；請自 Tavily 儀表板取得該值。"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project",
+          "message": "專案"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Report usage for this project only",
+          "message": "僅回報這個專案的用量"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.short_desc": {
+          "source": "Report what the API key and the account have spent",
+          "message": "回報 API 金鑰與帳戶花了多少"
         },
         "app.VGF2aWx5.desc": {
-          "source": "Provides access to [Tavily](https://www.tavily.com) — the agentic web-search API used by AI agents to retrieve real-time information.\n\n**Common use cases**:\n- **Agent tools**: register `tavily_search` / `tavily_extract` as tools an LLM can invoke (see @ref tavilyrestclientintro \"TavilyRestClient\" docs)\n- **RAG ingestion**: fetch fresh sources before embedding\n- **Background research** in workflows: get current information about products, competitors, news, regulations",
-          "message": "提供對 [Tavily](https://www.tavily.com) 的存取權限 — 這是 AI 代理用來擷取即時資訊的代理型網路搜尋 API。\n\n**常見使用案例**：\n- **代理工具**：將 `tavily_search` / `tavily_extract` 註冊為 LLM 可以叫用的工具（請參閱 @ref tavilyrestclientintro \"TavilyRestClient\" 文件）\n- **RAG 擷取**：在嵌入前擷取最新來源\n- **工作流程中的背景研究**：取得有關產品、競爭對手、新聞、法規的最新資訊"
+          "source": "Provides access to [Tavily](https://www.tavily.com) — a search API built for programs rather than for people: the query is meaning, not keywords, and the result can be the page content, or the answer, rather than a list of links.\n\n**What it covers**:\n- **Search** the web semantically, with an answer written over the results and each page's full text returned alongside them\n- **Read pages** already in hand, reduced to their main content with the navigation and advertising removed\n- **Crawl and map sites**: walk a site from one URL, either reading every page or just listing what is there\n- **Research tasks**: an agent that searches, reads and reasons until it can answer, returning prose or data shaped by a JSON schema you supply, and able to read documents of your own alongside the web\n- **Credit usage and logs**: what the key and the account have spent, and the individual requests behind it\n\n**Where this earns its place**: a model answering from what it was trained on cannot know what happened this week, and scraping the pages it would need means writing and maintaining an extractor per site.  Tavily returns clean content and citations, so the retrieval step of a RAG pipeline or an agent tool becomes one call — and the research tasks handle the questions that no single search settles.",
+          "message": "提供對 [Tavily](https://www.tavily.com) 的存取——這是一套為程式而非為人設計的搜尋 API：查詢的是意義而非關鍵字，傳回的可以是頁面內容，或是答案本身，而不是一串連結。\n\n**涵蓋範圍**：\n- **搜尋**：以語意搜尋網頁，並在傳回結果的同時附上依結果寫成的答案與每個頁面的全文\n- **讀取頁面**：把你已知的頁面整理成只剩主要內容，去掉導覽與廣告\n- **爬取與繪製網站**：從一個網址走過整個網站，可以逐頁讀取，也可以只列出有哪些頁面\n- **研究工作**：代理會持續搜尋、閱讀並推理，直到能夠作答，並傳回敘述文字或符合你所提供 JSON 結構描述的資料，也能在網頁之外一併讀取你自己的文件\n- **點數用量與紀錄**：金鑰與帳戶花了多少，以及背後是哪些個別請求\n\n**價值所在**：僅憑訓練內容作答的模型無從得知本週發生了什麼，而要取得所需頁面就得為每個網站各寫一支擷取程式並持續維護。Tavily 傳回乾淨的內容與出處，因此 RAG 流程或代理工具的取用步驟只需一次呼叫——而單一次搜尋無法解決的問題，就交給研究工作。"
         },
         "app.VGF2aWx5.display_name": {
           "source": "Tavily",
           "message": "Tavily"
         },
         "app.VGF2aWx5.short_desc": {
-          "source": "Tavily real-time web search for AI agents",
-          "message": "適用於 AI 代理的 Tavily 即時網路搜尋"
+          "source": "Tavily web search, page reading, site crawling and research agents",
+          "message": "Tavily：網頁搜尋、頁面讀取、網站爬取與研究代理"
         }
       }
     }

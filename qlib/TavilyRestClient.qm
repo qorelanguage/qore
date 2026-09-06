@@ -49,15 +49,32 @@ module TavilyRestClient {
 
     @section tavilyrestclientintro TavilyRestClient Introduction
 
-    The %TavilyRestClient module provides a REST client for
-    [Tavily](https://www.tavily.com) — the de-facto agentic-search API
-    used by AI agents to retrieve real-time web information.
+    The %TavilyRestClient module provides REST clients and a connection for
+    [Tavily](https://www.tavily.com) — a search API built for programs, where the query is meaning
+    rather than keywords and the result can be the page content, or the answer, rather than a list
+    of links.
 
-    Tavily exposes four endpoints:
-    - `POST /search` — web search with optional AI-summarized answer
-    - `POST /extract` — extract main content from a list of URLs
-    - `POST /crawl` — multi-page site crawl
-    - `POST /map` — site URL mapping
+    The API is grouped as follows:
+    - \c POST \c /search — search the web, optionally with an answer written over the results and
+      each page's full text
+    - \c POST \c /extract — fetch pages and return their main content
+    - \c POST \c /crawl — walk a site from one URL and read every page found
+    - \c POST \c /map — list the URLs reachable from a page without reading them
+    - \c POST \c /research and \c GET \c /research/{request_id} — start a research task and
+      collect its report
+    - \c GET \c /usage and \c POST \c /logs — credit usage, and the requests behind it
+
+    For the data-provider application built on this client, see
+    @ref tavilydataproviderintro "TavilyDataProvider".
+
+    @par Authentication
+
+    Tavily authenticates with a Bearer token, so the \c apikey connection option is required and is
+    rewritten into \c token by
+    @ref TavilyRestClient::TavilyRestClientBase::getOptions() "TavilyRestClientBase::getOptions()".
+    The connection ping issues an authenticated read (see
+    @ref TavilyRestClient::TavilyRestConnection::PingPath "TavilyRestConnection::PingPath"), so a
+    ping fails for a key the server rejects rather than merely proving the host is reachable.
 
     @par Agent integration
 
@@ -129,13 +146,21 @@ public class TavilyRestConnection inherits RestClient::RestConnection {
     public {
         const DefaultUrl = "tavily://api.tavily.com";
 
+        #! The path pinged to verify that the server accepts the API key
+        /** The cheapest authenticated read the API offers: it reports what the key and the account
+            have spent, costs no credits, and answers \c 401 for a key Tavily does not accept, so
+            the credentials are actually verified.
+        */
+        const PingPath = "/usage";
+
         const ConnectionScheme = <ConnectionSchemeInfo>{
-            "display_name": "Tavily Web Search Connection",
-            "short_desc": "A connection to the Tavily web-search REST API",
-            "desc": "A connection to [Tavily](https://www.tavily.com) — the agentic "
-                "web-search API used by AI agents for real-time information retrieval.\n\n"
-                "Requires an API key for Bearer authentication.  Get your API key from "
-                "the [Tavily dashboard](https://app.tavily.com/).",
+            "display_name": "Tavily Connection",
+            "short_desc": "A connection to the Tavily search, extraction and research API",
+            "desc": "A connection to [Tavily](https://www.tavily.com) — a search API built for "
+                "programs: semantic web search, page extraction, site crawling and mapping, and "
+                "research agents that search, read and reason until they can answer.\n\n"
+                "Requires an API key, sent as a Bearer token.  Get one from the "
+                "[Tavily dashboard](https://app.tavily.com/).",
             "cls": Class::forName("TavilyRestConnection"),
             "auto_url": True,
             "schemes": {"tavily": True},
@@ -143,9 +168,13 @@ public class TavilyRestConnection inherits RestClient::RestConnection {
             "options": RestConnection::ConnectionScheme.options + {
                 "apikey": <ConnectionOptionInfo>{
                     "display_name": "API Key",
-                    "short_desc": "Tavily API key for authentication",
+                    "short_desc": "The Tavily API key",
                     "type": "string",
-                    "desc": "The Tavily API key used for Bearer authentication.",
+                    "desc": "The Tavily API key, sent as a Bearer token.  Keys begin with "
+                        "`tvly-`; get one from the [Tavily dashboard](https://app.tavily.com/).\n\n"
+                        "The connection ping reads the account's credit usage with this key, so a "
+                        "key Tavily does not accept makes the connection fail rather than appear "
+                        "healthy.",
                     "sensitive": True,
                     "preselected": True,
                 },
@@ -165,6 +194,43 @@ public class TavilyRestConnection inherits RestClient::RestConnection {
 
     string getType() {
         return "tavily";
+    }
+
+    #! Returns the data provider application name this connection serves
+    /** Without this the base class returns nothing, the connection is never associated with its app,
+        and @ref ConnectionProvider::AbstractConnection::getInfo() "getInfo()" omits \c app entirely.
+
+        @note must match @c TavilyDataProvider::AppName; the name is repeated here rather than
+        referenced because %TavilyDataProvider requires this module, not the reverse
+    */
+    *string getAppName() {
+        return "Tavily";
+    }
+
+    #! Pings the server by reading the account's credit usage
+    /** This connection declared no ping at all, so every ping returned \c "OK" in well under a
+        millisecond without contacting the server - including with an API key Tavily would reject.
+        @ref PingPath is the cheapest authenticated read the API offers: it costs no credits and
+        answers \c 401 when the key is not accepted, so the credentials are actually verified.
+
+        Set both the \c ping_method and \c ping_path options to use the standard
+        @ref RestClient::RestConnection "RestConnection" ping instead.  Note that such a ping cannot
+        detect an invalid API key unless the path it names requires one.
+
+        @throw REST-RESPONSE-ERROR the server rejected the ping request
+    */
+    private pingImpl() {
+        if (opts.ping_method && opts.ping_path) {
+            RestConnection::pingImpl();
+            return;
+        }
+        try {
+            cast<TavilyRestClientIo>(getAsync()).restGet(PingPath);
+        } catch (hash<ExceptionInfo> ex) {
+            authFailure();
+            rethrow;
+        }
+        authSuccess();
     }
 
     bool hasDataProvider() {
@@ -225,9 +291,10 @@ public namespace TavilyAgentTools {
                     },
                     "search_depth": {
                         "type": "string",
-                        "enum": ("basic", "advanced"),
-                        "description": "Search depth — 'basic' (faster) or 'advanced' "
-                            "(higher recall, slower).  Default: basic.",
+                        "enum": ("ultra-fast", "fast", "basic", "advanced"),
+                        "description": "Search depth, trading latency and cost against recall: "
+                            "'ultra-fast' and 'fast' answer in well under a second, 'advanced' "
+                            "reads and re-ranks more of each page.  Default: basic.",
                     },
                     "max_results": {
                         "type": "integer",

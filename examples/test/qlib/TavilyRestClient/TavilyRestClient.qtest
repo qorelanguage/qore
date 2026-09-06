@@ -63,9 +63,21 @@ public class TavilyRestClientTest inherits QUnit::Test {
     private connectionSchemeTest() {
         hash<ConnectionSchemeInfo> info =
             ConnectionProvider::ConnectionSchemeCache::getScheme("tavily");
-        assertEq("Tavily Web Search Connection", info.display_name);
+        assertEq("Tavily Connection", info.display_name);
         assertTrue(info.schemes.tavily);
         assertEq("apikey", info.required_options);
+        # the key is a credential and must never be rendered or logged
+        assertTrue(info.options.apikey.sensitive, "the API key is marked sensitive");
+
+        # the connection must name the application it serves, or it is never associated with it
+        TavilyRestConnection conn("tavily-test", "test", TavilyRestConnection::DefaultUrl, {},
+            {"apikey": "tvly-dev-x"});
+        assertEq("Tavily", conn.getAppName());
+        assertEq("tavily", conn.getType());
+        assertTrue(conn.hasDataProvider());
+
+        # the ping must issue an authenticated read rather than answering "OK" without one
+        assertEq("/usage", TavilyRestConnection::PingPath);
     }
 
     private restOptionsTest() {
@@ -88,6 +100,10 @@ public class TavilyRestClientTest inherits QUnit::Test {
         # And declare known knobs as properties
         assertTrue(exists t.parameters.properties.query);
         assertTrue(exists t.parameters.properties.search_depth);
+        # the API grew two faster depths; a tool schema that offers a model only the old pair
+        # quietly withholds them
+        assertEq(("ultra-fast", "fast", "basic", "advanced"),
+            t.parameters.properties.search_depth."enum");
         assertTrue(exists t.parameters.properties.max_results);
         assertTrue(exists t.parameters.properties.include_answer);
         assertTrue(exists t.parameters.properties.include_domains);

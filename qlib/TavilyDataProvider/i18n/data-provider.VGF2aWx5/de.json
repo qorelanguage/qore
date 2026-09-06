@@ -4,12 +4,36 @@
     "de": {
       "messages": {
         "app.VGF2aWx5.action.Y3Jhd2w.desc": {
-          "source": "Multi-page web crawl starting from a seed URL via Tavily's `/crawl` endpoint.  Returns a tree of discovered pages with their extracted content.",
-          "message": "Mehrseitiger Web-Crawl ausgehend von einer Seed-URL über den `/crawl`-Endpunkt von Tavily.  Gibt einen Baum gefundener Seiten mit ihren extrahierten Inhalten zurück."
+          "source": "Follows links from a starting page and returns the content of every page it reads - a site walked and read in one call, rather than one request per URL.\n\n`instructions` describes in natural language which pages are wanted, and is usually easier to get right than the path and domain patterns; the two can be combined.  `limit` is the ceiling on what the crawl costs, so set it first.\n\n`allow_external` defaults to `True`, so a crawl meant to stay on one site must set it to `False`.  Use **Map a Site** first when only the URLs are wanted.",
+          "message": "Verfolgt Links von einer Startseite aus und gibt den Inhalt jeder gelesenen Seite zurück - eine Website in einem Aufruf durchlaufen und gelesen, statt einer Anfrage je URL.\n\n`instructions` beschreibt in natürlicher Sprache, welche Seiten gewünscht sind, und ist meist leichter richtig zu treffen als die Pfad- und Domain-Muster; beides lässt sich kombinieren.  `limit` ist die Obergrenze für die Kosten des Crawls, setzen Sie es also zuerst.\n\n`allow_external` ist standardmäßig `True`; ein Crawl, der auf einer Website bleiben soll, muss es daher auf `False` setzen.  Verwenden Sie zuerst **Eine Website kartieren**, wenn nur die URLs gewünscht sind."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.display_name": {
-          "source": "Crawl Site",
-          "message": "Website crawlen"
+          "source": "Crawl a Site",
+          "message": "Eine Website crawlen"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Y2h1bmtzX3Blcl9zb3VyY2U.desc": {
+          "source": "How many separately-scored chunks to keep from each page, from 1 to 5.  Defaults to 3.",
+          "message": "Wie viele einzeln bewertete Abschnitte aus jeder Seite behalten werden, von 1 bis 5.  Standardwert ist 3."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Y2h1bmtzX3Blcl9zb3VyY2U.display_name": {
+          "source": "Chunks per Page",
+          "message": "Abschnitte je Seite"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Y2h1bmtzX3Blcl9zb3VyY2U.short_desc": {
+          "source": "How many relevant chunks to keep from each page",
+          "message": "Wie viele relevante Abschnitte aus jeder Seite behalten werden"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.YWxsb3dfZXh0ZXJuYWw.desc": {
+          "source": "Whether the crawl may follow links off the starting site.  Defaults to `True`, so a crawl meant to stay on one site should set this to `False`.",
+          "message": "Ob der Crawl Links folgen darf, die von der Startwebsite wegführen.  Standardwert ist `True`; ein Crawl, der auf einer Website bleiben soll, sollte dies auf `False` setzen."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.YWxsb3dfZXh0ZXJuYWw.display_name": {
+          "source": "Follow External Links",
+          "message": "Externen Links folgen"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.YWxsb3dfZXh0ZXJuYWw.short_desc": {
+          "source": "Whether the crawl may leave the starting site",
+          "message": "Ob der Crawl die Startwebsite verlassen darf"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXh0cmFjdF9kZXB0aA.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
           "source": "Advanced",
@@ -20,112 +44,240 @@
           "message": "Basic"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXh0cmFjdF9kZXB0aA.desc": {
-          "source": "Extraction depth applied to each crawled page.",
-          "message": "Extraktionstiefe, die auf jede gecrawlte Seite angewendet wird."
+          "source": "How hard Tavily works to read each page it fetches.  `advanced` recovers content from pages that render it with scripts, at higher cost and latency.",
+          "message": "Wie viel Aufwand Tavily betreibt, um jede abgerufene Seite zu lesen.  `advanced` gewinnt Inhalte auch aus Seiten zurück, die sie per Skript aufbauen, zu höheren Kosten und mit mehr Wartezeit."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXh0cmFjdF9kZXB0aA.display_name": {
-          "source": "Extract Depth",
-          "message": "Extraktionstiefe"
+          "source": "Extraction Depth",
+          "message": "Auslesetiefe"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXh0cmFjdF9kZXB0aA.short_desc": {
-          "source": "Per-page extraction depth",
-          "message": "Extraktionstiefe pro Seite"
+          "source": "How hard Tavily works to read each page",
+          "message": "Wie viel Aufwand Tavily betreibt, um jede Seite zu lesen"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9kb21haW5z.desc": {
+          "source": "Regular expressions that exclude a domain from the crawl.",
+          "message": "Reguläre Ausdrücke, die eine Domain vom Crawl ausschließen."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+          "source": "Exclude Domains",
+          "message": "Domains ausschließen"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
+          "source": "Regular expressions that exclude a domain",
+          "message": "Reguläre Ausdrücke, die eine Domain ausschließen"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9wYXRocw.desc": {
-          "source": "List of URL path patterns to exclude.",
-          "message": "Liste auszuschließender URL-Pfadmuster."
+          "source": "Regular expressions that exclude a page from the crawl by its URL path.",
+          "message": "Reguläre Ausdrücke, die eine Seite anhand ihres URL-Pfads vom Crawl ausschließen."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9wYXRocw.display_name": {
           "source": "Exclude Paths",
           "message": "Pfade ausschließen"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.ZXhjbHVkZV9wYXRocw.short_desc": {
-          "source": "URL path patterns to exclude",
-          "message": "Auszuschließende URL-Pfadmuster"
+          "source": "Regular expressions that exclude a path",
+          "message": "Reguläre Ausdrücke, die einen Pfad ausschließen"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "Reiner Text"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.desc": {
+          "source": "The form each page's text is returned in.  `markdown` keeps headings, lists and links; `text` is prose only.",
+          "message": "Die Form, in der der Text jeder Seite zurückgegeben wird.  `markdown` erhält Überschriften, Listen und Links; `text` liefert nur Fließtext."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.display_name": {
+          "source": "Format",
+          "message": "Format"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.Zm9ybWF0.short_desc": {
+          "source": "The form each page's text is returned in",
+          "message": "Die Form, in der der Text jeder Seite zurückgegeben wird"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV91c2FnZQ.desc": {
+          "source": "Return what this request cost in credits, as `usage`.",
+          "message": "Zurückgeben, was diese Anfrage an Guthaben gekostet hat, als `usage`."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV91c2FnZQ.display_name": {
+          "source": "Credit Usage",
+          "message": "Guthabenverbrauch"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV91c2FnZQ.short_desc": {
+          "source": "Return what this request cost",
+          "message": "Zurückgeben, was diese Anfrage gekostet hat"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9mYXZpY29u.desc": {
+          "source": "Return each page's favicon URL, for rendering a source list.",
+          "message": "Die Favicon-URL jeder Seite zurückgeben, um eine Quellenliste darzustellen."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9mYXZpY29u.display_name": {
+          "source": "Favicons",
+          "message": "Favicons"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9mYXZpY29u.short_desc": {
+          "source": "Return each page's favicon URL",
+          "message": "Die Favicon-URL jeder Seite zurückgeben"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9pbWFnZXM.desc": {
+          "source": "Return the images found on each page.",
+          "message": "Die auf jeder Seite gefundenen Bilder zurückgeben."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9pbWFnZXM.display_name": {
+          "source": "Images",
+          "message": "Bilder"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.aW5jbHVkZV9pbWFnZXM.short_desc": {
+          "source": "Return the images found on each page",
+          "message": "Die auf jeder Seite gefundenen Bilder zurückgeben"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.aW5zdHJ1Y3Rpb25z.desc": {
-          "source": "Optional natural-language hints to guide the crawler (e.g. \"focus on API reference pages\").",
-          "message": "Optionale Hinweise in natürlicher Sprache zur Steuerung des Crawlers (z. B. \"auf API-Referenzseiten konzentrieren\")."
+          "source": "Describe in natural language which pages are wanted - \"the API reference pages\", \"anything about pricing\" - and Tavily decides which links to follow.  This is usually easier to get right than the path and domain patterns below, and can be combined with them.",
+          "message": "In natürlicher Sprache beschreiben, welche Seiten gewünscht sind - \"die API-Referenzseiten\", \"alles zum Thema Preise\" -, und Tavily entscheidet, welchen Links es folgt.  Das ist meist leichter richtig zu treffen als die folgenden Pfad- und Domain-Muster und lässt sich damit kombinieren."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.aW5zdHJ1Y3Rpb25z.display_name": {
           "source": "Instructions",
           "message": "Anweisungen"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.aW5zdHJ1Y3Rpb25z.short_desc": {
-          "source": "Natural-language instructions for the crawl agent",
-          "message": "Anweisungen in natürlicher Sprache für den Crawl-Agenten"
+          "source": "Describe in natural language which pages are wanted",
+          "message": "In natürlicher Sprache beschreiben, welche Seiten gewünscht sind"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bGltaXQ.desc": {
-          "source": "Maximum total pages to fetch across the crawl.",
-          "message": "Maximale Gesamtzahl der über den gesamten Crawl hinweg abzurufenden Seiten."
+          "source": "How many pages to read in total.  Defaults to 50.  This is the ceiling on what the crawl costs, so set it before setting the depth and breadth.",
+          "message": "Wie viele Seiten insgesamt gelesen werden.  Standardwert ist 50.  Das ist die Obergrenze für die Kosten des Crawls, setzen Sie es also vor Tiefe und Breite."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bGltaXQ.display_name": {
-          "source": "Limit",
-          "message": "Limit"
+          "source": "Page Limit",
+          "message": "Seitenlimit"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bGltaXQ.short_desc": {
-          "source": "Overall page limit",
-          "message": "Gesamtes Seitenlimit"
+          "source": "How many pages to read in total",
+          "message": "Wie viele Seiten insgesamt gelesen werden"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2JyZWFkdGg.desc": {
-          "source": "Maximum number of outgoing links to follow per page.",
-          "message": "Maximale Anzahl ausgehender Links, denen pro Seite gefolgt werden soll."
+          "source": "How many links to follow from each page, from 1 to 500.  Defaults to 20.",
+          "message": "Wie vielen Links von jeder Seite aus gefolgt wird, von 1 bis 500.  Standardwert ist 20."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2JyZWFkdGg.display_name": {
-          "source": "Max Breadth",
+          "source": "Maximum Breadth",
           "message": "Maximale Breite"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2JyZWFkdGg.short_desc": {
-          "source": "Maximum links to follow per page",
-          "message": "Maximale Links, denen pro Seite gefolgt werden soll"
+          "source": "How many links to follow from each page",
+          "message": "Wie vielen Links von jeder Seite aus gefolgt wird"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2RlcHRo.desc": {
-          "source": "Maximum link-graph depth from the seed URL.",
-          "message": "Maximale Link-Graph-Tiefe ausgehend von der Seed-URL."
+          "source": "How many links away from the start URL the crawl may go, from 1 to 5.  Defaults to 1, which reads only the pages the start URL links to directly.",
+          "message": "Wie viele Links von der Start-URL entfernt der Crawl gehen darf, von 1 bis 5.  Standardwert ist 1, wodurch nur die direkt verlinkten Seiten gelesen werden."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2RlcHRo.display_name": {
-          "source": "Max Depth",
+          "source": "Maximum Depth",
           "message": "Maximale Tiefe"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.bWF4X2RlcHRo.short_desc": {
-          "source": "Maximum crawl depth from the seed",
-          "message": "Maximale Crawl-Tiefe ausgehend von der Seed-URL"
+          "source": "How many links away from the start URL to go",
+          "message": "Wie viele Links von der Start-URL entfernt gegangen wird"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X2RvbWFpbnM.desc": {
+          "source": "Regular expressions the domain must match for a page to be read, for example `^docs\\.qore\\.org$`.",
+          "message": "Reguläre Ausdrücke, denen die Domain entsprechen muss, damit eine Seite gelesen wird, zum Beispiel `^docs\\.qore\\.org$`."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X2RvbWFpbnM.display_name": {
+          "source": "Only These Domains",
+          "message": "Nur diese Domains"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X2RvbWFpbnM.short_desc": {
+          "source": "Regular expressions the domain must match",
+          "message": "Reguläre Ausdrücke, denen die Domain entsprechen muss"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X3BhdGhz.desc": {
-          "source": "List of URL path patterns to include.",
-          "message": "Liste der einzuschließenden URL-Pfadmuster."
+          "source": "Regular expressions the URL path must match for a page to be read, for example `/docs/.*`.",
+          "message": "Reguläre Ausdrücke, denen der URL-Pfad entsprechen muss, damit eine Seite gelesen wird, zum Beispiel `/docs/.*`."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X3BhdGhz.display_name": {
-          "source": "Select Paths",
-          "message": "Pfade auswählen"
+          "source": "Only These Paths",
+          "message": "Nur diese Pfade"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.c2VsZWN0X3BhdGhz.short_desc": {
-          "source": "URL path patterns to include",
-          "message": "Einzuschließende URL-Pfadmuster"
+          "source": "Regular expressions the path must match",
+          "message": "Reguläre Ausdrücke, denen der Pfad entsprechen muss"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.dGltZW91dA.desc": {
+          "source": "How long the whole crawl may take, in seconds, from 10 to 150.  Defaults to 150.  A crawl that runs out of time returns what it has.",
+          "message": "Wie lange der gesamte Crawl dauern darf, in Sekunden, von 10 bis 150.  Standardwert ist 150.  Ein Crawl, dem die Zeit ausgeht, gibt zurück, was er hat."
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.dGltZW91dA.display_name": {
+          "source": "Timeout",
+          "message": "Zeitlimit"
+        },
+        "app.VGF2aWx5.action.Y3Jhd2w.option.dGltZW91dA.short_desc": {
+          "source": "How long the whole crawl may take, in seconds",
+          "message": "Wie lange der gesamte Crawl dauern darf, in Sekunden"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.dXJs.desc": {
-          "source": "Seed URL the crawl begins at.",
-          "message": "Start-URL, an der das Crawling beginnt."
+          "source": "The page the crawl starts from.  Everything reachable from it, within the limits below, is fetched and read.",
+          "message": "Die Seite, bei der der Crawl beginnt.  Alles von dort Erreichbare wird innerhalb der folgenden Grenzen abgerufen und gelesen."
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.dXJs.display_name": {
-          "source": "Seed URL",
-          "message": "Seed-URL"
+          "source": "Start URL",
+          "message": "Start-URL"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.option.dXJs.short_desc": {
-          "source": "URL to start the crawl from",
-          "message": "URL, von der aus das Crawling gestartet wird"
+          "source": "The page the crawl starts from",
+          "message": "Die Seite, bei der der Crawl beginnt"
         },
         "app.VGF2aWx5.action.Y3Jhd2w.short_desc": {
-          "source": "Crawl a site starting from a seed URL",
-          "message": "Eine Website ausgehend von einer Start-URL crawlen"
+          "source": "Follow links from a page and return the content of everything found",
+          "message": "Links von einer Seite aus verfolgen und den Inhalt von allem Gefundenen zurückgeben"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.desc": {
+          "source": "Reads a research task started by **Start Research**.\n\n`status` says where it has got to - `pending`, `in_progress`, `completed` or `failed` - and `content` and `sources` are present once it is `completed`.  A task that is still running is not an error: read `status` and ask again.",
+          "message": "Liest einen von **Recherche starten** gestarteten Rechercheauftrag.\n\n`status` sagt, wo er steht - `pending`, `in_progress`, `completed` oder `failed` -, und `content` sowie `sources` sind vorhanden, sobald er `completed` ist.  Ein noch laufender Auftrag ist kein Fehler: Lesen Sie `status` und fragen Sie erneut."
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.display_name": {
+          "source": "Get Research Report",
+          "message": "Rechercheergebnis abrufen"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.option.cmVxdWVzdF9pZA.desc": {
+          "source": "The research task to read, as returned by **Start Research** in `request_id`.\n\nThe dropdown lists the research tasks this account has started, taken from the usage log.  The log is written a few minutes after a task starts, so a task begun moments ago is not in it yet: use the `request_id` **Start Research** returned.",
+          "message": "Der zu lesende Rechercheauftrag, wie von **Recherche starten** in `request_id` zurückgegeben.\n\nDie Auswahlliste zeigt die Rechercheaufträge, die dieses Konto gestartet hat, aus dem Nutzungsprotokoll.  Das Protokoll wird einige Minuten nach dem Start eines Auftrags geschrieben, ein eben begonnener Auftrag steht also noch nicht darin: Verwenden Sie dann die von **Recherche starten** zurückgegebene `request_id`."
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.option.cmVxdWVzdF9pZA.display_name": {
+          "source": "Task ID",
+          "message": "Auftrags-ID"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.option.cmVxdWVzdF9pZA.short_desc": {
+          "source": "The research task to read",
+          "message": "Der zu lesende Rechercheauftrag"
+        },
+        "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.short_desc": {
+          "source": "Read a research task and its report once it has finished",
+          "message": "Einen Rechercheauftrag und seinen Bericht lesen, sobald er fertig ist"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.desc": {
-          "source": "Extracts the main readable content from a list of URLs via Tavily's `/extract` endpoint.  Useful as a follow-up to a `search` result when the agent decides to read specific pages in full.",
-          "message": "Extrahiert den lesbaren Hauptinhalt aus einer Liste von URLs über den `/extract`-Endpunkt von Tavily. Nützlich als Folgeschritt zu einem `search`-Ergebnis, wenn der Agent bestimmte Seiten vollständig lesen möchte."
+          "source": "Fetches the given pages and returns the main content of each, with the navigation, advertising and boilerplate removed.\n\nUse this on URLs already in hand - typically the ones **Search the Web** returned.  Give a `query` to keep only the parts of each page relevant to it, which is what stops a long page from filling a model's context window with the rest.\n\nPages that cannot be read are reported in `failed_results` rather than failing the request, so a partial success is normal and worth checking.",
+          "message": "Ruft die angegebenen Seiten ab und gibt den Hauptinhalt jeder Seite zurück, ohne Navigation, Werbung und Textbausteine.\n\nVerwenden Sie dies für URLs, die Sie bereits haben - typischerweise die von **Das Web durchsuchen** zurückgegebenen.  Geben Sie eine `query` an, um nur die dafür relevanten Teile jeder Seite zu behalten; das verhindert, dass eine lange Seite das Kontextfenster eines Modells mit dem Rest füllt.\n\nSeiten, die nicht gelesen werden können, werden in `failed_results` gemeldet, statt die Anfrage scheitern zu lassen; ein Teilerfolg ist also normal und einen Blick wert."
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.display_name": {
-          "source": "Extract URLs",
-          "message": "URLs extrahieren"
+          "source": "Read Pages",
+          "message": "Seiten lesen"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Y2h1bmtzX3Blcl9zb3VyY2U.desc": {
+          "source": "How many separately-scored chunks to keep from each page, from 1 to 5.  Has an effect only together with `query`.  Defaults to 3.",
+          "message": "Wie viele einzeln bewertete Abschnitte aus jeder Seite behalten werden, von 1 bis 5.  Wirkt sich nur zusammen mit `query` aus.  Standardwert ist 3."
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Y2h1bmtzX3Blcl9zb3VyY2U.display_name": {
+          "source": "Chunks per Source",
+          "message": "Abschnitte je Quelle"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Y2h1bmtzX3Blcl9zb3VyY2U.short_desc": {
+          "source": "How many relevant chunks to keep from each page",
+          "message": "Wie viele relevante Abschnitte aus jeder Seite behalten werden"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.ZXh0cmFjdF9kZXB0aA.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
           "source": "Advanced",
@@ -136,44 +288,220 @@
           "message": "Basic"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.ZXh0cmFjdF9kZXB0aA.desc": {
-          "source": "Extraction depth.",
-          "message": "Extraktionstiefe."
+          "source": "How hard Tavily works to read the page.  `advanced` recovers content from pages that render it with scripts, at higher cost and latency; `basic` is enough for ordinary articles and documentation.",
+          "message": "Wie viel Aufwand Tavily betreibt, um die Seite zu lesen.  `advanced` gewinnt Inhalte auch aus Seiten zurück, die sie per Skript aufbauen, zu höheren Kosten und mit mehr Wartezeit; `basic` genügt für gewöhnliche Artikel und Dokumentation."
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.ZXh0cmFjdF9kZXB0aA.display_name": {
-          "source": "Extract Depth",
-          "message": "Extraktionstiefe"
+          "source": "Extraction Depth",
+          "message": "Auslesetiefe"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.ZXh0cmFjdF9kZXB0aA.short_desc": {
-          "source": "Extraction depth: 'basic' or 'advanced'",
-          "message": "Extraktionstiefe: 'basic' oder 'advanced'"
+          "source": "How hard Tavily works to read the page",
+          "message": "Wie viel Aufwand Tavily betreibt, um die Seite zu lesen"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.allowed-value.c3RyaW5nOmh0bWxfdGFncw.display_name": {
+          "source": "HTML Tags",
+          "message": "HTML-Tags"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "Reiner Text"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.desc": {
+          "source": "The form the page text is returned in.  `markdown` keeps headings, lists and links; `text` is prose only; `html_tags` keeps the original tags.",
+          "message": "Die Form, in der der Seitentext zurückgegeben wird.  `markdown` erhält Überschriften, Listen und Links; `text` liefert nur Fließtext; `html_tags` behält die ursprünglichen Tags."
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.display_name": {
+          "source": "Format",
+          "message": "Format"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.Zm9ybWF0.short_desc": {
+          "source": "The form the page text is returned in",
+          "message": "Die Form, in der der Seitentext zurückgegeben wird"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV91c2FnZQ.desc": {
+          "source": "Return what this request cost in credits, as `usage`.",
+          "message": "Zurückgeben, was diese Anfrage an Guthaben gekostet hat, als `usage`."
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV91c2FnZQ.display_name": {
+          "source": "Credit Usage",
+          "message": "Guthabenverbrauch"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV91c2FnZQ.short_desc": {
+          "source": "Return what this request cost",
+          "message": "Zurückgeben, was diese Anfrage gekostet hat"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9mYXZpY29u.desc": {
+          "source": "Return each page's favicon URL, for rendering a source list.",
+          "message": "Die Favicon-URL jeder Seite zurückgeben, um eine Quellenliste darzustellen."
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9mYXZpY29u.display_name": {
+          "source": "Favicons",
+          "message": "Favicons"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9mYXZpY29u.short_desc": {
+          "source": "Return each page's favicon URL",
+          "message": "Die Favicon-URL jeder Seite zurückgeben"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9pbWFnZXM.desc": {
-          "source": "When `True`, each result includes image URLs found on the page.",
-          "message": "Wenn `True`, enthält jedes Ergebnis Bild-URLs, die auf der Seite gefunden wurden."
+          "source": "Return the images found on each page.",
+          "message": "Die auf jeder Seite gefundenen Bilder zurückgeben."
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9pbWFnZXM.display_name": {
-          "source": "Include Images",
-          "message": "Bilder einschließen"
+          "source": "Images",
+          "message": "Bilder"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.aW5jbHVkZV9pbWFnZXM.short_desc": {
-          "source": "Return image URLs alongside extracted text",
-          "message": "Bild-URLs zusammen mit extrahiertem Text zurückgeben"
+          "source": "Return the images found on each page",
+          "message": "Die auf jeder Seite gefundenen Bilder zurückgeben"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.cXVlcnk.desc": {
+          "source": "Keep only the parts of each page relevant to this query, rather than the whole of it.  This is what keeps a long page from filling a model's context window with the parts nobody asked about.",
+          "message": "Nur die für diese Abfrage relevanten Teile jeder Seite behalten statt der ganzen Seite.  Das verhindert, dass eine lange Seite das Kontextfenster eines Modells mit den Teilen füllt, nach denen niemand gefragt hat."
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.cXVlcnk.display_name": {
+          "source": "Query",
+          "message": "Abfrage"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.cXVlcnk.short_desc": {
+          "source": "Keep only the parts of each page relevant to this",
+          "message": "Nur die dafür relevanten Teile jeder Seite behalten"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.dGltZW91dA.desc": {
+          "source": "How long to wait for each page, in seconds, from 1 to 60.",
+          "message": "Wie lange auf jede Seite gewartet wird, in Sekunden, von 1 bis 60."
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.dGltZW91dA.display_name": {
+          "source": "Timeout",
+          "message": "Zeitlimit"
+        },
+        "app.VGF2aWx5.action.ZXh0cmFjdA.option.dGltZW91dA.short_desc": {
+          "source": "How long to wait for each page, in seconds",
+          "message": "Wie lange auf jede Seite gewartet wird, in Sekunden"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.dXJscw.desc": {
-          "source": "Absolute URLs whose main content should be extracted.",
-          "message": "Absolute URLs, deren Hauptinhalt extrahiert werden soll."
+          "source": "The pages to read.  Each is fetched and reduced to its main content, with the navigation, advertising and boilerplate removed.",
+          "message": "Die zu lesenden Seiten.  Jede wird abgerufen und auf ihren Hauptinhalt reduziert, ohne Navigation, Werbung und Textbausteine."
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.dXJscw.display_name": {
           "source": "URLs",
           "message": "URLs"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.option.dXJscw.short_desc": {
-          "source": "List of URLs to extract content from",
-          "message": "Liste von URLs, aus denen Inhalt extrahiert werden soll"
+          "source": "The pages to read",
+          "message": "Die zu lesenden Seiten"
         },
         "app.VGF2aWx5.action.ZXh0cmFjdA.short_desc": {
-          "source": "Extract main content from URLs via Tavily",
-          "message": "Hauptinhalt aus URLs über Tavily extrahieren"
+          "source": "Fetch pages and return their main content",
+          "message": "Seiten abrufen und ihren Hauptinhalt zurückgeben"
+        },
+        "app.VGF2aWx5.action.bG9ncw.desc": {
+          "source": "Lists the requests made against the account, newest first, each with the endpoint it called, what it cost and how long it took.\n\nThis is where a credit total from **Get Credit Usage** is broken down into the individual requests that produced it.  Narrow the listing with `endpoints`, a date window, or `filter_by_api_key` to see only this key's own requests.",
+          "message": "Listet die gegen das Konto gestellten Anfragen auf, die neuesten zuerst, jeweils mit dem aufgerufenen Endpunkt, den Kosten und der Dauer.\n\nHier wird eine Guthabensumme aus **Guthabenverbrauch abrufen** in die einzelnen Anfragen aufgeschlüsselt, die sie ergeben haben.  Schränken Sie die Auflistung mit `endpoints`, einem Zeitraum oder `filter_by_api_key` ein, um nur die Anfragen dieses Schlüssels zu sehen."
+        },
+        "app.VGF2aWx5.action.bG9ncw.display_name": {
+          "source": "List API Usage Logs",
+          "message": "API-Nutzungsprotokolle auflisten"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kX2RhdGU.desc": {
+          "source": "Return only entries on or before this date, as `YYYY-MM-DD`.",
+          "message": "Nur Einträge an oder vor diesem Datum zurückgeben, als `YYYY-MM-DD`."
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kX2RhdGU.display_name": {
+          "source": "To",
+          "message": "Bis"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kX2RhdGU.short_desc": {
+          "source": "Return only entries on or before this date",
+          "message": "Nur Einträge an oder vor diesem Datum zurückgeben"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOm1hcA.display_name": {
+          "source": "Map",
+          "message": "Kartierung"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOmNyYXds.display_name": {
+          "source": "Crawl",
+          "message": "Crawl"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOmV4dHJhY3Q.display_name": {
+          "source": "Extract",
+          "message": "Auslesen"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOnJlc2VhcmNo.display_name": {
+          "source": "Research",
+          "message": "Recherche"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.allowed-value.c3RyaW5nOnNlYXJjaA.display_name": {
+          "source": "Search",
+          "message": "Suche"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.desc": {
+          "source": "Return only entries for these endpoints.  All of them are returned when this is left empty.",
+          "message": "Nur Einträge für diese Endpunkte zurückgeben.  Bleibt dies leer, werden alle zurückgegeben."
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.display_name": {
+          "source": "Endpoints",
+          "message": "Endpunkte"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZW5kcG9pbnRz.short_desc": {
+          "source": "Return only entries for these endpoints",
+          "message": "Nur Einträge für diese Endpunkte zurückgeben"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZmlsdGVyX2J5X2FwaV9rZXk.desc": {
+          "source": "Return only entries for the API key making the request, rather than for every key on the account.",
+          "message": "Nur Einträge für den API-Schlüssel zurückgeben, der die Anfrage stellt, statt für jeden Schlüssel des Kontos."
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZmlsdGVyX2J5X2FwaV9rZXk.display_name": {
+          "source": "This Key Only",
+          "message": "Nur dieser Schlüssel"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.ZmlsdGVyX2J5X2FwaV9rZXk.short_desc": {
+          "source": "Return only entries for the key making the request",
+          "message": "Nur Einträge für den anfragenden Schlüssel zurückgeben"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.bGltaXQ.desc": {
+          "source": "How many entries to return, newest first, from 1 to 10000.  Defaults to 10.",
+          "message": "Wie viele Einträge zurückgegeben werden, die neuesten zuerst, von 1 bis 10000.  Standardwert ist 10."
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.bGltaXQ.display_name": {
+          "source": "Entry Count",
+          "message": "Anzahl der Einträge"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.bGltaXQ.short_desc": {
+          "source": "How many entries to return, newest first",
+          "message": "Wie viele Einträge zurückgegeben werden, die neuesten zuerst"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.c3RhcnRfZGF0ZQ.desc": {
+          "source": "Return only entries on or after this date, as `YYYY-MM-DD`.",
+          "message": "Nur Einträge an oder nach diesem Datum zurückgeben, als `YYYY-MM-DD`."
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.c3RhcnRfZGF0ZQ.display_name": {
+          "source": "From",
+          "message": "Von"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.c3RhcnRfZGF0ZQ.short_desc": {
+          "source": "Return only entries on or after this date",
+          "message": "Nur Einträge an oder nach diesem Datum zurückgeben"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.cHJvamVjdF9pZA.desc": {
+          "source": "Return only entries for this project.\n\nTavily publishes no endpoint that lists projects, so this cannot be offered as a dropdown; take the value from the Tavily dashboard.",
+          "message": "Nur Einträge für dieses Projekt zurückgeben.\n\nTavily veröffentlicht keinen Endpunkt, der Projekte auflistet, daher kann dies nicht als Auswahlliste angeboten werden; entnehmen Sie den Wert dem Tavily-Dashboard."
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project",
+          "message": "Projekt"
+        },
+        "app.VGF2aWx5.action.bG9ncw.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Return only entries for this project",
+          "message": "Nur Einträge für dieses Projekt zurückgeben"
+        },
+        "app.VGF2aWx5.action.bG9ncw.short_desc": {
+          "source": "List the requests made against the account, newest first",
+          "message": "Die gegen das Konto gestellten Anfragen auflisten, die neuesten zuerst"
         },
         "app.VGF2aWx5.action.bWFrZS1hcGktY2FsbA.desc": {
           "source": "Make a custom HTTP / REST API call to **Tavily** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
@@ -500,192 +828,1084 @@
           "message": "Benutzerdefinierten API-Aufruf an Tavily ausführen"
         },
         "app.VGF2aWx5.action.bWFw.desc": {
-          "source": "Enumerates URLs reachable from a seed URL via Tavily's `/map` endpoint without fetching page content.  Useful for site discovery before a targeted `/extract` or `/crawl` call.",
-          "message": "Listet URLs auf, die von einer Start-URL aus über den `/map`-Endpunkt von Tavily erreichbar sind, ohne den Seiteninhalt abzurufen. Nützlich für die Website-Erkundung vor einem gezielten `/extract`- oder `/crawl`-Aufruf."
+          "source": "Follows links from a starting page and returns the URLs it finds, without fetching any page content.\n\nThis is the cheap survey step: map a site first to see what is there, then read the pages that matter with **Read Pages** rather than crawling everything.",
+          "message": "Verfolgt Links von einer Startseite aus und gibt die gefundenen URLs zurück, ohne Seiteninhalte abzurufen.\n\nDas ist der günstige Erkundungsschritt: Kartieren Sie eine Website zuerst, um zu sehen, was es gibt, und lesen Sie dann mit **Seiten lesen** die Seiten, auf die es ankommt, statt alles zu crawlen."
         },
         "app.VGF2aWx5.action.bWFw.display_name": {
-          "source": "Map Site URLs",
-          "message": "Website-URLs erfassen"
+          "source": "Map a Site",
+          "message": "Eine Website kartieren"
+        },
+        "app.VGF2aWx5.action.bWFw.option.YWxsb3dfZXh0ZXJuYWw.desc": {
+          "source": "Whether the map may follow links off the starting site.  Defaults to `True`, so a map meant to stay on one site should set this to `False`.",
+          "message": "Ob die Kartierung Links folgen darf, die von der Startwebsite wegführen.  Standardwert ist `True`; eine Kartierung, die auf einer Website bleiben soll, sollte dies auf `False` setzen."
+        },
+        "app.VGF2aWx5.action.bWFw.option.YWxsb3dfZXh0ZXJuYWw.display_name": {
+          "source": "Follow External Links",
+          "message": "Externen Links folgen"
+        },
+        "app.VGF2aWx5.action.bWFw.option.YWxsb3dfZXh0ZXJuYWw.short_desc": {
+          "source": "Whether the map may leave the starting site",
+          "message": "Ob die Kartierung die Startwebsite verlassen darf"
+        },
+        "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9kb21haW5z.desc": {
+          "source": "Regular expressions that exclude a domain.",
+          "message": "Reguläre Ausdrücke, die eine Domain ausschließen."
+        },
+        "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+          "source": "Exclude Domains",
+          "message": "Domains ausschließen"
+        },
+        "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
+          "source": "Regular expressions that exclude a domain",
+          "message": "Reguläre Ausdrücke, die eine Domain ausschließen"
         },
         "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9wYXRocw.desc": {
-          "source": "List of URL path patterns to exclude.",
-          "message": "Liste auszuschließender URL-Pfadmuster."
+          "source": "Regular expressions that exclude a URL by its path.",
+          "message": "Reguläre Ausdrücke, die eine URL anhand ihres Pfads ausschließen."
         },
         "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9wYXRocw.display_name": {
           "source": "Exclude Paths",
           "message": "Pfade ausschließen"
         },
         "app.VGF2aWx5.action.bWFw.option.ZXhjbHVkZV9wYXRocw.short_desc": {
-          "source": "URL path patterns to exclude",
-          "message": "Auszuschließende URL-Pfadmuster"
+          "source": "Regular expressions that exclude a path",
+          "message": "Reguläre Ausdrücke, die einen Pfad ausschließen"
+        },
+        "app.VGF2aWx5.action.bWFw.option.aW5jbHVkZV91c2FnZQ.desc": {
+          "source": "Return what this request cost in credits, as `usage`.",
+          "message": "Zurückgeben, was diese Anfrage an Guthaben gekostet hat, als `usage`."
+        },
+        "app.VGF2aWx5.action.bWFw.option.aW5jbHVkZV91c2FnZQ.display_name": {
+          "source": "Credit Usage",
+          "message": "Guthabenverbrauch"
+        },
+        "app.VGF2aWx5.action.bWFw.option.aW5jbHVkZV91c2FnZQ.short_desc": {
+          "source": "Return what this request cost",
+          "message": "Zurückgeben, was diese Anfrage gekostet hat"
         },
         "app.VGF2aWx5.action.bWFw.option.aW5zdHJ1Y3Rpb25z.desc": {
-          "source": "Optional natural-language hints.",
-          "message": "Optionale Hinweise in natürlicher Sprache."
+          "source": "Describe in natural language which pages are wanted, and Tavily decides which links to follow.",
+          "message": "In natürlicher Sprache beschreiben, welche Seiten gewünscht sind, und Tavily entscheidet, welchen Links es folgt."
         },
         "app.VGF2aWx5.action.bWFw.option.aW5zdHJ1Y3Rpb25z.display_name": {
           "source": "Instructions",
           "message": "Anweisungen"
         },
         "app.VGF2aWx5.action.bWFw.option.aW5zdHJ1Y3Rpb25z.short_desc": {
-          "source": "Natural-language instructions for the mapper",
-          "message": "Anweisungen in natürlicher Sprache für den Mapper"
+          "source": "Describe in natural language which pages are wanted",
+          "message": "In natürlicher Sprache beschreiben, welche Seiten gewünscht sind"
         },
         "app.VGF2aWx5.action.bWFw.option.bGltaXQ.desc": {
-          "source": "Maximum total URLs to enumerate.",
-          "message": "Maximale Gesamtzahl der aufzulistenden URLs."
+          "source": "How many URLs to return in total.  Defaults to 50.",
+          "message": "Wie viele URLs insgesamt zurückgegeben werden.  Standardwert ist 50."
         },
         "app.VGF2aWx5.action.bWFw.option.bGltaXQ.display_name": {
-          "source": "Limit",
-          "message": "Limit"
+          "source": "URL Limit",
+          "message": "URL-Limit"
         },
         "app.VGF2aWx5.action.bWFw.option.bGltaXQ.short_desc": {
-          "source": "Overall URL limit",
-          "message": "Gesamtes URL-Limit"
+          "source": "How many URLs to return in total",
+          "message": "Wie viele URLs insgesamt zurückgegeben werden"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2JyZWFkdGg.desc": {
-          "source": "Maximum links per page.",
-          "message": "Maximale Links pro Seite."
+          "source": "How many links to follow from each page, from 1 to 500.  Defaults to 20.",
+          "message": "Wie vielen Links von jeder Seite aus gefolgt wird, von 1 bis 500.  Standardwert ist 20."
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2JyZWFkdGg.display_name": {
-          "source": "Max Breadth",
+          "source": "Maximum Breadth",
           "message": "Maximale Breite"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2JyZWFkdGg.short_desc": {
-          "source": "Maximum links to follow per page",
-          "message": "Maximale Links, denen pro Seite gefolgt werden soll"
+          "source": "How many links to follow from each page",
+          "message": "Wie vielen Links von jeder Seite aus gefolgt wird"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2RlcHRo.desc": {
-          "source": "Maximum link-graph depth.",
-          "message": "Maximale Tiefe des Link-Graphen."
+          "source": "How many links away from the start URL the map may go, from 1 to 5.  Defaults to 1.",
+          "message": "Wie viele Links von der Start-URL entfernt die Kartierung gehen darf, von 1 bis 5.  Standardwert ist 1."
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2RlcHRo.display_name": {
-          "source": "Max Depth",
+          "source": "Maximum Depth",
           "message": "Maximale Tiefe"
         },
         "app.VGF2aWx5.action.bWFw.option.bWF4X2RlcHRo.short_desc": {
-          "source": "Maximum link-graph depth",
-          "message": "Maximale Tiefe des Link-Graphen"
+          "source": "How many links away from the start URL to go",
+          "message": "Wie viele Links von der Start-URL entfernt gegangen wird"
+        },
+        "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X2RvbWFpbnM.desc": {
+          "source": "Regular expressions the domain must match for a URL to be returned.",
+          "message": "Reguläre Ausdrücke, denen die Domain entsprechen muss, damit eine URL zurückgegeben wird."
+        },
+        "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X2RvbWFpbnM.display_name": {
+          "source": "Only These Domains",
+          "message": "Nur diese Domains"
+        },
+        "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X2RvbWFpbnM.short_desc": {
+          "source": "Regular expressions the domain must match",
+          "message": "Reguläre Ausdrücke, denen die Domain entsprechen muss"
         },
         "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X3BhdGhz.desc": {
-          "source": "List of URL path patterns to include.",
-          "message": "Liste der einzuschließenden URL-Pfadmuster."
+          "source": "Regular expressions the URL path must match for a URL to be returned.",
+          "message": "Reguläre Ausdrücke, denen der URL-Pfad entsprechen muss, damit eine URL zurückgegeben wird."
         },
         "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X3BhdGhz.display_name": {
-          "source": "Select Paths",
-          "message": "Pfade auswählen"
+          "source": "Only These Paths",
+          "message": "Nur diese Pfade"
         },
         "app.VGF2aWx5.action.bWFw.option.c2VsZWN0X3BhdGhz.short_desc": {
-          "source": "URL path patterns to include",
-          "message": "Einzuschließende URL-Pfadmuster"
+          "source": "Regular expressions the path must match",
+          "message": "Reguläre Ausdrücke, denen der Pfad entsprechen muss"
+        },
+        "app.VGF2aWx5.action.bWFw.option.dGltZW91dA.desc": {
+          "source": "How long the whole map may take, in seconds, from 10 to 150.  Defaults to 150.",
+          "message": "Wie lange die gesamte Kartierung dauern darf, in Sekunden, von 10 bis 150.  Standardwert ist 150."
+        },
+        "app.VGF2aWx5.action.bWFw.option.dGltZW91dA.display_name": {
+          "source": "Timeout",
+          "message": "Zeitlimit"
+        },
+        "app.VGF2aWx5.action.bWFw.option.dGltZW91dA.short_desc": {
+          "source": "How long the whole map may take, in seconds",
+          "message": "Wie lange die gesamte Kartierung dauern darf, in Sekunden"
         },
         "app.VGF2aWx5.action.bWFw.option.dXJs.desc": {
-          "source": "Seed URL.",
-          "message": "Seed-URL."
+          "source": "The page the map starts from.  Only the links are followed; no page content is fetched, which is what makes this far cheaper than a crawl.",
+          "message": "Die Seite, bei der die Kartierung beginnt.  Es werden nur die Links verfolgt; es werden keine Seiteninhalte abgerufen, was dies weit günstiger macht als einen Crawl."
         },
         "app.VGF2aWx5.action.bWFw.option.dXJs.display_name": {
-          "source": "Seed URL",
-          "message": "Seed-URL"
+          "source": "Start URL",
+          "message": "Start-URL"
         },
         "app.VGF2aWx5.action.bWFw.option.dXJs.short_desc": {
-          "source": "URL to start the URL map from",
-          "message": "URL, ab der die URL-Erfassung gestartet werden soll"
+          "source": "The page the map starts from",
+          "message": "Die Seite, bei der die Kartierung beginnt"
         },
         "app.VGF2aWx5.action.bWFw.short_desc": {
-          "source": "Enumerate URLs reachable from a seed URL",
-          "message": "Von einer Start-URL aus erreichbare URLs auflisten"
+          "source": "List the URLs reachable from a page without reading them",
+          "message": "Die von einer Seite aus erreichbaren URLs auflisten, ohne sie zu lesen"
         },
         "app.VGF2aWx5.action.c2VhcmNo.desc": {
-          "source": "Performs a real-time web search via Tavily's `/search` endpoint and returns ranked results with title, url, content snippet, and relevance score.  Optionally includes an AI-summarized answer over the top results.",
-          "message": "Führt eine Echtzeit-Websuche über den `/search`-Endpunkt von Tavily durch und gibt gerankte Ergebnisse mit Titel, URL, Inhaltsausschnitt und Relevanzbewertung zurück. Enthält optional eine von der KI zusammengefasste Antwort über die Top-Ergebnisse."
+          "source": "Searches the web on meaning rather than keywords and returns ranked results, each with the passage that matched.\n\n`search_depth` is the trade between latency, cost and recall - `ultra-fast` answers in well under a second, `advanced` reads and re-ranks more of each page.  `topic` narrows the corpus to news or finance, which is usually a better filter than adding words to the query.\n\nSet `include_answer` to get a written answer over the results rather than a list to read, and `include_raw_content` to get each page's full text back with the results instead of fetching it separately with **Read Pages**.",
+          "message": "Durchsucht das Web nach Bedeutung statt nach Schlüsselwörtern und gibt bewertete Ergebnisse zurück, jedes mit der Passage, die gepasst hat.\n\n`search_depth` ist die Abwägung zwischen Latenz, Kosten und Trefferquote - `ultra-fast` antwortet in deutlich unter einer Sekunde, `advanced` liest und bewertet mehr von jeder Seite.  `topic` schränkt den Korpus auf Nachrichten oder Finanzen ein, was meist besser filtert, als der Abfrage weitere Wörter hinzuzufügen.\n\nSetzen Sie `include_answer`, um eine geschriebene Antwort statt einer zu lesenden Liste zu erhalten, und `include_raw_content`, um den vollständigen Text jeder Seite gleich mit den Ergebnissen zu bekommen, statt ihn separat mit **Seiten lesen** zu holen."
         },
         "app.VGF2aWx5.action.c2VhcmNo.display_name": {
-          "source": "Web Search",
-          "message": "Websuche"
+          "source": "Search the Web",
+          "message": "Das Web durchsuchen"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm15YW5tYXI.display_name": {
+          "source": "Myanmar",
+          "message": "Myanmar"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hZGFnYXNjYXI.display_name": {
+          "source": "Madagascar",
+          "message": "Madagaskar"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbGF3aQ.display_name": {
+          "source": "Malawi",
+          "message": "Malawi"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbGF5c2lh.display_name": {
+          "source": "Malaysia",
+          "message": "Malaysia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbGRpdmVz.display_name": {
+          "source": "Maldives",
+          "message": "Malediven"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbGk.display_name": {
+          "source": "Mali",
+          "message": "Mali"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hbHRh.display_name": {
+          "source": "Malta",
+          "message": "Malta"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hdXJpdGFuaWE.display_name": {
+          "source": "Mauritania",
+          "message": "Mauretanien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1hdXJpdGl1cw.display_name": {
+          "source": "Mauritius",
+          "message": "Mauritius"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1leGljbw.display_name": {
+          "source": "Mexico",
+          "message": "Mexiko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vbGRvdmE.display_name": {
+          "source": "Moldova",
+          "message": "Moldau"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vbmFjbw.display_name": {
+          "source": "Monaco",
+          "message": "Monaco"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vbmdvbGlh.display_name": {
+          "source": "Mongolia",
+          "message": "Mongolei"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vbnRlbmVncm8.display_name": {
+          "source": "Montenegro",
+          "message": "Montenegro"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vcm9jY28.display_name": {
+          "source": "Morocco",
+          "message": "Marokko"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm1vemFtYmlxdWU.display_name": {
+          "source": "Mozambique",
+          "message": "Mosambik"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5hbWliaWE.display_name": {
+          "source": "Namibia",
+          "message": "Namibia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5lcGFs.display_name": {
+          "source": "Nepal",
+          "message": "Nepal"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5ldGhlcmxhbmRz.display_name": {
+          "source": "Netherlands",
+          "message": "Niederlande"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5ldyB6ZWFsYW5k.display_name": {
+          "source": "New Zealand",
+          "message": "Neuseeland"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5pY2FyYWd1YQ.display_name": {
+          "source": "Nicaragua",
+          "message": "Nicaragua"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5pZ2Vy.display_name": {
+          "source": "Niger",
+          "message": "Niger"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5pZ2VyaWE.display_name": {
+          "source": "Nigeria",
+          "message": "Nigeria"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5vcnRoIG1hY2Vkb25pYQ.display_name": {
+          "source": "North Macedonia",
+          "message": "Nordmazedonien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5vcnRoIGtvcmVh.display_name": {
+          "source": "North Korea",
+          "message": "Nordkorea"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm5vcndheQ.display_name": {
+          "source": "Norway",
+          "message": "Norwegen"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOm9tYW4.display_name": {
+          "source": "Oman",
+          "message": "Oman"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmF1c3RyYWxpYQ.display_name": {
+          "source": "Australia",
+          "message": "Australien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmF1c3RyaWE.display_name": {
+          "source": "Austria",
+          "message": "Österreich"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmF6ZXJiYWlqYW4.display_name": {
+          "source": "Azerbaijan",
+          "message": "Aserbaidschan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFmZ2hhbmlzdGFu.display_name": {
+          "source": "Afghanistan",
+          "message": "Afghanistan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFsYmFuaWE.display_name": {
+          "source": "Albania",
+          "message": "Albanien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFsZ2VyaWE.display_name": {
+          "source": "Algeria",
+          "message": "Algerien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFuZ29sYQ.display_name": {
+          "source": "Angola",
+          "message": "Angola"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFuZG9ycmE.display_name": {
+          "source": "Andorra",
+          "message": "Andorra"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFyZ2VudGluYQ.display_name": {
+          "source": "Argentina",
+          "message": "Argentinien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmFybWVuaWE.display_name": {
+          "source": "Armenia",
+          "message": "Armenien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJ1bGdhcmlh.display_name": {
+          "source": "Bulgaria",
+          "message": "Bulgarien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJ1cmtpbmEgZmFzbw.display_name": {
+          "source": "Burkina Faso",
+          "message": "Burkina Faso"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJ1cnVuZGk.display_name": {
+          "source": "Burundi",
+          "message": "Burundi"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJhaGFtYXM.display_name": {
+          "source": "Bahamas",
+          "message": "Bahamas"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJhaHJhaW4.display_name": {
+          "source": "Bahrain",
+          "message": "Bahrain"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJhbmdsYWRlc2g.display_name": {
+          "source": "Bangladesh",
+          "message": "Bangladesch"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJhcmJhZG9z.display_name": {
+          "source": "Barbados",
+          "message": "Barbados"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJlbGFydXM.display_name": {
+          "source": "Belarus",
+          "message": "Belarus"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJlbGdpdW0.display_name": {
+          "source": "Belgium",
+          "message": "Belgien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJlbGl6ZQ.display_name": {
+          "source": "Belize",
+          "message": "Belize"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJlbmlu.display_name": {
+          "source": "Benin",
+          "message": "Benin"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJodXRhbg.display_name": {
+          "source": "Bhutan",
+          "message": "Bhutan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJvbGl2aWE.display_name": {
+          "source": "Bolivia",
+          "message": "Bolivien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJvc25pYSBhbmQgaGVyemVnb3ZpbmE.display_name": {
+          "source": "Bosnia and Herzegovina",
+          "message": "Bosnien und Herzegowina"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJvdHN3YW5h.display_name": {
+          "source": "Botswana",
+          "message": "Botswana"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJyYXppbA.display_name": {
+          "source": "Brazil",
+          "message": "Brasilien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmJydW5laQ.display_name": {
+          "source": "Brunei",
+          "message": "Brunei"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmN1YmE.display_name": {
+          "source": "Cuba",
+          "message": "Kuba"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmN5cHJ1cw.display_name": {
+          "source": "Cyprus",
+          "message": "Zypern"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmN6ZWNoIHJlcHVibGlj.display_name": {
+          "source": "Czech Republic",
+          "message": "Tschechien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNhbWJvZGlh.display_name": {
+          "source": "Cambodia",
+          "message": "Kambodscha"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNhbWVyb29u.display_name": {
+          "source": "Cameroon",
+          "message": "Kamerun"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNhbmFkYQ.display_name": {
+          "source": "Canada",
+          "message": "Kanada"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNhcGUgdmVyZGU.display_name": {
+          "source": "Cape Verde",
+          "message": "Kap Verde"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNlbnRyYWwgYWZyaWNhbiByZXB1YmxpYw.display_name": {
+          "source": "Central African Republic",
+          "message": "Zentralafrikanische Republik"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNoYWQ.display_name": {
+          "source": "Chad",
+          "message": "Tschad"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNoaW5h.display_name": {
+          "source": "China",
+          "message": "China"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNoaWxl.display_name": {
+          "source": "Chile",
+          "message": "Chile"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNvbG9tYmlh.display_name": {
+          "source": "Colombia",
+          "message": "Kolumbien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNvbW9yb3M.display_name": {
+          "source": "Comoros",
+          "message": "Komoren"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNvbmdv.display_name": {
+          "source": "Congo",
+          "message": "Kongo"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNvc3RhIHJpY2E.display_name": {
+          "source": "Costa Rica",
+          "message": "Costa Rica"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmNyb2F0aWE.display_name": {
+          "source": "Croatia",
+          "message": "Kroatien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmRlbm1hcms.display_name": {
+          "source": "Denmark",
+          "message": "Dänemark"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmRqaWJvdXRp.display_name": {
+          "source": "Djibouti",
+          "message": "Dschibuti"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmRvbWluaWNhbiByZXB1YmxpYw.display_name": {
+          "source": "Dominican Republic",
+          "message": "Dominikanische Republik"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmV0aGlvcGlh.display_name": {
+          "source": "Ethiopia",
+          "message": "Äthiopien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVjdWFkb3I.display_name": {
+          "source": "Ecuador",
+          "message": "Ecuador"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVneXB0.display_name": {
+          "source": "Egypt",
+          "message": "Ägypten"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVsIHNhbHZhZG9y.display_name": {
+          "source": "El Salvador",
+          "message": "El Salvador"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVxdWF0b3JpYWwgZ3VpbmVh.display_name": {
+          "source": "Equatorial Guinea",
+          "message": "Äquatorialguinea"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVyaXRyZWE.display_name": {
+          "source": "Eritrea",
+          "message": "Eritrea"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmVzdG9uaWE.display_name": {
+          "source": "Estonia",
+          "message": "Estland"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmZpamk.display_name": {
+          "source": "Fiji",
+          "message": "Fidschi"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmZpbmxhbmQ.display_name": {
+          "source": "Finland",
+          "message": "Finnland"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmZyYW5jZQ.display_name": {
+          "source": "France",
+          "message": "Frankreich"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmd1YXRlbWFsYQ.display_name": {
+          "source": "Guatemala",
+          "message": "Guatemala"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmd1aW5lYQ.display_name": {
+          "source": "Guinea",
+          "message": "Guinea"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdhYm9u.display_name": {
+          "source": "Gabon",
+          "message": "Gabun"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdhbWJpYQ.display_name": {
+          "source": "Gambia",
+          "message": "Gambia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdlb3JnaWE.display_name": {
+          "source": "Georgia",
+          "message": "Georgien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdlcm1hbnk.display_name": {
+          "source": "Germany",
+          "message": "Deutschland"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdoYW5h.display_name": {
+          "source": "Ghana",
+          "message": "Ghana"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmdyZWVjZQ.display_name": {
+          "source": "Greece",
+          "message": "Griechenland"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmh1bmdhcnk.display_name": {
+          "source": "Hungary",
+          "message": "Ungarn"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmhhaXRp.display_name": {
+          "source": "Haiti",
+          "message": "Haiti"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmhvbmR1cmFz.display_name": {
+          "source": "Honduras",
+          "message": "Honduras"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOml0YWx5.display_name": {
+          "source": "Italy",
+          "message": "Italien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmljZWxhbmQ.display_name": {
+          "source": "Iceland",
+          "message": "Island"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmluZG9uZXNpYQ.display_name": {
+          "source": "Indonesia",
+          "message": "Indonesien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmluZGlh.display_name": {
+          "source": "India",
+          "message": "Indien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmlyYW4.display_name": {
+          "source": "Iran",
+          "message": "Iran"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmlyYXE.display_name": {
+          "source": "Iraq",
+          "message": "Irak"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmlyZWxhbmQ.display_name": {
+          "source": "Ireland",
+          "message": "Irland"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmlzcmFlbA.display_name": {
+          "source": "Israel",
+          "message": "Israel"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmphbWFpY2E.display_name": {
+          "source": "Jamaica",
+          "message": "Jamaika"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmphcGFu.display_name": {
+          "source": "Japan",
+          "message": "Japan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmpvcmRhbg.display_name": {
+          "source": "Jordan",
+          "message": "Jordanien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmt1d2FpdA.display_name": {
+          "source": "Kuwait",
+          "message": "Kuwait"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmt5cmd5enN0YW4.display_name": {
+          "source": "Kyrgyzstan",
+          "message": "Kirgisistan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmthemFraHN0YW4.display_name": {
+          "source": "Kazakhstan",
+          "message": "Kasachstan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmtlbnlh.display_name": {
+          "source": "Kenya",
+          "message": "Kenia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmx1eGVtYm91cmc.display_name": {
+          "source": "Luxembourg",
+          "message": "Luxemburg"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxhdHZpYQ.display_name": {
+          "source": "Latvia",
+          "message": "Lettland"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxlYmFub24.display_name": {
+          "source": "Lebanon",
+          "message": "Libanon"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxlc290aG8.display_name": {
+          "source": "Lesotho",
+          "message": "Lesotho"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxpYmVyaWE.display_name": {
+          "source": "Liberia",
+          "message": "Liberia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxpYnlh.display_name": {
+          "source": "Libya",
+          "message": "Libyen"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxpZWNodGVuc3RlaW4.display_name": {
+          "source": "Liechtenstein",
+          "message": "Liechtenstein"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOmxpdGh1YW5pYQ.display_name": {
+          "source": "Lithuania",
+          "message": "Litauen"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBha2lzdGFu.display_name": {
+          "source": "Pakistan",
+          "message": "Pakistan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBhbmFtYQ.display_name": {
+          "source": "Panama",
+          "message": "Panama"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBhcHVhIG5ldyBndWluZWE.display_name": {
+          "source": "Papua New Guinea",
+          "message": "Papua-Neuguinea"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBhcmFndWF5.display_name": {
+          "source": "Paraguay",
+          "message": "Paraguay"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBlcnU.display_name": {
+          "source": "Peru",
+          "message": "Peru"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBoaWxpcHBpbmVz.display_name": {
+          "source": "Philippines",
+          "message": "Philippinen"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBvbGFuZA.display_name": {
+          "source": "Poland",
+          "message": "Polen"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnBvcnR1Z2Fs.display_name": {
+          "source": "Portugal",
+          "message": "Portugal"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnFhdGFy.display_name": {
+          "source": "Qatar",
+          "message": "Katar"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnJ1c3NpYQ.display_name": {
+          "source": "Russia",
+          "message": "Russland"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnJ3YW5kYQ.display_name": {
+          "source": "Rwanda",
+          "message": "Ruanda"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnJvbWFuaWE.display_name": {
+          "source": "Romania",
+          "message": "Rumänien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnN1ZGFu.display_name": {
+          "source": "Sudan",
+          "message": "Sudan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnN3ZWRlbg.display_name": {
+          "source": "Sweden",
+          "message": "Schweden"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnN3aXR6ZXJsYW5k.display_name": {
+          "source": "Switzerland",
+          "message": "Schweiz"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnN5cmlh.display_name": {
+          "source": "Syria",
+          "message": "Syrien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNhdWRpIGFyYWJpYQ.display_name": {
+          "source": "Saudi Arabia",
+          "message": "Saudi-Arabien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNlbmVnYWw.display_name": {
+          "source": "Senegal",
+          "message": "Senegal"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNlcmJpYQ.display_name": {
+          "source": "Serbia",
+          "message": "Serbien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNpbmdhcG9yZQ.display_name": {
+          "source": "Singapore",
+          "message": "Singapur"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNsb3Zha2lh.display_name": {
+          "source": "Slovakia",
+          "message": "Slowakei"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNsb3Zlbmlh.display_name": {
+          "source": "Slovenia",
+          "message": "Slowenien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNvbWFsaWE.display_name": {
+          "source": "Somalia",
+          "message": "Somalia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNvdXRoIGFmcmljYQ.display_name": {
+          "source": "South Africa",
+          "message": "Südafrika"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNvdXRoIGtvcmVh.display_name": {
+          "source": "South Korea",
+          "message": "Südkorea"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNvdXRoIHN1ZGFu.display_name": {
+          "source": "South Sudan",
+          "message": "Südsudan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNwYWlu.display_name": {
+          "source": "Spain",
+          "message": "Spanien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnNyaSBsYW5rYQ.display_name": {
+          "source": "Sri Lanka",
+          "message": "Sri Lanka"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnR1bmlzaWE.display_name": {
+          "source": "Tunisia",
+          "message": "Tunesien"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnR1cmtleQ.display_name": {
+          "source": "Turkey",
+          "message": "Türkei"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnR1cmttZW5pc3Rhbg.display_name": {
+          "source": "Turkmenistan",
+          "message": "Turkmenistan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRhaXdhbg.display_name": {
+          "source": "Taiwan",
+          "message": "Taiwan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRhamlraXN0YW4.display_name": {
+          "source": "Tajikistan",
+          "message": "Tadschikistan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRhbnphbmlh.display_name": {
+          "source": "Tanzania",
+          "message": "Tansania"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRoYWlsYW5k.display_name": {
+          "source": "Thailand",
+          "message": "Thailand"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRvZ28.display_name": {
+          "source": "Togo",
+          "message": "Togo"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnRyaW5pZGFkIGFuZCB0b2JhZ28.display_name": {
+          "source": "Trinidad and Tobago",
+          "message": "Trinidad und Tobago"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnV6YmVraXN0YW4.display_name": {
+          "source": "Uzbekistan",
+          "message": "Usbekistan"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVnYW5kYQ.display_name": {
+          "source": "Uganda",
+          "message": "Uganda"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVrcmFpbmU.display_name": {
+          "source": "Ukraine",
+          "message": "Ukraine"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVuaXRlZCBhcmFiIGVtaXJhdGVz.display_name": {
+          "source": "United Arab Emirates",
+          "message": "Vereinigte Arabische Emirate"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVuaXRlZCBraW5nZG9t.display_name": {
+          "source": "United Kingdom",
+          "message": "Vereinigtes Königreich"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVuaXRlZCBzdGF0ZXM.display_name": {
+          "source": "United States",
+          "message": "Vereinigte Staaten"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnVydWd1YXk.display_name": {
+          "source": "Uruguay",
+          "message": "Uruguay"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnZlbmV6dWVsYQ.display_name": {
+          "source": "Venezuela",
+          "message": "Venezuela"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnZpZXRuYW0.display_name": {
+          "source": "Vietnam",
+          "message": "Vietnam"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnllbWVu.display_name": {
+          "source": "Yemen",
+          "message": "Jemen"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnphbWJpYQ.display_name": {
+          "source": "Zambia",
+          "message": "Sambia"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.allowed-value.c3RyaW5nOnppbWJhYndl.display_name": {
+          "source": "Zimbabwe",
+          "message": "Simbabwe"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.desc": {
+          "source": "Boost results from this country.  Tavily accepts only the names in this list and rejects anything else.",
+          "message": "Ergebnisse aus diesem Land höher gewichten.  Tavily akzeptiert nur die Namen aus dieser Liste und weist alles andere zurück."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Land"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y291bnRyeQ.short_desc": {
+          "source": "Boost results from this country",
+          "message": "Ergebnisse aus diesem Land höher gewichten"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y2h1bmtzX3Blcl9zb3VyY2U.desc": {
+          "source": "How many separately-scored content chunks to keep from each source, from 1 to 5, or `auto`.  Only has an effect at `advanced` search depth.  Defaults to 3.",
+          "message": "Wie viele einzeln bewertete Inhaltsabschnitte aus jeder Quelle behalten werden, von 1 bis 5 oder `auto`.  Wirkt sich nur bei der Suchtiefe `advanced` aus.  Standardwert ist 3."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y2h1bmtzX3Blcl9zb3VyY2U.display_name": {
+          "source": "Chunks per Source",
+          "message": "Abschnitte je Quelle"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.Y2h1bmtzX3Blcl9zb3VyY2U.short_desc": {
+          "source": "How many content chunks to keep from each source",
+          "message": "Wie viele Inhaltsabschnitte aus jeder Quelle behalten werden"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.YXV0b19wYXJhbWV0ZXJz.desc": {
+          "source": "Let Tavily infer the search parameters - depth, topic and the rest - from the query itself, and report what it chose as `auto_parameters` in the response.  Anything set explicitly still wins.",
+          "message": "Tavily die Suchparameter - Tiefe, Thema und die übrigen - aus der Abfrage selbst ableiten lassen und das Gewählte als `auto_parameters` in der Antwort melden.  Ausdrücklich Gesetztes hat weiterhin Vorrang."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.YXV0b19wYXJhbWV0ZXJz.display_name": {
+          "source": "Automatic Parameters",
+          "message": "Automatische Parameter"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.YXV0b19wYXJhbWV0ZXJz.short_desc": {
+          "source": "Let Tavily choose the search parameters from the query",
+          "message": "Tavily die Suchparameter aus der Abfrage wählen lassen"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZGF5cw.desc": {
-          "source": "For `topic: news`, restrict results to the last N days.",
-          "message": "Für `topic: news` Ergebnisse auf die letzten N Tage beschränken."
+          "source": "Restricts a `news` search to the last N days.\n\n**Superseded by `time_range`**, which applies to every topic; this option is still accepted so that existing flows keep working.",
+          "message": "Schränkt eine `news`-Suche auf die letzten N Tage ein.\n\n**Ersetzt durch `time_range`**, das für jedes Thema gilt; diese Option wird weiterhin akzeptiert, damit bestehende Abläufe funktionieren."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZGF5cw.display_name": {
-          "source": "Days (news topic)",
-          "message": "Tage (Thema Nachrichten)"
+          "source": "Days (legacy)",
+          "message": "Tage (veraltet)"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZGF5cw.short_desc": {
-          "source": "Restrict 'news' searches to the last N days",
-          "message": "'news'-Suchen auf die letzten N Tage beschränken"
+          "source": "Superseded by Time Range; restricts news searches to the last N days",
+          "message": "Durch Zeitraum ersetzt; schränkt Nachrichtensuchen auf die letzten N Tage ein"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZW5kX2RhdGU.desc": {
+          "source": "Return only pages published on or before this date, as `YYYY-MM-DD`.",
+          "message": "Nur Seiten zurückgeben, die an diesem Datum oder davor veröffentlicht wurden, als `YYYY-MM-DD`."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZW5kX2RhdGU.display_name": {
+          "source": "Published Before",
+          "message": "Veröffentlicht vor"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZW5kX2RhdGU.short_desc": {
+          "source": "Return only pages published on or before this date",
+          "message": "Nur Seiten zurückgeben, die an diesem Datum oder davor veröffentlicht wurden"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZXhhY3RfbWF0Y2g.desc": {
+          "source": "Require the quoted phrase in the query to appear verbatim.\n\n**The query must contain a quoted phrase** - for example `\"John Smith\" CEO` - or Tavily rejects the request.",
+          "message": "Verlangen, dass die zitierte Wortfolge in der Abfrage wörtlich vorkommt.\n\n**Die Abfrage muss eine in Anführungszeichen gesetzte Wortfolge enthalten** - zum Beispiel `\"John Smith\" CEO` -, sonst weist Tavily die Anfrage zurück."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZXhhY3RfbWF0Y2g.display_name": {
+          "source": "Exact Phrase",
+          "message": "Exakte Wortfolge"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZXhhY3RfbWF0Y2g.short_desc": {
+          "source": "Require the quoted phrase in the query to appear verbatim",
+          "message": "Verlangen, dass die zitierte Wortfolge in der Abfrage wörtlich vorkommt"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to exclude.",
-          "message": "Liste der auszuschließenden Domains."
+          "source": "Domains never to return results from - up to 150.",
+          "message": "Domains, aus denen nie Ergebnisse zurückgegeben werden - bis zu 150."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.display_name": {
           "source": "Exclude Domains",
           "message": "Domains ausschließen"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
-          "source": "Exclude specific domains from results",
-          "message": "Bestimmte Domänen aus den Ergebnissen ausschließen"
+          "source": "Domains never to return results from",
+          "message": "Domains, aus denen nie Ergebnisse zurückgegeben werden"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZmlsdGVyX2J5X2xhbmd1YWdl.desc": {
+          "source": "Exclude results that are not in `language`, rather than ranking them lower.  Has no effect unless `language` is set.",
+          "message": "Ergebnisse ausschließen, die nicht in `language` sind, statt sie nur niedriger zu bewerten.  Hat keine Wirkung, wenn `language` nicht gesetzt ist."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZmlsdGVyX2J5X2xhbmd1YWdl.display_name": {
+          "source": "Only This Language",
+          "message": "Nur diese Sprache"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.ZmlsdGVyX2J5X2xhbmd1YWdl.short_desc": {
+          "source": "Exclude results not in the chosen language",
+          "message": "Ergebnisse ausschließen, die nicht in der gewählten Sprache sind"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV91c2FnZQ.desc": {
+          "source": "Return what this request cost in credits, as `usage`.",
+          "message": "Zurückgeben, was diese Anfrage an Guthaben gekostet hat, als `usage`."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV91c2FnZQ.display_name": {
+          "source": "Credit Usage",
+          "message": "Guthabenverbrauch"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV91c2FnZQ.short_desc": {
+          "source": "Return what this request cost",
+          "message": "Zurückgeben, was diese Anfrage gekostet hat"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
+          "source": "Advanced",
+          "message": "Erweitert"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "Einfach"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.desc": {
-          "source": "When `True`, Tavily generates an AI-summarized answer over the top results and includes it in the response under the `answer` field.",
-          "message": "Wenn `True`, generiert Tavily eine KI-zusammengefasste Antwort über die Top-Ergebnisse und fügt sie der Antwort unter dem Feld `answer` bei."
+          "source": "Have Tavily write an answer over the top results and return it as `answer`, rather than leaving the caller to read the results.\n\n`basic` is a short answer; `advanced` reads more of each source before writing.  `True` is accepted and means `basic`.",
+          "message": "Tavily eine Antwort über die besten Ergebnisse schreiben lassen und sie als `answer` zurückgeben, statt dem Aufrufer das Lesen der Ergebnisse zu überlassen.\n\n`basic` liefert eine kurze Antwort; `advanced` liest vor dem Schreiben mehr von jeder Quelle.  `True` wird akzeptiert und bedeutet `basic`."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.display_name": {
-          "source": "Include Answer",
-          "message": "Antwort einschließen"
+          "source": "Answer",
+          "message": "Antwort"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9hbnN3ZXI.short_desc": {
-          "source": "AI-summarize the top results into a single answer",
-          "message": "Top-Ergebnisse mittels KI zu einer einzigen Antwort zusammenfassen"
+          "source": "Have Tavily write an answer over the results",
+          "message": "Tavily eine Antwort über die Ergebnisse schreiben lassen"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to restrict the search to (e.g. `(\"docs.qore.org\",)`).",
-          "message": "Liste der Domänen, auf die die Suche beschränkt werden soll (z. B. `(\"docs.qore.org\",)`)."
+          "source": "Domains the results may come from - up to 300.  Whether this restricts the search or merely prefers those domains is decided by `include_domains_mode`.",
+          "message": "Domains, aus denen die Ergebnisse stammen dürfen - bis zu 300.  Ob dies die Suche beschränkt oder diese Domains lediglich bevorzugt, entscheidet `include_domains_mode`."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.display_name": {
           "source": "Include Domains",
           "message": "Domains einschließen"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.short_desc": {
-          "source": "Restrict search to specific domains",
-          "message": "Suche auf bestimmte Domänen beschränken"
+          "source": "Domains to restrict the search to, or prefer",
+          "message": "Domains, auf die die Suche beschränkt oder bevorzugt wird"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.allowed-value.c3RyaW5nOmJvb3N0.display_name": {
+          "source": "Prefer These Domains",
+          "message": "Diese Domains bevorzugen"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.allowed-value.c3RyaW5nOmZpbHRlcg.display_name": {
+          "source": "Only These Domains",
+          "message": "Nur diese Domains"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.desc": {
+          "source": "Whether `include_domains` is a hard restriction (`filter`) or a preference Tavily weighs alongside relevance (`boost`).  A hard restriction on a small list can return nothing at all, which is usually why a domain-scoped search comes back empty.",
+          "message": "Ob `include_domains` eine harte Beschränkung (`filter`) oder eine Präferenz ist, die Tavily neben der Relevanz gewichtet (`boost`).  Eine harte Beschränkung auf eine kleine Liste kann gar nichts zurückgeben, was meist der Grund ist, wenn eine domainbeschränkte Suche leer ausfällt."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.display_name": {
+          "source": "Domain Mode",
+          "message": "Domain-Modus"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5zX21vZGU.short_desc": {
+          "source": "Whether the listed domains are required or merely preferred",
+          "message": "Ob die genannten Domains vorgeschrieben oder lediglich bevorzugt sind"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9mYXZpY29u.desc": {
+          "source": "Return each result's favicon URL, for rendering a source list.",
+          "message": "Die Favicon-URL jedes Ergebnisses zurückgeben, um eine Quellenliste darzustellen."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9mYXZpY29u.display_name": {
+          "source": "Favicons",
+          "message": "Favicons"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9mYXZpY29u.short_desc": {
+          "source": "Return each result's favicon URL",
+          "message": "Die Favicon-URL jedes Ergebnisses zurückgeben"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZV9kZXNjcmlwdGlvbnM.desc": {
+          "source": "Add a written description to each returned image.  Has no effect unless `include_images` is set.",
+          "message": "Jedem zurückgegebenen Bild eine Beschreibung hinzufügen.  Hat keine Wirkung, wenn `include_images` nicht gesetzt ist."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZV9kZXNjcmlwdGlvbnM.display_name": {
+          "source": "Image Descriptions",
+          "message": "Bildbeschreibungen"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZV9kZXNjcmlwdGlvbnM.short_desc": {
+          "source": "Describe each returned image",
+          "message": "Jedes zurückgegebene Bild beschreiben"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZXM.desc": {
-          "source": "When `True`, response includes a list of image URLs.",
-          "message": "Wenn `True`, enthält die Antwort eine Liste von Bild-URLs."
+          "source": "Return images found alongside the results, as an `images` list.",
+          "message": "Bilder zurückgeben, die neben den Ergebnissen gefunden wurden, als `images`-Liste."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZXM.display_name": {
-          "source": "Include Images",
-          "message": "Bilder einschließen"
+          "source": "Images",
+          "message": "Bilder"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9pbWFnZXM.short_desc": {
-          "source": "Return image URLs alongside text results",
-          "message": "Bild-URLs zusammen mit Textergebnissen zurückgeben"
+          "source": "Return images found alongside the results",
+          "message": "Bilder zurückgeben, die neben den Ergebnissen gefunden wurden"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "Reiner Text"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.desc": {
-          "source": "When `True`, each result includes `raw_content` with the full scraped HTML/text.  Larger response, useful for downstream parsing.",
-          "message": "Wenn `True`, enthält jedes Ergebnis `raw_content` mit dem vollständigen gescrapten HTML/Text. Größere Antwort, nützlich für nachgelagertes Parsen."
+          "source": "Return the full text of each result as `raw_content`, in the form named here.  This is what makes a search usable as a retrieval step: without it each result carries only a short snippet.  `True` is accepted and means `markdown`.",
+          "message": "Den vollständigen Text jedes Ergebnisses als `raw_content` in der hier genannten Form zurückgeben.  Das macht eine Suche erst als Abrufschritt brauchbar: Ohne dies trägt jedes Ergebnis nur einen kurzen Ausschnitt.  `True` wird akzeptiert und bedeutet `markdown`."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.display_name": {
-          "source": "Include Raw Content",
-          "message": "Rohinhalt einschließen"
+          "source": "Full Page Text",
+          "message": "Vollständiger Seitentext"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.aW5jbHVkZV9yYXdfY29udGVudA.short_desc": {
-          "source": "Include raw scraped HTML in each result",
-          "message": "Unverarbeitetes gescraptes HTML in jedes Ergebnis einbinden"
+          "source": "Return the full text of each result, not just the snippet",
+          "message": "Den vollständigen Text jedes Ergebnisses zurückgeben, nicht nur den Ausschnitt"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.bGFuZ3VhZ2U.desc": {
+          "source": "Boost results in this language, as an ISO 639-1 code (`en`, `de`) or an English language name.  Set `filter_by_language` to exclude other languages rather than merely ranking them lower.",
+          "message": "Ergebnisse in dieser Sprache höher gewichten, als ISO-639-1-Code (`en`, `de`) oder als englischer Sprachname.  Setzen Sie `filter_by_language`, um andere Sprachen auszuschließen, statt sie nur niedriger zu bewerten."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.bGFuZ3VhZ2U.display_name": {
+          "source": "Language",
+          "message": "Sprache"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.bGFuZ3VhZ2U.short_desc": {
+          "source": "Boost results in this language",
+          "message": "Ergebnisse in dieser Sprache höher gewichten"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.bWF4X3Jlc3VsdHM.desc": {
-          "source": "Maximum number of results to return.  Range 1-20.  Default 5.",
-          "message": "Maximale Anzahl der zurückzugebenden Ergebnisse. Bereich 1–20. Standardwert 5."
+          "source": "How many results to return, from 0 to 20.  Defaults to 10.",
+          "message": "Wie viele Ergebnisse zurückgegeben werden, von 0 bis 20.  Standardwert ist 10."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.bWF4X3Jlc3VsdHM.display_name": {
-          "source": "Max Results",
-          "message": "Max. Ergebnisse"
+          "source": "Result Count",
+          "message": "Ergebnisanzahl"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.bWF4X3Jlc3VsdHM.short_desc": {
-          "source": "Maximum number of search results (1-20)",
-          "message": "Maximale Anzahl von Suchergebnissen (1–20)"
+          "source": "How many results to return",
+          "message": "Wie viele Ergebnisse zurückgegeben werden"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2FmZV9zZWFyY2g.desc": {
+          "source": "Filter out adult and explicit results.",
+          "message": "Nicht jugendfreie und explizite Ergebnisse herausfiltern."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2FmZV9zZWFyY2g.display_name": {
+          "source": "Safe Search",
+          "message": "Sichere Suche"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2FmZV9zZWFyY2g.short_desc": {
+          "source": "Filter out adult and explicit results",
+          "message": "Nicht jugendfreie und explizite Ergebnisse herausfiltern"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.allowed-value.c3RyaW5nOmFkdmFuY2Vk.display_name": {
           "source": "Advanced",
@@ -695,65 +1915,289 @@
           "source": "Basic",
           "message": "Basic"
         },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "Schnell"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.allowed-value.c3RyaW5nOnVsdHJhLWZhc3Q.display_name": {
+          "source": "Ultra Fast",
+          "message": "Ultraschnell"
+        },
         "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.desc": {
-          "source": "Search depth.  `basic` returns faster, `advanced` does more iterative refinement at higher cost.",
-          "message": "Suchtiefe. `basic` liefert schnellere Ergebnisse, `advanced` führt mehr iterative Verfeinerungen zu höheren Kosten durch."
+          "source": "How hard Tavily works on the query, trading latency and credits against recall.  `ultra-fast` and `fast` answer in well under a second; `advanced` re-ranks and reads more of each page, and is the only depth that makes `chunks_per_source` meaningful.",
+          "message": "Wie viel Aufwand Tavily in die Abfrage steckt und damit Latenz und Guthaben gegen Trefferquote abwägt.  `ultra-fast` und `fast` antworten in deutlich unter einer Sekunde; `advanced` bewertet neu und liest mehr von jeder Seite und ist die einzige Tiefe, bei der `chunks_per_source` etwas bewirkt."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.display_name": {
           "source": "Search Depth",
           "message": "Suchtiefe"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.c2VhcmNoX2RlcHRo.short_desc": {
-          "source": "Search depth: 'basic' (fast) or 'advanced' (higher recall)",
-          "message": "Suchtiefe: 'basic' (schnell) oder 'advanced' (höhere Trefferquote)"
+          "source": "How hard Tavily works on the query",
+          "message": "Wie viel Aufwand Tavily in die Abfrage steckt"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c3RhcnRfZGF0ZQ.desc": {
+          "source": "Return only pages published on or after this date, as `YYYY-MM-DD`.",
+          "message": "Nur Seiten zurückgeben, die an diesem Datum oder danach veröffentlicht wurden, als `YYYY-MM-DD`."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c3RhcnRfZGF0ZQ.display_name": {
+          "source": "Published Since",
+          "message": "Veröffentlicht seit"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.c3RhcnRfZGF0ZQ.short_desc": {
+          "source": "Return only pages published on or after this date",
+          "message": "Nur Seiten zurückgeben, die an diesem Datum oder danach veröffentlicht wurden"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.cXVlcnk.desc": {
-          "source": "Natural-language search query — what the agent wants to find on the web.",
-          "message": "Suchanfrage in natürlicher Sprache – was der Agent im Web finden möchte."
+          "source": "What to search for, in natural language.  Tavily searches on meaning, so a question reads better here than a list of keywords.\n\nMust be at least 2 characters.",
+          "message": "Wonach gesucht werden soll, in natürlicher Sprache.  Tavily sucht nach Bedeutung, daher eignet sich hier eine Frage besser als eine Liste von Schlüsselwörtern.\n\nMuss mindestens 2 Zeichen lang sein."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.cXVlcnk.display_name": {
           "source": "Query",
           "message": "Abfrage"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.cXVlcnk.short_desc": {
-          "source": "Natural-language search query",
-          "message": "Suchanfrage in natürlicher Sprache"
+          "source": "What to search for, in natural language",
+          "message": "Wonach gesucht werden soll, in natürlicher Sprache"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.allowed-value.c3RyaW5nOm5ld3M.display_name": {
           "source": "News",
           "message": "Nachrichten"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.allowed-value.c3RyaW5nOmZpbmFuY2U.display_name": {
+          "source": "Finance",
+          "message": "Finanzen"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.allowed-value.c3RyaW5nOmdlbmVyYWw.display_name": {
           "source": "General",
           "message": "Allgemein"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.desc": {
-          "source": "Topic-aware search.  `news` biases toward recent news sources.",
-          "message": "Themenbezogene Suche. `news` bevorzugt aktuelle Nachrichtenquellen."
+          "source": "The corpus the search runs against.  `news` favours recent journalism and returns a `published_date` with each result; `finance` favours market and company sources.  Narrowing here usually beats adding words to the query.",
+          "message": "Der Korpus, in dem gesucht wird.  `news` bevorzugt aktuellen Journalismus und liefert zu jedem Ergebnis ein `published_date`; `finance` bevorzugt Markt- und Unternehmensquellen.  Hier einzugrenzen schlägt meist das Hinzufügen weiterer Wörter zur Abfrage."
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.display_name": {
           "source": "Topic",
           "message": "Topic"
         },
         "app.VGF2aWx5.action.c2VhcmNo.option.dG9waWM.short_desc": {
-          "source": "Search topic: 'general' or 'news'",
-          "message": "Suchthema: 'general' oder 'news'"
+          "source": "The corpus the search runs against",
+          "message": "Der Korpus, in dem gesucht wird"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.allowed-value.c3RyaW5nOm1vbnRo.display_name": {
+          "source": "Past Month",
+          "message": "Letzter Monat"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.allowed-value.c3RyaW5nOmRheQ.display_name": {
+          "source": "Past Day",
+          "message": "Letzter Tag"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.allowed-value.c3RyaW5nOndlZWs.display_name": {
+          "source": "Past Week",
+          "message": "Letzte Woche"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.allowed-value.c3RyaW5nOnllYXI.display_name": {
+          "source": "Past Year",
+          "message": "Letztes Jahr"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.desc": {
+          "source": "How far back the search reaches, relative to now.  Use `start_date` and `end_date` instead for a fixed window.",
+          "message": "Wie weit die Suche zurückreicht, bezogen auf jetzt.  Verwenden Sie stattdessen `start_date` und `end_date` für einen festen Zeitraum."
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.display_name": {
+          "source": "Time Range",
+          "message": "Zeitraum"
+        },
+        "app.VGF2aWx5.action.c2VhcmNo.option.dGltZV9yYW5nZQ.short_desc": {
+          "source": "How far back the search reaches",
+          "message": "Wie weit die Suche zurückreicht"
         },
         "app.VGF2aWx5.action.c2VhcmNo.short_desc": {
-          "source": "Search the web via Tavily",
-          "message": "Das Web über Tavily durchsuchen"
+          "source": "Search the web and optionally get an answer written over the results",
+          "message": "Das Web durchsuchen und optional eine über die Ergebnisse geschriebene Antwort erhalten"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.desc": {
+          "source": "Starts a research task: an agent searches, reads and reasons over the web until it can answer, rather than returning what one search found.\n\nUse this where **Search the Web** is not enough - a question that needs several searches, or whose answer has to be assembled from many pages.  `model` is the budget: `mini` is quick, `pro` works harder, `auto` decides from the task.\n\nThe task runs asynchronously and this action returns immediately with its `request_id`; read the report with **Get Research Report**.  Set `output_schema` to get structured data back rather than prose, and `files` to have the agent read documents of your own alongside what it finds.",
+          "message": "Startet einen Rechercheauftrag: Ein Agent sucht, liest und schlussfolgert über das Web, bis er antworten kann, statt zurückzugeben, was eine einzelne Suche gefunden hat.\n\nVerwenden Sie dies dort, wo **Das Web durchsuchen** nicht ausreicht - bei einer Frage, die mehrere Suchen erfordert, oder deren Antwort aus vielen Seiten zusammengesetzt werden muss.  `model` ist das Budget: `mini` ist schnell, `pro` arbeitet gründlicher, `auto` entscheidet anhand der Aufgabe.\n\nDer Auftrag läuft asynchron und diese Aktion kehrt sofort mit seiner `request_id` zurück; lesen Sie den Bericht mit **Rechercheergebnis abrufen**.  Setzen Sie `output_schema`, um strukturierte Daten statt Fließtext zu erhalten, und `files`, damit der Agent neben seinen Funden auch eigene Dokumente liest."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.display_name": {
+          "source": "Start Research",
+          "message": "Recherche starten"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.allowed-value.c3RyaW5nOm1sYQ.display_name": {
+          "source": "MLA",
+          "message": "MLA"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.allowed-value.c3RyaW5nOm51bWJlcmVk.display_name": {
+          "source": "Numbered",
+          "message": "Nummeriert"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.allowed-value.c3RyaW5nOmFwYQ.display_name": {
+          "source": "APA",
+          "message": "APA"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.allowed-value.c3RyaW5nOmNoaWNhZ28.display_name": {
+          "source": "Chicago",
+          "message": "Chicago"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.desc": {
+          "source": "How the report cites its sources within `content`.  The sources themselves are always returned separately as `sources`.",
+          "message": "Wie der Bericht seine Quellen innerhalb von `content` zitiert.  Die Quellen selbst werden immer separat als `sources` zurückgegeben."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.display_name": {
+          "source": "Citation Format",
+          "message": "Zitierformat"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.Y2l0YXRpb25fZm9ybWF0.short_desc": {
+          "source": "How the report cites its sources",
+          "message": "Wie der Bericht seine Quellen zitiert"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZXhjbHVkZV9kb21haW5z.desc": {
+          "source": "Domains the agent must not use - a hard blocklist - up to 20.",
+          "message": "Domains, die der Agent nicht verwenden darf - eine harte Sperrliste - bis zu 20."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+          "source": "Excluded Domains",
+          "message": "Ausgeschlossene Domains"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
+          "source": "Domains the agent must not use, up to 20",
+          "message": "Domains, die der Agent nicht verwenden darf, bis zu 20"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.desc": {
+          "source": "Documents of your own for the agent to read alongside what it finds on the web - up to 5 files and 80,000 words in total.  This is how a research task is grounded in something the web does not have.",
+          "message": "Eigene Dokumente, die der Agent neben seinen Funden im Web lesen soll - bis zu 5 Dateien und insgesamt 80.000 Wörter.  So wird ein Rechercheauftrag in etwas verankert, das das Web nicht hat."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.display_name": {
+          "source": "Files",
+          "message": "Dateien"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.short_desc": {
+          "source": "Documents of your own for the agent to read, up to 5",
+          "message": "Eigene Dokumente, die der Agent lesen soll, bis zu 5"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5jbHVkZV9kb21haW5z.desc": {
+          "source": "Domains the agent should prefer - a soft preference, not a restriction - up to 20.",
+          "message": "Domains, die der Agent bevorzugen soll - eine weiche Präferenz, keine Beschränkung - bis zu 20."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5jbHVkZV9kb21haW5z.display_name": {
+          "source": "Preferred Domains",
+          "message": "Bevorzugte Domains"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5jbHVkZV9kb21haW5z.short_desc": {
+          "source": "Domains the agent should prefer, up to 20",
+          "message": "Domains, die der Agent bevorzugen soll, bis zu 20"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5wdXQ.desc": {
+          "source": "What to research, in natural language.  This is a task rather than a query: the agent searches, reads and reasons until it can answer, so it can be given something no single search would settle.",
+          "message": "Was recherchiert werden soll, in natürlicher Sprache.  Das ist eine Aufgabe und keine Abfrage: Der Agent sucht, liest und schlussfolgert, bis er antworten kann, und kann daher etwas erhalten, das keine einzelne Suche klären würde."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5wdXQ.display_name": {
+          "source": "Task",
+          "message": "Aufgabe"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.aW5wdXQ.short_desc": {
+          "source": "What to research, in natural language",
+          "message": "Was recherchiert werden soll, in natürlicher Sprache"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.allowed-value.c3RyaW5nOmxvbmc.display_name": {
+          "source": "Long",
+          "message": "Lang"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.allowed-value.c3RyaW5nOnN0YW5kYXJk.display_name": {
+          "source": "Standard",
+          "message": "Standard"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.allowed-value.c3RyaW5nOnNob3J0.display_name": {
+          "source": "Short",
+          "message": "Kurz"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.desc": {
+          "source": "How long the report should be.  Defaults to `standard`.",
+          "message": "Wie lang der Bericht sein soll.  Standardwert ist `standard`."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.display_name": {
+          "source": "Report Length",
+          "message": "Berichtslänge"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X2xlbmd0aA.short_desc": {
+          "source": "How long the report should be",
+          "message": "Wie lang der Bericht sein soll"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X3NjaGVtYQ.desc": {
+          "source": "A JSON Schema describing the answer you want back, which makes `content` structured data rather than prose - the difference between a report someone reads and a result a flow can act on.",
+          "message": "Ein JSON-Schema, das die gewünschte Antwort beschreibt und `content` zu strukturierten Daten statt zu Fließtext macht - der Unterschied zwischen einem Bericht, den jemand liest, und einem Ergebnis, mit dem ein Ablauf arbeiten kann."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X3NjaGVtYQ.display_name": {
+          "source": "Output Schema",
+          "message": "Ausgabeschema"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.b3V0cHV0X3NjaGVtYQ.short_desc": {
+          "source": "A JSON Schema describing the answer you want back",
+          "message": "Ein JSON-Schema, das die gewünschte Antwort beschreibt"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.allowed-value.c3RyaW5nOm1pbmk.display_name": {
+          "source": "Mini",
+          "message": "Mini"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Automatic",
+          "message": "Automatisch"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.allowed-value.c3RyaW5nOnBybw.display_name": {
+          "source": "Pro",
+          "message": "Pro"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.desc": {
+          "source": "Which model runs the task, trading speed and cost against depth.  `auto` lets Tavily choose from the task itself.",
+          "message": "Welches Modell die Aufgabe ausführt und dabei Geschwindigkeit und Kosten gegen Tiefe abwägt.  Mit `auto` wählt Tavily anhand der Aufgabe selbst."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.bW9kZWw.short_desc": {
+          "source": "Which model runs the task, trading speed against depth",
+          "message": "Welches Modell die Aufgabe ausführt und dabei Geschwindigkeit gegen Tiefe abwägt"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.short_desc": {
+          "source": "Set an agent to research a question and return the task it started",
+          "message": "Einen Agenten eine Frage recherchieren lassen und den gestarteten Auftrag erhalten"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.desc": {
+          "source": "Reports what this API key and the whole account have spent in the current billing period, broken down by endpoint, together with the plan's allowance.\n\nComparing `account.plan_usage` with `account.plan_limit` is what lets a flow stop before it runs out of credits rather than discovering it mid-run.",
+          "message": "Meldet, was dieser API-Schlüssel und das gesamte Konto im aktuellen Abrechnungszeitraum ausgegeben haben, aufgeschlüsselt nach Endpunkt, zusammen mit dem Kontingent des Tarifs.\n\nDer Vergleich von `account.plan_usage` mit `account.plan_limit` erlaubt es einem Ablauf, aufzuhören, bevor das Guthaben ausgeht, statt es mitten im Lauf zu bemerken."
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.display_name": {
+          "source": "Get Credit Usage",
+          "message": "Guthabenverbrauch abrufen"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.option.cHJvamVjdF9pZA.desc": {
+          "source": "Report usage for this project only, rather than for the whole account.  Sent as the `X-Project-ID` header.\n\nTavily publishes no endpoint that lists projects, so this cannot be offered as a dropdown; take the value from the Tavily dashboard.",
+          "message": "Nur die Nutzung dieses Projekts melden statt der des gesamten Kontos.  Wird als Header `X-Project-ID` gesendet.\n\nTavily veröffentlicht keinen Endpunkt, der Projekte auflistet, daher kann dies nicht als Auswahlliste angeboten werden; entnehmen Sie den Wert dem Tavily-Dashboard."
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project",
+          "message": "Projekt"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Report usage for this project only",
+          "message": "Nur die Nutzung dieses Projekts melden"
+        },
+        "app.VGF2aWx5.action.dXNhZ2U.short_desc": {
+          "source": "Report what the API key and the account have spent",
+          "message": "Melden, was der API-Schlüssel und das Konto ausgegeben haben"
         },
         "app.VGF2aWx5.desc": {
-          "source": "Provides access to [Tavily](https://www.tavily.com) — the agentic web-search API used by AI agents to retrieve real-time information.\n\n**Common use cases**:\n- **Agent tools**: register `tavily_search` / `tavily_extract` as tools an LLM can invoke (see @ref tavilyrestclientintro \"TavilyRestClient\" docs)\n- **RAG ingestion**: fetch fresh sources before embedding\n- **Background research** in workflows: get current information about products, competitors, news, regulations",
-          "message": "Bietet Zugriff auf [Tavily](https://www.tavily.com) – die agentenbasierte Websuch-API, die von KI-Agenten zum Abrufen von Echtzeitinformationen verwendet wird.\n\n**Häufige Anwendungsfälle**:\n- **Agenten-Tools**: Registrieren Sie `tavily_search` / `tavily_extract` als Tools, die ein LLM aufrufen kann (siehe @ref tavilyrestclientintro \"TavilyRestClient\"-Dokumentation)\n- **RAG-Ingestion**: Frische Quellen vor dem Embedding abrufen\n- **Hintergrundrecherche** in Workflows: Aktuelle Informationen über Produkte, Mitbewerber, Nachrichten, Vorschriften abrufen"
+          "source": "Provides access to [Tavily](https://www.tavily.com) — a search API built for programs rather than for people: the query is meaning, not keywords, and the result can be the page content, or the answer, rather than a list of links.\n\n**What it covers**:\n- **Search** the web semantically, with an answer written over the results and each page's full text returned alongside them\n- **Read pages** already in hand, reduced to their main content with the navigation and advertising removed\n- **Crawl and map sites**: walk a site from one URL, either reading every page or just listing what is there\n- **Research tasks**: an agent that searches, reads and reasons until it can answer, returning prose or data shaped by a JSON schema you supply, and able to read documents of your own alongside the web\n- **Credit usage and logs**: what the key and the account have spent, and the individual requests behind it\n\n**Where this earns its place**: a model answering from what it was trained on cannot know what happened this week, and scraping the pages it would need means writing and maintaining an extractor per site.  Tavily returns clean content and citations, so the retrieval step of a RAG pipeline or an agent tool becomes one call — and the research tasks handle the questions that no single search settles.",
+          "message": "Bietet Zugriff auf [Tavily](https://www.tavily.com) — eine Such-API, die für Programme statt für Menschen gebaut ist: Die Abfrage ist Bedeutung statt Schlüsselwörter, und das Ergebnis kann der Seiteninhalt oder die Antwort sein statt einer Liste von Links.\n\n**Was abgedeckt wird**:\n- **Suchen** Sie das Web semantisch, mit einer über die Ergebnisse geschriebenen Antwort und dem vollständigen Text jeder Seite gleich dazu\n- **Seiten lesen**, die Sie bereits kennen, reduziert auf ihren Hauptinhalt ohne Navigation und Werbung\n- **Sites crawlen und kartieren**: eine Site von einer URL aus durchlaufen und dabei entweder jede Seite lesen oder nur auflisten, was vorhanden ist\n- **Rechercheaufträge**: ein Agent, der sucht, liest und schlussfolgert, bis er antworten kann, und dabei Fließtext oder Daten in der Form eines von Ihnen vorgegebenen JSON-Schemas zurückgibt und auch eigene Dokumente neben dem Web lesen kann\n- **Guthabenverbrauch und Protokolle**: was der Schlüssel und das Konto ausgegeben haben und welche einzelnen Anfragen dahinterstehen\n\n**Warum sich das lohnt**: Ein Modell, das aus seinem Trainingsstand antwortet, kann nicht wissen, was diese Woche geschehen ist, und die dafür nötigen Seiten abzugreifen bedeutet, je Website einen Extraktor zu schreiben und zu pflegen. Tavily liefert sauberen Inhalt mit Quellenangaben, sodass der Abrufschritt einer RAG-Pipeline oder eines Agentenwerkzeugs zu einem einzigen Aufruf wird — und die Rechercheaufträge übernehmen die Fragen, die keine einzelne Suche klärt."
         },
         "app.VGF2aWx5.display_name": {
           "source": "Tavily",
           "message": "Tavily"
         },
         "app.VGF2aWx5.short_desc": {
-          "source": "Tavily real-time web search for AI agents",
-          "message": "Tavily-Echtzeit-Websuche für KI-Agenten"
+          "source": "Tavily web search, page reading, site crawling and research agents",
+          "message": "Tavily: Websuche, Seitenauslesung, Site-Crawling und Rechercheagenten"
         }
       }
     }

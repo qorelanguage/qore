@@ -44,6 +44,14 @@ public class TavilyDataProvider inherits TavilyDataProviderCommon {
                 Class::forName("TavilyDataProvider::TavilyCrawlDataProvider"),
             "map":
                 Class::forName("TavilyDataProvider::TavilyMapDataProvider"),
+            "research":
+                Class::forName("TavilyDataProvider::TavilyResearchDataProvider"),
+            "get-research":
+                Class::forName("TavilyDataProvider::TavilyGetResearchDataProvider"),
+            "usage":
+                Class::forName("TavilyDataProvider::TavilyUsageDataProvider"),
+            "logs":
+                Class::forName("TavilyDataProvider::TavilyLogsDataProvider"),
         };
     }
 
