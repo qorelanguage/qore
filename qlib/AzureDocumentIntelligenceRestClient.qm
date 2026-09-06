@@ -58,7 +58,7 @@ module AzureDocumentIntelligenceRestClient {
     Authentication uses the `Ocp-Apim-Subscription-Key` header with the
     Azure resource's subscription key.  Entra (Azure AD) bearer-token
     auth via @ref azureauthintro "AzureAuth" can be added by the caller
-    via the \c default_headers connection option.
+    via the \c headers connection option.
 
     The main classes are:
     - @ref AzureDocumentIntelligenceRestClient::AzureDocumentIntelligenceRestClient — sync client
@@ -117,11 +117,11 @@ public class AzureDocumentIntelligenceRestClientBase {
         rv += DefaultOptions + opts;
         if (rv.apikey) {
             hash<auto!> dh;
-            if (rv.default_headers) {
-                dh += rv.default_headers;
+            if (rv.headers) {
+                dh += rv.headers;
             }
             dh."Ocp-Apim-Subscription-Key" = rv.apikey;
-            rv.default_headers = dh;
+            rv.headers = dh;
             delete rv.apikey;
         }
         return rv;

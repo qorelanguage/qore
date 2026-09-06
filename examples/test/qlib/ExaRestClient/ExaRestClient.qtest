@@ -70,7 +70,7 @@ public class ExaRestClientTest inherits QUnit::Test {
         # Exa uses x-api-key header, NOT Bearer
         assertEq(NOTHING, opts.token);
         assertEq(NOTHING, opts.apikey);
-        assertEq("my-exa-key", opts.default_headers."x-api-key");
+        assertEq("my-exa-key", opts.headers."x-api-key");
     }
 
     private searchToolTest() {

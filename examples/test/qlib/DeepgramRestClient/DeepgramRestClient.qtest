@@ -17,7 +17,7 @@ public class DeepgramRestClientTest inherits QUnit::Test {
             \tokenAuthMappingTest());
         addTestCase("default URL applied when not provided",
             \defaultUrlTest());
-        addTestCase("existing default_headers are preserved",
+        addTestCase("existing headers are preserved",
             \preserveExistingHeadersTest());
         set_return_value(main());
     }
@@ -36,7 +36,7 @@ public class DeepgramRestClientTest inherits QUnit::Test {
             "apikey": "secret-key-123",
         });
         # apikey is rewritten to Authorization: Token header
-        assertEq("Token secret-key-123", opts.default_headers.Authorization);
+        assertEq("Token secret-key-123", opts.headers.Authorization);
         # apikey itself is removed from the options hash to avoid Bearer fallback
         assertEq(NOTHING, opts.apikey);
     }
@@ -49,13 +49,13 @@ public class DeepgramRestClientTest inherits QUnit::Test {
     }
 
     private preserveExistingHeadersTest() {
-        # If the caller already supplied default_headers, they should be merged
+        # If the caller already supplied headers, they should be merged
         # (not overwritten) by the Authorization injection.
         hash<auto> opts = DeepgramRestClient::DeepgramRestClientBase::getOptions({
             "apikey": "k",
-            "default_headers": {"X-Trace-Id": "abc"},
+            "headers": {"X-Trace-Id": "abc"},
         });
-        assertEq("Token k",      opts.default_headers.Authorization);
-        assertEq("abc",          opts.default_headers."X-Trace-Id");
+        assertEq("Token k",      opts.headers.Authorization);
+        assertEq("abc",          opts.headers."X-Trace-Id");
     }
 }

@@ -77,7 +77,7 @@ public class PineconeRestClientTest inherits QUnit::Test {
         assertEq(NOTHING, opts.token);
         # 'apikey' was consumed
         assertEq(NOTHING, opts.apikey);
-        # Api-Key header injected via default_headers
-        assertEq("my-pinecone-key", opts.default_headers."Api-Key");
+        # Api-Key header injected via headers
+        assertEq("my-pinecone-key", opts.headers."Api-Key");
     }
 }

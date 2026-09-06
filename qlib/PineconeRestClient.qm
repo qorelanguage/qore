@@ -72,7 +72,7 @@ module PineconeRestClient {
 
     Pinecone uses the \c Api-Key header (NOT \c Authorization: Bearer).
     The module sets this header on every request via the
-    \c default_headers connection option.
+    \c headers connection option.
 
     @section PineconeRestClientRelnotes Release Notes
 
@@ -99,11 +99,11 @@ public class PineconeRestClientBase {
         # Pinecone uses Api-Key header, not Bearer
         if (rv.apikey) {
             hash<auto!> dh;
-            if (rv.default_headers) {
-                dh += rv.default_headers;
+            if (rv.headers) {
+                dh += rv.headers;
             }
             dh."Api-Key" = rv.apikey;
-            rv.default_headers = dh;
+            rv.headers = dh;
             delete rv.apikey;
         }
         return rv;

@@ -126,11 +126,11 @@ public class BflRestClientBase {
         rv += DefaultOptions + opts;
         if (rv.apikey) {
             hash<auto!> dh;
-            if (rv.default_headers) {
-                dh += rv.default_headers;
+            if (rv.headers) {
+                dh += rv.headers;
             }
             dh."x-key" = rv.apikey;
-            rv.default_headers = dh;
+            rv.headers = dh;
             delete rv.apikey;
         }
         return rv;

@@ -73,7 +73,7 @@ module DeepgramRestClient {
     Deepgram uses a non-standard auth header format —
     \c "Authorization: Token <api_key>" rather than the more common
     \c "Authorization: Bearer <api_key>".  The module handles this by
-    injecting the right header via the \c default_headers connection
+    injecting the right header via the \c headers connection
     option; callers just supply \c apikey.
 
     @par Example: file transcription (URL-based)
@@ -122,7 +122,7 @@ public class DeepgramRestClientBase {
     }
 
     #! Returns options for the DeepgramRestClient constructors
-    /** Maps the \c apikey option into a \c default_headers entry that
+    /** Maps the \c apikey option into a \c headers entry that
         sends \c "Authorization: Token <key>" on every request — Deepgram's
         non-Bearer auth format.
     */
@@ -131,11 +131,11 @@ public class DeepgramRestClientBase {
         rv += DefaultOptions + opts;
         if (rv.apikey) {
             hash<auto!> dh;
-            if (rv.default_headers) {
-                dh += rv.default_headers;
+            if (rv.headers) {
+                dh += rv.headers;
             }
             dh.Authorization = "Token " + rv.apikey;
-            rv.default_headers = dh;
+            rv.headers = dh;
             delete rv.apikey;
         }
         return rv;

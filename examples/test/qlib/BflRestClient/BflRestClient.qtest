@@ -79,7 +79,7 @@ public class BflRestClientTest inherits QUnit::Test {
         hash<auto> opts = BflRestClient::BflRestClientBase::getOptions({
             "apikey": "secret-key",
         });
-        assertEq("secret-key", opts.default_headers."x-key");
+        assertEq("secret-key", opts.headers."x-key");
         assertEq(NOTHING, opts.apikey);
     }
 

@@ -94,7 +94,7 @@ public class AzureDocumentIntelligenceRestClientTest inherits QUnit::Test {
                 "apikey": "secret-key",
                 "url":    "https://x.cognitiveservices.azure.com",
             });
-        assertEq("secret-key", opts.default_headers."Ocp-Apim-Subscription-Key");
+        assertEq("secret-key", opts.headers."Ocp-Apim-Subscription-Key");
         assertEq(NOTHING, opts.apikey);
     }
 

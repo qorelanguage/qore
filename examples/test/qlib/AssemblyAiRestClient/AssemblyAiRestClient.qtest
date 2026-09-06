@@ -69,7 +69,7 @@ public class AssemblyAiRestClientTest inherits QUnit::Test {
         addTestCase("connection scheme registered",      \connectionSchemeTest());
         addTestCase("apikey maps to bare Authorization header",
             \bareAuthMappingTest());
-        addTestCase("existing default_headers are preserved",
+        addTestCase("existing headers are preserved",
             \preserveExistingHeadersTest());
         addTestCase("transcribe runs submit-poll-fetch lifecycle",
             \transcribeLifecycleTest());
@@ -95,17 +95,17 @@ public class AssemblyAiRestClientTest inherits QUnit::Test {
             "apikey": "secret-key-123",
         });
         # bare key — no Bearer / Token prefix
-        assertEq("secret-key-123", opts.default_headers.Authorization);
+        assertEq("secret-key-123", opts.headers.Authorization);
         assertEq(NOTHING, opts.apikey);
     }
 
     private preserveExistingHeadersTest() {
         hash<auto> opts = AssemblyAiRestClient::AssemblyAiRestClientBase::getOptions({
             "apikey": "k",
-            "default_headers": {"X-Trace-Id": "abc"},
+            "headers": {"X-Trace-Id": "abc"},
         });
-        assertEq("k", opts.default_headers.Authorization);
-        assertEq("abc", opts.default_headers."X-Trace-Id");
+        assertEq("k", opts.headers.Authorization);
+        assertEq("abc", opts.headers."X-Trace-Id");
     }
 
     private transcribeLifecycleTest() {

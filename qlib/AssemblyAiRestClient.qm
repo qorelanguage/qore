@@ -73,7 +73,7 @@ module AssemblyAiRestClient {
 
     AssemblyAI uses a bare-key auth header — the API key value is sent
     directly in the \c Authorization header (no \c "Bearer" or \c "Token"
-    prefix).  The module handles this via the \c default_headers connection
+    prefix).  The module handles this via the \c headers connection
     option; callers just supply \c apikey.
 
     @par Example: end-to-end transcription via the async helper
@@ -128,7 +128,7 @@ public class AssemblyAiRestClientBase {
     }
 
     #! Returns options for the AssemblyAiRestClient constructors
-    /** Maps the \c apikey option into a \c default_headers entry that
+    /** Maps the \c apikey option into a \c headers entry that
         sends the bare API key in the \c Authorization header (AssemblyAI's
         non-prefixed auth format).
     */
@@ -137,11 +137,11 @@ public class AssemblyAiRestClientBase {
         rv += DefaultOptions + opts;
         if (rv.apikey) {
             hash<auto!> dh;
-            if (rv.default_headers) {
-                dh += rv.default_headers;
+            if (rv.headers) {
+                dh += rv.headers;
             }
             dh.Authorization = rv.apikey;
-            rv.default_headers = dh;
+            rv.headers = dh;
             delete rv.apikey;
         }
         return rv;
