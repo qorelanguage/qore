@@ -26,20 +26,32 @@ class FakeVoyageEmbeddingHandler inherits AbstractHttpRequestHandler {
     public {
         list<hash<auto>> requests = ();
         Mutex m();
+        int delay_ms = 0;
     }
 
     hash handleRequest(hash cx, hash hdr, *data body) {
-        m.lock();
-        on_exit m.unlock();
-        push requests, {
-            "path": cx.raw_path,
-            "method": hdr.method,
-            "auth": hdr."authorization",
-            "body": body.val() ? parse_json(body) : {},
-        };
+        int request_delay_ms;
+        {
+            AutoLock al(m);
+            push requests, {
+                "path": cx.raw_path,
+                "method": hdr.method,
+                "auth": hdr."authorization",
+                "body": body.val() ? parse_json(body) : {},
+            };
+            request_delay_ms = delay_ms;
+        }
+        if (request_delay_ms) {
+            usleep(request_delay_ms * 1000);
+        }
         return makeResponse(200, make_json({
             "data": ({"index": 0, "embedding": (1.0, 2.0, 3.0)},),
         }), {"Content-Type": MimeTypeJson});
+    }
+
+    setDelay(int delay_ms) {
+        AutoLock al(m);
+        self.delay_ms = delay_ms;
     }
 }
 
@@ -61,6 +73,10 @@ class VoyageEmbedderTest inherits QUnit::Test {
             \testUnsupportedInputType());
         addTestCase("preferred batch size reflects provider guidance",
             \testPreferredBatchSize());
+        addTestCase("per-call timeout bounds a slow Voyage response",
+            \testPerCallTimeout());
+        addTestCase("EmbedderConfig timeout bounds a slow Voyage response",
+            \testConfigTimeout());
         set_return_value(main());
     }
 
@@ -129,5 +145,33 @@ class VoyageEmbedderTest inherits QUnit::Test {
         VoyageEmbedder emb = makeEmbedder();
         assertEq(128, emb.getPreferredBatchSize(),
             "Voyage advertises its documented conservative batch size");
+    }
+
+    testPerCallTimeout() {
+        handler.setDelay(1500);
+        on_exit handler.setDelay(0);
+        VoyageEmbedder emb = makeEmbedder();
+        date started = now_us();
+        assertThrows("HTTPCLIENT-TIMEOUT", \emb.encodeBatch(),
+            (("slow request",), {"timeout": 200ms}));
+        assertLt(1000, (now_us() - started).durationMilliseconds(),
+            "the per-call timeout returns before the delayed response");
+    }
+
+    testConfigTimeout() {
+        handler.setDelay(1500);
+        on_exit handler.setDelay(0);
+        VoyageEmbedder emb(<EmbedderConfig>{
+            "backend": "voyage",
+            "url": "http://localhost:" + port,
+            "api_key": "secret-key",
+            "model": "voyage-4-lite",
+            "timeout": 200ms,
+        });
+        date started = now_us();
+        assertThrows("HTTPCLIENT-TIMEOUT", \emb.encodeBatch(),
+            (("slow request",),));
+        assertLt(1000, (now_us() - started).durationMilliseconds(),
+            "the configured timeout returns before the delayed response");
     }
 }
