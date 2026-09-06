@@ -350,6 +350,24 @@ excluded from the union and make it @ref RestSchemaValidator::AbstractSchemaObje
 
 #! main namespace for all public %OpenApi3 declarations
 public namespace OpenApi3 {
+#! Schema objects whose composition type the current thread is building
+/** "Any JSON value" is a string, a number, a boolean, an array of JSON values or an object of them, and
+    a vendor that accepts arbitrary JSON declares exactly that - Exa's \c JsonValue is a \c oneOf whose
+    array and object branches refer back to it.
+
+    A recursive \b property is already cut by the field cache in
+    @ref RestSchemaValidator::AbstractRestSchemaObject::getFieldIntern(), which registers a placeholder
+    field before building its type and then updates that same field in place, so the schema on the far
+    side of the cycle still ends up with its real type.  A composition branch has no such field to
+    back-patch, so an unguarded \c oneOf like \c JsonValue exhausts the thread's stack before any type
+    is produced.
+
+    Re-entering a schema already on this stack is therefore a cycle, and the value at that depth has no
+    bounded shape: it resolves to \c auto.  The stack is thread-local because schema objects are shared
+    and cached; a build in progress on another thread says nothing about a cycle in this one.
+*/
+thread_local list<object> CompositionStack;
+
 /** @defgroup ParseOptionFlags Parse Option Flags
     Options that determine which common errors are acceptable when parsing OpenApi3 schemas
 */
@@ -5038,6 +5056,15 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
             return orNothingDataType;
         }
         if ((oneOf || anyOf) && !isConstraintOnlyComposition()) {
+            # a composition branch that refers back to this schema re-enters here before the memo is
+            # filled and has no placeholder field to back-patch; the value at that depth has no bounded
+            # shape, so it is "auto"
+            if (buildingComposition()) {
+                AbstractDataProviderType at = AbstractDataProviderTypeMap."auto";
+                return required ? at : at.getOrNothingType();
+            }
+            push CompositionStack, self;
+            on_exit pop CompositionStack;
             if (required) {
                 if (!dataType) {
                     dataType = getCompositionDataType(True, rest);
@@ -5063,6 +5090,16 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
             return orNothingDataType;
         }
         return RestSchemaValidator::AbstractRestSchemaObject::getDataType(required, rest);
+    }
+
+    #! Returns @ref True if this thread is already building this schema's composition type
+    private bool buildingComposition() {
+        foreach object o in (CompositionStack) {
+            if (o === self) {
+                return True;
+            }
+        }
+        return False;
     }
 
     #! Adopts the wrapped schema's description when the composition carries none of its own
