@@ -4,148 +4,1448 @@
     "sk": {
       "messages": {
         "app.RXhh.action.Y29udGVudHM.desc": {
-          "source": "Fetches text content, highlight extracts, and AI-summarized snippets for one or more URLs via Exa's `/contents` endpoint.",
-          "message": "Získa textový obsah, výňatky zvýraznení a zhrnuté úryvky pomocou AI pre jednu alebo viacero adries URL prostredníctvom koncového bodu `/contents` od Exa."
+          "source": "Fetches the contents of pages Exa already knows about: their text, the passages that match a query, or a written summary.\n\nGive the pages as `urls`, or as the `ids` a search returned - one or the other, not both.\n\n`livecrawl` decides whether Exa serves the page from its cache or fetches it now, which is the trade between speed and freshness.",
+          "message": "Načíta obsah stránok, ktoré Exa už pozná: ich text, pasáže zodpovedajúce dotazu alebo napísané zhrnutie.\n\nStránky zadajte ako `urls` alebo ako `ids` vrátené hľadaním - jedno, alebo druhé, nie oboje.\n\n`livecrawl` určuje, či Exa stránku poskytne z vyrovnávacej pamäte, alebo ju načíta práve teraz; to je kompromis medzi rýchlosťou a aktuálnosťou."
         },
         "app.RXhh.action.Y29udGVudHM.display_name": {
-          "source": "Fetch Page Contents",
-          "message": "Získať obsah stránok"
+          "source": "Get Contents",
+          "message": "Získať obsah"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29tcGxpYW5jZQ.allowed-value.c3RyaW5nOmhpcGFh.display_name": {
+          "source": "HIPAA",
+          "message": "HIPAA"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29tcGxpYW5jZQ.desc": {
+          "source": "Enterprise-only compliance mode. Set to `hipaa` for HIPAA mode. Requires cache-only retrieval with supported parameters. See the HIPAA docs for details.",
+          "message": "Režim súladu s predpismi iba pre podniky. Pre režim HIPAA nastavte `hipaa`. Vyžaduje načítavanie iba z vyrovnávacej pamäte s podporovanými parametrami. Podrobnosti nájdete v dokumentácii k HIPAA."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29tcGxpYW5jZQ.display_name": {
+          "source": "Compliance Mode",
+          "message": "Režim súladu s predpismi"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29tcGxpYW5jZQ.short_desc": {
+          "source": "Fetch under an enterprise compliance mode",
+          "message": "Načítať v podnikovom režime súladu s predpismi"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29udGV4dA.desc": {
+          "source": "Deprecated: Use highlights or text instead. Returns page contents as a combined context string.",
+          "message": "Zastarané: použite namiesto toho zvýraznené pasáže alebo text. Vracia obsah stránok ako jeden súhrnný kontextový reťazec."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29udGV4dA.display_name": {
+          "source": "Context",
+          "message": "Kontext"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29udGV4dA.short_desc": {
+          "source": "Deprecated: Use highlights or text instead",
+          "message": "Zastarané: použite namiesto toho zvýraznené pasáže alebo text"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.ZXh0cmFz.desc": {
+          "source": "Extra parameters to pass.",
+          "message": "Ďalšie parametre, ktoré sa majú odovzdať."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.ZXh0cmFz.display_name": {
+          "source": "Extras",
+          "message": "Doplnky"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.ZXh0cmFz.short_desc": {
+          "source": "Extra content to return, such as links and images",
+          "message": "Doplnkový obsah, ktorý sa má vrátiť, napríklad odkazy a obrázky"
         },
         "app.RXhh.action.Y29udGVudHM.option.aGlnaGxpZ2h0cw.desc": {
-          "source": "Highlight options: `{num_sentences, highlights_per_url, query}`.",
-          "message": "Možnosti zvýraznenia: `{num_sentences, highlights_per_url, query}`."
+          "source": "Text snippets the LLM identifies as most relevant from each page.",
+          "message": "Úryvky textu, ktoré model LLM označí za najrelevantnejšie na každej stránke."
         },
         "app.RXhh.action.Y29udGVudHM.option.aGlnaGxpZ2h0cw.display_name": {
           "source": "Highlights",
           "message": "Zvýraznenia"
         },
         "app.RXhh.action.Y29udGVudHM.option.aGlnaGxpZ2h0cw.short_desc": {
-          "source": "Highlight configuration hash",
-          "message": "Konfiguračný hash zvýraznení"
+          "source": "Return the passages that match a query",
+          "message": "Vrátiť pasáže zodpovedajúce dotazu"
         },
         "app.RXhh.action.Y29udGVudHM.option.aWRz.desc": {
-          "source": "Result IDs from a prior search (or absolute URLs).",
-          "message": "ID výsledkov z predchádzajúceho vyhľadávania (alebo absolútne adresy URL)."
+          "source": "Document IDs returned by a search.  Supply these or `urls`, not both.",
+          "message": "ID dokumentov vrátené hľadaním.  Zadajte tieto, alebo `urls`, nie oboje."
         },
         "app.RXhh.action.Y29udGVudHM.option.aWRz.display_name": {
-          "source": "IDs",
-          "message": "ID"
+          "source": "Document IDs",
+          "message": "ID dokumentov"
         },
         "app.RXhh.action.Y29udGVudHM.option.aWRz.short_desc": {
-          "source": "List of Exa result IDs (or URLs)",
-          "message": "Zoznam ID výsledkov Exa (alebo adries URL)"
+          "source": "Document IDs returned by a search",
+          "message": "ID dokumentov vrátené hľadaním"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.allowed-value.c3RyaW5nOm5ldmVy.display_name": {
+          "source": "Never (cache only)",
+          "message": "Nikdy (iba vyrovnávacia pamäť)"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.allowed-value.c3RyaW5nOmFsd2F5cw.display_name": {
+          "source": "Always crawl",
+          "message": "Vždy prehľadávať"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.allowed-value.c3RyaW5nOmZhbGxiYWNr.display_name": {
+          "source": "Only if not cached",
+          "message": "Iba ak nie je vo vyrovnávacej pamäti"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.allowed-value.c3RyaW5nOnByZWZlcnJlZA.display_name": {
+          "source": "Prefer a fresh crawl",
+          "message": "Uprednostniť čerstvé prehľadávanie"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.desc": {
+          "source": "Whether to fetch the page now or serve it from Exa's cache - the trade between speed and freshness.",
+          "message": "Či sa stránka načíta práve teraz, alebo poskytne z vyrovnávacej pamäte služby Exa - kompromis medzi rýchlosťou a aktuálnosťou."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.display_name": {
+          "source": "Live Crawl",
+          "message": "Živé prehľadávanie"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.short_desc": {
+          "source": "Whether to fetch the page now or serve it from cache",
+          "message": "Či sa stránka načíta práve teraz, alebo poskytne z vyrovnávacej pamäte"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXdsVGltZW91dA.desc": {
+          "source": "The timeout for livecrawling in milliseconds.",
+          "message": "Časový limit živého prehľadávania v milisekundách."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXdsVGltZW91dA.display_name": {
+          "source": "Live Crawl Timeout",
+          "message": "Časový limit živého prehľadávania"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXdsVGltZW91dA.short_desc": {
+          "source": "How long to wait for a live crawl, in milliseconds",
+          "message": "Ako dlho sa čaká na živé prehľadávanie, v milisekundách"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bWF4QWdlSG91cnM.desc": {
+          "source": "Maximum age of cached content in hours. Positive values use cached content if it is less than this many hours old; 0 fetches fresh content and is the supported way to apply text rendering options to newly fetched pages; -1 always uses cache; omitted uses fallback fetching when cached content is unavailable. Maximum supported value is 720 hours.",
+          "message": "Najvyšší vek obsahu vo vyrovnávacej pamäti v hodinách. Kladné hodnoty použijú obsah z vyrovnávacej pamäte, ak je mladší ako tento počet hodín; 0 načíta čerstvý obsah a je podporovaným spôsobom, ako na novo načítané stránky uplatniť možnosti vykreslenia textu; -1 vždy použije vyrovnávaciu pamäť; ak je hodnota vynechaná, použije sa náhradné načítanie, keď obsah vo vyrovnávacej pamäti nie je k dispozícii. Najvyššia podporovaná hodnota je 720 hodín."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bWF4QWdlSG91cnM.display_name": {
+          "source": "Maximum Age",
+          "message": "Najvyšší vek"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bWF4QWdlSG91cnM.short_desc": {
+          "source": "Re-crawl a cached page older than this many hours",
+          "message": "Znova prejsť stránku vo vyrovnávacej pamäti staršiu ako tento počet hodín"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZVRhcmdldA.desc": {
+          "source": "Term to find specific subpages of search results. Can be a single string or an array of strings.",
+          "message": "Výraz na nájdenie konkrétnych podstránok výsledkov hľadania. Môže to byť jeden reťazec alebo pole reťazcov."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZVRhcmdldA.display_name": {
+          "source": "Subpage Target",
+          "message": "Cieľ podstránok"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZVRhcmdldA.short_desc": {
+          "source": "Which subpages to fetch, by keyword",
+          "message": "Ktoré podstránky načítať, podľa kľúčového slova"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZXM.desc": {
+          "source": "The number of subpages to crawl. The actual number crawled may be limited by system constraints.",
+          "message": "Počet podstránok, ktoré sa majú prejsť. Skutočne prejdený počet môže byť obmedzený systémovými limitmi."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZXM.display_name": {
+          "source": "Subpages",
+          "message": "Podstránky"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZXM.short_desc": {
+          "source": "How many linked subpages to fetch as well",
+          "message": "Koľko odkazovaných podstránok sa navyše načíta"
         },
         "app.RXhh.action.Y29udGVudHM.option.c3VtbWFyeQ.desc": {
-          "source": "Summary options: `{query}` to drive a guided summary.",
-          "message": "Možnosti zhrnutia: `{query}` na riadenie sprevádzaného zhrnutia."
+          "source": "Summary of the webpage.",
+          "message": "Zhrnutie webovej stránky."
         },
         "app.RXhh.action.Y29udGVudHM.option.c3VtbWFyeQ.display_name": {
           "source": "Summary",
           "message": "Zhrnutie"
         },
         "app.RXhh.action.Y29udGVudHM.option.c3VtbWFyeQ.short_desc": {
-          "source": "Summary configuration hash",
-          "message": "Konfiguračný hash zhrnutia"
+          "source": "Return a written summary of each page",
+          "message": "Vrátiť napísané zhrnutie každej stránky"
         },
         "app.RXhh.action.Y29udGVudHM.option.dGV4dA.desc": {
-          "source": "When `True`, results include the full text content of each page.",
-          "message": "Ak je `True`, výsledky zahŕňajú úplný textový obsah každej stránky."
+          "source": "Text extraction options for each result.",
+          "message": "Možnosti extrakcie textu pri každom výsledku."
         },
         "app.RXhh.action.Y29udGVudHM.option.dGV4dA.display_name": {
           "source": "Text",
           "message": "Text"
         },
         "app.RXhh.action.Y29udGVudHM.option.dGV4dA.short_desc": {
-          "source": "Include full text content",
-          "message": "Zahrnúť úplný textový obsah"
+          "source": "Return the page text",
+          "message": "Vrátiť text stránky"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.dXJscw.desc": {
+          "source": "The pages to fetch.  Supply these or `ids`, not both.",
+          "message": "Stránky, ktoré sa majú načítať.  Zadajte tieto, alebo `ids`, nie oboje."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.dXJscw.display_name": {
+          "source": "URLs",
+          "message": "URLs"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.dXJscw.short_desc": {
+          "source": "The pages to fetch",
+          "message": "Stránky, ktoré sa majú načítať"
         },
         "app.RXhh.action.Y29udGVudHM.short_desc": {
-          "source": "Fetch text / highlights / summaries for URLs",
-          "message": "Získať text / zvýraznenia / zhrnutia pre adresy URL"
+          "source": "Fetch the text, highlights or a summary of pages",
+          "message": "Načíta text, zvýraznené pasáže alebo zhrnutie stránok"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.desc": {
+          "source": "Cancels a queued or running research run without returning results.  Usage accrued before the cancellation is still billed.\n\nUse **Stop a Research Run** instead to keep what the agent has found so far.",
+          "message": "Zruší zaradený alebo prebiehajúci výskumný beh bez toho, aby vrátil výsledky.  Spotreba nabehnutá pred zrušením sa napriek tomu účtuje.\n\nAk chcete zachovať, čo agent zatiaľ našiel, použite namiesto toho akciu **Ukončiť výskumný beh**."
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.display_name": {
+          "source": "Cancel a Research Run",
+          "message": "Zrušiť výskumný beh"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "ID behu agenta. Nové ID behov sa vracajú s predponou `agent_run_`."
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "Beh"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.option.aWQ.short_desc": {
+          "source": "The run to cancel",
+          "message": "Beh, ktorý sa má zrušiť"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.short_desc": {
+          "source": "Stop a research run and discard its results",
+          "message": "Zastaví výskumný beh a zahodí jeho výsledky"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.desc": {
+          "source": "Asks a batch to stop.  It schedules no further requests, lets the work already in flight finish, and then settles as cancelled; requests that already completed keep their results.\n\nA batch that has already completed or expired cannot be cancelled.",
+          "message": "Požiada dávku, aby sa zastavila.  Neplánuje už žiadne ďalšie požiadavky, nechá dobehnúť prácu, ktorá už prebieha, a potom skončí ako zrušená; požiadavky, ktoré už skončili, si svoje výsledky ponechajú.\n\nDávku, ktorá už bola dokončená alebo jej vypršala platnosť, zrušiť nemožno."
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.display_name": {
+          "source": "Cancel a Batch",
+          "message": "Zrušiť dávku"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "Povinný beta token pre rozhranie Batch API."
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "Povinný beta token pre rozhranie Batch API"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.aWQ.desc": {
+          "source": "Batch ID.",
+          "message": "ID dávky."
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.aWQ.display_name": {
+          "source": "Batch",
+          "message": "Dávka"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.aWQ.short_desc": {
+          "source": "The batch to cancel",
+          "message": "Dávka, ktorá sa má zrušiť"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.short_desc": {
+          "source": "Stop a batch scheduling further requests",
+          "message": "Zabráni dávke plánovať ďalšie požiadavky"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.desc": {
+          "source": "Creates a monitor: a search Exa re-runs on a schedule, delivering what is new to your webhook.\n\nExa only sends what you have not already seen - it filters by date since the last run and removes near-duplicates - so this is how a query becomes a feed rather than something a caller has to poll and de-duplicate itself.",
+          "message": "Vytvorí monitor: hľadanie, ktoré Exa opakuje podľa plánu a novinky doručuje do vášho webhooku.\n\nExa posiela iba to, čo ste doteraz nevideli - filtruje podľa dátumu od posledného behu a odstraňuje takmer zhodné duplicity - a tak sa z dotazu stáva kanál noviniek namiesto niečoho, čo si volajúci musí sám dotazovať a odduplikovávať."
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.display_name": {
+          "source": "Create a Search Monitor",
+          "message": "Vytvoriť monitor hľadania"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "Controls the format of the run output. Defaults to `{ \"type\": \"text\" }` if not specified. When `type` is `\"text\"`, the output is a plain text summary. When `type` is `\"object\"`, the output is structured JSON. If no `properties` are specified with `\"object\"` type, a schema is inferred automatically; otherwise the output adheres to the provided schema.",
+          "message": "Riadi formát výstupu behu. Ak nie je zadané, predvolená hodnota je `{ \"type\": \"text\" }`. Ak sa `type` rovná `\"text\"`, výstupom je jednoduchý textový súhrn. Ak sa `type` rovná `\"object\"`, výstupom je štruktúrovaný JSON. Ak pri type `\"object\"` nie sú uvedené `properties`, schéma sa odvodí automaticky; inak výstup zodpovedá zadanej schéme."
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "Schéma výstupu"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the results you want delivered",
+          "message": "Schéma JSON opisujúca výsledky, ktoré chcete doručovať"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bWV0YWRhdGE.desc": {
+          "source": "Key-value pairs echoed back in each webhook delivery, so a receiver can route updates without looking the monitor up.",
+          "message": "Dvojice kľúč-hodnota vracané pri každom doručení webhooku, aby príjemca mohol aktualizácie smerovať bez toho, aby musel monitor dohľadávať."
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metaúdaje"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bWV0YWRhdGE.short_desc": {
+          "source": "Key-value pairs echoed back in each delivery",
+          "message": "Dvojice kľúč-hodnota vracané pri každom doručení"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bmFtZQ.desc": {
+          "source": "An optional name for the monitor",
+          "message": "Voliteľný názov monitora"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Názov"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bmFtZQ.short_desc": {
+          "source": "A name for the monitor",
+          "message": "Názov monitora"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.c2VhcmNo.desc": {
+          "source": "The search the monitor re-runs on each cycle: the same `query`, `type` and `category` that **Search** takes.\n\nExa filters each cycle by date since the last run and removes near-duplicates, so this is the query whose **new** results are delivered, not the query whose results are re-sent every time.",
+          "message": "Hľadanie, ktoré monitor opakuje v každom cykle: tie isté údaje `query`, `type` a `category`, aké prijíma akcia **Hľadať**.\n\nExa filtruje každý cyklus podľa dátumu od posledného behu a odstraňuje takmer zhodné duplicity, takže sa doručujú **nové** výsledky tohto dotazu, nie zakaždým tie isté."
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.c2VhcmNo.display_name": {
+          "source": "Search",
+          "message": "Hľadať"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.c2VhcmNo.short_desc": {
+          "source": "The search to run on each cycle",
+          "message": "Hľadanie, ktoré sa vykoná v každom cykle"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.d2ViaG9vaw.desc": {
+          "source": "Where each cycle's new results are delivered.  This is the only way results leave a monitor - there is no endpoint that returns them - so a monitor without a reachable webhook produces nothing a caller can read.\n\n`metadata` is echoed back in every delivery, which is how a receiver routes an update without looking the monitor up.",
+          "message": "Kam sa doručujú nové výsledky každého cyklu.  Je to jediná cesta, ktorou výsledky monitor opúšťajú — žiadny koncový bod ich nevracia —, takže monitor bez dostupného webhooku neposkytne nič, čo by volajúci mohol prečítať.\n\n`metadata` sa vracajú pri každom doručení; tak príjemca smeruje aktualizáciu bez toho, aby musel monitor dohľadávať."
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.d2ViaG9vaw.display_name": {
+          "source": "Webhook",
+          "message": "Webhook"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.d2ViaG9vaw.short_desc": {
+          "source": "Where new results are delivered",
+          "message": "Kam sa doručujú nové výsledky"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.dHJpZ2dlcg.desc": {
+          "source": "How often the search runs, and from when.  A cycle that finds nothing new delivers nothing, so the schedule sets how quickly the feed reacts rather than how much it sends.",
+          "message": "Ako často sa hľadanie vykonáva a odkedy.  Cyklus, ktorý nenájde nič nové, nič nedoručí; plán teda určuje, ako rýchlo kanál reaguje, nie koľko toho odošle."
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.dHJpZ2dlcg.display_name": {
+          "source": "Schedule",
+          "message": "Plán"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.dHJpZ2dlcg.short_desc": {
+          "source": "How often the search runs",
+          "message": "Ako často sa hľadanie vykonáva"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.short_desc": {
+          "source": "Run a search on a schedule and deliver new results to a webhook",
+          "message": "Vykonáva hľadanie podľa plánu a doručuje nové výsledky do webhooku"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.desc": {
+          "source": "Starts a research run: the agent searches, reads and reasons over the web until it can answer, rather than returning a single search's results.\n\nUse this where **Answer a Question** is not enough - a question that needs several searches, or one whose answer has to be assembled from many pages.  `effort` is the budget: `minimal` is quick and shallow, `max` keeps working.\n\nThe run is asynchronous; read it with **Get a Research Run**.  Set `outputSchema` to get structured data back rather than prose.",
+          "message": "Spustí výskumný beh: agent hľadá, číta a uvažuje nad webom, kým nedokáže odpovedať, namiesto toho, aby vrátil výsledky jediného hľadania.\n\nPoužite tam, kde akcia **Odpovedať na otázku** nestačí - pri otázke, ktorá vyžaduje niekoľko hľadaní, alebo ktorej odpoveď treba poskladať z mnohých stránok.  `effort` je rozpočet: `minimal` je rýchle a povrchné, `max` pracuje ďalej.\n\nBeh je asynchrónny; prečítajte ho akciou **Získať výskumný beh**.  Nastavte `outputSchema`, ak chcete namiesto súvislého textu štruktúrované údaje."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.display_name": {
+          "source": "Start a Research Run",
+          "message": "Spustiť výskumný beh"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL2pzb24.display_name": {
+          "source": "application/json",
+          "message": "application/json"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.allowed-value.c3RyaW5nOnRleHQvZXZlbnQtc3RyZWFt.display_name": {
+          "source": "text/event-stream",
+          "message": "text/event-stream"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.desc": {
+          "source": "Set to `text/event-stream` to receive server-sent events.",
+          "message": "Nastavte na `text/event-stream`, ak chcete prijímať udalosti odosielané serverom."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.display_name": {
+          "source": "Accept",
+          "message": "Accept"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.short_desc": {
+          "source": "Set to 'text/event-stream' to receive server-sent events",
+          "message": "Nastavte na „text/event-stream“, ak chcete prijímať udalosti odosielané serverom"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.RXhhLUJldGE.desc": {
+          "source": "Comma-separated beta feature tokens for opting into experimental features.",
+          "message": "Tokeny beta funkcií oddelené čiarkami na zapnutie experimentálnych funkcií."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.RXhhLUJldGE.short_desc": {
+          "source": "Comma-separated beta feature tokens for opting into experimental features",
+          "message": "Tokeny beta funkcií oddelené čiarkami na zapnutie experimentálnych funkcií"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.YnVkZ2V0.desc": {
+          "source": "Optional per-run spending limit for the metered `auto` and `max` efforts. Runs that finish early may cost less than the limit.",
+          "message": "Voliteľný limit útraty na beh pre merané miery úsilia `auto` a `max`. Behy, ktoré skončia skôr, môžu stáť menej než limit."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.YnVkZ2V0.display_name": {
+          "source": "Budget",
+          "message": "Rozpočet"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.YnVkZ2V0.short_desc": {
+          "source": "A ceiling on what the run may spend",
+          "message": "Horná hranica toho, koľko smie beh minúť"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZGF0YVNvdXJjZXM.desc": {
+          "source": "Exa Connect data providers to enable for the run. Each entry enables all of that provider's tools.",
+          "message": "Poskytovatelia údajov Exa Connect, ktorí sa pre beh povolia. Každá položka povolí všetky nástroje daného poskytovateľa."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZGF0YVNvdXJjZXM.display_name": {
+          "source": "Data Sources",
+          "message": "Zdroje údajov"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZGF0YVNvdXJjZXM.short_desc": {
+          "source": "Exa Connect providers the run may use",
+          "message": "Poskytovatelia Exa Connect, ktorých beh smie použiť"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOm1heA.display_name": {
+          "source": "Maximum",
+          "message": "Maximálna"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOm1lZGl1bQ.display_name": {
+          "source": "Medium",
+          "message": "Stredná"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOm1pbmltYWw.display_name": {
+          "source": "Minimal",
+          "message": "Minimálna"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Automatic",
+          "message": "Automaticky"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "High",
+          "message": "Vysoká"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "Low",
+          "message": "Nízka"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOnhoaWdo.display_name": {
+          "source": "Very High",
+          "message": "Veľmi vysoká"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.desc": {
+          "source": "Cost and reasoning effort preference for the run. `auto` lets Exa choose the appropriate effort. `max` is the highest-effort public beta tier for work where completeness and thoroughness matter more than latency or cost, including large list building, deep multi-source research, and criteria that are hard to verify.",
+          "message": "Preferencia nákladov a miery uvažovania pre beh. S hodnotou `auto` zvolí vhodnú mieru úsilia Exa. `max` je najvyššia verejná beta úroveň pre prácu, kde je úplnosť a dôkladnosť dôležitejšia než odozva alebo cena, vrátane zostavovania rozsiahlych zoznamov, hĺbkového výskumu z mnohých zdrojov a ťažko overiteľných kritérií."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.display_name": {
+          "source": "Effort",
+          "message": "Miera úsilia"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.short_desc": {
+          "source": "How much work the agent puts in, and what it costs",
+          "message": "Koľko práce agent odvedie a koľko to stojí"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.aW5wdXQ.desc": {
+          "source": "Records to process and records or entities to exclude from the answer.",
+          "message": "Záznamy na spracovanie a záznamy alebo entity, ktoré sa z odpovede vylúčia."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "Vstup"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.aW5wdXQ.short_desc": {
+          "source": "Records to process, and records to leave out of the answer",
+          "message": "Záznamy na spracovanie a záznamy, ktoré sa z odpovede vynechajú"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "JSON Schema for validated structured output in `output.structured`. Fields unsupported by evidence may be returned as `null`. Supports draft-07, 2019-09, and 2020-12 via `$schema`.",
+          "message": "Schéma JSON pre overený štruktúrovaný výstup v `output.structured`. Polia, ktoré nie sú podložené nájdenými podkladmi, môžu byť vrátené ako `null`. Podporuje draft-07, 2019-09 a 2020-12 prostredníctvom `$schema`."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "Schéma výstupu"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the answer you want back",
+          "message": "Schéma JSON opisujúca požadovanú odpoveď"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.bWV0YWRhdGE.desc": {
+          "source": "Caller-provided metadata stored with the run.",
+          "message": "Metaúdaje poskytnuté volajúcim, uložené spolu s behom."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metaúdaje"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.bWV0YWRhdGE.short_desc": {
+          "source": "Caller-provided metadata stored with the run",
+          "message": "Metaúdaje poskytnuté volajúcim, uložené spolu s behom"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.c3lzdGVtUHJvbXB0.desc": {
+          "source": "Additional instructions that guide generated output or agent behavior. Use this for source preferences, novelty constraints, duplication constraints, or other behavior guidance.",
+          "message": "Doplňujúce pokyny, ktoré riadia generovaný výstup alebo správanie agenta. Použite ich pre preferencie zdrojov, požiadavky na novosť, obmedzenia duplicít alebo iné pokyny k správaniu."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.c3lzdGVtUHJvbXB0.display_name": {
+          "source": "System Prompt",
+          "message": "Systémový pokyn"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.c3lzdGVtUHJvbXB0.short_desc": {
+          "source": "Extra instructions that guide the agent",
+          "message": "Doplňujúce pokyny, ktoré riadia agenta"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cHJldmlvdXNSdW5JZA.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "ID behu agenta. Nové ID behov sa vracajú s predponou `agent_run_`."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cHJldmlvdXNSdW5JZA.display_name": {
+          "source": "Continue From",
+          "message": "Nadviazať na"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cHJldmlvdXNSdW5JZA.short_desc": {
+          "source": "A completed run to carry on from",
+          "message": "Dokončený beh, na ktorý sa má nadviazať"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cXVlcnk.desc": {
+          "source": "Natural-language question or instructions for the request.",
+          "message": "Otázka alebo pokyny pre požiadavku v prirodzenom jazyku."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cXVlcnk.display_name": {
+          "source": "Question",
+          "message": "Otázka"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cXVlcnk.short_desc": {
+          "source": "What to research, in natural language",
+          "message": "Čo preskúmať, prirodzeným jazykom"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.short_desc": {
+          "source": "Ask the research agent a question and get the run it started",
+          "message": "Položí výskumnému agentovi otázku a vráti beh, ktorý tým spustil"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.desc": {
+          "source": "Enqueues many requests to run asynchronously, each dispatched to its own route, with the results made available for download when the batch finishes.\n\nThis is how a large workload is run without one request per item.  Each entry needs a `customId` unique within the batch, which is how its result is identified afterwards.",
+          "message": "Zaradí mnoho požiadaviek na asynchrónne vykonanie, každú na vlastnú trasu, a po dokončení dávky sprístupní výsledky na stiahnutie.\n\nTakto sa spracuje rozsiahla záťaž bez jednej požiadavky na položku.  Každá položka potrebuje `customId` jedinečné v rámci dávky; podľa neho sa potom jej výsledok identifikuje."
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.display_name": {
+          "source": "Create a Batch",
+          "message": "Vytvoriť dávku"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "Povinný beta token pre rozhranie Batch API."
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "Povinný beta token pre rozhranie Batch API"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.bWV0YWRhdGE.desc": {
+          "source": "Caller-provided metadata stored with the batch.",
+          "message": "Metaúdaje poskytnuté volajúcim, uložené spolu s dávkou."
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metaúdaje"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.bWV0YWRhdGE.short_desc": {
+          "source": "Key-value pairs stored with the batch",
+          "message": "Dvojice kľúč-hodnota uložené s dávkou"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.cmVxdWVzdHM.desc": {
+          "source": "The requests to enqueue. Each `customId` must be unique within the batch.",
+          "message": "Požiadavky na zaradenie. Každé `customId` musí byť v rámci dávky jedinečné."
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.cmVxdWVzdHM.display_name": {
+          "source": "Requests",
+          "message": "Požiadavky"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.cmVxdWVzdHM.short_desc": {
+          "source": "The requests to enqueue, each with a unique customId",
+          "message": "Požiadavky na zaradenie, každá s jedinečným customId"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.short_desc": {
+          "source": "Run many requests asynchronously in one job",
+          "message": "Vykoná mnoho požiadaviek asynchrónne v jednej úlohe"
+        },
+        "app.RXhh.action.YW5zd2Vy.desc": {
+          "source": "Searches the web and writes an answer to the question, citing the pages it used.\n\nUse this where **Search** would leave the caller to read the results: it returns the answer itself, with the sources, rather than a list of links.  `model` trades speed against depth, from `exa-fast` to `exa-research`.\n\nSet `outputSchema` to get the answer back as structured JSON rather than prose.",
+          "message": "Prehľadá web a napíše odpoveď na otázku s uvedením stránok, ktoré použila.\n\nPoužite tam, kde by akcia **Hľadať** nechala čítanie výsledkov na volajúcom: vracia samotnú odpoveď so zdrojmi, nie zoznam odkazov.  `model` vyvažuje rýchlosť voči hĺbke, od `exa-fast` po `exa-research`.\n\nNastavte `outputSchema`, ak chcete odpoveď získať ako štruktúrovaný JSON namiesto súvislého textu."
+        },
+        "app.RXhh.action.YW5zd2Vy.display_name": {
+          "source": "Answer a Question",
+          "message": "Odpovedať na otázku"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "A [JSON Schema Draft 7](https://json-schema.org/draft-07) description of the answer you want back, which makes the result structured data rather than prose.",
+          "message": "Opis požadovanej odpovede podľa [JSON Schema Draft 7](https://json-schema.org/draft-07), vďaka ktorému sú výsledkom štruktúrované údaje namiesto súvislého textu."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "Schéma výstupu"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the answer you want back",
+          "message": "Schéma JSON opisujúca požadovanú odpoveď"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.allowed-value.c3RyaW5nOmV4YQ.display_name": {
+          "source": "Standard",
+          "message": "Štandardný"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.allowed-value.c3RyaW5nOmV4YS1mYXN0.display_name": {
+          "source": "Fast",
+          "message": "Rýchle"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.allowed-value.c3RyaW5nOmV4YS1wcm8.display_name": {
+          "source": "Pro",
+          "message": "Pro"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.allowed-value.c3RyaW5nOmV4YS1yZXNlYXJjaA.display_name": {
+          "source": "Research",
+          "message": "Výskumný"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.desc": {
+          "source": "Which model writes the answer, trading speed against depth.",
+          "message": "Ktorý model odpoveď napíše, čím vyvažuje rýchlosť voči hĺbke."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.short_desc": {
+          "source": "Which model writes the answer",
+          "message": "Ktorý model odpoveď napíše"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3RyZWFt.desc": {
+          "source": "Return the response as a server-sent event stream.  Leave this off unless the caller consumes SSE: an action returns the whole response.",
+          "message": "Vráti odpoveď ako prúd udalostí odosielaných serverom.  Ponechajte vypnuté, ak volajúci SSE nespracúva: akcia vracia celú odpoveď."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3RyZWFt.display_name": {
+          "source": "Stream",
+          "message": "Dátový prúd"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3RyZWFt.short_desc": {
+          "source": "Return the response as a server-sent event stream",
+          "message": "Vrátiť odpoveď ako prúd udalostí odosielaných serverom"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3lzdGVtUHJvbXB0.desc": {
+          "source": "Additional instructions that guide generated output or agent behavior. Use this for source preferences, novelty constraints, duplication constraints, or other behavior guidance.",
+          "message": "Doplňujúce pokyny, ktoré riadia generovaný výstup alebo správanie agenta. Použite ich pre preferencie zdrojov, požiadavky na novosť, obmedzenia duplicít alebo iné pokyny k správaniu."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3lzdGVtUHJvbXB0.display_name": {
+          "source": "System Prompt",
+          "message": "Systémový pokyn"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3lzdGVtUHJvbXB0.short_desc": {
+          "source": "Extra instructions that guide the answer",
+          "message": "Doplňujúce pokyny, ktoré riadia odpoveď"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.cXVlcnk.desc": {
+          "source": "Natural-language question or instructions for the request.",
+          "message": "Otázka alebo pokyny pre požiadavku v prirodzenom jazyku."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.cXVlcnk.display_name": {
+          "source": "Question",
+          "message": "Otázka"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.cXVlcnk.short_desc": {
+          "source": "The question to answer, in natural language",
+          "message": "Otázka, na ktorú sa má odpovedať, prirodzeným jazykom"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dGV4dA.desc": {
+          "source": "If true, returns full page text with default settings. If false, disables text return.",
+          "message": "Ak je `True`, vráti celý text stránky s predvoleným nastavením. Ak je `False`, vracanie textu sa vypne."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dGV4dA.display_name": {
+          "source": "Include Page Text",
+          "message": "Zahrnúť text stránok"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dGV4dA.short_desc": {
+          "source": "Return the full text of each cited page",
+          "message": "Vrátiť celý text každej citovanej stránky"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dXNlckxvY2F0aW9u.desc": {
+          "source": "The two-letter ISO country code of the user, e.g. US.",
+          "message": "Dvojpísmenový kód krajiny podľa ISO pre používateľa, napríklad US."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dXNlckxvY2F0aW9u.display_name": {
+          "source": "User Location",
+          "message": "Umiestnenie používateľa"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dXNlckxvY2F0aW9u.short_desc": {
+          "source": "Two-letter country code the question is asked from",
+          "message": "Dvojpísmenový kód krajiny, z ktorej je otázka položená"
+        },
+        "app.RXhh.action.YW5zd2Vy.short_desc": {
+          "source": "Answer a question from the web, with citations",
+          "message": "Odpovie na otázku na základe webu vrátane citácií"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.desc": {
+          "source": "Applies one action - pause, unpause or delete - to every monitor matching a filter.\n\nA filter is required, so a mistyped request cannot act on the whole account.  Set `dry_run` to see which monitors would be affected without changing anything, which is worth doing before a delete.",
+          "message": "Uplatní jednu akciu - pozastavenie, obnovenie alebo odstránenie - na každý monitor zodpovedajúci filtru.\n\nFilter je povinný, aby chybne zadaná požiadavka nemohla zasiahnuť celý účet.  Nastavte `dry_run`, ak chcete zistiť, ktorých monitorov by sa to týkalo, bez toho, aby ste čokoľvek zmenili; pred odstránením sa to oplatí."
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.display_name": {
+          "source": "Act on Several Monitors",
+          "message": "Vykonať akciu s viacerými monitormi"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.allowed-value.c3RyaW5nOmRlbGV0ZQ.display_name": {
+          "source": "Delete permanently",
+          "message": "Trvalo odstrániť"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.allowed-value.c3RyaW5nOnBhdXNl.display_name": {
+          "source": "Pause",
+          "message": "Pozastaviť"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.allowed-value.c3RyaW5nOnVucGF1c2U.display_name": {
+          "source": "Resume",
+          "message": "Obnoviť"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.desc": {
+          "source": "The action to perform on matching monitors. `delete` permanently removes them, `pause` sets their status to paused, and `unpause` sets their status to active.",
+          "message": "Akcia, ktorá sa vykoná so zodpovedajúcimi monitormi. `delete` ich trvalo odstráni, `pause` nastaví ich stav na pozastavený a `unpause` nastaví ich stav na aktívny."
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.display_name": {
+          "source": "Action",
+          "message": "Akcia"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.short_desc": {
+          "source": "What to do with the matching monitors",
+          "message": "Čo sa má so zodpovedajúcimi monitormi urobiť"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZHJ5X3J1bg.desc": {
+          "source": "When `true`, returns the monitors that would be affected without performing the action. Defaults to `true`.",
+          "message": "Ak je `true`, vráti monitory, ktorých by sa to týkalo, bez vykonania akcie. Predvolená hodnota je `true`."
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZHJ5X3J1bg.display_name": {
+          "source": "Dry Run",
+          "message": "Skúšobný beh"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZHJ5X3J1bg.short_desc": {
+          "source": "Report what would be affected without doing it",
+          "message": "Ohlásiť, čoho by sa to týkalo, bez toho, aby sa to vykonalo"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZmlsdGVy.desc": {
+          "source": "At least one filter field must be provided to prevent accidental bulk operations.",
+          "message": "Musí byť zadané aspoň jedno pole filtra, aby sa predišlo nechceným hromadným operáciám."
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZmlsdGVy.display_name": {
+          "source": "Filter",
+          "message": "Filter"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZmlsdGVy.short_desc": {
+          "source": "Which monitors to act on; at least one field is required",
+          "message": "S ktorými monitormi sa má pracovať; vyžaduje sa aspoň jedno pole"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.bGltaXQ.desc": {
+          "source": "Maximum number of monitors to process in a single request. Defaults to 50, maximum 500.",
+          "message": "Najvyšší počet monitorov spracovaných v jednej požiadavke. Predvolená hodnota je 50, maximum 500."
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.bGltaXQ.display_name": {
+          "source": "Maximum Monitors",
+          "message": "Najvyšší počet monitorov"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.bGltaXQ.short_desc": {
+          "source": "How many monitors this request may act on",
+          "message": "Koľkých monitorov sa táto požiadavka smie týkať"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.short_desc": {
+          "source": "Pause, resume or delete every monitor matching a filter",
+          "message": "Pozastaví, obnoví alebo odstráni každý monitor zodpovedajúci filtru"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.desc": {
+          "source": "Returns one search monitor, its schedule and its webhook.",
+          "message": "Vráti jeden monitor hľadania, jeho plán a jeho webhook."
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.display_name": {
+          "source": "Get a Search Monitor",
+          "message": "Získať monitor hľadania"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "ID monitora"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "Monitor"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.option.aWQ.short_desc": {
+          "source": "The monitor to read",
+          "message": "Monitor, ktorý sa má prečítať"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.short_desc": {
+          "source": "Get one search monitor",
+          "message": "Získa jeden monitor hľadania"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.desc": {
+          "source": "Returns one cycle of a search monitor, including what it found and why it failed if it did.",
+          "message": "Vráti jeden cyklus monitora hľadania vrátane toho, čo našiel a prečo prípadne zlyhal."
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.display_name": {
+          "source": "Get a Search Monitor Run",
+          "message": "Získať beh monitora hľadania"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "ID monitora"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "Monitor"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.aWQ.short_desc": {
+          "source": "The monitor the run belongs to",
+          "message": "Monitor, ktorému beh patrí"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.cnVuSWQ.desc": {
+          "source": "The run ID",
+          "message": "ID behu"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.cnVuSWQ.display_name": {
+          "source": "Run",
+          "message": "Beh"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.cnVuSWQ.short_desc": {
+          "source": "The run to read",
+          "message": "Beh, ktorý sa má prečítať"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.short_desc": {
+          "source": "Get one cycle of a search monitor",
+          "message": "Získa jeden cyklus monitora hľadania"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.desc": {
+          "source": "Returns a research run, including its answer once it has finished.",
+          "message": "Vráti výskumný beh vrátane jeho odpovede, hneď ako skončí."
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.display_name": {
+          "source": "Get a Research Run",
+          "message": "Získať výskumný beh"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "ID behu agenta. Nové ID behov sa vracajú s predponou `agent_run_`."
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "Beh"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.option.aWQ.short_desc": {
+          "source": "The run to read",
+          "message": "Beh, ktorý sa má prečítať"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.short_desc": {
+          "source": "Get a research run and its answer",
+          "message": "Získa výskumný beh a jeho odpoveď"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.desc": {
+          "source": "Returns a batch, including how many of its requests have finished and the `resultsUrl` to download them from once it is complete.",
+          "message": "Vráti dávku vrátane toho, koľko jej požiadaviek už skončilo, a adresy `resultsUrl`, z ktorej ich po dokončení stiahnuť."
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.display_name": {
+          "source": "Get a Batch",
+          "message": "Získať dávku"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "Povinný beta token pre rozhranie Batch API."
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "Povinný beta token pre rozhranie Batch API"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.aWQ.desc": {
+          "source": "Batch ID.",
+          "message": "ID dávky."
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.aWQ.display_name": {
+          "source": "Batch",
+          "message": "Dávka"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.aWQ.short_desc": {
+          "source": "The batch to read",
+          "message": "Dávka, ktorá sa má prečítať"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.short_desc": {
+          "source": "Get a batch and where to download its results",
+          "message": "Získa dávku a odkiaľ stiahnuť jej výsledky"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.desc": {
+          "source": "Deletes a search monitor.  Results already delivered to the webhook are unaffected.",
+          "message": "Odstráni monitor hľadania.  Výsledky, ktoré už boli doručené do webhooku, tým nie sú dotknuté."
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.display_name": {
+          "source": "Delete a Search Monitor",
+          "message": "Odstrániť monitor hľadania"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "ID monitora"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "Monitor"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.option.aWQ.short_desc": {
+          "source": "The monitor to delete",
+          "message": "Monitor, ktorý sa má odstrániť"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.short_desc": {
+          "source": "Delete a search monitor",
+          "message": "Odstráni monitor hľadania"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.desc": {
+          "source": "Deletes a stored research run and its answer.",
+          "message": "Odstráni uložený výskumný beh a jeho odpoveď."
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.display_name": {
+          "source": "Delete a Research Run",
+          "message": "Odstrániť výskumný beh"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "ID behu agenta. Nové ID behov sa vracajú s predponou `agent_run_`."
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "Beh"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.option.aWQ.short_desc": {
+          "source": "The run to delete",
+          "message": "Beh, ktorý sa má odstrániť"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.short_desc": {
+          "source": "Delete a stored research run",
+          "message": "Odstráni uložený výskumný beh"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.desc": {
+          "source": "Deletes a batch that has reached a terminal status.",
+          "message": "Odstráni dávku, ktorá dosiahla koncový stav."
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.display_name": {
+          "source": "Delete a Batch",
+          "message": "Odstrániť dávku"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "Povinný beta token pre rozhranie Batch API."
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "Povinný beta token pre rozhranie Batch API"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.aWQ.desc": {
+          "source": "Batch ID.",
+          "message": "ID dávky."
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.aWQ.display_name": {
+          "source": "Batch",
+          "message": "Dávka"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.aWQ.short_desc": {
+          "source": "The batch to delete",
+          "message": "Dávka, ktorá sa má odstrániť"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.short_desc": {
+          "source": "Delete a finished batch",
+          "message": "Odstráni dokončenú dávku"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.desc": {
-          "source": "Finds pages similar to a seed URL via Exa's `/findSimilar` endpoint.",
-          "message": "Nájde stránky podobné zdrojovej adrese URL prostredníctvom koncového bodu `/findSimilar` od Exa."
+          "source": "Finds pages similar to the one given, optionally with their contents.\n\n**Exa marks this endpoint deprecated** and recommends **Search** with a query describing the page instead, which gives more control over what \"similar\" means.  The action is kept because flows already call it.",
+          "message": "Nájde stránky podobné zadanej stránke, voliteľne aj s ich obsahom.\n\n**Exa označuje tento koncový bod za zastaraný** a odporúča namiesto neho akciu **Hľadať** s dotazom, ktorý stránku opisuje; to dáva väčšiu kontrolu nad tým, čo „podobná“ znamená.  Akcia je zachovaná, pretože ju volajú už existujúce postupy."
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.display_name": {
-          "source": "Find Similar Pages",
-          "message": "Nájsť podobné stránky"
+          "source": "Find Similar Links",
+          "message": "Nájsť podobné odkazy"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y29udGVudHM.desc": {
-          "source": "Same as on `/search`; saves a follow-up call to `/contents`.",
-          "message": "Rovnaké ako pri `/search`; ušetrí následné volanie na `/contents`."
+          "source": "What to return for each result besides its link: the page `text`, the passages that match a query as `highlights`, or a written `summary`.\n\nAsking here costs one request; fetching the same pages afterwards with **Get Contents** costs two.",
+          "message": "Čo sa pri každom výsledku vracia okrem odkazu: text stránky (`text`), pasáže zodpovedajúce dotazu (`highlights`), alebo napísané zhrnutie (`summary`).\n\nVyžiadať si to tu stojí jednu požiadavku; načítať tie isté stránky dodatočne akciou **Získať obsah** stojí dve."
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y29udGVudHM.display_name": {
-          "source": "Contents Config",
-          "message": "Konfigurácia obsahu"
+          "source": "Contents",
+          "message": "Obsah"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y29udGVudHM.short_desc": {
-          "source": "Include text/highlights/summary in results",
-          "message": "Zahrnúť text/zvýraznenia/zhrnutie do výsledkov"
+          "source": "Return the contents of each result as well as the link",
+          "message": "Vrátiť pri každom výsledku okrem odkazu aj obsah"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to exclude.",
-          "message": "Zoznam domén na vylúčenie."
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOm5ld3M.display_name": {
+          "source": "News",
+          "message": "Správy"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmNvbXBhbnk.display_name": {
+          "source": "Companies",
+          "message": "Firmy"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmZpbmFuY2lhbCByZXBvcnQ.display_name": {
+          "source": "Financial Reports",
+          "message": "Finančné správy"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnB1YmxpY2F0aW9u.display_name": {
+          "source": "Publications",
+          "message": "Publikácie"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBlb3BsZQ.display_name": {
+          "source": "People",
+          "message": "Osoby"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBlcnNvbmFsIHNpdGU.display_name": {
+          "source": "Personal Sites",
+          "message": "Osobné weby"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.desc": {
+          "source": "A data category to focus on. Known categories include `company`, `publication`, `news`, `personal site`, `financial report`, and `people`. Other strings are accepted and used as category hints for search. The `people` and `company` categories have improved quality for finding people profiles and company pages. The `publication` category surfaces scholarly publications such as research papers, preprints, and journal articles, with structured metadata like authors, venue, and citations. Note: The `company` and `people` categories only support a limited set of filters. The following parameters are NOT supported for these categories: `startPublishedDate`, `endPublishedDate`, `excludeDomains`. Using unsupported parameters will result in a 400 error.",
+          "message": "Dátová kategória, na ktorú sa zamerať. Medzi známe kategórie patria `company`, `publication`, `news`, `personal site`, `financial report` a `people`. Iné reťazce sú prijímané a použité ako pomôcka kategórie pre hľadanie. Kategórie `people` a `company` majú vyššiu kvalitu pri hľadaní profilov osôb a firemných stránok. Kategória `publication` ponúka odborné publikácie, ako sú výskumné články, preprinty a časopisecké články, so štruktúrovanými metaúdajmi, napríklad autormi, miestom publikovania a citáciami. Poznámka: kategórie `company` a `people` podporujú len obmedzenú množinu filtrov. Nasledujúce parametre pre tieto kategórie podporované NIE SÚ: `startPublishedDate`, `endPublishedDate`, `excludeDomains`. Použitie nepodporovaných parametrov skončí chybou 400."
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.display_name": {
+          "source": "Category",
+          "message": "Kategória"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.short_desc": {
+          "source": "Narrow the results to one kind of page",
+          "message": "Zúžiť výsledky na jeden druh stránok"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kQ3Jhd2xEYXRl.desc": {
+          "source": "Deprecated and has no effect; ignored by the API. Must be specified in ISO 8601 format.",
+          "message": "Zastarané a bez účinku; API tento parameter ignoruje. Musí byť zadané vo formáte ISO 8601."
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kQ3Jhd2xEYXRl.display_name": {
+          "source": "Crawled Before",
+          "message": "Prehľadávané do"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kQ3Jhd2xEYXRl.short_desc": {
+          "source": "Return only pages Exa crawled on or before this date",
+          "message": "Vracať iba stránky, ktoré Exa prešla k tomuto dátumu alebo skôr"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kUHVibGlzaGVkRGF0ZQ.desc": {
+          "source": "Only links with a published date before this will be returned. Must be specified in ISO 8601 format.",
+          "message": "Vrátia sa iba odkazy so skorším dátumom publikovania. Musí byť zadané vo formáte ISO 8601."
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kUHVibGlzaGVkRGF0ZQ.display_name": {
+          "source": "Published Before",
+          "message": "Publikované do"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kUHVibGlzaGVkRGF0ZQ.short_desc": {
+          "source": "Return only pages published on or before this date",
+          "message": "Vracať iba stránky publikované k tomuto dátumu alebo skôr"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZURvbWFpbnM.desc": {
+          "source": "List of domains or domain paths to exclude from search results. Each entry can be a hostname (for example, `example.com`), a hostname with a path prefix (for example, `example.com/docs`), or a wildcard subdomain (for example, `*.example.com`). If specified, no results will be returned from the matching domains or paths. Use this parameter for domain or path filtering instead of adding a `site:` operator to the query.",
+          "message": "Zoznam domén alebo ciest v doméne, ktoré sa z výsledkov hľadania vylúčia. Každá položka môže byť názov hostiteľa (napríklad `example.com`), názov hostiteľa s predponou cesty (napríklad `example.com/docs`) alebo subdoména so zástupným znakom (napríklad `*.example.com`). Ak je zadaný, z vyhovujúcich domén alebo ciest sa nevráti žiadny výsledok. Na filtrovanie podľa domény alebo cesty použite tento parameter namiesto pridávania operátora `site:` do dotazu."
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZURvbWFpbnM.display_name": {
           "source": "Exclude Domains",
           "message": "Vylúčiť domény"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
-          "source": "Exclude these domains",
-          "message": "Vylúčiť tieto domény"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZURvbWFpbnM.short_desc": {
+          "source": "Never return results from these domains",
+          "message": "Nikdy nevracať výsledky z týchto domén"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9zb3VyY2VfZG9tYWlu.desc": {
-          "source": "When `True`, results don't include the seed URL's own domain.",
-          "message": "Keď je `True`, výsledky nezahŕňajú vlastnú doménu zdrojovej URL."
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZVNvdXJjZURvbWFpbg.desc": {
+          "source": "If true, results from the same domain as the source url are excluded.",
+          "message": "Ak je `True`, vylúčia sa výsledky z tej istej domény, akú má zdrojová adresa URL."
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9zb3VyY2VfZG9tYWlu.display_name": {
-          "source": "Exclude Source Domain",
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZVNvdXJjZURvbWFpbg.display_name": {
+          "source": "Exclude the Source Domain",
           "message": "Vylúčiť zdrojovú doménu"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9zb3VyY2VfZG9tYWlu.short_desc": {
-          "source": "Skip pages from the seed URL's own domain",
-          "message": "Preskočiť stránky z vlastnej domény zdrojovej URL"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZVNvdXJjZURvbWFpbg.short_desc": {
+          "source": "Leave out other pages from the same site",
+          "message": "Vynechať ostatné stránky z toho istého webu"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to restrict results to.",
-          "message": "Zoznam domén, na ktoré sa majú obmedziť výsledky."
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZURvbWFpbnM.desc": {
+          "source": "List of domains or domain paths to include in the search. Each entry can be a hostname (for example, `example.com`), a hostname with a path prefix (for example, `example.com/docs`), or a wildcard subdomain (for example, `*.example.com`). If specified, results will only come from the matching domains or paths. Use this parameter for domain or path filtering instead of adding a `site:` operator to the query.",
+          "message": "Zoznam domén alebo ciest v doméne, ktoré sa do hľadania zahrnú. Každá položka môže byť názov hostiteľa (napríklad `example.com`), názov hostiteľa s predponou cesty (napríklad `example.com/docs`) alebo subdoména so zástupným znakom (napríklad `*.example.com`). Ak je zadaný, výsledky budú pochádzať iba z vyhovujúcich domén alebo ciest. Na filtrovanie podľa domény alebo cesty použite tento parameter namiesto pridávania operátora `site:` do dotazu."
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZV9kb21haW5z.display_name": {
-          "source": "Include Domains",
-          "message": "Zahrnúť domény"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZURvbWFpbnM.display_name": {
+          "source": "Only These Domains",
+          "message": "Iba tieto domény"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZV9kb21haW5z.short_desc": {
-          "source": "Restrict results to these domains",
-          "message": "Obmedziť výsledky na tieto domény"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZURvbWFpbnM.short_desc": {
+          "source": "Return results only from these domains",
+          "message": "Vracať výsledky iba z týchto domén"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtX3Jlc3VsdHM.desc": {
-          "source": "Number of similar pages to return.  Default 10.",
-          "message": "Počet podobných stránok, ktoré sa majú vrátiť. Predvolená hodnota je 10."
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtUmVzdWx0cw.desc": {
+          "source": "Number of results to return. Limits vary by search type. The maximum public limit is 100 results. Contact sales (hello@exa.ai) to discuss higher limits.",
+          "message": "Počet vrátených výsledkov. Obmedzenia sa líšia podľa typu hľadania. Najvyšší verejný limit je 100 výsledkov. O vyšších limitoch sa dohodnite s obchodným oddelením (hello@exa.ai)."
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtX3Jlc3VsdHM.display_name": {
-          "source": "Number of Results",
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtUmVzdWx0cw.display_name": {
+          "source": "Result Count",
           "message": "Počet výsledkov"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtX3Jlc3VsdHM.short_desc": {
-          "source": "Number of similar results",
-          "message": "Počet podobných výsledkov"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtUmVzdWx0cw.short_desc": {
+          "source": "How many results to return",
+          "message": "Koľko výsledkov sa vráti"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRDcmF3bERhdGU.desc": {
+          "source": "Deprecated and has no effect; ignored by the API. Must be specified in ISO 8601 format.",
+          "message": "Zastarané a bez účinku; API tento parameter ignoruje. Musí byť zadané vo formáte ISO 8601."
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRDcmF3bERhdGU.display_name": {
+          "source": "Crawled Since",
+          "message": "Prehľadávané od"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRDcmF3bERhdGU.short_desc": {
+          "source": "Return only pages Exa crawled on or after this date",
+          "message": "Vracať iba stránky, ktoré Exa prešla k tomuto dátumu alebo neskôr"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRQdWJsaXNoZWREYXRl.desc": {
+          "source": "Only links with a published date after this will be returned. Must be specified in ISO 8601 format.",
+          "message": "Vrátia sa iba odkazy s neskorším dátumom publikovania. Musí byť zadané vo formáte ISO 8601."
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRQdWJsaXNoZWREYXRl.display_name": {
+          "source": "Published Since",
+          "message": "Publikované od"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRQdWJsaXNoZWREYXRl.short_desc": {
+          "source": "Return only pages published on or after this date",
+          "message": "Vracať iba stránky publikované k tomuto dátumu alebo neskôr"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.dXJs.desc": {
-          "source": "Seed URL.",
-          "message": "Zdrojová URL."
+          "source": "The url for which you would like to find similar links.",
+          "message": "Adresa URL, ku ktorej chcete nájsť podobné odkazy."
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.dXJs.display_name": {
-          "source": "Seed URL",
-          "message": "Zdrojová URL"
+          "source": "URL",
+          "message": "URL"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.dXJs.short_desc": {
-          "source": "URL to find similar pages for",
-          "message": "URL, pre ktorú sa majú nájsť podobné stránky"
+          "source": "The page to find others like",
+          "message": "Stránka, ku ktorej sa hľadajú podobné"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.short_desc": {
-          "source": "Find pages similar to a seed URL using Exa's neural search",
-          "message": "Nájsť stránky podobné zdrojovej URL pomocou neurálneho vyhľadávania Exa"
+          "source": "Find pages similar to a URL",
+          "message": "Nájde stránky podobné danej adrese URL"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.desc": {
+          "source": "Lists the stored events of a research run - the searches it made and the pages it read.  Use it to show how an answer was reached, or to see where a long run is spending its time.",
+          "message": "Vypíše uložené udalosti výskumného behu - hľadania, ktoré vykonal, a stránky, ktoré prečítal.  Použite to, ak chcete ukázať, ako sa dospelo k odpovedi, alebo zistiť, čím dlhý beh trávi čas."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.display_name": {
+          "source": "List Research Run Events",
+          "message": "Vypísať udalosti výskumného behu"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL2pzb24.display_name": {
+          "source": "application/json",
+          "message": "application/json"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.allowed-value.c3RyaW5nOnRleHQvZXZlbnQtc3RyZWFt.display_name": {
+          "source": "text/event-stream",
+          "message": "text/event-stream"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.desc": {
+          "source": "Set to `text/event-stream` to receive server-sent events.",
+          "message": "Nastavte na `text/event-stream`, ak chcete prijímať udalosti odosielané serverom."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.display_name": {
+          "source": "Accept",
+          "message": "Accept"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.short_desc": {
+          "source": "Set to 'text/event-stream' to receive server-sent events",
+          "message": "Nastavte na „text/event-stream“, ak chcete prijímať udalosti odosielané serverom"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.TGFzdC1FdmVudC1JRA.desc": {
+          "source": "For SSE replay, return only events after this event ID.",
+          "message": "Pri prehraní SSE vrátiť iba udalosti po tomto ID udalosti."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.TGFzdC1FdmVudC1JRA.display_name": {
+          "source": "Last Event ID",
+          "message": "ID poslednej udalosti"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.TGFzdC1FdmVudC1JRA.short_desc": {
+          "source": "For SSE replay, return only events after this event ID",
+          "message": "Pri prehraní SSE vrátiť iba udalosti po tomto ID udalosti"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "Hodnota `nextCursor` z predchádzajúcej odpovede.  Všetky kolekcie v tomto API stránkujú rovnako: prečítajte `hasMore` a sem odovzdajte `nextCursor`, ak chcete získať ďalšiu stranu."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "Kurzor"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "Hodnota nextCursor z predchádzajúcej odpovede"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "ID behu agenta. Nové ID behov sa vracajú s predponou `agent_run_`."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "Beh"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.aWQ.short_desc": {
+          "source": "The run whose events to list",
+          "message": "Beh, ktorého udalosti sa majú vypísať"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.bGltaXQ.desc": {
+          "source": "Number of results per page",
+          "message": "Počet výsledkov na stranu"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "Veľkosť strany"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "Koľko výsledkov sa vráti na stranu"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.short_desc": {
+          "source": "See what the agent did during a run",
+          "message": "Pozrite sa, čo agent počas behu robil"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.desc": {
+          "source": "Lists research runs, newest first.\n\nResults are paged: read `hasMore` and pass `nextCursor` as `cursor` to get the following page.",
+          "message": "Vypíše výskumné behy, najnovšie ako prvé.\n\nVýsledky sú stránkované: prečítajte `hasMore` a odovzdajte `nextCursor` ako `cursor`, ak chcete získať ďalšiu stranu."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.display_name": {
+          "source": "List Research Runs",
+          "message": "Vypísať výskumné behy"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "Hodnota `nextCursor` z predchádzajúcej odpovede.  Všetky kolekcie v tomto API stránkujú rovnako: prečítajte `hasMore` a sem odovzdajte `nextCursor`, ak chcete získať ďalšiu stranu."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "Kurzor"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "Hodnota nextCursor z predchádzajúcej odpovede"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.bGltaXQ.desc": {
+          "source": "Number of results per page",
+          "message": "Počet výsledkov na stranu"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "Veľkosť strany"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "Koľko výsledkov sa vráti na stranu"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.short_desc": {
+          "source": "List the research runs for this team",
+          "message": "Vypíše výskumné behy tohto tímu"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.desc": {
+          "source": "Lists batches, newest first, optionally narrowed to one status.",
+          "message": "Vypíše dávky, najnovšie ako prvé, voliteľne zúžené na jeden stav."
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.display_name": {
+          "source": "List Batches",
+          "message": "Vypísať dávky"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "Povinný beta token pre rozhranie Batch API."
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "Povinný beta token pre rozhranie Batch API"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "Hodnota `nextCursor` z predchádzajúcej odpovede.  Všetky kolekcie v tomto API stránkujú rovnako: prečítajte `hasMore` a sem odovzdajte `nextCursor`, ak chcete získať ďalšiu stranu."
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "Kurzor"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "Hodnota nextCursor z predchádzajúcej odpovede"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.bGltaXQ.desc": {
+          "source": "Maximum number of batches to return per page. Defaults to 100 when omitted; there is no upper bound.",
+          "message": "Najvyšší počet dávok vrátených na stranu. Ak je vynechané, predvolená hodnota je 100; horná hranica nie je stanovená."
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "Veľkosť strany"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "Koľko výsledkov sa vráti na stranu"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.desc": {
+          "source": "Filter the listing to completed batches. `completed` is the only supported value; any other value returns a 400. Completed listings are ordered by expiry and use a distinct cursor, so keep sending `status=completed` on every cursor-paginated request.",
+          "message": "Zúži výpis na dokončené dávky. `completed` je jediná podporovaná hodnota; akákoľvek iná hodnota vráti chybu 400. Výpisy dokončených dávok sú zoradené podľa vypršania platnosti a používajú osobitný kurzor, preto posielajte `status=completed` pri každej požiadavke stránkovanej kurzorom."
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Stav"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.short_desc": {
+          "source": "Return only batches in this status",
+          "message": "Vracať iba dávky v tomto stave"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.short_desc": {
+          "source": "List the batches for this team",
+          "message": "Vypíše dávky tohto tímu"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.desc": {
+          "source": "Lists the cycles a search monitor has run, newest first, with what each one found.",
+          "message": "Vypíše cykly, ktoré monitor hľadania vykonal, najnovšie ako prvé, vrátane toho, čo každý z nich našiel."
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.display_name": {
+          "source": "List Search Monitor Runs",
+          "message": "Vypísať behy monitora hľadania"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "Hodnota `nextCursor` z predchádzajúcej odpovede.  Všetky kolekcie v tomto API stránkujú rovnako: prečítajte `hasMore` a sem odovzdajte `nextCursor`, ak chcete získať ďalšiu stranu."
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "Kurzor"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "Hodnota nextCursor z predchádzajúcej odpovede"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "ID monitora"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "Monitor"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.aWQ.short_desc": {
+          "source": "The monitor whose runs to list",
+          "message": "Monitor, ktorého behy sa majú vypísať"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.bGltaXQ.desc": {
+          "source": "Number of results per page",
+          "message": "Počet výsledkov na stranu"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "Veľkosť strany"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "Koľko výsledkov sa vráti na stranu"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.short_desc": {
+          "source": "List the cycles a search monitor has run",
+          "message": "Vypíše cykly, ktoré monitor hľadania vykonal"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.desc": {
+          "source": "Lists search monitors, optionally narrowed by status, name or metadata.",
+          "message": "Vypíše monitory hľadania, voliteľne zúžené podľa stavu, názvu alebo metaúdajov."
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.display_name": {
+          "source": "List Search Monitors",
+          "message": "Vypísať monitory hľadania"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "Hodnota `nextCursor` z predchádzajúcej odpovede.  Všetky kolekcie v tomto API stránkujú rovnako: prečítajte `hasMore` a sem odovzdajte `nextCursor`, ak chcete získať ďalšiu stranu."
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "Kurzor"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "Hodnota nextCursor z predchádzajúcej odpovede"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bGltaXQ.desc": {
+          "source": "Number of results per page",
+          "message": "Počet výsledkov na stranu"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "Veľkosť strany"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "Koľko výsledkov sa vráti na stranu"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bWV0YWRhdGE.desc": {
+          "source": "Filter monitors by metadata key-value pairs (exact match, AND semantics). Use bracket notation: `metadata[key]=value`.",
+          "message": "Filtrovať monitory podľa dvojíc kľúč-hodnota v metaúdajoch (presná zhoda, sémantika AND). Použite hranatú notáciu: `metadata[key]=value`."
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metaúdaje"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bWV0YWRhdGE.short_desc": {
+          "source": "Return only monitors carrying these key-value pairs",
+          "message": "Vracať iba monitory nesúce tieto dvojice kľúč-hodnota"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bmFtZQ.desc": {
+          "source": "Filter monitors by name (case-insensitive substring match)",
+          "message": "Filtrovať monitory podľa názvu (zhoda podreťazca, nerozlišuje veľkosť písmen)"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Názov"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bmFtZQ.short_desc": {
+          "source": "Return only monitors with this name",
+          "message": "Vracať iba monitory s týmto názvom"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
+          "source": "Active",
+          "message": "Aktívny"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.allowed-value.c3RyaW5nOmRpc2FibGVk.display_name": {
+          "source": "Disabled",
+          "message": "Zakázaný"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.allowed-value.c3RyaW5nOnBhdXNlZA.display_name": {
+          "source": "Paused",
+          "message": "Pozastavený"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.desc": {
+          "source": "Filter monitors by status",
+          "message": "Filtrovať monitory podľa stavu"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Stav"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.short_desc": {
+          "source": "Return only monitors in this status",
+          "message": "Vracať iba monitory v tomto stave"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.short_desc": {
+          "source": "List the search monitors for this team",
+          "message": "Vypíše monitory hľadania tohto tímu"
         },
         "app.RXhh.action.bWFrZS1hcGktY2FsbA.desc": {
           "source": "Make a custom HTTP / REST API call to **Exa** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
@@ -472,176 +1772,484 @@
           "message": "Vykonať vlastné volanie API do Exa"
         },
         "app.RXhh.action.c2VhcmNo.desc": {
-          "source": "Performs a neural, keyword, or auto-routed web search via Exa's `/search` endpoint and returns ranked results with title, url, and optional text content / highlights.",
-          "message": "Vykoná neurálne, kľúčovými slovami alebo automaticky smerované webové vyhľadávanie cez koncový bod `/search` služby Exa a vráti zoradené výsledky s názvom, adresou URL a voliteľným textovým obsahom / zvýrazneniami."
+          "source": "Searches the web with an Exa prompt-engineered query and returns the results, optionally with the contents of each page.\n\n`type` decides how hard Exa works on the query, from `instant` through to `deep-reasoning`, and is what trades latency and cost against quality.  `category` narrows the search to one kind of page - companies, news, people and so on - which is usually a better filter than adding words to the query.\n\nAsk for `contents` to get the page text back with the results rather than fetching it separately with **Get Contents**.",
+          "message": "Prehľadá web dotazom optimalizovaným službou Exa a vráti výsledky, voliteľne aj s obsahom každej stránky.\n\n`type` určuje, koľko práce Exa dotazu venuje, od `instant` až po `deep-reasoning`, a tým vyvažuje odozvu a cenu voči kvalite.  `category` zúži hľadanie na jeden druh stránok - firmy, správy, osoby a podobne - čo zvyčajne filtruje lepšie než pridávanie ďalších slov do dotazu.\n\nVyžiadajte si `contents`, ak chcete text stránok získať rovno s výsledkami namiesto toho, aby ste ho načítavali osobitne akciou **Získať obsah**."
         },
         "app.RXhh.action.c2VhcmNo.display_name": {
-          "source": "Neural Search",
-          "message": "Neurálne vyhľadávanie"
+          "source": "Search",
+          "message": "Hľadať"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29tcGxpYW5jZQ.allowed-value.c3RyaW5nOmhpcGFh.display_name": {
+          "source": "HIPAA",
+          "message": "HIPAA"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29tcGxpYW5jZQ.desc": {
+          "source": "Enterprise-only compliance mode. Set to `hipaa` for HIPAA mode. Requires cache-only retrieval with supported parameters. See the HIPAA docs for details.",
+          "message": "Režim súladu s predpismi iba pre podniky. Pre režim HIPAA nastavte `hipaa`. Vyžaduje načítavanie iba z vyrovnávacej pamäte s podporovanými parametrami. Podrobnosti nájdete v dokumentácii k HIPAA."
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29tcGxpYW5jZQ.display_name": {
+          "source": "Compliance Mode",
+          "message": "Režim súladu s predpismi"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29tcGxpYW5jZQ.short_desc": {
+          "source": "Run the search under an enterprise compliance mode",
+          "message": "Vykonať hľadanie v podnikovom režime súladu s predpismi"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29udGV4dA.desc": {
+          "source": "Deprecated: Use highlights or text instead. Returns page contents as a combined context string.",
+          "message": "Zastarané: použite namiesto toho zvýraznené pasáže alebo text. Vracia obsah stránok ako jeden súhrnný kontextový reťazec."
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29udGV4dA.display_name": {
+          "source": "Context",
+          "message": "Kontext"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29udGV4dA.short_desc": {
+          "source": "Deprecated: Use highlights or text instead",
+          "message": "Zastarané: použite namiesto toho zvýraznené pasáže alebo text"
         },
         "app.RXhh.action.c2VhcmNo.option.Y29udGVudHM.desc": {
-          "source": "Hash configuring content fetching alongside the search: `{text: True, highlights: {...}, summary: {...}}`.  Saves a follow-up call to `/contents`.",
-          "message": "Hash konfigurujúci načítanie obsahu popri vyhľadávaní: `{text: True, highlights: {...}, summary: {...}}`. Šetrí následné volanie `/contents`."
+          "source": "What to return for each result besides its link: the page `text`, the passages that match a query as `highlights`, or a written `summary`.\n\nAsking here costs one request; fetching the same pages afterwards with **Get Contents** costs two.",
+          "message": "Čo sa pri každom výsledku vracia okrem odkazu: text stránky (`text`), pasáže zodpovedajúce dotazu (`highlights`), alebo napísané zhrnutie (`summary`).\n\nVyžiadať si to tu stojí jednu požiadavku; načítať tie isté stránky dodatočne akciou **Získať obsah** stojí dve."
         },
         "app.RXhh.action.c2VhcmNo.option.Y29udGVudHM.display_name": {
-          "source": "Contents Config",
-          "message": "Konfigurácia obsahu"
+          "source": "Contents",
+          "message": "Obsah"
         },
         "app.RXhh.action.c2VhcmNo.option.Y29udGVudHM.short_desc": {
-          "source": "Include text/highlights/summary in results",
-          "message": "Zahrnúť text/zvýraznenia/zhrnutie do výsledkov"
+          "source": "Return the contents of each result as well as the link",
+          "message": "Vrátiť pri každom výsledku okrem odkazu aj obsah"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOm5ld3M.display_name": {
           "source": "News",
           "message": "Správy"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmNvbXBhbnk.display_name": {
-          "source": "Company",
-          "message": "Spoločnosť"
+          "source": "Companies",
+          "message": "Firmy"
         },
-        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmdpdGh1Yg.display_name": {
-          "source": "GitHub",
-          "message": "GitHub"
+        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmZpbmFuY2lhbCByZXBvcnQ.display_name": {
+          "source": "Financial Reports",
+          "message": "Finančné správy"
         },
-        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBkZg.display_name": {
-          "source": "PDF",
-          "message": "PDF"
+        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnB1YmxpY2F0aW9u.display_name": {
+          "source": "Publications",
+          "message": "Publikácie"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBlb3BsZQ.display_name": {
+          "source": "People",
+          "message": "Osoby"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBlcnNvbmFsIHNpdGU.display_name": {
-          "source": "Personal Site",
-          "message": "Osobná stránka"
-        },
-        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnJlc2VhcmNoIHBhcGVy.display_name": {
-          "source": "Research Paper",
-          "message": "Výskumná práca"
-        },
-        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnR3ZWV0.display_name": {
-          "source": "Tweet",
-          "message": "Tweet"
+          "source": "Personal Sites",
+          "message": "Osobné weby"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.desc": {
-          "source": "Filter results by entity category.",
-          "message": "Filtrovať výsledky podľa kategórie entity."
+          "source": "Narrow the search to one kind of page.  Usually a better filter than adding words to the query.",
+          "message": "Zúži hľadanie na jeden druh stránok.  Zvyčajne filtruje lepšie než pridávanie ďalších slov do dotazu."
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.display_name": {
           "source": "Category",
           "message": "Kategória"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.short_desc": {
-          "source": "Result category filter (company, paper, etc.)",
-          "message": "Filter kategórie výsledkov (spoločnosť, článok atď.)"
+          "source": "Narrow the search to one kind of page",
+          "message": "Zúžiť hľadanie na jeden druh stránok"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZW5kX3B1Ymxpc2hlZF9kYXRl.desc": {
-          "source": "Restrict results to pages published on or before this ISO date.",
-          "message": "Obmedziť výsledky na stránky publikované v tento dátum ISO alebo pred ním."
+        "app.RXhh.action.c2VhcmNo.option.YWRkaXRpb25hbFF1ZXJpZXM.desc": {
+          "source": "Additional query variations for deep-search variants. Only works with a deep-search type. When provided, these queries are used alongside the main query for broader results.",
+          "message": "Ďalšie varianty dotazu pre režimy hĺbkového hľadania. Funguje iba s typom hĺbkového hľadania. Ak sú zadané, použijú sa tieto dotazy spolu s hlavným dotazom pre širšie výsledky."
         },
-        "app.RXhh.action.c2VhcmNo.option.ZW5kX3B1Ymxpc2hlZF9kYXRl.display_name": {
-          "source": "End Published Date",
-          "message": "Dátum ukončenia publikovania"
+        "app.RXhh.action.c2VhcmNo.option.YWRkaXRpb25hbFF1ZXJpZXM.display_name": {
+          "source": "Additional Queries",
+          "message": "Ďalšie dotazy"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZW5kX3B1Ymxpc2hlZF9kYXRl.short_desc": {
-          "source": "Only pages published on/before this ISO date",
-          "message": "Iba stránky publikované v tento dátum ISO alebo pred ním"
+        "app.RXhh.action.c2VhcmNo.option.YWRkaXRpb25hbFF1ZXJpZXM.short_desc": {
+          "source": "Further queries run alongside the main one",
+          "message": "Ďalšie dotazy vykonávané súbežne s hlavným"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to exclude from results.",
-          "message": "Zoznam domén, ktoré sa majú vylúčiť z výsledkov."
+        "app.RXhh.action.c2VhcmNo.option.ZW5kQ3Jhd2xEYXRl.desc": {
+          "source": "Deprecated and has no effect; ignored by the API. Must be specified in ISO 8601 format.",
+          "message": "Zastarané a bez účinku; API tento parameter ignoruje. Musí byť zadané vo formáte ISO 8601."
         },
-        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+        "app.RXhh.action.c2VhcmNo.option.ZW5kQ3Jhd2xEYXRl.display_name": {
+          "source": "Crawled Before",
+          "message": "Prehľadávané do"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZW5kQ3Jhd2xEYXRl.short_desc": {
+          "source": "Return only pages Exa crawled on or before this date",
+          "message": "Vracať iba stránky, ktoré Exa prešla k tomuto dátumu alebo skôr"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZW5kUHVibGlzaGVkRGF0ZQ.desc": {
+          "source": "Only links with a published date before this will be returned. Must be specified in ISO 8601 format.",
+          "message": "Vrátia sa iba odkazy so skorším dátumom publikovania. Musí byť zadané vo formáte ISO 8601."
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZW5kUHVibGlzaGVkRGF0ZQ.display_name": {
+          "source": "Published Before",
+          "message": "Publikované do"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZW5kUHVibGlzaGVkRGF0ZQ.short_desc": {
+          "source": "Return only pages published on or before this date",
+          "message": "Vracať iba stránky publikované k tomuto dátumu alebo skôr"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZURvbWFpbnM.desc": {
+          "source": "List of domains or domain paths to exclude from search results. Each entry can be a hostname (for example, `example.com`), a hostname with a path prefix (for example, `example.com/docs`), or a wildcard subdomain (for example, `*.example.com`). If specified, no results will be returned from the matching domains or paths. Use this parameter for domain or path filtering instead of adding a `site:` operator to the query.",
+          "message": "Zoznam domén alebo ciest v doméne, ktoré sa z výsledkov hľadania vylúčia. Každá položka môže byť názov hostiteľa (napríklad `example.com`), názov hostiteľa s predponou cesty (napríklad `example.com/docs`) alebo subdoména so zástupným znakom (napríklad `*.example.com`). Ak je zadaný, z vyhovujúcich domén alebo ciest sa nevráti žiadny výsledok. Na filtrovanie podľa domény alebo cesty použite tento parameter namiesto pridávania operátora `site:` do dotazu."
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZURvbWFpbnM.display_name": {
           "source": "Exclude Domains",
           "message": "Vylúčiť domény"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
-          "source": "Exclude these domains",
-          "message": "Vylúčiť tieto domény"
+        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZURvbWFpbnM.short_desc": {
+          "source": "Never return results from these domains",
+          "message": "Nikdy nevracať výsledky z týchto domén"
         },
-        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to restrict results to.",
-          "message": "Zoznam domén, na ktoré sa majú obmedziť výsledky."
+        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZURvbWFpbnM.desc": {
+          "source": "List of domains or domain paths to include in the search. Each entry can be a hostname (for example, `example.com`), a hostname with a path prefix (for example, `example.com/docs`), or a wildcard subdomain (for example, `*.example.com`). If specified, results will only come from the matching domains or paths. Use this parameter for domain or path filtering instead of adding a `site:` operator to the query.",
+          "message": "Zoznam domén alebo ciest v doméne, ktoré sa do hľadania zahrnú. Každá položka môže byť názov hostiteľa (napríklad `example.com`), názov hostiteľa s predponou cesty (napríklad `example.com/docs`) alebo subdoména so zástupným znakom (napríklad `*.example.com`). Ak je zadaný, výsledky budú pochádzať iba z vyhovujúcich domén alebo ciest. Na filtrovanie podľa domény alebo cesty použite tento parameter namiesto pridávania operátora `site:` do dotazu."
         },
-        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.display_name": {
-          "source": "Include Domains",
-          "message": "Zahrnúť domény"
+        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZURvbWFpbnM.display_name": {
+          "source": "Only These Domains",
+          "message": "Iba tieto domény"
         },
-        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.short_desc": {
-          "source": "Restrict results to these domains",
-          "message": "Obmedziť výsledky na tieto domény"
+        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZURvbWFpbnM.short_desc": {
+          "source": "Return results only from these domains",
+          "message": "Vracať výsledky iba z týchto domén"
         },
-        "app.RXhh.action.c2VhcmNo.option.bnVtX3Jlc3VsdHM.desc": {
-          "source": "Number of results.  Default 10.",
-          "message": "Počet výsledkov. Predvolená hodnota je 10."
+        "app.RXhh.action.c2VhcmNo.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "JSON schema for synthesized output. Supported root types are \"text\" and \"object\". When provided, the response includes an output object whose content matches this schema. Works with every search type and adds about 2 seconds of synthesis latency on top of the selected search type.",
+          "message": "Schéma JSON pre syntetizovaný výstup. Podporované koreňové typy sú \"text\" a \"object\". Ak je zadané, obsahuje odpoveď výstupný objekt, ktorého obsah zodpovedá tejto schéme. Funguje so všetkými typmi hľadania a k vybranému typu hľadania pridáva približne 2 sekundy latencie syntézy."
         },
-        "app.RXhh.action.c2VhcmNo.option.bnVtX3Jlc3VsdHM.display_name": {
-          "source": "Number of Results",
+        "app.RXhh.action.c2VhcmNo.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "Schéma výstupu"
+        },
+        "app.RXhh.action.c2VhcmNo.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the answer you want back",
+          "message": "Schéma JSON opisujúca požadovanú odpoveď"
+        },
+        "app.RXhh.action.c2VhcmNo.option.bW9kZXJhdGlvbg.desc": {
+          "source": "Enable content moderation to filter unsafe content from search results.",
+          "message": "Zapnúť moderovanie obsahu a odfiltrovať tak z výsledkov hľadania nevhodný obsah."
+        },
+        "app.RXhh.action.c2VhcmNo.option.bW9kZXJhdGlvbg.display_name": {
+          "source": "Moderation",
+          "message": "Moderovanie"
+        },
+        "app.RXhh.action.c2VhcmNo.option.bW9kZXJhdGlvbg.short_desc": {
+          "source": "Filter out results Exa considers unsafe",
+          "message": "Odfiltrovať výsledky, ktoré Exa považuje za nevhodné"
+        },
+        "app.RXhh.action.c2VhcmNo.option.bnVtUmVzdWx0cw.desc": {
+          "source": "Number of results to return. Limits vary by search type. The maximum public limit is 100 results. Contact sales (hello@exa.ai) to discuss higher limits.",
+          "message": "Počet vrátených výsledkov. Obmedzenia sa líšia podľa typu hľadania. Najvyšší verejný limit je 100 výsledkov. O vyšších limitoch sa dohodnite s obchodným oddelením (hello@exa.ai)."
+        },
+        "app.RXhh.action.c2VhcmNo.option.bnVtUmVzdWx0cw.display_name": {
+          "source": "Result Count",
           "message": "Počet výsledkov"
         },
-        "app.RXhh.action.c2VhcmNo.option.bnVtX3Jlc3VsdHM.short_desc": {
-          "source": "Number of results to return",
-          "message": "Počet výsledkov, ktoré sa majú vrátiť"
+        "app.RXhh.action.c2VhcmNo.option.bnVtUmVzdWx0cw.short_desc": {
+          "source": "How many results to return",
+          "message": "Koľko výsledkov sa vráti"
         },
-        "app.RXhh.action.c2VhcmNo.option.c3RhcnRfcHVibGlzaGVkX2RhdGU.desc": {
-          "source": "Restrict results to pages published on or after this ISO date.",
-          "message": "Obmedziť výsledky na stránky publikované v tento dátum ISO alebo po ňom."
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRDcmF3bERhdGU.desc": {
+          "source": "Deprecated and has no effect; ignored by the API. Must be specified in ISO 8601 format.",
+          "message": "Zastarané a bez účinku; API tento parameter ignoruje. Musí byť zadané vo formáte ISO 8601."
         },
-        "app.RXhh.action.c2VhcmNo.option.c3RhcnRfcHVibGlzaGVkX2RhdGU.display_name": {
-          "source": "Start Published Date",
-          "message": "Dátum začiatku publikovania"
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRDcmF3bERhdGU.display_name": {
+          "source": "Crawled Since",
+          "message": "Prehľadávané od"
         },
-        "app.RXhh.action.c2VhcmNo.option.c3RhcnRfcHVibGlzaGVkX2RhdGU.short_desc": {
-          "source": "Only pages published on/after this ISO date",
-          "message": "Iba stránky publikované v tento dátum ISO alebo po ňom"
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRDcmF3bERhdGU.short_desc": {
+          "source": "Return only pages Exa crawled on or after this date",
+          "message": "Vracať iba stránky, ktoré Exa prešla k tomuto dátumu alebo neskôr"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRQdWJsaXNoZWREYXRl.desc": {
+          "source": "Only links with a published date after this will be returned. Must be specified in ISO 8601 format.",
+          "message": "Vrátia sa iba odkazy s neskorším dátumom publikovania. Musí byť zadané vo formáte ISO 8601."
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRQdWJsaXNoZWREYXRl.display_name": {
+          "source": "Published Since",
+          "message": "Publikované od"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRQdWJsaXNoZWREYXRl.short_desc": {
+          "source": "Return only pages published on or after this date",
+          "message": "Vracať iba stránky publikované k tomuto dátumu alebo neskôr"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RyZWFt.desc": {
+          "source": "Return the response as a server-sent event stream.  Leave this off unless the caller consumes SSE: an action returns the whole response.",
+          "message": "Vráti odpoveď ako prúd udalostí odosielaných serverom.  Ponechajte vypnuté, ak volajúci SSE nespracúva: akcia vracia celú odpoveď."
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RyZWFt.display_name": {
+          "source": "Stream",
+          "message": "Dátový prúd"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RyZWFt.short_desc": {
+          "source": "Return the response as a server-sent event stream",
+          "message": "Vrátiť odpoveď ako prúd udalostí odosielaných serverom"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3lzdGVtUHJvbXB0.desc": {
+          "source": "Additional instructions that guide generated output or agent behavior. Use this for source preferences, novelty constraints, duplication constraints, or other behavior guidance.",
+          "message": "Doplňujúce pokyny, ktoré riadia generovaný výstup alebo správanie agenta. Použite ich pre preferencie zdrojov, požiadavky na novosť, obmedzenia duplicít alebo iné pokyny k správaniu."
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3lzdGVtUHJvbXB0.display_name": {
+          "source": "System Prompt",
+          "message": "Systémový pokyn"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3lzdGVtUHJvbXB0.short_desc": {
+          "source": "Extra instructions that guide the search",
+          "message": "Doplňujúce pokyny, ktoré riadia hľadanie"
         },
         "app.RXhh.action.c2VhcmNo.option.cXVlcnk.desc": {
-          "source": "The search query in natural language.",
-          "message": "Vyhľadávací dotaz v prirodzenom jazyku."
+          "source": "The query string for the search.",
+          "message": "Reťazec dotazu pre hľadanie."
         },
         "app.RXhh.action.c2VhcmNo.option.cXVlcnk.display_name": {
           "source": "Query",
           "message": "Dopyt"
         },
         "app.RXhh.action.c2VhcmNo.option.cXVlcnk.short_desc": {
-          "source": "Search query (natural language)",
-          "message": "Vyhľadávací dotaz (prirodzený jazyk)"
-        },
-        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOm5ldXJhbA.display_name": {
-          "source": "Neural",
-          "message": "Neurálne"
+          "source": "What to search for, in natural language",
+          "message": "Čo hľadať, prirodzeným jazykom"
         },
         "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmF1dG8.display_name": {
-          "source": "Auto",
-          "message": "Auto"
+          "source": "Automatic",
+          "message": "Automaticky"
         },
-        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmtleXdvcmQ.display_name": {
-          "source": "Keyword",
-          "message": "Kľúčové slovo"
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmRlZXA.display_name": {
+          "source": "Deep",
+          "message": "Hĺbkové"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmRlZXAtbGl0ZQ.display_name": {
+          "source": "Deep (Lite)",
+          "message": "Hĺbkové (odľahčené)"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmRlZXAtcmVhc29uaW5n.display_name": {
+          "source": "Deep with Reasoning",
+          "message": "Hĺbkové s uvažovaním"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "Rýchle"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmluc3RhbnQ.display_name": {
+          "source": "Instant",
+          "message": "Okamžité"
         },
         "app.RXhh.action.c2VhcmNo.option.dHlwZQ.desc": {
-          "source": "Search type.  `neural` uses embeddings; `keyword` is traditional; `auto` routes between them.",
-          "message": "Typ vyhľadávania. `neural` používa embeddingy; `keyword` je tradičné; `auto` medzi nimi smeruje."
+          "source": "How hard Exa works on the query, trading latency and cost against quality.  `auto` lets Exa choose.",
+          "message": "Koľko práce Exa dotazu venuje, čím vyvažuje odozvu a cenu voči kvalite.  S hodnotou `auto` volí Exa."
         },
         "app.RXhh.action.c2VhcmNo.option.dHlwZQ.display_name": {
-          "source": "Search Type",
-          "message": "Typ vyhľadávania"
+          "source": "Search Depth",
+          "message": "Hĺbka hľadania"
         },
         "app.RXhh.action.c2VhcmNo.option.dHlwZQ.short_desc": {
-          "source": "neural / keyword / auto",
-          "message": "neurálne / kľúčové slovo / auto"
+          "source": "How hard Exa works on the query",
+          "message": "Koľko práce Exa dotazu venuje"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dXNlckxvY2F0aW9u.desc": {
+          "source": "The two-letter ISO country code of the user, e.g. US.",
+          "message": "Dvojpísmenový kód krajiny podľa ISO pre používateľa, napríklad US."
+        },
+        "app.RXhh.action.c2VhcmNo.option.dXNlckxvY2F0aW9u.display_name": {
+          "source": "User Location",
+          "message": "Umiestnenie používateľa"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dXNlckxvY2F0aW9u.short_desc": {
+          "source": "Two-letter country code the search is made from",
+          "message": "Dvojpísmenový kód krajiny, z ktorej sa hľadá"
         },
         "app.RXhh.action.c2VhcmNo.short_desc": {
-          "source": "Neural / keyword / auto web search via Exa",
-          "message": "Neurálne / kľúčové slovo / auto webové vyhľadávanie cez Exa"
+          "source": "Search the web and optionally return page contents",
+          "message": "Prehľadá web a voliteľne vráti obsah stránok"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.desc": {
+          "source": "Ends a running research run early and returns what the agent has gathered so far - the difference from **Cancel a Research Run**, which discards it.\n\nExa supports this only for `max` effort runs.",
+          "message": "Predčasne ukončí prebiehajúci výskumný beh a vráti, čo agent zatiaľ zhromaždil - tým sa líši od akcie **Zrušiť výskumný beh**, ktorá to zahodí.\n\nExa to podporuje iba pri behoch s mierou úsilia `max`."
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.display_name": {
+          "source": "Stop a Research Run",
+          "message": "Ukončiť výskumný beh"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.RXhhLUJldGE.desc": {
+          "source": "Comma-separated beta feature tokens for opting into experimental features.",
+          "message": "Tokeny beta funkcií oddelené čiarkami na zapnutie experimentálnych funkcií."
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.RXhhLUJldGE.short_desc": {
+          "source": "Comma-separated beta feature tokens for opting into experimental features",
+          "message": "Tokeny beta funkcií oddelené čiarkami na zapnutie experimentálnych funkcií"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "ID behu agenta. Nové ID behov sa vracajú s predponou `agent_run_`."
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "Beh"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.aWQ.short_desc": {
+          "source": "The run to stop",
+          "message": "Beh, ktorý sa má ukončiť"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.short_desc": {
+          "source": "End a research run early but keep its results",
+          "message": "Ukončí výskumný beh predčasne, ale zachová jeho výsledky"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.desc": {
+          "source": "Runs a search monitor immediately rather than waiting for its next scheduled cycle.  New results are delivered to its webhook as usual.",
+          "message": "Spustí monitor hľadania ihneď namiesto toho, aby čakal na jeho ďalší naplánovaný cyklus.  Nové výsledky sa ako obvykle doručia do jeho webhooku."
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.display_name": {
+          "source": "Run a Search Monitor Now",
+          "message": "Spustiť monitor hľadania ihneď"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "ID monitora"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "Monitor"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.option.aWQ.short_desc": {
+          "source": "The monitor to run",
+          "message": "Monitor, ktorý sa má spustiť"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.short_desc": {
+          "source": "Run a monitor immediately, whatever its schedule says",
+          "message": "Spustí monitor ihneď bez ohľadu na jeho plán"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.desc": {
+          "source": "Updates a search monitor.  Use `status` to pause it without deleting it: a paused monitor keeps its definition and stops running.  Omit a field to leave it unchanged.",
+          "message": "Aktualizuje monitor hľadania.  Pomocou `status` ho pozastavíte bez toho, aby ste ho odstránili: pozastavený monitor si zachová svoju definíciu a prestane bežať.  Pole vynechajte, ak ho chcete ponechať bez zmeny."
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.display_name": {
+          "source": "Update a Search Monitor",
+          "message": "Aktualizovať monitor hľadania"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "ID monitora"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "Monitor"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.aWQ.short_desc": {
+          "source": "The monitor to update",
+          "message": "Monitor, ktorý sa má aktualizovať"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "Controls the format of the run output. Defaults to `{ \"type\": \"text\" }` if not specified. When `type` is `\"text\"`, the output is a plain text summary. When `type` is `\"object\"`, the output is structured JSON. If no `properties` are specified with `\"object\"` type, a schema is inferred automatically; otherwise the output adheres to the provided schema.",
+          "message": "Riadi formát výstupu behu. Ak nie je zadané, predvolená hodnota je `{ \"type\": \"text\" }`. Ak sa `type` rovná `\"text\"`, výstupom je jednoduchý textový súhrn. Ak sa `type` rovná `\"object\"`, výstupom je štruktúrovaný JSON. Ak pri type `\"object\"` nie sú uvedené `properties`, schéma sa odvodí automaticky; inak výstup zodpovedá zadanej schéme."
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "Schéma výstupu"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the results you want delivered",
+          "message": "Schéma JSON opisujúca výsledky, ktoré chcete doručovať"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bWV0YWRhdGE.desc": {
+          "source": "Update metadata. Set to null to remove. Echoed back in webhook deliveries so you can route updates to systems like Slack.",
+          "message": "Aktualizovať metaúdaje. Nastavením na null ich odstránite. Vracajú sa v doručeniach webhooku, takže môžete aktualizácie smerovať do systémov, ako je Slack."
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metaúdaje"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bWV0YWRhdGE.short_desc": {
+          "source": "Metadata to store; set to null to remove it",
+          "message": "Metaúdaje na uloženie; nastavením na null ich odstránite"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bmFtZQ.desc": {
+          "source": "Update the monitor name",
+          "message": "Aktualizovať názov monitora"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Názov"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bmFtZQ.short_desc": {
+          "source": "A new name for the monitor",
+          "message": "Nový názov monitora"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c2VhcmNo.desc": {
+          "source": "Partial search params to merge. All fields are optional for updates.",
+          "message": "Čiastočné parametre hľadania na zlúčenie. Pri aktualizáciách sú všetky polia voliteľné."
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c2VhcmNo.display_name": {
+          "source": "Search",
+          "message": "Hľadať"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c2VhcmNo.short_desc": {
+          "source": "Search settings to merge into the monitor",
+          "message": "Nastavenia hľadania, ktoré sa do monitora zlúčia"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
+          "source": "Active",
+          "message": "Aktívny"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.allowed-value.c3RyaW5nOnBhdXNlZA.display_name": {
+          "source": "Paused",
+          "message": "Pozastavený"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.desc": {
+          "source": "Update the monitor status (can only set to `active` or `paused`)",
+          "message": "Aktualizovať stav monitora (možno nastaviť iba na `active` alebo `paused`)"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Stav"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.short_desc": {
+          "source": "Pause the monitor or start it running again",
+          "message": "Pozastaviť monitor alebo ho znova spustiť"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.d2ViaG9vaw.desc": {
+          "source": "Partial webhook params to merge. All fields are optional for updates.",
+          "message": "Čiastočné parametre webhooku na zlúčenie. Pri aktualizáciách sú všetky polia voliteľné."
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.d2ViaG9vaw.display_name": {
+          "source": "Webhook",
+          "message": "Webhook"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.d2ViaG9vaw.short_desc": {
+          "source": "Webhook settings to merge into the monitor",
+          "message": "Nastavenia webhooku, ktoré sa do monitora zlúčia"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.dHJpZ2dlcg.desc": {
+          "source": "Update the schedule. Set to null to remove the schedule.",
+          "message": "Aktualizovať plán. Nastavením na null plán odstránite."
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.dHJpZ2dlcg.display_name": {
+          "source": "Schedule",
+          "message": "Plán"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.dHJpZ2dlcg.short_desc": {
+          "source": "A new schedule; set to null to remove it",
+          "message": "Nový plán; nastavením na null ho odstránite"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.short_desc": {
+          "source": "Change a monitor's search, schedule or status",
+          "message": "Zmení hľadanie, plán alebo stav monitora"
         },
         "app.RXhh.desc": {
-          "source": "Provides access to [Exa](https://exa.ai) (formerly Metaphor) — a neural web-search API that complements keyword search with embedding-based semantic retrieval.\n\n**Common use cases**:\n- **Semantic search** where keyword matching fails (e.g. \"companies similar to X\", \"papers about Y\")\n- **Discovery** via `find-similar` from a known seed URL\n- **Agent tools**: register `exa_search` / `exa_find_similar` / `exa_contents` as tools an LLM can invoke (see @ref exarestclientintro \"ExaRestClient\" docs)",
-          "message": "Poskytuje prístup k službe [Exa](https://exa.ai) (predtým Metaphor) — rozhraniu API pre neurálne webové vyhľadávanie, ktoré dopĺňa vyhľadávanie podľa kľúčových slov o sémantické vyhľadávanie založené na embeddingoch.\n\n**Bežné prípady použitia**:\n- **Sémantické vyhľadávanie**, kde vyhľadávanie podľa kľúčových slov zlyháva (napr. „spoločnosti podobné X“, „články o Y“)\n- **Objavovanie** cez `find-similar` zo známej zdrojovej URL\n- **Nástroje agenta**: zaregistrujte `exa_search` / `exa_find_similar` / `exa_contents` ako nástroje, ktoré môže LLM vyvolať (pozri dokumentáciu @ref exarestclientintro \"ExaRestClient\")"
+          "source": "Provides access to [Exa](https://exa.ai) (formerly Metaphor) — a search API built for programs rather than for people: the query is meaning, not keywords, and the result can be the answer itself rather than a list of links.\n\n**What it covers**:\n- **Search** the web semantically, with the page contents returned alongside the results\n- **Answer a question** from the web, with the sources cited\n- **Research runs**: an agent that searches, reads and reasons until it can answer, returning prose or data shaped by a JSON schema you supply\n- **Batches**: run a large workload asynchronously in one job rather than one request per item\n- **Search monitors**: re-run a search on a schedule and have only what is new delivered to a webhook, de-duplicated — a query becomes a feed\n\n**Where this earns its place**: keyword search cannot express \"companies like this one\" or \"papers arguing the opposite\", and a team that needs an answer rather than ten tabs ends up writing the reading step itself.  Exa does both, and the monitors turn the same query into an ongoing feed without a polling loop or a de-duplication table to maintain.",
+          "message": "Poskytuje prístup k službe [Exa](https://exa.ai) (predtým Metaphor) — vyhľadávaciemu API postavenému pre programy, nie pre ľudí: dotazom je význam, nie kľúčové slová, a výsledkom môže byť rovno odpoveď namiesto zoznamu odkazov.\n\n**Čo pokrýva**:\n- **Hľadanie** na webe podľa významu, pričom sa spolu s výsledkami vracia aj obsah stránok\n- **Odpoveď na otázku** na základe webu, s uvedením zdrojov\n- **Výskumné behy**: agent, ktorý hľadá, číta a uvažuje, kým nedokáže odpovedať, a vracia súvislý text alebo údaje v tvare schémy JSON, ktorú zadáte\n- **Dávky**: spracovanie rozsiahlej záťaže asynchrónne v jednej úlohe namiesto jednej požiadavky na položku\n- **Monitory hľadania**: opakovanie hľadania podľa plánu a doručenie iba noviniek do webhooku, bez duplicít — z dotazu sa stáva kanál noviniek\n\n**V čom je to prínosné**: vyhľadávanie podľa kľúčových slov nedokáže vyjadriť „firmy ako je táto“ ani „práce tvrdiace opak“ a tím, ktorý potrebuje odpoveď namiesto desiatich kariet, si napokon krok čítania napíše sám. Exa zvláda oboje a monitory premenia ten istý dotaz na priebežný kanál bez dotazovacej slučky a bez tabuľky na odstraňovanie duplicít, ktorú by bolo treba udržiavať."
         },
         "app.RXhh.display_name": {
           "source": "Exa",
           "message": "Exa"
         },
         "app.RXhh.short_desc": {
-          "source": "Exa (Metaphor) neural web search for semantic retrieval",
-          "message": "Neurálne webové vyhľadávanie Exa (Metaphor) na sémantické vyhľadávanie"
+          "source": "Exa neural web search, research agents, batches and search monitors",
+          "message": "Exa: neurónové vyhľadávanie na webe, výskumní agenti, dávky a monitory hľadania"
         }
       }
     }

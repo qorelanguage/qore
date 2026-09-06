@@ -1,0 +1,16 @@
+# Import spec for the vendored Exa schema.
+#
+#   QORE_MODULE_DIR=qlib tools/rest-schema-import.qr \
+#       --spec qlib/ExaDataProvider/exa-import.yaml
+#
+# Paths are resolved against this file.  The operations come from the manifest itself, so the selection
+# and what the application exports cannot drift apart.
+documents:
+  - name: Exa
+    source: https://api.exa.ai/openapi.json
+    output: exa-openapi.json
+    manifest: ExaDataProvider:ExaManifest::Manifest
+    provenance: ExaSchema.qc
+    drift: ExaDataProvider:ExaSchema::getActionSet()
+    json: true
+

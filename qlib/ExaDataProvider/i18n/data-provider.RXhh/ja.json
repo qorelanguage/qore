@@ -4,148 +4,1448 @@
     "ja": {
       "messages": {
         "app.RXhh.action.Y29udGVudHM.desc": {
-          "source": "Fetches text content, highlight extracts, and AI-summarized snippets for one or more URLs via Exa's `/contents` endpoint.",
-          "message": "Exaの `/contents` エンドポイントを介して、1つ以上のURLのテキストコンテンツ、ハイライト抽出、およびAI要約スニペットを取得します。"
+          "source": "Fetches the contents of pages Exa already knows about: their text, the passages that match a query, or a written summary.\n\nGive the pages as `urls`, or as the `ids` a search returned - one or the other, not both.\n\n`livecrawl` decides whether Exa serves the page from its cache or fetches it now, which is the trade between speed and freshness.",
+          "message": "Exa がすでに把握しているページの内容（本文、クエリに一致する箇所、作成された要約）を取得します。\n\nページは `urls` として指定するか、検索が返した `ids` として指定します。どちらか一方のみで、両方は指定できません。\n\n`livecrawl` は Exa がキャッシュからページを返すか、その場で取得するかを決めるもので、速度と鮮度のバランスになります。"
         },
         "app.RXhh.action.Y29udGVudHM.display_name": {
-          "source": "Fetch Page Contents",
-          "message": "ページコンテンツの取得"
+          "source": "Get Contents",
+          "message": "内容を取得"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29tcGxpYW5jZQ.allowed-value.c3RyaW5nOmhpcGFh.display_name": {
+          "source": "HIPAA",
+          "message": "HIPAA"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29tcGxpYW5jZQ.desc": {
+          "source": "Enterprise-only compliance mode. Set to `hipaa` for HIPAA mode. Requires cache-only retrieval with supported parameters. See the HIPAA docs for details.",
+          "message": "エンタープライズ専用のコンプライアンスモード。HIPAA モードにするには `hipaa` を設定します。サポートされるパラメーターでのキャッシュのみからの取得が必要です。詳細は HIPAA のドキュメントを参照してください。"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29tcGxpYW5jZQ.display_name": {
+          "source": "Compliance Mode",
+          "message": "コンプライアンスモード"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29tcGxpYW5jZQ.short_desc": {
+          "source": "Fetch under an enterprise compliance mode",
+          "message": "エンタープライズ向けコンプライアンスモードで取得します"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29udGV4dA.desc": {
+          "source": "Deprecated: Use highlights or text instead. Returns page contents as a combined context string.",
+          "message": "非推奨: 代わりにハイライトまたはテキストを使用してください。ページの内容を 1 つにまとめたコンテキスト文字列として返します。"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29udGV4dA.display_name": {
+          "source": "Context",
+          "message": "コンテキスト"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29udGV4dA.short_desc": {
+          "source": "Deprecated: Use highlights or text instead",
+          "message": "非推奨: 代わりにハイライトまたはテキストを使用してください"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.ZXh0cmFz.desc": {
+          "source": "Extra parameters to pass.",
+          "message": "追加で渡すパラメーター。"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.ZXh0cmFz.display_name": {
+          "source": "Extras",
+          "message": "追加項目"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.ZXh0cmFz.short_desc": {
+          "source": "Extra content to return, such as links and images",
+          "message": "リンクや画像など、追加で返す内容"
         },
         "app.RXhh.action.Y29udGVudHM.option.aGlnaGxpZ2h0cw.desc": {
-          "source": "Highlight options: `{num_sentences, highlights_per_url, query}`.",
-          "message": "ハイライトオプション: `{num_sentences, highlights_per_url, query}`。"
+          "source": "Text snippets the LLM identifies as most relevant from each page.",
+          "message": "LLM が各ページで最も関連性が高いと判断したテキストの抜粋。"
         },
         "app.RXhh.action.Y29udGVudHM.option.aGlnaGxpZ2h0cw.display_name": {
           "source": "Highlights",
           "message": "ハイライト"
         },
         "app.RXhh.action.Y29udGVudHM.option.aGlnaGxpZ2h0cw.short_desc": {
-          "source": "Highlight configuration hash",
-          "message": "ハイライト設定ハッシュ"
+          "source": "Return the passages that match a query",
+          "message": "クエリに一致する箇所を返します"
         },
         "app.RXhh.action.Y29udGVudHM.option.aWRz.desc": {
-          "source": "Result IDs from a prior search (or absolute URLs).",
-          "message": "以前の検索結果のID (または絶対URL)。"
+          "source": "Document IDs returned by a search.  Supply these or `urls`, not both.",
+          "message": "検索が返したドキュメント ID。  これか `urls` のどちらか一方を指定してください。"
         },
         "app.RXhh.action.Y29udGVudHM.option.aWRz.display_name": {
-          "source": "IDs",
-          "message": "ID"
+          "source": "Document IDs",
+          "message": "ドキュメント ID"
         },
         "app.RXhh.action.Y29udGVudHM.option.aWRz.short_desc": {
-          "source": "List of Exa result IDs (or URLs)",
-          "message": "Exa結果ID (またはURL) のリスト"
+          "source": "Document IDs returned by a search",
+          "message": "検索が返したドキュメント ID"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.allowed-value.c3RyaW5nOm5ldmVy.display_name": {
+          "source": "Never (cache only)",
+          "message": "取得しない（キャッシュのみ）"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.allowed-value.c3RyaW5nOmFsd2F5cw.display_name": {
+          "source": "Always crawl",
+          "message": "常にクロール"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.allowed-value.c3RyaW5nOmZhbGxiYWNr.display_name": {
+          "source": "Only if not cached",
+          "message": "キャッシュにない場合のみ"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.allowed-value.c3RyaW5nOnByZWZlcnJlZA.display_name": {
+          "source": "Prefer a fresh crawl",
+          "message": "新しいクロールを優先"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.desc": {
+          "source": "Whether to fetch the page now or serve it from Exa's cache - the trade between speed and freshness.",
+          "message": "ページをその場で取得するか、Exa のキャッシュから返すか - 速度と鮮度のバランスです。"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.display_name": {
+          "source": "Live Crawl",
+          "message": "ライブクロール"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.short_desc": {
+          "source": "Whether to fetch the page now or serve it from cache",
+          "message": "ページをその場で取得するか、キャッシュから返すか"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXdsVGltZW91dA.desc": {
+          "source": "The timeout for livecrawling in milliseconds.",
+          "message": "ライブクロールのタイムアウト（ミリ秒）。"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXdsVGltZW91dA.display_name": {
+          "source": "Live Crawl Timeout",
+          "message": "ライブクロールのタイムアウト"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXdsVGltZW91dA.short_desc": {
+          "source": "How long to wait for a live crawl, in milliseconds",
+          "message": "ライブクロールを待つ時間（ミリ秒）"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bWF4QWdlSG91cnM.desc": {
+          "source": "Maximum age of cached content in hours. Positive values use cached content if it is less than this many hours old; 0 fetches fresh content and is the supported way to apply text rendering options to newly fetched pages; -1 always uses cache; omitted uses fallback fetching when cached content is unavailable. Maximum supported value is 720 hours.",
+          "message": "キャッシュされた内容の最大経過時間（時間）。正の値は、その時間数より新しい場合にキャッシュされた内容を使用します。0 は新しい内容を取得し、新規取得したページにテキスト描画オプションを適用する際にサポートされる方法です。-1 は常にキャッシュを使用します。省略した場合、キャッシュされた内容がないときは代替の取得が行われます。サポートされる最大値は 720 時間です。"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bWF4QWdlSG91cnM.display_name": {
+          "source": "Maximum Age",
+          "message": "最大経過時間"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bWF4QWdlSG91cnM.short_desc": {
+          "source": "Re-crawl a cached page older than this many hours",
+          "message": "この時間数より古いキャッシュ済みページを再クロールします"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZVRhcmdldA.desc": {
+          "source": "Term to find specific subpages of search results. Can be a single string or an array of strings.",
+          "message": "検索結果の特定のサブページを見つけるための語。単一の文字列でも文字列の配列でもかまいません。"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZVRhcmdldA.display_name": {
+          "source": "Subpage Target",
+          "message": "サブページの対象"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZVRhcmdldA.short_desc": {
+          "source": "Which subpages to fetch, by keyword",
+          "message": "キーワードで指定する、取得するサブページ"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZXM.desc": {
+          "source": "The number of subpages to crawl. The actual number crawled may be limited by system constraints.",
+          "message": "クロールするサブページの数。実際にクロールされる数はシステム上の制約により制限される場合があります。"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZXM.display_name": {
+          "source": "Subpages",
+          "message": "サブページ"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZXM.short_desc": {
+          "source": "How many linked subpages to fetch as well",
+          "message": "併せて取得するリンク先サブページの数"
         },
         "app.RXhh.action.Y29udGVudHM.option.c3VtbWFyeQ.desc": {
-          "source": "Summary options: `{query}` to drive a guided summary.",
-          "message": "要約オプション: ガイド付き要約を実行するための `{query}`。"
+          "source": "Summary of the webpage.",
+          "message": "ウェブページの要約。"
         },
         "app.RXhh.action.Y29udGVudHM.option.c3VtbWFyeQ.display_name": {
           "source": "Summary",
           "message": "概要"
         },
         "app.RXhh.action.Y29udGVudHM.option.c3VtbWFyeQ.short_desc": {
-          "source": "Summary configuration hash",
-          "message": "要約設定ハッシュ"
+          "source": "Return a written summary of each page",
+          "message": "各ページの要約文を返します"
         },
         "app.RXhh.action.Y29udGVudHM.option.dGV4dA.desc": {
-          "source": "When `True`, results include the full text content of each page.",
-          "message": "`True` の場合、結果に各ページの全文コンテンツが含まれます。"
+          "source": "Text extraction options for each result.",
+          "message": "各結果のテキスト抽出オプション。"
         },
         "app.RXhh.action.Y29udGVudHM.option.dGV4dA.display_name": {
           "source": "Text",
           "message": "テキスト"
         },
         "app.RXhh.action.Y29udGVudHM.option.dGV4dA.short_desc": {
-          "source": "Include full text content",
-          "message": "全文コンテンツを含める"
+          "source": "Return the page text",
+          "message": "ページ本文を返します"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.dXJscw.desc": {
+          "source": "The pages to fetch.  Supply these or `ids`, not both.",
+          "message": "取得するページ。  これか `ids` のどちらか一方を指定してください。"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.dXJscw.display_name": {
+          "source": "URLs",
+          "message": "URLs"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.dXJscw.short_desc": {
+          "source": "The pages to fetch",
+          "message": "取得するページ"
         },
         "app.RXhh.action.Y29udGVudHM.short_desc": {
-          "source": "Fetch text / highlights / summaries for URLs",
-          "message": "URLのテキスト / ハイライト / 要約を取得"
+          "source": "Fetch the text, highlights or a summary of pages",
+          "message": "ページのテキスト、ハイライト、または要約を取得します"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.desc": {
+          "source": "Cancels a queued or running research run without returning results.  Usage accrued before the cancellation is still billed.\n\nUse **Stop a Research Run** instead to keep what the agent has found so far.",
+          "message": "待機中または実行中のリサーチ実行を、結果を返さずにキャンセルします。  キャンセルまでに発生した使用量は課金されます。\n\nエージェントがそれまでに見つけた内容を残したい場合は、代わりに **リサーチ実行を終了** を使用してください。"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.display_name": {
+          "source": "Cancel a Research Run",
+          "message": "リサーチ実行をキャンセル"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "エージェント実行 ID。新しい実行 ID は `agent_run_` の接頭辞付きで返されます。"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "実行"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.option.aWQ.short_desc": {
+          "source": "The run to cancel",
+          "message": "キャンセルする実行"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.short_desc": {
+          "source": "Stop a research run and discard its results",
+          "message": "リサーチ実行を中止し、その結果を破棄します"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.desc": {
+          "source": "Asks a batch to stop.  It schedules no further requests, lets the work already in flight finish, and then settles as cancelled; requests that already completed keep their results.\n\nA batch that has already completed or expired cannot be cancelled.",
+          "message": "バッチに停止を要求します。  それ以上リクエストをスケジュールせず、すでに進行中の処理は完了させたうえで、キャンセル済みとして終了します。すでに完了したリクエストの結果は保持されます。\n\nすでに完了したバッチや有効期限が切れたバッチはキャンセルできません。"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.display_name": {
+          "source": "Cancel a Batch",
+          "message": "バッチをキャンセル"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "バッチ API に必要なベータトークン。"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "バッチ API に必要なベータトークン"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.aWQ.desc": {
+          "source": "Batch ID.",
+          "message": "バッチ ID。"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.aWQ.display_name": {
+          "source": "Batch",
+          "message": "バッチ"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.aWQ.short_desc": {
+          "source": "The batch to cancel",
+          "message": "キャンセルするバッチ"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.short_desc": {
+          "source": "Stop a batch scheduling further requests",
+          "message": "バッチがそれ以上リクエストをスケジュールしないようにします"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.desc": {
+          "source": "Creates a monitor: a search Exa re-runs on a schedule, delivering what is new to your webhook.\n\nExa only sends what you have not already seen - it filters by date since the last run and removes near-duplicates - so this is how a query becomes a feed rather than something a caller has to poll and de-duplicate itself.",
+          "message": "モニターを作成します。モニターとは Exa がスケジュールに従って再実行する検索で、新着分をあなたの Webhook に配信します。\n\nExa はまだ見ていない内容だけを送ります。前回の実行以降の日付で絞り込み、ほぼ重複する内容を取り除きます。これにより、呼び出し側が自分でポーリングして重複を除く必要のあるものではなく、クエリがそのままフィードになります。"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.display_name": {
+          "source": "Create a Search Monitor",
+          "message": "検索モニターを作成"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "Controls the format of the run output. Defaults to `{ \"type\": \"text\" }` if not specified. When `type` is `\"text\"`, the output is a plain text summary. When `type` is `\"object\"`, the output is structured JSON. If no `properties` are specified with `\"object\"` type, a schema is inferred automatically; otherwise the output adheres to the provided schema.",
+          "message": "実行出力の形式を制御します。指定しない場合の既定値は `{ \"type\": \"text\" }` です。`type` が `\"text\"` の場合、出力はプレーンテキストの要約になります。`type` が `\"object\"` の場合、出力は構造化された JSON になります。`\"object\"` 型で `properties` を指定しない場合はスキーマが自動的に推論され、指定した場合は出力がそのスキーマに従います。"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "出力スキーマ"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the results you want delivered",
+          "message": "配信してほしい結果を記述した JSON スキーマ"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bWV0YWRhdGE.desc": {
+          "source": "Key-value pairs echoed back in each webhook delivery, so a receiver can route updates without looking the monitor up.",
+          "message": "Webhook の配信ごとにそのまま返されるキーと値のペア。受信側はモニターを参照しなくても更新を振り分けられます。"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "メタデータ"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bWV0YWRhdGE.short_desc": {
+          "source": "Key-value pairs echoed back in each delivery",
+          "message": "配信ごとにそのまま返されるキーと値のペア"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bmFtZQ.desc": {
+          "source": "An optional name for the monitor",
+          "message": "モニターの任意の名前"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名前"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bmFtZQ.short_desc": {
+          "source": "A name for the monitor",
+          "message": "モニターの名前"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.c2VhcmNo.desc": {
+          "source": "The search the monitor re-runs on each cycle: the same `query`, `type` and `category` that **Search** takes.\n\nExa filters each cycle by date since the last run and removes near-duplicates, so this is the query whose **new** results are delivered, not the query whose results are re-sent every time.",
+          "message": "モニターが各サイクルで再実行する検索です。**検索** が受け取るものと同じ `query`、`type`、`category` を指定します。\n\nExa は各サイクルを前回の実行以降の日付で絞り込み、ほぼ重複する内容を取り除くため、配信されるのはこのクエリの **新しい** 結果であり、毎回同じ結果が再送されるわけではありません。"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.c2VhcmNo.display_name": {
+          "source": "Search",
+          "message": "検索"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.c2VhcmNo.short_desc": {
+          "source": "The search to run on each cycle",
+          "message": "各サイクルで実行する検索"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.d2ViaG9vaw.desc": {
+          "source": "Where each cycle's new results are delivered.  This is the only way results leave a monitor - there is no endpoint that returns them - so a monitor without a reachable webhook produces nothing a caller can read.\n\n`metadata` is echoed back in every delivery, which is how a receiver routes an update without looking the monitor up.",
+          "message": "各サイクルの新しい結果の配信先です。結果がモニターから出ていく手段はこれだけで、結果を返すエンドポイントは存在しません。したがって到達可能な Webhook のないモニターは、呼び出し側が読める結果を何も生みません。\n\n`metadata` は配信のたびにそのまま返されるため、受信側はモニターを参照しなくても更新を振り分けられます。"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.d2ViaG9vaw.display_name": {
+          "source": "Webhook",
+          "message": "Webhook"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.d2ViaG9vaw.short_desc": {
+          "source": "Where new results are delivered",
+          "message": "新しい結果の配信先"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.dHJpZ2dlcg.desc": {
+          "source": "How often the search runs, and from when.  A cycle that finds nothing new delivers nothing, so the schedule sets how quickly the feed reacts rather than how much it sends.",
+          "message": "検索を実行する頻度と開始時期です。新しいものが見つからなかったサイクルは何も配信しないため、スケジュールはフィードがどれだけ速く反応するかを決めるものであり、どれだけ多く送るかを決めるものではありません。"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.dHJpZ2dlcg.display_name": {
+          "source": "Schedule",
+          "message": "スケジュール"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.dHJpZ2dlcg.short_desc": {
+          "source": "How often the search runs",
+          "message": "検索を実行する頻度"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.short_desc": {
+          "source": "Run a search on a schedule and deliver new results to a webhook",
+          "message": "スケジュールに従って検索を実行し、新しい結果を Webhook に配信します"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.desc": {
+          "source": "Starts a research run: the agent searches, reads and reasons over the web until it can answer, rather than returning a single search's results.\n\nUse this where **Answer a Question** is not enough - a question that needs several searches, or one whose answer has to be assembled from many pages.  `effort` is the budget: `minimal` is quick and shallow, `max` keeps working.\n\nThe run is asynchronous; read it with **Get a Research Run**.  Set `outputSchema` to get structured data back rather than prose.",
+          "message": "リサーチ実行を開始します。エージェントは 1 回の検索結果を返すのではなく、回答できるようになるまでウェブを検索し、読み、推論します。\n\n**質問に回答** では足りない場面、つまり複数回の検索が必要な質問や、多数のページから回答を組み立てる必要がある質問に使用してください。  `effort` は予算です。`minimal` は速く浅く、`max` は作業を続けます。\n\n実行は非同期です。**リサーチ実行を取得** で読み取ってください。  `outputSchema` を設定すると、文章ではなく構造化データが返ります。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.display_name": {
+          "source": "Start a Research Run",
+          "message": "リサーチ実行を開始"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL2pzb24.display_name": {
+          "source": "application/json",
+          "message": "application/json"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.allowed-value.c3RyaW5nOnRleHQvZXZlbnQtc3RyZWFt.display_name": {
+          "source": "text/event-stream",
+          "message": "text/event-stream"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.desc": {
+          "source": "Set to `text/event-stream` to receive server-sent events.",
+          "message": "サーバー送信イベントを受け取るには `text/event-stream` を設定します。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.display_name": {
+          "source": "Accept",
+          "message": "Accept"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.short_desc": {
+          "source": "Set to 'text/event-stream' to receive server-sent events",
+          "message": "サーバー送信イベントを受け取るには「text/event-stream」を設定します"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.RXhhLUJldGE.desc": {
+          "source": "Comma-separated beta feature tokens for opting into experimental features.",
+          "message": "試験的機能を有効にするための、カンマ区切りのベータ機能トークン。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.RXhhLUJldGE.short_desc": {
+          "source": "Comma-separated beta feature tokens for opting into experimental features",
+          "message": "試験的機能を有効にするための、カンマ区切りのベータ機能トークン"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.YnVkZ2V0.desc": {
+          "source": "Optional per-run spending limit for the metered `auto` and `max` efforts. Runs that finish early may cost less than the limit.",
+          "message": "従量課金される作業量 `auto` と `max` に対する、実行ごとの任意の上限額。早く終了した実行は上限より少ない費用で済む場合があります。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.YnVkZ2V0.display_name": {
+          "source": "Budget",
+          "message": "予算"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.YnVkZ2V0.short_desc": {
+          "source": "A ceiling on what the run may spend",
+          "message": "この実行で使える金額の上限"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZGF0YVNvdXJjZXM.desc": {
+          "source": "Exa Connect data providers to enable for the run. Each entry enables all of that provider's tools.",
+          "message": "この実行で有効にする Exa Connect のデータプロバイダー。各項目はそのプロバイダーのすべてのツールを有効にします。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZGF0YVNvdXJjZXM.display_name": {
+          "source": "Data Sources",
+          "message": "データソース"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZGF0YVNvdXJjZXM.short_desc": {
+          "source": "Exa Connect providers the run may use",
+          "message": "この実行で使用できる Exa Connect のプロバイダー"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOm1heA.display_name": {
+          "source": "Maximum",
+          "message": "最大"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOm1lZGl1bQ.display_name": {
+          "source": "Medium",
+          "message": "中"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOm1pbmltYWw.display_name": {
+          "source": "Minimal",
+          "message": "最小"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Automatic",
+          "message": "自動"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "High",
+          "message": "高"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "Low",
+          "message": "低"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOnhoaWdo.display_name": {
+          "source": "Very High",
+          "message": "非常に高い"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.desc": {
+          "source": "Cost and reasoning effort preference for the run. `auto` lets Exa choose the appropriate effort. `max` is the highest-effort public beta tier for work where completeness and thoroughness matter more than latency or cost, including large list building, deep multi-source research, and criteria that are hard to verify.",
+          "message": "実行に対するコストと推論作業量の設定。`auto` にすると Exa が適切な作業量を選択します。`max` は一般公開されているベータ版で最も高い段階で、応答時間やコストよりも網羅性と丁寧さが重要な作業（大規模なリスト作成、多数の情報源にわたる詳細な調査、検証が難しい条件など）に適しています。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.display_name": {
+          "source": "Effort",
+          "message": "作業量"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.short_desc": {
+          "source": "How much work the agent puts in, and what it costs",
+          "message": "エージェントがどれだけ作業し、いくらかかるか"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.aW5wdXQ.desc": {
+          "source": "Records to process and records or entities to exclude from the answer.",
+          "message": "処理するレコードと、回答から除外するレコードまたはエンティティ。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "入力"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.aW5wdXQ.short_desc": {
+          "source": "Records to process, and records to leave out of the answer",
+          "message": "処理するレコードと、回答から除くレコード"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "JSON Schema for validated structured output in `output.structured`. Fields unsupported by evidence may be returned as `null`. Supports draft-07, 2019-09, and 2020-12 via `$schema`.",
+          "message": "`output.structured` の検証済み構造化出力用の JSON スキーマ。裏付けとなる根拠がないフィールドは `null` として返される場合があります。`$schema` により draft-07、2019-09、2020-12 をサポートします。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "出力スキーマ"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the answer you want back",
+          "message": "必要な回答を記述した JSON スキーマ"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.bWV0YWRhdGE.desc": {
+          "source": "Caller-provided metadata stored with the run.",
+          "message": "呼び出し側が指定し、実行とともに保存されるメタデータ。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "メタデータ"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.bWV0YWRhdGE.short_desc": {
+          "source": "Caller-provided metadata stored with the run",
+          "message": "呼び出し側が指定し、実行とともに保存されるメタデータ"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.c3lzdGVtUHJvbXB0.desc": {
+          "source": "Additional instructions that guide generated output or agent behavior. Use this for source preferences, novelty constraints, duplication constraints, or other behavior guidance.",
+          "message": "生成される出力やエージェントの動作を導く追加の指示。情報源の優先順位、新しさの条件、重複の制約、その他の動作指示に使用します。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.c3lzdGVtUHJvbXB0.display_name": {
+          "source": "System Prompt",
+          "message": "システムプロンプト"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.c3lzdGVtUHJvbXB0.short_desc": {
+          "source": "Extra instructions that guide the agent",
+          "message": "エージェントを導く追加の指示"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cHJldmlvdXNSdW5JZA.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "エージェント実行 ID。新しい実行 ID は `agent_run_` の接頭辞付きで返されます。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cHJldmlvdXNSdW5JZA.display_name": {
+          "source": "Continue From",
+          "message": "継続元"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cHJldmlvdXNSdW5JZA.short_desc": {
+          "source": "A completed run to carry on from",
+          "message": "作業を引き継ぐ完了済みの実行"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cXVlcnk.desc": {
+          "source": "Natural-language question or instructions for the request.",
+          "message": "リクエストに対する自然言語の質問または指示。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cXVlcnk.display_name": {
+          "source": "Question",
+          "message": "質問"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cXVlcnk.short_desc": {
+          "source": "What to research, in natural language",
+          "message": "調査する内容を自然言語で指定します"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.short_desc": {
+          "source": "Ask the research agent a question and get the run it started",
+          "message": "リサーチエージェントに質問し、開始された実行を返します"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.desc": {
+          "source": "Enqueues many requests to run asynchronously, each dispatched to its own route, with the results made available for download when the batch finishes.\n\nThis is how a large workload is run without one request per item.  Each entry needs a `customId` unique within the batch, which is how its result is identified afterwards.",
+          "message": "多数のリクエストをキューに入れて非同期に実行し、それぞれを本来のルートに振り分けます。バッチが完了すると結果をダウンロードできるようになります。\n\nこれにより、項目ごとに 1 件ずつリクエストを送らずに大量の処理を実行できます。  各項目にはバッチ内で一意の `customId` が必要で、後でその結果を識別するために使われます。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.display_name": {
+          "source": "Create a Batch",
+          "message": "バッチを作成"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "バッチ API に必要なベータトークン。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "バッチ API に必要なベータトークン"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.bWV0YWRhdGE.desc": {
+          "source": "Caller-provided metadata stored with the batch.",
+          "message": "呼び出し側が指定し、バッチとともに保存されるメタデータ。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "メタデータ"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.bWV0YWRhdGE.short_desc": {
+          "source": "Key-value pairs stored with the batch",
+          "message": "バッチとともに保存されるキーと値のペア"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.cmVxdWVzdHM.desc": {
+          "source": "The requests to enqueue. Each `customId` must be unique within the batch.",
+          "message": "キューに入れるリクエスト。各 `customId` はバッチ内で一意である必要があります。"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.cmVxdWVzdHM.display_name": {
+          "source": "Requests",
+          "message": "リクエスト"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.cmVxdWVzdHM.short_desc": {
+          "source": "The requests to enqueue, each with a unique customId",
+          "message": "キューに入れるリクエスト。それぞれに一意の customId が必要です"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.short_desc": {
+          "source": "Run many requests asynchronously in one job",
+          "message": "多数のリクエストを 1 つのジョブで非同期に実行します"
+        },
+        "app.RXhh.action.YW5zd2Vy.desc": {
+          "source": "Searches the web and writes an answer to the question, citing the pages it used.\n\nUse this where **Search** would leave the caller to read the results: it returns the answer itself, with the sources, rather than a list of links.  `model` trades speed against depth, from `exa-fast` to `exa-research`.\n\nSet `outputSchema` to get the answer back as structured JSON rather than prose.",
+          "message": "ウェブを検索し、使用したページを引用しながら質問への回答を作成します。\n\n**検索** では呼び出し側が結果を読む必要がある場面で使用してください。リンクの一覧ではなく、出典付きの回答そのものを返します。  `model` は速度と深さのバランスを決め、`exa-fast` から `exa-research` まであります。\n\n`outputSchema` を設定すると、文章ではなく構造化された JSON として回答を受け取れます。"
+        },
+        "app.RXhh.action.YW5zd2Vy.display_name": {
+          "source": "Answer a Question",
+          "message": "質問に回答"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "A [JSON Schema Draft 7](https://json-schema.org/draft-07) description of the answer you want back, which makes the result structured data rather than prose.",
+          "message": "必要な回答を記述した [JSON Schema Draft 7](https://json-schema.org/draft-07) の定義。これにより結果は文章ではなく構造化データになります。"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "出力スキーマ"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the answer you want back",
+          "message": "必要な回答を記述した JSON スキーマ"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.allowed-value.c3RyaW5nOmV4YQ.display_name": {
+          "source": "Standard",
+          "message": "標準"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.allowed-value.c3RyaW5nOmV4YS1mYXN0.display_name": {
+          "source": "Fast",
+          "message": "高速"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.allowed-value.c3RyaW5nOmV4YS1wcm8.display_name": {
+          "source": "Pro",
+          "message": "Pro"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.allowed-value.c3RyaW5nOmV4YS1yZXNlYXJjaA.display_name": {
+          "source": "Research",
+          "message": "リサーチ"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.desc": {
+          "source": "Which model writes the answer, trading speed against depth.",
+          "message": "どのモデルが回答を作成するかを指定し、速度と深さのバランスを決めます。"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "モデル"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.short_desc": {
+          "source": "Which model writes the answer",
+          "message": "どのモデルが回答を作成するか"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3RyZWFt.desc": {
+          "source": "Return the response as a server-sent event stream.  Leave this off unless the caller consumes SSE: an action returns the whole response.",
+          "message": "レスポンスをサーバー送信イベントのストリームとして返します。  呼び出し側が SSE を処理しない限り、オフのままにしてください。アクションはレスポンス全体を返します。"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3RyZWFt.display_name": {
+          "source": "Stream",
+          "message": "ストリーム"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3RyZWFt.short_desc": {
+          "source": "Return the response as a server-sent event stream",
+          "message": "レスポンスをサーバー送信イベントのストリームとして返します"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3lzdGVtUHJvbXB0.desc": {
+          "source": "Additional instructions that guide generated output or agent behavior. Use this for source preferences, novelty constraints, duplication constraints, or other behavior guidance.",
+          "message": "生成される出力やエージェントの動作を導く追加の指示。情報源の優先順位、新しさの条件、重複の制約、その他の動作指示に使用します。"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3lzdGVtUHJvbXB0.display_name": {
+          "source": "System Prompt",
+          "message": "システムプロンプト"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3lzdGVtUHJvbXB0.short_desc": {
+          "source": "Extra instructions that guide the answer",
+          "message": "回答を導く追加の指示"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.cXVlcnk.desc": {
+          "source": "Natural-language question or instructions for the request.",
+          "message": "リクエストに対する自然言語の質問または指示。"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.cXVlcnk.display_name": {
+          "source": "Question",
+          "message": "質問"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.cXVlcnk.short_desc": {
+          "source": "The question to answer, in natural language",
+          "message": "回答してほしい質問を自然言語で指定します"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dGV4dA.desc": {
+          "source": "If true, returns full page text with default settings. If false, disables text return.",
+          "message": "`True` の場合、既定の設定でページ全文を返します。`False` の場合、テキストの返却を無効にします。"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dGV4dA.display_name": {
+          "source": "Include Page Text",
+          "message": "ページ本文を含める"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dGV4dA.short_desc": {
+          "source": "Return the full text of each cited page",
+          "message": "引用した各ページの全文を返します"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dXNlckxvY2F0aW9u.desc": {
+          "source": "The two-letter ISO country code of the user, e.g. US.",
+          "message": "ユーザーの 2 文字の ISO 国コード（例: US）。"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dXNlckxvY2F0aW9u.display_name": {
+          "source": "User Location",
+          "message": "ユーザーの所在地"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dXNlckxvY2F0aW9u.short_desc": {
+          "source": "Two-letter country code the question is asked from",
+          "message": "質問を行う国の 2 文字の国コード"
+        },
+        "app.RXhh.action.YW5zd2Vy.short_desc": {
+          "source": "Answer a question from the web, with citations",
+          "message": "ウェブに基づいて質問に回答し、出典を示します"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.desc": {
+          "source": "Applies one action - pause, unpause or delete - to every monitor matching a filter.\n\nA filter is required, so a mistyped request cannot act on the whole account.  Set `dry_run` to see which monitors would be affected without changing anything, which is worth doing before a delete.",
+          "message": "フィルターに一致するすべてのモニターに、1 つの操作（一時停止、再開、削除）を適用します。\n\nフィルターは必須で、入力を誤ったリクエストがアカウント全体に影響しないようになっています。  `dry_run` を設定すると、何も変更せずに影響を受けるモニターを確認できます。削除の前には確認しておく価値があります。"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.display_name": {
+          "source": "Act on Several Monitors",
+          "message": "複数のモニターを一括操作"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.allowed-value.c3RyaW5nOmRlbGV0ZQ.display_name": {
+          "source": "Delete permanently",
+          "message": "完全に削除"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.allowed-value.c3RyaW5nOnBhdXNl.display_name": {
+          "source": "Pause",
+          "message": "一時停止"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.allowed-value.c3RyaW5nOnVucGF1c2U.display_name": {
+          "source": "Resume",
+          "message": "再開"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.desc": {
+          "source": "The action to perform on matching monitors. `delete` permanently removes them, `pause` sets their status to paused, and `unpause` sets their status to active.",
+          "message": "一致したモニターに対して実行する操作。`delete` は完全に削除し、`pause` はステータスを一時停止中に、`unpause` はステータスを有効にします。"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.display_name": {
+          "source": "Action",
+          "message": "操作"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.short_desc": {
+          "source": "What to do with the matching monitors",
+          "message": "一致したモニターに対して行うこと"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZHJ5X3J1bg.desc": {
+          "source": "When `true`, returns the monitors that would be affected without performing the action. Defaults to `true`.",
+          "message": "`true` の場合、操作を実行せずに影響を受けるモニターを返します。既定値は `true` です。"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZHJ5X3J1bg.display_name": {
+          "source": "Dry Run",
+          "message": "ドライラン"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZHJ5X3J1bg.short_desc": {
+          "source": "Report what would be affected without doing it",
+          "message": "実行せずに、影響を受ける対象を報告します"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZmlsdGVy.desc": {
+          "source": "At least one filter field must be provided to prevent accidental bulk operations.",
+          "message": "意図しない一括操作を防ぐため、少なくとも 1 つのフィルターフィールドを指定する必要があります。"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZmlsdGVy.display_name": {
+          "source": "Filter",
+          "message": "フィルター"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZmlsdGVy.short_desc": {
+          "source": "Which monitors to act on; at least one field is required",
+          "message": "操作対象のモニター。少なくとも 1 つのフィールドが必要です"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.bGltaXQ.desc": {
+          "source": "Maximum number of monitors to process in a single request. Defaults to 50, maximum 500.",
+          "message": "1 回のリクエストで処理するモニターの最大数。既定値は 50、最大は 500 です。"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.bGltaXQ.display_name": {
+          "source": "Maximum Monitors",
+          "message": "モニターの最大数"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.bGltaXQ.short_desc": {
+          "source": "How many monitors this request may act on",
+          "message": "このリクエストが操作できるモニターの数"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.short_desc": {
+          "source": "Pause, resume or delete every monitor matching a filter",
+          "message": "フィルターに一致するすべてのモニターを一時停止、再開、または削除します"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.desc": {
+          "source": "Returns one search monitor, its schedule and its webhook.",
+          "message": "検索モニターを 1 件、そのスケジュールと Webhook とともに返します。"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.display_name": {
+          "source": "Get a Search Monitor",
+          "message": "検索モニターを取得"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "モニター ID"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "モニター"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.option.aWQ.short_desc": {
+          "source": "The monitor to read",
+          "message": "読み取るモニター"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.short_desc": {
+          "source": "Get one search monitor",
+          "message": "検索モニターを 1 件取得します"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.desc": {
+          "source": "Returns one cycle of a search monitor, including what it found and why it failed if it did.",
+          "message": "検索モニターのサイクルを 1 件、見つけた内容とともに返します。失敗した場合はその理由も含まれます。"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.display_name": {
+          "source": "Get a Search Monitor Run",
+          "message": "検索モニターの実行を取得"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "モニター ID"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "モニター"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.aWQ.short_desc": {
+          "source": "The monitor the run belongs to",
+          "message": "この実行が属するモニター"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.cnVuSWQ.desc": {
+          "source": "The run ID",
+          "message": "実行 ID"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.cnVuSWQ.display_name": {
+          "source": "Run",
+          "message": "実行"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.cnVuSWQ.short_desc": {
+          "source": "The run to read",
+          "message": "読み取る実行"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.short_desc": {
+          "source": "Get one cycle of a search monitor",
+          "message": "検索モニターのサイクルを 1 件取得します"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.desc": {
+          "source": "Returns a research run, including its answer once it has finished.",
+          "message": "リサーチ実行を返します。完了していれば回答も含まれます。"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.display_name": {
+          "source": "Get a Research Run",
+          "message": "リサーチ実行を取得"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "エージェント実行 ID。新しい実行 ID は `agent_run_` の接頭辞付きで返されます。"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "実行"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.option.aWQ.short_desc": {
+          "source": "The run to read",
+          "message": "読み取る実行"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.short_desc": {
+          "source": "Get a research run and its answer",
+          "message": "リサーチ実行とその回答を取得します"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.desc": {
+          "source": "Returns a batch, including how many of its requests have finished and the `resultsUrl` to download them from once it is complete.",
+          "message": "バッチを返します。完了したリクエスト数と、完了後に結果をダウンロードする `resultsUrl` が含まれます。"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.display_name": {
+          "source": "Get a Batch",
+          "message": "バッチを取得"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "バッチ API に必要なベータトークン。"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "バッチ API に必要なベータトークン"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.aWQ.desc": {
+          "source": "Batch ID.",
+          "message": "バッチ ID。"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.aWQ.display_name": {
+          "source": "Batch",
+          "message": "バッチ"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.aWQ.short_desc": {
+          "source": "The batch to read",
+          "message": "読み取るバッチ"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.short_desc": {
+          "source": "Get a batch and where to download its results",
+          "message": "バッチと、その結果のダウンロード先を取得します"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.desc": {
+          "source": "Deletes a search monitor.  Results already delivered to the webhook are unaffected.",
+          "message": "検索モニターを削除します。  すでに Webhook へ配信済みの結果には影響しません。"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.display_name": {
+          "source": "Delete a Search Monitor",
+          "message": "検索モニターを削除"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "モニター ID"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "モニター"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.option.aWQ.short_desc": {
+          "source": "The monitor to delete",
+          "message": "削除するモニター"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.short_desc": {
+          "source": "Delete a search monitor",
+          "message": "検索モニターを削除します"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.desc": {
+          "source": "Deletes a stored research run and its answer.",
+          "message": "保存されたリサーチ実行とその回答を削除します。"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.display_name": {
+          "source": "Delete a Research Run",
+          "message": "リサーチ実行を削除"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "エージェント実行 ID。新しい実行 ID は `agent_run_` の接頭辞付きで返されます。"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "実行"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.option.aWQ.short_desc": {
+          "source": "The run to delete",
+          "message": "削除する実行"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.short_desc": {
+          "source": "Delete a stored research run",
+          "message": "保存されたリサーチ実行を削除します"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.desc": {
+          "source": "Deletes a batch that has reached a terminal status.",
+          "message": "最終状態に達したバッチを削除します。"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.display_name": {
+          "source": "Delete a Batch",
+          "message": "バッチを削除"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "バッチ API に必要なベータトークン。"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "バッチ API に必要なベータトークン"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.aWQ.desc": {
+          "source": "Batch ID.",
+          "message": "バッチ ID。"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.aWQ.display_name": {
+          "source": "Batch",
+          "message": "バッチ"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.aWQ.short_desc": {
+          "source": "The batch to delete",
+          "message": "削除するバッチ"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.short_desc": {
+          "source": "Delete a finished batch",
+          "message": "完了したバッチを削除します"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.desc": {
-          "source": "Finds pages similar to a seed URL via Exa's `/findSimilar` endpoint.",
-          "message": "Exaの `/findSimilar` エンドポイントを介して、シードURLに類似したページを検索します。"
+          "source": "Finds pages similar to the one given, optionally with their contents.\n\n**Exa marks this endpoint deprecated** and recommends **Search** with a query describing the page instead, which gives more control over what \"similar\" means.  The action is kept because flows already call it.",
+          "message": "指定したページに類似したページを検索し、必要に応じてその内容も返します。\n\n**Exa はこのエンドポイントを非推奨としており**、代わりにページを説明するクエリで **検索** を使うことを推奨しています。そのほうが「類似」の意味をより細かく制御できます。  既存のフローが呼び出しているため、このアクションは残されています。"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.display_name": {
-          "source": "Find Similar Pages",
-          "message": "類似ページの検索"
+          "source": "Find Similar Links",
+          "message": "類似リンクを検索"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y29udGVudHM.desc": {
-          "source": "Same as on `/search`; saves a follow-up call to `/contents`.",
-          "message": "`/search` と同様です。`/contents` への後続の呼び出しを省くことができます。"
+          "source": "What to return for each result besides its link: the page `text`, the passages that match a query as `highlights`, or a written `summary`.\n\nAsking here costs one request; fetching the same pages afterwards with **Get Contents** costs two.",
+          "message": "各結果についてリンク以外に返す内容: ページ本文（`text`）、クエリに一致する箇所（`highlights`）、または作成された要約（`summary`）。\n\nここで指定すればリクエストは 1 回で済みますが、同じページを後から **内容を取得** で取得すると 2 回になります。"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y29udGVudHM.display_name": {
-          "source": "Contents Config",
-          "message": "コンテンツ設定"
+          "source": "Contents",
+          "message": "内容"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y29udGVudHM.short_desc": {
-          "source": "Include text/highlights/summary in results",
-          "message": "結果にテキスト/ハイライト/要約を含める"
+          "source": "Return the contents of each result as well as the link",
+          "message": "各結果についてリンクだけでなく内容も返します"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to exclude.",
-          "message": "除外するドメインのリスト。"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOm5ld3M.display_name": {
+          "source": "News",
+          "message": "ニュース"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmNvbXBhbnk.display_name": {
+          "source": "Companies",
+          "message": "企業"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmZpbmFuY2lhbCByZXBvcnQ.display_name": {
+          "source": "Financial Reports",
+          "message": "財務報告書"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnB1YmxpY2F0aW9u.display_name": {
+          "source": "Publications",
+          "message": "学術出版物"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBlb3BsZQ.display_name": {
+          "source": "People",
+          "message": "人物"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBlcnNvbmFsIHNpdGU.display_name": {
+          "source": "Personal Sites",
+          "message": "個人サイト"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.desc": {
+          "source": "A data category to focus on. Known categories include `company`, `publication`, `news`, `personal site`, `financial report`, and `people`. Other strings are accepted and used as category hints for search. The `people` and `company` categories have improved quality for finding people profiles and company pages. The `publication` category surfaces scholarly publications such as research papers, preprints, and journal articles, with structured metadata like authors, venue, and citations. Note: The `company` and `people` categories only support a limited set of filters. The following parameters are NOT supported for these categories: `startPublishedDate`, `endPublishedDate`, `excludeDomains`. Using unsupported parameters will result in a 400 error.",
+          "message": "重点を置くデータカテゴリー。既知のカテゴリーには `company`、`publication`、`news`、`personal site`、`financial report`、`people` があります。それ以外の文字列も受け付けられ、検索のカテゴリーのヒントとして使用されます。`people` と `company` のカテゴリーは、人物のプロフィールや企業ページの検索で品質が向上しています。`publication` カテゴリーは、研究論文、プレプリント、学術誌の記事などの学術出版物を、著者、掲載先、被引用といった構造化メタデータとともに提示します。注意: `company` と `people` のカテゴリーで使用できるフィルターは限られています。これらのカテゴリーでは次のパラメーターはサポートされません: `startPublishedDate`、`endPublishedDate`、`excludeDomains`。サポートされないパラメーターを使用すると 400 エラーになります。"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.display_name": {
+          "source": "Category",
+          "message": "カテゴリー"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.short_desc": {
+          "source": "Narrow the results to one kind of page",
+          "message": "結果を 1 種類のページに絞り込みます"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kQ3Jhd2xEYXRl.desc": {
+          "source": "Deprecated and has no effect; ignored by the API. Must be specified in ISO 8601 format.",
+          "message": "非推奨で効果はありません。API では無視されます。ISO 8601 形式で指定する必要があります。"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kQ3Jhd2xEYXRl.display_name": {
+          "source": "Crawled Before",
+          "message": "クロール日時（以前）"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kQ3Jhd2xEYXRl.short_desc": {
+          "source": "Return only pages Exa crawled on or before this date",
+          "message": "Exa がこの日付以前にクロールしたページのみを返します"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kUHVibGlzaGVkRGF0ZQ.desc": {
+          "source": "Only links with a published date before this will be returned. Must be specified in ISO 8601 format.",
+          "message": "これより前の公開日を持つリンクのみが返されます。ISO 8601 形式で指定する必要があります。"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kUHVibGlzaGVkRGF0ZQ.display_name": {
+          "source": "Published Before",
+          "message": "公開日（以前）"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kUHVibGlzaGVkRGF0ZQ.short_desc": {
+          "source": "Return only pages published on or before this date",
+          "message": "この日付以前に公開されたページのみを返します"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZURvbWFpbnM.desc": {
+          "source": "List of domains or domain paths to exclude from search results. Each entry can be a hostname (for example, `example.com`), a hostname with a path prefix (for example, `example.com/docs`), or a wildcard subdomain (for example, `*.example.com`). If specified, no results will be returned from the matching domains or paths. Use this parameter for domain or path filtering instead of adding a `site:` operator to the query.",
+          "message": "検索結果から除外するドメインまたはドメインパスの一覧。各項目にはホスト名（例: `example.com`）、パス接頭辞付きのホスト名（例: `example.com/docs`）、ワイルドカードのサブドメイン（例: `*.example.com`）を指定できます。指定した場合、一致するドメインまたはパスからは結果が返されません。ドメインやパスによる絞り込みには、クエリに `site:` 演算子を追加するのではなく、このパラメーターを使用してください。"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZURvbWFpbnM.display_name": {
           "source": "Exclude Domains",
-          "message": "除外ドメイン"
+          "message": "除外するドメイン"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
-          "source": "Exclude these domains",
-          "message": "これらのドメインを除外"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZURvbWFpbnM.short_desc": {
+          "source": "Never return results from these domains",
+          "message": "これらのドメインからの結果は返しません"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9zb3VyY2VfZG9tYWlu.desc": {
-          "source": "When `True`, results don't include the seed URL's own domain.",
-          "message": "`True` の場合、シードURL自体のドメインは結果に含まれません。"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZVNvdXJjZURvbWFpbg.desc": {
+          "source": "If true, results from the same domain as the source url are excluded.",
+          "message": "`True` の場合、元の URL と同じドメインの結果は除外されます。"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9zb3VyY2VfZG9tYWlu.display_name": {
-          "source": "Exclude Source Domain",
-          "message": "ソースドメインを除外"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZVNvdXJjZURvbWFpbg.display_name": {
+          "source": "Exclude the Source Domain",
+          "message": "元のドメインを除外"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9zb3VyY2VfZG9tYWlu.short_desc": {
-          "source": "Skip pages from the seed URL's own domain",
-          "message": "シードURL自体のドメインからのページをスキップ"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZVNvdXJjZURvbWFpbg.short_desc": {
+          "source": "Leave out other pages from the same site",
+          "message": "同じサイトの他のページを除きます"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to restrict results to.",
-          "message": "結果を制限するドメインのリスト。"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZURvbWFpbnM.desc": {
+          "source": "List of domains or domain paths to include in the search. Each entry can be a hostname (for example, `example.com`), a hostname with a path prefix (for example, `example.com/docs`), or a wildcard subdomain (for example, `*.example.com`). If specified, results will only come from the matching domains or paths. Use this parameter for domain or path filtering instead of adding a `site:` operator to the query.",
+          "message": "検索対象に含めるドメインまたはドメインパスの一覧。各項目にはホスト名（例: `example.com`）、パス接頭辞付きのホスト名（例: `example.com/docs`）、ワイルドカードのサブドメイン（例: `*.example.com`）を指定できます。指定した場合、結果は一致するドメインまたはパスからのみ返されます。ドメインやパスによる絞り込みには、クエリに `site:` 演算子を追加するのではなく、このパラメーターを使用してください。"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZV9kb21haW5z.display_name": {
-          "source": "Include Domains",
-          "message": "対象ドメイン"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZURvbWFpbnM.display_name": {
+          "source": "Only These Domains",
+          "message": "これらのドメインのみ"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZV9kb21haW5z.short_desc": {
-          "source": "Restrict results to these domains",
-          "message": "結果をこれらのドメインに制限"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZURvbWFpbnM.short_desc": {
+          "source": "Return results only from these domains",
+          "message": "これらのドメインからのみ結果を返します"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtX3Jlc3VsdHM.desc": {
-          "source": "Number of similar pages to return.  Default 10.",
-          "message": "返す類似ページの数。デフォルトは10。"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtUmVzdWx0cw.desc": {
+          "source": "Number of results to return. Limits vary by search type. The maximum public limit is 100 results. Contact sales (hello@exa.ai) to discuss higher limits.",
+          "message": "返す結果の件数。上限は検索の種類によって異なります。一般公開されている上限は 100 件です。より高い上限については営業担当（hello@exa.ai）にお問い合わせください。"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtX3Jlc3VsdHM.display_name": {
-          "source": "Number of Results",
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtUmVzdWx0cw.display_name": {
+          "source": "Result Count",
           "message": "結果件数"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtX3Jlc3VsdHM.short_desc": {
-          "source": "Number of similar results",
-          "message": "類似結果の件数"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtUmVzdWx0cw.short_desc": {
+          "source": "How many results to return",
+          "message": "返す結果の件数"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRDcmF3bERhdGU.desc": {
+          "source": "Deprecated and has no effect; ignored by the API. Must be specified in ISO 8601 format.",
+          "message": "非推奨で効果はありません。API では無視されます。ISO 8601 形式で指定する必要があります。"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRDcmF3bERhdGU.display_name": {
+          "source": "Crawled Since",
+          "message": "クロール日時（以降）"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRDcmF3bERhdGU.short_desc": {
+          "source": "Return only pages Exa crawled on or after this date",
+          "message": "Exa がこの日付以降にクロールしたページのみを返します"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRQdWJsaXNoZWREYXRl.desc": {
+          "source": "Only links with a published date after this will be returned. Must be specified in ISO 8601 format.",
+          "message": "これより後の公開日を持つリンクのみが返されます。ISO 8601 形式で指定する必要があります。"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRQdWJsaXNoZWREYXRl.display_name": {
+          "source": "Published Since",
+          "message": "公開日（以降）"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRQdWJsaXNoZWREYXRl.short_desc": {
+          "source": "Return only pages published on or after this date",
+          "message": "この日付以降に公開されたページのみを返します"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.dXJs.desc": {
-          "source": "Seed URL.",
-          "message": "シードURL。"
+          "source": "The url for which you would like to find similar links.",
+          "message": "類似リンクを検索したい URL。"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.dXJs.display_name": {
-          "source": "Seed URL",
-          "message": "シードURL"
+          "source": "URL",
+          "message": "URL"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.dXJs.short_desc": {
-          "source": "URL to find similar pages for",
-          "message": "類似ページを検索する対象のURL"
+          "source": "The page to find others like",
+          "message": "類似したページを探す対象のページ"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.short_desc": {
-          "source": "Find pages similar to a seed URL using Exa's neural search",
-          "message": "Exa のニューラル検索を使用してシード URL に類似したページを検索"
+          "source": "Find pages similar to a URL",
+          "message": "URL に類似したページを検索します"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.desc": {
+          "source": "Lists the stored events of a research run - the searches it made and the pages it read.  Use it to show how an answer was reached, or to see where a long run is spending its time.",
+          "message": "リサーチ実行の保存済みイベント（実行した検索と読み取ったページ）を一覧表示します。  回答に至った経緯を示したり、長時間の実行がどこに時間を使っているかを確認したりするのに使用します。"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.display_name": {
+          "source": "List Research Run Events",
+          "message": "リサーチ実行のイベント一覧"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL2pzb24.display_name": {
+          "source": "application/json",
+          "message": "application/json"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.allowed-value.c3RyaW5nOnRleHQvZXZlbnQtc3RyZWFt.display_name": {
+          "source": "text/event-stream",
+          "message": "text/event-stream"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.desc": {
+          "source": "Set to `text/event-stream` to receive server-sent events.",
+          "message": "サーバー送信イベントを受け取るには `text/event-stream` を設定します。"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.display_name": {
+          "source": "Accept",
+          "message": "Accept"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.short_desc": {
+          "source": "Set to 'text/event-stream' to receive server-sent events",
+          "message": "サーバー送信イベントを受け取るには「text/event-stream」を設定します"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.TGFzdC1FdmVudC1JRA.desc": {
+          "source": "For SSE replay, return only events after this event ID.",
+          "message": "SSE の再送では、このイベント ID より後のイベントのみを返します。"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.TGFzdC1FdmVudC1JRA.display_name": {
+          "source": "Last Event ID",
+          "message": "最後のイベント ID"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.TGFzdC1FdmVudC1JRA.short_desc": {
+          "source": "For SSE replay, return only events after this event ID",
+          "message": "SSE の再送では、このイベント ID より後のイベントのみを返します"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "前回のレスポンスの `nextCursor`。  この API のすべてのコレクションは同じ方式でページ分割されます。`hasMore` を読み、ここに `nextCursor` を渡すと次のページが得られます。"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "カーソル"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "前回のレスポンスの nextCursor"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "エージェント実行 ID。新しい実行 ID は `agent_run_` の接頭辞付きで返されます。"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "実行"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.aWQ.short_desc": {
+          "source": "The run whose events to list",
+          "message": "イベントを一覧表示する実行"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.bGltaXQ.desc": {
+          "source": "Number of results per page",
+          "message": "1 ページあたりの結果件数"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "ページサイズ"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "1 ページあたりに返す結果の件数"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.short_desc": {
+          "source": "See what the agent did during a run",
+          "message": "実行中にエージェントが何をしたかを確認します"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.desc": {
+          "source": "Lists research runs, newest first.\n\nResults are paged: read `hasMore` and pass `nextCursor` as `cursor` to get the following page.",
+          "message": "リサーチ実行を新しい順に一覧表示します。\n\n結果はページ分割されます。`hasMore` を読み、`nextCursor` を `cursor` として渡すと次のページが得られます。"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.display_name": {
+          "source": "List Research Runs",
+          "message": "リサーチ実行の一覧"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "前回のレスポンスの `nextCursor`。  この API のすべてのコレクションは同じ方式でページ分割されます。`hasMore` を読み、ここに `nextCursor` を渡すと次のページが得られます。"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "カーソル"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "前回のレスポンスの nextCursor"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.bGltaXQ.desc": {
+          "source": "Number of results per page",
+          "message": "1 ページあたりの結果件数"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "ページサイズ"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "1 ページあたりに返す結果の件数"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.short_desc": {
+          "source": "List the research runs for this team",
+          "message": "このチームのリサーチ実行を一覧表示します"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.desc": {
+          "source": "Lists batches, newest first, optionally narrowed to one status.",
+          "message": "バッチを新しい順に一覧表示します。必要に応じて 1 つのステータスに絞り込めます。"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.display_name": {
+          "source": "List Batches",
+          "message": "バッチの一覧"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "バッチ API に必要なベータトークン。"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "バッチ API に必要なベータトークン"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "前回のレスポンスの `nextCursor`。  この API のすべてのコレクションは同じ方式でページ分割されます。`hasMore` を読み、ここに `nextCursor` を渡すと次のページが得られます。"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "カーソル"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "前回のレスポンスの nextCursor"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.bGltaXQ.desc": {
+          "source": "Maximum number of batches to return per page. Defaults to 100 when omitted; there is no upper bound.",
+          "message": "1 ページあたりに返すバッチの最大数。省略した場合の既定値は 100 で、上限はありません。"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "ページサイズ"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "1 ページあたりに返す結果の件数"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.desc": {
+          "source": "Filter the listing to completed batches. `completed` is the only supported value; any other value returns a 400. Completed listings are ordered by expiry and use a distinct cursor, so keep sending `status=completed` on every cursor-paginated request.",
+          "message": "一覧を完了済みバッチに絞り込みます。サポートされる値は `completed` のみで、それ以外の値は 400 を返します。完了済みバッチの一覧は有効期限順で、別のカーソルを使用するため、カーソルでページ分割するリクエストでは常に `status=completed` を送信してください。"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "ステータス"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.short_desc": {
+          "source": "Return only batches in this status",
+          "message": "このステータスのバッチのみを返します"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.short_desc": {
+          "source": "List the batches for this team",
+          "message": "このチームのバッチを一覧表示します"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.desc": {
+          "source": "Lists the cycles a search monitor has run, newest first, with what each one found.",
+          "message": "検索モニターが実行したサイクルを新しい順に、それぞれが見つけた内容とともに一覧表示します。"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.display_name": {
+          "source": "List Search Monitor Runs",
+          "message": "検索モニターの実行一覧"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "前回のレスポンスの `nextCursor`。  この API のすべてのコレクションは同じ方式でページ分割されます。`hasMore` を読み、ここに `nextCursor` を渡すと次のページが得られます。"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "カーソル"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "前回のレスポンスの nextCursor"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "モニター ID"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "モニター"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.aWQ.short_desc": {
+          "source": "The monitor whose runs to list",
+          "message": "実行を一覧表示するモニター"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.bGltaXQ.desc": {
+          "source": "Number of results per page",
+          "message": "1 ページあたりの結果件数"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "ページサイズ"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "1 ページあたりに返す結果の件数"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.short_desc": {
+          "source": "List the cycles a search monitor has run",
+          "message": "検索モニターが実行したサイクルを一覧表示します"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.desc": {
+          "source": "Lists search monitors, optionally narrowed by status, name or metadata.",
+          "message": "検索モニターを一覧表示します。必要に応じてステータス、名前、メタデータで絞り込めます。"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.display_name": {
+          "source": "List Search Monitors",
+          "message": "検索モニターの一覧"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "前回のレスポンスの `nextCursor`。  この API のすべてのコレクションは同じ方式でページ分割されます。`hasMore` を読み、ここに `nextCursor` を渡すと次のページが得られます。"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "カーソル"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "前回のレスポンスの nextCursor"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bGltaXQ.desc": {
+          "source": "Number of results per page",
+          "message": "1 ページあたりの結果件数"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "ページサイズ"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "1 ページあたりに返す結果の件数"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bWV0YWRhdGE.desc": {
+          "source": "Filter monitors by metadata key-value pairs (exact match, AND semantics). Use bracket notation: `metadata[key]=value`.",
+          "message": "メタデータのキーと値のペアでモニターを絞り込みます（完全一致、AND 条件）。角かっこ表記を使用します: `metadata[key]=value`。"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "メタデータ"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bWV0YWRhdGE.short_desc": {
+          "source": "Return only monitors carrying these key-value pairs",
+          "message": "これらのキーと値のペアを持つモニターのみを返します"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bmFtZQ.desc": {
+          "source": "Filter monitors by name (case-insensitive substring match)",
+          "message": "名前でモニターを絞り込みます（大文字と小文字を区別しない部分一致）"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名前"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bmFtZQ.short_desc": {
+          "source": "Return only monitors with this name",
+          "message": "この名前のモニターのみを返します"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
+          "source": "Active",
+          "message": "有効"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.allowed-value.c3RyaW5nOmRpc2FibGVk.display_name": {
+          "source": "Disabled",
+          "message": "無効"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.allowed-value.c3RyaW5nOnBhdXNlZA.display_name": {
+          "source": "Paused",
+          "message": "一時停止中"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.desc": {
+          "source": "Filter monitors by status",
+          "message": "ステータスでモニターを絞り込みます"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "ステータス"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.short_desc": {
+          "source": "Return only monitors in this status",
+          "message": "このステータスのモニターのみを返します"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.short_desc": {
+          "source": "List the search monitors for this team",
+          "message": "このチームの検索モニターを一覧表示します"
         },
         "app.RXhh.action.bWFrZS1hcGktY2FsbA.desc": {
           "source": "Make a custom HTTP / REST API call to **Exa** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
@@ -472,176 +1772,484 @@
           "message": "Exa へのカスタム API 呼び出しを実行"
         },
         "app.RXhh.action.c2VhcmNo.desc": {
-          "source": "Performs a neural, keyword, or auto-routed web search via Exa's `/search` endpoint and returns ranked results with title, url, and optional text content / highlights.",
-          "message": "Exa の `/search` エンドポイント経由でニューラル、キーワード、または自動ルーティングの Web 検索を実行し、タイトル、URL、オプションのテキストコンテンツ/ハイライトを含むランク付けされた結果を返します。"
+          "source": "Searches the web with an Exa prompt-engineered query and returns the results, optionally with the contents of each page.\n\n`type` decides how hard Exa works on the query, from `instant` through to `deep-reasoning`, and is what trades latency and cost against quality.  `category` narrows the search to one kind of page - companies, news, people and so on - which is usually a better filter than adding words to the query.\n\nAsk for `contents` to get the page text back with the results rather than fetching it separately with **Get Contents**.",
+          "message": "Exa が最適化したクエリでウェブを検索し、結果を返します。必要に応じて各ページの内容も併せて返します。\n\n`type` は Exa がクエリにどれだけ力を入れるかを決めるもので、`instant` から `deep-reasoning` まであり、応答時間とコストを品質と引き換えにします。  `category` は検索を 1 種類のページ（企業、ニュース、人物など）に絞り込みます。通常はクエリに単語を追加するよりも有効な絞り込みです。\n\n`contents` を指定すると、**内容を取得** で別途取得しなくても、結果と一緒にページ本文が返ります。"
         },
         "app.RXhh.action.c2VhcmNo.display_name": {
-          "source": "Neural Search",
-          "message": "ニューラル検索"
+          "source": "Search",
+          "message": "検索"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29tcGxpYW5jZQ.allowed-value.c3RyaW5nOmhpcGFh.display_name": {
+          "source": "HIPAA",
+          "message": "HIPAA"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29tcGxpYW5jZQ.desc": {
+          "source": "Enterprise-only compliance mode. Set to `hipaa` for HIPAA mode. Requires cache-only retrieval with supported parameters. See the HIPAA docs for details.",
+          "message": "エンタープライズ専用のコンプライアンスモード。HIPAA モードにするには `hipaa` を設定します。サポートされるパラメーターでのキャッシュのみからの取得が必要です。詳細は HIPAA のドキュメントを参照してください。"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29tcGxpYW5jZQ.display_name": {
+          "source": "Compliance Mode",
+          "message": "コンプライアンスモード"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29tcGxpYW5jZQ.short_desc": {
+          "source": "Run the search under an enterprise compliance mode",
+          "message": "エンタープライズ向けコンプライアンスモードで検索を実行します"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29udGV4dA.desc": {
+          "source": "Deprecated: Use highlights or text instead. Returns page contents as a combined context string.",
+          "message": "非推奨: 代わりにハイライトまたはテキストを使用してください。ページの内容を 1 つにまとめたコンテキスト文字列として返します。"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29udGV4dA.display_name": {
+          "source": "Context",
+          "message": "コンテキスト"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29udGV4dA.short_desc": {
+          "source": "Deprecated: Use highlights or text instead",
+          "message": "非推奨: 代わりにハイライトまたはテキストを使用してください"
         },
         "app.RXhh.action.c2VhcmNo.option.Y29udGVudHM.desc": {
-          "source": "Hash configuring content fetching alongside the search: `{text: True, highlights: {...}, summary: {...}}`.  Saves a follow-up call to `/contents`.",
-          "message": "検索と同時にコンテンツ取得を設定するハッシュ: `{text: True, highlights: {...}, summary: {...}}`。`/contents` への後続の呼び出しを削減できます。"
+          "source": "What to return for each result besides its link: the page `text`, the passages that match a query as `highlights`, or a written `summary`.\n\nAsking here costs one request; fetching the same pages afterwards with **Get Contents** costs two.",
+          "message": "各結果についてリンク以外に返す内容: ページ本文（`text`）、クエリに一致する箇所（`highlights`）、または作成された要約（`summary`）。\n\nここで指定すればリクエストは 1 回で済みますが、同じページを後から **内容を取得** で取得すると 2 回になります。"
         },
         "app.RXhh.action.c2VhcmNo.option.Y29udGVudHM.display_name": {
-          "source": "Contents Config",
-          "message": "コンテンツ設定"
+          "source": "Contents",
+          "message": "内容"
         },
         "app.RXhh.action.c2VhcmNo.option.Y29udGVudHM.short_desc": {
-          "source": "Include text/highlights/summary in results",
-          "message": "結果にテキスト/ハイライト/要約を含める"
+          "source": "Return the contents of each result as well as the link",
+          "message": "各結果についてリンクだけでなく内容も返します"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOm5ld3M.display_name": {
           "source": "News",
           "message": "ニュース"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmNvbXBhbnk.display_name": {
-          "source": "Company",
-          "message": "会社"
+          "source": "Companies",
+          "message": "企業"
         },
-        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmdpdGh1Yg.display_name": {
-          "source": "GitHub",
-          "message": "GitHub"
+        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmZpbmFuY2lhbCByZXBvcnQ.display_name": {
+          "source": "Financial Reports",
+          "message": "財務報告書"
         },
-        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBkZg.display_name": {
-          "source": "PDF",
-          "message": "PDF"
+        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnB1YmxpY2F0aW9u.display_name": {
+          "source": "Publications",
+          "message": "学術出版物"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBlb3BsZQ.display_name": {
+          "source": "People",
+          "message": "人物"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBlcnNvbmFsIHNpdGU.display_name": {
-          "source": "Personal Site",
+          "source": "Personal Sites",
           "message": "個人サイト"
         },
-        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnJlc2VhcmNoIHBhcGVy.display_name": {
-          "source": "Research Paper",
-          "message": "研究論文"
-        },
-        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnR3ZWV0.display_name": {
-          "source": "Tweet",
-          "message": "ツイート"
-        },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.desc": {
-          "source": "Filter results by entity category.",
-          "message": "エンティティカテゴリで結果をフィルタリングします。"
+          "source": "Narrow the search to one kind of page.  Usually a better filter than adding words to the query.",
+          "message": "検索を 1 種類のページに絞り込みます。  通常はクエリに単語を追加するよりも有効な絞り込みです。"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.display_name": {
           "source": "Category",
           "message": "カテゴリ"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.short_desc": {
-          "source": "Result category filter (company, paper, etc.)",
-          "message": "結果カテゴリフィルタ (会社、論文など)"
+          "source": "Narrow the search to one kind of page",
+          "message": "検索を 1 種類のページに絞り込みます"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZW5kX3B1Ymxpc2hlZF9kYXRl.desc": {
-          "source": "Restrict results to pages published on or before this ISO date.",
-          "message": "この ISO 日付以前に公開されたページに結果を制限します。"
+        "app.RXhh.action.c2VhcmNo.option.YWRkaXRpb25hbFF1ZXJpZXM.desc": {
+          "source": "Additional query variations for deep-search variants. Only works with a deep-search type. When provided, these queries are used alongside the main query for broader results.",
+          "message": "詳細検索の各方式向けの追加クエリバリエーション。詳細検索の種類でのみ機能します。指定した場合、これらのクエリは主クエリと併せて使用され、より広い結果が得られます。"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZW5kX3B1Ymxpc2hlZF9kYXRl.display_name": {
-          "source": "End Published Date",
-          "message": "公開終了日"
+        "app.RXhh.action.c2VhcmNo.option.YWRkaXRpb25hbFF1ZXJpZXM.display_name": {
+          "source": "Additional Queries",
+          "message": "追加クエリ"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZW5kX3B1Ymxpc2hlZF9kYXRl.short_desc": {
-          "source": "Only pages published on/before this ISO date",
-          "message": "この ISO 日付以前に公開されたページのみ"
+        "app.RXhh.action.c2VhcmNo.option.YWRkaXRpb25hbFF1ZXJpZXM.short_desc": {
+          "source": "Further queries run alongside the main one",
+          "message": "主クエリと併せて実行される追加のクエリ"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to exclude from results.",
-          "message": "結果から除外するドメインのリスト。"
+        "app.RXhh.action.c2VhcmNo.option.ZW5kQ3Jhd2xEYXRl.desc": {
+          "source": "Deprecated and has no effect; ignored by the API. Must be specified in ISO 8601 format.",
+          "message": "非推奨で効果はありません。API では無視されます。ISO 8601 形式で指定する必要があります。"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+        "app.RXhh.action.c2VhcmNo.option.ZW5kQ3Jhd2xEYXRl.display_name": {
+          "source": "Crawled Before",
+          "message": "クロール日時（以前）"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZW5kQ3Jhd2xEYXRl.short_desc": {
+          "source": "Return only pages Exa crawled on or before this date",
+          "message": "Exa がこの日付以前にクロールしたページのみを返します"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZW5kUHVibGlzaGVkRGF0ZQ.desc": {
+          "source": "Only links with a published date before this will be returned. Must be specified in ISO 8601 format.",
+          "message": "これより前の公開日を持つリンクのみが返されます。ISO 8601 形式で指定する必要があります。"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZW5kUHVibGlzaGVkRGF0ZQ.display_name": {
+          "source": "Published Before",
+          "message": "公開日（以前）"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZW5kUHVibGlzaGVkRGF0ZQ.short_desc": {
+          "source": "Return only pages published on or before this date",
+          "message": "この日付以前に公開されたページのみを返します"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZURvbWFpbnM.desc": {
+          "source": "List of domains or domain paths to exclude from search results. Each entry can be a hostname (for example, `example.com`), a hostname with a path prefix (for example, `example.com/docs`), or a wildcard subdomain (for example, `*.example.com`). If specified, no results will be returned from the matching domains or paths. Use this parameter for domain or path filtering instead of adding a `site:` operator to the query.",
+          "message": "検索結果から除外するドメインまたはドメインパスの一覧。各項目にはホスト名（例: `example.com`）、パス接頭辞付きのホスト名（例: `example.com/docs`）、ワイルドカードのサブドメイン（例: `*.example.com`）を指定できます。指定した場合、一致するドメインまたはパスからは結果が返されません。ドメインやパスによる絞り込みには、クエリに `site:` 演算子を追加するのではなく、このパラメーターを使用してください。"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZURvbWFpbnM.display_name": {
           "source": "Exclude Domains",
-          "message": "除外ドメイン"
+          "message": "除外するドメイン"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
-          "source": "Exclude these domains",
-          "message": "これらのドメインを除外"
+        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZURvbWFpbnM.short_desc": {
+          "source": "Never return results from these domains",
+          "message": "これらのドメインからの結果は返しません"
         },
-        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to restrict results to.",
-          "message": "結果を制限するドメインのリスト。"
+        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZURvbWFpbnM.desc": {
+          "source": "List of domains or domain paths to include in the search. Each entry can be a hostname (for example, `example.com`), a hostname with a path prefix (for example, `example.com/docs`), or a wildcard subdomain (for example, `*.example.com`). If specified, results will only come from the matching domains or paths. Use this parameter for domain or path filtering instead of adding a `site:` operator to the query.",
+          "message": "検索対象に含めるドメインまたはドメインパスの一覧。各項目にはホスト名（例: `example.com`）、パス接頭辞付きのホスト名（例: `example.com/docs`）、ワイルドカードのサブドメイン（例: `*.example.com`）を指定できます。指定した場合、結果は一致するドメインまたはパスからのみ返されます。ドメインやパスによる絞り込みには、クエリに `site:` 演算子を追加するのではなく、このパラメーターを使用してください。"
         },
-        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.display_name": {
-          "source": "Include Domains",
-          "message": "対象ドメイン"
+        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZURvbWFpbnM.display_name": {
+          "source": "Only These Domains",
+          "message": "これらのドメインのみ"
         },
-        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.short_desc": {
-          "source": "Restrict results to these domains",
-          "message": "結果をこれらのドメインに制限"
+        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZURvbWFpbnM.short_desc": {
+          "source": "Return results only from these domains",
+          "message": "これらのドメインからのみ結果を返します"
         },
-        "app.RXhh.action.c2VhcmNo.option.bnVtX3Jlc3VsdHM.desc": {
-          "source": "Number of results.  Default 10.",
-          "message": "結果の件数。デフォルトは 10 です。"
+        "app.RXhh.action.c2VhcmNo.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "JSON schema for synthesized output. Supported root types are \"text\" and \"object\". When provided, the response includes an output object whose content matches this schema. Works with every search type and adds about 2 seconds of synthesis latency on top of the selected search type.",
+          "message": "合成出力用の JSON スキーマ。サポートされるルート型は \"text\" と \"object\" です。指定した場合、レスポンスにはこのスキーマに一致する内容を持つ出力オブジェクトが含まれます。すべての検索種別で機能し、選択した検索種別に対して合成の待ち時間が約 2 秒加わります。"
         },
-        "app.RXhh.action.c2VhcmNo.option.bnVtX3Jlc3VsdHM.display_name": {
-          "source": "Number of Results",
+        "app.RXhh.action.c2VhcmNo.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "出力スキーマ"
+        },
+        "app.RXhh.action.c2VhcmNo.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the answer you want back",
+          "message": "必要な回答を記述した JSON スキーマ"
+        },
+        "app.RXhh.action.c2VhcmNo.option.bW9kZXJhdGlvbg.desc": {
+          "source": "Enable content moderation to filter unsafe content from search results.",
+          "message": "コンテンツモデレーションを有効にし、検索結果から安全でない内容を除外します。"
+        },
+        "app.RXhh.action.c2VhcmNo.option.bW9kZXJhdGlvbg.display_name": {
+          "source": "Moderation",
+          "message": "モデレーション"
+        },
+        "app.RXhh.action.c2VhcmNo.option.bW9kZXJhdGlvbg.short_desc": {
+          "source": "Filter out results Exa considers unsafe",
+          "message": "Exa が安全でないと判断した結果を除外します"
+        },
+        "app.RXhh.action.c2VhcmNo.option.bnVtUmVzdWx0cw.desc": {
+          "source": "Number of results to return. Limits vary by search type. The maximum public limit is 100 results. Contact sales (hello@exa.ai) to discuss higher limits.",
+          "message": "返す結果の件数。上限は検索の種類によって異なります。一般公開されている上限は 100 件です。より高い上限については営業担当（hello@exa.ai）にお問い合わせください。"
+        },
+        "app.RXhh.action.c2VhcmNo.option.bnVtUmVzdWx0cw.display_name": {
+          "source": "Result Count",
           "message": "結果件数"
         },
-        "app.RXhh.action.c2VhcmNo.option.bnVtX3Jlc3VsdHM.short_desc": {
-          "source": "Number of results to return",
-          "message": "返す検索結果の件数"
+        "app.RXhh.action.c2VhcmNo.option.bnVtUmVzdWx0cw.short_desc": {
+          "source": "How many results to return",
+          "message": "返す結果の件数"
         },
-        "app.RXhh.action.c2VhcmNo.option.c3RhcnRfcHVibGlzaGVkX2RhdGU.desc": {
-          "source": "Restrict results to pages published on or after this ISO date.",
-          "message": "この ISO 日付以降に公開されたページに結果を制限します。"
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRDcmF3bERhdGU.desc": {
+          "source": "Deprecated and has no effect; ignored by the API. Must be specified in ISO 8601 format.",
+          "message": "非推奨で効果はありません。API では無視されます。ISO 8601 形式で指定する必要があります。"
         },
-        "app.RXhh.action.c2VhcmNo.option.c3RhcnRfcHVibGlzaGVkX2RhdGU.display_name": {
-          "source": "Start Published Date",
-          "message": "公開開始日"
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRDcmF3bERhdGU.display_name": {
+          "source": "Crawled Since",
+          "message": "クロール日時（以降）"
         },
-        "app.RXhh.action.c2VhcmNo.option.c3RhcnRfcHVibGlzaGVkX2RhdGU.short_desc": {
-          "source": "Only pages published on/after this ISO date",
-          "message": "この ISO 日付以降に公開されたページのみ"
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRDcmF3bERhdGU.short_desc": {
+          "source": "Return only pages Exa crawled on or after this date",
+          "message": "Exa がこの日付以降にクロールしたページのみを返します"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRQdWJsaXNoZWREYXRl.desc": {
+          "source": "Only links with a published date after this will be returned. Must be specified in ISO 8601 format.",
+          "message": "これより後の公開日を持つリンクのみが返されます。ISO 8601 形式で指定する必要があります。"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRQdWJsaXNoZWREYXRl.display_name": {
+          "source": "Published Since",
+          "message": "公開日（以降）"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRQdWJsaXNoZWREYXRl.short_desc": {
+          "source": "Return only pages published on or after this date",
+          "message": "この日付以降に公開されたページのみを返します"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RyZWFt.desc": {
+          "source": "Return the response as a server-sent event stream.  Leave this off unless the caller consumes SSE: an action returns the whole response.",
+          "message": "レスポンスをサーバー送信イベントのストリームとして返します。  呼び出し側が SSE を処理しない限り、オフのままにしてください。アクションはレスポンス全体を返します。"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RyZWFt.display_name": {
+          "source": "Stream",
+          "message": "ストリーム"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RyZWFt.short_desc": {
+          "source": "Return the response as a server-sent event stream",
+          "message": "レスポンスをサーバー送信イベントのストリームとして返します"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3lzdGVtUHJvbXB0.desc": {
+          "source": "Additional instructions that guide generated output or agent behavior. Use this for source preferences, novelty constraints, duplication constraints, or other behavior guidance.",
+          "message": "生成される出力やエージェントの動作を導く追加の指示。情報源の優先順位、新しさの条件、重複の制約、その他の動作指示に使用します。"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3lzdGVtUHJvbXB0.display_name": {
+          "source": "System Prompt",
+          "message": "システムプロンプト"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3lzdGVtUHJvbXB0.short_desc": {
+          "source": "Extra instructions that guide the search",
+          "message": "検索を導く追加の指示"
         },
         "app.RXhh.action.c2VhcmNo.option.cXVlcnk.desc": {
-          "source": "The search query in natural language.",
-          "message": "自然言語での検索クエリ。"
+          "source": "The query string for the search.",
+          "message": "検索に使用するクエリ文字列。"
         },
         "app.RXhh.action.c2VhcmNo.option.cXVlcnk.display_name": {
           "source": "Query",
           "message": "クエリ"
         },
         "app.RXhh.action.c2VhcmNo.option.cXVlcnk.short_desc": {
-          "source": "Search query (natural language)",
-          "message": "検索クエリ (自然言語)"
-        },
-        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOm5ldXJhbA.display_name": {
-          "source": "Neural",
-          "message": "ニューラル"
+          "source": "What to search for, in natural language",
+          "message": "検索する内容を自然言語で指定します"
         },
         "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmF1dG8.display_name": {
-          "source": "Auto",
+          "source": "Automatic",
           "message": "自動"
         },
-        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmtleXdvcmQ.display_name": {
-          "source": "Keyword",
-          "message": "キーワード"
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmRlZXA.display_name": {
+          "source": "Deep",
+          "message": "詳細"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmRlZXAtbGl0ZQ.display_name": {
+          "source": "Deep (Lite)",
+          "message": "詳細（軽量）"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmRlZXAtcmVhc29uaW5n.display_name": {
+          "source": "Deep with Reasoning",
+          "message": "詳細（推論あり）"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "高速"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmluc3RhbnQ.display_name": {
+          "source": "Instant",
+          "message": "即時"
         },
         "app.RXhh.action.c2VhcmNo.option.dHlwZQ.desc": {
-          "source": "Search type.  `neural` uses embeddings; `keyword` is traditional; `auto` routes between them.",
-          "message": "検索タイプ。`neural` は埋め込みを使用し、`keyword` は従来型、`auto` はそれらの間をルーティングします。"
+          "source": "How hard Exa works on the query, trading latency and cost against quality.  `auto` lets Exa choose.",
+          "message": "Exa がクエリにどれだけ力を入れるかを指定し、応答時間とコストを品質と引き換えにします。  `auto` にすると Exa が選択します。"
         },
         "app.RXhh.action.c2VhcmNo.option.dHlwZQ.display_name": {
-          "source": "Search Type",
-          "message": "検索タイプ"
+          "source": "Search Depth",
+          "message": "検索の深さ"
         },
         "app.RXhh.action.c2VhcmNo.option.dHlwZQ.short_desc": {
-          "source": "neural / keyword / auto",
-          "message": "ニューラル / キーワード / 自動"
+          "source": "How hard Exa works on the query",
+          "message": "Exa がクエリにどれだけ力を入れるか"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dXNlckxvY2F0aW9u.desc": {
+          "source": "The two-letter ISO country code of the user, e.g. US.",
+          "message": "ユーザーの 2 文字の ISO 国コード（例: US）。"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dXNlckxvY2F0aW9u.display_name": {
+          "source": "User Location",
+          "message": "ユーザーの所在地"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dXNlckxvY2F0aW9u.short_desc": {
+          "source": "Two-letter country code the search is made from",
+          "message": "検索を行う国の 2 文字の国コード"
         },
         "app.RXhh.action.c2VhcmNo.short_desc": {
-          "source": "Neural / keyword / auto web search via Exa",
-          "message": "Exa を使用したニューラル / キーワード / 自動 Web 検索"
+          "source": "Search the web and optionally return page contents",
+          "message": "ウェブを検索し、必要に応じてページの内容も返します"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.desc": {
+          "source": "Ends a running research run early and returns what the agent has gathered so far - the difference from **Cancel a Research Run**, which discards it.\n\nExa supports this only for `max` effort runs.",
+          "message": "実行中のリサーチ実行を早めに終了し、エージェントがそれまでに集めた内容を返します。破棄する **リサーチ実行をキャンセル** との違いはここにあります。\n\nExa がこれをサポートするのは作業量 `max` の実行のみです。"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.display_name": {
+          "source": "Stop a Research Run",
+          "message": "リサーチ実行を終了"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.RXhhLUJldGE.desc": {
+          "source": "Comma-separated beta feature tokens for opting into experimental features.",
+          "message": "試験的機能を有効にするための、カンマ区切りのベータ機能トークン。"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.RXhhLUJldGE.short_desc": {
+          "source": "Comma-separated beta feature tokens for opting into experimental features",
+          "message": "試験的機能を有効にするための、カンマ区切りのベータ機能トークン"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "エージェント実行 ID。新しい実行 ID は `agent_run_` の接頭辞付きで返されます。"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "実行"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.aWQ.short_desc": {
+          "source": "The run to stop",
+          "message": "終了する実行"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.short_desc": {
+          "source": "End a research run early but keep its results",
+          "message": "リサーチ実行を早めに終了し、結果は残します"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.desc": {
+          "source": "Runs a search monitor immediately rather than waiting for its next scheduled cycle.  New results are delivered to its webhook as usual.",
+          "message": "次の予定サイクルを待たずに、検索モニターをすぐに実行します。  新しい結果は通常どおりその Webhook へ配信されます。"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.display_name": {
+          "source": "Run a Search Monitor Now",
+          "message": "検索モニターをすぐに実行"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "モニター ID"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "モニター"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.option.aWQ.short_desc": {
+          "source": "The monitor to run",
+          "message": "実行するモニター"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.short_desc": {
+          "source": "Run a monitor immediately, whatever its schedule says",
+          "message": "スケジュールにかかわらず、モニターをすぐに実行します"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.desc": {
+          "source": "Updates a search monitor.  Use `status` to pause it without deleting it: a paused monitor keeps its definition and stops running.  Omit a field to leave it unchanged.",
+          "message": "検索モニターを更新します。  削除せずに一時停止するには `status` を使用します。一時停止中のモニターは定義を保持したまま実行を停止します。  変更しないフィールドは省略してください。"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.display_name": {
+          "source": "Update a Search Monitor",
+          "message": "検索モニターを更新"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "モニター ID"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "モニター"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.aWQ.short_desc": {
+          "source": "The monitor to update",
+          "message": "更新するモニター"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "Controls the format of the run output. Defaults to `{ \"type\": \"text\" }` if not specified. When `type` is `\"text\"`, the output is a plain text summary. When `type` is `\"object\"`, the output is structured JSON. If no `properties` are specified with `\"object\"` type, a schema is inferred automatically; otherwise the output adheres to the provided schema.",
+          "message": "実行出力の形式を制御します。指定しない場合の既定値は `{ \"type\": \"text\" }` です。`type` が `\"text\"` の場合、出力はプレーンテキストの要約になります。`type` が `\"object\"` の場合、出力は構造化された JSON になります。`\"object\"` 型で `properties` を指定しない場合はスキーマが自動的に推論され、指定した場合は出力がそのスキーマに従います。"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "出力スキーマ"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the results you want delivered",
+          "message": "配信してほしい結果を記述した JSON スキーマ"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bWV0YWRhdGE.desc": {
+          "source": "Update metadata. Set to null to remove. Echoed back in webhook deliveries so you can route updates to systems like Slack.",
+          "message": "メタデータを更新します。null に設定すると削除されます。Webhook の配信でそのまま返されるため、Slack などのシステムに更新を振り分けられます。"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "メタデータ"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bWV0YWRhdGE.short_desc": {
+          "source": "Metadata to store; set to null to remove it",
+          "message": "保存するメタデータ。null に設定すると削除されます"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bmFtZQ.desc": {
+          "source": "Update the monitor name",
+          "message": "モニターの名前を更新します"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名前"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bmFtZQ.short_desc": {
+          "source": "A new name for the monitor",
+          "message": "モニターの新しい名前"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c2VhcmNo.desc": {
+          "source": "Partial search params to merge. All fields are optional for updates.",
+          "message": "統合する部分的な検索パラメーター。更新ではすべてのフィールドが任意です。"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c2VhcmNo.display_name": {
+          "source": "Search",
+          "message": "検索"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c2VhcmNo.short_desc": {
+          "source": "Search settings to merge into the monitor",
+          "message": "モニターに統合する検索設定"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
+          "source": "Active",
+          "message": "有効"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.allowed-value.c3RyaW5nOnBhdXNlZA.display_name": {
+          "source": "Paused",
+          "message": "一時停止中"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.desc": {
+          "source": "Update the monitor status (can only set to `active` or `paused`)",
+          "message": "モニターのステータスを更新します（設定できるのは `active` または `paused` のみ）"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "ステータス"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.short_desc": {
+          "source": "Pause the monitor or start it running again",
+          "message": "モニターを一時停止するか、再び実行を開始します"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.d2ViaG9vaw.desc": {
+          "source": "Partial webhook params to merge. All fields are optional for updates.",
+          "message": "統合する部分的な Webhook パラメーター。更新ではすべてのフィールドが任意です。"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.d2ViaG9vaw.display_name": {
+          "source": "Webhook",
+          "message": "Webhook"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.d2ViaG9vaw.short_desc": {
+          "source": "Webhook settings to merge into the monitor",
+          "message": "モニターに統合する Webhook 設定"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.dHJpZ2dlcg.desc": {
+          "source": "Update the schedule. Set to null to remove the schedule.",
+          "message": "スケジュールを更新します。null に設定するとスケジュールが削除されます。"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.dHJpZ2dlcg.display_name": {
+          "source": "Schedule",
+          "message": "スケジュール"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.dHJpZ2dlcg.short_desc": {
+          "source": "A new schedule; set to null to remove it",
+          "message": "新しいスケジュール。null に設定すると削除されます"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.short_desc": {
+          "source": "Change a monitor's search, schedule or status",
+          "message": "モニターの検索、スケジュール、ステータスを変更します"
         },
         "app.RXhh.desc": {
-          "source": "Provides access to [Exa](https://exa.ai) (formerly Metaphor) — a neural web-search API that complements keyword search with embedding-based semantic retrieval.\n\n**Common use cases**:\n- **Semantic search** where keyword matching fails (e.g. \"companies similar to X\", \"papers about Y\")\n- **Discovery** via `find-similar` from a known seed URL\n- **Agent tools**: register `exa_search` / `exa_find_similar` / `exa_contents` as tools an LLM can invoke (see @ref exarestclientintro \"ExaRestClient\" docs)",
-          "message": "[Exa](https://exa.ai) (旧 Metaphor) へのアクセスを提供します。Exa は埋め込みベースのセマンティック検索でキーワード検索を補完するニューラル Web 検索 API です。\n\n**主なユースケース**:\n- キーワードマッチングではヒットしない場合の**セマンティック検索** (例: \"X に類似した企業\"、\"Y に関する論文\")\n- 既知のシード URL からの `find-similar` による**ディスカバリー**\n- **エージェントツール**: LLM が呼び出し可能なツールとして `exa_search` / `exa_find_similar` / `exa_contents` を登録 (@ref exarestclientintro \"ExaRestClient\" ドキュメントを参照)"
+          "source": "Provides access to [Exa](https://exa.ai) (formerly Metaphor) — a search API built for programs rather than for people: the query is meaning, not keywords, and the result can be the answer itself rather than a list of links.\n\n**What it covers**:\n- **Search** the web semantically, with the page contents returned alongside the results\n- **Answer a question** from the web, with the sources cited\n- **Research runs**: an agent that searches, reads and reasons until it can answer, returning prose or data shaped by a JSON schema you supply\n- **Batches**: run a large workload asynchronously in one job rather than one request per item\n- **Search monitors**: re-run a search on a schedule and have only what is new delivered to a webhook, de-duplicated — a query becomes a feed\n\n**Where this earns its place**: keyword search cannot express \"companies like this one\" or \"papers arguing the opposite\", and a team that needs an answer rather than ten tabs ends up writing the reading step itself.  Exa does both, and the monitors turn the same query into an ongoing feed without a polling loop or a de-duplication table to maintain.",
+          "message": "[Exa](https://exa.ai)（旧 Metaphor）へのアクセスを提供します。人ではなくプログラムのために作られた検索 API で、クエリはキーワードではなく意味であり、結果はリンクの一覧ではなく回答そのものにもなります。\n\n**対応範囲**:\n- **検索**: ウェブを意味で検索し、結果と併せてページの内容も返します\n- **質問への回答**: ウェブに基づいて回答し、出典を示します\n- **リサーチ実行**: 回答できるようになるまで検索・読解・推論を続けるエージェント。文章のほか、指定した JSON スキーマの形に沿ったデータも返します\n- **バッチ**: 項目ごとに 1 件ずつ要求を送るのではなく、大量の処理を 1 つのジョブで非同期に実行します\n- **検索モニター**: 検索をスケジュールに従って再実行し、重複を除いた新着分だけを Webhook に配信します。クエリがそのままフィードになります\n\n**役立つ場面**: キーワード検索では「この会社に似た企業」や「反対の主張をしている論文」を表現できず、10 個のタブではなく答えが必要なチームは結局、読む工程を自分で書くことになります。Exa はその両方を行い、モニターは同じクエリを継続的なフィードに変えます。ポーリングのループも、維持すべき重複除去テーブルも必要ありません。"
         },
         "app.RXhh.display_name": {
           "source": "Exa",
           "message": "Exa"
         },
         "app.RXhh.short_desc": {
-          "source": "Exa (Metaphor) neural web search for semantic retrieval",
-          "message": "セマンティック検索向け Exa (Metaphor) ニューラル Web 検索"
+          "source": "Exa neural web search, research agents, batches and search monitors",
+          "message": "Exa: ニューラルウェブ検索、リサーチエージェント、バッチ、検索モニター"
         }
       }
     }

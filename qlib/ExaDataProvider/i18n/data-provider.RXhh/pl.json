@@ -4,148 +4,1448 @@
     "pl": {
       "messages": {
         "app.RXhh.action.Y29udGVudHM.desc": {
-          "source": "Fetches text content, highlight extracts, and AI-summarized snippets for one or more URLs via Exa's `/contents` endpoint.",
-          "message": "Pobiera treść tekstową, fragmenty wyróżnień oraz podsumowania wygenerowane przez AI dla co najmniej jednego adresu URL za pośrednictwem punktu końcowego `/contents` usługi Exa."
+          "source": "Fetches the contents of pages Exa already knows about: their text, the passages that match a query, or a written summary.\n\nGive the pages as `urls`, or as the `ids` a search returned - one or the other, not both.\n\n`livecrawl` decides whether Exa serves the page from its cache or fetches it now, which is the trade between speed and freshness.",
+          "message": "Pobiera zawartość stron, które Exa już zna: ich tekst, fragmenty pasujące do zapytania lub napisane streszczenie.\n\nPodaj strony jako `urls` albo jako `ids` zwrócone przez wyszukiwanie - jedno albo drugie, nie oba naraz.\n\n`livecrawl` decyduje, czy Exa poda stronę z pamięci podręcznej, czy pobierze ją teraz, co stanowi kompromis między szybkością a aktualnością."
         },
         "app.RXhh.action.Y29udGVudHM.display_name": {
-          "source": "Fetch Page Contents",
-          "message": "Pobierz zawartość stron"
+          "source": "Get Contents",
+          "message": "Pobierz zawartość"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29tcGxpYW5jZQ.allowed-value.c3RyaW5nOmhpcGFh.display_name": {
+          "source": "HIPAA",
+          "message": "HIPAA"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29tcGxpYW5jZQ.desc": {
+          "source": "Enterprise-only compliance mode. Set to `hipaa` for HIPAA mode. Requires cache-only retrieval with supported parameters. See the HIPAA docs for details.",
+          "message": "Tryb zgodności wyłącznie dla firm. Ustaw `hipaa`, aby włączyć tryb HIPAA. Wymaga pobierania wyłącznie z pamięci podręcznej z obsługiwanymi parametrami. Szczegóły znajdziesz w dokumentacji HIPAA."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29tcGxpYW5jZQ.display_name": {
+          "source": "Compliance Mode",
+          "message": "Tryb zgodności"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29tcGxpYW5jZQ.short_desc": {
+          "source": "Fetch under an enterprise compliance mode",
+          "message": "Pobierz w firmowym trybie zgodności"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29udGV4dA.desc": {
+          "source": "Deprecated: Use highlights or text instead. Returns page contents as a combined context string.",
+          "message": "Przestarzałe: użyj zamiast tego wyróżnionych fragmentów lub tekstu. Zwraca zawartość stron jako jeden połączony ciąg kontekstu."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29udGV4dA.display_name": {
+          "source": "Context",
+          "message": "Kontekst"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.Y29udGV4dA.short_desc": {
+          "source": "Deprecated: Use highlights or text instead",
+          "message": "Przestarzałe: użyj zamiast tego wyróżnionych fragmentów lub tekstu"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.ZXh0cmFz.desc": {
+          "source": "Extra parameters to pass.",
+          "message": "Dodatkowe parametry do przekazania."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.ZXh0cmFz.display_name": {
+          "source": "Extras",
+          "message": "Dodatki"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.ZXh0cmFz.short_desc": {
+          "source": "Extra content to return, such as links and images",
+          "message": "Dodatkowa zawartość do zwrócenia, na przykład odnośniki i obrazy"
         },
         "app.RXhh.action.Y29udGVudHM.option.aGlnaGxpZ2h0cw.desc": {
-          "source": "Highlight options: `{num_sentences, highlights_per_url, query}`.",
-          "message": "Opcje wyróżnień: `{num_sentences, highlights_per_url, query}`."
+          "source": "Text snippets the LLM identifies as most relevant from each page.",
+          "message": "Fragmenty tekstu, które model LLM uznaje za najbardziej istotne na każdej stronie."
         },
         "app.RXhh.action.Y29udGVudHM.option.aGlnaGxpZ2h0cw.display_name": {
           "source": "Highlights",
           "message": "Wyróżnienia"
         },
         "app.RXhh.action.Y29udGVudHM.option.aGlnaGxpZ2h0cw.short_desc": {
-          "source": "Highlight configuration hash",
-          "message": "Hash konfiguracji wyróżnień"
+          "source": "Return the passages that match a query",
+          "message": "Zwróć fragmenty pasujące do zapytania"
         },
         "app.RXhh.action.Y29udGVudHM.option.aWRz.desc": {
-          "source": "Result IDs from a prior search (or absolute URLs).",
-          "message": "Identyfikatory wyników z wcześniejszego wyszukiwania (lub bezwzględne adresy URL)."
+          "source": "Document IDs returned by a search.  Supply these or `urls`, not both.",
+          "message": "Identyfikatory dokumentów zwrócone przez wyszukiwanie.  Podaj te albo `urls`, nie oba naraz."
         },
         "app.RXhh.action.Y29udGVudHM.option.aWRz.display_name": {
-          "source": "IDs",
-          "message": "Identyfikatory"
+          "source": "Document IDs",
+          "message": "Identyfikatory dokumentów"
         },
         "app.RXhh.action.Y29udGVudHM.option.aWRz.short_desc": {
-          "source": "List of Exa result IDs (or URLs)",
-          "message": "Lista identyfikatorów wyników Exa (lub adresów URL)"
+          "source": "Document IDs returned by a search",
+          "message": "Identyfikatory dokumentów zwrócone przez wyszukiwanie"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.allowed-value.c3RyaW5nOm5ldmVy.display_name": {
+          "source": "Never (cache only)",
+          "message": "Nigdy (tylko pamięć podręczna)"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.allowed-value.c3RyaW5nOmFsd2F5cw.display_name": {
+          "source": "Always crawl",
+          "message": "Zawsze indeksuj"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.allowed-value.c3RyaW5nOmZhbGxiYWNr.display_name": {
+          "source": "Only if not cached",
+          "message": "Tylko jeśli nie ma w pamięci podręcznej"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.allowed-value.c3RyaW5nOnByZWZlcnJlZA.display_name": {
+          "source": "Prefer a fresh crawl",
+          "message": "Preferuj świeże indeksowanie"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.desc": {
+          "source": "Whether to fetch the page now or serve it from Exa's cache - the trade between speed and freshness.",
+          "message": "Czy pobrać stronę teraz, czy podać ją z pamięci podręcznej Exa - kompromis między szybkością a aktualnością."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.display_name": {
+          "source": "Live Crawl",
+          "message": "Indeksowanie na żywo"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXds.short_desc": {
+          "source": "Whether to fetch the page now or serve it from cache",
+          "message": "Czy pobrać stronę teraz, czy podać ją z pamięci podręcznej"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXdsVGltZW91dA.desc": {
+          "source": "The timeout for livecrawling in milliseconds.",
+          "message": "Limit czasu indeksowania na żywo w milisekundach."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXdsVGltZW91dA.display_name": {
+          "source": "Live Crawl Timeout",
+          "message": "Limit czasu indeksowania na żywo"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bGl2ZWNyYXdsVGltZW91dA.short_desc": {
+          "source": "How long to wait for a live crawl, in milliseconds",
+          "message": "Jak długo czekać na indeksowanie na żywo, w milisekundach"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bWF4QWdlSG91cnM.desc": {
+          "source": "Maximum age of cached content in hours. Positive values use cached content if it is less than this many hours old; 0 fetches fresh content and is the supported way to apply text rendering options to newly fetched pages; -1 always uses cache; omitted uses fallback fetching when cached content is unavailable. Maximum supported value is 720 hours.",
+          "message": "Maksymalny wiek zawartości w pamięci podręcznej, w godzinach. Wartości dodatnie używają zawartości z pamięci podręcznej, jeśli jest młodsza niż podana liczba godzin; 0 pobiera świeżą zawartość i jest obsługiwanym sposobem zastosowania opcji renderowania tekstu do nowo pobranych stron; -1 zawsze korzysta z pamięci podręcznej; pominięcie wartości powoduje użycie pobierania zastępczego, gdy zawartość w pamięci podręcznej jest niedostępna. Najwyższa obsługiwana wartość to 720 godzin."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bWF4QWdlSG91cnM.display_name": {
+          "source": "Maximum Age",
+          "message": "Maksymalny wiek"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.bWF4QWdlSG91cnM.short_desc": {
+          "source": "Re-crawl a cached page older than this many hours",
+          "message": "Zindeksuj ponownie stronę z pamięci podręcznej starszą niż tyle godzin"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZVRhcmdldA.desc": {
+          "source": "Term to find specific subpages of search results. Can be a single string or an array of strings.",
+          "message": "Wyrażenie służące do znalezienia konkretnych podstron wyników wyszukiwania. Może być pojedynczym ciągiem lub tablicą ciągów."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZVRhcmdldA.display_name": {
+          "source": "Subpage Target",
+          "message": "Cel podstron"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZVRhcmdldA.short_desc": {
+          "source": "Which subpages to fetch, by keyword",
+          "message": "Które podstrony pobrać, według słowa kluczowego"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZXM.desc": {
+          "source": "The number of subpages to crawl. The actual number crawled may be limited by system constraints.",
+          "message": "Liczba podstron do zindeksowania. Rzeczywista liczba zindeksowanych podstron może być ograniczona przez limity systemowe."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZXM.display_name": {
+          "source": "Subpages",
+          "message": "Podstrony"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.c3VicGFnZXM.short_desc": {
+          "source": "How many linked subpages to fetch as well",
+          "message": "Ile powiązanych podstron zostanie pobranych dodatkowo"
         },
         "app.RXhh.action.Y29udGVudHM.option.c3VtbWFyeQ.desc": {
-          "source": "Summary options: `{query}` to drive a guided summary.",
-          "message": "Opcje podsumowania: `{query}` do wygenerowania ukierunkowanego podsumowania."
+          "source": "Summary of the webpage.",
+          "message": "Streszczenie strony internetowej."
         },
         "app.RXhh.action.Y29udGVudHM.option.c3VtbWFyeQ.display_name": {
           "source": "Summary",
           "message": "Podsumowanie"
         },
         "app.RXhh.action.Y29udGVudHM.option.c3VtbWFyeQ.short_desc": {
-          "source": "Summary configuration hash",
-          "message": "Hash konfiguracji podsumowania"
+          "source": "Return a written summary of each page",
+          "message": "Zwróć napisane streszczenie każdej strony"
         },
         "app.RXhh.action.Y29udGVudHM.option.dGV4dA.desc": {
-          "source": "When `True`, results include the full text content of each page.",
-          "message": "Gdy `True`, wyniki zawierają pełną treść tekstową każdej strony."
+          "source": "Text extraction options for each result.",
+          "message": "Opcje wydobywania tekstu dla każdego wyniku."
         },
         "app.RXhh.action.Y29udGVudHM.option.dGV4dA.display_name": {
           "source": "Text",
           "message": "Tekst"
         },
         "app.RXhh.action.Y29udGVudHM.option.dGV4dA.short_desc": {
-          "source": "Include full text content",
-          "message": "Uwzględnij pełną treść tekstową"
+          "source": "Return the page text",
+          "message": "Zwróć tekst strony"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.dXJscw.desc": {
+          "source": "The pages to fetch.  Supply these or `ids`, not both.",
+          "message": "Strony do pobrania.  Podaj te albo `ids`, nie oba naraz."
+        },
+        "app.RXhh.action.Y29udGVudHM.option.dXJscw.display_name": {
+          "source": "URLs",
+          "message": "URLs"
+        },
+        "app.RXhh.action.Y29udGVudHM.option.dXJscw.short_desc": {
+          "source": "The pages to fetch",
+          "message": "Strony do pobrania"
         },
         "app.RXhh.action.Y29udGVudHM.short_desc": {
-          "source": "Fetch text / highlights / summaries for URLs",
-          "message": "Pobierz tekst / wyróżnienia / podsumowania dla adresów URL"
+          "source": "Fetch the text, highlights or a summary of pages",
+          "message": "Pobiera tekst, wyróżnione fragmenty lub streszczenie stron"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.desc": {
+          "source": "Cancels a queued or running research run without returning results.  Usage accrued before the cancellation is still billed.\n\nUse **Stop a Research Run** instead to keep what the agent has found so far.",
+          "message": "Anuluje oczekujący lub trwający przebieg badawczy bez zwracania wyników.  Zużycie naliczone przed anulowaniem jest mimo to rozliczane.\n\nAby zachować to, co agent zdążył znaleźć, użyj zamiast tego akcji **Zakończ przebieg badawczy**."
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.display_name": {
+          "source": "Cancel a Research Run",
+          "message": "Anuluj przebieg badawczy"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "Identyfikator przebiegu agenta. Nowe identyfikatory przebiegów są zwracane z przedrostkiem `agent_run_`."
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "Przebieg"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.option.aWQ.short_desc": {
+          "source": "The run to cancel",
+          "message": "Przebieg do anulowania"
+        },
+        "app.RXhh.action.Y2FuY2VsLWFnZW50LXJ1bg.short_desc": {
+          "source": "Stop a research run and discard its results",
+          "message": "Zatrzymuje przebieg badawczy i odrzuca jego wyniki"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.desc": {
+          "source": "Asks a batch to stop.  It schedules no further requests, lets the work already in flight finish, and then settles as cancelled; requests that already completed keep their results.\n\nA batch that has already completed or expired cannot be cancelled.",
+          "message": "Prosi partię o zatrzymanie.  Nie planuje już kolejnych żądań, pozwala dokończyć pracę już rozpoczętą, a następnie kończy się jako anulowana; żądania już ukończone zachowują swoje wyniki.\n\nPartii, która została już ukończona lub wygasła, nie można anulować."
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.display_name": {
+          "source": "Cancel a Batch",
+          "message": "Anuluj partię"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "Wymagany token beta dla interfejsu Batch API."
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "Wymagany token beta dla interfejsu Batch API"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.aWQ.desc": {
+          "source": "Batch ID.",
+          "message": "Identyfikator partii."
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.aWQ.display_name": {
+          "source": "Batch",
+          "message": "Partia"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.option.aWQ.short_desc": {
+          "source": "The batch to cancel",
+          "message": "Partia do anulowania"
+        },
+        "app.RXhh.action.Y2FuY2VsLWJhdGNo.short_desc": {
+          "source": "Stop a batch scheduling further requests",
+          "message": "Powstrzymuje partię przed planowaniem kolejnych żądań"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.desc": {
+          "source": "Creates a monitor: a search Exa re-runs on a schedule, delivering what is new to your webhook.\n\nExa only sends what you have not already seen - it filters by date since the last run and removes near-duplicates - so this is how a query becomes a feed rather than something a caller has to poll and de-duplicate itself.",
+          "message": "Tworzy monitor: wyszukiwanie, które Exa powtarza według harmonogramu, dostarczając nowości do twojego webhooka.\n\nExa wysyła tylko to, czego jeszcze nie widziałeś - filtruje według daty od ostatniego przebiegu i usuwa niemal identyczne duplikaty - i tak zapytanie staje się kanałem nowości zamiast czymś, co wywołujący musi sam odpytywać i odduplikowywać."
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.display_name": {
+          "source": "Create a Search Monitor",
+          "message": "Utwórz monitor wyszukiwania"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "Controls the format of the run output. Defaults to `{ \"type\": \"text\" }` if not specified. When `type` is `\"text\"`, the output is a plain text summary. When `type` is `\"object\"`, the output is structured JSON. If no `properties` are specified with `\"object\"` type, a schema is inferred automatically; otherwise the output adheres to the provided schema.",
+          "message": "Określa format wyniku przebiegu. Przy braku wskazania wartość domyślna to `{ \"type\": \"text\" }`. Gdy `type` ma wartość `\"text\"`, wynikiem jest zwykłe podsumowanie tekstowe. Gdy `type` ma wartość `\"object\"`, wynikiem jest uporządkowany JSON. Jeśli przy typie `\"object\"` nie podano `properties`, schemat jest wywnioskowany automatycznie; w przeciwnym razie wynik jest zgodny z podanym schematem."
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "Schemat wyjścia"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the results you want delivered",
+          "message": "Schemat JSON opisujący wyniki, które chcesz otrzymywać"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bWV0YWRhdGE.desc": {
+          "source": "Key-value pairs echoed back in each webhook delivery, so a receiver can route updates without looking the monitor up.",
+          "message": "Pary klucz-wartość odsyłane przy każdym dostarczeniu webhooka, aby odbiorca mógł kierować aktualizacje bez wyszukiwania monitora."
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metadane"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bWV0YWRhdGE.short_desc": {
+          "source": "Key-value pairs echoed back in each delivery",
+          "message": "Pary klucz-wartość odsyłane przy każdym dostarczeniu"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bmFtZQ.desc": {
+          "source": "An optional name for the monitor",
+          "message": "Opcjonalna nazwa monitora"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Nazwa"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.bmFtZQ.short_desc": {
+          "source": "A name for the monitor",
+          "message": "Nazwa monitora"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.c2VhcmNo.desc": {
+          "source": "The search the monitor re-runs on each cycle: the same `query`, `type` and `category` that **Search** takes.\n\nExa filters each cycle by date since the last run and removes near-duplicates, so this is the query whose **new** results are delivered, not the query whose results are re-sent every time.",
+          "message": "Wyszukiwanie, które monitor powtarza w każdym cyklu: te same `query`, `type` i `category`, które przyjmuje akcja **Szukaj**.\n\nExa filtruje każdy cykl według daty od ostatniego przebiegu i usuwa niemal identyczne duplikaty, więc dostarczane są **nowe** wyniki tego zapytania, a nie za każdym razem te same."
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.c2VhcmNo.display_name": {
+          "source": "Search",
+          "message": "Szukaj"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.c2VhcmNo.short_desc": {
+          "source": "The search to run on each cycle",
+          "message": "Wyszukiwanie wykonywane w każdym cyklu"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.d2ViaG9vaw.desc": {
+          "source": "Where each cycle's new results are delivered.  This is the only way results leave a monitor - there is no endpoint that returns them - so a monitor without a reachable webhook produces nothing a caller can read.\n\n`metadata` is echoed back in every delivery, which is how a receiver routes an update without looking the monitor up.",
+          "message": "Dokąd dostarczane są nowe wyniki każdego cyklu.  To jedyna droga, którą wyniki opuszczają monitor — żaden punkt końcowy ich nie zwraca — więc monitor bez osiągalnego webhooka nie tworzy niczego, co wywołujący mógłby odczytać.\n\n`metadata` są odsyłane przy każdym dostarczeniu; w ten sposób odbiorca kieruje aktualizację bez wyszukiwania monitora."
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.d2ViaG9vaw.display_name": {
+          "source": "Webhook",
+          "message": "Webhook"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.d2ViaG9vaw.short_desc": {
+          "source": "Where new results are delivered",
+          "message": "Dokąd dostarczane są nowe wyniki"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.dHJpZ2dlcg.desc": {
+          "source": "How often the search runs, and from when.  A cycle that finds nothing new delivers nothing, so the schedule sets how quickly the feed reacts rather than how much it sends.",
+          "message": "Jak często wykonywane jest wyszukiwanie i od kiedy.  Cykl, który nie znajdzie nic nowego, niczego nie dostarcza, więc harmonogram decyduje o tym, jak szybko kanał reaguje, a nie ile wysyła."
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.dHJpZ2dlcg.display_name": {
+          "source": "Schedule",
+          "message": "Harmonogram"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.option.dHJpZ2dlcg.short_desc": {
+          "source": "How often the search runs",
+          "message": "Jak często wykonywane jest wyszukiwanie"
+        },
+        "app.RXhh.action.Y3JlYXRlLW1vbml0b3I.short_desc": {
+          "source": "Run a search on a schedule and deliver new results to a webhook",
+          "message": "Wykonuje wyszukiwanie według harmonogramu i dostarcza nowe wyniki do webhooka"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.desc": {
+          "source": "Starts a research run: the agent searches, reads and reasons over the web until it can answer, rather than returning a single search's results.\n\nUse this where **Answer a Question** is not enough - a question that needs several searches, or one whose answer has to be assembled from many pages.  `effort` is the budget: `minimal` is quick and shallow, `max` keeps working.\n\nThe run is asynchronous; read it with **Get a Research Run**.  Set `outputSchema` to get structured data back rather than prose.",
+          "message": "Rozpoczyna przebieg badawczy: agent szuka, czyta i rozumuje w oparciu o sieć, dopóki nie jest w stanie odpowiedzieć, zamiast zwracać wyniki pojedynczego wyszukiwania.\n\nUżyj tam, gdzie akcja **Odpowiedz na pytanie** nie wystarcza - przy pytaniu wymagającym kilku wyszukiwań albo takim, którego odpowiedź trzeba złożyć z wielu stron.  `effort` to budżet: `minimal` jest szybki i pobieżny, `max` pracuje dalej.\n\nPrzebieg jest asynchroniczny; odczytaj go akcją **Pobierz przebieg badawczy**.  Ustaw `outputSchema`, aby otrzymać dane uporządkowane zamiast ciągłego tekstu."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.display_name": {
+          "source": "Start a Research Run",
+          "message": "Rozpocznij przebieg badawczy"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL2pzb24.display_name": {
+          "source": "application/json",
+          "message": "application/json"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.allowed-value.c3RyaW5nOnRleHQvZXZlbnQtc3RyZWFt.display_name": {
+          "source": "text/event-stream",
+          "message": "text/event-stream"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.desc": {
+          "source": "Set to `text/event-stream` to receive server-sent events.",
+          "message": "Ustaw na `text/event-stream`, aby odbierać zdarzenia wysyłane przez serwer."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.display_name": {
+          "source": "Accept",
+          "message": "Accept"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.QWNjZXB0.short_desc": {
+          "source": "Set to 'text/event-stream' to receive server-sent events",
+          "message": "Ustaw na „text/event-stream”, aby odbierać zdarzenia wysyłane przez serwer"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.RXhhLUJldGE.desc": {
+          "source": "Comma-separated beta feature tokens for opting into experimental features.",
+          "message": "Rozdzielone przecinkami tokeny funkcji beta włączające funkcje eksperymentalne."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.RXhhLUJldGE.short_desc": {
+          "source": "Comma-separated beta feature tokens for opting into experimental features",
+          "message": "Rozdzielone przecinkami tokeny funkcji beta włączające funkcje eksperymentalne"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.YnVkZ2V0.desc": {
+          "source": "Optional per-run spending limit for the metered `auto` and `max` efforts. Runs that finish early may cost less than the limit.",
+          "message": "Opcjonalny limit wydatków na przebieg dla rozliczanych nakładów pracy `auto` i `max`. Przebiegi kończące się wcześniej mogą kosztować mniej niż limit."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.YnVkZ2V0.display_name": {
+          "source": "Budget",
+          "message": "Budżet"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.YnVkZ2V0.short_desc": {
+          "source": "A ceiling on what the run may spend",
+          "message": "Górna granica tego, ile przebieg może wydać"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZGF0YVNvdXJjZXM.desc": {
+          "source": "Exa Connect data providers to enable for the run. Each entry enables all of that provider's tools.",
+          "message": "Dostawcy danych Exa Connect włączani dla przebiegu. Każdy wpis włącza wszystkie narzędzia danego dostawcy."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZGF0YVNvdXJjZXM.display_name": {
+          "source": "Data Sources",
+          "message": "Źródła danych"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZGF0YVNvdXJjZXM.short_desc": {
+          "source": "Exa Connect providers the run may use",
+          "message": "Dostawcy Exa Connect, z których przebieg może korzystać"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOm1heA.display_name": {
+          "source": "Maximum",
+          "message": "Maksymalny"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOm1lZGl1bQ.display_name": {
+          "source": "Medium",
+          "message": "Średni"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOm1pbmltYWw.display_name": {
+          "source": "Minimal",
+          "message": "Minimalny"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Automatic",
+          "message": "Automatycznie"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "High",
+          "message": "Wysoki"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "Low",
+          "message": "Niski"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.allowed-value.c3RyaW5nOnhoaWdo.display_name": {
+          "source": "Very High",
+          "message": "Bardzo wysoki"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.desc": {
+          "source": "Cost and reasoning effort preference for the run. `auto` lets Exa choose the appropriate effort. `max` is the highest-effort public beta tier for work where completeness and thoroughness matter more than latency or cost, including large list building, deep multi-source research, and criteria that are hard to verify.",
+          "message": "Preferencja kosztu i nakładu rozumowania dla przebiegu. Przy wartości `auto` Exa dobiera odpowiedni nakład pracy. `max` to najwyższy publiczny poziom beta, przeznaczony do zadań, w których kompletność i staranność liczą się bardziej niż czas odpowiedzi czy koszt, w tym do budowania obszernych list, pogłębionych badań wieloźródłowych i kryteriów trudnych do zweryfikowania."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.display_name": {
+          "source": "Effort",
+          "message": "Nakład pracy"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.ZWZmb3J0.short_desc": {
+          "source": "How much work the agent puts in, and what it costs",
+          "message": "Ile pracy wykonuje agent i ile to kosztuje"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.aW5wdXQ.desc": {
+          "source": "Records to process and records or entities to exclude from the answer.",
+          "message": "Rekordy do przetworzenia oraz rekordy lub encje wykluczane z odpowiedzi."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "Wejście"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.aW5wdXQ.short_desc": {
+          "source": "Records to process, and records to leave out of the answer",
+          "message": "Rekordy do przetworzenia oraz rekordy pomijane w odpowiedzi"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "JSON Schema for validated structured output in `output.structured`. Fields unsupported by evidence may be returned as `null`. Supports draft-07, 2019-09, and 2020-12 via `$schema`.",
+          "message": "Schemat JSON dla zweryfikowanego uporządkowanego wyniku w `output.structured`. Pola, których zebrane materiały nie potwierdzają, mogą zostać zwrócone jako `null`. Obsługuje draft-07, 2019-09 i 2020-12 poprzez `$schema`."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "Schemat wyjścia"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the answer you want back",
+          "message": "Schemat JSON opisujący oczekiwaną odpowiedź"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.bWV0YWRhdGE.desc": {
+          "source": "Caller-provided metadata stored with the run.",
+          "message": "Metadane przekazane przez wywołującego, przechowywane wraz z przebiegiem."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metadane"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.bWV0YWRhdGE.short_desc": {
+          "source": "Caller-provided metadata stored with the run",
+          "message": "Metadane przekazane przez wywołującego, przechowywane wraz z przebiegiem"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.c3lzdGVtUHJvbXB0.desc": {
+          "source": "Additional instructions that guide generated output or agent behavior. Use this for source preferences, novelty constraints, duplication constraints, or other behavior guidance.",
+          "message": "Dodatkowe instrukcje kierujące generowanym wynikiem lub zachowaniem agenta. Użyj ich, aby określić preferencje co do źródeł, wymagania dotyczące świeżości, ograniczenia duplikatów lub inne wskazówki dotyczące zachowania."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.c3lzdGVtUHJvbXB0.display_name": {
+          "source": "System Prompt",
+          "message": "Polecenie systemowe"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.c3lzdGVtUHJvbXB0.short_desc": {
+          "source": "Extra instructions that guide the agent",
+          "message": "Dodatkowe instrukcje kierujące agentem"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cHJldmlvdXNSdW5JZA.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "Identyfikator przebiegu agenta. Nowe identyfikatory przebiegów są zwracane z przedrostkiem `agent_run_`."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cHJldmlvdXNSdW5JZA.display_name": {
+          "source": "Continue From",
+          "message": "Kontynuuj od"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cHJldmlvdXNSdW5JZA.short_desc": {
+          "source": "A completed run to carry on from",
+          "message": "Zakończony przebieg, od którego należy kontynuować"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cXVlcnk.desc": {
+          "source": "Natural-language question or instructions for the request.",
+          "message": "Pytanie lub instrukcje dla żądania w języku naturalnym."
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cXVlcnk.display_name": {
+          "source": "Question",
+          "message": "Pytanie"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.option.cXVlcnk.short_desc": {
+          "source": "What to research, in natural language",
+          "message": "Co zbadać, w języku naturalnym"
+        },
+        "app.RXhh.action.Y3JlYXRlLWFnZW50LXJ1bg.short_desc": {
+          "source": "Ask the research agent a question and get the run it started",
+          "message": "Zadaje agentowi badawczemu pytanie i zwraca rozpoczęty przebieg"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.desc": {
+          "source": "Enqueues many requests to run asynchronously, each dispatched to its own route, with the results made available for download when the batch finishes.\n\nThis is how a large workload is run without one request per item.  Each entry needs a `customId` unique within the batch, which is how its result is identified afterwards.",
+          "message": "Kolejkuje wiele żądań do asynchronicznego wykonania, każde kierowane na własną trasę, a wyniki są udostępniane do pobrania po zakończeniu partii.\n\nTak wykonuje się dużą pracę bez jednego żądania na element.  Każdy wpis wymaga identyfikatora `customId` unikalnego w obrębie partii, po którym jego wynik jest później rozpoznawany."
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.display_name": {
+          "source": "Create a Batch",
+          "message": "Utwórz partię"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "Wymagany token beta dla interfejsu Batch API."
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "Wymagany token beta dla interfejsu Batch API"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.bWV0YWRhdGE.desc": {
+          "source": "Caller-provided metadata stored with the batch.",
+          "message": "Metadane przekazane przez wywołującego, przechowywane wraz z partią."
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metadane"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.bWV0YWRhdGE.short_desc": {
+          "source": "Key-value pairs stored with the batch",
+          "message": "Pary klucz-wartość przechowywane wraz z partią"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.cmVxdWVzdHM.desc": {
+          "source": "The requests to enqueue. Each `customId` must be unique within the batch.",
+          "message": "Żądania do zakolejkowania. Każdy `customId` musi być unikalny w obrębie partii."
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.cmVxdWVzdHM.display_name": {
+          "source": "Requests",
+          "message": "Żądania"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.option.cmVxdWVzdHM.short_desc": {
+          "source": "The requests to enqueue, each with a unique customId",
+          "message": "Żądania do zakolejkowania, każde z unikalnym customId"
+        },
+        "app.RXhh.action.Y3JlYXRlLWJhdGNo.short_desc": {
+          "source": "Run many requests asynchronously in one job",
+          "message": "Wykonuje wiele żądań asynchronicznie w jednym zadaniu"
+        },
+        "app.RXhh.action.YW5zd2Vy.desc": {
+          "source": "Searches the web and writes an answer to the question, citing the pages it used.\n\nUse this where **Search** would leave the caller to read the results: it returns the answer itself, with the sources, rather than a list of links.  `model` trades speed against depth, from `exa-fast` to `exa-research`.\n\nSet `outputSchema` to get the answer back as structured JSON rather than prose.",
+          "message": "Przeszukuje sieć i pisze odpowiedź na pytanie, przywołując wykorzystane strony.\n\nUżyj tam, gdzie akcja **Szukaj** pozostawiłaby czytanie wyników wywołującemu: zwraca samą odpowiedź wraz ze źródłami, a nie listę odnośników.  `model` równoważy szybkość względem głębi, od `exa-fast` po `exa-research`.\n\nUstaw `outputSchema`, aby otrzymać odpowiedź jako uporządkowany JSON zamiast ciągłego tekstu."
+        },
+        "app.RXhh.action.YW5zd2Vy.display_name": {
+          "source": "Answer a Question",
+          "message": "Odpowiedz na pytanie"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "A [JSON Schema Draft 7](https://json-schema.org/draft-07) description of the answer you want back, which makes the result structured data rather than prose.",
+          "message": "Opis oczekiwanej odpowiedzi zgodny z [JSON Schema Draft 7](https://json-schema.org/draft-07), dzięki któremu wynikiem są dane uporządkowane, a nie ciągły tekst."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "Schemat wyjścia"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the answer you want back",
+          "message": "Schemat JSON opisujący oczekiwaną odpowiedź"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.allowed-value.c3RyaW5nOmV4YQ.display_name": {
+          "source": "Standard",
+          "message": "Standardowy"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.allowed-value.c3RyaW5nOmV4YS1mYXN0.display_name": {
+          "source": "Fast",
+          "message": "Szybkie"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.allowed-value.c3RyaW5nOmV4YS1wcm8.display_name": {
+          "source": "Pro",
+          "message": "Pro"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.allowed-value.c3RyaW5nOmV4YS1yZXNlYXJjaA.display_name": {
+          "source": "Research",
+          "message": "Badawczy"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.desc": {
+          "source": "Which model writes the answer, trading speed against depth.",
+          "message": "Który model pisze odpowiedź, równoważąc szybkość względem głębi."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.bW9kZWw.short_desc": {
+          "source": "Which model writes the answer",
+          "message": "Który model pisze odpowiedź"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3RyZWFt.desc": {
+          "source": "Return the response as a server-sent event stream.  Leave this off unless the caller consumes SSE: an action returns the whole response.",
+          "message": "Zwraca odpowiedź jako strumień zdarzeń wysyłanych przez serwer.  Pozostaw wyłączone, chyba że wywołujący obsługuje SSE: akcja zwraca całą odpowiedź."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3RyZWFt.display_name": {
+          "source": "Stream",
+          "message": "Strumień"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3RyZWFt.short_desc": {
+          "source": "Return the response as a server-sent event stream",
+          "message": "Zwróć odpowiedź jako strumień zdarzeń wysyłanych przez serwer"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3lzdGVtUHJvbXB0.desc": {
+          "source": "Additional instructions that guide generated output or agent behavior. Use this for source preferences, novelty constraints, duplication constraints, or other behavior guidance.",
+          "message": "Dodatkowe instrukcje kierujące generowanym wynikiem lub zachowaniem agenta. Użyj ich, aby określić preferencje co do źródeł, wymagania dotyczące świeżości, ograniczenia duplikatów lub inne wskazówki dotyczące zachowania."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3lzdGVtUHJvbXB0.display_name": {
+          "source": "System Prompt",
+          "message": "Polecenie systemowe"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.c3lzdGVtUHJvbXB0.short_desc": {
+          "source": "Extra instructions that guide the answer",
+          "message": "Dodatkowe instrukcje kierujące odpowiedzią"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.cXVlcnk.desc": {
+          "source": "Natural-language question or instructions for the request.",
+          "message": "Pytanie lub instrukcje dla żądania w języku naturalnym."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.cXVlcnk.display_name": {
+          "source": "Question",
+          "message": "Pytanie"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.cXVlcnk.short_desc": {
+          "source": "The question to answer, in natural language",
+          "message": "Pytanie, na które należy odpowiedzieć, w języku naturalnym"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dGV4dA.desc": {
+          "source": "If true, returns full page text with default settings. If false, disables text return.",
+          "message": "Jeśli `True`, zwraca pełny tekst strony z ustawieniami domyślnymi. Jeśli `False`, wyłącza zwracanie tekstu."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dGV4dA.display_name": {
+          "source": "Include Page Text",
+          "message": "Dołącz tekst stron"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dGV4dA.short_desc": {
+          "source": "Return the full text of each cited page",
+          "message": "Zwróć pełny tekst każdej przywołanej strony"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dXNlckxvY2F0aW9u.desc": {
+          "source": "The two-letter ISO country code of the user, e.g. US.",
+          "message": "Dwuliterowy kod kraju ISO użytkownika, na przykład US."
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dXNlckxvY2F0aW9u.display_name": {
+          "source": "User Location",
+          "message": "Lokalizacja użytkownika"
+        },
+        "app.RXhh.action.YW5zd2Vy.option.dXNlckxvY2F0aW9u.short_desc": {
+          "source": "Two-letter country code the question is asked from",
+          "message": "Dwuliterowy kod kraju, z którego zadawane jest pytanie"
+        },
+        "app.RXhh.action.YW5zd2Vy.short_desc": {
+          "source": "Answer a question from the web, with citations",
+          "message": "Odpowiada na pytanie na podstawie sieci, wraz z cytowaniami"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.desc": {
+          "source": "Applies one action - pause, unpause or delete - to every monitor matching a filter.\n\nA filter is required, so a mistyped request cannot act on the whole account.  Set `dry_run` to see which monitors would be affected without changing anything, which is worth doing before a delete.",
+          "message": "Stosuje jedno działanie - wstrzymanie, wznowienie lub usunięcie - do każdego monitora pasującego do filtra.\n\nFiltr jest wymagany, aby błędnie wpisane żądanie nie mogło objąć całego konta.  Ustaw `dry_run`, aby zobaczyć, których monitorów by to dotyczyło, niczego nie zmieniając; przed usunięciem warto to zrobić."
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.display_name": {
+          "source": "Act on Several Monitors",
+          "message": "Wykonaj działanie na wielu monitorach"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.allowed-value.c3RyaW5nOmRlbGV0ZQ.display_name": {
+          "source": "Delete permanently",
+          "message": "Usuń trwale"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.allowed-value.c3RyaW5nOnBhdXNl.display_name": {
+          "source": "Pause",
+          "message": "Wstrzymaj"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.allowed-value.c3RyaW5nOnVucGF1c2U.display_name": {
+          "source": "Resume",
+          "message": "Wznów"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.desc": {
+          "source": "The action to perform on matching monitors. `delete` permanently removes them, `pause` sets their status to paused, and `unpause` sets their status to active.",
+          "message": "Działanie wykonywane na pasujących monitorach. `delete` usuwa je trwale, `pause` ustawia ich stan na wstrzymany, a `unpause` ustawia ich stan na aktywny."
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.display_name": {
+          "source": "Action",
+          "message": "Działanie"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.YWN0aW9u.short_desc": {
+          "source": "What to do with the matching monitors",
+          "message": "Co zrobić z pasującymi monitorami"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZHJ5X3J1bg.desc": {
+          "source": "When `true`, returns the monitors that would be affected without performing the action. Defaults to `true`.",
+          "message": "Gdy `true`, zwraca monitory, których by to dotyczyło, bez wykonania działania. Wartość domyślna to `true`."
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZHJ5X3J1bg.display_name": {
+          "source": "Dry Run",
+          "message": "Przebieg próbny"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZHJ5X3J1bg.short_desc": {
+          "source": "Report what would be affected without doing it",
+          "message": "Zgłoś, czego by to dotyczyło, bez wykonywania działania"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZmlsdGVy.desc": {
+          "source": "At least one filter field must be provided to prevent accidental bulk operations.",
+          "message": "Należy podać co najmniej jedno pole filtra, aby zapobiec przypadkowym operacjom masowym."
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZmlsdGVy.display_name": {
+          "source": "Filter",
+          "message": "Filtr"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.ZmlsdGVy.short_desc": {
+          "source": "Which monitors to act on; at least one field is required",
+          "message": "Na których monitorach działać; wymagane jest co najmniej jedno pole"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.bGltaXQ.desc": {
+          "source": "Maximum number of monitors to process in a single request. Defaults to 50, maximum 500.",
+          "message": "Maksymalna liczba monitorów przetwarzanych w jednym żądaniu. Wartość domyślna to 50, maksymalna 500."
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.bGltaXQ.display_name": {
+          "source": "Maximum Monitors",
+          "message": "Maksymalna liczba monitorów"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.option.bGltaXQ.short_desc": {
+          "source": "How many monitors this request may act on",
+          "message": "Ilu monitorów może dotyczyć to żądanie"
+        },
+        "app.RXhh.action.YmF0Y2gtbW9uaXRvcnM.short_desc": {
+          "source": "Pause, resume or delete every monitor matching a filter",
+          "message": "Wstrzymuje, wznawia lub usuwa każdy monitor pasujący do filtra"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.desc": {
+          "source": "Returns one search monitor, its schedule and its webhook.",
+          "message": "Zwraca jeden monitor wyszukiwania, jego harmonogram i jego webhook."
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.display_name": {
+          "source": "Get a Search Monitor",
+          "message": "Pobierz monitor wyszukiwania"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "Identyfikator monitora"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "Monitor"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.option.aWQ.short_desc": {
+          "source": "The monitor to read",
+          "message": "Monitor do odczytania"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3I.short_desc": {
+          "source": "Get one search monitor",
+          "message": "Pobiera jeden monitor wyszukiwania"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.desc": {
+          "source": "Returns one cycle of a search monitor, including what it found and why it failed if it did.",
+          "message": "Zwraca jeden cykl monitora wyszukiwania wraz z tym, co znalazł, a jeśli się nie powiódł - dlaczego."
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.display_name": {
+          "source": "Get a Search Monitor Run",
+          "message": "Pobierz przebieg monitora wyszukiwania"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "Identyfikator monitora"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "Monitor"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.aWQ.short_desc": {
+          "source": "The monitor the run belongs to",
+          "message": "Monitor, do którego należy przebieg"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.cnVuSWQ.desc": {
+          "source": "The run ID",
+          "message": "Identyfikator przebiegu"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.cnVuSWQ.display_name": {
+          "source": "Run",
+          "message": "Przebieg"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.option.cnVuSWQ.short_desc": {
+          "source": "The run to read",
+          "message": "Przebieg do odczytania"
+        },
+        "app.RXhh.action.Z2V0LW1vbml0b3ItcnVu.short_desc": {
+          "source": "Get one cycle of a search monitor",
+          "message": "Pobiera jeden cykl monitora wyszukiwania"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.desc": {
+          "source": "Returns a research run, including its answer once it has finished.",
+          "message": "Zwraca przebieg badawczy wraz z jego odpowiedzią, gdy tylko się zakończy."
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.display_name": {
+          "source": "Get a Research Run",
+          "message": "Pobierz przebieg badawczy"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "Identyfikator przebiegu agenta. Nowe identyfikatory przebiegów są zwracane z przedrostkiem `agent_run_`."
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "Przebieg"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.option.aWQ.short_desc": {
+          "source": "The run to read",
+          "message": "Przebieg do odczytania"
+        },
+        "app.RXhh.action.Z2V0LWFnZW50LXJ1bg.short_desc": {
+          "source": "Get a research run and its answer",
+          "message": "Pobiera przebieg badawczy i jego odpowiedź"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.desc": {
+          "source": "Returns a batch, including how many of its requests have finished and the `resultsUrl` to download them from once it is complete.",
+          "message": "Zwraca partię wraz z liczbą jej zakończonych żądań oraz adresem `resultsUrl`, spod którego można je pobrać po jej ukończeniu."
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.display_name": {
+          "source": "Get a Batch",
+          "message": "Pobierz partię"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "Wymagany token beta dla interfejsu Batch API."
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "Wymagany token beta dla interfejsu Batch API"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.aWQ.desc": {
+          "source": "Batch ID.",
+          "message": "Identyfikator partii."
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.aWQ.display_name": {
+          "source": "Batch",
+          "message": "Partia"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.option.aWQ.short_desc": {
+          "source": "The batch to read",
+          "message": "Partia do odczytania"
+        },
+        "app.RXhh.action.Z2V0LWJhdGNo.short_desc": {
+          "source": "Get a batch and where to download its results",
+          "message": "Pobiera partię i wskazuje, skąd pobrać jej wyniki"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.desc": {
+          "source": "Deletes a search monitor.  Results already delivered to the webhook are unaffected.",
+          "message": "Usuwa monitor wyszukiwania.  Wyniki już dostarczone do webhooka pozostają nienaruszone."
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.display_name": {
+          "source": "Delete a Search Monitor",
+          "message": "Usuń monitor wyszukiwania"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "Identyfikator monitora"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "Monitor"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.option.aWQ.short_desc": {
+          "source": "The monitor to delete",
+          "message": "Monitor do usunięcia"
+        },
+        "app.RXhh.action.ZGVsZXRlLW1vbml0b3I.short_desc": {
+          "source": "Delete a search monitor",
+          "message": "Usuwa monitor wyszukiwania"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.desc": {
+          "source": "Deletes a stored research run and its answer.",
+          "message": "Usuwa zapisany przebieg badawczy wraz z jego odpowiedzią."
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.display_name": {
+          "source": "Delete a Research Run",
+          "message": "Usuń przebieg badawczy"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "Identyfikator przebiegu agenta. Nowe identyfikatory przebiegów są zwracane z przedrostkiem `agent_run_`."
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "Przebieg"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.option.aWQ.short_desc": {
+          "source": "The run to delete",
+          "message": "Przebieg do usunięcia"
+        },
+        "app.RXhh.action.ZGVsZXRlLWFnZW50LXJ1bg.short_desc": {
+          "source": "Delete a stored research run",
+          "message": "Usuwa zapisany przebieg badawczy"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.desc": {
+          "source": "Deletes a batch that has reached a terminal status.",
+          "message": "Usuwa partię, która osiągnęła stan końcowy."
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.display_name": {
+          "source": "Delete a Batch",
+          "message": "Usuń partię"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "Wymagany token beta dla interfejsu Batch API."
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "Wymagany token beta dla interfejsu Batch API"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.aWQ.desc": {
+          "source": "Batch ID.",
+          "message": "Identyfikator partii."
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.aWQ.display_name": {
+          "source": "Batch",
+          "message": "Partia"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.option.aWQ.short_desc": {
+          "source": "The batch to delete",
+          "message": "Partia do usunięcia"
+        },
+        "app.RXhh.action.ZGVsZXRlLWJhdGNo.short_desc": {
+          "source": "Delete a finished batch",
+          "message": "Usuwa ukończoną partię"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.desc": {
-          "source": "Finds pages similar to a seed URL via Exa's `/findSimilar` endpoint.",
-          "message": "Wyszukuje strony podobne do początkowego adresu URL za pośrednictwem punktu końcowego `/findSimilar` usługi Exa."
+          "source": "Finds pages similar to the one given, optionally with their contents.\n\n**Exa marks this endpoint deprecated** and recommends **Search** with a query describing the page instead, which gives more control over what \"similar\" means.  The action is kept because flows already call it.",
+          "message": "Znajduje strony podobne do wskazanej, opcjonalnie wraz z ich zawartością.\n\n**Exa oznacza ten punkt końcowy jako przestarzały** i zaleca zamiast niego akcję **Szukaj** z zapytaniem opisującym stronę, co daje większą kontrolę nad tym, co znaczy „podobna”.  Akcja została zachowana, ponieważ wywołują ją istniejące przepływy."
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.display_name": {
-          "source": "Find Similar Pages",
-          "message": "Znajdź podobne strony"
+          "source": "Find Similar Links",
+          "message": "Znajdź podobne odnośniki"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y29udGVudHM.desc": {
-          "source": "Same as on `/search`; saves a follow-up call to `/contents`.",
-          "message": "Tak samo jak w `/search`; pozwala uniknąć kolejnego wywołania do `/contents`."
+          "source": "What to return for each result besides its link: the page `text`, the passages that match a query as `highlights`, or a written `summary`.\n\nAsking here costs one request; fetching the same pages afterwards with **Get Contents** costs two.",
+          "message": "Co jest zwracane dla każdego wyniku poza odnośnikiem: tekst strony (`text`), fragmenty pasujące do zapytania (`highlights`) albo napisane streszczenie (`summary`).\n\nPoproszenie o to tutaj kosztuje jedno żądanie; pobranie tych samych stron później akcją **Pobierz zawartość** kosztuje dwa."
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y29udGVudHM.display_name": {
-          "source": "Contents Config",
-          "message": "Konfiguracja zawartości"
+          "source": "Contents",
+          "message": "Zawartość"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y29udGVudHM.short_desc": {
-          "source": "Include text/highlights/summary in results",
-          "message": "Dołącz tekst/wyróżnienia/podsumowanie do wyników"
+          "source": "Return the contents of each result as well as the link",
+          "message": "Zwróć przy każdym wyniku nie tylko odnośnik, lecz także zawartość"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to exclude.",
-          "message": "Lista domen do wykluczenia."
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOm5ld3M.display_name": {
+          "source": "News",
+          "message": "Wiadomości"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmNvbXBhbnk.display_name": {
+          "source": "Companies",
+          "message": "Firmy"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmZpbmFuY2lhbCByZXBvcnQ.display_name": {
+          "source": "Financial Reports",
+          "message": "Raporty finansowe"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnB1YmxpY2F0aW9u.display_name": {
+          "source": "Publications",
+          "message": "Publikacje"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBlb3BsZQ.display_name": {
+          "source": "People",
+          "message": "Osoby"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBlcnNvbmFsIHNpdGU.display_name": {
+          "source": "Personal Sites",
+          "message": "Strony osobiste"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.desc": {
+          "source": "A data category to focus on. Known categories include `company`, `publication`, `news`, `personal site`, `financial report`, and `people`. Other strings are accepted and used as category hints for search. The `people` and `company` categories have improved quality for finding people profiles and company pages. The `publication` category surfaces scholarly publications such as research papers, preprints, and journal articles, with structured metadata like authors, venue, and citations. Note: The `company` and `people` categories only support a limited set of filters. The following parameters are NOT supported for these categories: `startPublishedDate`, `endPublishedDate`, `excludeDomains`. Using unsupported parameters will result in a 400 error.",
+          "message": "Kategoria danych, na której należy się skupić. Do znanych kategorii należą `company`, `publication`, `news`, `personal site`, `financial report` oraz `people`. Inne ciągi są akceptowane i używane jako wskazówka kategorii dla wyszukiwania. Kategorie `people` i `company` zapewniają wyższą jakość przy wyszukiwaniu profili osób i stron firmowych. Kategoria `publication` udostępnia publikacje naukowe, takie jak artykuły badawcze, preprinty i artykuły z czasopism, z uporządkowanymi metadanymi, na przykład autorami, miejscem publikacji i cytowaniami. Uwaga: kategorie `company` i `people` obsługują tylko ograniczony zestaw filtrów. Następujące parametry NIE są obsługiwane dla tych kategorii: `startPublishedDate`, `endPublishedDate`, `excludeDomains`. Użycie nieobsługiwanych parametrów kończy się błędem 400."
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.display_name": {
+          "source": "Category",
+          "message": "Kategoria"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.Y2F0ZWdvcnk.short_desc": {
+          "source": "Narrow the results to one kind of page",
+          "message": "Zawęź wyniki do jednego rodzaju stron"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kQ3Jhd2xEYXRl.desc": {
+          "source": "Deprecated and has no effect; ignored by the API. Must be specified in ISO 8601 format.",
+          "message": "Przestarzałe i bez efektu; interfejs API to ignoruje. Należy podać w formacie ISO 8601."
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kQ3Jhd2xEYXRl.display_name": {
+          "source": "Crawled Before",
+          "message": "Zindeksowane do"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kQ3Jhd2xEYXRl.short_desc": {
+          "source": "Return only pages Exa crawled on or before this date",
+          "message": "Zwracaj tylko strony zindeksowane przez Exa w tym dniu lub wcześniej"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kUHVibGlzaGVkRGF0ZQ.desc": {
+          "source": "Only links with a published date before this will be returned. Must be specified in ISO 8601 format.",
+          "message": "Zwrócone zostaną wyłącznie odnośniki o wcześniejszej dacie publikacji. Należy podać w formacie ISO 8601."
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kUHVibGlzaGVkRGF0ZQ.display_name": {
+          "source": "Published Before",
+          "message": "Opublikowane do"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZW5kUHVibGlzaGVkRGF0ZQ.short_desc": {
+          "source": "Return only pages published on or before this date",
+          "message": "Zwracaj tylko strony opublikowane w tym dniu lub wcześniej"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZURvbWFpbnM.desc": {
+          "source": "List of domains or domain paths to exclude from search results. Each entry can be a hostname (for example, `example.com`), a hostname with a path prefix (for example, `example.com/docs`), or a wildcard subdomain (for example, `*.example.com`). If specified, no results will be returned from the matching domains or paths. Use this parameter for domain or path filtering instead of adding a `site:` operator to the query.",
+          "message": "Lista domen lub ścieżek w domenach, które zostaną wykluczone z wyników wyszukiwania. Każdy wpis może być nazwą hosta (na przykład `example.com`), nazwą hosta z przedrostkiem ścieżki (na przykład `example.com/docs`) albo poddomeną z symbolem wieloznacznym (na przykład `*.example.com`). Jeśli parametr zostanie podany, z pasujących domen lub ścieżek nie zostanie zwrócony żaden wynik. Do filtrowania według domeny lub ścieżki używaj tego parametru zamiast dodawać do zapytania operator `site:`."
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZURvbWFpbnM.display_name": {
           "source": "Exclude Domains",
           "message": "Wyklucz domeny"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
-          "source": "Exclude these domains",
-          "message": "Wyklucz te domeny"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZURvbWFpbnM.short_desc": {
+          "source": "Never return results from these domains",
+          "message": "Nigdy nie zwracaj wyników z tych domen"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9zb3VyY2VfZG9tYWlu.desc": {
-          "source": "When `True`, results don't include the seed URL's own domain.",
-          "message": "Gdy `True`, wyniki nie zawierają własnej domeny początkowego adresu URL."
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZVNvdXJjZURvbWFpbg.desc": {
+          "source": "If true, results from the same domain as the source url are excluded.",
+          "message": "Jeśli `True`, wyniki z tej samej domeny co źródłowy adres URL są wykluczane."
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9zb3VyY2VfZG9tYWlu.display_name": {
-          "source": "Exclude Source Domain",
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZVNvdXJjZURvbWFpbg.display_name": {
+          "source": "Exclude the Source Domain",
           "message": "Wyklucz domenę źródłową"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZV9zb3VyY2VfZG9tYWlu.short_desc": {
-          "source": "Skip pages from the seed URL's own domain",
-          "message": "Pomiń strony z własnej domeny początkowego adresu URL"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.ZXhjbHVkZVNvdXJjZURvbWFpbg.short_desc": {
+          "source": "Leave out other pages from the same site",
+          "message": "Pomiń inne strony z tej samej witryny"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to restrict results to.",
-          "message": "Lista domen, do których mają zostać ograniczone wyniki."
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZURvbWFpbnM.desc": {
+          "source": "List of domains or domain paths to include in the search. Each entry can be a hostname (for example, `example.com`), a hostname with a path prefix (for example, `example.com/docs`), or a wildcard subdomain (for example, `*.example.com`). If specified, results will only come from the matching domains or paths. Use this parameter for domain or path filtering instead of adding a `site:` operator to the query.",
+          "message": "Lista domen lub ścieżek w domenach, które zostaną uwzględnione w wyszukiwaniu. Każdy wpis może być nazwą hosta (na przykład `example.com`), nazwą hosta z przedrostkiem ścieżki (na przykład `example.com/docs`) albo poddomeną z symbolem wieloznacznym (na przykład `*.example.com`). Jeśli parametr zostanie podany, wyniki będą pochodzić wyłącznie z pasujących domen lub ścieżek. Do filtrowania według domeny lub ścieżki używaj tego parametru zamiast dodawać do zapytania operator `site:`."
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZV9kb21haW5z.display_name": {
-          "source": "Include Domains",
-          "message": "Uwzględnij domeny"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZURvbWFpbnM.display_name": {
+          "source": "Only These Domains",
+          "message": "Tylko te domeny"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZV9kb21haW5z.short_desc": {
-          "source": "Restrict results to these domains",
-          "message": "Ogranicz wyniki do tych domen"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.aW5jbHVkZURvbWFpbnM.short_desc": {
+          "source": "Return results only from these domains",
+          "message": "Zwracaj wyniki wyłącznie z tych domen"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtX3Jlc3VsdHM.desc": {
-          "source": "Number of similar pages to return.  Default 10.",
-          "message": "Liczba podobnych stron do zwrócenia. Domyślnie 10."
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtUmVzdWx0cw.desc": {
+          "source": "Number of results to return. Limits vary by search type. The maximum public limit is 100 results. Contact sales (hello@exa.ai) to discuss higher limits.",
+          "message": "Liczba zwracanych wyników. Limity zależą od typu wyszukiwania. Najwyższy publiczny limit to 100 wyników. W sprawie wyższych limitów skontaktuj się z działem sprzedaży (hello@exa.ai)."
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtX3Jlc3VsdHM.display_name": {
-          "source": "Number of Results",
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtUmVzdWx0cw.display_name": {
+          "source": "Result Count",
           "message": "Liczba wyników"
         },
-        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtX3Jlc3VsdHM.short_desc": {
-          "source": "Number of similar results",
-          "message": "Liczba podobnych wyników"
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.bnVtUmVzdWx0cw.short_desc": {
+          "source": "How many results to return",
+          "message": "Ile wyników zostanie zwróconych"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRDcmF3bERhdGU.desc": {
+          "source": "Deprecated and has no effect; ignored by the API. Must be specified in ISO 8601 format.",
+          "message": "Przestarzałe i bez efektu; interfejs API to ignoruje. Należy podać w formacie ISO 8601."
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRDcmF3bERhdGU.display_name": {
+          "source": "Crawled Since",
+          "message": "Zindeksowane od"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRDcmF3bERhdGU.short_desc": {
+          "source": "Return only pages Exa crawled on or after this date",
+          "message": "Zwracaj tylko strony zindeksowane przez Exa w tym dniu lub później"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRQdWJsaXNoZWREYXRl.desc": {
+          "source": "Only links with a published date after this will be returned. Must be specified in ISO 8601 format.",
+          "message": "Zwrócone zostaną wyłącznie odnośniki o późniejszej dacie publikacji. Należy podać w formacie ISO 8601."
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRQdWJsaXNoZWREYXRl.display_name": {
+          "source": "Published Since",
+          "message": "Opublikowane od"
+        },
+        "app.RXhh.action.ZmluZC1zaW1pbGFy.option.c3RhcnRQdWJsaXNoZWREYXRl.short_desc": {
+          "source": "Return only pages published on or after this date",
+          "message": "Zwracaj tylko strony opublikowane w tym dniu lub później"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.dXJs.desc": {
-          "source": "Seed URL.",
-          "message": "Początkowy adres URL."
+          "source": "The url for which you would like to find similar links.",
+          "message": "Adres URL, dla którego chcesz znaleźć podobne odnośniki."
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.dXJs.display_name": {
-          "source": "Seed URL",
-          "message": "Początkowy adres URL"
+          "source": "URL",
+          "message": "URL"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.option.dXJs.short_desc": {
-          "source": "URL to find similar pages for",
-          "message": "Adres URL, dla którego mają zostać znalezione podobne strony"
+          "source": "The page to find others like",
+          "message": "Strona, do której szukamy podobnych"
         },
         "app.RXhh.action.ZmluZC1zaW1pbGFy.short_desc": {
-          "source": "Find pages similar to a seed URL using Exa's neural search",
-          "message": "Znajdź strony podobne do źródłowego URL przy użyciu wyszukiwania Exa"
+          "source": "Find pages similar to a URL",
+          "message": "Znajduje strony podobne do podanego adresu URL"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.desc": {
+          "source": "Lists the stored events of a research run - the searches it made and the pages it read.  Use it to show how an answer was reached, or to see where a long run is spending its time.",
+          "message": "Wypisuje zapisane zdarzenia przebiegu badawczego - wykonane wyszukiwania i przeczytane strony.  Użyj tego, aby pokazać, jak powstała odpowiedź, albo aby zobaczyć, na czym długi przebieg spędza czas."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.display_name": {
+          "source": "List Research Run Events",
+          "message": "Wypisz zdarzenia przebiegu badawczego"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL2pzb24.display_name": {
+          "source": "application/json",
+          "message": "application/json"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.allowed-value.c3RyaW5nOnRleHQvZXZlbnQtc3RyZWFt.display_name": {
+          "source": "text/event-stream",
+          "message": "text/event-stream"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.desc": {
+          "source": "Set to `text/event-stream` to receive server-sent events.",
+          "message": "Ustaw na `text/event-stream`, aby odbierać zdarzenia wysyłane przez serwer."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.display_name": {
+          "source": "Accept",
+          "message": "Accept"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.QWNjZXB0.short_desc": {
+          "source": "Set to 'text/event-stream' to receive server-sent events",
+          "message": "Ustaw na „text/event-stream”, aby odbierać zdarzenia wysyłane przez serwer"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.TGFzdC1FdmVudC1JRA.desc": {
+          "source": "For SSE replay, return only events after this event ID.",
+          "message": "Przy odtwarzaniu SSE zwracaj tylko zdarzenia po tym identyfikatorze zdarzenia."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.TGFzdC1FdmVudC1JRA.display_name": {
+          "source": "Last Event ID",
+          "message": "Identyfikator ostatniego zdarzenia"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.TGFzdC1FdmVudC1JRA.short_desc": {
+          "source": "For SSE replay, return only events after this event ID",
+          "message": "Przy odtwarzaniu SSE zwracaj tylko zdarzenia po tym identyfikatorze zdarzenia"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "Wartość `nextCursor` z poprzedniej odpowiedzi.  Wszystkie kolekcje w tym interfejsie API stronicują tak samo: odczytaj `hasMore` i przekaż tutaj `nextCursor`, aby otrzymać kolejną stronę."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "Kursor"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "Wartość nextCursor z poprzedniej odpowiedzi"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "Identyfikator przebiegu agenta. Nowe identyfikatory przebiegów są zwracane z przedrostkiem `agent_run_`."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "Przebieg"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.aWQ.short_desc": {
+          "source": "The run whose events to list",
+          "message": "Przebieg, którego zdarzenia mają zostać wypisane"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.bGltaXQ.desc": {
+          "source": "Number of results per page",
+          "message": "Liczba wyników na stronę"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "Rozmiar strony"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "Ile wyników zwracanych jest na stronę"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW4tZXZlbnRz.short_desc": {
+          "source": "See what the agent did during a run",
+          "message": "Zobacz, co agent robił podczas przebiegu"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.desc": {
+          "source": "Lists research runs, newest first.\n\nResults are paged: read `hasMore` and pass `nextCursor` as `cursor` to get the following page.",
+          "message": "Wypisuje przebiegi badawcze, od najnowszych.\n\nWyniki są stronicowane: odczytaj `hasMore` i przekaż `nextCursor` jako `cursor`, aby otrzymać kolejną stronę."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.display_name": {
+          "source": "List Research Runs",
+          "message": "Wypisz przebiegi badawcze"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "Wartość `nextCursor` z poprzedniej odpowiedzi.  Wszystkie kolekcje w tym interfejsie API stronicują tak samo: odczytaj `hasMore` i przekaż tutaj `nextCursor`, aby otrzymać kolejną stronę."
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "Kursor"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "Wartość nextCursor z poprzedniej odpowiedzi"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.bGltaXQ.desc": {
+          "source": "Number of results per page",
+          "message": "Liczba wyników na stronę"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "Rozmiar strony"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "Ile wyników zwracanych jest na stronę"
+        },
+        "app.RXhh.action.bGlzdC1hZ2VudC1ydW5z.short_desc": {
+          "source": "List the research runs for this team",
+          "message": "Wypisuje przebiegi badawcze tego zespołu"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.desc": {
+          "source": "Lists batches, newest first, optionally narrowed to one status.",
+          "message": "Wypisuje partie, od najnowszych, opcjonalnie zawężone do jednego stanu."
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.display_name": {
+          "source": "List Batches",
+          "message": "Wypisz partie"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.RXhhLUJldGE.allowed-value.c3RyaW5nOmJhdGNoZXMtMjAyNi0wNi0wNg.display_name": {
+          "source": "batches-2026-06-06",
+          "message": "batches-2026-06-06"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.RXhhLUJldGE.desc": {
+          "source": "Required beta token for the Batch API.",
+          "message": "Wymagany token beta dla interfejsu Batch API."
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.RXhhLUJldGE.short_desc": {
+          "source": "Required beta token for the Batch API",
+          "message": "Wymagany token beta dla interfejsu Batch API"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "Wartość `nextCursor` z poprzedniej odpowiedzi.  Wszystkie kolekcje w tym interfejsie API stronicują tak samo: odczytaj `hasMore` i przekaż tutaj `nextCursor`, aby otrzymać kolejną stronę."
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "Kursor"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "Wartość nextCursor z poprzedniej odpowiedzi"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.bGltaXQ.desc": {
+          "source": "Maximum number of batches to return per page. Defaults to 100 when omitted; there is no upper bound.",
+          "message": "Maksymalna liczba partii zwracanych na stronę. Przy pominięciu wartość domyślna to 100; nie ma górnej granicy."
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "Rozmiar strony"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "Ile wyników zwracanych jest na stronę"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.desc": {
+          "source": "Filter the listing to completed batches. `completed` is the only supported value; any other value returns a 400. Completed listings are ordered by expiry and use a distinct cursor, so keep sending `status=completed` on every cursor-paginated request.",
+          "message": "Zawęża listę do partii zakończonych. `completed` to jedyna obsługiwana wartość; każda inna zwraca błąd 400. Listy zakończonych partii są uporządkowane według terminu wygaśnięcia i korzystają z odrębnego kursora, więc wysyłaj `status=completed` w każdym żądaniu stronicowanym kursorem."
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Stan"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.short_desc": {
+          "source": "Return only batches in this status",
+          "message": "Zwracaj tylko partie w tym stanie"
+        },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.short_desc": {
+          "source": "List the batches for this team",
+          "message": "Wypisuje partie tego zespołu"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.desc": {
+          "source": "Lists the cycles a search monitor has run, newest first, with what each one found.",
+          "message": "Wypisuje cykle wykonane przez monitor wyszukiwania, od najnowszych, wraz z tym, co każdy z nich znalazł."
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.display_name": {
+          "source": "List Search Monitor Runs",
+          "message": "Wypisz przebiegi monitora wyszukiwania"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "Wartość `nextCursor` z poprzedniej odpowiedzi.  Wszystkie kolekcje w tym interfejsie API stronicują tak samo: odczytaj `hasMore` i przekaż tutaj `nextCursor`, aby otrzymać kolejną stronę."
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "Kursor"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "Wartość nextCursor z poprzedniej odpowiedzi"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "Identyfikator monitora"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "Monitor"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.aWQ.short_desc": {
+          "source": "The monitor whose runs to list",
+          "message": "Monitor, którego przebiegi mają zostać wypisane"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.bGltaXQ.desc": {
+          "source": "Number of results per page",
+          "message": "Liczba wyników na stronę"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "Rozmiar strony"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "Ile wyników zwracanych jest na stronę"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9yLXJ1bnM.short_desc": {
+          "source": "List the cycles a search monitor has run",
+          "message": "Wypisuje cykle wykonane przez monitor wyszukiwania"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.desc": {
+          "source": "Lists search monitors, optionally narrowed by status, name or metadata.",
+          "message": "Wypisuje monitory wyszukiwania, opcjonalnie zawężone według stanu, nazwy lub metadanych."
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.display_name": {
+          "source": "List Search Monitors",
+          "message": "Wypisz monitory wyszukiwania"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.Y3Vyc29y.desc": {
+          "source": "The `nextCursor` of the previous response.  Every collection in this API pages the same way: read `hasMore`, and pass `nextCursor` here to get the following page.",
+          "message": "Wartość `nextCursor` z poprzedniej odpowiedzi.  Wszystkie kolekcje w tym interfejsie API stronicują tak samo: odczytaj `hasMore` i przekaż tutaj `nextCursor`, aby otrzymać kolejną stronę."
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.Y3Vyc29y.display_name": {
+          "source": "Cursor",
+          "message": "Kursor"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.Y3Vyc29y.short_desc": {
+          "source": "The nextCursor of the previous response",
+          "message": "Wartość nextCursor z poprzedniej odpowiedzi"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bGltaXQ.desc": {
+          "source": "Number of results per page",
+          "message": "Liczba wyników na stronę"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bGltaXQ.display_name": {
+          "source": "Page Size",
+          "message": "Rozmiar strony"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bGltaXQ.short_desc": {
+          "source": "How many results to return per page",
+          "message": "Ile wyników zwracanych jest na stronę"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bWV0YWRhdGE.desc": {
+          "source": "Filter monitors by metadata key-value pairs (exact match, AND semantics). Use bracket notation: `metadata[key]=value`.",
+          "message": "Filtruj monitory według par klucz-wartość w metadanych (dokładne dopasowanie, semantyka AND). Użyj notacji nawiasowej: `metadata[key]=value`."
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metadane"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bWV0YWRhdGE.short_desc": {
+          "source": "Return only monitors carrying these key-value pairs",
+          "message": "Zwracaj tylko monitory zawierające te pary klucz-wartość"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bmFtZQ.desc": {
+          "source": "Filter monitors by name (case-insensitive substring match)",
+          "message": "Filtruj monitory według nazwy (dopasowanie podciągu, bez rozróżniania wielkości liter)"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Nazwa"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.bmFtZQ.short_desc": {
+          "source": "Return only monitors with this name",
+          "message": "Zwracaj tylko monitory o tej nazwie"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
+          "source": "Active",
+          "message": "Aktywny"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.allowed-value.c3RyaW5nOmRpc2FibGVk.display_name": {
+          "source": "Disabled",
+          "message": "Wyłączony"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.allowed-value.c3RyaW5nOnBhdXNlZA.display_name": {
+          "source": "Paused",
+          "message": "Wstrzymany"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.desc": {
+          "source": "Filter monitors by status",
+          "message": "Filtruj monitory według stanu"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Stan"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.option.c3RhdHVz.short_desc": {
+          "source": "Return only monitors in this status",
+          "message": "Zwracaj tylko monitory w tym stanie"
+        },
+        "app.RXhh.action.bGlzdC1tb25pdG9ycw.short_desc": {
+          "source": "List the search monitors for this team",
+          "message": "Wypisuje monitory wyszukiwania tego zespołu"
         },
         "app.RXhh.action.bWFrZS1hcGktY2FsbA.desc": {
           "source": "Make a custom HTTP / REST API call to **Exa** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
@@ -472,176 +1772,484 @@
           "message": "Wykonaj niestandardowe wywołanie API do Exa"
         },
         "app.RXhh.action.c2VhcmNo.desc": {
-          "source": "Performs a neural, keyword, or auto-routed web search via Exa's `/search` endpoint and returns ranked results with title, url, and optional text content / highlights.",
-          "message": "Wykonuje neuronowe, słownikowe lub automatycznie przekierowywane wyszukiwanie w sieci za pośrednictwem punktu końcowego `/search` usługi Exa i zwraca uszeregowane wyniki z tytułem, adresem URL oraz opcjonalną treścią tekstową / wyróżnieniami."
+          "source": "Searches the web with an Exa prompt-engineered query and returns the results, optionally with the contents of each page.\n\n`type` decides how hard Exa works on the query, from `instant` through to `deep-reasoning`, and is what trades latency and cost against quality.  `category` narrows the search to one kind of page - companies, news, people and so on - which is usually a better filter than adding words to the query.\n\nAsk for `contents` to get the page text back with the results rather than fetching it separately with **Get Contents**.",
+          "message": "Przeszukuje sieć zapytaniem zoptymalizowanym przez Exa i zwraca wyniki, opcjonalnie wraz z zawartością każdej strony.\n\n`type` decyduje, ile pracy Exa wkłada w zapytanie, od `instant` po `deep-reasoning`, i to właśnie równoważy czas odpowiedzi oraz koszt względem jakości.  `category` zawęża wyszukiwanie do jednego rodzaju stron - firm, wiadomości, osób i tak dalej - co zwykle filtruje lepiej niż dodawanie kolejnych słów do zapytania.\n\nPoproś o `contents`, aby otrzymać tekst stron razem z wynikami, zamiast pobierać go osobno akcją **Pobierz zawartość**."
         },
         "app.RXhh.action.c2VhcmNo.display_name": {
-          "source": "Neural Search",
-          "message": "Wyszukiwanie neuronowe"
+          "source": "Search",
+          "message": "Szukaj"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29tcGxpYW5jZQ.allowed-value.c3RyaW5nOmhpcGFh.display_name": {
+          "source": "HIPAA",
+          "message": "HIPAA"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29tcGxpYW5jZQ.desc": {
+          "source": "Enterprise-only compliance mode. Set to `hipaa` for HIPAA mode. Requires cache-only retrieval with supported parameters. See the HIPAA docs for details.",
+          "message": "Tryb zgodności wyłącznie dla firm. Ustaw `hipaa`, aby włączyć tryb HIPAA. Wymaga pobierania wyłącznie z pamięci podręcznej z obsługiwanymi parametrami. Szczegóły znajdziesz w dokumentacji HIPAA."
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29tcGxpYW5jZQ.display_name": {
+          "source": "Compliance Mode",
+          "message": "Tryb zgodności"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29tcGxpYW5jZQ.short_desc": {
+          "source": "Run the search under an enterprise compliance mode",
+          "message": "Wykonaj wyszukiwanie w firmowym trybie zgodności"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29udGV4dA.desc": {
+          "source": "Deprecated: Use highlights or text instead. Returns page contents as a combined context string.",
+          "message": "Przestarzałe: użyj zamiast tego wyróżnionych fragmentów lub tekstu. Zwraca zawartość stron jako jeden połączony ciąg kontekstu."
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29udGV4dA.display_name": {
+          "source": "Context",
+          "message": "Kontekst"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y29udGV4dA.short_desc": {
+          "source": "Deprecated: Use highlights or text instead",
+          "message": "Przestarzałe: użyj zamiast tego wyróżnionych fragmentów lub tekstu"
         },
         "app.RXhh.action.c2VhcmNo.option.Y29udGVudHM.desc": {
-          "source": "Hash configuring content fetching alongside the search: `{text: True, highlights: {...}, summary: {...}}`.  Saves a follow-up call to `/contents`.",
-          "message": "Hash konfigurujący pobieranie zawartości wraz z wyszukiwaniem: `{text: True, highlights: {...}, summary: {...}}`. Pozwala uniknąć kolejnego wywołania `/contents`."
+          "source": "What to return for each result besides its link: the page `text`, the passages that match a query as `highlights`, or a written `summary`.\n\nAsking here costs one request; fetching the same pages afterwards with **Get Contents** costs two.",
+          "message": "Co jest zwracane dla każdego wyniku poza odnośnikiem: tekst strony (`text`), fragmenty pasujące do zapytania (`highlights`) albo napisane streszczenie (`summary`).\n\nPoproszenie o to tutaj kosztuje jedno żądanie; pobranie tych samych stron później akcją **Pobierz zawartość** kosztuje dwa."
         },
         "app.RXhh.action.c2VhcmNo.option.Y29udGVudHM.display_name": {
-          "source": "Contents Config",
-          "message": "Konfiguracja zawartości"
+          "source": "Contents",
+          "message": "Zawartość"
         },
         "app.RXhh.action.c2VhcmNo.option.Y29udGVudHM.short_desc": {
-          "source": "Include text/highlights/summary in results",
-          "message": "Dołącz tekst/wyróżnienia/podsumowanie do wyników"
+          "source": "Return the contents of each result as well as the link",
+          "message": "Zwróć przy każdym wyniku nie tylko odnośnik, lecz także zawartość"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOm5ld3M.display_name": {
           "source": "News",
           "message": "Wiadomości"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmNvbXBhbnk.display_name": {
-          "source": "Company",
-          "message": "Firma"
+          "source": "Companies",
+          "message": "Firmy"
         },
-        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmdpdGh1Yg.display_name": {
-          "source": "GitHub",
-          "message": "GitHub"
+        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOmZpbmFuY2lhbCByZXBvcnQ.display_name": {
+          "source": "Financial Reports",
+          "message": "Raporty finansowe"
         },
-        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBkZg.display_name": {
-          "source": "PDF",
-          "message": "PDF"
+        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnB1YmxpY2F0aW9u.display_name": {
+          "source": "Publications",
+          "message": "Publikacje"
+        },
+        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBlb3BsZQ.display_name": {
+          "source": "People",
+          "message": "Osoby"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnBlcnNvbmFsIHNpdGU.display_name": {
-          "source": "Personal Site",
-          "message": "Strona osobista"
-        },
-        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnJlc2VhcmNoIHBhcGVy.display_name": {
-          "source": "Research Paper",
-          "message": "Praca naukowa"
-        },
-        "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOnR3ZWV0.display_name": {
-          "source": "Tweet",
-          "message": "Tweet"
+          "source": "Personal Sites",
+          "message": "Strony osobiste"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.desc": {
-          "source": "Filter results by entity category.",
-          "message": "Filtruj wyniki według kategorii podmiotu."
+          "source": "Narrow the search to one kind of page.  Usually a better filter than adding words to the query.",
+          "message": "Zawęża wyszukiwanie do jednego rodzaju stron.  Zwykle filtruje lepiej niż dodawanie kolejnych słów do zapytania."
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.display_name": {
           "source": "Category",
           "message": "Kategoria"
         },
         "app.RXhh.action.c2VhcmNo.option.Y2F0ZWdvcnk.short_desc": {
-          "source": "Result category filter (company, paper, etc.)",
-          "message": "Filtr kategorii wyników (firma, praca naukowa itp.)"
+          "source": "Narrow the search to one kind of page",
+          "message": "Zawęź wyszukiwanie do jednego rodzaju stron"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZW5kX3B1Ymxpc2hlZF9kYXRl.desc": {
-          "source": "Restrict results to pages published on or before this ISO date.",
-          "message": "Ogranicz wyniki do stron opublikowanych w tym dniu ISO lub wcześniej."
+        "app.RXhh.action.c2VhcmNo.option.YWRkaXRpb25hbFF1ZXJpZXM.desc": {
+          "source": "Additional query variations for deep-search variants. Only works with a deep-search type. When provided, these queries are used alongside the main query for broader results.",
+          "message": "Dodatkowe warianty zapytania dla trybów wyszukiwania pogłębionego. Działa wyłącznie z typem wyszukiwania pogłębionego. Jeśli zostaną podane, zapytania te są używane razem z zapytaniem głównym, aby uzyskać szersze wyniki."
         },
-        "app.RXhh.action.c2VhcmNo.option.ZW5kX3B1Ymxpc2hlZF9kYXRl.display_name": {
-          "source": "End Published Date",
-          "message": "Końcowa data publikacji"
+        "app.RXhh.action.c2VhcmNo.option.YWRkaXRpb25hbFF1ZXJpZXM.display_name": {
+          "source": "Additional Queries",
+          "message": "Dodatkowe zapytania"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZW5kX3B1Ymxpc2hlZF9kYXRl.short_desc": {
-          "source": "Only pages published on/before this ISO date",
-          "message": "Tylko strony opublikowane w tym dniu ISO lub wcześniej"
+        "app.RXhh.action.c2VhcmNo.option.YWRkaXRpb25hbFF1ZXJpZXM.short_desc": {
+          "source": "Further queries run alongside the main one",
+          "message": "Dodatkowe zapytania wykonywane obok głównego"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to exclude from results.",
-          "message": "Lista domen do wykluczenia z wyników."
+        "app.RXhh.action.c2VhcmNo.option.ZW5kQ3Jhd2xEYXRl.desc": {
+          "source": "Deprecated and has no effect; ignored by the API. Must be specified in ISO 8601 format.",
+          "message": "Przestarzałe i bez efektu; interfejs API to ignoruje. Należy podać w formacie ISO 8601."
         },
-        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.display_name": {
+        "app.RXhh.action.c2VhcmNo.option.ZW5kQ3Jhd2xEYXRl.display_name": {
+          "source": "Crawled Before",
+          "message": "Zindeksowane do"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZW5kQ3Jhd2xEYXRl.short_desc": {
+          "source": "Return only pages Exa crawled on or before this date",
+          "message": "Zwracaj tylko strony zindeksowane przez Exa w tym dniu lub wcześniej"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZW5kUHVibGlzaGVkRGF0ZQ.desc": {
+          "source": "Only links with a published date before this will be returned. Must be specified in ISO 8601 format.",
+          "message": "Zwrócone zostaną wyłącznie odnośniki o wcześniejszej dacie publikacji. Należy podać w formacie ISO 8601."
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZW5kUHVibGlzaGVkRGF0ZQ.display_name": {
+          "source": "Published Before",
+          "message": "Opublikowane do"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZW5kUHVibGlzaGVkRGF0ZQ.short_desc": {
+          "source": "Return only pages published on or before this date",
+          "message": "Zwracaj tylko strony opublikowane w tym dniu lub wcześniej"
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZURvbWFpbnM.desc": {
+          "source": "List of domains or domain paths to exclude from search results. Each entry can be a hostname (for example, `example.com`), a hostname with a path prefix (for example, `example.com/docs`), or a wildcard subdomain (for example, `*.example.com`). If specified, no results will be returned from the matching domains or paths. Use this parameter for domain or path filtering instead of adding a `site:` operator to the query.",
+          "message": "Lista domen lub ścieżek w domenach, które zostaną wykluczone z wyników wyszukiwania. Każdy wpis może być nazwą hosta (na przykład `example.com`), nazwą hosta z przedrostkiem ścieżki (na przykład `example.com/docs`) albo poddomeną z symbolem wieloznacznym (na przykład `*.example.com`). Jeśli parametr zostanie podany, z pasujących domen lub ścieżek nie zostanie zwrócony żaden wynik. Do filtrowania według domeny lub ścieżki używaj tego parametru zamiast dodawać do zapytania operator `site:`."
+        },
+        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZURvbWFpbnM.display_name": {
           "source": "Exclude Domains",
           "message": "Wyklucz domeny"
         },
-        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZV9kb21haW5z.short_desc": {
-          "source": "Exclude these domains",
-          "message": "Wyklucz te domeny"
+        "app.RXhh.action.c2VhcmNo.option.ZXhjbHVkZURvbWFpbnM.short_desc": {
+          "source": "Never return results from these domains",
+          "message": "Nigdy nie zwracaj wyników z tych domen"
         },
-        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.desc": {
-          "source": "List of domains to restrict results to.",
-          "message": "Lista domen, do których mają zostać ograniczone wyniki."
+        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZURvbWFpbnM.desc": {
+          "source": "List of domains or domain paths to include in the search. Each entry can be a hostname (for example, `example.com`), a hostname with a path prefix (for example, `example.com/docs`), or a wildcard subdomain (for example, `*.example.com`). If specified, results will only come from the matching domains or paths. Use this parameter for domain or path filtering instead of adding a `site:` operator to the query.",
+          "message": "Lista domen lub ścieżek w domenach, które zostaną uwzględnione w wyszukiwaniu. Każdy wpis może być nazwą hosta (na przykład `example.com`), nazwą hosta z przedrostkiem ścieżki (na przykład `example.com/docs`) albo poddomeną z symbolem wieloznacznym (na przykład `*.example.com`). Jeśli parametr zostanie podany, wyniki będą pochodzić wyłącznie z pasujących domen lub ścieżek. Do filtrowania według domeny lub ścieżki używaj tego parametru zamiast dodawać do zapytania operator `site:`."
         },
-        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.display_name": {
-          "source": "Include Domains",
-          "message": "Uwzględnij domeny"
+        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZURvbWFpbnM.display_name": {
+          "source": "Only These Domains",
+          "message": "Tylko te domeny"
         },
-        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZV9kb21haW5z.short_desc": {
-          "source": "Restrict results to these domains",
-          "message": "Ogranicz wyniki do tych domen"
+        "app.RXhh.action.c2VhcmNo.option.aW5jbHVkZURvbWFpbnM.short_desc": {
+          "source": "Return results only from these domains",
+          "message": "Zwracaj wyniki wyłącznie z tych domen"
         },
-        "app.RXhh.action.c2VhcmNo.option.bnVtX3Jlc3VsdHM.desc": {
-          "source": "Number of results.  Default 10.",
-          "message": "Liczba wyników. Domyślnie 10."
+        "app.RXhh.action.c2VhcmNo.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "JSON schema for synthesized output. Supported root types are \"text\" and \"object\". When provided, the response includes an output object whose content matches this schema. Works with every search type and adds about 2 seconds of synthesis latency on top of the selected search type.",
+          "message": "Schemat JSON dla syntetyzowanego wyniku. Obsługiwane typy główne to \"text\" i \"object\". Jeśli zostanie podany, odpowiedź zawiera obiekt wyjściowy, którego zawartość odpowiada temu schematowi. Działa z każdym typem wyszukiwania i dodaje około 2 sekundy opóźnienia syntezy do wybranego typu wyszukiwania."
         },
-        "app.RXhh.action.c2VhcmNo.option.bnVtX3Jlc3VsdHM.display_name": {
-          "source": "Number of Results",
+        "app.RXhh.action.c2VhcmNo.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "Schemat wyjścia"
+        },
+        "app.RXhh.action.c2VhcmNo.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the answer you want back",
+          "message": "Schemat JSON opisujący oczekiwaną odpowiedź"
+        },
+        "app.RXhh.action.c2VhcmNo.option.bW9kZXJhdGlvbg.desc": {
+          "source": "Enable content moderation to filter unsafe content from search results.",
+          "message": "Włącz moderację treści, aby odfiltrować niebezpieczne treści z wyników wyszukiwania."
+        },
+        "app.RXhh.action.c2VhcmNo.option.bW9kZXJhdGlvbg.display_name": {
+          "source": "Moderation",
+          "message": "Moderacja"
+        },
+        "app.RXhh.action.c2VhcmNo.option.bW9kZXJhdGlvbg.short_desc": {
+          "source": "Filter out results Exa considers unsafe",
+          "message": "Odfiltruj wyniki, które Exa uznaje za niebezpieczne"
+        },
+        "app.RXhh.action.c2VhcmNo.option.bnVtUmVzdWx0cw.desc": {
+          "source": "Number of results to return. Limits vary by search type. The maximum public limit is 100 results. Contact sales (hello@exa.ai) to discuss higher limits.",
+          "message": "Liczba zwracanych wyników. Limity zależą od typu wyszukiwania. Najwyższy publiczny limit to 100 wyników. W sprawie wyższych limitów skontaktuj się z działem sprzedaży (hello@exa.ai)."
+        },
+        "app.RXhh.action.c2VhcmNo.option.bnVtUmVzdWx0cw.display_name": {
+          "source": "Result Count",
           "message": "Liczba wyników"
         },
-        "app.RXhh.action.c2VhcmNo.option.bnVtX3Jlc3VsdHM.short_desc": {
-          "source": "Number of results to return",
-          "message": "Liczba wyników do zwrócenia"
+        "app.RXhh.action.c2VhcmNo.option.bnVtUmVzdWx0cw.short_desc": {
+          "source": "How many results to return",
+          "message": "Ile wyników zostanie zwróconych"
         },
-        "app.RXhh.action.c2VhcmNo.option.c3RhcnRfcHVibGlzaGVkX2RhdGU.desc": {
-          "source": "Restrict results to pages published on or after this ISO date.",
-          "message": "Ogranicz wyniki do stron opublikowanych w tym dniu ISO lub później."
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRDcmF3bERhdGU.desc": {
+          "source": "Deprecated and has no effect; ignored by the API. Must be specified in ISO 8601 format.",
+          "message": "Przestarzałe i bez efektu; interfejs API to ignoruje. Należy podać w formacie ISO 8601."
         },
-        "app.RXhh.action.c2VhcmNo.option.c3RhcnRfcHVibGlzaGVkX2RhdGU.display_name": {
-          "source": "Start Published Date",
-          "message": "Początkowa data publikacji"
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRDcmF3bERhdGU.display_name": {
+          "source": "Crawled Since",
+          "message": "Zindeksowane od"
         },
-        "app.RXhh.action.c2VhcmNo.option.c3RhcnRfcHVibGlzaGVkX2RhdGU.short_desc": {
-          "source": "Only pages published on/after this ISO date",
-          "message": "Tylko strony opublikowane w tym dniu ISO lub później"
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRDcmF3bERhdGU.short_desc": {
+          "source": "Return only pages Exa crawled on or after this date",
+          "message": "Zwracaj tylko strony zindeksowane przez Exa w tym dniu lub później"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRQdWJsaXNoZWREYXRl.desc": {
+          "source": "Only links with a published date after this will be returned. Must be specified in ISO 8601 format.",
+          "message": "Zwrócone zostaną wyłącznie odnośniki o późniejszej dacie publikacji. Należy podać w formacie ISO 8601."
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRQdWJsaXNoZWREYXRl.display_name": {
+          "source": "Published Since",
+          "message": "Opublikowane od"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RhcnRQdWJsaXNoZWREYXRl.short_desc": {
+          "source": "Return only pages published on or after this date",
+          "message": "Zwracaj tylko strony opublikowane w tym dniu lub później"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RyZWFt.desc": {
+          "source": "Return the response as a server-sent event stream.  Leave this off unless the caller consumes SSE: an action returns the whole response.",
+          "message": "Zwraca odpowiedź jako strumień zdarzeń wysyłanych przez serwer.  Pozostaw wyłączone, chyba że wywołujący obsługuje SSE: akcja zwraca całą odpowiedź."
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RyZWFt.display_name": {
+          "source": "Stream",
+          "message": "Strumień"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3RyZWFt.short_desc": {
+          "source": "Return the response as a server-sent event stream",
+          "message": "Zwróć odpowiedź jako strumień zdarzeń wysyłanych przez serwer"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3lzdGVtUHJvbXB0.desc": {
+          "source": "Additional instructions that guide generated output or agent behavior. Use this for source preferences, novelty constraints, duplication constraints, or other behavior guidance.",
+          "message": "Dodatkowe instrukcje kierujące generowanym wynikiem lub zachowaniem agenta. Użyj ich, aby określić preferencje co do źródeł, wymagania dotyczące świeżości, ograniczenia duplikatów lub inne wskazówki dotyczące zachowania."
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3lzdGVtUHJvbXB0.display_name": {
+          "source": "System Prompt",
+          "message": "Polecenie systemowe"
+        },
+        "app.RXhh.action.c2VhcmNo.option.c3lzdGVtUHJvbXB0.short_desc": {
+          "source": "Extra instructions that guide the search",
+          "message": "Dodatkowe instrukcje kierujące wyszukiwaniem"
         },
         "app.RXhh.action.c2VhcmNo.option.cXVlcnk.desc": {
-          "source": "The search query in natural language.",
-          "message": "Zapytanie wyszukiwania w języku naturalnym."
+          "source": "The query string for the search.",
+          "message": "Ciąg zapytania używany do wyszukiwania."
         },
         "app.RXhh.action.c2VhcmNo.option.cXVlcnk.display_name": {
           "source": "Query",
           "message": "Zapytanie"
         },
         "app.RXhh.action.c2VhcmNo.option.cXVlcnk.short_desc": {
-          "source": "Search query (natural language)",
-          "message": "Zapytanie wyszukiwania (język naturalny)"
-        },
-        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOm5ldXJhbA.display_name": {
-          "source": "Neural",
-          "message": "Neuronowe"
+          "source": "What to search for, in natural language",
+          "message": "Czego szukać, w języku naturalnym"
         },
         "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmF1dG8.display_name": {
-          "source": "Auto",
-          "message": "Auto"
+          "source": "Automatic",
+          "message": "Automatycznie"
         },
-        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmtleXdvcmQ.display_name": {
-          "source": "Keyword",
-          "message": "Słowo kluczowe"
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmRlZXA.display_name": {
+          "source": "Deep",
+          "message": "Pogłębione"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmRlZXAtbGl0ZQ.display_name": {
+          "source": "Deep (Lite)",
+          "message": "Pogłębione (uproszczone)"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmRlZXAtcmVhc29uaW5n.display_name": {
+          "source": "Deep with Reasoning",
+          "message": "Pogłębione z rozumowaniem"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "Szybkie"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dHlwZQ.allowed-value.c3RyaW5nOmluc3RhbnQ.display_name": {
+          "source": "Instant",
+          "message": "Natychmiastowe"
         },
         "app.RXhh.action.c2VhcmNo.option.dHlwZQ.desc": {
-          "source": "Search type.  `neural` uses embeddings; `keyword` is traditional; `auto` routes between them.",
-          "message": "Typ wyszukiwania. `neural` używa osadzeń; `keyword` jest tradycyjne; `auto` przekierowuje między nimi."
+          "source": "How hard Exa works on the query, trading latency and cost against quality.  `auto` lets Exa choose.",
+          "message": "Ile pracy Exa wkłada w zapytanie, równoważąc czas odpowiedzi i koszt względem jakości.  Przy wartości `auto` wybiera Exa."
         },
         "app.RXhh.action.c2VhcmNo.option.dHlwZQ.display_name": {
-          "source": "Search Type",
-          "message": "Typ wyszukiwania"
+          "source": "Search Depth",
+          "message": "Głębokość wyszukiwania"
         },
         "app.RXhh.action.c2VhcmNo.option.dHlwZQ.short_desc": {
-          "source": "neural / keyword / auto",
-          "message": "neural / keyword / auto"
+          "source": "How hard Exa works on the query",
+          "message": "Ile pracy Exa wkłada w zapytanie"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dXNlckxvY2F0aW9u.desc": {
+          "source": "The two-letter ISO country code of the user, e.g. US.",
+          "message": "Dwuliterowy kod kraju ISO użytkownika, na przykład US."
+        },
+        "app.RXhh.action.c2VhcmNo.option.dXNlckxvY2F0aW9u.display_name": {
+          "source": "User Location",
+          "message": "Lokalizacja użytkownika"
+        },
+        "app.RXhh.action.c2VhcmNo.option.dXNlckxvY2F0aW9u.short_desc": {
+          "source": "Two-letter country code the search is made from",
+          "message": "Dwuliterowy kod kraju, z którego prowadzone jest wyszukiwanie"
         },
         "app.RXhh.action.c2VhcmNo.short_desc": {
-          "source": "Neural / keyword / auto web search via Exa",
-          "message": "Neuronowe / słownikowe / automatyczne wyszukiwanie w sieci za pośrednictwem Exa"
+          "source": "Search the web and optionally return page contents",
+          "message": "Przeszukuje sieć i opcjonalnie zwraca zawartość stron"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.desc": {
+          "source": "Ends a running research run early and returns what the agent has gathered so far - the difference from **Cancel a Research Run**, which discards it.\n\nExa supports this only for `max` effort runs.",
+          "message": "Przedwcześnie kończy trwający przebieg badawczy i zwraca to, co agent zdążył zebrać - na tym polega różnica względem akcji **Anuluj przebieg badawczy**, która to odrzuca.\n\nExa obsługuje to wyłącznie dla przebiegów o nakładzie pracy `max`."
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.display_name": {
+          "source": "Stop a Research Run",
+          "message": "Zakończ przebieg badawczy"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.RXhhLUJldGE.desc": {
+          "source": "Comma-separated beta feature tokens for opting into experimental features.",
+          "message": "Rozdzielone przecinkami tokeny funkcji beta włączające funkcje eksperymentalne."
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.RXhhLUJldGE.display_name": {
+          "source": "Exa Beta",
+          "message": "Exa Beta"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.RXhhLUJldGE.short_desc": {
+          "source": "Comma-separated beta feature tokens for opting into experimental features",
+          "message": "Rozdzielone przecinkami tokeny funkcji beta włączające funkcje eksperymentalne"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.aWQ.desc": {
+          "source": "Agent run ID. New run IDs are returned with the `agent_run_` prefix.",
+          "message": "Identyfikator przebiegu agenta. Nowe identyfikatory przebiegów są zwracane z przedrostkiem `agent_run_`."
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.aWQ.display_name": {
+          "source": "Run",
+          "message": "Przebieg"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.option.aWQ.short_desc": {
+          "source": "The run to stop",
+          "message": "Przebieg do zakończenia"
+        },
+        "app.RXhh.action.c3RvcC1hZ2VudC1ydW4.short_desc": {
+          "source": "End a research run early but keep its results",
+          "message": "Kończy przebieg badawczy przedwcześnie, zachowując jego wyniki"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.desc": {
+          "source": "Runs a search monitor immediately rather than waiting for its next scheduled cycle.  New results are delivered to its webhook as usual.",
+          "message": "Uruchamia monitor wyszukiwania natychmiast, zamiast czekać na jego następny zaplanowany cykl.  Nowe wyniki są dostarczane do jego webhooka jak zwykle."
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.display_name": {
+          "source": "Run a Search Monitor Now",
+          "message": "Uruchom monitor wyszukiwania teraz"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "Identyfikator monitora"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "Monitor"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.option.aWQ.short_desc": {
+          "source": "The monitor to run",
+          "message": "Monitor do uruchomienia"
+        },
+        "app.RXhh.action.dHJpZ2dlci1tb25pdG9y.short_desc": {
+          "source": "Run a monitor immediately, whatever its schedule says",
+          "message": "Uruchamia monitor natychmiast, niezależnie od jego harmonogramu"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.desc": {
+          "source": "Updates a search monitor.  Use `status` to pause it without deleting it: a paused monitor keeps its definition and stops running.  Omit a field to leave it unchanged.",
+          "message": "Aktualizuje monitor wyszukiwania.  Użyj `status`, aby go wstrzymać bez usuwania: wstrzymany monitor zachowuje swoją definicję i przestaje działać.  Pomiń pole, aby pozostawić je bez zmian."
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.display_name": {
+          "source": "Update a Search Monitor",
+          "message": "Zaktualizuj monitor wyszukiwania"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.aWQ.desc": {
+          "source": "The monitor ID",
+          "message": "Identyfikator monitora"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.aWQ.display_name": {
+          "source": "Monitor",
+          "message": "Monitor"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.aWQ.short_desc": {
+          "source": "The monitor to update",
+          "message": "Monitor do zaktualizowania"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.desc": {
+          "source": "Controls the format of the run output. Defaults to `{ \"type\": \"text\" }` if not specified. When `type` is `\"text\"`, the output is a plain text summary. When `type` is `\"object\"`, the output is structured JSON. If no `properties` are specified with `\"object\"` type, a schema is inferred automatically; otherwise the output adheres to the provided schema.",
+          "message": "Określa format wyniku przebiegu. Przy braku wskazania wartość domyślna to `{ \"type\": \"text\" }`. Gdy `type` ma wartość `\"text\"`, wynikiem jest zwykłe podsumowanie tekstowe. Gdy `type` ma wartość `\"object\"`, wynikiem jest uporządkowany JSON. Jeśli przy typie `\"object\"` nie podano `properties`, schemat jest wywnioskowany automatycznie; w przeciwnym razie wynik jest zgodny z podanym schematem."
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.display_name": {
+          "source": "Output Schema",
+          "message": "Schemat wyjścia"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.b3V0cHV0U2NoZW1h.short_desc": {
+          "source": "A JSON Schema describing the results you want delivered",
+          "message": "Schemat JSON opisujący wyniki, które chcesz otrzymywać"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bWV0YWRhdGE.desc": {
+          "source": "Update metadata. Set to null to remove. Echoed back in webhook deliveries so you can route updates to systems like Slack.",
+          "message": "Zaktualizuj metadane. Ustaw na null, aby je usunąć. Są odsyłane przy dostarczeniach webhooka, dzięki czemu możesz kierować aktualizacje do systemów takich jak Slack."
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metadane"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bWV0YWRhdGE.short_desc": {
+          "source": "Metadata to store; set to null to remove it",
+          "message": "Metadane do zapisania; ustaw na null, aby je usunąć"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bmFtZQ.desc": {
+          "source": "Update the monitor name",
+          "message": "Zaktualizuj nazwę monitora"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Nazwa"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.bmFtZQ.short_desc": {
+          "source": "A new name for the monitor",
+          "message": "Nowa nazwa monitora"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c2VhcmNo.desc": {
+          "source": "Partial search params to merge. All fields are optional for updates.",
+          "message": "Częściowe parametry wyszukiwania do scalenia. Przy aktualizacjach wszystkie pola są opcjonalne."
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c2VhcmNo.display_name": {
+          "source": "Search",
+          "message": "Szukaj"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c2VhcmNo.short_desc": {
+          "source": "Search settings to merge into the monitor",
+          "message": "Ustawienia wyszukiwania scalane z monitorem"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.allowed-value.c3RyaW5nOmFjdGl2ZQ.display_name": {
+          "source": "Active",
+          "message": "Aktywny"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.allowed-value.c3RyaW5nOnBhdXNlZA.display_name": {
+          "source": "Paused",
+          "message": "Wstrzymany"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.desc": {
+          "source": "Update the monitor status (can only set to `active` or `paused`)",
+          "message": "Zaktualizuj stan monitora (można ustawić wyłącznie na `active` lub `paused`)"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Stan"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.c3RhdHVz.short_desc": {
+          "source": "Pause the monitor or start it running again",
+          "message": "Wstrzymaj monitor lub uruchom go ponownie"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.d2ViaG9vaw.desc": {
+          "source": "Partial webhook params to merge. All fields are optional for updates.",
+          "message": "Częściowe parametry webhooka do scalenia. Przy aktualizacjach wszystkie pola są opcjonalne."
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.d2ViaG9vaw.display_name": {
+          "source": "Webhook",
+          "message": "Webhook"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.d2ViaG9vaw.short_desc": {
+          "source": "Webhook settings to merge into the monitor",
+          "message": "Ustawienia webhooka scalane z monitorem"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.dHJpZ2dlcg.desc": {
+          "source": "Update the schedule. Set to null to remove the schedule.",
+          "message": "Zaktualizuj harmonogram. Ustaw na null, aby usunąć harmonogram."
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.dHJpZ2dlcg.display_name": {
+          "source": "Schedule",
+          "message": "Harmonogram"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.option.dHJpZ2dlcg.short_desc": {
+          "source": "A new schedule; set to null to remove it",
+          "message": "Nowy harmonogram; ustaw na null, aby go usunąć"
+        },
+        "app.RXhh.action.dXBkYXRlLW1vbml0b3I.short_desc": {
+          "source": "Change a monitor's search, schedule or status",
+          "message": "Zmienia wyszukiwanie, harmonogram lub stan monitora"
         },
         "app.RXhh.desc": {
-          "source": "Provides access to [Exa](https://exa.ai) (formerly Metaphor) — a neural web-search API that complements keyword search with embedding-based semantic retrieval.\n\n**Common use cases**:\n- **Semantic search** where keyword matching fails (e.g. \"companies similar to X\", \"papers about Y\")\n- **Discovery** via `find-similar` from a known seed URL\n- **Agent tools**: register `exa_search` / `exa_find_similar` / `exa_contents` as tools an LLM can invoke (see @ref exarestclientintro \"ExaRestClient\" docs)",
-          "message": "Zapewnia dostęp do [Exa](https://exa.ai) (wcześniej Metaphor) — neuronowego API do wyszukiwania w sieci, które uzupełnia wyszukiwanie słownikowe o semantyczne wyszukiwanie oparte na osadzeniach.\n\n**Typowe przypadki użycia**:\n- **Wyszukiwanie semantyczne**, w którym dopasowywanie słów kluczowych zawodzi (np. „firmy podobne do X”, „artykuły o Y”)\n- **Odkrywanie** za pomocą `find-similar` ze znanego początkowego adresu URL\n- **Narzędzia agenta**: rejestrowanie `exa_search` / `exa_find_similar` / `exa_contents` jako narzędzi, które model LLM może wywoływać (zobacz dokumentację @ref exarestclientintro \"ExaRestClient\")"
+          "source": "Provides access to [Exa](https://exa.ai) (formerly Metaphor) — a search API built for programs rather than for people: the query is meaning, not keywords, and the result can be the answer itself rather than a list of links.\n\n**What it covers**:\n- **Search** the web semantically, with the page contents returned alongside the results\n- **Answer a question** from the web, with the sources cited\n- **Research runs**: an agent that searches, reads and reasons until it can answer, returning prose or data shaped by a JSON schema you supply\n- **Batches**: run a large workload asynchronously in one job rather than one request per item\n- **Search monitors**: re-run a search on a schedule and have only what is new delivered to a webhook, de-duplicated — a query becomes a feed\n\n**Where this earns its place**: keyword search cannot express \"companies like this one\" or \"papers arguing the opposite\", and a team that needs an answer rather than ten tabs ends up writing the reading step itself.  Exa does both, and the monitors turn the same query into an ongoing feed without a polling loop or a de-duplication table to maintain.",
+          "message": "Zapewnia dostęp do [Exa](https://exa.ai) (dawniej Metaphor) — interfejsu API wyszukiwania zbudowanego dla programów, a nie dla ludzi: zapytaniem jest znaczenie, a nie słowa kluczowe, a wynikiem może być sama odpowiedź zamiast listy odnośników.\n\n**Co obejmuje**:\n- **Wyszukiwanie** w sieci według znaczenia, wraz ze zwracaniem zawartości stron obok wyników\n- **Odpowiadanie na pytanie** na podstawie sieci, z przywołaniem źródeł\n- **Przebiegi badawcze**: agent, który szuka, czyta i rozumuje, dopóki nie jest w stanie odpowiedzieć, zwracając ciągły tekst lub dane w kształcie podanego przez ciebie schematu JSON\n- **Partie**: wykonanie dużej pracy asynchronicznie w jednym zadaniu zamiast jednego żądania na element\n- **Monitory wyszukiwania**: powtarzanie wyszukiwania według harmonogramu i dostarczanie do webhooka wyłącznie nowości, bez duplikatów — zapytanie staje się kanałem\n\n**Gdzie to się opłaca**: wyszukiwanie po słowach kluczowych nie wyrazi ani „firm takich jak ta”, ani „artykułów dowodzących czegoś przeciwnego”, a zespół, któremu potrzebna jest odpowiedź, a nie dziesięć kart, i tak w końcu sam pisze krok czytania. Exa robi jedno i drugie, a monitory zamieniają to samo zapytanie w stały kanał bez pętli odpytywania i bez tabeli deduplikacji do utrzymywania."
         },
         "app.RXhh.display_name": {
           "source": "Exa",
           "message": "Exa"
         },
         "app.RXhh.short_desc": {
-          "source": "Exa (Metaphor) neural web search for semantic retrieval",
-          "message": "Neuronowe wyszukiwanie w sieci Exa (Metaphor) do wyszukiwania semantycznego"
+          "source": "Exa neural web search, research agents, batches and search monitors",
+          "message": "Exa: neuronowe wyszukiwanie w sieci, agenci badawczy, partie i monitory wyszukiwania"
         }
       }
     }

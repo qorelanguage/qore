@@ -10,36 +10,11 @@
 %requires Logger
 %requires ConnectionProvider
 %requires DataProvider
+%requires ExaRestClient
 %requires ExaDataProvider
+%requires RestSchemaActions
 
 %exec-class ExaDataProviderTest
-
-class FakeExaRestClientIo inherits ExaRestClient::ExaRestClientIo {
-    public {
-        *hash<auto> last_request;
-        string last_method;
-        string last_path;
-        hash<auto> response_body;
-    }
-
-    constructor() : ExaRestClient::ExaRestClientIo(
-            {"url": "https://api.exa.ai", "apikey": "x"}) {
-    }
-
-    hash<RestClient::RestResponseInfo> restDoRequest(string method, string path,
-            auto body, *hash<auto> hdr) {
-        last_method = method;
-        last_path = path;
-        last_request = body;
-        return <RestClient::RestResponseInfo>{"body": response_body};
-    }
-    hash<RestClient::RestResponseInfo> restPost(string path, auto body, *hash<auto> hdr) {
-        return restDoRequest("POST", path, body, hdr);
-    }
-    string getSafeUrl() {
-        return "https://api.exa.ai";
-    }
-}
 
 public class ExaDataProviderTest inherits QUnit::Test {
     public {
@@ -57,16 +32,15 @@ public class ExaDataProviderTest inherits QUnit::Test {
     constructor() : Test("ExaDataProvider Test", "1.0", \ARGV, MyOpts) {
         conn_name = m_options.conn ?? ENV.EXA_CONNECTION;
 
-        addTestCase("factory + app + 3 actions registered", \registrationTest());
-        addTestCase("root provider lists 3 children",        \rootProviderTest());
-        addTestCase("search posts to /search",               \searchTest());
-        addTestCase("find-similar posts to /findSimilar",    \findSimilarTest());
-        addTestCase("contents posts to /contents",           \contentsTest());
+        addTestCase("factory + app + actions registered", \registrationTest());
+        addTestCase("the manifest agrees with the pinned schema", \schemaTest());
+        addTestCase("action presentation", \actionPresentationTest());
 
-        # Live test requires a real Exa connection.
-        # 1 search on Exa (~$0.005 per run — Exa free tier offers $10 credit).
+        # Live tests require a real Exa connection; the searches below are the cheapest Exa offers.
         if (conn_name) {
-            addTestCase("live: ping + search", \liveExaTest());
+            addTestCase("live: the ping verifies the API key", \livePingTest());
+            addTestCase("live: search, answer and contents", \liveSearchTest());
+            addTestCase("live: read-only listings and dropdowns", \liveReadTest());
         }
         set_return_value(main());
     }
@@ -74,105 +48,175 @@ public class ExaDataProviderTest inherits QUnit::Test {
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-c,--connection=ARG",
-            "set the Exa connection name; without it (and without the "
-            "EXA_CONNECTION env var) the live test is skipped",
-            OptionColumn);
+            "set the Exa connection name; without it (and without the EXA_CONNECTION environment "
+            "variable) the live tests are skipped", OptionColumn);
     }
 
     private registrationTest() {
-        DataProvider::AbstractDataProviderFactory f =
-            DataProvider::DataProvider::getFactory("exa");
+        DataProvider::AbstractDataProviderFactory f = DataProvider::DataProvider::getFactory("exa");
         assertEq("exa", f.getInfo().name);
-
-        hash<DataProviderAppInfo> app =
-            DataProvider::DataProviderActionCatalog::getApp("Exa");
+        hash<DataProviderAppInfo> app = DataProvider::DataProviderActionCatalog::getApp("Exa");
         assertEq("Exa", app.name);
         assertEq("exa", app.scheme);
-        assertEq("exa-logo.svg", app.logo_file_name);
 
-        # filter out the framework-injected make-api-call action (covered by
-        # GenericApiCallAutoInjection.qtest in RestClientDataProvider)
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("Exa"),
             $1.action != AbstractDataProvider::GenericApiCallActionName;
-        assertEq(3, actions.size());
-        list<string> action_names = sort(map $1.action, actions);
-        assertEq(("contents", "find-similar", "search"), action_names);
+        # three hand-written actions grew into the search, research-agent, batch and monitor surface
+        assertEq(25, actions.size(), sprintf("%d actions registered", actions.size()));
+        hash<string, hash<DataProviderActionInfo>> by_id = map {$1.action: $1}, actions;
+
+        # the three action IDs this application published before the manifest are kept
+        map assertTrue(exists by_id{$1}, $1), ("search", "find-similar", "contents");
+        # ... alongside the surface the schema added
+        map assertTrue(exists by_id{$1}, $1), (
+            "answer", "create-agent-run", "get-agent-run", "stop-agent-run", "create-batch",
+            "create-monitor", "trigger-monitor", "list-monitor-runs",
+        );
+        map assertEq(DPAT_API, $1.action_code, $1.action), actions;
+
+        # every action needs a form the user can fill in and a result they can consume
+        foreach hash<DataProviderActionInfo> a in (actions) {
+            assertTrue(exists a.options, sprintf("%s has options", a.action));
+            assertTrue(exists a.output_type, sprintf("%s has an output type", a.action));
+        }
     }
 
-    private rootProviderTest() {
-        FakeExaRestClientIo fake();
-        ExaDataProvider::ExaDataProvider prov(fake);
-        # filter out the framework-injected __call__ child (covered by
-        # GenericApiCallAutoInjection.qtest in RestClientDataProvider)
-        list<string> children = sort(select prov.getChildProviderNames(),
-            $1 != AbstractDataProvider::GenericApiCallChildName);
-        assertEq(("contents", "find-similar", "search"), children);
+    private schemaTest() {
+        hash<ExaSchemaProvenanceInfo> p = ExaDataProvider::ExaSchema::Provenance;
+        assertEq(64, p.source_sha256.size());
+        assertTrue(p.source_url =~ /openapi\.json$/);
+        assertTrue(p.source_size > 0);
+        assertTrue(p.source_operations > 0);
+        assertEq("2.0.0", p.api_version);
+        assertTrue(is_file(ExaDataProvider::ExaSchema::getSchemaPath()),
+            "the vendored schema ships with the module");
+
+        # if the manifest and the committed schema ever disagree, that must fail here rather than when
+        # a user opens an action
+        RestSchemaActionSet aset = ExaDataProvider::ExaSchema::getActionSet();
+        list<hash<RestSchemaDriftInfo>> drift = RestSchemaDrift::compare(aset,
+            ExaDataProvider::ExaSchema::getSchema());
+        assertEq((), drift, "the manifest and the vendored schema agree");
     }
 
-    private searchTest() {
-        FakeExaRestClientIo fake();
-        fake.response_body = {
-            "results": ({"id": "abc", "url": "https://x/", "title": "X", "score": 0.9},),
-        };
+    private actionPresentationTest() {
+        list<hash<DataProviderActionInfo>> actions = select
+            DataProvider::DataProviderActionCatalog::getActions("Exa"),
+            $1.action != AbstractDataProvider::GenericApiCallActionName;
+        hash<string, hash<DataProviderActionInfo>> by_id = map {$1.action: $1}, actions;
 
-        ExaDataProvider::ExaSearchDataProvider prov(fake);
-        auto resp = prov.doRequest({
-            "query": "test",
-            "num_results": 5,
-            "type": "auto",
-        });
+        # Exa writes its nullable enums as "anyOf: [enum, null]", which loses the values in generation;
+        # a search whose depth and category could only be typed by hand would be unusable
+        hash<auto> type = by_id.search.options.type;
+        assertEq(("instant", "fast", "auto", "deep-lite", "deep", "deep-reasoning"),
+            (map $1.value, type.allowed_values));
+        assertEq(("company", "publication", "news", "personal site", "financial report", "people"),
+            (map $1.value, by_id.search.options.category.allowed_values));
+        assertEq(("never", "fallback", "preferred", "always"),
+            (map $1.value, by_id.contents.options.livecrawl.allowed_values));
+        map assertTrue($1.display_name.val(), $1.value), type.allowed_values;
 
-        assertEq("POST", fake.last_method);
-        assertEq("/search", fake.last_path);
-        assertEq("test", fake.last_request.query);
-        assertEq("https://x/", resp.results[0].url);
+        # the models the schema lists in an arbitrary order are named and ordered by depth here, so the
+        # dropdown reads as the trade it is rather than as four opaque tokens
+        assertEq(("exa-fast", "exa", "exa-pro", "exa-research"),
+            (map $1.value, by_id.answer.options.model.allowed_values));
+        assertEq(("Fast", "Standard", "Pro", "Research"),
+            (map $1.display_name, by_id.answer.options.model.allowed_values));
+
+        # "Get Contents" takes the pages one way or the other, never both
+        assertEq(("ids",), by_id.contents.options.urls.exclusive_with);
+        assertEq(("urls",), by_id.contents.options.ids.exclusive_with);
+
+        # every option naming another object offers a dropdown backed by a listing this app exports
+        foreach hash<DataProviderActionInfo> a in (actions) {
+            foreach hash<auto> o in ((a.options ?? {}).pairIterator()) {
+                if ((o.key == "id" || o.key =~ /Id$/) && a.action =~ /agent-run|batch|monitor/) {
+                    assertTrue(o.value.ref_data.val(),
+                        sprintf("%s.%s offers a dropdown", a.action, o.key));
+                }
+            }
+        }
+
+        # a run only means anything inside its monitor, so its dropdown is scoped by the monitor already
+        # chosen rather than listing every run in the account
+        assertEq("exa-monitor-runs", by_id."get-monitor-run".options.runId.ref_data);
+        assertEq(("id",), by_id."get-monitor-run".options.runId.depends_on);
+        assertTrue(by_id."get-monitor-run".options.id.has_dependents);
     }
 
-    private findSimilarTest() {
-        FakeExaRestClientIo fake();
-        fake.response_body = {"results": ()};
 
-        ExaDataProvider::ExaFindSimilarDataProvider prov(fake);
-        prov.doRequest({"url": "https://qore.org/"});
-
-        assertEq("POST", fake.last_method);
-        assertEq("/findSimilar", fake.last_path);
-        assertEq("https://qore.org/", fake.last_request.url);
-    }
-
-    private contentsTest() {
-        FakeExaRestClientIo fake();
-        fake.response_body = {"results": ()};
-
-        ExaDataProvider::ExaContentsDataProvider prov(fake);
-        prov.doRequest({"ids": ("abc",), "text": True});
-
-        assertEq("POST", fake.last_method);
-        assertEq("/contents", fake.last_path);
-        assertEq(("abc",), fake.last_request.ids);
-    }
-
-    #! Exercises Exa's live `/search` endpoint
-    /** Verifies the actual wire format against Exa's production API.
-        Cost: 1 search on Exa (~$0.005 per run — Exa free tier offers $10
-        credit).
+    #! Verifies that the ping actually authenticates
+    /** This connection declared no ping at all until the application covered more than three actions,
+        so every ping returned "OK" without contacting the server - including with an API key Exa
+        would reject.
     */
-    private liveExaTest() {
+    private livePingTest() {
         AbstractConnection conn = get_connection(conn_name);
         hash<auto> ping = conn.ping(True);
-        assertTrue(ping.ok, sprintf("Exa connection ping failed: %s",
-            ping.info ?? "no info"));
+        assertTrue(ping.ok, sprintf("Exa connection ping failed: %s", ping.info ?? "no info"));
+        assertEq("Exa", conn.getInfo().app, "the connection is associated with its application");
 
-        AbstractDataProvider prov = conn.getDataProvider();
-        AbstractDataProvider s = prov.getChildProvider("search");
-        auto resp = s.doRequest({
-            "query":       "claude opus large language model",
-            "num_results": 1,
+        ExaRestConnection bad("exa-bad-key", "a key the server rejects",
+            ExaRestConnection::DefaultUrl, {}, {"apikey": "not-a-real-key"});
+        hash<PingInfo> bp = bad.ping();
+        assertFalse(bp.ok, "a ping with an invalid API key must fail");
+        assertTrue(bp.info =~ /401|403/, sprintf("the ping reported the rejection: %y", bp.info));
+    }
+
+    #! Searches, answers a question and fetches a page
+    private liveSearchTest() {
+        AbstractDataProvider prov = get_connection(conn_name).getDataProvider();
+
+        auto r = prov.getChildProviderEx("search").doRequest({
+            "query": "Qore programming language documentation",
+            "numResults": 3,
+            "type": "fast",
         });
-        assertTrue(resp.results.size() >= 1,
-            "Exa search returned at least one result");
-        assertTrue(resp.results[0].url.val(),
-            "Exa search result has a URL");
+        assertTrue(r.results.size() > 0, "the search returned results");
+        assertTrue(r.results[0].url.val(), "a result carries a URL");
+
+        auto a = prov.getChildProviderEx("answer").doRequest({
+            "query": "What company develops the Qore programming language?",
+            "model": "exa-fast",
+        });
+        assertTrue(a.answer.val(), "the answer action returned an answer");
+        assertTrue(a.citations.size() > 0, "the answer cites its sources");
+
+        auto c = prov.getChildProviderEx("contents").doRequest({
+            "urls": ("https://qore.org",),
+            "text": True,
+        });
+        assertTrue(c.results.size() > 0, "the contents action returned a page");
+        assertTrue(c.results[0].text.val(), "the page carries its text");
+    }
+
+    #! Reads the collections and fills the dropdowns from them
+    private liveReadTest() {
+        AbstractDataProvider prov = get_connection(conn_name).getDataProvider();
+        # an empty account is the normal case here; what is being checked is that the listing resolves
+        # and answers the envelope every collection in this API uses
+        foreach string action in (("list-agent-runs", "list-monitors")) {
+            auto l = prov.getChildProviderEx(action).doRequest({"limit": 5});
+            assertTrue(l.hasKey("data"), sprintf("%s answers the {data, hasMore} envelope", action));
+        }
+
+        # the dropdowns are answered by those same listings
+        AbstractDataProvider ga = prov.getChildProviderEx("get-agent-run");
+        *hash<string, bool> ref = ga.getSupportedReferenceData();
+        assertTrue(ref{ExaManifest::RefAgentRun}, "the run dropdown is declared");
+        # resolving must not throw even when the account holds nothing
+        ga.getReferenceData(ExaManifest::RefAgentRun);
+
+        # a monitor run only means anything inside its monitor, so its dropdown is scoped by the monitor
+        # the caller has already chosen
+        AbstractDataProvider gmr = prov.getChildProviderEx("get-monitor-run");
+        assertEq({ExaManifest::RefMonitor: True, ExaManifest::RefMonitorRun: True},
+            gmr.getSupportedReferenceData());
+        # the monitor listing is global; it must resolve whatever the account holds
+        gmr.getReferenceData(ExaManifest::RefMonitor);
+        # the run listing cannot be made at all until a monitor is chosen; nothing is the honest answer,
+        # because listing every run would offer values that do not belong to the chosen monitor
+        assertNothing(gmr.getReferenceData(ExaManifest::RefMonitorRun));
     }
 }

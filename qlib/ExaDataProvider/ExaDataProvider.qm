@@ -27,6 +27,8 @@
 
 %requires(reexport) DataProvider
 %requires(reexport) ExaRestClient
+%requires(reexport) RestSchemaActions
+%requires OpenApi3
 %requires RestClientIo
 
 module ExaDataProvider {
@@ -42,17 +44,25 @@ module ExaDataProvider {
             "name": ExaDataProvider::AppName,
             "presentation_source_locale": "en",
             "display_name": "Exa",
-            "short_desc": "Exa (Metaphor) neural web search for semantic retrieval",
-            "desc": "Provides access to [Exa](https://exa.ai) (formerly Metaphor) — "
-                "a neural web-search API that complements keyword search with "
-                "embedding-based semantic retrieval.\n\n"
-                "**Common use cases**:\n"
-                "- **Semantic search** where keyword matching fails (e.g. \"companies "
-                "similar to X\", \"papers about Y\")\n"
-                "- **Discovery** via `find-similar` from a known seed URL\n"
-                "- **Agent tools**: register `exa_search` / `exa_find_similar` / "
-                "`exa_contents` as tools an LLM can invoke (see @ref exarestclientintro "
-                "\"ExaRestClient\" docs)",
+            "short_desc": "Exa neural web search, research agents, batches and search monitors",
+            "desc": "Provides access to [Exa](https://exa.ai) (formerly Metaphor) — a search API "
+                "built for programs rather than for people: the query is meaning, not keywords, and "
+                "the result can be the answer itself rather than a list of links.\n\n"
+                "**What it covers**:\n"
+                "- **Search** the web semantically, with the page contents returned alongside the "
+                "results\n"
+                "- **Answer a question** from the web, with the sources cited\n"
+                "- **Research runs**: an agent that searches, reads and reasons until it can answer, "
+                "returning prose or data shaped by a JSON schema you supply\n"
+                "- **Batches**: run a large workload asynchronously in one job rather than one "
+                "request per item\n"
+                "- **Search monitors**: re-run a search on a schedule and have only what is new "
+                "delivered to a webhook, de-duplicated — a query becomes a feed\n\n"
+                "**Where this earns its place**: keyword search cannot express \"companies like "
+                "this one\" or \"papers arguing the opposite\", and a team that needs an answer "
+                "rather than ten tabs ends up writing the reading step itself.  Exa does both, and "
+                "the monitors turn the same query into an ongoing feed without a polling loop or a "
+                "de-duplication table to maintain.",
             "scheme": "exa",
             "logo": ExaLogo,
             "logo_file_name": "exa-logo.svg",
@@ -60,84 +70,10 @@ module ExaDataProvider {
             "groups": (DataProvider::AppGroup::AiLlm, DataProvider::AppGroup::WebAutomation,),
         });
 
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": ExaDataProvider::AppName,
-            "path": "/search",
-            "action": "search",
-            "display_name": "Neural Search",
-            "short_desc": "Neural / keyword / auto web search via Exa",
-            "desc": "Performs a neural, keyword, or auto-routed web search via Exa's "
-                "`/search` endpoint and returns ranked results with title, url, and "
-                "optional text content / highlights.",
-            "action_code": DPAT_API,
-            "groups": ("Search",),
-            "options": DataProviderActionCatalog::getActionOptionFromFields(
-                ExaSearchRequestDataType::Fields{"query",}, {
-                    "preselected": True, "required": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                ExaSearchRequestDataType::Fields{
-                    "type", "num_results", "category",
-                }, {
-                    "preselected": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                ExaSearchRequestDataType::Fields - (
-                    "query", "type", "num_results", "category",
-                )
-            ),
-            "output_type": ExaSearchDataProvider::ResponseType,
-        });
-
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": ExaDataProvider::AppName,
-            "path": "/find-similar",
-            "action": "find-similar",
-            "display_name": "Find Similar Pages",
-            "short_desc": "Find pages similar to a seed URL using Exa's neural search",
-            "desc": "Finds pages similar to a seed URL via Exa's `/findSimilar` "
-                "endpoint.",
-            "action_code": DPAT_API,
-            "groups": ("Search",),
-            "options": DataProviderActionCatalog::getActionOptionFromFields(
-                ExaFindSimilarRequestDataType::Fields{"url",}, {
-                    "preselected": True, "required": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                ExaFindSimilarRequestDataType::Fields{
-                    "num_results", "exclude_source_domain",
-                }, {
-                    "preselected": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                ExaFindSimilarRequestDataType::Fields - (
-                    "url", "num_results", "exclude_source_domain",
-                )
-            ),
-            "output_type": ExaSearchDataProvider::ResponseType,
-        });
-
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": ExaDataProvider::AppName,
-            "path": "/contents",
-            "action": "contents",
-            "display_name": "Fetch Page Contents",
-            "short_desc": "Fetch text / highlights / summaries for URLs",
-            "desc": "Fetches text content, highlight extracts, and AI-summarized "
-                "snippets for one or more URLs via Exa's `/contents` endpoint.",
-            "action_code": DPAT_API,
-            "groups": ("Extract",),
-            "options": DataProviderActionCatalog::getActionOptionFromFields(
-                ExaContentsRequestDataType::Fields{"ids",}, {
-                    "preselected": True, "required": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                ExaContentsRequestDataType::Fields{"text", "highlights", "summary",}, {
-                    "preselected": True,
-                }
-            ),
-            "output_type": ExaContentsDataProvider::ResponseType,
-        });
+        # every action generated from the vendored Exa Public API description; see ExaManifest for
+        # what is exported and why
+        map DataProviderActionCatalog::registerAction($1),
+            ExaSchema::getActionSet().getActionInfoList(ExaDataProvider::AppName);
     };
 }
 
@@ -147,17 +83,79 @@ module ExaDataProvider {
 
     @section exadataproviderintro ExaDataProvider Introduction
 
-    The %ExaDataProvider module provides a data provider API for
-    [Exa](https://exa.ai) (formerly Metaphor) neural search.
+    Data-provider integration for [Exa](https://exa.ai) (formerly Metaphor), a web-search API built
+    for programs: the query is meaning rather than keywords, and the result can be the answer itself
+    rather than a list of links.
 
-    The following data providers are exposed:
-    - @ref ExaDataProvider::ExaDataProvider "ExaDataProvider" — root
-    - @ref ExaDataProvider::ExaSearchDataProvider "ExaSearchDataProvider"
-    - @ref ExaDataProvider::ExaFindSimilarDataProvider "ExaFindSimilarDataProvider"
-    - @ref ExaDataProvider::ExaContentsDataProvider "ExaContentsDataProvider"
+    The application covers the Exa Public API:
 
-    For agent-tool wiring see the @ref exarestclientintro "ExaRestClient"
-    module's `ExaAgentTools` namespace.
+    |!Group|!What it does
+    |Search|search the web semantically, optionally returning the contents of each page
+    |Answers|answer a question from the web, citing the pages used
+    |Contents|fetch the text, the matching passages or a written summary of pages Exa knows
+    |Research Agent|start, read, stop and delete runs of an agent that searches and reasons until it can answer
+    |Batches|enqueue many requests to run asynchronously in one job and download the results
+    |Search Monitors|re-run a search on a schedule and deliver only what is new to a webhook
+
+    @section exadataproviderpicking Which Action to Use
+
+    The four read actions overlap, and the difference is who does the reading:
+
+    |!Action|!Returns|!Use it when
+    |\c search|links, optionally with page text|the caller ranks or reads the results itself
+    |\c answer|an answer with its sources|one question, answerable from a handful of pages
+    |\c create-agent-run|a run to collect later|the answer needs several searches or many pages
+    |\c contents|the text of pages already known|the URLs or document IDs are already in hand
+
+    \c search and \c answer both take an \c outputSchema, which turns the result from prose into
+    data shaped the way the calling flow already expects.
+
+    @section exadataproviderusage Answering a Question
+
+    @code{.py}
+AbstractDataProvider exa = conn.getDataProvider();
+
+# one question, answered from the web with its sources
+hash<auto> answer = exa.getChildProviderEx("answer").doRequest({
+    "query": "which open-source vector databases support hybrid search?",
+    "model": "exa-pro",
+});
+printf("%s\n", answer.answer);
+map printf("  %s\n", $1.url), answer.citations;
+
+# a question that needs real research runs asynchronously
+hash<auto> run = exa.getChildProviderEx("create-agent-run").doRequest({
+    "instructions": "compare the licensing terms of the three largest commercial alternatives",
+    "effort": "medium",
+});
+hash<auto> result = exa.getChildProviderEx("get-agent-run").doRequest({"id": run.id});
+    @endcode
+
+    @section exadataprovidermonitors Turning a Query Into a Feed
+
+    A search monitor is a search Exa re-runs on a schedule, delivering what is new to a webhook.  Exa
+    filters by date since the last run and removes near-duplicates, so the receiver gets new results
+    rather than the same page every cycle — which is the part a caller would otherwise have to build
+    and maintain itself.
+
+    \c batch-monitors applies one action to every monitor matching a filter; a filter is required, so
+    a mistyped request cannot act on the whole account, and \c dry_run defaults to \c True so the
+    affected set can be read before anything changes.
+
+    @section exadataproviderschema How the Actions Are Generated
+
+    Every action is generated from the API description vendored with this module through
+    @ref restschemaactionsintro "RestSchemaActions", so its options and result types are the vendor's
+    own and an upstream change cannot alter the contract of an action a workflow already calls; see
+    @ref ExaDataProvider::ExaManifest "ExaManifest" for what is exported and why, and
+    @ref ExaDataProvider::ExaSchema "ExaSchema" for the pinned document's provenance.
+
+    Exa writes its nullable enums as \c {anyOf: [enum, null]}, which loses the values in generation;
+    the manifest restores them with display names, so the search type, category, live-crawl mode,
+    answer model and agent effort are all dropdowns rather than free text.
+
+    For agent-tool wiring see the @ref exarestclientintro "ExaRestClient" module's \c ExaAgentTools
+    namespace.
 
     @section ExaDataProviderRelnotes Release Notes
 

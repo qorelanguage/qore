@@ -58,7 +58,17 @@ public class ExaRestClientTest inherits QUnit::Test {
     private connectionSchemeTest() {
         hash<ConnectionSchemeInfo> info =
             ConnectionProvider::ConnectionSchemeCache::getScheme("exa");
-        assertEq("Exa Neural Search Connection", info.display_name);
+        assertEq("Exa Connection", info.display_name);
+        # the API key is mandatory and is a credential
+        assertEq("apikey", info.required_options);
+        assertTrue(info.options.apikey.sensitive);
+        # the connection is associated with its application, so getInfo() carries "app"
+        ExaRestConnection c("exa-test", "test", ExaRestConnection::DefaultUrl, {},
+            {"apikey": "x"});
+        assertEq("Exa", c.getAppName());
+        # the ping reads a path that requires the key; "GET /v0/teams/me" would read better but every
+        # path this API description puts under "/v0" answers 404 on api.exa.ai
+        assertTrue(ExaRestConnection::PingPath =~ /^\/monitors/);
         assertTrue(info.schemes.exa);
         assertEq("apikey", info.required_options);
     }

@@ -49,15 +49,33 @@ module ExaRestClient {
 
     @section exarestclientintro ExaRestClient Introduction
 
-    The %ExaRestClient module provides a REST client for
-    [Exa](https://exa.ai) (formerly Metaphor) — a neural web-search API
-    that complements keyword search with embedding-based semantic
-    retrieval.
+    The %ExaRestClient module provides a REST client and connection for
+    [Exa](https://exa.ai) (formerly Metaphor) — a web-search API built for programs, where the query
+    is meaning rather than keywords and the result can be the answer itself rather than a list of
+    links.
 
-    Exa exposes three primary endpoints:
-    - `POST /search` — neural / keyword / auto search
-    - `POST /findSimilar` — find pages similar to a seed URL
-    - `POST /contents` — fetch text / highlights / summaries for URLs
+    The API is grouped as follows:
+    - \c POST \c /search — search the web, optionally returning the contents of each result
+    - \c POST \c /answer — answer a question from the web, citing the pages used
+    - \c POST \c /contents — fetch the text, matching passages or a summary of known pages
+    - \c POST \c /findSimilar — find pages similar to a seed URL (deprecated by Exa in favour of a
+      search query describing the page)
+    - \c /research/v1 — start, read, stop and delete research runs
+    - \c /batches — enqueue many requests to run asynchronously in one job
+    - \c /monitors — search monitors that re-run a search on a schedule and deliver what is new to a
+      webhook
+
+    For the data-provider application built on this client, see
+    @ref exadataproviderintro "ExaDataProvider".
+
+    @par Authentication
+
+    Exa authenticates with the \c x-api-key header rather than \c {Authorization: Bearer}, so the
+    \c apikey connection option is required and is rewritten into that header by
+    @ref ExaRestClient::ExaRestClientBase::getOptions() "ExaRestClientBase::getOptions()".  The
+    connection ping issues an authenticated read (see
+    @ref ExaRestClient::ExaRestConnection::PingPath "ExaRestConnection::PingPath"), so a ping fails
+    for a key the server rejects rather than merely proving the host is reachable.
 
     @par Agent integration
 
@@ -119,12 +137,23 @@ public class ExaRestConnection inherits RestClient::RestConnection {
     public {
         const DefaultUrl = "exa://api.exa.ai";
 
+        #! The path pinged to verify that the server accepts the API key
+        /** A cheap authenticated read: the monitor listing answers \c 200 for a key Exa accepts and
+            \c 401 for one it does not.
+
+            \c "GET /v0/teams/me" would read better - it is literally "which team is this key for" -
+            but that path answers \c 404 on \c api.exa.ai, as does every other path the API
+            description puts under \c /v0.
+        */
+        const PingPath = "/monitors?limit=1";
+
         const ConnectionScheme = <ConnectionSchemeInfo>{
-            "display_name": "Exa Neural Search Connection",
-            "short_desc": "A connection to the Exa neural-search REST API",
-            "desc": "A connection to [Exa](https://exa.ai) (formerly Metaphor) — a "
-                "neural web-search API providing embedding-based semantic retrieval "
-                "alongside keyword search.\n\n"
+            "display_name": "Exa Connection",
+            "short_desc": "A connection to the Exa web search and research API",
+            "desc": "A connection to [Exa](https://exa.ai) (formerly Metaphor) — a neural web-search "
+                "API providing embedding-based semantic retrieval alongside keyword search, plus "
+                "answers with citations, an autonomous research agent, and websets: structured, "
+                "verified lists of things found on the web.\n\n"
                 "Requires an API key sent as the `x-api-key` header (NOT "
                 "`Authorization: Bearer`).  Get your API key from the "
                 "[Exa dashboard](https://dashboard.exa.ai/).",
@@ -157,6 +186,44 @@ public class ExaRestConnection inherits RestClient::RestConnection {
 
     string getType() {
         return "exa";
+    }
+
+    #! Returns the data provider application name this connection serves
+    /** Without this the base class returns nothing, the connection is never associated with its app,
+        and @ref ConnectionProvider::AbstractConnection::getInfo() "getInfo()" omits \c app entirely.
+
+        @note must match @c ExaDataProvider::AppName; the name is repeated here rather than referenced
+        because %ExaDataProvider requires this module, not the reverse
+    */
+    *string getAppName() {
+        return "Exa";
+    }
+
+    #! Pings the server by asking which team the API key belongs to
+    /** This connection declared no ping at all until the application covered more than three actions,
+        so every ping returned \c "OK" in a few milliseconds without contacting the server - including
+        with an API key Exa would reject.  \c "GET /v0/teams/me" is the cheapest authenticated read the
+        API offers: it answers with the team the key belongs to, and \c 401 when the key is not
+        accepted, so the credentials are actually verified.
+
+        Set both the \c ping_method and \c ping_path options to use the standard
+        @ref RestClient::RestConnection "RestConnection" ping instead.  Note that such a ping cannot
+        detect an invalid API key unless the path it names requires one.
+
+        @throw REST-RESPONSE-ERROR the server rejected the ping request
+    */
+    private pingImpl() {
+        if (opts.ping_method && opts.ping_path) {
+            RestConnection::pingImpl();
+            return;
+        }
+        try {
+            cast<ExaRestClientIo>(getAsync()).restGet(PingPath);
+        } catch (hash<ExceptionInfo> ex) {
+            authFailure();
+            rethrow;
+        }
+        authSuccess();
     }
 
     bool hasDataProvider() {
