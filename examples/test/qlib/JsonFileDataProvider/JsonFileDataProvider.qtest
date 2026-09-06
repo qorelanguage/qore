@@ -45,6 +45,7 @@ class JsonFileDataProviderTest inherits QUnit::Test {
         addTestCase("read JSON array from data", \testReadArrayFromData());
         addTestCase("read JSON single object from data", \testReadSingleObject());
         addTestCase("read JSON mixed array from data", \testReadMixedArray());
+        addTestCase("read JSON advertises an open record type", \testOpenRecordType());
         addTestCase("read JSON from path", \testReadFromPath());
         addTestCase("read JSON from stream", \testReadFromStream());
         addTestCase("read compact JSON", \testReadCompact());
@@ -107,6 +108,14 @@ class JsonFileDataProviderTest inherits QUnit::Test {
         assertEq({"value": True}, results[3]);
         assertEq({"value": NOTHING}, results[4]);
         assertEq({"value": (1, 2, 3)}, results[5]);
+    }
+
+    testOpenRecordType() {
+        JsonFileDataProvider::JsonFileReadDataProvider provider({"data": JsonArray});
+        assertNothing(provider.getRecordType(),
+            "arbitrary JSON fields have no invented static schema");
+        assertEq({}, provider.getOrNothingRecordTypeWithOptions(),
+            "soft record-type projection exposes no invented fields");
     }
 
     testReadFromPath() {

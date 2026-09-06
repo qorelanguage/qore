@@ -186,6 +186,20 @@ public class JsonFileReadDataProvider inherits DataProvider::AbstractDataProvide
         return new DefaultRecordIterator(new ListIterator(records), where_cond, search_options);
     }
 
+    #! Returns an open record type because JSON object fields are data-dependent
+    /** JSON input can contain arbitrary object fields, and constructor options
+        can be resolved only when an integration executes. Advertising an open
+        record type allows callers such as data pipelines to accept the record
+        stream without parsing input early or inventing a static schema.
+
+        @param search_options ignored search options
+        @return @ref NOTHING to represent an open record shape
+    */
+    private *hash<string, AbstractDataField> getRecordTypeImpl(
+            *hash<auto> search_options) {
+        return NOTHING;
+    }
+
     #! Reads all content from the configured input source
     /** @return the JSON string content
 
