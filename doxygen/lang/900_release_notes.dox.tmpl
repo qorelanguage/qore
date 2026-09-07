@@ -2073,6 +2073,8 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
 
     - @ref cohererestclientintro "CohereRestClient" module
       - new module providing a REST client for <a href="https://cohere.com">Cohere</a>'s v2 REST API
+      - connection pings validate the key-check response, including invalid keys returned with HTTP 200;
+        quota-exhausted trial keys can still authenticate without consuming inference quota
 
     - @ref confluencedataproviderintro "ConfluenceDataProvider" module
       - new module providing a data provider API for <a href="https://www.atlassian.com/software/confluence">Confluence</a>

@@ -5682,6 +5682,10 @@ public class RestClientIoPingPollOperation inherits Qore::AbstractPollOperation<
                         schema_validator.parseResponse(ping_method, ping_path, status_code,
                             resp_body, resp.headers);
                     }
+                    {
+                        on_error conn.authFailure();
+                        conn.validatePingResponse(resp.body);
+                    }
                     goal_reached = True;
                     state = SPS_COMPLETE;
                     conn.authSuccess();
