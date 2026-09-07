@@ -131,9 +131,13 @@ public class LlmStructuredRepair {
                 }
             }
             if (!startsWithJsonContainer(cleaned)) {
+                # A fence followed by prose is intentionally retained by the
+                # general text cleaner. Preserve the structured parser's
+                # established repair identity for that JSON-prefix case.
                 hash<LlmStructuredRepairResult> embedded =
                     parseEmbeddedBalancedJsonSpan(cleaned, expected_type,
-                        "json-balanced-embedded");
+                        cleaned.startsWith("```") ? "json-balanced-prefix"
+                            : "json-balanced-embedded");
                 if (embedded.valid) {
                     return embedded;
                 }
@@ -280,14 +284,7 @@ public class LlmStructuredRepair {
     }
 
     private static string cleanJsonText(string text) {
-        string rv = trim(regex_subst(text,
-            "<think>[\\s\\S]*?</think>\\s*", "", RE_Global));
-        if (rv =~ /^```/) {
-            rv = regex_subst(rv, "^```[a-zA-Z0-9_-]*\\s*\n?", "");
-            rv = regex_subst(rv, "\n?```\\s*$", "");
-            rv = trim(rv);
-        }
-        return rv;
+        return trim(LlmBackend::cleanResponseText(text));
     }
 
     private static hash<LlmStructuredRepairResult> validateParsed(auto parsed,
@@ -613,6 +610,83 @@ public class LlmBackend {
         hash<LlmBackendConfig> config_h;
         #! The provider implementation looked up from @ref LlmProviderRegistry
         AbstractLlmProvider provider;
+    }
+
+    #! Removes reasoning prefixes and an enclosing code fence from completed response text
+    /** Recognizes leading @c &lt;think&gt; blocks, including multiple blocks. An
+        unterminated leading block contains no visible answer and returns an
+        empty string. A single enclosing triple-backtick fence is removed;
+        Markdown containing multiple code blocks is preserved.
+
+        Literal tags inside the answer, JSON strings, or fenced code are not
+        treated as reasoning. Ordinary text is returned unchanged, including
+        whitespace; indentation inside an enclosing fence is preserved.
+
+        This operates on completed text, not individual streaming deltas.
+        Vendor-native thinking blocks and signatures remain the provider
+        adapter's responsibility and are not text to be stripped.
+
+        @param text completed model response text
+        @return visible response text without the recognized wrappers
+    */
+    static string cleanResponseText(string text) {
+        string rv = text;
+        string candidate = trim(rv);
+        while (candidate.startsWith("<think>")) {
+            int end = candidate.find("</think>", 7);
+            if (end < 0) {
+                return "";
+            }
+            candidate = trim(candidate.substr(end + 8));
+            rv = candidate;
+        }
+
+        list<string> lines = candidate.split("\n");
+        if (lines.size() >= 2
+                && trim(lines[0]) =~ /^```[a-zA-Z0-9_+#.-]*$/
+                && trim(lines[-1]) == "```") {
+            for (int i = 1; i < lines.size() - 1; ++i) {
+                if (trim(lines[i]).startsWith("```")) {
+                    return rv;
+                }
+            }
+            string content = regex_subst(candidate,
+                "^```[a-zA-Z0-9_+#.-]*[ \\t]*\\r?\\n", "");
+            return regex_subst(content, "(?:\\r?\\n)?[ \\t]*```$", "");
+        }
+        if (lines.size() == 1 && candidate.startsWith("```")
+                && candidate.endsWith("```") && candidate.size() >= 6) {
+            string content = candidate.substr(3, candidate.size() - 6);
+            if (content.find("```") < 0) {
+                return content;
+            }
+        }
+        return rv;
+    }
+
+    #! Cleans completed assistant text in an OpenAI-compatible response
+    /** Applies @ref cleanResponseText() to string @c message.content values
+        in every choice. The response shape, tool arguments, reasoning
+        metadata, usage, null or multipart content, and streaming deltas are
+        preserved. The input hash is not modified.
+
+        @param response completed OpenAI-compatible response
+        @return response with cleaned assistant text
+    */
+    static hash<auto> cleanChatCompletionResponse(hash<auto> response) {
+        hash<auto> rv = {};
+        rv += response;
+        if (rv.choices.typeCode() == NT_LIST) {
+            for (int i = 0; i < rv.choices.size(); ++i) {
+                auto message = rv.choices[i].message;
+                if (message.typeCode() == NT_HASH
+                        && (!message.role.val() || message.role == "assistant")
+                        && message.content.typeCode() == NT_STRING) {
+                    rv.choices[i].message.content = cleanResponseText(message.content);
+                }
+            }
+        }
+        return rv;
     }
 
     #! Creates an LlmBackend with the given configuration

@@ -1,0 +1,83 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+# MIT License
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires QUnit
+%requires QoreLlmUtils
+%exec-class LlmResponseTextTest
+
+class LlmResponseTextTest inherits QUnit::Test {
+    constructor() : Test("LlmResponseTextTest", "1.0", \ARGV) {
+        addTestCase("completed response wrappers", \wrappers());
+        addTestCase("answer content is preserved", \preservation());
+        addTestCase("completion envelopes preserve non-text fields", \envelopes());
+        addTestCase("structured repair uses the shared text cleanup", \structured());
+        set_return_value(main());
+    }
+
+    private wrappers() {
+        assertEq("answer", LlmBackend::cleanResponseText("<think>reason\nreason</think>\nanswer"));
+        assertEq("answer", LlmBackend::cleanResponseText(
+            " <think>one</think>\n<think>two</think>\n```text\nanswer\n``` "));
+        assertEq("", LlmBackend::cleanResponseText("<think>reason only</think>"));
+        assertEq("", LlmBackend::cleanResponseText("<think>truncated reasoning"));
+        assertEq("answer", LlmBackend::cleanResponseText("```answer```"));
+        assertEq("", LlmBackend::cleanResponseText("```\n```"));
+        assertEq("    indented();", LlmBackend::cleanResponseText("```c++\r\n    indented();\r\n```"));
+        assertEq("{\"ok\":true}", LlmBackend::cleanResponseText("```json\n{\"ok\":true}\n```"));
+    }
+
+    private preservation() {
+        foreach string text in ((
+                "  ordinary text\n\n", "", "\n\t", "text with `<think>literal</think>` tags",
+                "{\"source\":\"<think>literal</think>\"}",
+                "Introduction\n```json\n{}\n```\nExplanation",
+                "```qore\nfirst();\n```\nThen:\n```qore\nsecond();\n```",
+                "```qore\nunfinished code", "```json\n{}\n``` trailing text")) {
+            assertEq(text, LlmBackend::cleanResponseText(text));
+        }
+        assertEq("<think>literal example</think>",
+            LlmBackend::cleanResponseText("```xml\n<think>literal example</think>\n```"));
+        assertEq("    first();\n\n    second();",
+            LlmBackend::cleanResponseText("```qore\n    first();\n\n    second();\n```"));
+    }
+
+    private envelopes() {
+        hash<auto> response = {
+            "id": "response-id", "model": "reasoning-model", "_qorus": {"trace_id": "trace"},
+            "usage": {"prompt_tokens": 10, "completion_tokens": 20, "reasoning_tokens": 15},
+            "choices": (
+                {"index": 0, "finish_reason": "tool_calls", "message": {
+                    "role": "assistant", "content": "<think>private</think>```text\nanswer\n```",
+                    "reasoning_content": "private", "thought_signature": "signed-provider-data",
+                    "tool_calls": ({"id": "call", "function": {"name": "save",
+                        "arguments": "{\"text\":\"<think>literal</think>```code```\"}"}},),
+                }},
+                {"index": 1, "message": {"role": "assistant", "content": "```second```"}},
+                {"index": 2, "message": {"role": "assistant", "content": NOTHING}},
+                {"index": 3, "message": {"role": "assistant",
+                    "content": ({"type": "image_url", "image_url": {"url": "image"}},)}},
+                {"index": 4, "delta": {"content": "<thi"}},
+                {"index": 5, "message": {"role": "tool", "content": "<think>tool data</think>"}},
+                {"index": 6, "message": {"role": "assistant"}},
+            ),
+        };
+        hash<auto> original = response;
+        hash<auto> expected = response;
+        expected.choices[0].message.content = "answer";
+        expected.choices[1].message.content = "second";
+        assertEq(expected, LlmBackend::cleanChatCompletionResponse(response));
+        assertEq(original, response, "cleanup does not mutate the provider response");
+        assertEq({"usage": {"completion_tokens": 1}},
+            LlmBackend::cleanChatCompletionResponse({"usage": {"completion_tokens": 1}}));
+    }
+
+    private structured() {
+        hash<auto> result = LlmStructuredRepair::parseJsonObject(
+            "<think>reason</think>```json\n{\"ok\":true,\"literal\":\"<think>x</think>\"}\n```");
+        assertTrue(result.valid);
+        assertTrue(result.repaired);
+        assertEq({"ok": True, "literal": "<think>x</think>"}, result.value);
+    }
+}
