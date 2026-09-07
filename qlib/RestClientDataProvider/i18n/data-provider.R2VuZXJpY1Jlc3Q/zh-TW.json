@@ -332,8 +332,8 @@
           "message": "是否自動重新整理權杖"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.desc": {
-          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token",
-          "message": "`authorization_code` 授權類型的驗證請求選用引數；若已設定 `token` 選項則忽略。請注意，`authorization_code` 授權類型需要外部使用者授權才能取得存取權杖"
+          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token. Supply unencoded keys and values; consent URL generation URL-encodes each value exactly once, including scope lists",
+          "message": "`authorization_code` 授權類型的驗證請求選用引數；若已設定 `token` 選項則忽略。請注意，`authorization_code` 授權類型需要外部使用者授權才能取得存取權杖。請提供未編碼的鍵與值；產生同意授權的 URL 時，每個值（包括權限範圍清單）都只會進行一次 URL 編碼"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.display_name": {
           "source": "OAuth2 Authorization Args",

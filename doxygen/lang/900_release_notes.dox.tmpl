@@ -479,6 +479,20 @@ int echoed = child.echo(value);
     files for build instructions.
     @endparblock
 
+    @par Implicit Copy Calls in Compiled Code
+    @parblock
+    Implicit \c copy() calls retain their copy-constructor identity during parsing. IR and native
+    execution now preserve object state and copy-hook exceptions instead of dispatching a copy
+    constructor as an ordinary method, which could raise a spurious error or crash.
+    @endparblock
+
+    @par Parallel AOT Object Build Ordering
+    @parblock
+    CMake object rules now order direct object-stamp consumers after the group coordinator.
+    This prevents concurrent object compilation from changing the dependency graph while the
+    coordinator plans a rebuild or adopts an existing object tree.
+    @endparblock
+
     @par LoggerAppenderQueue Default Memory Limit
     @parblock
 \if QORE_LANG_FINAL

@@ -332,8 +332,8 @@
           "message": "토큰 자동 갱신 여부"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.desc": {
-          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token",
-          "message": "`authorization_code` 부여 유형의 인증 요청에 대한 선택적 인수입니다. `token` 옵션이 설정된 경우 무시됩니다. `authorization_code` 부여 유형은 액세스 토큰을 획득하기 위해 외부 사용자 인증이 필요합니다"
+          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token. Supply unencoded keys and values; consent URL generation URL-encodes each value exactly once, including scope lists",
+          "message": "`authorization_code` 부여 유형의 인증 요청에 대한 선택적 인수입니다. `token` 옵션이 설정된 경우 무시됩니다. `authorization_code` 부여 유형은 액세스 토큰을 획득하기 위해 외부 사용자 인증이 필요합니다. 인코딩되지 않은 키와 값을 제공하세요. 동의 URL을 생성할 때 권한 범위 목록을 포함한 각 값은 정확히 한 번 URL 인코딩됩니다"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.display_name": {
           "source": "OAuth2 Authorization Args",

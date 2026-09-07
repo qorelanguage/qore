@@ -1139,6 +1139,12 @@ function(QORE_QCC_COMPILE_OBJECTS _out_var)
                         ${_qore_qcc_source}
                         ${_qore_qcc_single_script}
                 DEPENDS
+                    # Every target that consumes an object stamp must reach
+                    # the coordinator before this recipe. CMake duplicates
+                    # custom commands into independent consuming targets;
+                    # ordering only the exported group target leaves direct
+                    # stamp consumers free to compile alongside the planner.
+                    ${_qore_qcc_incremental_plan_target}
                     ${_qore_qcc_source_content_digest}
                     ${_qore_qcc_source_content_map}
                     ${_qore_qcc_source_symbols}
