@@ -302,6 +302,9 @@ excluded from the union and make it @ref RestSchemaValidator::AbstractSchemaObje
     @section openapi3_relnotes OpenApi3 Module Release Notes
 
     @subsection openapi3_1_0 OpenApi3 v1.0
+    - validate JSON Schema `const` values, including model discriminators in composed request bodies,
+      and expose scalar constants as finite field choices
+    - enforce scalar and array composition constraints, including bounds in nullable scalar alternatives
     - multipart binary inputs accept named `FileDataType` values as well as raw bytes;
       file names and media types are preserved, and ordinary form fields precede file parts
     - preserve literal prefixes and suffixes in path templates such as `/v2/batches/{id}:cancel`,
@@ -3138,7 +3141,7 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         |\c form|\c true|\c x=1|\c a=1&a=2
         |\c form|\c false|\c a=x,1|\c a=1,2
         |\c spaceDelimited|\c false|n/a|\c a=1%202
-        |\c pipeDelimited|\c false|n/a|\c a=1\|2
+        |\c pipeDelimited|\c false|n/a|<tt>a=1\|2</tt>
         |\c deepObject|\c true|\c a[x]=1|\c a[0]=1&a[1]=2
 
         \c deepObject nests to any depth, which is what APIs taking structured form bodies — Stripe's among
@@ -4744,7 +4747,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         *list<auto> examples;
 
         #! If the schema declared a \c type of its own, as opposed to inheriting one from an \c allOf member
-        /** Recorded at parse time because @ref adoptScalarTypeFromAllOf() may fill @ref SchemaBase::type in
+        /** Recorded at parse time because @ref adoptScalarTypeFromAllOf() may fill \c type in
             afterwards, which would otherwise make the two cases indistinguishable.
         */
         bool own_type = False;
@@ -4785,6 +4788,12 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
     private {
         #! Reference to the OpenApi3 schema
         OpenApi3Schema openapi3;
+
+        #! Whether the schema declares a JSON Schema constant, including null
+        bool has_const = False;
+
+        #! The JSON value required by the const keyword; immutable after construction
+        auto const_value;
     }
 
     #! private constructor; use newSchemaObject() instead
@@ -4809,6 +4818,15 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
             : ObjectBase(oh), SchemaBase("Schema", oh) {
         self.name = name;
         self.openapi3 := openapi3;
+        has_const = oh.hasKey("const");
+        if (has_const) {
+            const_value = oh."const";
+            # Scalar constants also supply field dropdowns through the existing enum metadata.
+            if (!enumValues && (const_value.typeCode() == NT_STRING || const_value.typeCode() == NT_INT
+                    || const_value.typeCode() == NT_FLOAT || const_value.typeCode() == NT_BOOLEAN)) {
+                enumValues = {const_value.toString(): True};
+            }
+        }
         # add static map reference
         if (!hash_str.val()) {
             hash_str = sprintf("%y", oh).toSHA256();
@@ -5555,6 +5573,9 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
 
     # returns an example value for a REST API call
     auto getExampleValue() {
+        if (has_const) {
+            return const_value;
+        }
         if (exists example) {
             return example;
         }
@@ -5589,19 +5610,126 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         return SchemaBase::getExampleValueWithFormat(type, format, name);
     }
 
-    #! validates the value against the schema definition
+    #! Validates the value against the schema definition
+    /** @param serialize whether to serialize the value for transport
+        @param request whether this is request data
+        @param path the request path used in validation errors
+        @param method the HTTP method used in validation errors
+        @param name the property being validated
+        @param value the value to validate and normalize
+        @throw SCHEMA-VALIDATION-ERROR the value violates the schema
+    */
     check(bool serialize, bool request, string path, string method, string name, reference<auto> value) {
-        if (request && readOnly)
+        if (has_const && !SchemaObject::equalJsonValue(value, const_value)) {
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: property %y does not match its const value",
+                method.upr(), path, name);
+        }
+        if (request && readOnly) {
             throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: property %y is read-only and therefore cannot be "
                 "included in a request", method.upr(), path, name);
-        if (!request && writeOnly)
+        }
+        if (!request && writeOnly) {
             throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: property %y is write-only and therefore cannot be "
                 "included in a response", method.upr(), path, name);
+        }
         if (!exists value && nullable) {
             return;
         }
+        if (nullType) {
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: property %y must be null",
+                method.upr(), path, name);
+        }
+
+        # Object compositions are checked with their merged property context in checkIntern().
+        # Scalar and array alternatives must also enforce their own bounds and enum constraints.
+        if (value.typeCode() != NT_HASH) {
+            foreach SchemaObject member in (allOf) {
+                member.check(serialize, request, path, method, name, \value);
+            }
+            foreach string keyword in (("oneOf", "anyOf")) {
+                list<SchemaObject> branches = keyword == "oneOf" ? oneOf : anyOf;
+                if (!branches) {
+                    continue;
+                }
+                int matches = 0;
+                auto accepted;
+                foreach SchemaObject member in (branches) {
+                    if (!SchemaObject::matchesScalarBranch(member, value)) {
+                        continue;
+                    }
+                    try {
+                        auto candidate = value;
+                        member.check(serialize, request, path, method, name, \candidate);
+                        if (!matches) {
+                            accepted = candidate;
+                        }
+                        ++matches;
+                    } catch (hash<ExceptionInfo> ex) {
+                        # This alternative does not accept the value.
+                    }
+                }
+                if (!matches || (keyword == "oneOf" && matches != 1)) {
+                    throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: property %y does not satisfy %s",
+                        method.upr(), path, name, keyword);
+                }
+                value = accepted;
+            }
+        }
 
         SchemaBase::check(serialize, request, type, format, items, path, method, name, \value);
+    }
+
+    #! Selects a composition branch before the ordinary single-type validator can coerce its input
+    private static bool matchesScalarBranch(SchemaObject branch, auto value) {
+        int tc = value.typeCode();
+        switch (branch.type) {
+            case "boolean": return tc == NT_BOOLEAN;
+            case "string": return tc == NT_STRING || (tc == NT_DATE
+                    && (branch.format == "date" || branch.format == "date-time"))
+                || (tc == NT_BINARY && (branch.format == "byte" || branch.format == "binary"));
+            case "integer": return tc == NT_INT || ((tc == NT_FLOAT || tc == NT_NUMBER)
+                    && value == value.toInt()) || (tc == NT_DATE && branch.format == "unix-time");
+            case "number": return tc == NT_INT || tc == NT_FLOAT || tc == NT_NUMBER;
+            case "array": return tc == NT_LIST;
+            case "object": return tc == NT_HASH;
+            default: return True;
+        }
+    }
+
+    #! Compares JSON values without coercing strings or booleans to numbers
+    private static bool equalJsonValue(auto left, auto right) {
+        int lt = left.typeCode();
+        int rt = right.typeCode();
+        const hash<string, bool> NumericTypes = {NT_INT: True, NT_FLOAT: True, NT_NUMBER: True};
+        if (NumericTypes{lt} && NumericTypes{rt}) {
+            return left == right;
+        }
+        if (lt != rt) {
+            return False;
+        }
+        if (lt == NT_HASH) {
+            if (left.size() != right.size()) {
+                return False;
+            }
+            foreach hash<auto> entry in (left.pairIterator()) {
+                if (!right.hasKey(entry.key) || !SchemaObject::equalJsonValue(entry.value, right{entry.key})) {
+                    return False;
+                }
+            }
+            return True;
+        }
+        if (lt == NT_LIST) {
+            if (left.size() != right.size()) {
+                return False;
+            }
+            for (int i = 0; i < left.size(); ++i) {
+                if (!SchemaObject::equalJsonValue(left[i], right[i])) {
+                    return False;
+                }
+            }
+            return True;
+        }
+        return left == right;
     }
 
     #! Rejects an object-only keyword on a schema that declares an incompatible type
@@ -5633,7 +5761,16 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
     }
 
     #! validates a schema object against a value
-    /** @param no_check_others skip property validation entirely; used for an \c allOf member, whose
+    /** @param serialize whether to serialize values for transport
+        @param request whether this is request data
+        @param type the containing schema type
+        @param format the wire format, if declared
+        @param path the request path
+        @param method the HTTP method
+        @param name the property name
+        @param v the original object
+        @param value the object to validate and normalize
+        @param no_check_others skip property validation entirely; used for an \c allOf member, whose
         properties are validated once against the combined schema rather than per member
         @param allow_unknown validate the properties this schema declares but tolerate any other, which is
         what OpenAPI's default \c "additionalProperties: true" means.  Used when checking a composition
@@ -5644,6 +5781,10 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method,
             string name, hash<auto> v, reference<hash<auto>> value, *bool no_check_others,
             *bool allow_unknown) {
+        if (nullType || (has_const && !SchemaObject::equalJsonValue(value, const_value))) {
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: property %y does not match its constant schema",
+                method.upr(), path, name);
+        }
         if (type != "object" && type != "any") {
             throwInvalidType(name, "object", type, v);
         }
@@ -6172,6 +6313,7 @@ namespace Priv {
         @param name field name
         @param typeCode field typeCode
         @param target where to assign the field's value
+        @param opt_flags optional field-validation flags
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
@@ -6215,6 +6357,7 @@ namespace Priv {
         @param name field name
         @param typeCode field typeCode
         @param target where to assign the field's value
+        @param opt_flags optional field-validation flags
 
         @return whether the field was assigned
 

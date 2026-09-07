@@ -1299,6 +1299,10 @@
           "source": "How many results to return per page",
           "message": "Wie viele Ergebnisse pro Seite zurückgegeben werden"
         },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.allowed-value.c3RyaW5nOmNvbXBsZXRlZA.display_name": {
+          "source": "completed",
+          "message": "Abgeschlossen"
+        },
         "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.desc": {
           "source": "Filter the listing to completed batches. `completed` is the only supported value; any other value returns a 400. Completed listings are ordered by expiry and use a distinct cursor, so keep sending `status=completed` on every cursor-paginated request.",
           "message": "Schränkt die Auflistung auf abgeschlossene Stapel ein. `completed` ist der einzige unterstützte Wert; jeder andere Wert führt zu einem 400. Auflistungen abgeschlossener Stapel sind nach Ablaufdatum sortiert und verwenden einen eigenen Cursor; senden Sie daher bei jeder cursorbasierten Anfrage weiterhin `status=completed`."

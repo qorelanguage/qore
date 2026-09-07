@@ -1,201 +1,516 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
 
 %modern
-%allow-injection
-
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Logger
-%requires ConnectionProvider
-%requires DataProvider
-%requires JinaDataProvider
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/JinaDataProvider
+%requires json
 
 %exec-class JinaDataProviderTest
 
-class FakeJinaRestClientIo inherits RestClientIo::RestClientIo {
+hashdecl JinaRecordedRequest {
+    string url;
+    string method;
+    string path;
+    auto body;
+    hash<auto> headers;
+}
+
+class JinaCallLog {
+    private {
+        list<hash<JinaRecordedRequest>> requests = ();
+        auto response = {};
+        *int error_status;
+    }
+
+    synchronized reset(auto response = {}, *int error_status) {
+        requests = ();
+        self.response = response;
+        self.error_status = error_status;
+    }
+
+    synchronized auto record(hash<JinaRecordedRequest> req) {
+        requests += req;
+        if (error_status) {
+            throw "REST-RESPONSE-ERROR", sprintf("HTTP %d", error_status),
+                <RestClient::RestResponseInfo>{"status_code": error_status};
+        }
+        return response;
+    }
+
+    synchronized hash<JinaRecordedRequest> last() {
+        return requests[requests.size() - 1];
+    }
+
+    synchronized int count() {
+        return requests.size();
+    }
+}
+
+#! Actual client cloning and serialization, with the network boundary replaced by a recorder
+class FakeJinaRestClientIo inherits JinaRestClient::JinaRestClientIo {
     public {
-        *hash<auto> last_request;
-        string last_method;
-        string last_path;
-        hash<auto> response_body;
+        static JinaCallLog Log();
     }
 
-    constructor() : RestClientIo({"url": "https://api.jina.ai", "token": "x"}) {
+    constructor(hash<auto> opts = {"apikey": "fixture-key"},
+            *HttpClientIo::HttpClientConnectionManager mgr) : JinaRestClientIo(opts, mgr) {
     }
 
-    hash<RestClient::RestResponseInfo> restDoRequest(string method, string path,
-            auto body, *hash<auto> hdr) {
-        last_method = method;
-        last_path = path;
-        last_request = body;
-        return <RestClient::RestResponseInfo>{"body": response_body};
-    }
-
-    hash<RestClient::RestResponseInfo> restGet(string path, *hash<auto> hdr) {
-        return restDoRequest("GET", path, NOTHING, hdr);
-    }
-
-    hash<RestClient::RestResponseInfo> restPost(string path, auto body,
+    hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body,
             *hash<auto> hdr) {
-        return restDoRequest("POST", path, body, hdr);
+        auto response = Log.record(<JinaRecordedRequest>{
+            "url": getUrl().toString(), "method": method, "path": path,
+            "body": body.val() ? parse_json(body.toString()) : NOTHING,
+            "headers": (getDefaultHeaders() ?? {}) + (hdr ?? {}),
+        });
+        return <RestClient::RestResponseInfo>{"status_code": 200, "body": response};
     }
 
-    hash<RestClient::RestResponseInfo> restDel(string path, auto body,
+    hash<RestClient::RestResponseInfo> restDoRequest(string method, string path, auto body,
             *hash<auto> hdr) {
-        return restDoRequest("DELETE", path, body, hdr);
-    }
-
-    string getSafeUrl() {
-        return "https://api.jina.ai";
+        return restDoRawRequest(method, path, exists body ? make_json(body) : NOTHING, hdr);
     }
 }
 
 public class JinaDataProviderTest inherits QUnit::Test {
     public {
-        const MyOpts = Opts + {
-            "conn": "c,connection=s",
-        };
-
-        const OptionColumn = 22;
+        const MyOpts = Opts + {"conn": "c,connection=s"};
+        const ActionNames = ("cancel-batch", "chat", "classify", "create-batch-embeddings",
+            "create-embeddings", "deep-search", "delete-classifier", "download-batch-errors",
+            "download-batch-output", "get-batch", "get-model", "list-batches", "list-classifiers",
+            "list-models", "read-url", "rerank", "search-web", "segment-text", "train-classifier");
     }
 
     private {
         *string conn_name;
     }
 
-    constructor() : Test("JinaDataProvider Test", "1.0", \ARGV, MyOpts) {
+    constructor() : Test("JinaDataProvider Test", "1.1", \ARGV, MyOpts) {
         conn_name = m_options.conn ?? ENV.JINA_CONNECTION;
-
-        addTestCase("factory + app + 2 actions registered", \registrationTest());
-        addTestCase("root provider lists 2 children",       \rootProviderTest());
-        addTestCase("create-embeddings forwards body unchanged",
-            \embeddingRequestTest());
-        addTestCase("rerank parses 'results' (Jina format)",
-            \rerankRequestTest());
-
-        # Live test requires a real Jina AI connection.
-        # Cost: 1 embedding token (free tier eligible).
-        if (conn_name) {
-            addTestCase("live: ping + create-embeddings (jina-embeddings-v3)",
-                \liveJinaTest());
+        addTestCase("registration and every action path", \registrationTest());
+        addTestCase("vendored schema provenance and drift", \schemaTest());
+        addTestCase("constructor alternatives and child registration", \constructorTest());
+        addTestCase("embedding model variants and encoding compatibility", \embeddingTest());
+        addTestCase("rerank and classification wire contracts", \inferenceTest());
+        addTestCase("all schema actions construct documented requests", \schemaRequestsTest());
+        addTestCase("model and account reference data", \referenceTest());
+        addTestCase("Reader and Search headers, uploads, and host isolation", \readerTest());
+        addTestCase("Segmenter, vision, and DeepSearch requests", \contentTest());
+        addTestCase("JSONL downloads and malformed responses", \downloadTest());
+        addTestCase("invalid inputs never reach transport", \invalidInputTest());
+        addTestCase("transport errors are not retried", \errorTest());
+        if (conn_name || ENV.JINAAI_APIKEY) {
+            addTestCase("live catalog, inference, and model dropdowns", \liveInferenceTest());
+            addTestCase("live Reader, Search, Segmenter, and vision", \liveContentTest());
+            addTestCase("live batch submission and status", \liveBatchTest());
+        }
+        if (ENV.JINA_TEST_CLASSIFIERS) {
+            addTestCase("live classifier lifecycle", \liveClassifierTest());
+        }
+        if (ENV.JINA_TEST_DEEPSEARCH) {
+            addTestCase("live DeepSearch", \liveDeepSearchTest());
+        }
+        if (ENV.JINA_BATCH_ID) {
+            addTestCase("live completed batch downloads", \liveBatchDownloadTest());
         }
         set_return_value(main());
     }
 
-    private usageIntern() {
-        TestReporter::usageIntern(OptionColumn);
-        printOption("-c,--connection=ARG",
-            "set the Jina AI connection name; without it (and "
-            "without the JINA_CONNECTION env var) the live test is skipped",
-            OptionColumn);
+    private JinaDataProvider::JinaDataProvider provider(auto response = {}) {
+        FakeJinaRestClientIo::Log.reset(response);
+        return new JinaDataProvider::JinaDataProvider(new FakeJinaRestClientIo());
+    }
+
+    private hash<JinaRecordedRequest> last() {
+        return FakeJinaRestClientIo::Log.last();
     }
 
     private registrationTest() {
-        DataProvider::AbstractDataProviderFactory f =
-            DataProvider::DataProvider::getFactory("jina");
-        assertEq("jina", f.getInfo().name);
-
-        hash<DataProviderAppInfo> app =
-            DataProvider::DataProviderActionCatalog::getApp("JinaAi");
-        assertEq("JinaAi", app.name);
-        assertEq("Jina AI", app.display_name);
+        assertEq("jina", DataProvider::getFactory("jina").getInfo().name);
+        hash<DataProviderAppInfo> app = DataProviderActionCatalog::getApp("JinaAi");
         assertEq("jina", app.scheme);
-
-        # filter out the framework-injected make-api-call action (covered by
-        # GenericApiCallAutoInjection.qtest in RestClientDataProvider)
-        list<hash<DataProviderActionInfo>> actions = select
-            DataProvider::DataProviderActionCatalog::getActions("JinaAi"),
+        assertTrue(app.logo.val());
+        list<hash<DataProviderActionInfo>> actions = select DataProviderActionCatalog::getActions("JinaAi"),
             $1.action != AbstractDataProvider::GenericApiCallActionName;
-        assertEq(2, actions.size());
-        list<string> action_names = sort(map $1.action, actions);
-        assertEq(("create-embeddings", "rerank"), action_names);
+        assertEq(ActionNames, sort(map $1.action, actions));
+        AbstractDataProvider root = provider();
+        assertEq(ActionNames, sort(select root.getChildProviderNames(),
+            $1 != AbstractDataProvider::GenericApiCallChildName));
+        foreach hash<DataProviderActionInfo> action in (actions) {
+            assertTrue(action.display_name.val());
+            assertTrue(action.short_desc.val() && action.short_desc.size() < 80, action.action);
+            assertTrue(action.desc.val());
+            assertFalse(exists action.cls);
+            assertTrue(action.output_type instanceof AbstractDataProviderType, action.action);
+            AbstractDataProvider child = root.getChildProvider(action.path.substr(1));
+            assertTrue(child.getInfo().supports_request, action.action);
+            if (action.action !~ /^list-(classifiers|models)$/) {
+                assertTrue(!!action.options, action.action + " has a usable form");
+            }
+            foreach hash<auto> option in ((action.options ?? {}).pairIterator()) {
+                assertTrue(option.value.display_name.val(), action.action + "." + option.key);
+                assertTrue(option.value.desc.val(), action.action + "." + option.key);
+                if (option.value.ref_data) {
+                    assertTrue(child.getSupportedReferenceData(){option.value.ref_data}, action.action);
+                }
+                foreach hash<AllowedValueInfo> value in (option.value.allowed_values ?? ()) {
+                    assertTrue(value.display_name.val());
+                }
+            }
+        }
     }
 
-    private rootProviderTest() {
-        FakeJinaRestClientIo fake();
-        JinaDataProvider::JinaDataProvider prov(fake);
-        # filter out the framework-injected __call__ child (covered by
-        # GenericApiCallAutoInjection.qtest in RestClientDataProvider)
-        list<string> children = sort(select prov.getChildProviderNames(),
-            $1 != AbstractDataProvider::GenericApiCallChildName);
-        assertEq(("create-embeddings", "rerank"), children);
+    private schemaTest() {
+        hash<JinaSchemaProvenanceInfo> info = JinaSchema::Provenance;
+        assertRegex("^[0-9a-f]{64}$", info.source_sha256);
+        assertEq("https://api.jina.ai/openapi.json", info.source_url);
+        assertTrue(info.source_size > 100000);
+        assertEq(19, info.source_operations);
+        assertEq((), RestSchemaDrift::compare(JinaSchema::getActionSet(), JinaSchema::getSchema()));
+        assertEq(12, JinaSchema::getActionSet().getActionNames().size());
+        assertTrue(JinaSchema::getSchema() == JinaSchema::getSchema(), "schema cache reuses its immutable instance");
     }
 
-    private embeddingRequestTest() {
-        FakeJinaRestClientIo fake();
-        fake.response_body = {
-            "model": "jina-embeddings-v3",
-            "object": "list",
-            "data": (
-                {"index": 0, "object": "embedding",
-                 "embedding": (0.1, 0.2, 0.3)},
-            ),
-            "usage": {"total_tokens": 3},
-        };
-
-        JinaDataProvider::JinaEmbeddingDataProvider prov(fake);
-        auto resp = prov.doRequest({
-            "model": "jina-embeddings-v3",
-            "input": ("hello",),
-            "task": "retrieval.query",
+    private constructorTest() {
+        assertThrows("CONSTRUCTOR-ERROR", sub () { new JinaDataProvider::JinaDataProvider({}); });
+        JinaDataProvider::JinaDataProvider root({"restclient": new FakeJinaRestClientIo()});
+        assertEq("jina", root.getName());
+        assertThrows("JINA-CHILD-ERROR", sub () {
+            JinaDataProvider::JinaDataProvider::registerChild("list-models", Class::forName("JinaReaderDataProvider"));
         });
-
-        assertEq("POST", fake.last_method);
-        assertEq("embeddings", fake.last_path);
-        assertEq("retrieval.query", fake.last_request.task);
-        assertEq(3, resp.data[0].embedding.size());
+        assertThrows("CONSTRUCTOR-ERROR", sub () {
+            new JinaDataProvider::JinaDataProvider({"apikey": "key", "invalid": True});
+        });
+        assertEq(19, root.getChildProviderSummaryInfo().size());
     }
 
-    private rerankRequestTest() {
-        FakeJinaRestClientIo fake();
-        # Jina rerank response uses `results` (not `data` like Voyage)
-        fake.response_body = {
-            "model": "jina-reranker-v2-base-multilingual",
-            "results": (
-                {"index": 2, "relevance_score": 0.95,
-                 "document": {"text": "Doc C"}},
-                {"index": 0, "relevance_score": 0.42,
-                 "document": {"text": "Doc A"}},
-            ),
-            "usage": {"total_tokens": 100},
-        };
-
-        JinaDataProvider::JinaRerankDataProvider prov(fake);
-        auto resp = prov.doRequest({
-            "model": "jina-reranker-v2-base-multilingual",
-            "query": "test query",
-            "documents": ("Doc A", "Doc B", "Doc C"),
-            "top_n": 2,
-        });
-
-        assertEq("POST", fake.last_method);
-        assertEq("rerank", fake.last_path);
-        assertEq(2, resp.results.size());
-        assertEq(0.95, resp.results[0].relevance_score);
-        assertEq(2, resp.results[0]."index");
+    private embeddingTest() {
+        AbstractDataProvider p = provider({"model": "jina-embeddings-v3", "data": (
+            {"index": 0, "embedding": (0.1, 0.2)},), "usage": {"total_tokens": 2}})
+            .getChildProvider("create-embeddings");
+        auto response = p.doRequest({"model": "jina-embeddings-v3", "input": ("delivery",),
+            "dimensions": 2, "task": "retrieval.query"});
+        assertEq((0.1, 0.2), response.data[0].embedding);
+        assertEq("/v1/embeddings", last().path);
+        assertEq("retrieval.query", last().body.task);
+        assertEq(2, last().body.dimensions);
+        p.doRequest({"model": "jina-embeddings-v4", "input": ({"image": "https://example.com/image.png"},),
+            "return_multivector": True});
+        assertTrue(last().body.return_multivector);
+        assertEq("https://example.com/image.png", last().body.input[0].image);
+        p.doRequest({"model": "jina-embeddings-v5-text-nano", "input": "Delivery status",
+            "task": "clustering", "embedding_type": ("float", "binary")});
+        assertEq(("float", "binary"), last().body.embedding_type);
+        p.doRequest({"model": "jina-embeddings-v3", "input": ("delivery",), "encoding_format": "base64"});
+        assertEq("base64", last().body.embedding_type);
+        assertNothing(last().body.encoding_format);
     }
 
-    #! Exercises Jina AI's live create-embeddings endpoint
-    /** Verifies the actual wire format against Jina AI's production endpoint
-        with a single-token embedding request on `jina-embeddings-v3`. Cost:
-        1 embedding token (free tier eligible).
-    */
-    private liveJinaTest() {
-        AbstractConnection conn = get_connection(conn_name);
-        hash<auto> ping = conn.ping(True);
-        assertTrue(ping.ok, sprintf("Jina connection ping failed: %s",
-            ping.info ?? "no info"));
+    private inferenceTest() {
+        AbstractDataProvider p = provider();
+        p.getChildProvider("rerank").doRequest({"model": "jina-reranker-m0", "query": "Beach",
+            "documents": ({"image": "https://example.com/beach.png"},), "return_documents": False});
+        assertEq("/v1/rerank", last().path);
+        assertFalse(last().body.return_documents);
+        p.getChildProvider("classify").doRequest({"model": "jina-embeddings-v3", "input": ("Help with delivery",),
+            "labels": ("delivery", "billing")});
+        assertEq("/v1/classify", last().path);
+        assertEq(("delivery", "billing"), last().body.labels);
+        p.getChildProvider("classify").doRequest({"classifier_id": "cls-fixture", "input": ("Hello",)});
+        assertEq("cls-fixture", last().body.classifier_id);
+        assertNothing(last().body.model);
+        p.getChildProvider("train-classifier").doRequest({"model": "jina-embeddings-v3", "access": "private",
+            "input": ({"text": "Excellent", "label": "positive"}, {"text": "Terrible", "label": "negative"})});
+        assertEq("/v1/train", last().path);
+        assertEq("private", last().body.access);
+        p.getChildProvider("train-classifier").doRequest({"classifier_id": "cls-fixture",
+            "input": ({"text": "Fine", "label": "positive"},)});
+        assertNothing(last().body.access);
+    }
 
-        AbstractDataProvider prov = conn.getDataProvider();
-        AbstractDataProvider emb = prov.getChildProvider("create-embeddings");
-        auto resp = emb.doRequest({
-            "model": "jina-embeddings-v3",
-            "input": ("hello",),
-            "task": "retrieval.query",
+    private schemaRequestsTest() {
+        AbstractDataProvider p = provider();
+        foreach string action in (("list-models", "list-classifiers", "list-batches")) {
+            p.getChildProvider(action).doRequest();
+            assertEq("GET", last().method);
+            assertRegex("^/v1/(models|classifiers|batches)", last().path);
+        }
+        p.getChildProvider("get-model").doRequest({"model_id": "jina-ai/jina-embeddings-v3"});
+        assertEq("/v1/models/jina-ai%2Fjina-embeddings-v3", last().path);
+        p.getChildProvider("delete-classifier").doRequest({"classifier_id": "cls /?"});
+        assertEq("DELETE", last().method);
+        assertEq("/v1/classifiers/cls%20%2F%3F", last().path);
+        p.getChildProvider("create-batch-embeddings").doRequest({"model": "jina-embeddings-v5-text-nano",
+            "input": ({"custom_id": "ticket-1", "body": {"input": "Delivery status"}},)});
+        assertEq("/v1/batch/embeddings", last().path);
+        assertEq("ticket-1", last().body.input[0].custom_id);
+        assertEq("Delivery status", last().body.input[0].body.input);
+        foreach string action in (("get-batch", "cancel-batch")) {
+            p.getChildProvider(action).doRequest({"batch_id": "batch-1"});
+            assertEq("/v1/batch/batch-1", last().path);
+            assertEq(action == "get-batch" ? "GET" : "DELETE", last().method);
+        }
+    }
+
+    private referenceTest() {
+        AbstractDataProvider p = provider({"data": (
+            {"id": "jina-ai/jina-embeddings-v3", "name": "Jina Embeddings V3"},
+            {"id": "jina-ai/jina-reranker-v3.5", "name": "Jina Reranker V3.5"},
+            {"id": "jina-ai/jina-vlm", "name": "Jina VLM"},
+        )});
+        list<hash<AllowedValueInfo>> values = p.getChildProvider("create-embeddings")
+            .getReferenceData("embedding-models");
+        assertEq(("jina-embeddings-v3",), map $1.value, values);
+        assertEq("Jina Embeddings V3", values[0].display_name);
+        values = p.getChildProvider("rerank").getReferenceData("rerank-models");
+        assertEq(("jina-reranker-v3.5",), map $1.value, values);
+        values = p.getChildProvider("get-model").getReferenceData("all-models");
+        assertEq(3, values.size());
+        FakeJinaRestClientIo::Log.reset(({"batch_id": "batch-1"},));
+        assertEq("batch-1", p.getChildProvider("download-batch-output").getReferenceData("batches")[0].value);
+        FakeJinaRestClientIo::Log.reset(({"classifier_id": "cls-1"},));
+        assertEq("cls-1", p.getChildProvider("classify").getReferenceData("classifiers")[0].value);
+        FakeJinaRestClientIo::Log.reset({"data": ()});
+        assertEq((), p.getChildProvider("create-embeddings").getReferenceData("embedding-models"));
+    }
+
+    private readerTest() {
+        AbstractDataProvider p = provider({"code": 200, "data": {"title": "Delivery", "content": "Shipped"}});
+        p.getChildProvider("read-url").doRequest({"html": "<h1>Delivery</h1>", "region": "eu",
+            "return_format": "markdown", "no_cache": True, "do_not_track": True,
+            "target_selector": "article", "set_cookie": "session=fixture"});
+        assertEq("https://eu.r.jina.ai", last().url);
+        assertEq("/", last().path);
+        assertEq({"html": "<h1>Delivery</h1>"}, last().body);
+        assertEq("markdown", last().headers."X-Return-Format");
+        assertEq("1", last().headers.DNT);
+        assertEq("true", last().headers."X-No-Cache");
+        assertEq("session=fixture", last().headers."X-Set-Cookie");
+        assertTrue(JinaReaderRequestDataType.getFields().set_cookie.getAttributes().sensitive);
+        assertEq("Bearer fixture-key", last().headers.Authorization ?? last().headers.authorization);
+        p.getChildProvider("read-url").doRequest({"file": {"name": "report.pdf", "content": binary("PDF bytes")}, "page": 1});
+        assertEq(make_base64_string("PDF bytes"), last().body.file);
+        p.getChildProvider("search-web").doRequest({"q": "delivery & returns", "num": 2,
+            "page": 0, "respond_with": "no-content", "site": "example.com"});
+        assertEq("https://s.jina.ai", last().url);
+        assertEq("delivery & returns", last().body.q);
+        assertEq("no-content", last().headers."X-Respond-With");
+        assertEq("example.com", last().headers."X-Site");
+        p.getChildProvider("list-models").doRequest();
+        assertEq("https://api.jina.ai", last().url, "Reader routing does not mutate the API client");
+    }
+
+    private contentTest() {
+        AbstractDataProvider p = provider();
+        p.getChildProvider("segment-text").doRequest({"content": "One. Two.", "max_chunk_length": 5});
+        assertEq("/v1/segment", last().path);
+        assertTrue(last().body.return_chunks);
+        p.getChildProvider("chat").doRequest({"messages": ({"role": "user", "content": "Hello"},), "max_tokens": 8});
+        assertEq("jina-vlm", last().body.model);
+        assertFalse(last().body.stream);
+        p.getChildProvider("chat").doRequest({"messages": ({"role": "user", "content": (
+            {"type": "text", "text": "Describe this product"},
+            {"type": "image_url", "image_url": {"url": "https://example.com/product.png"}},
+        )},)});
+        assertEq("https://example.com/product.png", last().body.messages[0].content[1].image_url.url);
+        p.getChildProvider("deep-search").doRequest({"messages": ({"role": "user", "content": "What is Qore?"},),
+            "budget_tokens": 1000, "only_hostnames": ("qore.org",),
+            "response_format": {"type": "json_schema", "json_schema": {"type": "object",
+                "properties": {"answer": {"type": "string"}}, "required": ("answer",)}}});
+        assertEq("https://deepsearch.jina.ai", last().url);
+        assertEq("/v1/chat/completions", last().path);
+        assertEq(("qore.org",), last().body.only_hostnames);
+        assertFalse(last().body.stream);
+        assertEq("object", last().body.response_format.json_schema.type);
+        assertEq("string", last().body.response_format.json_schema.properties.answer.type);
+        p.getChildProvider("deep-search").doRequest({"messages": ({"role": "user", "content": "Hello"},)});
+        assertNothing(last().body.response_format, "structured output remains optional");
+    }
+
+    private downloadTest() {
+        AbstractDataProvider p = provider("{\"custom_id\":\"one\",\"response\":{}}\n\n{\"custom_id\":\"two\",\"error\":{}}\r\n");
+        hash<auto> result = p.getChildProvider("download-batch-output").doRequest({"batch_id": "batch /?"});
+        assertEq(("one", "two"), map $1.custom_id, result.records);
+        assertEq("/v1/batch/batch%20%2F%3F/output", last().path);
+        FakeJinaRestClientIo::Log.reset("");
+        assertEq((), p.getChildProvider("download-batch-errors").doRequest({"batch_id": "batch-1"}).records);
+        foreach auto response in (("not json", "[]\n", "{}\ninvalid", {})) {
+            FakeJinaRestClientIo::Log.reset(response);
+            assertThrows("JINA-RESPONSE-ERROR", sub () {
+                p.getChildProvider("download-batch-output").doRequest({"batch_id": "batch-1"});
+            });
+        }
+    }
+
+    private invalidInputTest() {
+        AbstractDataProvider p = provider();
+        foreach hash<auto> test in ((
+            {"action": "read-url", "input": {}},
+            {"action": "read-url", "input": {"url": ""}},
+            {"action": "read-url", "input": {"url": "https://example.com", "region": "invalid"}},
+            {"action": "read-url", "input": {"html": "<p>test</p>", "timeout": -1}},
+            {"action": "search-web", "input": {"q": "test", "num": 0}},
+            {"action": "segment-text", "input": {"content": "test", "head": 1, "tail": 1}},
+            {"action": "segment-text", "input": {"content": "test", "tokenizer": "invalid"}},
+            {"action": "chat", "input": {"messages": ()}},
+            {"action": "deep-search", "input": {"messages": ({"role": "user", "content": "Hello"},),
+                "response_format": {"type": "text", "json_schema": {}}}},
+            {"action": "deep-search", "input": {"messages": ({"role": "user", "content": "Hello"},),
+                "response_format": {"type": "json_schema"}}},
+            {"action": "chat", "input": {"messages": ({"role": "system", "content": "Hello"},)}},
+            {"action": "chat", "input": {"messages": ({"role": "user", "content": "One"},
+                {"role": "user", "content": "Two"})}},
+            {"action": "chat", "input": {"messages": ({"role": "user", "content": ""},)}},
+            {"action": "chat", "input": {"messages": ({"role": "user", "content": ({"type": "text"},)},)}},
+            {"action": "read-url", "input": {"url": "https://example.com", "viewport": {"width": 0, "height": 10}}},
+            {"action": "read-url", "input": {"html": "test", "file": {"name": "x.pdf", "content": "eA=="}}},
+            {"action": "create-embeddings", "input": {"model": "invalid", "input": ("hello",)}},
+            {"action": "create-embeddings", "input": {"model": "jina-embeddings-v3", "input": ("hello",), "dimensions": 0}},
+            {"action": "rerank", "input": {"model": "jina-reranker-v3.5", "query": "test", "documents": ()}},
+            {"action": "classify", "input": {"input": ("test",)}},
+            {"action": "create-batch-embeddings", "input": {"model": "jina-embeddings-v5-text-nano"}},
+            {"action": "create-batch-embeddings", "input": {"input": ({"custom_id": "one", "input": "legacy flat input"},)}},
+            {"action": "create-batch-embeddings", "input": {"input": ({"custom_id": "", "body": {"input": "Hello"}},)}},
+            {"action": "create-batch-embeddings", "input": {"input": ({"custom_id": "one", "body": {"input": ()}},)}},
+            {"action": "create-batch-embeddings", "input": {"model": "jina-embeddings-v5-text-nano", "input": ({"input": "test"},), "input_url": "https://example.com/input.jsonl"}}
+        )) {
+            *hash<ExceptionInfo> error;
+            try {
+                p.getChildProvider(test.action).doRequest(test.input);
+            } catch (hash<ExceptionInfo> ex) {
+                error = ex;
+            }
+            assertTrue(exists error, test.action + " rejects invalid input");
+            assertEq(0, FakeJinaRestClientIo::Log.count(), test.action + " rejects input before I/O");
+        }
+        assertThrows("JINA-REQUEST-ERROR", sub () {
+            p.getChildProvider("create-embeddings").doRequest({"input": ("hello",),
+                "embedding_type": "float", "encoding_format": "base64"});
         });
-        assertTrue(resp.data[0].embedding.size() > 0,
-            "Jina returned non-empty embedding vector");
+    }
+
+    private errorTest() {
+        AbstractDataProvider p = provider();
+        foreach int status in ((401, 429, 500)) {
+            FakeJinaRestClientIo::Log.reset({}, status);
+            assertThrows("REST-RESPONSE-ERROR", sub () {
+                p.getChildProvider("create-batch-embeddings").doRequest({"model": "jina-embeddings-v5-text-nano",
+                    "input": ({"custom_id": "one", "body": {"input": "Hello"}},)});
+            });
+            assertEq(1, FakeJinaRestClientIo::Log.count(), "submissions are never retried implicitly");
+        }
+    }
+
+    private AbstractDataProvider liveProvider() {
+        if (conn_name) {
+            return get_connection(conn_name).getDataProvider();
+        }
+        return new JinaDataProvider::JinaDataProvider({"apikey": ENV.JINAAI_APIKEY});
+    }
+
+    private liveInferenceTest() {
+        AbstractDataProvider p = liveProvider();
+        hash<auto> models = p.getChildProvider("list-models").doRequest();
+        assertTrue(models.data.lsize() > 0);
+        hash<auto> model = p.getChildProvider("get-model").doRequest({"model_id": "jina-embeddings-v3"});
+        assertEq("jina-ai/jina-embeddings-v3", model.id);
+        assertEq(NT_DATE, model.created.typeCode());
+        list<hash<AllowedValueInfo>> values = p.getChildProvider("create-embeddings").getReferenceData("embedding-models");
+        assertTrue(!!(select values, $1.value == "jina-embeddings-v3"));
+        hash<auto> embeddings = p.getChildProvider("create-embeddings").doRequest({"model": "jina-embeddings-v3",
+            "input": ("Where is my delivery?", "My order has shipped."), "dimensions": 32, "task": "retrieval.query"});
+        assertEq(2, embeddings.data.lsize());
+        assertEq(32, embeddings.data[0].embedding.lsize());
+        hash<auto> encoded = p.getChildProvider("create-embeddings").doRequest({"model": "jina-embeddings-v3",
+            "input": ("Delivery",), "encoding_format": "base64", "dimensions": 32});
+        assertEq(NT_STRING, encoded.data[0].embedding.typeCode());
+        hash<auto> ranked = p.getChildProvider("rerank").doRequest({"model": "jina-reranker-v2-base-multilingual",
+            "query": "Where is my delivery?", "documents": ("Track your shipment here.", "Reset your password."), "top_n": 1});
+        assertEq(0, ranked.results[0]."index");
+        hash<auto> classified = p.getChildProvider("classify").doRequest({"model": "jina-embeddings-v3",
+            "input": ("The support team was excellent.",), "labels": ("positive", "negative")});
+        assertEq("positive", classified.data[0].prediction);
+    }
+
+    private liveContentTest() {
+        AbstractDataProvider p = liveProvider();
+        hash<auto> page = p.getChildProvider("read-url").doRequest({"html": "<html><head><title>Delivery</title></head><body><h1>Order shipped</h1></body></html>", "url": "https://example.com"});
+        assertRegex("Order shipped", page.data.content);
+        hash<auto> search = p.getChildProvider("search-web").doRequest({"q": "Qore programming language", "num": 1, "respond_with": "no-content"});
+        assertTrue(search.data.lsize() > 0);
+        assertTrue(search.data[0].url.val());
+        hash<auto> chunks = p.getChildProvider("segment-text").doRequest({"content": "First paragraph.\n\nSecond paragraph.", "max_chunk_length": 30, "return_tokens": True});
+        assertTrue(chunks.num_tokens > 0);
+        assertTrue(chunks.chunks.lsize() > 0);
+        hash<auto> chat = p.getChildProvider("chat").doRequest({"messages": ({"role": "user", "content": "Say hello."},), "max_tokens": 16});
+        assertTrue(chat.choices[0].message.content.val());
+        assertEq(NT_DATE, chat.created.typeCode());
+    }
+
+    private liveBatchTest() {
+        AbstractDataProvider p = liveProvider();
+        auto batches = p.getChildProvider("list-batches").doRequest({"limit": 1});
+        assertEq(NT_LIST, batches.typeCode());
+        hash<auto> batch = p.getChildProvider("create-batch-embeddings").doRequest({"model": "jina-embeddings-v5-text-nano",
+            "input": ({"custom_id": "qore-5432", "body": {"input": "Delivery status"}},), "dimensions": 32});
+        assertTrue(batch.batch_id.val());
+        assertEq(NT_DATE, batch.created_at.typeCode());
+        printf("Live batch for download verification: %s\n", batch.batch_id);
+        hash<auto> status = p.getChildProvider("get-batch").doRequest({"batch_id": batch.batch_id});
+        assertEq(batch.batch_id, status.batch_id);
+        assertTrue(!!status.status);
+        if (!ENV.JINA_KEEP_BATCH) {
+            if (status.status == "pending" || status.status == "processing") {
+                try {
+                    hash<auto> cancelled = p.getChildProvider("cancel-batch").doRequest({"batch_id": batch.batch_id});
+                    assertEq(batch.batch_id, cancelled.batch_id);
+                    assertEq("cancelled", cancelled.status);
+                } catch (hash<ExceptionInfo> ex) {
+                    # A tiny fixture may complete between the status and cancellation requests.
+                    if (ex.err != "REST-RESPONSE-ERROR" || ex.arg.status_code != 400) {
+                        rethrow;
+                    }
+                    string final_status = p.getChildProvider("get-batch")
+                        .doRequest({"batch_id": batch.batch_id}).status;
+                    assertTrue(final_status == "completed" || final_status == "failed");
+                }
+            }
+        }
+    }
+
+    private liveBatchDownloadTest() {
+        AbstractDataProvider p = liveProvider();
+        hash<auto> result = p.getChildProvider("download-batch-output").doRequest({"batch_id": ENV.JINA_BATCH_ID});
+        assertEq("qore-5432", result.records[0].custom_id);
+        assertEq(32, result.records[0].response.body.data[0].embedding.lsize());
+    }
+
+    private liveDeepSearchTest() {
+        hash<auto> result = liveProvider().getChildProvider("deep-search").doRequest({
+            "messages": ({"role": "user", "content": "What is the Qore programming language? One sentence."},),
+            "budget_tokens": 1000, "max_attempts": 1});
+        assertTrue(result.choices[0].message.content.val());
+        hash<auto> structured = liveProvider().getChildProvider("deep-search").doRequest({
+            "messages": ({"role": "user", "content": "Return the integer 42 as the answer."},),
+            "budget_tokens": 1000, "max_attempts": 1,
+            "response_format": {"type": "json_schema", "json_schema": {"type": "object",
+                "properties": {"answer": {"type": "integer"}}, "required": ("answer",)}}});
+        assertEq(42, parse_json(structured.choices[0].message.content).answer);
+    }
+
+    private liveClassifierTest() {
+        AbstractDataProvider p = liveProvider();
+        hash<auto> result = p.getChildProvider("train-classifier").doRequest({"model": "jina-embeddings-v3", "access": "private",
+            "input": ({"text": "Excellent service", "label": "positive"}, {"text": "Terrible service", "label": "negative"})});
+        string id = result.classifier_id;
+        on_exit p.getChildProvider("delete-classifier").doRequest({"classifier_id": id});
+        auto classifiers = p.getChildProvider("list-classifiers").doRequest();
+        assertTrue(!!(select classifiers, $1.classifier_id == id));
+        hash<auto> prediction = p.getChildProvider("classify").doRequest({"classifier_id": id, "input": ("Excellent support",)});
+        assertEq("positive", prediction.data[0].prediction);
     }
 }

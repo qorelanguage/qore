@@ -1,18 +1,60 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires ConnectionProvider
-%requires DataProvider
-%requires QoreRagTypes
-%requires QoreRagUtils
-%requires JinaRestClient
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/QoreRagTypes.qm
+%requires ../../../../qlib/QoreRagUtils
+%requires ../../../../qlib/JinaRestClient.qm
+
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/HttpServerUtil.qm
 
 %exec-class JinaRestClientTest
+
+#! Records requests and simulates Jina's HTTP 200 key-check responses
+class FakeJinaKeyHandler inherits AbstractHttpRequestHandler {
+    private {
+        Mutex m();
+        string response = "[]";
+        int status = 200;
+        hash<auto> request;
+    }
+
+    setResponse(string response, int status = 200) {
+        AutoLock al(m);
+        self.response = response;
+        self.status = status;
+    }
+
+    hash<auto> getRequest() {
+        AutoLock al(m);
+        return request;
+    }
+
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        AutoLock al(m);
+        request = hdr;
+        return makeResponse(status, response, {"Content-Type": MimeTypeJson});
+    }
+}
+
+#! Exercises the synchronous fallback as well as the usual async client
+class SyncJinaConnection inherits JinaRestClient::JinaRestConnection {
+    constructor(string url, hash<auto> options)
+            : JinaRestConnection("sync-test", "test", url, {}, options) {
+    }
+
+    private object getAsyncImpl(bool connect = True, *hash<auto> rtopts) {
+        throw "CONNECTION-ASYNC-UNSUPPORTED", "exercise synchronous ping";
+    }
+}
 
 public class JinaRestClientTest inherits QUnit::Test {
     public {
@@ -27,6 +69,9 @@ public class JinaRestClientTest inherits QUnit::Test {
     private {
         #! name of a live Jina AI connection, if given
         *string conn_name;
+        HttpServer http;
+        FakeJinaKeyHandler key_handler;
+        int port;
     }
 
     constructor() : Test("JinaRestClient Test", "1.0", \ARGV, MyOpts) {
@@ -43,6 +88,12 @@ public class JinaRestClientTest inherits QUnit::Test {
             \connectionOptionsTest());
         addTestCase("live: ping + embed + rerank with the connection's models",
             \liveConnectionTest());
+        addTestCase("ping verifies keys on all transports", \pingTest());
+        addTestCase("ping rejects malformed responses and HTTP errors", \pingFailureTest());
+        addTestCase("stored connection migration and required secrets", \connectionMigrationTest());
+        if (ENV.JINAAI_APIKEY) {
+            addTestCase("live valid and invalid API key pings", \livePingTest());
+        }
         set_return_value(main());
     }
 
@@ -60,9 +111,7 @@ public class JinaRestClientTest inherits QUnit::Test {
         assertEq("Jina AI REST Connection", info.display_name);
         assertTrue(info.schemes.jina);
         assertEq("apikey", info.required_options);
-        # GET /v1/models is the only usable unauthenticated-shape probe; the
-        # rate-limit endpoint this used to ping does not exist (404)
-        assertEq("models", info.options.ping_path.default_value);
+        assertEq("/v1/batches?limit=1", info.options.ping_path.default_value);
         assertEq("GET", info.options.ping_method.default_value);
 
         # the connection serves both /embeddings and /rerank; the two model
@@ -172,11 +221,13 @@ public class JinaRestClientTest inherits QUnit::Test {
         scheme defaults when the connection does not set them
     */
     private liveConnectionTest() {
-        if (!conn_name) {
+        if (!conn_name && !ENV.JINAAI_APIKEY) {
             testSkip("no Jina AI connection given; use -c/--connection or set "
                 "JINA_CONNECTION");
         }
-        AbstractConnection conn = get_connection(conn_name);
+        AbstractConnection conn = conn_name ? get_connection(conn_name)
+            : new JinaRestClient::JinaRestConnection("live-jina", "live test",
+                JinaRestClient::JinaRestConnection::DefaultUrl, {}, {"apikey": ENV.JINAAI_APIKEY});
         hash<PingInfo> ping = conn.ping(True);
         assertTrue(ping.ok, sprintf("connection %y ping failed: %s", conn_name,
             ping.info ?? "no info"));
@@ -213,4 +264,140 @@ public class JinaRestClientTest inherits QUnit::Test {
         assertEq(0, rresp.results[0]."index",
             "the machine-learning document ranks above the unrelated one");
     }
+    globalSetUp() {
+        Logger logger("test", LoggerLevel::getLevelWarn());
+        http = new HttpServer(<HttpServerOptionInfo>{"logger": logger, "debug": False});
+        port = http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        key_handler = new FakeJinaKeyHandler();
+        http.setHandler("key", "/v1/batches", MimeTypeJson, key_handler);
+    }
+
+    globalTearDown() {
+        delete http;
+    }
+
+    private JinaRestClient::JinaRestConnection makeConnection() {
+        return new JinaRestClient::JinaRestConnection("ping-test", "test",
+            sprintf("http://127.0.0.1:%d", port), {}, {"apikey": "trial-key", "http_version": "1.1"});
+    }
+
+    #! Drives the public polling API using socket readiness, with a single bounded deadline
+    private drivePing(AbstractPollOperation op) {
+        on_exit op.abort();
+        date deadline = now_us() + 15s;
+        while (!op.goalReached()) {
+            *hash<SocketPollInfo> info = op.continuePoll();
+            if (info) {
+                timeout remaining = deadline - now_us();
+                assertTrue(remaining > 0, "ping completes before deadline");
+                assertTrue(exists Socket::poll((info,), remaining), "ping socket becomes ready");
+            }
+        }
+    }
+
+    private runPing(int transport) {
+        if (transport == 0) {
+            makeConnection().ping(True);
+        } else if (transport == 1) {
+            drivePing(makeConnection().startPollConnect());
+        } else if (transport == 2) {
+            SyncJinaConnection conn(sprintf("http://127.0.0.1:%d", port),
+                {"apikey": "trial-key", "http_version": "1.1"});
+            conn.ping(True);
+        } else {
+            JinaRestClient::JinaRestConnection conn = makeConnection();
+            drivePing(new RestClient::RestPingPollOperation(conn, conn.get(False), conn.getRealOptions()));
+        }
+    }
+
+    private pingTest() {
+        key_handler.setResponse("[]");
+        for (int transport = 0; transport < 4; ++transport) {
+            runPing(transport);
+            hash<auto> request = key_handler.getRequest();
+            assertEq("GET", request.method);
+            assertEq("v1/batches?limit=1", request.path, sprintf("transport %d", transport));
+            assertEq("Bearer trial-key", request.authorization);
+        }
+    }
+
+    private pingFailureTest() {
+        foreach string response in ("{\"valid\":false}", "{}", "{\"valid\":\"true\"}",
+                "{\"valid\":1}", "null", "not JSON") {
+            key_handler.setResponse(response);
+            for (int transport = 0; transport < 4; ++transport) {
+                *hash<ExceptionInfo> error;
+                try {
+                    runPing(transport);
+                } catch (hash<ExceptionInfo> ex) {
+                    error = ex;
+                }
+                assertTrue(exists error, "invalid ping must fail");
+                assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|DESERIALIZATION-ERROR|JSON-PARSE-ERROR)$", error.err);
+            }
+        }
+        foreach int status in (401, 429, 500) {
+            key_handler.setResponse("[]", status);
+            for (int transport = 0; transport < 4; ++transport) {
+                *hash<ExceptionInfo> error;
+                try {
+                    runPing(transport);
+                } catch (hash<ExceptionInfo> ex) {
+                    error = ex;
+                }
+                assertTrue(exists error, "invalid ping must fail");
+                assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|HTTP-CLIENT-RECEIVE-ERROR)$", error.err);
+            }
+        }
+        key_handler.setResponse("[]");
+        assertTrue(makeConnection().ping(True).ok, "a new successful ping recovers from failure");
+    }
+
+    private connectionMigrationTest() {
+        foreach string path in ("models", "/models", "/v1/models") {
+            JinaRestClient::JinaRestConnection conn({
+                "name": "saved-jina", "desc": "saved connection", "url": "jina://localhost",
+                "opts": {"apikey": "key", "ping_method": "GET", "ping_path": path},
+            });
+            assertEq("JinaAi", conn.getAppName());
+            assertEq("JinaAi", conn.getInfo().app);
+            assertEq("GET", conn.getRealOptions().ping_method);
+            assertEq("/v1/batches?limit=1", conn.getRealOptions().ping_path);
+        }
+        assertTrue(JinaRestClient::JinaRestConnection::ConnectionScheme.options.apikey.sensitive);
+        assertThrows("CONNECTION-OPTION-ERROR", sub () {
+            new JinaRestClient::JinaRestConnection("missing", "test");
+        });
+    }
+
+    private livePingTest() {
+        if (!ENV.JINAAI_APIKEY) {
+            testSkip("set JINAAI_APIKEY to run live authentication checks");
+        }
+        JinaRestClient::JinaRestConnection conn("live-jina", "live trial key",
+            JinaRestClient::JinaRestConnection::DefaultUrl, {}, {"apikey": ENV.JINAAI_APIKEY});
+        assertTrue(conn.ping(True).ok);
+        drivePing(conn.startPollConnect());
+        JinaRestClient::JinaRestConnection invalid("invalid-jina", "invalid key",
+            JinaRestClient::JinaRestConnection::DefaultUrl, {}, {"apikey": "invalid-qore-test-key"});
+        *hash<ExceptionInfo> error;
+        try {
+            invalid.ping(True);
+        } catch (hash<ExceptionInfo> ex) {
+            error = ex;
+        }
+        assertTrue(exists error, "an invalid key must fail the normal ping");
+        assertEq("REST-RESPONSE-ERROR", error.err);
+        assertEq(401, error.arg.status_code);
+        error = NOTHING;
+        try {
+            drivePing(invalid.startPollConnect());
+        } catch (hash<ExceptionInfo> ex) {
+            error = ex;
+        }
+        assertTrue(exists error, "an invalid key must fail the polling transport ping");
+        assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR)$", error.err);
+    }
+
+
 }

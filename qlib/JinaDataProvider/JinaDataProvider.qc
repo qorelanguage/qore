@@ -36,8 +36,16 @@ public class JinaDataProvider inherits JinaDataProviderCommon {
 
     private {
         static hash<string, Reflection::Class> childMap = DefaultChildMap;
+        static Mutex child_lock();
 
         const DefaultChildMap = {
+            "read-url": Class::forName("JinaDataProvider::JinaReaderDataProvider"),
+            "search-web": Class::forName("JinaDataProvider::JinaSearchDataProvider"),
+            "segment-text": Class::forName("JinaDataProvider::JinaSegmentDataProvider"),
+            "chat": Class::forName("JinaDataProvider::JinaChatDataProvider"),
+            "deep-search": Class::forName("JinaDataProvider::JinaDeepSearchDataProvider"),
+            "download-batch-output": Class::forName("JinaDataProvider::JinaBatchOutputDataProvider"),
+            "download-batch-errors": Class::forName("JinaDataProvider::JinaBatchErrorsDataProvider"),
             "create-embeddings":
                 Class::forName("JinaDataProvider::JinaEmbeddingDataProvider"),
             "rerank":
@@ -45,34 +53,65 @@ public class JinaDataProvider inherits JinaDataProviderCommon {
         };
     }
 
+    #! Creates the root provider from an authenticated transport
+    /** @param rest the transport to copy */
     constructor(RestClientIo::RestClientIo rest) : JinaDataProviderCommon(rest) {
     }
 
+    #! Creates the root provider from connection options
+    /** @param options the ConstructorOptions values
+        @throw CONSTRUCTOR-ERROR an option is invalid or authentication is missing
+    */
     constructor(*hash<auto> options) : JinaDataProviderCommon(options) {
     }
 
+    #! Returns the root provider name
+    /** @return the stable factory name */
     string getName() {
         return ProviderInfo.name;
     }
 
+    #! Registers an additional provider alongside the built-in actions
+    /** @param pathname the new child name
+        @param cls the provider class
+        @throw JINA-CHILD-ERROR the name is already registered
+    */
     static registerChild(string pathname, Reflection::Class cls) {
-        if (childMap{pathname}) {
+        AutoLock al(child_lock);
+        if (childMap{pathname} || JinaSchema::getActionSet().getOperation(pathname)) {
             throw "JINA-CHILD-ERROR", sprintf("child %y already registered", pathname);
         }
         childMap{pathname} = cls;
     }
 
+    #! Describes all built-in and registered child providers
+    /** @return the child summaries */
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator();
+        list<hash<DataProviderSummaryInfo>> rv = ();
+        foreach string name in (getChildProviderNamesImpl()) {
+            rv += cast<hash<DataProviderSummaryInfo>>(getChildProviderImpl(name).getInfo(){
+                AbstractDataProvider::DataProviderSummaryInfoKeys});
+        }
+        return rv;
     }
 
     private *list<string> getChildProviderNamesImpl() {
-        return keys childMap;
+        AutoLock al(child_lock);
+        hash<string, bool> names = map {$1: True}, JinaSchema::getActionSet().getActionNames();
+        map names{$1} = True, keys childMap;
+        return keys names;
     }
 
     private *AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = childMap{name};
+        *Class cls;
+        {
+            AutoLock al(child_lock);
+            cls = childMap{name};
+        }
         if (!cls) {
+            if (JinaSchema::getActionSet().getOperation(name)) {
+                return getSchemaProvider(name);
+            }
             return;
         }
         return cls.newObject(rest);

@@ -154,7 +154,7 @@ public hashdecl RestSchemaRecordFilterInfo {
     *code<auto(auto)> to_wire;
 
     #! Whether the option takes a list of values
-    /** Set for an option implementing @ref DP_SEARCH_OP_IN, whose value is the whole list.
+    /** Set for an option implementing @ref DataProvider::DP_SEARCH_OP_IN, whose value is the whole list.
     */
     *bool multi;
 }
@@ -252,11 +252,10 @@ public hashdecl RestSchemaQuerySyntaxInfo {
     bool parenthesize = True;
 
     #! Renders one value as the query language spells it
-    /** @param value the value from the expression
-        @param field the record field it is being compared against, so that a syntax can render an identifier
+    /** Receives the expression value and the record field it is being compared against, so that a syntax can render an identifier
         differently from a name - Xero wraps a GUID in \c guid("...")
 
-        @return the rendered literal
+        Returns the rendered literal
 
         Required unless @ref render_query is set, which renders the values itself.
     */
@@ -268,11 +267,11 @@ public hashdecl RestSchemaQuerySyntaxInfo {
     *code<string(string)> render_field;
 
     #! Renders the whole expression, replacing the built-in rendering entirely
-    /** @param exp the expression to render; it has already been accepted by
+    /** Receives the expression to render; it has already been accepted by
         @ref RestSchemaActions::RestSchemaRecordFilter::canRender() "canRender()", so every operator in it is
         one this syntax declares and every connective is one it has
 
-        @return the value to place on the query option, which need **not** be a string: Intercom's search
+        Returns the value to place on the query option, which need **not** be a string: Intercom's search
         takes a hash
 
         @see @ref restschemaquerysyntax_hook

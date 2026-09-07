@@ -820,7 +820,7 @@ public class RestSchemaImporter {
     }
 
     #! Rewrites the provenance values in an application's schema source
-    /** Only the members named in @ref values are touched, and only inside the named constant, so an
+    /** Only the members named in \a values are touched, and only inside the named constant, so an
         application-specific member - Stripe's \c api_version, which has to move with its schema - is left
         exactly as it was.
 
@@ -830,7 +830,7 @@ public class RestSchemaImporter {
 
         @return the rewritten source
 
-        @throw REST-SCHEMA-IMPORT-ERROR the constant was not found, or a member named in @ref values is not
+        @throw REST-SCHEMA-IMPORT-ERROR the constant was not found, or a member named in \a values is not
         declared in it
 
         @note A member the record does not declare is an error rather than an addition: writing one would

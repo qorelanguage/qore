@@ -33,8 +33,8 @@ public class JinaDataProviderCommon inherits DataProvider::AbstractDataProvider 
                 "display_name": "Jina AI API Key",
                 "short_desc": "Jina AI API key for Bearer authentication",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The Jina AI API key.  Get one from the Jina AI dashboard.",
-                "required": True,
+                "desc": "The Jina AI API key. Required unless `restclient` supplies authentication. "
+                    "Get a key from the [Jina AI dashboard](https://jina.ai/api-dashboard/key-manager).",
                 "sensitive": True,
             },
             "url": <DataProviderOptionInfo>{
@@ -59,7 +59,7 @@ public class JinaDataProviderCommon inherits DataProvider::AbstractDataProvider 
                 "type": AbstractDataProviderType::get(AutoHashType, NOTHING, {
                     DTT_ClientOnly: True,
                 }),
-                "desc": "Options to the RestClientIo constructor.",
+                "desc": "Advanced transport options for the REST client.",
             },
             "api": <DataProviderOptionInfo>{
                 "display_name": "API Version",
@@ -67,14 +67,17 @@ public class JinaDataProviderCommon inherits DataProvider::AbstractDataProvider 
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The API version segment used for `/v1/*` routing.",
                 "default_value": DefaultJinaApiVersion,
+                "allowed_values": (<AllowedValueInfo>{"value": "v1", "display_name": "V1"},),
             },
         };
 
+        #! Legacy retry constants retained for compatibility; actions propagate errors without retrying
         const RetrySet = {
             "SOCKET-SSL-ERROR": True,
             "SOCKET-CLOSED": True,
         };
 
+        #! Legacy retry limit; actions do not retry automatically
         const MaxIoRetries = 5;
     }
 
@@ -82,14 +85,22 @@ public class JinaDataProviderCommon inherits DataProvider::AbstractDataProvider 
         *RestClientIo::RestClientIo rest;
     }
 
+    #! Copies an authenticated client without changing its connection path
+    /** @param rest the transport to copy */
     constructor(RestClientIo::RestClientIo rest) {
-        self.rest = rest;
+        self.rest = cast<RestClientIo::RestClientIo>(rest.copyWithUrl(rest.getUrl().toString()));
+        self.rest.clearConnectionPath();
     }
 
+    #! Creates an authenticated provider transport
+    /** @param options the ConstructorOptions values
+        @throw CONSTRUCTOR-ERROR an option is invalid or authentication is missing
+    */
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         if (copts.restclient) {
-            rest = copts.restclient;
+            rest = cast<RestClientIo::RestClientIo>(
+                copts.restclient.copyWithUrl(copts.restclient.getUrl().toString()));
         }
         if (!rest) {
             if (!copts.apikey.val()) {
@@ -103,43 +114,64 @@ public class JinaDataProviderCommon inherits DataProvider::AbstractDataProvider 
             };
             rest = new JinaRestClient::JinaRestClientIo(opts);
         }
+        rest.clearConnectionPath();
     }
 
-    private hash<auto> doRestCommand(string method, string path, auto body, *hash<auto> hdr) {
-        int retries = 0;
-        while (True) {
-            try {
-                debug("REST %y %y body: %y", method, path, body);
-                switch (method.upr()) {
-                    case "GET":
-                        return rest.restGet(path, hdr);
-                    case "POST":
-                        return rest.restPost(path, body, hdr);
-                    case "DELETE":
-                        return rest.restDel(path, body, hdr);
-                    default:
-                        return rest.restDoRequest(method, path, body, hdr);
-                }
-            } catch (hash<ExceptionInfo> ex) {
-                if (retry(ex, \retries)) {
-                    continue;
-                }
-                rethrow ex.err, sprintf("%s (request path: %y)", ex.desc,
-                    ex.arg.request_path ?? path), ex.arg;
-            }
+    #! Returns a schema action using this provider's authenticated transport
+    /** @param action the stable action name
+        @return the action provider, including Jina model dropdown support
+    */
+    private JinaSchemaActionDataProvider getSchemaProvider(string action) {
+        RestSchemaActionSet aset = JinaSchema::getActionSet();
+        return new JinaSchemaActionDataProvider(aset, aset.getOperationEx(action), rest);
+    }
+
+    #! Returns the reference lists supported by an existing embedding or reranking provider
+    /** @return the reference list names */
+    *hash<string, bool> getSupportedReferenceData() {
+        if (JinaSchema::getActionSet().getOperation(getName())) {
+            return getSchemaProvider(getName()).getSupportedReferenceData();
         }
     }
 
-    private bool retry(hash<ExceptionInfo> ex, reference<int> retries) {
-        if (RetrySet{ex.err}) {
-            if (++retries == MaxIoRetries) {
-                LoggerWrapper::error(sprintf("Maximum retries exceeded (%d)", retries));
-                return False;
-            }
-            warn("Technical error making REST call: %s: %s; retrying", ex.err, ex.desc);
-            return True;
+    private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type, *hash<auto> opts) {
+        return getSchemaProvider(getName()).getReferenceData(type, opts);
+    }
+}
+
+#! Schema action provider with model IDs suitable for Jina inference endpoints
+/** The model catalog returns IDs prefixed with `jina-ai/`, while inference requests use short IDs.
+    Dropdowns also intersect the live catalog with the models declared by the selected operation.
+*/
+public class JinaSchemaActionDataProvider inherits RestSchemaActionDataProvider {
+    #! Creates a schema action using an authenticated Jina transport
+    /** @param action_set the immutable application action set
+        @param op the selected schema operation
+        @param rest the authenticated REST client
+    */
+    constructor(RestSchemaActionSet action_set, RestSchemaActionOperation op,
+            RestClient::AbstractRestClient rest) : RestSchemaActionDataProvider(action_set, op, rest) {
+    }
+
+    private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type, *hash<auto> opts) {
+        *list<hash<AllowedValueInfo>> values = RestSchemaActionDataProvider::getReferenceDataImpl(type, opts);
+        if (!(type =~ /-models$/)) {
+            return values;
         }
-        return False;
+        *AbstractDataField model = getRequestType().getFields().model;
+        *list<hash<AllowedValueInfo>> supported = model ? model.getAllowedValues() : NOTHING;
+        hash<string, bool> model_names = map {$1.value: True}, supported ?? ();
+        list<hash<AllowedValueInfo>> rv = ();
+        foreach hash<AllowedValueInfo> value in (values ?? ()) {
+            string id = value.value;
+            id =~ s/^jina-ai\///;
+            if (model_names && !model_names{id}) {
+                continue;
+            }
+            value.value = id;
+            rv += value;
+        }
+        return rv;
     }
 }
 }

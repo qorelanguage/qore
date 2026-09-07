@@ -1299,6 +1299,10 @@
           "source": "How many results to return per page",
           "message": "Kolik výsledků se vrátí na stránku"
         },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.allowed-value.c3RyaW5nOmNvbXBsZXRlZA.display_name": {
+          "source": "completed",
+          "message": "Dokončeno"
+        },
         "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.desc": {
           "source": "Filter the listing to completed batches. `completed` is the only supported value; any other value returns a 400. Completed listings are ordered by expiry and use a distinct cursor, so keep sending `status=completed` on every cursor-paginated request.",
           "message": "Zúží výpis na dokončené dávky. `completed` je jediná podporovaná hodnota; jakákoli jiná hodnota vrátí chybu 400. Výpisy dokončených dávek jsou řazeny podle vypršení platnosti a používají zvláštní kurzor, proto posílejte `status=completed` v každém požadavku stránkovaném kurzorem."

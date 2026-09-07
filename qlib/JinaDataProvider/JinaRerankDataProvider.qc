@@ -52,11 +52,11 @@ public class JinaRerankDataProvider inherits JinaDataProviderCommon {
     }
 
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return getSchemaProvider("rerank").getRequestType();
     }
 
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return getSchemaProvider("rerank").getResponseType();
     }
 
     private hash<DataProviderInfo> getStaticInfoImpl() {
@@ -64,7 +64,7 @@ public class JinaRerankDataProvider inherits JinaDataProviderCommon {
     }
 
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return doRestCommand("POST", "rerank", req).body;
+        return getSchemaProvider("rerank").doRequest(req, request_options);
     }
 }
 }

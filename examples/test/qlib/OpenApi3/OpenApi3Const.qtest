@@ -1,0 +1,102 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
+
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/OpenApi3.qm
+%requires json
+%exec-class OpenApi3ConstTest
+
+class OpenApi3ConstTest inherits QUnit::Test {
+    private {
+        # Schema nodes hold weak references to their owning document.
+        list<OpenApi3Schema> documents = ();
+    }
+    constructor() : Test("OpenAPI constant validation", "1.0", \ARGV) {
+        addTestCase("JSON constants preserve type and structural equality", \constantTest());
+        addTestCase("nullable scalar composition constraints", \nullableScalarTest());
+        addTestCase("constant discriminators and field metadata", \discriminatorTest());
+        set_return_value(main());
+    }
+
+    private SchemaObject schema(hash<auto> definition) {
+        OpenApi3Schema doc = OpenApi3Loader::fromString(make_json({
+            "openapi": "3.1.0", "info": {"title": "Constants", "version": "1"},
+            "paths": {}, "components": {"schemas": {"Value": definition}},
+        }), True);
+        documents += doc;
+        return doc.components.schemas.Value;
+    }
+
+    private auto check(SchemaObject s, auto value) {
+        s.check(False, True, "/test", "POST", "value", \value);
+        return value;
+    }
+
+    private constantTest() {
+        foreach hash<auto> row in ((
+            {"constant": "fixed", "valid": "fixed", "invalid": "other"},
+            {"constant": 7, "valid": 7.0, "invalid": "7"},
+            {"constant": False, "valid": False, "invalid": 0},
+            {"constant": parse_json("null"), "valid": parse_json("null"), "invalid": "null"},
+            {"constant": {"a": 1, "b": (True, "x")}, "valid": {"b": (True, "x"), "a": 1.0},
+                "invalid": {"a": 1, "b": (1, "x")}},
+            {"constant": (1, 2), "valid": (1.0, 2), "invalid": (2, 1)},
+            {"constant": {}, "valid": {}, "invalid": {"extra": 1}},
+            {"constant": (), "valid": (), "invalid": (1,)},
+        )) {
+            SchemaObject s = schema({"const": row.constant});
+            assertEq(row.constant, s.getExampleValue());
+            assertEq(row.valid, check(s, row.valid));
+            assertThrows("SCHEMA-VALIDATION-ERROR", sub () { check(s, row.invalid); });
+        }
+        SchemaObject s = schema({"type": "string", "const": "fixed", "nullable": True});
+        assertThrows("SCHEMA-VALIDATION-ERROR", sub () { check(s, parse_json("null")); });
+        s = schema({"type": "string", "const": "fixed", "enum": ("other",)});
+        assertThrows("SCHEMA-VALIDATION-ERROR", sub () { check(s, "fixed"); });
+    }
+
+    private nullableScalarTest() {
+        SchemaObject s = schema({"anyOf": (
+            {"type": "integer", "exclusiveMinimum": 0, "maximum": 1024}, {"type": "null"},
+        )});
+        assertEq(1, check(s, 1));
+        assertEq(1024, check(s, 1024));
+        assertEq(parse_json("null"), check(s, parse_json("null")));
+        foreach int value in ((-1, 0, 1025)) {
+            assertThrows("SCHEMA-VALIDATION-ERROR", sub () { check(s, value); });
+        }
+        s = schema({"anyOf": ({"type": "string", "enum": ("first", "second")}, {"type": "null"})});
+        assertEq("first", check(s, "first"));
+        assertThrows("SCHEMA-VALIDATION-ERROR", sub () { check(s, "unknown"); });
+        s = schema({"type": "null"});
+        assertThrows("SCHEMA-VALIDATION-ERROR", sub () { check(s, 0); });
+        s = schema({"oneOf": ({"type": "string"}, {"type": "integer"}, {"type": "boolean"},
+            {"type": "array", "items": {"type": "string"}})});
+        foreach auto value in ((0, False, "0", ("value",))) {
+            assertEq(value, check(s, value));
+        }
+    }
+
+    private discriminatorTest() {
+        SchemaObject s = schema({"oneOf": (
+            {"type": "object", "properties": {"model": {"type": "string", "const": "first"}},
+                "required": ("model",)},
+            {"type": "object", "properties": {"model": {"type": "string", "const": "second"}},
+                "required": ("model",)},
+        )});
+        AbstractDataProviderType type = s.getDataType();
+        assertEq({"model": "first"}, type.acceptsValue({"model": "first"}));
+        assertEq({"model": "second"}, type.acceptsValue({"model": "second"}));
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { type.acceptsValue({"model": "unknown"}); });
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { type.acceptsValue({}); });
+        SchemaObject constant_objects = schema({"oneOf": (
+            {"const": {"kind": "first"}}, {"const": {"kind": "second"}},
+        )});
+        assertEq({"kind": "first"}, check(constant_objects, {"kind": "first"}));
+        assertThrows("SCHEMA-VALIDATION-ERROR", sub () { check(constant_objects, {"kind": "unknown"}); });
+        assertEq(("first",), map $1.value, s.oneOf[0].getDataType().getFields().model.getAllowedValues());
+    }
+}

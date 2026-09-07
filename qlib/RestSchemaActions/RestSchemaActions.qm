@@ -30,6 +30,8 @@
 
 %requires(reexport) DataProvider
 %requires(reexport) RestSchemaDataProvider
+%requires(reexport) OpenApi3
+%requires(reexport) RestClient
 %requires FileLocationHandler
 
 %requires json

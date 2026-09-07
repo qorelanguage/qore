@@ -1299,6 +1299,10 @@
           "source": "How many results to return per page",
           "message": "페이지당 반환할 결과 수"
         },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.allowed-value.c3RyaW5nOmNvbXBsZXRlZA.display_name": {
+          "source": "completed",
+          "message": "완료"
+        },
         "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.desc": {
           "source": "Filter the listing to completed batches. `completed` is the only supported value; any other value returns a 400. Completed listings are ordered by expiry and use a distinct cursor, so keep sending `status=completed` on every cursor-paginated request.",
           "message": "목록을 완료된 배치로 좁힙니다. 지원되는 값은 `completed`뿐이며 다른 값은 400을 반환합니다. 완료된 배치 목록은 만료일순으로 정렬되고 별도의 커서를 사용하므로, 커서로 페이지를 넘기는 모든 요청에 `status=completed`를 계속 보내세요."

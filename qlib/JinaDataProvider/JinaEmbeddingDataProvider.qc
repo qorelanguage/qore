@@ -53,19 +53,35 @@ public class JinaEmbeddingDataProvider inherits JinaDataProviderCommon {
     }
 
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return getSchemaProvider("create-embeddings").getRequestType();
     }
 
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return getSchemaProvider("create-embeddings").getResponseType();
     }
 
     private hash<DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 
+    #! Accepts the former encoding option as an alias for Jina's actual embedding_type field
+    /** @param req the embedding options
+        @param request_options additional request options
+        @return the embedding response
+        @throw JINA-REQUEST-ERROR conflicting encoding aliases were supplied
+    */
+    auto doRequest(auto req, *hash<auto> request_options) {
+        if (req.typeCode() == NT_HASH && exists req.encoding_format) {
+            if (exists req.embedding_type && req.embedding_type != req.encoding_format) {
+                throw "JINA-REQUEST-ERROR", "encoding_format conflicts with embedding_type";
+            }
+            req.embedding_type = remove req.encoding_format;
+        }
+        return AbstractDataProvider::doRequest(req, request_options);
+    }
+
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return doRestCommand("POST", "embeddings", req).body;
+        return getSchemaProvider("create-embeddings").doRequest(req, request_options);
     }
 }
 }

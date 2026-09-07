@@ -32,8 +32,8 @@
 %requires QoreRagTypes
 
 module JinaRestClient {
-    version = "1.0";
-    desc = "user module for calling Jina AI REST services (embeddings + rerank)";
+    version = "1.1";
+    desc = "user module for calling Jina AI REST services for search and content processing";
     author = "Qore Technologies <info@qoretechnologies.com>";
     url = "https://qore.org";
     license = "MIT";
@@ -63,9 +63,8 @@ module JinaRestClient {
       `jina-colbert-v2` for late-interaction reranking)
 
     The module registers both an embedder and a reranker into the
-    @ref qoreragutilsintro "QoreRagUtils" registry so existing
-    @ref QoreRagUtils::RagPipeline "RagPipeline" consumers can target
-    Jina by setting backend strings \c "jina".
+    registry provided by @ref qoreragtypesintro "QoreRagTypes". RAG consumers can target Jina
+    by setting the backend to \c "jina".
 
     @par Example:
     @code{.py}
@@ -74,7 +73,7 @@ module JinaRestClient {
 %requires JinaRestClient
 
 JinaRestClient rest({"apikey": api_key});
-hash<auto> ans = rest.post("/v1/embeddings", {
+hash<auto> ans = rest.restPost("/embeddings", {
     "model": "jina-embeddings-v3",
     "input": ("Hello, world!",),
 });
@@ -82,6 +81,11 @@ printf("%Y\n", ans.body);
     @endcode
 
     @section JinaRestClientRelnotes Release Notes
+
+    @subsection JinaRestClientv1_1 JinaRestClient v1.1
+    - verifies API keys with the authenticated batch listing instead of the public model catalog
+    - migrates existing public-model and obsolete rate-limit pings, including saved configurations
+    - associates connections with the Jina AI app and provides separate embedding/reranking choices
 
     @subsection JinaRestClientv1_0 JinaRestClient v1.0
     - the initial version of the %JinaRestClient module
@@ -101,6 +105,41 @@ public class JinaRestClientBase {
 
         #! Default Jina AI reranking model
         const DefaultRerankModel = "jina-reranker-v2-base-multilingual";
+
+        #! Known model choices; custom model names are accepted for future releases
+        const EmbeddingModels = (
+            <AllowedValueInfo>{"value": "jina-embeddings-v2-base-en", "display_name": "Jina Embeddings V2 Base En"},
+            <AllowedValueInfo>{"value": "jina-embeddings-v2-base-zh", "display_name": "Jina Embeddings V2 Base Zh"},
+            <AllowedValueInfo>{"value": "jina-embeddings-v2-base-de", "display_name": "Jina Embeddings V2 Base De"},
+            <AllowedValueInfo>{"value": "jina-embeddings-v2-base-es", "display_name": "Jina Embeddings V2 Base Es"},
+            <AllowedValueInfo>{"value": "jina-embeddings-v2-base-code", "display_name": "Jina Embeddings V2 Base Code"},
+            <AllowedValueInfo>{"value": "jina-embeddings-v3", "display_name": "Jina Embeddings V3"},
+            <AllowedValueInfo>{"value": "jina-embeddings-v5-text-nano", "display_name": "Jina Embeddings V5 Text Nano"},
+            <AllowedValueInfo>{"value": "jina-embeddings-v5-text-small", "display_name": "Jina Embeddings V5 Text Small"},
+            <AllowedValueInfo>{"value": "jina-embeddings-v5-omni-small", "display_name": "Jina Embeddings V5 Omni Small"},
+            <AllowedValueInfo>{"value": "jina-embeddings-v5-omni-nano", "display_name": "Jina Embeddings V5 Omni Nano"},
+            <AllowedValueInfo>{"value": "jina-embeddings-v4", "display_name": "Jina Embeddings V4"},
+            <AllowedValueInfo>{"value": "jina-code-embeddings-0.5b", "display_name": "Jina Code Embeddings 0.5B"},
+            <AllowedValueInfo>{"value": "jina-code-embeddings-1.5b", "display_name": "Jina Code Embeddings 1.5B"},
+            <AllowedValueInfo>{"value": "jina-clip-v1", "display_name": "Jina Clip V1"},
+            <AllowedValueInfo>{"value": "jina-clip-v2", "display_name": "Jina Clip V2"},
+            <AllowedValueInfo>{"value": "jina-colbert-v1-en", "display_name": "Jina Colbert V1 En"},
+            <AllowedValueInfo>{"value": "jina-colbert-v2", "display_name": "Jina Colbert V2"},
+            <AllowedValueInfo>{"value": "elser-v2", "display_name": "Elser V2"},
+        );
+
+        #! Known model choices; custom model names are accepted for future releases
+        const RerankModels = (
+            <AllowedValueInfo>{"value": "jina-reranker-v2-base-multilingual", "display_name": "Jina Reranker V2 Base Multilingual"},
+            <AllowedValueInfo>{"value": "jina-reranker-v1-tiny-en", "display_name": "Jina Reranker V1 Tiny En"},
+            <AllowedValueInfo>{"value": "jina-reranker-v1-turbo-en", "display_name": "Jina Reranker V1 Turbo En"},
+            <AllowedValueInfo>{"value": "jina-reranker-v1-base-en", "display_name": "Jina Reranker V1 Base En"},
+            <AllowedValueInfo>{"value": "jina-colbert-v1-en", "display_name": "Jina Colbert V1 En"},
+            <AllowedValueInfo>{"value": "jina-colbert-v2", "display_name": "Jina Colbert V2"},
+            <AllowedValueInfo>{"value": "jina-reranker-m0", "display_name": "Jina Reranker M0"},
+            <AllowedValueInfo>{"value": "jina-reranker-v3", "display_name": "Jina Reranker V3"},
+            <AllowedValueInfo>{"value": "jina-reranker-v3.5", "display_name": "Jina Reranker V3.5"},
+        );
 
         const DefaultOptions = {
             "url": DefaultUrl,
@@ -127,10 +166,6 @@ public class JinaRestClientBase {
 
 #! REST client for Jina AI REST API (sync)
 public class JinaRestClient inherits RestClient::RestClient, JinaRestClientBase {
-    private {
-        string api;
-    }
-
     constructor(hash<auto> opts, *softbool do_not_connect)
             : RestClient(JinaRestClientBase::getOptions(opts), True) {
         if (validator instanceof NullRestSchemaValidator) {
@@ -153,14 +188,15 @@ public class JinaRestConnection inherits RestClient::RestConnection {
 
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "display_name": "Jina AI REST Connection",
-            "short_desc": "A connection to the Jina AI embeddings + rerank REST API",
+            "short_desc": "A connection to Jina AI search and content processing APIs",
             "desc": "A connection to the [Jina AI](https://jina.ai) REST API for embeddings "
-                "and reranking.\n\n"
+                "and reranking, classification, content extraction, and batch processing.\n\n"
                 "Requires an API key for Bearer authentication.  Get your API key from the "
                 "[Jina AI dashboard](https://jina.ai/?sui=apikey).\n\n"
                 "The models used when this connection is selected for embeddings and for "
                 "reranking are set independently with the `embedding-model` and "
-                "`rerank-model` options.",
+                "`rerank-model` options. The connection ping checks authentication using a "
+                "small account batch listing without generating embeddings.",
             "cls": Class::forName("JinaRestConnection"),
             "auto_url": True,
             "schemes": {"jina": True},
@@ -170,8 +206,10 @@ public class JinaRestConnection inherits RestClient::RestConnection {
                     "display_name": "API Key",
                     "short_desc": "Jina AI API key for authentication",
                     "type": "string",
-                    "desc": "The Jina AI API key used for Bearer authentication.",
+                    "desc": "The Jina AI API key used for Bearer authentication. Get a key from the "
+                        "[Jina AI dashboard](https://jina.ai/api-dashboard/key-manager).",
                     "sensitive": True,
+                    "required": True,
                     "preselected": True,
                 },
                 "api": <ConnectionOptionInfo>{
@@ -180,6 +218,7 @@ public class JinaRestConnection inherits RestClient::RestConnection {
                     "desc": "The API version to use.",
                     "type": "string",
                     "default_value": JinaRestClientBase::DefaultApiVersion,
+                    "allowed_values": (<AllowedValueInfo>{"value": "v1", "display_name": "V1"},),
                 },
                 "embedding-model": <ConnectionOptionInfo>{
                     "display_name": "Embedding Model",
@@ -192,6 +231,8 @@ public class JinaRestConnection inherits RestClient::RestConnection {
                         "`jina-embeddings-v2-base-code` (code-specialized)",
                     "type": "string",
                     "default_value": JinaRestClientBase::DefaultEmbeddingModel,
+                    "allowed_values": JinaRestClientBase::EmbeddingModels,
+                    "allowed_values_creatable": True,
                 },
                 "rerank-model": <ConnectionOptionInfo>{
                     "display_name": "Reranking Model",
@@ -206,6 +247,8 @@ public class JinaRestConnection inherits RestClient::RestConnection {
                         "multi-vector)",
                     "type": "string",
                     "default_value": JinaRestClientBase::DefaultRerankModel,
+                    "allowed_values": JinaRestClientBase::RerankModels,
+                    "allowed_values_creatable": True,
                 },
                 "ping_headers": RestConnection::ConnectionScheme.options.ping_headers + <ConnectionOptionInfo>{
                     "default_value": DefaultPingHeaders,
@@ -222,17 +265,73 @@ public class JinaRestConnection inherits RestClient::RestConnection {
 
         const DefaultPingMethod = "GET";
         const DefaultPingHeaders = {"Accept": MimeTypeJson};
-        # GET /v1/models returns the public model list; /v1/rate_limit does not exist (404)
-        const DefaultPingPath = "models";
+        # The account-scoped listing verifies authentication without running a paid model.
+        const DefaultPingPath = "/v1/batches?limit=1";
     }
 
     constructor(string name, string description, string url = DefaultUrl,
             hash<auto> attributes = {}, hash<auto> options = {})
-            : RestConnection(name, description, url, attributes, options) {
+            : RestConnection(name, description, url, attributes, JinaRestConnection::fixPingOptions(options)) {
     }
 
     constructor(hash<auto> config, *hash<auto> attr)
-            : RestConnection(config + (exists config.url ? {} : {"url": DefaultUrl}), attr) {
+            : RestConnection(JinaRestConnection::getConfig(config), attr) {
+    }
+
+    #! Loads existing connections with an authenticated ping instead of the old public model listing
+    private static hash<auto> fixPingOptions(hash<auto> options) {
+        if ((options.ping_method ?? "GET").upr() == "GET"
+                && (!exists options.ping_path || options.ping_path == "models"
+                    || options.ping_path == "/models" || options.ping_path == "/v1/models"
+                    || options.ping_path == "rate_limit" || options.ping_path == "/v1/rate_limit")) {
+            options.ping_method = DefaultPingMethod;
+            options.ping_path = DefaultPingPath;
+        }
+        return options;
+    }
+
+    private static hash<auto> getConfig(hash<auto> config) {
+        config.url = DefaultUrl;
+        config.opts = JinaRestConnection::fixPingOptions(config.opts ?? {});
+        return config;
+    }
+
+    #! Keeps automatically generated connection URLs at Jina's API endpoint
+    /** @param update_options the callback that persists corrected connection settings */
+    setUpdateOptionsCode(*code update_options) {
+        UpdateOptionsInterface::setUpdateOptionsCode(update_options);
+        if (update_options && url != DefaultUrl && url != JinaRestClientBase::DefaultUrl) {
+            doUpdateOptions(self, {"url": DefaultUrl});
+        }
+    }
+
+    #! Associates the connection with the Jina AI application
+    /** @return the registered application name */
+    *string getAppName() {
+        return "JinaAi";
+    }
+
+    #! Verifies the authenticated listing response on synchronous and asynchronous ping transports
+    /** @param body the parsed JSON response or raw JSON bytes
+        @throw REST-PING-ERROR the response is not a batch listing
+    */
+    validatePingResponse(auto body) {
+        if (getRealOptions().ping_path != DefaultPingPath) {
+            return;
+        }
+        try {
+            if (body.typeCode() == NT_BINARY) {
+                body = body.toString();
+            }
+            if (body.typeCode() == NT_STRING) {
+                body = parse_json(body);
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            throw "REST-PING-ERROR", "Jina authentication check returned malformed JSON";
+        }
+        if (body.typeCode() != NT_LIST) {
+            throw "REST-PING-ERROR", "Jina authentication check did not return a batch listing";
+        }
     }
 
     string getType() {

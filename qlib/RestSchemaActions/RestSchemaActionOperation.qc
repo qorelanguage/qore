@@ -886,13 +886,18 @@ public class RestSchemaActionOperation {
         bool body_required = body.required ?? False;
         AbstractDataField body_field = op.getRequestBodyField(pio);
         AbstractDataProviderType body_type = body_field.getType();
+        *hash<string, AbstractDataField> union_fields;
+        if (info.flatten_body && body_type instanceof QoreUnionDataType) {
+            union_fields = RestSchemaActionOperation::getUnionBodyFields(body_type);
+        }
 
         # an object body is flattened to its properties; anything else -- an array or a scalar -- has no
         # properties to lift and is presented whole.  The distinction is the base type, not whether any
         # fields came back: an object body declaring no properties contributes no options at all, and
         # presenting an empty envelope as a "body" option would be worse than useless.  Some schemas
         # declare exactly that on operations that take no input.
-        if (!info.flatten_body || body_type.getBaseTypeCode() != NT_HASH) {
+        if (!info.flatten_body || body_type.getBaseTypeCode() != NT_HASH
+                || (body_type instanceof QoreUnionDataType && !union_fields)) {
             derived{RSAL_BODY_ROOT} += {
                 "wire_name": "body",
                 "field": body_field,
@@ -908,9 +913,11 @@ public class RestSchemaActionOperation {
         auto landing_schema = body.schema;
         if (info.request_unwrap) {
             body_type = buildRequestUnwrap(body.schema, body_type, \landing_schema, \derived, body_required);
+            union_fields = body_type instanceof QoreUnionDataType
+                ? RestSchemaActionOperation::getUnionBodyFields(body_type) : NOTHING;
         }
 
-        *hash<string, AbstractDataField> body_fields = body_type.getFields();
+        *hash<string, AbstractDataField> body_fields = union_fields ?? body_type.getFields();
         if (!body_fields) {
             return;
         }
@@ -956,6 +963,72 @@ public class RestSchemaActionOperation {
                 "field": f,
             };
         }
+    }
+
+    #! Collects the editable fields of object alternatives without choosing a request variant
+    /** Only fields required in every alternative remain required. Branch-specific defaults are omitted
+        so that opening a form cannot select a model or add options belonging to a different model.
+        The original composed schema still validates the complete, reassembled request before I/O.
+        Mixed scalar/object and open-object unions remain whole body options.
+    */
+    private static *hash<string, AbstractDataField> getUnionBodyFields(AbstractDataProviderType type) {
+        if (!(type instanceof QoreUnionDataType)) {
+            return type.getBaseTypeCode() == NT_HASH ? type.getFields() : NOTHING;
+        }
+        list<AbstractDataProviderType> branches = cast<QoreUnionDataType>(type).getUnionTypes();
+        hash<string, list<AbstractDataField>> members = {};
+        foreach AbstractDataProviderType branch in (branches) {
+            *hash<string, AbstractDataField> fields = RestSchemaActionOperation::getUnionBodyFields(branch);
+            if (!fields) {
+                return;
+            }
+            foreach hash<auto> f in (fields.pairIterator()) {
+                members{f.key} += f.value;
+            }
+        }
+        hash<string, AbstractDataField> rv = {};
+        foreach hash<auto> member in (members.pairIterator()) {
+            list<AbstractDataField> fields = member.value;
+            AbstractDataField first = fields[0];
+            hash<auto!> cfg = first.getConfigInfo();
+            list<AbstractDataProviderType> types = map $1.getType(), fields;
+            bool same_type = True;
+            bool required = fields.size() == branches.size();
+            bool same_default = required;
+            bool finite = True;
+            list<hash<AllowedValueInfo>> allowed = ();
+            hash<string, bool> seen = {};
+            foreach AbstractDataField field in (fields) {
+                same_type = same_type && field.getType() == first.getType();
+                required = required && fieldIsRequired(field);
+                same_default = same_default && field.getDefaultValue() == first.getDefaultValue();
+                finite = finite && !!field.getAllowedValues() && !field.getAllowedValuesCreatable();
+                foreach hash<AllowedValueInfo> value in (field.getAllowedValues() ?? ()) {
+                    string key = make_json(value.value);
+                    if (!seen{key}) {
+                        seen{key} = True;
+                        allowed += value;
+                    }
+                }
+                if (field.getAttributes().sensitive) {
+                    cfg.attr.sensitive = True;
+                }
+            }
+            @assert(types.size() > 0);
+            AbstractDataProviderType field_type = (types.size() == 1 || same_type)
+                ? first.getType() : new QoreUnionDataType(types);
+            cfg.type = required ? field_type.getMandatoryType() : field_type.getOrNothingType();
+            cfg.attr.required = required;
+            cfg.default_value = same_default ? first.getDefaultValue() : NOTHING;
+            cfg.allowed_values = finite ? allowed : NOTHING;
+            cfg.allowed_values_creatable = !finite;
+            # Element restrictions from just one branch must not constrain every alternative.
+            if (!same_type) {
+                remove cfg{"element_allowed_values", "element_allowed_values_creatable", "example_value"};
+            }
+            rv{member.key} = new QoreDataField(cfg);
+        }
+        return rv;
     }
 
     #! Returns the properties of a schema object that are required and permit exactly one value
@@ -1022,6 +1095,9 @@ public class RestSchemaActionOperation {
     #! Descends the request body's envelope and records how to rebuild it
     /** @param body_schema the request body's schema
         @param body_type the type derived from it
+        @param landing_schema receives the schema at the end of the unwrap path
+        @param derived receives the derived request fields
+        @param body_required whether the request body is required
 
         @return the type at the end of the unwrap path, whose fields become the action's body options
 
@@ -1542,6 +1618,7 @@ public class RestSchemaActionOperation {
         @param ov the overlay supplying the overrides
         @param codec_desc a description of any wire conversion, appended to the field description so that the
         difference between the presented value and the wire value is documented where it is read
+        @param type_replaced whether the overlay replaces the field type
     */
     private QoreDataField rebuildField(AbstractDataField field, hash<RestSchemaFieldOverlayInfo> ov,
             *string codec_desc, *bool type_replaced) {

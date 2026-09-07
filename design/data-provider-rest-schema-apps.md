@@ -1217,3 +1217,33 @@ Reference declarations can use `options_reference` with `reference_option` to en
 another reference. API-key choices enumerate projects before reading their keys. Declaration validation
 rejects missing targets, missing options, conflicting partition mechanisms, and cycles before any request.
 Reference lists retain the framework's first-page behavior and custom-ID entry for paginated collections.
+
+
+## Jina request alternatives and companion APIs
+
+Jina's embedding, reranking, classification, and training bodies are unions of model-specific objects.
+`RestSchemaActionOperation` flattens their field sets while retaining the composed schema for whole-request
+validation. A field is required only when every branch requires it. Branch-specific defaults are omitted,
+and finite choices are combined only when every branch declaring the field constrains its values. This
+keeps the existing top-level action options while allowing new model families to contribute fields.
+Mixed scalar/object unions and open-object alternatives remain a typed `body` option. An application can
+still request the original whole-body form with `flatten_body: False`.
+
+The Jina app pins twelve operations from the inference schema. Reader, Search, Segmenter, DeepSearch,
+vision chat, and the two JSONL batch downloads use typed companion providers: the inference schema omits
+four of those services, omits the chat request body, and declares JSON where the download returns JSONL.
+Their contracts come from [Jina's API documentation](https://docs.jina.ai/),
+[official API examples](https://github.com/jina-ai/meta-prompt/blob/main/v12.txt), and
+[Reader source](https://github.com/jina-ai/reader). DeepSearch embeds the JSON Schema directly under
+`response_format.json_schema`; it does not use a `name`/`schema` envelope.
+Reader and Search clone the authenticated client for fixed vendor hosts, including the EU hosts; an
+input URL is data for Reader and never becomes the authenticated client's host.
+
+The public model catalog is useful for dropdowns but cannot authenticate a connection. The account batch
+listing rejects invalid keys and avoids paid inference. Saved model-list pings are migrated when a
+connection is loaded. Dropdowns strip the catalog's `jina-ai/` prefix and intersect model IDs with the
+selected action's schema. No background batch polling is introduced.
+
+OpenAPI `const` properties are validated before coercion and published as scalar field choices, so
+model discriminators select the correct request alternative. Nullable scalar compositions validate
+their non-null branch's bounds and enums; a null alternative cannot admit an invalid numeric value.

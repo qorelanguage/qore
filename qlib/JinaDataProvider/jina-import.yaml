@@ -1,0 +1,9 @@
+# Copyright 2026 Qore Technologies, s.r.o.
+# Re-import the vendor schema and review drift before committing.
+documents:
+  - name: Jina
+    source: https://api.jina.ai/openapi.json
+    output: jina-openapi.json
+    manifest: JinaDataProvider:JinaManifest::Manifest
+    provenance: JinaSchema.qc
+    json: true

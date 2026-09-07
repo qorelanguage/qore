@@ -1299,6 +1299,10 @@
           "source": "How many results to return per page",
           "message": "Скільки результатів повертати на сторінку"
         },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.allowed-value.c3RyaW5nOmNvbXBsZXRlZA.display_name": {
+          "source": "completed",
+          "message": "Завершено"
+        },
         "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.desc": {
           "source": "Filter the listing to completed batches. `completed` is the only supported value; any other value returns a 400. Completed listings are ordered by expiry and use a distinct cursor, so keep sending `status=completed` on every cursor-paginated request.",
           "message": "Звужує перелік до завершених пакетів. `completed` - єдине підтримуване значення; будь-яке інше повертає помилку 400. Переліки завершених пакетів упорядковані за терміном дії й використовують окремий курсор, тож надсилайте `status=completed` у кожному запиті з посторінковим курсором."

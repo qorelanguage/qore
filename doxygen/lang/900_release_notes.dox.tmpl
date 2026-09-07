@@ -2356,10 +2356,15 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         authenticating through OAuth2 and sending the pinned API revision on every request
 
     - @ref jinadataproviderintro "JinaDataProvider" module
-      - new module providing a data provider API for <a href="https://jina.ai">Jina AI</a> embeddings and reranking services
+      - provides 19 actions for <a href="https://jina.ai">Jina AI</a>: multimodal embeddings, reranking,
+        classification, classifiers, model discovery, batch embeddings and JSONL downloads, Reader, Search,
+        Segmenter, experimental vision chat, and DeepSearch
+      - pinned OpenAPI contracts, live model/account dropdowns, finite choices, and live API tests
+      - fixes the legacy embedding encoding option by mapping it to \c embedding_type
 
     - @ref jinarestclientintro "JinaRestClient" module
-      - new module providing a REST client for <a href="https://jina.ai">Jina AI</a>'s embeddings + reranking API
+      - verifies authentication with an account-scoped batch listing and migrates existing public-model pings
+      - required sensitive API key, model choices, app association, and canonical generated connection URLs
 
     - @ref jotformdataproviderintro "JotformDataProvider" module
       - new module providing a data provider API for <a href="https://www.jotform.com/">JotForm</a> form and submission management

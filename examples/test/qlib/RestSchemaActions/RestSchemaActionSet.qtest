@@ -298,6 +298,7 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
         addTestCase("wire codecs", \codecTest());
         addTestCase("overlay presentation", \overlayTest());
         addTestCase("overlay on a union body", \unionOverlayTest());
+        addTestCase("object union bodies retain all model options", \unionBodyFlatteningTest());
         addTestCase("overlay errors", \overlayErrorTest());
         addTestCase("manifest errors", \manifestErrorTest());
         addTestCase("narrowed operation variants", \variantTest());
@@ -693,6 +694,79 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
         assertEq(NT_DATE, gw.getResponseType().getFields().created.getType().getBaseTypeCode());
         assertEq({"id": "w_1", "created": 2024-03-01T12:00:00Z},
             gw.processResponse({"id": "w_1", "created": 1709294400}));
+    }
+
+    unionBodyFlatteningTest() {
+        hash<auto> first = {
+            "type": "object", "required": ("model", "text"),
+            "properties": {
+                "model": {"type": "string", "const": "text", "default": "text"},
+                "text": {"type": "string"},
+                "limit": {"type": "integer", "default": 10},
+            },
+        };
+        hash<auto> second = {
+            "type": "object", "required": ("model", "image"),
+            "properties": {
+                "model": {"type": "string", "const": "image", "default": "image"},
+                "image": {"type": "string"},
+                "viewport": {"type": "object", "properties": {"width": {"type": "integer"}}},
+                "limit": {"type": "integer", "default": 20},
+            },
+        };
+        hash<auto> doc = {
+            "openapi": "3.0.3", "info": {"title": "Union", "version": "1"},
+            "paths": {"/convert": {"post": {
+                "requestBody": {"required": True, "content": {"application/json": {
+                    "schema": {"oneOf": (first, second)},
+                }}},
+                "responses": {"200": {"description": "Converted", "content": {
+                    "application/json": {"schema": {"type": "object"}},
+                }}},
+            }}},
+        };
+        RestSchemaActionSet aset(OpenApi3Loader::fromString(make_json(doc), True),
+            (entry("convert", "POST", "/convert"),));
+        RestSchemaActionOperation op = aset.getOperationEx("convert");
+        hash<string, AbstractDataField> fields = op.getRequestFields();
+        assertEq(("image", "limit", "model", "text", "viewport"), sort(keys fields));
+        assertTrue(!!fields.viewport.getType().getFields().width, "branch-only complex fields remain typed");
+        assertTrue(fields.model.getType().isMandatory());
+        assertFalse(fields.text.getType().isMandatory());
+        assertFalse(fields.image.getType().isMandatory());
+        assertNothing(fields.model.getDefaultValue());
+        assertNothing(fields.limit.getDefaultValue());
+        assertEq(("text", "image"), map $1.value, fields.model.getAllowedValues());
+        FakeRestClient client();
+        RestSchemaActionDataProvider provider(aset, op, client);
+        provider.doRequest({"model": "text", "text": "Customer feedback"});
+        assertEq({"model": "text", "text": "Customer feedback"}, parse_json(client.last().body));
+        provider.doRequest({"model": "image", "image": "image.png", "limit": 5});
+        assertEq({"model": "image", "image": "image.png", "limit": 5}, parse_json(client.last().body));
+        int count = client.requests.size();
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { provider.doRequest({"model": "image"}); });
+        assertEq(count, client.requests.size(), "incomplete variant rejected before I/O");
+
+        # Unwrapping an envelope must collect the alternatives at the landing object.
+        doc = parse_json(make_json(doc));
+        doc.paths."/convert".post.requestBody.content."application/json".schema = {
+            "type": "object", "required": ("resource",),
+            "properties": {"resource": {"oneOf": (first, second)}},
+        };
+        RestSchemaActionSet wrapped(OpenApi3Loader::fromString(make_json(doc), True),
+            (entry("convert", "POST", "/convert", {"request_unwrap": ("resource",)}),));
+        assertEq(sort(keys fields), sort(keys wrapped.getOperationEx("convert").getRequestFields()));
+        RestSchemaActionDataProvider wrapped_provider(wrapped, wrapped.getOperationEx("convert"), client);
+        wrapped_provider.doRequest({"model": "text", "text": "Customer feedback"});
+        assertEq({"resource": {"model": "text", "text": "Customer feedback"}}, parse_json(client.last().body));
+
+        # A scalar alternative must remain representable as a whole body.
+        doc.paths."/convert".post.requestBody.content."application/json".schema = {
+            "anyOf": (first, {"type": "string"}),
+        };
+        RestSchemaActionSet mixed(OpenApi3Loader::fromString(make_json(doc), True),
+            (entry("convert", "POST", "/convert"),));
+        assertEq(("body",), keys mixed.getOperationEx("convert").getRequestFields());
     }
 
     unionOverlayTest() {

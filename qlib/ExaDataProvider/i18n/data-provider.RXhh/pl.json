@@ -1299,6 +1299,10 @@
           "source": "How many results to return per page",
           "message": "Ile wyników zwracanych jest na stronę"
         },
+        "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.allowed-value.c3RyaW5nOmNvbXBsZXRlZA.display_name": {
+          "source": "completed",
+          "message": "Ukończono"
+        },
         "app.RXhh.action.bGlzdC1iYXRjaGVz.option.c3RhdHVz.desc": {
           "source": "Filter the listing to completed batches. `completed` is the only supported value; any other value returns a 400. Completed listings are ordered by expiry and use a distinct cursor, so keep sending `status=completed` on every cursor-paginated request.",
           "message": "Zawęża listę do partii zakończonych. `completed` to jedyna obsługiwana wartość; każda inna zwraca błąd 400. Listy zakończonych partii są uporządkowane według terminu wygaśnięcia i korzystają z odrębnego kursora, więc wysyłaj `status=completed` w każdym żądaniu stronicowanym kursorem."

@@ -3,393 +3,29 @@
   "locales": {
     "ko": {
       "messages": {
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.desc": {
-          "source": "Converts text inputs into embedding vectors via Jina's `/v1/embeddings` endpoint.  Supports the task-aware `task` parameter for query / passage / classification / clustering / separation tasks.",
-          "message": "Jina의 `/v1/embeddings` 엔드포인트를 통해 텍스트 입력을 임베딩 벡터로 변환합니다. 쿼리 / 구문 / 분류 / 클러스터링 / 분리 작업을 위한 작업 인식 `task` 매개변수를 지원합니다."
+        "app.SmluYUFp.display_name": {
+          "source": "Jina AI",
+          "message": "Jina AI"
         },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.display_name": {
-          "source": "Create Embeddings",
-          "message": "임베딩 생성"
+        "app.SmluYUFp.short_desc": {
+          "source": "Search, embed, rerank, and classify content with Jina AI",
+          "message": "Jina AI로 콘텐츠 검색, 임베딩, 재순위 지정 및 분류"
         },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZGltZW5zaW9ucw.desc": {
-          "source": "Optional truncated output dimensionality.  `jina-embeddings-v3` supports Matryoshka representation learning and can be truncated to smaller dimensions with minimal quality loss.",
-          "message": "선택적 절단 출력 차원 수입니다. `jina-embeddings-v3`은(는) Matryoshka 표현 학습을 지원하며 품질 손실을 최소화하면서 더 작은 차원으로 절단할 수 있습니다."
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZGltZW5zaW9ucw.display_name": {
-          "source": "Dimensions",
-          "message": "측정기준"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZGltZW5zaW9ucw.short_desc": {
-          "source": "Output dimensionality (for models that support truncation)",
-          "message": "출력 차원 수(절단을 지원하는 모델용)"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW5jb2RpbmdfZm9ybWF0.allowed-value.c3RyaW5nOmJhc2U2NA.display_name": {
-          "source": "Base64 - encoded float32 buffer",
-          "message": "Base64 - 인코딩된 float32 버퍼"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW5jb2RpbmdfZm9ybWF0.allowed-value.c3RyaW5nOmZsb2F0.display_name": {
-          "source": "Float - JSON list of floats",
-          "message": "Float - 부동 소수점 수의 JSON 목록"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW5jb2RpbmdfZm9ybWF0.desc": {
-          "source": "`float` (default) or `base64`.",
-          "message": "`float`(기본값) 또는 `base64`."
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW5jb2RpbmdfZm9ybWF0.display_name": {
-          "source": "Encoding Format",
-          "message": "인코딩 형식"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW5jb2RpbmdfZm9ybWF0.short_desc": {
-          "source": "Wire format for the returned vectors",
-          "message": "반환된 벡터의 전송 형식"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.aW5wdXQ.desc": {
-          "source": "Text input(s) to convert to embedding vectors.  Single string or list of strings.",
-          "message": "임베딩 벡터로 변환할 텍스트 입력입니다. 단일 문자열 또는 문자열 목록입니다."
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.aW5wdXQ.display_name": {
-          "source": "Input",
-          "message": "입력"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.aW5wdXQ.short_desc": {
-          "source": "Text(s) to embed",
-          "message": "임베딩할 텍스트"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.desc": {
-          "source": "When `True`, applies Jina's late-chunking algorithm — embeds the full passage first, then chunks afterward.  Improves cross-chunk context retention for RAG.",
-          "message": "`True`인 경우 Jina의 레이트 청킹(late-chunking) 알고리즘을 적용합니다. 전체 구문을 먼저 임베딩한 다음 나중에 청크로 나눕니다. RAG의 청크 간 컨텍스트 유지를 개선합니다."
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.display_name": {
-          "source": "Late Chunking",
-          "message": "레이트 청킹"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.short_desc": {
-          "source": "Enable Jina's late-chunking algorithm",
-          "message": "Jina의 레이트 청킹 알고리즘 활성화"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.desc": {
-          "source": "Jina embedding model identifier.  Examples:\n\n- `jina-embeddings-v3` — multilingual, task-aware\n- `jina-embeddings-v2-base-en` — English-only v2\n- `jina-embeddings-v2-base-code` — code-specialized",
-          "message": "Jina 임베딩 모델 식별자입니다. 예시:\n\n- `jina-embeddings-v3` — 다국어 지원, 작업 인식\n- `jina-embeddings-v2-base-en` — 영어 전용 v2\n- `jina-embeddings-v2-base-code` — 코드 특화"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.display_name": {
-          "source": "Model",
-          "message": "모델"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.short_desc": {
-          "source": "Jina embedding model",
-          "message": "Jina 임베딩 모델"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOmNsYXNzaWZpY2F0aW9u.display_name": {
-          "source": "Classification",
-          "message": "분류"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOnJldHJpZXZhbC5wYXNzYWdl.display_name": {
-          "source": "Retrieval Passage",
-          "message": "검색 구문"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOnJldHJpZXZhbC5xdWVyeQ.display_name": {
-          "source": "Retrieval Query",
-          "message": "검색 쿼리"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOnNlcGFyYXRpb24.display_name": {
-          "source": "Separation",
-          "message": "분리"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOnRleHQtbWF0Y2hpbmc.display_name": {
-          "source": "Text Matching",
-          "message": "텍스트 매칭"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.desc": {
-          "source": "Task-aware embedding hint for `jina-embeddings-v3`.  Choosing the right task improves retrieval relevance — queries and passages get different optimal embeddings.",
-          "message": "`jina-embeddings-v3`에 대한 작업 인식 임베딩 힌트입니다. 적절한 작업을 선택하면 검색 관련성이 향상됩니다. 쿼리와 구문이 서로 다른 최적의 임베딩을 얻습니다."
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.display_name": {
-          "source": "Task Hint",
-          "message": "작업 힌트"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.short_desc": {
-          "source": "Task hint for jina-embeddings-v3",
-          "message": "jina-embeddings-v3용 작업 힌트"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.short_desc": {
-          "source": "Generate embedding vectors from a Jina AI embedding model",
-          "message": "Jina AI 임베딩 모델에서 임베딩 벡터 생성"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.desc": {
-          "source": "Make a custom HTTP / REST API call to **Jina AI** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
-          "message": "구성된 연결의 인증을 사용하여 **Jina AI**에 커스텀 HTTP / REST API 호출을 수행합니다.\n\nHTTP 메서드, URI 경로(연결의 API 기본 URL 기준 상대 경로), 선택적 쿼리 매개변수, 헤더 및 요청 본문을 지정합니다. 응답은 상태 코드, 응답 헤더 및 응답 본문이 포함된 해시로 반환됩니다.\n\n이 앱에서 아직 최고 수준 작업으로 제공되지 않는 엔드포인트에 이 작업을 사용하세요."
+        "app.SmluYUFp.desc": {
+          "source": "Use [Jina AI](https://jina.ai) to prepare content for search and improve retrieval quality.\n\n- Create multilingual and multimodal embeddings.\n- Rank search results and classify business content.\n- Process large document collections with batch embeddings.\n- Read web pages and search for relevant sources.\n- Inspect model capabilities and manage reusable classifiers.",
+          "message": "[Jina AI](https://jina.ai)로 검색용 콘텐츠를 준비하고 검색 품질을 개선하세요.\n\n- 다국어 및 멀티모달 임베딩을 생성합니다.\n- 검색 결과의 순위를 정하고 비즈니스 콘텐츠를 분류합니다.\n- 대규모 문서 모음을 배치 임베딩으로 처리합니다.\n- 웹페이지를 읽고 관련 자료를 검색합니다.\n- 모델 기능을 확인하고 재사용 가능한 분류기를 관리합니다."
         },
         "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.display_name": {
           "source": "Make an API call",
           "message": "API 호출 실행"
         },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.desc": {
-          "source": "The request body. The effective type depends on `body_type`: JSON/form/YAML expect a hash, XML/text expect a string, multipart expects a file structure, binary expects raw bytes.",
-          "message": "요청 본문입니다. 유효한 유형은 `body_type`에 따라 달라집니다. JSON/form/YAML은 해시를, XML/text는 문자열을, multipart는 파일 구조를, binary는 원시 바이트를 요구합니다."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.display_name": {
-          "source": "Body",
-          "message": "본문"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.short_desc": {
-          "source": "The request body",
-          "message": "요청 본문"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.desc": {
-          "source": "Upload a file using `multipart/form-data`. The body must be a @ref DataProvider::FileDataType \"FileDataType\" structure (filename + content + mime_type). The framework builds the multipart envelope and sets the boundary header.",
-          "message": "`multipart/form-data`을(를) 사용하여 파일을 업로드합니다. 본문은 @ref DataProvider::FileDataType \"FileDataType\" 구조(filename + content + mime_type)여야 합니다. 프레임워크가 multipart 봉투를 작성하고 boundary 헤더를 설정합니다."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.display_name": {
-          "source": "Multipart Form",
-          "message": "멀티파트 폼"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.short_desc": {
-          "source": "Upload a file using multipart/form-data",
-          "message": "multipart/form-data를 사용하여 파일 업로드"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
-          "source": "Pass the body to the REST client unchanged; the client decides serialization based on its configured `data` option and the value type",
-          "message": "본문을 변경하지 않고 REST 클라이언트에 전달합니다. 클라이언트는 구성된 `data` 옵션과 값 유형을 기반으로 직렬화를 결정합니다."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
-          "source": "Auto",
-          "message": "자동"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
-          "source": "Pass-through; use connection serialization and let the REST client decide",
-          "message": "패스스루: 연결 직렬화를 사용하고 REST 클라이언트가 결정하도록 합니다."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.desc": {
-          "source": "Send the body as raw bytes. The body must be a binary value. Sets `Content-Type: application/octet-stream` unless overridden by `hdr`.",
-          "message": "본문을 원시 바이트로 전송합니다. 본문은 바이너리 값이어야 합니다. `hdr`에 의해 재정의되지 않는 한 `Content-Type: application/octet-stream`을(를) 설정합니다."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
-          "source": "Raw Binary",
-          "message": "원시 바이너리"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.short_desc": {
-          "source": "Send body as raw bytes",
-          "message": "본문을 원시 바이트로 전송"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.desc": {
-          "source": "Serialize a hash of form fields as `application/x-www-form-urlencoded`. The body must be a hash whose values are scalars (strings/numbers/booleans).",
-          "message": "폼 필드의 해시를 `application/x-www-form-urlencoded`(으)로 직렬화합니다. 본문은 값이 스칼라(문자열/숫자/불리언)인 해시여야 합니다."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.display_name": {
-          "source": "Form (URL-encoded)",
-          "message": "폼 (URL 인코딩)"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.short_desc": {
-          "source": "Serialize body as application/x-www-form-urlencoded form fields",
-          "message": "본문을 application/x-www-form-urlencoded 폼 필드로 직렬화"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.desc": {
-          "source": "Serialize the body as JSON; sets `Content-Type: application/json`. The body should be a hash, list, or scalar value.",
-          "message": "본문을 JSON으로 직렬화하며, `Content-Type: application/json`을(를) 설정합니다. 본문은 해시, 리스트 또는 스칼라 값이어야 합니다."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.display_name": {
-          "source": "JSON",
-          "message": "JSON"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.short_desc": {
-          "source": "Serialize body as JSON",
-          "message": "본문을 JSON으로 직렬화"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.desc": {
-          "source": "Send the body as plain text. The body must be a string. Sets `Content-Type: text/plain`.",
-          "message": "본문을 일반 텍스트로 전송합니다. 본문은 문자열이어야 합니다. `Content-Type: text/plain`을(를) 설정합니다."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.display_name": {
-          "source": "Plain Text",
-          "message": "일반 텍스트"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
-          "source": "Send body as text/plain",
-          "message": "본문을 text/plain으로 전송"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.desc": {
-          "source": "Send the body as XML. If the body is a hash it is serialized to XML; if it is a string it is sent verbatim. Sets `Content-Type: application/xml`.",
-          "message": "본문을 XML로 전송합니다. 본문이 해시인 경우 XML로 직렬화되고, 문자열인 경우 그대로 전송됩니다. `Content-Type: application/xml`을(를) 설정합니다."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.display_name": {
-          "source": "XML",
-          "message": "XML"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.short_desc": {
-          "source": "Send body as XML",
-          "message": "본문을 XML로 전송"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.desc": {
-          "source": "Send the body as YAML. If the body is a hash it is serialized to YAML; if it is a string it is sent verbatim. Sets `Content-Type: application/x-yaml`.",
-          "message": "본문을 YAML로 전송합니다. 본문이 해시인 경우 YAML로 직렬화되고, 문자열인 경우 그대로 전송됩니다. `Content-Type: application/x-yaml`을(를) 설정합니다."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.display_name": {
-          "source": "YAML",
-          "message": "YAML"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.short_desc": {
-          "source": "Send body as YAML",
-          "message": "본문을 YAML로 전송"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.desc": {
-          "source": "Selects the body serialization mode and the corresponding `Content-Type` header. Changing this field reshapes the `body` editor - selecting JSON exposes a JSON editor, selecting Multipart Form exposes a file picker, and so on.",
-          "message": "본문 직렬화 모드 및 해당되는 `Content-Type` 헤더를 선택합니다. 이 필드를 변경하면 `body` 에디터의 형태가 변경됩니다. JSON을 선택하면 JSON 에디터가 표시되고, 멀티파트 폼을 선택하면 파일 선택기가 표시되는 방식입니다."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.display_name": {
-          "source": "Body Type",
-          "message": "본문 유형"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.short_desc": {
-          "source": "How the body is serialized and what Content-Type is sent",
-          "message": "본문이 직렬화되는 방식 및 전송되는 Content-Type"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.desc": {
-          "source": "If `True`, non-2xx HTTP responses return as the normal response hash (with the actual status code) instead of raising `REST-RESPONSE-ERROR`. Useful for handling 4xx/5xx as data - e.g. checking whether a resource exists. Overrides the connection's `error_passthru` setting for this call only.",
-          "message": "`True`인 경우, 2xx가 아닌 HTTP 응답은 `REST-RESPONSE-ERROR`을(를) 발생시키는 대신 (실제 상태 코드와 함께) 일반 응답 해시로 반환됩니다. 리소스 존재 여부 확인 등 4xx/5xx를 데이터로 처리할 때 유용합니다. 이 호출에 대해서만 연결의 `error_passthru` 설정을 재정의합니다."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.display_name": {
-          "source": "Return Errors as Data",
-          "message": "오류를 데이터로 반환"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.short_desc": {
-          "source": "Return non-2xx responses normally instead of throwing",
-          "message": "예외를 발생시키는 대신 2xx가 아닌 응답을 정상적으로 반환"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.desc": {
-          "source": "Optional list of HTTP status codes treated as success. If set and the response status is not in this list, the action throws `REST-STATUS-ERROR`. When unset, the REST client's default behavior applies (typically: 2xx is success, non-2xx throws).",
-          "message": "성공으로 처리되는 HTTP 상태 코드의 선택적 목록입니다. 설정되어 있고 응답 상태가 이 목록에 없는 경우 작업이 `REST-STATUS-ERROR` 예외를 발생시킵니다. 설정되지 않은 경우 REST 클라이언트의 기본 동작이 적용됩니다(일반적으로 2xx는 성공, 2xx 이외는 예외 발생)."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.display_name": {
-          "source": "Expected Status Codes",
-          "message": "예상되는 상태 코드"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.short_desc": {
-          "source": "Response status codes treated as success",
-          "message": "성공으로 처리되는 응답 상태 코드"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.aGRy.desc": {
-          "source": "Hash of custom headers added to the request. These override any default headers set by `body_type` (e.g. supplying `Content-Type` here wins over the body-type default).",
-          "message": "요청에 추가되는 사용자 지정 헤더의 해시입니다. 이는 `body_type`에 의해 설정된 기본 헤더보다 우선합니다(예: 여기에 `Content-Type`을(를) 제공하면 본문 유형 기본값보다 우선 적용됨)."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.aGRy.display_name": {
-          "source": "Custom Headers",
-          "message": "사용자 지정 헤더"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.aGRy.short_desc": {
-          "source": "Extra request headers",
-          "message": "추가 요청 헤더"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.desc": {
-          "source": "If `True`, the response hash includes a `debug` sub-hash containing the request method/URL/headers (with sensitive values redacted), request and response sizes, and round-trip duration. Useful when investigating slow or failing calls. Off by default to keep responses lean.",
-          "message": "`True`인 경우 응답 해시에 요청 메서드/URL/헤더(민감한 값은 가려짐), 요청 및 응답 크기, 왕복 시간이 포함된 `debug` 하위 해시가 포함됩니다. 느리거나 실패한 호출을 조사할 때 유용합니다. 응답을 가볍게 유지하기 위해 기본적으로 비활성화되어 있습니다."
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.display_name": {
-          "source": "Include Debug Info",
-          "message": "디버그 정보 포함"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.short_desc": {
-          "source": "Include request/timing/size debug info in the response",
-          "message": "응답에 요청/타이밍/크기 디버그 정보 포함"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.desc": {
-          "source": "HTTP `OPTIONS`",
-          "message": "HTTP `OPTIONS`"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.display_name": {
-          "source": "OPTIONS",
-          "message": "OPTIONS"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.short_desc": {
-          "source": "HTTP OPTIONS",
-          "message": "HTTP OPTIONS"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.desc": {
-          "source": "HTTP `DELETE`",
-          "message": "HTTP `DELETE`"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.display_name": {
-          "source": "DELETE",
-          "message": "DELETE"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.short_desc": {
-          "source": "HTTP DELETE",
-          "message": "HTTP DELETE"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.desc": {
-          "source": "HTTP `GET`",
-          "message": "HTTP `GET`"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.display_name": {
-          "source": "GET",
-          "message": "GET"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.short_desc": {
-          "source": "HTTP GET",
-          "message": "HTTP GET"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.desc": {
-          "source": "HTTP `HEAD`",
-          "message": "HTTP `HEAD`"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.display_name": {
-          "source": "HEAD",
-          "message": "HEAD"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.short_desc": {
-          "source": "HTTP HEAD",
-          "message": "HTTP HEAD"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.desc": {
-          "source": "HTTP `PATCH`",
-          "message": "HTTP `PATCH`"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.display_name": {
-          "source": "PATCH",
-          "message": "PATCH"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.short_desc": {
-          "source": "HTTP PATCH",
-          "message": "HTTP PATCH"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.desc": {
-          "source": "HTTP `POST`",
-          "message": "HTTP `POST`"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.display_name": {
-          "source": "POST",
-          "message": "POST"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.short_desc": {
-          "source": "HTTP POST",
-          "message": "HTTP POST"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.desc": {
-          "source": "HTTP `PUT`",
-          "message": "HTTP `PUT`"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.display_name": {
-          "source": "PUT",
-          "message": "PUT"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.short_desc": {
-          "source": "HTTP PUT",
-          "message": "HTTP PUT"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.desc": {
-          "source": "HTTP `TRACE`",
-          "message": "HTTP `TRACE`"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.display_name": {
-          "source": "TRACE",
-          "message": "TRACE"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.short_desc": {
-          "source": "HTTP TRACE",
-          "message": "HTTP TRACE"
-        },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.desc": {
-          "source": "The HTTP method to use for the request",
-          "message": "요청에 사용할 HTTP 메서드"
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.short_desc": {
+          "source": "Make a custom API call to Jina AI",
+          "message": "Jina AI에 커스텀 API 호출 수행"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.desc": {
+          "source": "Make a custom HTTP / REST API call to **Jina AI** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
+          "message": "구성된 연결의 인증을 사용하여 **Jina AI**에 커스텀 HTTP / REST API 호출을 수행합니다.\n\nHTTP 메서드, URI 경로(연결의 API 기본 URL 기준 상대 경로), 선택적 쿼리 매개변수, 헤더 및 요청 본문을 지정합니다. 응답은 상태 코드, 응답 헤더 및 응답 본문이 포함된 해시로 반환됩니다.\n\n이 앱에서 아직 최고 수준 작업으로 제공되지 않는 엔드포인트에 이 작업을 사용하세요."
         },
         "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.display_name": {
           "source": "HTTP Method",
@@ -399,9 +35,105 @@
           "source": "The HTTP method to use for the request",
           "message": "요청에 사용할 HTTP 메서드"
         },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.desc": {
-          "source": "The URI path relative to the connection's API base URL. May contain `{name}` placeholders that are replaced from `path_vars`. Example: `/users/{id}/comments`.",
-          "message": "연결의 API 기본 URL에 대한 상대 URI 경로입니다. `path_vars`에서 대체되는 `{name}` 자리 표시자가 포함될 수 있습니다. 예: `/users/{id}/comments`."
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.desc": {
+          "source": "The HTTP method to use for the request",
+          "message": "요청에 사용할 HTTP 메서드"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.display_name": {
+          "source": "GET",
+          "message": "GET"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.short_desc": {
+          "source": "HTTP GET",
+          "message": "HTTP GET"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.desc": {
+          "source": "HTTP `GET`",
+          "message": "HTTP `GET`"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.display_name": {
+          "source": "POST",
+          "message": "POST"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.short_desc": {
+          "source": "HTTP POST",
+          "message": "HTTP POST"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.desc": {
+          "source": "HTTP `POST`",
+          "message": "HTTP `POST`"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.display_name": {
+          "source": "PUT",
+          "message": "PUT"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.short_desc": {
+          "source": "HTTP PUT",
+          "message": "HTTP PUT"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.desc": {
+          "source": "HTTP `PUT`",
+          "message": "HTTP `PUT`"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.display_name": {
+          "source": "PATCH",
+          "message": "PATCH"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.short_desc": {
+          "source": "HTTP PATCH",
+          "message": "HTTP PATCH"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.desc": {
+          "source": "HTTP `PATCH`",
+          "message": "HTTP `PATCH`"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.display_name": {
+          "source": "DELETE",
+          "message": "DELETE"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.short_desc": {
+          "source": "HTTP DELETE",
+          "message": "HTTP DELETE"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.desc": {
+          "source": "HTTP `DELETE`",
+          "message": "HTTP `DELETE`"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.display_name": {
+          "source": "HEAD",
+          "message": "HEAD"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.short_desc": {
+          "source": "HTTP HEAD",
+          "message": "HTTP HEAD"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.desc": {
+          "source": "HTTP `HEAD`",
+          "message": "HTTP `HEAD`"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.display_name": {
+          "source": "OPTIONS",
+          "message": "OPTIONS"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.short_desc": {
+          "source": "HTTP OPTIONS",
+          "message": "HTTP OPTIONS"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.desc": {
+          "source": "HTTP `OPTIONS`",
+          "message": "HTTP `OPTIONS`"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.display_name": {
+          "source": "TRACE",
+          "message": "TRACE"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.short_desc": {
+          "source": "HTTP TRACE",
+          "message": "HTTP TRACE"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.desc": {
+          "source": "HTTP `TRACE`",
+          "message": "HTTP `TRACE`"
         },
         "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.display_name": {
           "source": "URI Path",
@@ -411,9 +143,129 @@
           "source": "The URI path relative to the connection's API base URL",
           "message": "연결의 API 기본 URL에 대한 상대 URI 경로"
         },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.desc": {
-          "source": "Hash of values substituted into `{name}` placeholders in the URI path. Example: with `path = /users/{id}` and `path_vars = {id: 123}` the framework sends `/users/123`. Values are URL-encoded.",
-          "message": "URI 경로의 `{name}` 자리 표시자에 대체되는 값의 해시입니다. 예: `path = /users/{id}` 및 `path_vars = {id: 123}`이 있으면 프레임워크가 `/users/123`을(를) 전송합니다. 값은 URL 인코딩됩니다."
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.desc": {
+          "source": "The URI path relative to the connection's API base URL. May contain `{name}` placeholders that are replaced from `path_vars`. Example: `/users/{id}/comments`.",
+          "message": "연결의 API 기본 URL에 대한 상대 URI 경로입니다. `path_vars`에서 대체되는 `{name}` 자리 표시자가 포함될 수 있습니다. 예: `/users/{id}/comments`."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.display_name": {
+          "source": "Body Type",
+          "message": "본문 유형"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.short_desc": {
+          "source": "How the body is serialized and what Content-Type is sent",
+          "message": "본문이 직렬화되는 방식 및 전송되는 Content-Type"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.desc": {
+          "source": "Selects the body serialization mode and the corresponding `Content-Type` header. Changing this field reshapes the `body` editor - selecting JSON exposes a JSON editor, selecting Multipart Form exposes a file picker, and so on.",
+          "message": "본문 직렬화 모드 및 해당되는 `Content-Type` 헤더를 선택합니다. 이 필드를 변경하면 `body` 에디터의 형태가 변경됩니다. JSON을 선택하면 JSON 에디터가 표시되고, 멀티파트 폼을 선택하면 파일 선택기가 표시되는 방식입니다."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "자동"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Pass-through; use connection serialization and let the REST client decide",
+          "message": "패스스루: 연결 직렬화를 사용하고 REST 클라이언트가 결정하도록 합니다."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Pass the body to the REST client unchanged; the client decides serialization based on its configured `data` option and the value type",
+          "message": "본문을 변경하지 않고 REST 클라이언트에 전달합니다. 클라이언트는 구성된 `data` 옵션과 값 유형을 기반으로 직렬화를 결정합니다."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.short_desc": {
+          "source": "Serialize body as JSON",
+          "message": "본문을 JSON으로 직렬화"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.desc": {
+          "source": "Serialize the body as JSON; sets `Content-Type: application/json`. The body should be a hash, list, or scalar value.",
+          "message": "본문을 JSON으로 직렬화하며, `Content-Type: application/json`을(를) 설정합니다. 본문은 해시, 리스트 또는 스칼라 값이어야 합니다."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.display_name": {
+          "source": "Form (URL-encoded)",
+          "message": "폼 (URL 인코딩)"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.short_desc": {
+          "source": "Serialize body as application/x-www-form-urlencoded form fields",
+          "message": "본문을 application/x-www-form-urlencoded 폼 필드로 직렬화"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.desc": {
+          "source": "Serialize a hash of form fields as `application/x-www-form-urlencoded`. The body must be a hash whose values are scalars (strings/numbers/booleans).",
+          "message": "폼 필드의 해시를 `application/x-www-form-urlencoded`(으)로 직렬화합니다. 본문은 값이 스칼라(문자열/숫자/불리언)인 해시여야 합니다."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.display_name": {
+          "source": "Multipart Form",
+          "message": "멀티파트 폼"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.short_desc": {
+          "source": "Upload a file using multipart/form-data",
+          "message": "multipart/form-data를 사용하여 파일 업로드"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.desc": {
+          "source": "Upload a file using `multipart/form-data`. The body must be a @ref DataProvider::FileDataType \"FileDataType\" structure (filename + content + mime_type). The framework builds the multipart envelope and sets the boundary header.",
+          "message": "`multipart/form-data`을(를) 사용하여 파일을 업로드합니다. 본문은 @ref DataProvider::FileDataType \"FileDataType\" 구조(filename + content + mime_type)여야 합니다. 프레임워크가 multipart 봉투를 작성하고 boundary 헤더를 설정합니다."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.display_name": {
+          "source": "XML",
+          "message": "XML"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.short_desc": {
+          "source": "Send body as XML",
+          "message": "본문을 XML로 전송"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.desc": {
+          "source": "Send the body as XML. If the body is a hash it is serialized to XML; if it is a string it is sent verbatim. Sets `Content-Type: application/xml`.",
+          "message": "본문을 XML로 전송합니다. 본문이 해시인 경우 XML로 직렬화되고, 문자열인 경우 그대로 전송됩니다. `Content-Type: application/xml`을(를) 설정합니다."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.display_name": {
+          "source": "YAML",
+          "message": "YAML"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.short_desc": {
+          "source": "Send body as YAML",
+          "message": "본문을 YAML로 전송"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.desc": {
+          "source": "Send the body as YAML. If the body is a hash it is serialized to YAML; if it is a string it is sent verbatim. Sets `Content-Type: application/x-yaml`.",
+          "message": "본문을 YAML로 전송합니다. 본문이 해시인 경우 YAML로 직렬화되고, 문자열인 경우 그대로 전송됩니다. `Content-Type: application/x-yaml`을(를) 설정합니다."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "일반 텍스트"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Send body as text/plain",
+          "message": "본문을 text/plain으로 전송"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Send the body as plain text. The body must be a string. Sets `Content-Type: text/plain`.",
+          "message": "본문을 일반 텍스트로 전송합니다. 본문은 문자열이어야 합니다. `Content-Type: text/plain`을(를) 설정합니다."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
+          "source": "Raw Binary",
+          "message": "원시 바이너리"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.short_desc": {
+          "source": "Send body as raw bytes",
+          "message": "본문을 원시 바이트로 전송"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.desc": {
+          "source": "Send the body as raw bytes. The body must be a binary value. Sets `Content-Type: application/octet-stream` unless overridden by `hdr`.",
+          "message": "본문을 원시 바이트로 전송합니다. 본문은 바이너리 값이어야 합니다. `hdr`에 의해 재정의되지 않는 한 `Content-Type: application/octet-stream`을(를) 설정합니다."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.display_name": {
+          "source": "Body",
+          "message": "본문"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.short_desc": {
+          "source": "The request body",
+          "message": "요청 본문"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.desc": {
+          "source": "The request body. The effective type depends on `body_type`: JSON/form/YAML expect a hash, XML/text expect a string, multipart expects a file structure, binary expects raw bytes.",
+          "message": "요청 본문입니다. 유효한 유형은 `body_type`에 따라 달라집니다. JSON/form/YAML은 해시를, XML/text는 문자열을, multipart는 파일 구조를, binary는 원시 바이트를 요구합니다."
         },
         "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.display_name": {
           "source": "Path Variables",
@@ -423,9 +275,9 @@
           "source": "Values for {name} placeholders in path",
           "message": "경로 내 {name} 자리 표시자의 값"
         },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.desc": {
-          "source": "Hash of query string parameters to append to the URI path. Values are URL-encoded; list values are joined with `,`.",
-          "message": "URI 경로에 추가할 쿼리 문자열 매개변수 해시입니다. 값은 URL 인코딩되며, 목록 값은 `,`(으)로 연결됩니다."
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.desc": {
+          "source": "Hash of values substituted into `{name}` placeholders in the URI path. Example: with `path = /users/{id}` and `path_vars = {id: 123}` the framework sends `/users/123`. Values are URL-encoded.",
+          "message": "URI 경로의 `{name}` 자리 표시자에 대체되는 값의 해시입니다. 예: `path = /users/{id}` 및 `path_vars = {id: 123}`이 있으면 프레임워크가 `/users/123`을(를) 전송합니다. 값은 URL 인코딩됩니다."
         },
         "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.display_name": {
           "source": "Query Arguments",
@@ -435,93 +287,2677 @@
           "source": "Query string parameters",
           "message": "쿼리 문자열 매개변수"
         },
-        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.short_desc": {
-          "source": "Make a custom API call to Jina AI",
-          "message": "Jina AI에 커스텀 API 호출 수행"
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.desc": {
+          "source": "Hash of query string parameters to append to the URI path. Values are URL-encoded; list values are joined with `,`.",
+          "message": "URI 경로에 추가할 쿼리 문자열 매개변수 해시입니다. 값은 URL 인코딩되며, 목록 값은 `,`(으)로 연결됩니다."
         },
-        "app.SmluYUFp.action.cmVyYW5r.desc": {
-          "source": "Reranks a list of candidate documents against a user query using a Jina cross-encoder or late-interaction reranker.  Returns documents sorted by relevance score with the top `top_n` results.",
-          "message": "Jina cross-encoder 또는 late-interaction reranker를 사용하여 사용자 쿼리에 대해 후보 문서 목록의 순위를 다시 매깁니다. 관련성 점수순으로 정렬된 상위 `top_n`개 결과 문서를 반환합니다."
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.aGRy.display_name": {
+          "source": "Custom Headers",
+          "message": "사용자 지정 헤더"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.aGRy.short_desc": {
+          "source": "Extra request headers",
+          "message": "추가 요청 헤더"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.aGRy.desc": {
+          "source": "Hash of custom headers added to the request. These override any default headers set by `body_type` (e.g. supplying `Content-Type` here wins over the body-type default).",
+          "message": "요청에 추가되는 사용자 지정 헤더의 해시입니다. 이는 `body_type`에 의해 설정된 기본 헤더보다 우선합니다(예: 여기에 `Content-Type`을(를) 제공하면 본문 유형 기본값보다 우선 적용됨)."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.display_name": {
+          "source": "Expected Status Codes",
+          "message": "예상되는 상태 코드"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.short_desc": {
+          "source": "Response status codes treated as success",
+          "message": "성공으로 처리되는 응답 상태 코드"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.desc": {
+          "source": "Optional list of HTTP status codes treated as success. If set and the response status is not in this list, the action throws `REST-STATUS-ERROR`. When unset, the REST client's default behavior applies (typically: 2xx is success, non-2xx throws).",
+          "message": "성공으로 처리되는 HTTP 상태 코드의 선택적 목록입니다. 설정되어 있고 응답 상태가 이 목록에 없는 경우 작업이 `REST-STATUS-ERROR` 예외를 발생시킵니다. 설정되지 않은 경우 REST 클라이언트의 기본 동작이 적용됩니다(일반적으로 2xx는 성공, 2xx 이외는 예외 발생)."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.display_name": {
+          "source": "Return Errors as Data",
+          "message": "오류를 데이터로 반환"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.short_desc": {
+          "source": "Return non-2xx responses normally instead of throwing",
+          "message": "예외를 발생시키는 대신 2xx가 아닌 응답을 정상적으로 반환"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.desc": {
+          "source": "If `True`, non-2xx HTTP responses return as the normal response hash (with the actual status code) instead of raising `REST-RESPONSE-ERROR`. Useful for handling 4xx/5xx as data - e.g. checking whether a resource exists. Overrides the connection's `error_passthru` setting for this call only.",
+          "message": "`True`인 경우, 2xx가 아닌 HTTP 응답은 `REST-RESPONSE-ERROR`을(를) 발생시키는 대신 (실제 상태 코드와 함께) 일반 응답 해시로 반환됩니다. 리소스 존재 여부 확인 등 4xx/5xx를 데이터로 처리할 때 유용합니다. 이 호출에 대해서만 연결의 `error_passthru` 설정을 재정의합니다."
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.display_name": {
+          "source": "Include Debug Info",
+          "message": "디버그 정보 포함"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.short_desc": {
+          "source": "Include request/timing/size debug info in the response",
+          "message": "응답에 요청/타이밍/크기 디버그 정보 포함"
+        },
+        "app.SmluYUFp.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.desc": {
+          "source": "If `True`, the response hash includes a `debug` sub-hash containing the request method/URL/headers (with sensitive values redacted), request and response sizes, and round-trip duration. Useful when investigating slow or failing calls. Off by default to keep responses lean.",
+          "message": "`True`인 경우 응답 해시에 요청 메서드/URL/헤더(민감한 값은 가려짐), 요청 및 응답 크기, 왕복 시간이 포함된 `debug` 하위 해시가 포함됩니다. 느리거나 실패한 호출을 조사할 때 유용합니다. 응답을 가볍게 유지하기 위해 기본적으로 비활성화되어 있습니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.display_name": {
+          "source": "Create Embeddings",
+          "message": "임베딩 생성"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.short_desc": {
+          "source": "Create text, image, audio, video, PDF, and sparse search vectors",
+          "message": "텍스트, 이미지, 오디오, 동영상, PDF 및 희소 검색 벡터 생성"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.desc": {
+          "source": "Convert content into vectors for semantic search. Choose a `model` suited to your input and set `task` for query or document retrieval. Model-specific options are validated by the API schema.",
+          "message": "콘텐츠를 의미 검색용 벡터로 변환합니다. 입력에 맞는 `model`을 선택하고 쿼리 또는 문서 검색용 `task`를 설정하세요. 모델별 옵션은 API 스키마로 검증됩니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.display_name": {
+          "source": "Embedding Type",
+          "message": "임베딩 유형"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.short_desc": {
+          "source": "Output encoding format: 'float', 'base64', 'binary', 'ubinary', or a list of…",
+          "message": "출력 인코딩 형식: 'float', 'base64', 'binary', 'ubinary', 또는 다음 중 하나 이상의 목록…"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.desc": {
+          "source": "Output encoding format: `float`, `base64`, `binary`, `ubinary`, or a list of these.",
+          "message": "출력 인코딩 형식: `float`, `base64`, `binary`, `ubinary`, 또는 이들의 목록."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmZsb2F0.display_name": {
+          "source": "Float",
+          "message": "플로트"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmJhc2U2NA.display_name": {
+          "source": "Base64",
+          "message": "Base64"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
+          "source": "Binary",
+          "message": "바이너리"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOnViaW5hcnk.display_name": {
+          "source": "Ubinary",
+          "message": "Ubinary"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.display_name": {
+          "source": "Normalized",
+          "message": "정규화됨"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.short_desc": {
+          "source": "If true (default), embeddings are L2-normalized to unit length",
+          "message": "true(기본값)인 경우, 임베딩은 단위 길이로 L2-정규화됩니다"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.desc": {
+          "source": "If true (default), embeddings are L2-normalized to unit length.",
+          "message": "true(기본값)인 경우, 임베딩은 단위 길이로 L2-정규화됩니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.display_name": {
+          "source": "Truncate",
+          "message": "자르기"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.short_desc": {
+          "source": "If true, truncates input exceeding the model's max token limit instead of…",
+          "message": "true인 경우, 오류를 반환하는 대신 모델의 최대 토큰 제한을 초과하는 입력을 자릅니다…"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.desc": {
+          "source": "If true, truncates input exceeding the model's max token limit instead of returning an error.",
+          "message": "true인 경우, 오류를 반환하는 대신 모델의 최대 토큰 제한을 초과하는 입력을 자릅니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "모델"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.short_desc": {
+          "source": "The embedding model to use",
+          "message": "임베딩에 사용할 모델입니다"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.desc": {
+          "source": "The embedding model to use.",
+          "message": "임베딩에 사용할 모델입니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVu.display_name": {
+          "source": "jina-embeddings-v2-base-en",
+          "message": "jina-embeddings-v2-base-en"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLXpo.display_name": {
+          "source": "jina-embeddings-v2-base-zh",
+          "message": "jina-embeddings-v2-base-zh"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWRl.display_name": {
+          "source": "jina-embeddings-v2-base-de",
+          "message": "jina-embeddings-v2-base-de"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVz.display_name": {
+          "source": "jina-embeddings-v2-base-es",
+          "message": "jina-embeddings-v2-base-es"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWNvZGU.display_name": {
+          "source": "jina-embeddings-v2-base-code",
+          "message": "jina-embeddings-v2-base-code"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mw.display_name": {
+          "source": "jina-embeddings-v3",
+          "message": "jina-embeddings-v3"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
+          "source": "jina-embeddings-v5-text-nano",
+          "message": "jina-embeddings-v5-text-nano"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
+          "source": "jina-embeddings-v5-text-small",
+          "message": "jina-embeddings-v5-text-small"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS1vbW5pLXNtYWxs.display_name": {
+          "source": "jina-embeddings-v5-omni-small",
+          "message": "jina-embeddings-v5-omni-small"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS1vbW5pLW5hbm8.display_name": {
+          "source": "jina-embeddings-v5-omni-nano",
+          "message": "jina-embeddings-v5-omni-nano"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NA.display_name": {
+          "source": "jina-embeddings-v4",
+          "message": "jina-embeddings-v4"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29kZS1lbWJlZGRpbmdzLTAuNWI.display_name": {
+          "source": "jina-code-embeddings-0.5b",
+          "message": "jina-code-embeddings-0.5b"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29kZS1lbWJlZGRpbmdzLTEuNWI.display_name": {
+          "source": "jina-code-embeddings-1.5b",
+          "message": "jina-code-embeddings-1.5b"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12MQ.display_name": {
+          "source": "jina-clip-v1",
+          "message": "jina-clip-v1"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12Mg.display_name": {
+          "source": "jina-clip-v2",
+          "message": "jina-clip-v2"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12MS1lbg.display_name": {
+          "source": "jina-colbert-v1-en",
+          "message": "jina-colbert-v1-en"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12Mg.display_name": {
+          "source": "jina-colbert-v2",
+          "message": "jina-colbert-v2"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmVsc2VyLXYy.display_name": {
+          "source": "elser-v2",
+          "message": "elser-v2"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "입력"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.aW5wdXQ.short_desc": {
+          "source": "Text to embed: a string, 'TextDoc', or a list of items",
+          "message": "임베딩할 텍스트, 구조화된 멀티모달 항목 또는 목록입니다"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.aW5wdXQ.desc": {
+          "source": "Content to embed: text, a structured multimodal item, or a list. Supported image, audio, video, and PDF fields depend on `model`.",
+          "message": "임베딩할 텍스트, 구조화된 멀티모달 항목 또는 목록입니다. 이미지, 오디오, 동영상 및 PDF 지원 필드는 `model`에 따라 다릅니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.display_name": {
+          "source": "Task",
+          "message": "작업"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.short_desc": {
+          "source": "Task optimization: 'retrieval.query' for queries, 'retrieval.passage' for…",
+          "message": "검색, 유사도, 분류, 군집화 또는 코드 검색에 맞게 최적화합니다"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.desc": {
+          "source": "Optimize for retrieval, similarity, classification, clustering, or code search. The selected `model` determines which tasks are accepted.",
+          "message": "검색, 유사도, 분류, 군집화 또는 코드 검색에 맞게 최적화합니다. 선택한 `model`에 따라 지원 작업이 결정됩니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOnJldHJpZXZhbC5xdWVyeQ.display_name": {
+          "source": "Retrieval Query",
+          "message": "검색 쿼리"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOnJldHJpZXZhbC5wYXNzYWdl.display_name": {
+          "source": "Retrieval Passage",
+          "message": "검색 구문"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOnRleHQtbWF0Y2hpbmc.display_name": {
+          "source": "Text Matching",
+          "message": "텍스트 매칭"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOmNsYXNzaWZpY2F0aW9u.display_name": {
+          "source": "Classification",
+          "message": "분류"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOnNlcGFyYXRpb24.display_name": {
+          "source": "Separation",
+          "message": "분리"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOmNsdXN0ZXJpbmc.display_name": {
+          "source": "Clustering",
+          "message": "클러스터링"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOmNvZGUucXVlcnk.display_name": {
+          "source": "Code Query",
+          "message": "코드 쿼리"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOmNvZGUucGFzc2FnZQ.display_name": {
+          "source": "Code Passage",
+          "message": "코드 구문"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOm5sMmNvZGUucXVlcnk.display_name": {
+          "source": "Nl2Code Query",
+          "message": "Nl2Code 쿼리"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOm5sMmNvZGUucGFzc2FnZQ.display_name": {
+          "source": "Nl2Code Passage",
+          "message": "Nl2Code 구절"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOnFhLnF1ZXJ5.display_name": {
+          "source": "Qa Query",
+          "message": "Qa Query"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOnFhLnBhc3NhZ2U.display_name": {
+          "source": "Qa Passage",
+          "message": "Qa Passage"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOmNvZGUyY29kZS5xdWVyeQ.display_name": {
+          "source": "Code2Code Query",
+          "message": "Code2Code 쿼리"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOmNvZGUyY29kZS5wYXNzYWdl.display_name": {
+          "source": "Code2Code Passage",
+          "message": "Code2Code 구문"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOmNvZGUybmwucXVlcnk.display_name": {
+          "source": "Code2Nl Query",
+          "message": "Code2Nl 쿼리"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOmNvZGUybmwucGFzc2FnZQ.display_name": {
+          "source": "Code2Nl Passage",
+          "message": "Code2Nl 구문"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOmNvZGUyY29tcGxldGlvbi5xdWVyeQ.display_name": {
+          "source": "Code2Completion Query",
+          "message": "Code2Completion 쿼리"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOmNvZGUyY29tcGxldGlvbi5wYXNzYWdl.display_name": {
+          "source": "Code2Completion Passage",
+          "message": "Code2Completion 구문"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.display_name": {
+          "source": "Late Chunking",
+          "message": "레이트 청킹"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.short_desc": {
+          "source": "If true, concatenates all inputs and processes as one sequence before splitting",
+          "message": "True이면 입력을 분할하기 전에 하나의 시퀀스로 처리하여 청크 간 문맥을 유지합니다"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.desc": {
+          "source": "Use `True` to process inputs as one sequence before splitting, preserving context across chunks.",
+          "message": "`True`이면 입력을 분할하기 전에 하나의 시퀀스로 처리하여 청크 간 문맥을 유지합니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZGltZW5zaW9ucw.display_name": {
+          "source": "Dimensions",
+          "message": "측정기준"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZGltZW5zaW9ucw.short_desc": {
+          "source": "Number of dimensions for the output embedding",
+          "message": "출력 벡터 크기입니다"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZGltZW5zaW9ucw.desc": {
+          "source": "Output vector size. The selected `model` determines the supported range.",
+          "message": "출력 벡터 크기입니다. 선택한 `model`에 따라 지원 범위가 결정됩니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX211bHRpdmVjdG9y.display_name": {
+          "source": "Return Multivector",
+          "message": "다중 벡터 반환"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX211bHRpdmVjdG9y.short_desc": {
+          "source": "If true, returns one embedding per token",
+          "message": "true인 경우, 토큰당 하나의 임베딩을 반환합니다"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX211bHRpdmVjdG9y.desc": {
+          "source": "If true, returns one embedding per token. Cannot be used with `dimensions`.",
+          "message": "true인 경우, 토큰당 하나의 임베딩을 반환합니다. `dimensions`와 함께 사용할 수 없습니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX3Rva2VuaXplZF9pbnB1dA.display_name": {
+          "source": "Return Tokenized Input",
+          "message": "토큰화된 입력 반환"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX3Rva2VuaXplZF9pbnB1dA.short_desc": {
+          "source": "If true, returns tokens alongside multi-vector embeddings",
+          "message": "true인 경우, 다중 벡터 임베딩과 함께 토큰을 반환합니다"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX3Rva2VuaXplZF9pbnB1dA.desc": {
+          "source": "If true, returns tokens alongside multi-vector embeddings. Requires `return_multivector=true`.",
+          "message": "true인 경우, 다중 벡터 임베딩과 함께 토큰을 반환합니다. `return_multivector=true`가 필요합니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.aW5wdXRfdHlwZQ.display_name": {
+          "source": "Input Type",
+          "message": "입력 유형"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.aW5wdXRfdHlwZQ.short_desc": {
+          "source": "Role of the input: 'query' for search queries, 'document' for passages",
+          "message": "입력의 역할: 검색 쿼리에는 'query', 구절에는 'document'"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.aW5wdXRfdHlwZQ.desc": {
+          "source": "Role of the input: `query` for search queries, `document` for passages.",
+          "message": "입력의 역할: 검색 쿼리에는 `query`, 구절에는 `document`."
         },
         "app.SmluYUFp.action.cmVyYW5r.display_name": {
           "source": "Rerank Documents",
           "message": "문서 재순위화"
         },
-        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.desc": {
-          "source": "List of candidate documents (strings) to rerank against the query.",
-          "message": "쿼리에 대해 순위를 다시 매길 후보 문서(문자열) 목록입니다."
+        "app.SmluYUFp.action.cmVyYW5r.short_desc": {
+          "source": "Rank text or image documents by relevance to a query",
+          "message": "텍스트 문서나 이미지를 쿼리 관련성에 따라 정렬"
         },
-        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.display_name": {
-          "source": "Documents",
-          "message": "문서"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.short_desc": {
-          "source": "Candidate documents to rerank",
-          "message": "재순위화할 후보 문서"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.desc": {
-          "source": "Jina reranker model identifier.  Examples:\n\n- `jina-reranker-v2-base-multilingual` — multilingual cross-encoder\n- `jina-colbert-v2` — late-interaction reranker (multi-vector)",
-          "message": "Jina 리랭커 모델 식별자입니다. 예시:\n\n- `jina-reranker-v2-base-multilingual` — 다국어 cross-encoder\n- `jina-colbert-v2` — late-interaction reranker(다중 벡터)"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.display_name": {
-          "source": "Model",
-          "message": "모델"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.short_desc": {
-          "source": "Jina reranker model",
-          "message": "Jina 리랭커 모델"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.cXVlcnk.desc": {
-          "source": "Free-form user query.  The model scores each document by how relevant it is to this query.",
-          "message": "자유 형식 사용자 쿼리입니다. 모델은 이 쿼리와의 관련성을 기준으로 각 문서의 점수를 매깁니다."
+        "app.SmluYUFp.action.cmVyYW5r.desc": {
+          "source": "Improve search quality by ranking candidate `documents` against a `query`. Use `top_n` to keep the strongest matches and `return_documents` to control response size.",
+          "message": "후보 `documents`를 `query` 관련성에 따라 정렬하여 검색 품질을 높입니다. `top_n`으로 결과 수를, `return_documents`로 응답 크기를 제어하세요."
         },
         "app.SmluYUFp.action.cmVyYW5r.option.cXVlcnk.display_name": {
           "source": "Query",
           "message": "쿼리"
         },
         "app.SmluYUFp.action.cmVyYW5r.option.cXVlcnk.short_desc": {
-          "source": "The user query to rerank documents against",
-          "message": "문서 재순위화의 기준이 되는 사용자 쿼리"
+          "source": "The search query to rank documents against",
+          "message": "문서 순위를 정하는 데 사용할 검색 쿼리입니다"
         },
-        "app.SmluYUFp.action.cmVyYW5r.option.cmV0dXJuX2RvY3VtZW50cw.desc": {
-          "source": "When `True` (default), each result includes the document text.",
-          "message": "`True`(기본값)인 경우, 각 결과에 문서 텍스트가 포함됩니다."
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.cmV0dXJuX2RvY3VtZW50cw.display_name": {
-          "source": "Return Documents",
-          "message": "문서 반환"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.cmV0dXJuX2RvY3VtZW50cw.short_desc": {
-          "source": "Whether to echo the document text in the response",
-          "message": "응답에 문서 텍스트를 에코할지 여부"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.dG9wX24.desc": {
-          "source": "Number of top-ranked documents to return.  Defaults to all if omitted.",
-          "message": "반환할 상위 순위 문서 수입니다. 생략 시 기본값은 전체입니다."
+        "app.SmluYUFp.action.cmVyYW5r.option.cXVlcnk.desc": {
+          "source": "The search query to rank documents against.",
+          "message": "문서 순위를 정하는 데 사용할 검색 쿼리입니다."
         },
         "app.SmluYUFp.action.cmVyYW5r.option.dG9wX24.display_name": {
           "source": "Top N",
           "message": "상위 N개"
         },
         "app.SmluYUFp.action.cmVyYW5r.option.dG9wX24.short_desc": {
-          "source": "How many top-scoring results to return",
-          "message": "반환할 점수 상위 결과 수"
+          "source": "Number of top results to return",
+          "message": "반환할 상위 결과 수입니다"
         },
-        "app.SmluYUFp.action.cmVyYW5r.short_desc": {
-          "source": "Rerank candidate documents against a query for RAG retrieval",
-          "message": "RAG 검색을 위해 쿼리에 대해 후보 문서 순위 재지정"
+        "app.SmluYUFp.action.cmVyYW5r.option.dG9wX24.desc": {
+          "source": "Number of top results to return. If not set, returns all documents.",
+          "message": "반환할 상위 결과 수입니다. 지정하지 않으면 모든 문서를 반환합니다."
         },
-        "app.SmluYUFp.desc": {
-          "source": "Provides access to [Jina AI](https://jina.ai) embedding and reranking services for production semantic search and RAG.\n\n**Common use cases**:\n- **Multilingual embeddings** with `jina-embeddings-v3` (89+ languages)\n- **Cross-encoder reranking** with `jina-reranker-v2-base-multilingual` or late-interaction `jina-colbert-v2`\n- **Closes the cloud-reranker gap** alongside Voyage in `QoreRagUtils`",
-          "message": "프로덕션 시맨틱 검색 및 RAG를 위한 [Jina AI](https://jina.ai) 임베딩 및 리랭킹 서비스에 대한 액세스를 제공합니다.\n\n**일반적인 사용 사례**:\n- `jina-embeddings-v3`을 사용한 **다국어 임베딩**(89개 이상의 언어)\n- `jina-reranker-v2-base-multilingual` 또는 late-interaction `jina-colbert-v2`를 사용한 **Cross-encoder 리랭킹**\n- `QoreRagUtils`에서 Voyage와 함께 **클라우드 리랭커 격차 해소**"
+        "app.SmluYUFp.action.cmVyYW5r.option.cmV0dXJuX2RvY3VtZW50cw.display_name": {
+          "source": "Return Documents",
+          "message": "문서 반환"
         },
-        "app.SmluYUFp.display_name": {
-          "source": "Jina AI",
-          "message": "Jina AI"
+        "app.SmluYUFp.action.cmVyYW5r.option.cmV0dXJuX2RvY3VtZW50cw.short_desc": {
+          "source": "If true (default), includes document content in each result",
+          "message": "True(기본값)이면 각 결과에 문서 내용이 포함됩니다"
         },
-        "app.SmluYUFp.short_desc": {
-          "source": "Jina AI embeddings and reranking for multilingual semantic search",
-          "message": "다국어 시맨틱 검색을 위한 Jina AI 임베딩 및 리랭킹"
+        "app.SmluYUFp.action.cmVyYW5r.option.cmV0dXJuX2RvY3VtZW50cw.desc": {
+          "source": "Use `True` (the default) to include document content in each result.",
+          "message": "`True`(기본값)이면 각 결과에 문서 내용이 포함됩니다."
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "모델"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.short_desc": {
+          "source": "The reranking model to use",
+          "message": "재순위 지정에 사용할 모델입니다"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.desc": {
+          "source": "The reranking model to use.",
+          "message": "재순위 지정에 사용할 모델입니다."
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjItYmFzZS1tdWx0aWxpbmd1YWw.display_name": {
+          "source": "jina-reranker-v2-base-multilingual",
+          "message": "jina-reranker-v2-base-multilingual"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtdGlueS1lbg.display_name": {
+          "source": "jina-reranker-v1-tiny-en",
+          "message": "jina-reranker-v1-tiny-en"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtdHVyYm8tZW4.display_name": {
+          "source": "jina-reranker-v1-turbo-en",
+          "message": "jina-reranker-v1-turbo-en"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtYmFzZS1lbg.display_name": {
+          "source": "jina-reranker-v1-base-en",
+          "message": "jina-reranker-v1-base-en"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12MS1lbg.display_name": {
+          "source": "jina-colbert-v1-en",
+          "message": "jina-colbert-v1-en"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12Mg.display_name": {
+          "source": "jina-colbert-v2",
+          "message": "jina-colbert-v2"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItbTA.display_name": {
+          "source": "jina-reranker-m0",
+          "message": "jina-reranker-m0"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjM.display_name": {
+          "source": "jina-reranker-v3",
+          "message": "jina-reranker-v3"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjMuNQ.display_name": {
+          "source": "jina-reranker-v3.5",
+          "message": "jina-reranker-v3.5"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.display_name": {
+          "source": "Documents",
+          "message": "문서"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.short_desc": {
+          "source": "Documents to rank: strings or 'TextDoc' objects",
+          "message": "후보 텍스트 문서 또는 이미지입니다"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.desc": {
+          "source": "Candidate text or image documents. Supported input shapes depend on `model`.",
+          "message": "후보 텍스트 문서 또는 이미지입니다. 지원 입력 구조는 `model`에 따라 다릅니다."
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bWF4X2RvY19sZW5ndGg.display_name": {
+          "source": "Max Doc Length",
+          "message": "최대 문서 길이"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bWF4X2RvY19sZW5ndGg.short_desc": {
+          "source": "Maximum tokens per document (1-8192)",
+          "message": "문서당 최대 토큰 (1-8192)"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bWF4X2RvY19sZW5ndGg.desc": {
+          "source": "Maximum tokens per document (1-8192). Omit to use the model's default (2048 for jina-reranker-v3, 8192 for jina-reranker-v3.5).",
+          "message": "문서당 최대 토큰 (1-8192). 모델 기본값(jina-reranker-v3의 경우 2048, jina-reranker-v3.5의 경우 8192)을 사용하려면 생략하세요."
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.cmV0dXJuX2VtYmVkZGluZ3M.display_name": {
+          "source": "Return Embeddings",
+          "message": "임베딩 반환"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.cmV0dXJuX2VtYmVkZGluZ3M.short_desc": {
+          "source": "If true, returns the document embedding alongside the relevance score",
+          "message": "true인 경우, 관련성 점수와 함께 문서 임베딩을 반환합니다"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.cmV0dXJuX2VtYmVkZGluZ3M.desc": {
+          "source": "If true, returns the document embedding alongside the relevance score.",
+          "message": "true인 경우, 관련성 점수와 함께 문서 임베딩을 반환합니다."
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.display_name": {
+          "source": "Classify Content",
+          "message": "콘텐츠 분류"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.short_desc": {
+          "source": "Assign labels to text or images without training a classifier",
+          "message": "분류기를 훈련하지 않고 텍스트 또는 이미지에 레이블 할당"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.desc": {
+          "source": "Route feedback, support requests, or images into `labels` with a selected `model`. For a saved classifier, provide `classifier_id` instead of `model` and `labels`.",
+          "message": "선택한 `model`를 사용하여 피드백, 지원 요청 또는 이미지를 `labels`으로 라우팅합니다. 저장된 분류기의 경우 `model` 및 `labels` 대신 `classifier_id`를 제공하세요."
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.display_name": {
+          "source": "Labels",
+          "message": "라벨"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.short_desc": {
+          "source": "Candidate labels: a list of up to 512 labels, or a dict of up to 8 groups with…",
+          "message": "후보 레이블: 최대 512개의 레이블 목록 또는 최대 8개 그룹으로 구성된 사전…"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.desc": {
+          "source": "Candidate labels: a list of up to 512 labels, or a dict of up to 8 groups with max 64 labels each.",
+          "message": "후보 레이블: 최대 512개의 레이블 목록 또는 최대 8개 그룹(각 그룹 최대 64개 레이블)으로 구성된 사전."
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "모델"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.short_desc": {
+          "source": "The embedding model to use",
+          "message": "임베딩에 사용할 모델입니다"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.desc": {
+          "source": "The embedding model to use.",
+          "message": "임베딩에 사용할 모델입니다."
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVu.display_name": {
+          "source": "jina-embeddings-v2-base-en",
+          "message": "jina-embeddings-v2-base-en"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLXpo.display_name": {
+          "source": "jina-embeddings-v2-base-zh",
+          "message": "jina-embeddings-v2-base-zh"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWRl.display_name": {
+          "source": "jina-embeddings-v2-base-de",
+          "message": "jina-embeddings-v2-base-de"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVz.display_name": {
+          "source": "jina-embeddings-v2-base-es",
+          "message": "jina-embeddings-v2-base-es"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWNvZGU.display_name": {
+          "source": "jina-embeddings-v2-base-code",
+          "message": "jina-embeddings-v2-base-code"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mw.display_name": {
+          "source": "jina-embeddings-v3",
+          "message": "jina-embeddings-v3"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NA.display_name": {
+          "source": "jina-embeddings-v4",
+          "message": "jina-embeddings-v4"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
+          "source": "jina-embeddings-v5-text-nano",
+          "message": "jina-embeddings-v5-text-nano"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
+          "source": "jina-embeddings-v5-text-small",
+          "message": "jina-embeddings-v5-text-small"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12MQ.display_name": {
+          "source": "jina-clip-v1",
+          "message": "jina-clip-v1"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12Mg.display_name": {
+          "source": "jina-clip-v2",
+          "message": "jina-clip-v2"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29kZS1lbWJlZGRpbmdzLTAuNWI.display_name": {
+          "source": "jina-code-embeddings-0.5b",
+          "message": "jina-code-embeddings-0.5b"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29kZS1lbWJlZGRpbmdzLTEuNWI.display_name": {
+          "source": "jina-code-embeddings-1.5b",
+          "message": "jina-code-embeddings-1.5b"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "입력"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.short_desc": {
+          "source": "Text to classify: a string, 'TextDoc', or list of up to 512 items",
+          "message": "분류할 텍스트: 문자열, 'TextDoc', 또는 최대 512개 항목의 목록"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.desc": {
+          "source": "Text to classify: a string, `TextDoc`, or list of up to 512 items.",
+          "message": "분류할 텍스트: 문자열, `TextDoc`, 또는 최대 512개 항목의 목록."
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.Y2xhc3NpZmllcl9pZA.display_name": {
+          "source": "Classifier ID",
+          "message": "분류기 ID"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.Y2xhc3NpZmllcl9pZA.short_desc": {
+          "source": "ID of the trained classifier to use",
+          "message": "사용할 학습된 분류기의 ID"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.Y2xhc3NpZmllcl9pZA.desc": {
+          "source": "ID of the trained classifier to use.",
+          "message": "사용할 학습된 분류기의 ID."
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.display_name": {
+          "source": "Train or Update Classifier",
+          "message": "분류기 훈련 또는 업데이트"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.short_desc": {
+          "source": "Create a reusable classifier or add labeled training examples",
+          "message": "재사용 가능한 분류기를 생성하거나 레이블이 지정된 학습 예시를 추가합니다."
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.desc": {
+          "source": "Train a classifier from labeled `input` examples and a `model`. Set `access` to control visibility. To update an existing classifier, provide `classifier_id` instead. **Service availability:** Jina returned HTTP 500 for training during verification on September 7, 2026.",
+          "message": "레이블이 지정된 `input` 예제와 `model`에서 분류기를 훈련합니다. 가시성을 제어하려면 `access`를 설정하십시오. 기존 분류기를 업데이트하려면 대신 `classifier_id`를 제공하십시오. **서비스 가용성:** Jina는 2026년 9월 7일 검증 중 훈련에 대해 HTTP 500을 반환했습니다."
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.YWNjZXNz.display_name": {
+          "source": "Access",
+          "message": "액세스"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.YWNjZXNz.short_desc": {
+          "source": "Access level for the training data",
+          "message": "훈련 데이터의 액세스 수준"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.YWNjZXNz.desc": {
+          "source": "Visibility of the new classifier. Choose `private` for business training data; Jina defaults to `public` when omitted.",
+          "message": "새 분류기의 가시성. 비즈니스 훈련 데이터에는 `private`을 선택하세요. 생략 시 Jina는 `public`으로 기본 설정됩니다."
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.YWNjZXNz.allowed-value.c3RyaW5nOnByaXZhdGU.display_name": {
+          "source": "Private",
+          "message": "비공개"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.YWNjZXNz.allowed-value.c3RyaW5nOnB1YmxpYw.display_name": {
+          "source": "Public",
+          "message": "공개"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bnVtX2l0ZXJz.display_name": {
+          "source": "Num Iters",
+          "message": "반복 횟수"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bnVtX2l0ZXJz.short_desc": {
+          "source": "Number of iterations for the training process",
+          "message": "학습 프로세스 반복 횟수"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bnVtX2l0ZXJz.desc": {
+          "source": "Number of iterations for the training process.",
+          "message": "학습 프로세스를 위한 반복 횟수."
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "모델"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.short_desc": {
+          "source": "Text embedding model for zero-shot classification",
+          "message": "제로샷 분류를 위한 텍스트 임베딩 모델"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.desc": {
+          "source": "Text embedding model for zero-shot classification.",
+          "message": "제로샷 분류를 위한 텍스트 임베딩 모델."
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVu.display_name": {
+          "source": "jina-embeddings-v2-base-en",
+          "message": "jina-embeddings-v2-base-en"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLXpo.display_name": {
+          "source": "jina-embeddings-v2-base-zh",
+          "message": "jina-embeddings-v2-base-zh"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWRl.display_name": {
+          "source": "jina-embeddings-v2-base-de",
+          "message": "jina-embeddings-v2-base-de"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVz.display_name": {
+          "source": "jina-embeddings-v2-base-es",
+          "message": "jina-embeddings-v2-base-es"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWNvZGU.display_name": {
+          "source": "jina-embeddings-v2-base-code",
+          "message": "jina-embeddings-v2-base-code"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mw.display_name": {
+          "source": "jina-embeddings-v3",
+          "message": "jina-embeddings-v3"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NA.display_name": {
+          "source": "jina-embeddings-v4",
+          "message": "jina-embeddings-v4"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
+          "source": "jina-embeddings-v5-text-nano",
+          "message": "jina-embeddings-v5-text-nano"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
+          "source": "jina-embeddings-v5-text-small",
+          "message": "jina-embeddings-v5-text-small"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12MQ.display_name": {
+          "source": "jina-clip-v1",
+          "message": "jina-clip-v1"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12Mg.display_name": {
+          "source": "jina-clip-v2",
+          "message": "jina-clip-v2"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "입력"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.short_desc": {
+          "source": "Must be a list of text-label training items with at least two unique labels",
+          "message": "최소 두 개 이상의 고유 레이블을 가진 텍스트-레이블 학습 항목 목록이어야 합니다"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.desc": {
+          "source": "Must be a list of text-label training items with at least two unique labels. For batch training, provide a list with up to 512 items.",
+          "message": "최소 두 개 이상의 고유 레이블을 가진 텍스트-레이블 학습 항목 목록이어야 합니다. 배치 학습의 경우, 최대 512개의 항목으로 구성된 목록을 제공하세요."
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.display_name": {
+          "source": "Classifier ID",
+          "message": "분류기 ID"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.short_desc": {
+          "source": "ID of the classifier to use for few-shot classification",
+          "message": "퓨샷 분류에 사용할 분류기 ID"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.desc": {
+          "source": "ID of the classifier to use for few-shot classification.",
+          "message": "퓨샷 분류에 사용할 분류기 ID"
+        },
+        "app.SmluYUFp.action.bGlzdC1jbGFzc2lmaWVycw.display_name": {
+          "source": "List Classifiers",
+          "message": "분류기 목록"
+        },
+        "app.SmluYUFp.action.bGlzdC1jbGFzc2lmaWVycw.short_desc": {
+          "source": "List reusable classifiers belonging to your account",
+          "message": "계정에 속한 재사용 가능한 분류기 목록"
+        },
+        "app.SmluYUFp.action.bGlzdC1jbGFzc2lmaWVycw.desc": {
+          "source": "Find saved classifiers to reuse or delete. **Service availability:** Jina returned HTTP 500 for this endpoint during verification on September 7, 2026; classifier IDs can still be supplied directly.",
+          "message": "재사용하거나 삭제할 저장된 분류기를 찾습니다. **서비스 가용성:** Jina는 2026년 9월 7일 검증 중에 이 엔드포인트에 대해 HTTP 500을 반환했습니다. 분류기 ID는 여전히 직접 제공될 수 있습니다."
+        },
+        "app.SmluYUFp.action.ZGVsZXRlLWNsYXNzaWZpZXI.display_name": {
+          "source": "Delete Classifier",
+          "message": "분류기 삭제"
+        },
+        "app.SmluYUFp.action.ZGVsZXRlLWNsYXNzaWZpZXI.short_desc": {
+          "source": "Remove a saved classifier from your account",
+          "message": "저장된 분류기 계정에서 제거"
+        },
+        "app.SmluYUFp.action.ZGVsZXRlLWNsYXNzaWZpZXI.desc": {
+          "source": "Delete the selected `classifier_id` when its trained labels are no longer needed. Workflows using that classifier must select a replacement.",
+          "message": "선택한 `classifier_id`의 학습된 레이블이 더 이상 필요하지 않은 경우 삭제합니다. 해당 분류기를 사용하는 워크플로는 대체 분류기를 선택해야 합니다."
+        },
+        "app.SmluYUFp.action.ZGVsZXRlLWNsYXNzaWZpZXI.option.Y2xhc3NpZmllcl9pZA.display_name": {
+          "source": "Classifier ID",
+          "message": "분류기 ID"
+        },
+        "app.SmluYUFp.action.ZGVsZXRlLWNsYXNzaWZpZXI.option.Y2xhc3NpZmllcl9pZA.short_desc": {
+          "source": "The saved classifier to remove",
+          "message": "제거할 저장된 분류기"
+        },
+        "app.SmluYUFp.action.ZGVsZXRlLWNsYXNzaWZpZXI.option.Y2xhc3NpZmllcl9pZA.desc": {
+          "source": "The saved classifier to remove.",
+          "message": "제거할 저장된 분류기."
+        },
+        "app.SmluYUFp.action.bGlzdC1tb2RlbHM.display_name": {
+          "source": "List Models",
+          "message": "모델 목록 조회"
+        },
+        "app.SmluYUFp.action.bGlzdC1tb2RlbHM.short_desc": {
+          "source": "Discover available models, modalities, context limits, and prices",
+          "message": "사용 가능한 모델, 모달리티, 컨텍스트 제한 및 가격을 확인합니다."
+        },
+        "app.SmluYUFp.action.bGlzdC1tb2RlbHM.desc": {
+          "source": "Compare model capabilities before choosing an embedding or reranking model. The catalog is public; use the connection ping to verify your API key.",
+          "message": "임베딩 또는 재순위 모델을 선택하기 전에 모델 기능을 비교하세요. 카탈로그는 공개되어 있습니다. 연결 핑을 사용하여 API 키를 확인하세요."
+        },
+        "app.SmluYUFp.action.Z2V0LW1vZGVs.display_name": {
+          "source": "Get Model",
+          "message": "모델 가져오기"
+        },
+        "app.SmluYUFp.action.Z2V0LW1vZGVs.short_desc": {
+          "source": "Inspect capabilities and pricing for a selected model",
+          "message": "선택한 모델의 기능 및 가격 검사"
+        },
+        "app.SmluYUFp.action.Z2V0LW1vZGVs.desc": {
+          "source": "Return metadata for `model_id`, including supported inputs, context length, and pricing. Both short IDs and names prefixed with `jina-ai/` are accepted.",
+          "message": "`model_id`에 대한 메타데이터를 반환합니다. 지원되는 입력, 컨텍스트 길이, 가격 책정이 포함됩니다. `jina-ai/` 접두사가 붙은 짧은 ID와 이름 모두 허용됩니다."
+        },
+        "app.SmluYUFp.action.Z2V0LW1vZGVs.option.bW9kZWxfaWQ.display_name": {
+          "source": "Model ID",
+          "message": "모델 ID"
+        },
+        "app.SmluYUFp.action.Z2V0LW1vZGVs.option.bW9kZWxfaWQ.short_desc": {
+          "source": "The model whose capabilities and pricing to retrieve",
+          "message": "기능 및 가격을 검색할 모델"
+        },
+        "app.SmluYUFp.action.Z2V0LW1vZGVs.option.bW9kZWxfaWQ.desc": {
+          "source": "The model whose capabilities and pricing to retrieve.",
+          "message": "기능 및 가격을 검색할 모델."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.display_name": {
+          "source": "Create Batch Embeddings",
+          "message": "배치 임베딩 생성"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.short_desc": {
+          "source": "Submit a large collection of documents for asynchronous embedding",
+          "message": "비동기 임베딩을 위해 대량의 문서 컬렉션 제출"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.desc": {
+          "source": "Submit inline JSONL records in `input` or an `input_url` for bulk embedding. Each record contains `custom_id` and `body.input`. Use `webhook_url` for completion notifications, then retrieve status and output with the batch actions.",
+          "message": "대량 임베딩을 위해 `input` 또는 `input_url`에 인라인 JSONL 레코드를 제출합니다. 각 레코드에는 `custom_id` 및 `body.input`이(가) 포함됩니다. 완료 알림에는 `webhook_url`을(를) 사용하고, 배치 작업을 통해 상태 및 출력을 검색하세요."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "모델"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bW9kZWw.short_desc": {
+          "source": "The embedding model to use for batch processing",
+          "message": "배치 처리에 사용할 임베딩 모델"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bW9kZWw.desc": {
+          "source": "The embedding model to use for batch processing.",
+          "message": "배치 처리에 사용할 임베딩 모델."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
+          "source": "jina-embeddings-v5-text-nano",
+          "message": "jina-embeddings-v5-text-nano"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
+          "source": "jina-embeddings-v5-text-small",
+          "message": "jina-embeddings-v5-text-small"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.display_name": {
+          "source": "Input URL",
+          "message": "입력 URL"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.short_desc": {
+          "source": "URL to input JSONL file (GCS, S3, or HTTP)",
+          "message": "입력 JSONL 파일(GCS, S3 또는 HTTP)의 URL"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.desc": {
+          "source": "URL to input JSONL file (GCS, S3, or HTTP). Either input_url or input must be provided.",
+          "message": "입력 JSONL 파일(GCS, S3 또는 HTTP)의 URL. input_url 또는 input 중 하나를 제공해야 합니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "입력"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.short_desc": {
+          "source": "Inline JSONL lines for small batches",
+          "message": "소규모 배치용 인라인 JSONL 라인"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.desc": {
+          "source": "Inline JSONL lines for small batches. Either input_url or input must be provided.",
+          "message": "소규모 배치용 인라인 JSONL 라인. input_url 또는 input 중 하나가 제공되어야 합니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.dGFzaw.display_name": {
+          "source": "Task",
+          "message": "작업"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.dGFzaw.short_desc": {
+          "source": "Task optimization: retrieval, text-matching, clustering, or classification",
+          "message": "작업 최적화: 검색, 텍스트 일치, 클러스터링 또는 분류"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.dGFzaw.desc": {
+          "source": "Task optimization: retrieval, text-matching, clustering, or classification.",
+          "message": "작업 최적화: 검색, 텍스트 일치, 클러스터링 또는 분류."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOnJldHJpZXZhbC5xdWVyeQ.display_name": {
+          "source": "Retrieval Query",
+          "message": "검색 쿼리"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOnJldHJpZXZhbC5wYXNzYWdl.display_name": {
+          "source": "Retrieval Passage",
+          "message": "검색 구문"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOnRleHQtbWF0Y2hpbmc.display_name": {
+          "source": "Text Matching",
+          "message": "텍스트 매칭"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOmNsdXN0ZXJpbmc.display_name": {
+          "source": "Clustering",
+          "message": "클러스터링"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.dGFzaw.allowed-value.c3RyaW5nOmNsYXNzaWZpY2F0aW9u.display_name": {
+          "source": "Classification",
+          "message": "분류"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.ZGltZW5zaW9ucw.display_name": {
+          "source": "Dimensions",
+          "message": "측정기준"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.ZGltZW5zaW9ucw.short_desc": {
+          "source": "Number of dimensions for output embeddings (1-1024)",
+          "message": "출력 임베딩 차원 수 (1-1024)"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.ZGltZW5zaW9ucw.desc": {
+          "source": "Number of dimensions for output embeddings (1-1024).",
+          "message": "출력 임베딩 차원 수 (1-1024)."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.display_name": {
+          "source": "Normalized",
+          "message": "정규화됨"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.short_desc": {
+          "source": "If true (default), embeddings are L2-normalized to unit length",
+          "message": "true(기본값)인 경우, 임베딩은 단위 길이로 L2-정규화됩니다"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.desc": {
+          "source": "If true (default), embeddings are L2-normalized to unit length.",
+          "message": "true(기본값)인 경우, 임베딩은 단위 길이로 L2-정규화됩니다."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.d2ViaG9va191cmw.display_name": {
+          "source": "Webhook URL",
+          "message": "웹훅 URL"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.d2ViaG9va191cmw.short_desc": {
+          "source": "URL to POST notification when job completes",
+          "message": "작업 완료 시 알림을 POST할 URL"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.d2ViaG9va191cmw.desc": {
+          "source": "An HTTPS URL to notify when processing completes. Verify completion using `get-batch` before trusting a notification.",
+          "message": "처리가 완료되면 알림을 받을 HTTPS URL. 알림을 신뢰하기 전에 `get-batch`를 사용하여 완료를 확인하세요."
+        },
+        "app.SmluYUFp.action.Z2V0LWJhdGNo.display_name": {
+          "source": "Get Batch Status",
+          "message": "배치 상태 가져오기"
+        },
+        "app.SmluYUFp.action.Z2V0LWJhdGNo.short_desc": {
+          "source": "Inspect a batch embedding job and its result download URLs",
+          "message": "배치 임베딩 작업 및 결과 다운로드 URL 검사"
+        },
+        "app.SmluYUFp.action.Z2V0LWJhdGNo.desc": {
+          "source": "Check processing progress and token statistics for `batch_id`. Completed jobs include output URLs; downloads expire after 24 hours.",
+          "message": "`batch_id`의 처리 진행 상황 및 토큰 통계 확인. 완료된 작업에는 출력 URL이 포함됩니다. 다운로드는 24시간 후에 만료됩니다."
+        },
+        "app.SmluYUFp.action.Z2V0LWJhdGNo.option.YmF0Y2hfaWQ.display_name": {
+          "source": "Batch ID",
+          "message": "배치 ID"
+        },
+        "app.SmluYUFp.action.Z2V0LWJhdGNo.option.YmF0Y2hfaWQ.short_desc": {
+          "source": "The embedding batch to inspect or cancel",
+          "message": "검사하거나 취소할 임베딩 배치"
+        },
+        "app.SmluYUFp.action.Z2V0LWJhdGNo.option.YmF0Y2hfaWQ.desc": {
+          "source": "The embedding batch to inspect or cancel.",
+          "message": "검사하거나 취소할 임베딩 배치."
+        },
+        "app.SmluYUFp.action.Y2FuY2VsLWJhdGNo.display_name": {
+          "source": "Cancel Batch",
+          "message": "배치 취소"
+        },
+        "app.SmluYUFp.action.Y2FuY2VsLWJhdGNo.short_desc": {
+          "source": "Cancel a pending or processing embedding batch",
+          "message": "대기 중이거나 처리 중인 임베딩 배치 취소"
+        },
+        "app.SmluYUFp.action.Y2FuY2VsLWJhdGNo.desc": {
+          "source": "Stop further processing of `batch_id` when its embeddings are no longer needed. Already completed work may still be charged by Jina.",
+          "message": "`batch_id`의 임베딩이 더 이상 필요하지 않을 때 추가 처리를 중지합니다. 이미 완료된 작업은 Jina에서 요금이 청구될 수 있습니다."
+        },
+        "app.SmluYUFp.action.Y2FuY2VsLWJhdGNo.option.YmF0Y2hfaWQ.display_name": {
+          "source": "Batch ID",
+          "message": "배치 ID"
+        },
+        "app.SmluYUFp.action.Y2FuY2VsLWJhdGNo.option.YmF0Y2hfaWQ.short_desc": {
+          "source": "The embedding batch to inspect or cancel",
+          "message": "검사하거나 취소할 임베딩 배치"
+        },
+        "app.SmluYUFp.action.Y2FuY2VsLWJhdGNo.option.YmF0Y2hfaWQ.desc": {
+          "source": "The embedding batch to inspect or cancel.",
+          "message": "검사하거나 취소할 임베딩 배치."
+        },
+        "app.SmluYUFp.action.bGlzdC1iYXRjaGVz.display_name": {
+          "source": "List Batches",
+          "message": "배치 목록"
+        },
+        "app.SmluYUFp.action.bGlzdC1iYXRjaGVz.short_desc": {
+          "source": "List recent embedding batches for your account",
+          "message": "계정의 최근 임베딩 배치 목록"
+        },
+        "app.SmluYUFp.action.bGlzdC1iYXRjaGVz.desc": {
+          "source": "Find recently submitted embedding jobs and their statuses. Set `limit` to control how many are returned; custom batch IDs can also be entered directly.",
+          "message": "최근 제출된 임베딩 작업 및 상태를 찾습니다. 반환될 개수를 제어하려면 `limit`을(를) 설정하세요. 사용자 지정 배치 ID도 직접 입력할 수 있습니다."
+        },
+        "app.SmluYUFp.action.bGlzdC1iYXRjaGVz.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "제한"
+        },
+        "app.SmluYUFp.action.bGlzdC1iYXRjaGVz.option.bGltaXQ.short_desc": {
+          "source": "Maximum number of recent batches to return",
+          "message": "반환할 최근 배치 최대 개수"
+        },
+        "app.SmluYUFp.action.bGlzdC1iYXRjaGVz.option.bGltaXQ.desc": {
+          "source": "Maximum number of recent batches to return.",
+          "message": "반환할 최근 배치 최대 개수."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.display_name": {
+          "source": "Read Web Page or Document",
+          "message": "웹 페이지 또는 문서 읽기"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.short_desc": {
+          "source": "Convert web pages, HTML, PDF, and Office files into usable content",
+          "message": "웹 페이지, HTML, PDF, Office 파일을 사용 가능한 콘텐츠로 변환합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.desc": {
+          "source": "Extract content from a `url`, raw `html`, or a document `file` for search and analysis. Select `region` for EU processing, filter page elements, and choose how content and links are returned.",
+          "message": "검색 및 분석을 위해 `url`, 원시 `html` 또는 문서 `file`에서 콘텐츠를 추출합니다. EU 처리를 위해 `region`를 선택하고, 페이지 요소를 필터링하며, 콘텐츠 및 링크 반환 방식을 선택합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVnaW9u.display_name": {
+          "source": "Processing Region",
+          "message": "처리 지역"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVnaW9u.short_desc": {
+          "source": "Select 'global' or 'eu' infrastructure for Reader and Search",
+          "message": "Reader 및 Search에 대해 'global' 또는 'eu' 인프라를 선택"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVnaW9u.desc": {
+          "source": "Select `global` or `eu` infrastructure for Reader and Search.",
+          "message": "Reader 및 Search에 대해 `global` 또는 `eu` 인프라를 선택합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVnaW9u.allowed-value.c3RyaW5nOmdsb2JhbA.display_name": {
+          "source": "Global",
+          "message": "글로벌"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVnaW9u.allowed-value.c3RyaW5nOmV1.display_name": {
+          "source": "European Union",
+          "message": "유럽 연합"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0dXJuX2Zvcm1hdA.display_name": {
+          "source": "Content Format",
+          "message": "콘텐츠 형식"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0dXJuX2Zvcm1hdA.short_desc": {
+          "source": "Choose the returned content format",
+          "message": "반환될 콘텐츠 형식을 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0dXJuX2Zvcm1hdA.desc": {
+          "source": "Choose the returned content format. Screenshots return image URLs.",
+          "message": "반환될 콘텐츠 형식을 선택하세요. 스크린샷은 이미지 URL을 반환합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0dXJuX2Zvcm1hdA.allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0dXJuX2Zvcm1hdA.allowed-value.c3RyaW5nOmh0bWw.display_name": {
+          "source": "HTML",
+          "message": "HTML"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0dXJuX2Zvcm1hdA.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Text",
+          "message": "텍스트"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0dXJuX2Zvcm1hdA.allowed-value.c3RyaW5nOnNjcmVlbnNob3Q.display_name": {
+          "source": "Screenshot",
+          "message": "스크린샷"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0dXJuX2Zvcm1hdA.allowed-value.c3RyaW5nOnBhZ2VzaG90.display_name": {
+          "source": "Full Page Screenshot",
+          "message": "전체 페이지 스크린샷"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZW5naW5l.display_name": {
+          "source": "Browser Engine",
+          "message": "브라우저 엔진"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZW5naW5l.short_desc": {
+          "source": "Choose 'browser' for rendered pages, 'direct' for speed, or the experimental…",
+          "message": "렌더링된 페이지에는 'browser'를, 빠른 처리를 위해서는 'direct'를, 또는 실험적인…을 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZW5naW5l.desc": {
+          "source": "Choose `browser` for rendered pages, `direct` for speed, or the experimental Cloudflare renderer.",
+          "message": "렌더링된 페이지에는 `browser`을, 빠른 처리를 위해서는 `direct`을, 또는 실험적인 Cloudflare 렌더러를 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZW5naW5l.allowed-value.c3RyaW5nOmJyb3dzZXI.display_name": {
+          "source": "Browser",
+          "message": "브라우저"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZW5naW5l.allowed-value.c3RyaW5nOmRpcmVjdA.display_name": {
+          "source": "Direct",
+          "message": "직접"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZW5naW5l.allowed-value.c3RyaW5nOmNmLWJyb3dzZXItcmVuZGVyaW5n.display_name": {
+          "source": "Cloudflare Browser Rendering",
+          "message": "Cloudflare 브라우저 렌더링"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9saW5rc19zdW1tYXJ5.display_name": {
+          "source": "Links Summary",
+          "message": "링크 요약"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9saW5rc19zdW1tYXJ5.short_desc": {
+          "source": "Include unique links or all links in the output",
+          "message": "출력에 고유 링크 또는 모든 링크 포함"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9saW5rc19zdW1tYXJ5.desc": {
+          "source": "Include unique links or all links in the output.",
+          "message": "출력에 고유 링크 또는 모든 링크 포함."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9saW5rc19zdW1tYXJ5.allowed-value.c3RyaW5nOnRydWU.display_name": {
+          "source": "True",
+          "message": "True"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9saW5rc19zdW1tYXJ5.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "All",
+          "message": "모두"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9pbWFnZXNfc3VtbWFyeQ.display_name": {
+          "source": "Images Summary",
+          "message": "이미지 요약"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9pbWFnZXNfc3VtbWFyeQ.short_desc": {
+          "source": "Include unique images or all images in the output",
+          "message": "출력에 고유 이미지 또는 모든 이미지 포함"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9pbWFnZXNfc3VtbWFyeQ.desc": {
+          "source": "Include unique images or all images in the output.",
+          "message": "출력에 고유 이미지 또는 모든 이미지 포함."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9pbWFnZXNfc3VtbWFyeQ.allowed-value.c3RyaW5nOnRydWU.display_name": {
+          "source": "True",
+          "message": "True"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9pbWFnZXNfc3VtbWFyeQ.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "All",
+          "message": "모두"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bm9fY2FjaGU.display_name": {
+          "source": "Bypass Cache",
+          "message": "캐시 우회"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bm9fY2FjaGU.short_desc": {
+          "source": "Use 'True' to fetch current content instead of a cached response",
+          "message": "캐시된 응답 대신 현재 콘텐츠를 가져오려면 'True'를 사용하세요"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bm9fY2FjaGU.desc": {
+          "source": "Use `True` to fetch current content instead of a cached response.",
+          "message": "캐시된 응답 대신 현재 콘텐츠를 가져오려면 `True`을 사용하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9nZW5lcmF0ZWRfYWx0.display_name": {
+          "source": "Generate Image Captions",
+          "message": "이미지 캡션 생성"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9nZW5lcmF0ZWRfYWx0.short_desc": {
+          "source": "Use 'True' to describe images that lack alternative text",
+          "message": "대체 텍스트가 없는 이미지를 설명하려면 'True'를 사용하십시오."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9nZW5lcmF0ZWRfYWx0.desc": {
+          "source": "Use `True` to describe images that lack alternative text.",
+          "message": "대체 텍스트가 없는 이미지를 설명하려면 `True`을 사용하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.display_name": {
+          "source": "Retain Images",
+          "message": "이미지 유지"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.short_desc": {
+          "source": "Control whether image URLs or alternative text remain in the content",
+          "message": "콘텐츠에 이미지 URL 또는 대체 텍스트가 남을지 여부를 제어합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.desc": {
+          "source": "Control whether image URLs or alternative text remain in the content.",
+          "message": "이미지 URL 또는 대체 텍스트를 콘텐츠에 유지할지 제어합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOm5vbmU.display_name": {
+          "source": "None",
+          "message": "없음"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "All",
+          "message": "모두"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsdA.display_name": {
+          "source": "Alt",
+          "message": "Alt"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsbF9w.display_name": {
+          "source": "All P",
+          "message": "모든 P"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsdF9w.display_name": {
+          "source": "Alt P",
+          "message": "Alt P"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bG9jYWxl.display_name": {
+          "source": "Browser Locale",
+          "message": "브라우저 로케일"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bG9jYWxl.short_desc": {
+          "source": "Browser locale for localized pages, such as 'en-US'",
+          "message": "'en-US'와 같은 지역화된 페이지의 브라우저 로케일"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bG9jYWxl.desc": {
+          "source": "Browser locale for localized pages, such as `en-US`.",
+          "message": "`en-US`와 같은 지역화된 페이지의 브라우저 로케일."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.c2V0X2Nvb2tpZQ.display_name": {
+          "source": "Forward Cookies",
+          "message": "쿠키 전달"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.c2V0X2Nvb2tpZQ.short_desc": {
+          "source": "Cookies to send when fetching a page that requires an authenticated session",
+          "message": "인증된 세션이 필요한 페이지를 가져올 때 전송할 쿠키"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.c2V0X2Nvb2tpZQ.desc": {
+          "source": "Cookies to send when fetching a page that requires an authenticated session.",
+          "message": "인증된 세션이 필요한 페이지를 가져올 때 전송할 쿠키."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJveHlfdXJs.display_name": {
+          "source": "Proxy URL",
+          "message": "프록시 URL"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJveHlfdXJs.short_desc": {
+          "source": "Proxy URL for fetching the requested page",
+          "message": "요청된 페이지를 가져오기 위한 프록시 URL"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJveHlfdXJs.desc": {
+          "source": "Proxy URL for fetching the requested page. May contain proxy credentials.",
+          "message": "요청된 페이지를 가져오기 위한 프록시 URL. 프록시 자격 증명을 포함할 수 있습니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dGltZW91dA.display_name": {
+          "source": "Page Timeout",
+          "message": "페이지 시간 초과"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dGltZW91dA.short_desc": {
+          "source": "Maximum seconds to load a page",
+          "message": "페이지 로드 최대 시간(초)"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dGltZW91dA.desc": {
+          "source": "Maximum seconds to load a page.",
+          "message": "페이지 로드 최대 시간(초)."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dG9rZW5fYnVkZ2V0.display_name": {
+          "source": "Token Budget",
+          "message": "토큰 예산"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dG9rZW5fYnVkZ2V0.short_desc": {
+          "source": "Maximum tokens this content request may consume",
+          "message": "이 콘텐츠 요청이 소비할 수 있는 최대 토큰"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dG9rZW5fYnVkZ2V0.desc": {
+          "source": "Maximum tokens this content request may consume.",
+          "message": "이 콘텐츠 요청이 소비할 수 있는 최대 토큰."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.display_name": {
+          "source": "Source URL",
+          "message": "원본 URL"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.short_desc": {
+          "source": "The web page or document to read",
+          "message": "읽을 웹 페이지 또는 문서"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.desc": {
+          "source": "The web page or document to read; also resolves relative links in uploaded HTML.",
+          "message": "읽을 웹 페이지 또는 문서; 업로드된 HTML의 상대 링크도 확인합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.display_name": {
+          "source": "HTML Content",
+          "message": "HTML 콘텐츠"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.short_desc": {
+          "source": "Convert HTML directly, optionally using 'url' as its base",
+          "message": "'url'을 기준으로 사용하여 HTML을 직접 변환합니다(선택 사항)."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.desc": {
+          "source": "Convert HTML directly, optionally using `url` as its base.",
+          "message": "`url`을 기준으로 사용하여 HTML을 직접 변환합니다(선택 사항)."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.display_name": {
+          "source": "Document File",
+          "message": "문서 파일"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.short_desc": {
+          "source": "A PDF or Office document to convert",
+          "message": "변환할 PDF 또는 Office 문서"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.desc": {
+          "source": "A PDF or Office document to convert. Supply its `name`, `mime_type`, and binary or base64 `content`.",
+          "message": "변환할 PDF 또는 Office 문서. `name`, `mime_type`, 그리고 이진 또는 base64 `content`를 제공하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cGFnZQ.display_name": {
+          "source": "Document Page",
+          "message": "문서 페이지"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cGFnZQ.short_desc": {
+          "source": "Read one page of an uploaded document, starting at 1",
+          "message": "업로드된 문서의 1부터 시작하는 한 페이지를 읽습니다"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cGFnZQ.desc": {
+          "source": "Read one page of an uploaded document, starting at 1.",
+          "message": "업로드된 문서의 1부터 시작하는 한 페이지를 읽습니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dmlld3BvcnQ.display_name": {
+          "source": "Browser Viewport",
+          "message": "브라우저 뷰포트"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dmlld3BvcnQ.short_desc": {
+          "source": "Browser dimensions as 'width' and 'height' in pixels",
+          "message": "픽셀 단위의 'width' 및 'height'로 표시되는 브라우저 크기"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dmlld3BvcnQ.desc": {
+          "source": "Browser dimensions as `width` and `height` in pixels.",
+          "message": "픽셀 단위의 `width` 및 `height`로 표시되는 브라우저 크기."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.aW5qZWN0UGFnZVNjcmlwdA.display_name": {
+          "source": "Page Preparation Script",
+          "message": "페이지 준비 스크립트"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.aW5qZWN0UGFnZVNjcmlwdA.short_desc": {
+          "source": "JavaScript source or a script URL to run before extracting content",
+          "message": "콘텐츠 추출 전에 실행할 JavaScript 소스 또는 스크립트 URL"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.aW5qZWN0UGFnZVNjcmlwdA.desc": {
+          "source": "JavaScript source or a script URL to run before extracting content.",
+          "message": "콘텐츠 추출 전에 실행할 JavaScript 소스 또는 스크립트 URL."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJlc2V0.display_name": {
+          "source": "Extraction Preset",
+          "message": "추출 프리셋"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJlc2V0.short_desc": {
+          "source": "Apply a group of extraction settings for reading, indexing, research, agents,…",
+          "message": "읽기, 색인 생성, 연구, 에이전트 등을 위한 추출 설정 그룹을 적용합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJlc2V0.desc": {
+          "source": "Apply a group of extraction settings for reading, indexing, research, agents, or crawling.",
+          "message": "읽기, 색인 생성, 연구, 에이전트 또는 크롤링을 위한 추출 설정 그룹을 적용합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJlc2V0.allowed-value.c3RyaW5nOnJlYWRlcg.display_name": {
+          "source": "Reader",
+          "message": "뷰어"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJlc2V0.allowed-value.c3RyaW5nOmluZGV4.display_name": {
+          "source": "Index",
+          "message": "인덱스"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJlc2V0.allowed-value.c3RyaW5nOnJlc2VhcmNo.display_name": {
+          "source": "Research",
+          "message": "리서치"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJlc2V0.allowed-value.c3RyaW5nOmFnZW50.display_name": {
+          "source": "Agent",
+          "message": "에이전트"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJlc2V0.allowed-value.c3RyaW5nOnNwaWRlcg.display_name": {
+          "source": "Spider",
+          "message": "스파이더"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF93aXRo.display_name": {
+          "source": "Reader Model",
+          "message": "Reader Model"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF93aXRo.short_desc": {
+          "source": "Use 'readerlm-v2' for model-assisted HTML conversion, or 'vlm' for visual…",
+          "message": "모델 지원 HTML 변환에는 'readerlm-v2'를 사용하거나, 시각적…에는 'vlm'을 사용하세요"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF93aXRo.desc": {
+          "source": "Use `readerlm-v2` for model-assisted HTML conversion, or `vlm` for visual understanding.",
+          "message": "모델 지원 HTML 변환에는 `readerlm-v2`을 사용하거나, 시각적 이해에는 `vlm`을 사용하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF93aXRo.allowed-value.c3RyaW5nOnJlYWRlcmxtLXYy.display_name": {
+          "source": "Readerlm V2",
+          "message": "Readerlm V2"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF93aXRo.allowed-value.c3RyaW5nOnZsbQ.display_name": {
+          "source": "Vlm",
+          "message": "Vlm"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2xpbmtz.display_name": {
+          "source": "Retain Links",
+          "message": "링크 유지"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2xpbmtz.short_desc": {
+          "source": "Keep links, keep anchor text only, omit links, or use model citation formatting",
+          "message": "링크 유지, 앵커 텍스트만 유지, 링크 생략 또는 모델 인용 서식 사용"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2xpbmtz.desc": {
+          "source": "Keep links, keep anchor text only, omit links, or use model citation formatting.",
+          "message": "링크 유지, 앵커 텍스트만 유지, 링크 생략 또는 모델 인용 서식 사용."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2xpbmtz.allowed-value.c3RyaW5nOm5vbmU.display_name": {
+          "source": "None",
+          "message": "없음"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2xpbmtz.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "All",
+          "message": "모두"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2xpbmtz.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Text",
+          "message": "텍스트"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2xpbmtz.allowed-value.c3RyaW5nOmdwdC1vc3M.display_name": {
+          "source": "Gpt Oss",
+          "message": "Gpt Oss"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX21lZGlh.display_name": {
+          "source": "Retain Media",
+          "message": "미디어 유지"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX21lZGlh.short_desc": {
+          "source": "Control how embedded audio and video appear in the returned content",
+          "message": "반환된 콘텐츠에 임베디드 오디오 및 비디오가 표시되는 방식을 제어합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX21lZGlh.desc": {
+          "source": "Control how embedded audio and video appear in the returned content.",
+          "message": "반환된 콘텐츠에 임베디드 오디오 및 비디오가 표시되는 방식을 제어합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX21lZGlh.allowed-value.c3RyaW5nOm5vbmU.display_name": {
+          "source": "None",
+          "message": "없음"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX21lZGlh.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Text",
+          "message": "텍스트"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX21lZGlh.allowed-value.c3RyaW5nOmxpbms.display_name": {
+          "source": "Link",
+          "message": "링크"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX21lZGlh.allowed-value.c3RyaW5nOmltYWdl.display_name": {
+          "source": "Image",
+          "message": "이미지"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX21lZGlh.allowed-value.c3RyaW5nOmh0bWw.display_name": {
+          "source": "HTML",
+          "message": "HTML"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF90aW1pbmc.display_name": {
+          "source": "Page Ready Event",
+          "message": "페이지 준비 이벤트"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF90aW1pbmc.short_desc": {
+          "source": "Choose when rendering is complete enough to extract the page",
+          "message": "페이지를 추출하기에 렌더링이 충분히 완료되는 시점을 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF90aW1pbmc.desc": {
+          "source": "Choose when rendering is complete enough to extract the page.",
+          "message": "페이지를 추출하기에 렌더링이 충분히 완료되는 시점을 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF90aW1pbmc.allowed-value.c3RyaW5nOmh0bWw.display_name": {
+          "source": "HTML",
+          "message": "HTML"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF90aW1pbmc.allowed-value.c3RyaW5nOnZpc2libGUtY29udGVudA.display_name": {
+          "source": "Visible Content",
+          "message": "보이는 콘텐츠"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF90aW1pbmc.allowed-value.c3RyaW5nOm11dGF0aW9uLWlkbGU.display_name": {
+          "source": "Mutation Idle",
+          "message": "변이 유휴"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF90aW1pbmc.allowed-value.c3RyaW5nOnJlc291cmNlLWlkbGU.display_name": {
+          "source": "Resource Idle",
+          "message": "리소스 유휴"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF90aW1pbmc.allowed-value.c3RyaW5nOm1lZGlhLWlkbGU.display_name": {
+          "source": "Media Idle",
+          "message": "미디어 유휴"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVzcG9uZF90aW1pbmc.allowed-value.c3RyaW5nOm5ldHdvcmstaWRsZQ.display_name": {
+          "source": "Network Idle",
+          "message": "네트워크 유휴"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.YmFzZQ.display_name": {
+          "source": "Link Base",
+          "message": "링크 기준"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.YmFzZQ.short_desc": {
+          "source": "Resolve relative links using the initial or final URL after redirects",
+          "message": "리디렉션 후 초기 또는 최종 URL을 사용하여 상대 링크 확인"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.YmFzZQ.desc": {
+          "source": "Resolve relative links using the initial or final URL after redirects.",
+          "message": "리디렉션 후 초기 또는 최종 URL을 사용하여 상대 링크 확인."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.YmFzZQ.allowed-value.c3RyaW5nOmluaXRpYWw.display_name": {
+          "source": "Initial",
+          "message": "초기"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.YmFzZQ.allowed-value.c3RyaW5nOmZpbmFs.display_name": {
+          "source": "Final",
+          "message": "최종"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.display_name": {
+          "source": "Markdown Chunking",
+          "message": "마크다운 청킹"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.short_desc": {
+          "source": "Split Markdown by heading level or by structural depth",
+          "message": "제목 수준 또는 구조적 깊이별로 Markdown 분할"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.desc": {
+          "source": "Split Markdown by heading level or by structural depth.",
+          "message": "제목 수준 또는 구조적 깊이별로 Markdown을 분할합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.allowed-value.c3RyaW5nOnRydWU.display_name": {
+          "source": "True",
+          "message": "True"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.allowed-value.c3RyaW5nOmgx.display_name": {
+          "source": "H1",
+          "message": "H1"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.allowed-value.c3RyaW5nOmgy.display_name": {
+          "source": "H2",
+          "message": "H2"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.allowed-value.c3RyaW5nOmgz.display_name": {
+          "source": "H3",
+          "message": "H3"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.allowed-value.c3RyaW5nOmg0.display_name": {
+          "source": "H4",
+          "message": "H4"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.allowed-value.c3RyaW5nOmg1.display_name": {
+          "source": "H5",
+          "message": "H5"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.allowed-value.c3RyaW5nOnN0cnVjdHVyZWQ.display_name": {
+          "source": "Structured",
+          "message": "구조화됨"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.allowed-value.c3RyaW5nOnMx.display_name": {
+          "source": "S1",
+          "message": "S1"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.allowed-value.c3RyaW5nOnMy.display_name": {
+          "source": "S2",
+          "message": "S2"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.allowed-value.c3RyaW5nOnMz.display_name": {
+          "source": "S3",
+          "message": "S3"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.allowed-value.c3RyaW5nOnM0.display_name": {
+          "source": "S4",
+          "message": "S4"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWFya2Rvd25fY2h1bmtpbmc.allowed-value.c3RyaW5nOnM1.display_name": {
+          "source": "S5",
+          "message": "S5"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dGFyZ2V0X3NlbGVjdG9y.display_name": {
+          "source": "Include CSS Selectors",
+          "message": "CSS 선택자 포함"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dGFyZ2V0X3NlbGVjdG9y.short_desc": {
+          "source": "Extract only elements matching these CSS selectors",
+          "message": "이 CSS 선택자와 일치하는 요소만 추출"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dGFyZ2V0X3NlbGVjdG9y.desc": {
+          "source": "Extract only elements matching these CSS selectors.",
+          "message": "이 CSS 선택자와 일치하는 요소만 추출합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2FpdF9mb3Jfc2VsZWN0b3I.display_name": {
+          "source": "Wait for CSS Selector",
+          "message": "CSS 선택자 대기"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2FpdF9mb3Jfc2VsZWN0b3I.short_desc": {
+          "source": "Extract after the selected page element appears",
+          "message": "선택한 페이지 요소가 나타난 후 추출"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2FpdF9mb3Jfc2VsZWN0b3I.desc": {
+          "source": "Extract after the selected page element appears.",
+          "message": "선택한 페이지 요소가 나타난 후 추출합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVtb3ZlX3NlbGVjdG9y.display_name": {
+          "source": "Exclude CSS Selectors",
+          "message": "CSS 선택기 제외"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVtb3ZlX3NlbGVjdG9y.short_desc": {
+          "source": "Remove navigation, banners, or other selected elements",
+          "message": "탐색, 배너 또는 기타 선택된 요소 제거"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVtb3ZlX3NlbGVjdG9y.desc": {
+          "source": "Remove navigation, banners, or other selected elements.",
+          "message": "탐색, 배너 또는 기타 선택된 요소 제거."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJveHk.display_name": {
+          "source": "Proxy Country",
+          "message": "프록시 국가"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJveHk.short_desc": {
+          "source": "A country code, 'auto', or 'none' for the fetching proxy",
+          "message": "프록시 페칭을 위한 국가 코드, 'auto' 또는 'none'"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cHJveHk.desc": {
+          "source": "A country code, `auto`, or `none` for the fetching proxy.",
+          "message": "프록시 페칭을 위한 국가 코드, `auto` 또는 `none`."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dXNlcl9hZ2VudA.display_name": {
+          "source": "User Agent",
+          "message": "사용자 에이전트"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dXNlcl9hZ2VudA.short_desc": {
+          "source": "Override the browser identification sent to the page",
+          "message": "페이지로 전송되는 브라우저 식별자를 재정의합니다"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dXNlcl9hZ2VudA.desc": {
+          "source": "Override the browser identification sent to the page.",
+          "message": "페이지로 전송되는 브라우저 식별자를 재정의합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVmZXJlcg.display_name": {
+          "source": "Referer",
+          "message": "리퍼러"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVmZXJlcg.short_desc": {
+          "source": "Referer URL to send when fetching the page",
+          "message": "페이지를 가져올 때 보낼 리퍼러 URL"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVmZXJlcg.desc": {
+          "source": "Referer URL to send when fetching the page.",
+          "message": "페이지를 가져올 때 보낼 리퍼러 URL."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cm9ib3RzX3R4dA.display_name": {
+          "source": "Robots User Agent",
+          "message": "로봇 사용자 에이전트"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cm9ib3RzX3R4dA.short_desc": {
+          "source": "Check robots.txt using this bot name",
+          "message": "이 봇 이름을 사용하여 robots.txt 확인"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cm9ib3RzX3R4dA.desc": {
+          "source": "Check robots.txt using this bot name.",
+          "message": "이 봇 이름을 사용하여 robots.txt를 확인합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfaHI.display_name": {
+          "source": "Markdown Horizontal Rule",
+          "message": "마크다운 가로선"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfaHI.short_desc": {
+          "source": "Markdown text to use for horizontal rules",
+          "message": "가로선에 사용할 마크다운 텍스트"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfaHI.desc": {
+          "source": "Markdown text to use for horizontal rules.",
+          "message": "가로선에 사용할 마크다운 텍스트."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9pZnJhbWU.display_name": {
+          "source": "Include Iframes",
+          "message": "아이프레임 포함"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9pZnJhbWU.short_desc": {
+          "source": "Extract content from embedded frames",
+          "message": "포함된 프레임에서 콘텐츠 추출"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9pZnJhbWU.desc": {
+          "source": "Extract content from embedded frames.",
+          "message": "포함된 프레임에서 콘텐츠를 추출합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9zaGFkb3dfZG9t.display_name": {
+          "source": "Include Shadow DOM",
+          "message": "Shadow DOM 포함"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9zaGFkb3dfZG9t.short_desc": {
+          "source": "Extract content from shadow DOM elements",
+          "message": "섀도우 DOM 요소에서 콘텐츠 추출"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.d2l0aF9zaGFkb3dfZG9t.desc": {
+          "source": "Extract content from shadow DOM elements.",
+          "message": "섀도우 DOM 요소에서 콘텐츠를 추출합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.a2VlcF9pbWdfZGF0YV91cmw.display_name": {
+          "source": "Keep Inline Images",
+          "message": "인라인 이미지 유지"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.a2VlcF9pbWdfZGF0YV91cmw.short_desc": {
+          "source": "Retain inline base64 image URLs",
+          "message": "인라인 base64 이미지 URL 유지"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.a2VlcF9pbWdfZGF0YV91cmw.desc": {
+          "source": "Retain inline base64 image URLs.",
+          "message": "인라인 base64 이미지 URL 유지."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZG9fbm90X3RyYWNr.display_name": {
+          "source": "Do Not Cache or Track",
+          "message": "캐시 또는 추적 안 함"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZG9fbm90X3RyYWNr.short_desc": {
+          "source": "Prevent caching and tracking of this request by Jina",
+          "message": "Jina에 의한 이 요청의 캐싱 및 추적을 방지합니다"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZG9fbm90X3RyYWNr.desc": {
+          "source": "Prevent caching and tracking of this request by Jina.",
+          "message": "Jina에 의한 이 요청의 캐싱 및 추적을 방지합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVtb3ZlX292ZXJsYXk.display_name": {
+          "source": "Remove Overlays",
+          "message": "오버레이 제거"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVtb3ZlX292ZXJsYXk.short_desc": {
+          "source": "Remove page overlays before extraction",
+          "message": "추출 전 페이지 오버레이 제거"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.cmVtb3ZlX292ZXJsYXk.desc": {
+          "source": "Remove page overlays before extraction.",
+          "message": "추출 전 페이지 오버레이 제거."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZGV0YWNoX2ludmlzaWJsZXM.display_name": {
+          "source": "Remove Invisible Elements",
+          "message": "숨겨진 요소 제거"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZGV0YWNoX2ludmlzaWJsZXM.short_desc": {
+          "source": "Remove invisible elements before extraction",
+          "message": "추출 전 숨겨진 요소 제거"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZGV0YWNoX2ludmlzaWJsZXM.desc": {
+          "source": "Remove invisible elements before extraction.",
+          "message": "추출 전 숨겨진 요소 제거."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.Y2FjaGVfdG9sZXJhbmNl.display_name": {
+          "source": "Cache Tolerance",
+          "message": "캐시 허용 오차"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.Y2FjaGVfdG9sZXJhbmNl.short_desc": {
+          "source": "Accept cached content no older than this many seconds",
+          "message": "이 시간(초)보다 오래되지 않은 캐시된 콘텐츠 허용"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.Y2FjaGVfdG9sZXJhbmNl.desc": {
+          "source": "Accept cached content no older than this many seconds; zero requests fresh content.",
+          "message": "이 시간(초)보다 오래되지 않은 캐시된 콘텐츠 허용; 0은 최신 콘텐츠를 요청합니다."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bm9fZ2Zt.display_name": {
+          "source": "GitHub Markdown Features",
+          "message": "GitHub 마크다운 기능"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bm9fZ2Zt.short_desc": {
+          "source": "Choose how this Markdown feature is represented",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bm9fZ2Zt.desc": {
+          "source": "Choose how this Markdown feature is represented.",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bm9fZ2Zt.allowed-value.c3RyaW5nOnRydWU.display_name": {
+          "source": "True",
+          "message": "True"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bm9fZ2Zt.allowed-value.c3RyaW5nOmZhbHNl.display_name": {
+          "source": "False",
+          "message": "거짓"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bm9fZ2Zt.allowed-value.c3RyaW5nOnRhYmxl.display_name": {
+          "source": "Table",
+          "message": "테이블"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfaGVhZGluZ19zdHlsZQ.display_name": {
+          "source": "Markdown Heading Style",
+          "message": "마크다운 제목 스타일"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfaGVhZGluZ19zdHlsZQ.short_desc": {
+          "source": "Choose how this Markdown feature is represented",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfaGVhZGluZ19zdHlsZQ.desc": {
+          "source": "Choose how this Markdown feature is represented.",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfaGVhZGluZ19zdHlsZQ.allowed-value.c3RyaW5nOmF0eA.display_name": {
+          "source": "Hash Headings (ATX)",
+          "message": "해시 제목 (ATX)"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfaGVhZGluZ19zdHlsZQ.allowed-value.c3RyaW5nOnNldGV4dA.display_name": {
+          "source": "Underlined Headings (Setext)",
+          "message": "밑줄이 있는 제목 (Setext)"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfYnVsbGV0X2xpc3RfbWFya2Vy.display_name": {
+          "source": "Markdown Bullet Marker",
+          "message": "마크다운 글머리 기호"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfYnVsbGV0X2xpc3RfbWFya2Vy.short_desc": {
+          "source": "Choose how this Markdown feature is represented",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfYnVsbGV0X2xpc3RfbWFya2Vy.desc": {
+          "source": "Choose how this Markdown feature is represented.",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfYnVsbGV0X2xpc3RfbWFya2Vy.allowed-value.c3RyaW5nOio.display_name": {
+          "source": "Asterisk (*)",
+          "message": "별표(*)"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfYnVsbGV0X2xpc3RfbWFya2Vy.allowed-value.c3RyaW5nOi0.display_name": {
+          "source": "Hyphen (-)",
+          "message": "하이픈 (-)"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfYnVsbGV0X2xpc3RfbWFya2Vy.allowed-value.c3RyaW5nOis.display_name": {
+          "source": "Plus (+)",
+          "message": "플러스 (+)"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfZW1fZGVsaW1pdGVy.display_name": {
+          "source": "Markdown Emphasis Marker",
+          "message": "마크다운 강조 표시"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfZW1fZGVsaW1pdGVy.short_desc": {
+          "source": "Choose how this Markdown feature is represented",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfZW1fZGVsaW1pdGVy.desc": {
+          "source": "Choose how this Markdown feature is represented.",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfZW1fZGVsaW1pdGVy.allowed-value.c3RyaW5nOl8.display_name": {
+          "source": "Underscore (_)",
+          "message": "밑줄 (_)"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfZW1fZGVsaW1pdGVy.allowed-value.c3RyaW5nOio.display_name": {
+          "source": "Asterisk (*)",
+          "message": "별표(*)"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfc3Ryb25nX2RlbGltaXRlcg.display_name": {
+          "source": "Markdown Strong Marker",
+          "message": "마크다운 굵게 표시"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfc3Ryb25nX2RlbGltaXRlcg.short_desc": {
+          "source": "Choose how this Markdown feature is represented",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfc3Ryb25nX2RlbGltaXRlcg.desc": {
+          "source": "Choose how this Markdown feature is represented.",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfc3Ryb25nX2RlbGltaXRlcg.allowed-value.c3RyaW5nOioq.display_name": {
+          "source": "Double Asterisk (**)",
+          "message": "이중 별표 (**)"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfc3Ryb25nX2RlbGltaXRlcg.allowed-value.c3RyaW5nOl9f.display_name": {
+          "source": "Double Underscore (__)",
+          "message": "이중 밑줄 (__)"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfbGlua19zdHlsZQ.display_name": {
+          "source": "Markdown Link Style",
+          "message": "마크다운 링크 스타일"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfbGlua19zdHlsZQ.short_desc": {
+          "source": "Choose how this Markdown feature is represented",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfbGlua19zdHlsZQ.desc": {
+          "source": "Choose how this Markdown feature is represented.",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfbGlua19zdHlsZQ.allowed-value.c3RyaW5nOmlubGluZWQ.display_name": {
+          "source": "Inlined",
+          "message": "인라인됨"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfbGlua19zdHlsZQ.allowed-value.c3RyaW5nOnJlZmVyZW5jZWQ.display_name": {
+          "source": "Referenced",
+          "message": "참조됨"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfbGlua19zdHlsZQ.allowed-value.c3RyaW5nOmRpc2NhcmRlZA.display_name": {
+          "source": "Discarded",
+          "message": "폐기됨"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfbGlua19yZWZlcmVuY2Vfc3R5bGU.display_name": {
+          "source": "Markdown Reference Style",
+          "message": "마크다운 참조 스타일"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfbGlua19yZWZlcmVuY2Vfc3R5bGU.short_desc": {
+          "source": "Choose how this Markdown feature is represented",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfbGlua19yZWZlcmVuY2Vfc3R5bGU.desc": {
+          "source": "Choose how this Markdown feature is represented.",
+          "message": "이 Markdown 기능이 어떻게 표시될지 선택하세요."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfbGlua19yZWZlcmVuY2Vfc3R5bGU.allowed-value.c3RyaW5nOmZ1bGw.display_name": {
+          "source": "Full",
+          "message": "전체"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfbGlua19yZWZlcmVuY2Vfc3R5bGU.allowed-value.c3RyaW5nOmNvbGxhcHNlZA.display_name": {
+          "source": "Collapsed",
+          "message": "축소됨"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.bWRfbGlua19yZWZlcmVuY2Vfc3R5bGU.allowed-value.c3RyaW5nOnNob3J0Y3V0.display_name": {
+          "source": "Shortcut",
+          "message": "바로가기"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.display_name": {
+          "source": "Search the Web",
+          "message": "웹 검색"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.short_desc": {
+          "source": "Find relevant web sources and retrieve their content",
+          "message": "관련 웹 소스를 찾아 콘텐츠를 검색합니다."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.desc": {
+          "source": "Search for `q` and return source URLs, descriptions, and readable content. Set `respond_with` to `no-content` for fast result metadata, or use content extraction options to prepare sources for analysis.",
+          "message": "`q`을(를) 검색하고 소스 URL, 설명, 읽기 가능한 콘텐츠를 반환합니다. 빠른 결과 메타데이터를 위해 `respond_with`을(를) `no-content`(으)로 설정하거나, 분석을 위해 소스를 준비하려면 콘텐츠 추출 옵션을 사용하세요."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmVnaW9u.display_name": {
+          "source": "Processing Region",
+          "message": "처리 지역"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmVnaW9u.short_desc": {
+          "source": "Select 'global' or 'eu' infrastructure for Reader and Search",
+          "message": "Reader 및 Search에 대해 'global' 또는 'eu' 인프라를 선택"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmVnaW9u.desc": {
+          "source": "Select `global` or `eu` infrastructure for Reader and Search.",
+          "message": "Reader 및 Search에 대해 `global` 또는 `eu` 인프라를 선택합니다."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmVnaW9u.allowed-value.c3RyaW5nOmdsb2JhbA.display_name": {
+          "source": "Global",
+          "message": "글로벌"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmVnaW9u.allowed-value.c3RyaW5nOmV1.display_name": {
+          "source": "European Union",
+          "message": "유럽 연합"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0dXJuX2Zvcm1hdA.display_name": {
+          "source": "Content Format",
+          "message": "콘텐츠 형식"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0dXJuX2Zvcm1hdA.short_desc": {
+          "source": "Choose the returned content format",
+          "message": "반환될 콘텐츠 형식을 선택하세요."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0dXJuX2Zvcm1hdA.desc": {
+          "source": "Choose the returned content format. Screenshots return image URLs.",
+          "message": "반환될 콘텐츠 형식을 선택하세요. 스크린샷은 이미지 URL을 반환합니다."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0dXJuX2Zvcm1hdA.allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0dXJuX2Zvcm1hdA.allowed-value.c3RyaW5nOmh0bWw.display_name": {
+          "source": "HTML",
+          "message": "HTML"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0dXJuX2Zvcm1hdA.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Text",
+          "message": "텍스트"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0dXJuX2Zvcm1hdA.allowed-value.c3RyaW5nOnNjcmVlbnNob3Q.display_name": {
+          "source": "Screenshot",
+          "message": "스크린샷"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0dXJuX2Zvcm1hdA.allowed-value.c3RyaW5nOnBhZ2VzaG90.display_name": {
+          "source": "Full Page Screenshot",
+          "message": "전체 페이지 스크린샷"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.ZW5naW5l.display_name": {
+          "source": "Browser Engine",
+          "message": "브라우저 엔진"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.ZW5naW5l.short_desc": {
+          "source": "Choose 'browser' for rendered pages, 'direct' for speed, or the experimental…",
+          "message": "렌더링된 페이지에는 'browser'를, 빠른 처리를 위해서는 'direct'를, 또는 실험적인…을 선택하세요."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.ZW5naW5l.desc": {
+          "source": "Choose `browser` for rendered pages, `direct` for speed, or the experimental Cloudflare renderer.",
+          "message": "렌더링된 페이지에는 `browser`을, 빠른 처리를 위해서는 `direct`을, 또는 실험적인 Cloudflare 렌더러를 선택하세요."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.ZW5naW5l.allowed-value.c3RyaW5nOmJyb3dzZXI.display_name": {
+          "source": "Browser",
+          "message": "브라우저"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.ZW5naW5l.allowed-value.c3RyaW5nOmRpcmVjdA.display_name": {
+          "source": "Direct",
+          "message": "직접"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.ZW5naW5l.allowed-value.c3RyaW5nOmNmLWJyb3dzZXItcmVuZGVyaW5n.display_name": {
+          "source": "Cloudflare Browser Rendering",
+          "message": "Cloudflare 브라우저 렌더링"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9saW5rc19zdW1tYXJ5.display_name": {
+          "source": "Links Summary",
+          "message": "링크 요약"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9saW5rc19zdW1tYXJ5.short_desc": {
+          "source": "Include unique links or all links in the output",
+          "message": "출력에 고유 링크 또는 모든 링크 포함"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9saW5rc19zdW1tYXJ5.desc": {
+          "source": "Include unique links or all links in the output.",
+          "message": "출력에 고유 링크 또는 모든 링크 포함."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9saW5rc19zdW1tYXJ5.allowed-value.c3RyaW5nOnRydWU.display_name": {
+          "source": "True",
+          "message": "True"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9saW5rc19zdW1tYXJ5.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "All",
+          "message": "모두"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9pbWFnZXNfc3VtbWFyeQ.display_name": {
+          "source": "Images Summary",
+          "message": "이미지 요약"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9pbWFnZXNfc3VtbWFyeQ.short_desc": {
+          "source": "Include unique images or all images in the output",
+          "message": "출력에 고유 이미지 또는 모든 이미지 포함"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9pbWFnZXNfc3VtbWFyeQ.desc": {
+          "source": "Include unique images or all images in the output.",
+          "message": "출력에 고유 이미지 또는 모든 이미지 포함."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9pbWFnZXNfc3VtbWFyeQ.allowed-value.c3RyaW5nOnRydWU.display_name": {
+          "source": "True",
+          "message": "True"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9pbWFnZXNfc3VtbWFyeQ.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "All",
+          "message": "모두"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bm9fY2FjaGU.display_name": {
+          "source": "Bypass Cache",
+          "message": "캐시 우회"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bm9fY2FjaGU.short_desc": {
+          "source": "Use 'True' to fetch current content instead of a cached response",
+          "message": "캐시된 응답 대신 현재 콘텐츠를 가져오려면 'True'를 사용하세요"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bm9fY2FjaGU.desc": {
+          "source": "Use `True` to fetch current content instead of a cached response.",
+          "message": "캐시된 응답 대신 현재 콘텐츠를 가져오려면 `True`을 사용하세요."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9nZW5lcmF0ZWRfYWx0.display_name": {
+          "source": "Generate Image Captions",
+          "message": "이미지 캡션 생성"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9nZW5lcmF0ZWRfYWx0.short_desc": {
+          "source": "Use 'True' to describe images that lack alternative text",
+          "message": "대체 텍스트가 없는 이미지를 설명하려면 'True'를 사용하십시오."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9nZW5lcmF0ZWRfYWx0.desc": {
+          "source": "Use `True` to describe images that lack alternative text.",
+          "message": "대체 텍스트가 없는 이미지를 설명하려면 `True`을 사용하세요."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.display_name": {
+          "source": "Retain Images",
+          "message": "이미지 유지"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.short_desc": {
+          "source": "Control whether image URLs or alternative text remain in the content",
+          "message": "콘텐츠에 이미지 URL 또는 대체 텍스트가 남을지 여부를 제어합니다."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.desc": {
+          "source": "Control whether image URLs or alternative text remain in the content.",
+          "message": "이미지 URL 또는 대체 텍스트를 콘텐츠에 유지할지 제어합니다."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOm5vbmU.display_name": {
+          "source": "None",
+          "message": "없음"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "All",
+          "message": "모두"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsdA.display_name": {
+          "source": "Alt",
+          "message": "Alt"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsbF9w.display_name": {
+          "source": "All P",
+          "message": "모든 P"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsdF9w.display_name": {
+          "source": "Alt P",
+          "message": "Alt P"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bG9jYWxl.display_name": {
+          "source": "Browser Locale",
+          "message": "브라우저 로케일"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bG9jYWxl.short_desc": {
+          "source": "Browser locale for localized pages, such as 'en-US'",
+          "message": "'en-US'와 같은 지역화된 페이지의 브라우저 로케일"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bG9jYWxl.desc": {
+          "source": "Browser locale for localized pages, such as `en-US`.",
+          "message": "`en-US`와 같은 지역화된 페이지의 브라우저 로케일."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.c2V0X2Nvb2tpZQ.display_name": {
+          "source": "Forward Cookies",
+          "message": "쿠키 전달"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.c2V0X2Nvb2tpZQ.short_desc": {
+          "source": "Cookies to send when fetching a page that requires an authenticated session",
+          "message": "인증된 세션이 필요한 페이지를 가져올 때 전송할 쿠키"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.c2V0X2Nvb2tpZQ.desc": {
+          "source": "Cookies to send when fetching a page that requires an authenticated session.",
+          "message": "인증된 세션이 필요한 페이지를 가져올 때 전송할 쿠키."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cHJveHlfdXJs.display_name": {
+          "source": "Proxy URL",
+          "message": "프록시 URL"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cHJveHlfdXJs.short_desc": {
+          "source": "Proxy URL for fetching the requested page",
+          "message": "요청된 페이지를 가져오기 위한 프록시 URL"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cHJveHlfdXJs.desc": {
+          "source": "Proxy URL for fetching the requested page. May contain proxy credentials.",
+          "message": "요청된 페이지를 가져오기 위한 프록시 URL. 프록시 자격 증명을 포함할 수 있습니다."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.dGltZW91dA.display_name": {
+          "source": "Page Timeout",
+          "message": "페이지 시간 초과"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.dGltZW91dA.short_desc": {
+          "source": "Maximum seconds to load a page",
+          "message": "페이지 로드 최대 시간(초)"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.dGltZW91dA.desc": {
+          "source": "Maximum seconds to load a page.",
+          "message": "페이지 로드 최대 시간(초)."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.dG9rZW5fYnVkZ2V0.display_name": {
+          "source": "Token Budget",
+          "message": "토큰 예산"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.dG9rZW5fYnVkZ2V0.short_desc": {
+          "source": "Maximum tokens this content request may consume",
+          "message": "이 콘텐츠 요청이 소비할 수 있는 최대 토큰"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.dG9rZW5fYnVkZ2V0.desc": {
+          "source": "Maximum tokens this content request may consume.",
+          "message": "이 콘텐츠 요청이 소비할 수 있는 최대 토큰."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.display_name": {
+          "source": "Search Query",
+          "message": "검색 쿼리"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.short_desc": {
+          "source": "What to find on the web",
+          "message": "웹에서 찾을 내용"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.desc": {
+          "source": "What to find on the web. Standard search operators are supported.",
+          "message": "웹에서 찾을 내용. 표준 검색 연산자가 지원됩니다."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.c2l0ZQ.display_name": {
+          "source": "Website Filter",
+          "message": "웹사이트 필터"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.c2l0ZQ.short_desc": {
+          "source": "Restrict results to this website",
+          "message": "결과를 이 웹사이트로 제한"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.c2l0ZQ.desc": {
+          "source": "Restrict results to this website.",
+          "message": "결과를 이 웹사이트로 제한."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.Z2w.display_name": {
+          "source": "Search Country",
+          "message": "검색 국가"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.Z2w.short_desc": {
+          "source": "Two-letter country code for search results",
+          "message": "검색 결과에 대한 두 글자 국가 코드"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.Z2w.desc": {
+          "source": "Two-letter country code for search results.",
+          "message": "검색 결과에 대한 두 글자 국가 코드."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.aGw.display_name": {
+          "source": "Search Language",
+          "message": "검색 언어"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.aGw.short_desc": {
+          "source": "Language code for search results",
+          "message": "검색 결과용 언어 코드"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.aGw.desc": {
+          "source": "Language code for search results.",
+          "message": "검색 결과용 언어 코드."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bG9jYXRpb24.display_name": {
+          "source": "Search Location",
+          "message": "검색 위치"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bG9jYXRpb24.short_desc": {
+          "source": "City or region from which the search should originate",
+          "message": "검색이 시작될 도시 또는 지역"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bG9jYXRpb24.desc": {
+          "source": "City or region from which the search should originate.",
+          "message": "검색이 시작될 도시 또는 지역"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bnVt.display_name": {
+          "source": "Result Count",
+          "message": "결과 수"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bnVt.short_desc": {
+          "source": "Maximum number of search results",
+          "message": "최대 검색 결과 수"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bnVt.desc": {
+          "source": "Maximum number of search results.",
+          "message": "최대 검색 결과 수."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cGFnZQ.display_name": {
+          "source": "Result Offset",
+          "message": "결과 오프셋"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cGFnZQ.short_desc": {
+          "source": "Skip this many results for pagination",
+          "message": "페이지 매김을 위해 이 개수만큼의 결과를 건너뛰기"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cGFnZQ.desc": {
+          "source": "Skip this many results for pagination.",
+          "message": "페이지 매김을 위해 이 개수만큼의 결과를 건너뜁니다."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmVzcG9uZF93aXRo.display_name": {
+          "source": "Result Content",
+          "message": "결과 콘텐츠"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmVzcG9uZF93aXRo.short_desc": {
+          "source": "Choose 'no-content' to return search metadata without reading the result pages",
+          "message": "결과 페이지를 읽지 않고 검색 메타데이터를 반환하려면 'no-content'를 선택하세요."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmVzcG9uZF93aXRo.desc": {
+          "source": "Choose `no-content` to return search metadata without reading the result pages.",
+          "message": "결과 페이지를 읽지 않고 검색 메타데이터를 반환하려면 `no-content`을 선택하세요."
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmVzcG9uZF93aXRo.allowed-value.c3RyaW5nOm5vLWNvbnRlbnQ.display_name": {
+          "source": "No Content",
+          "message": "콘텐츠 없음"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9mYXZpY29ucw.display_name": {
+          "source": "Include Favicons",
+          "message": "파비콘 포함"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9mYXZpY29ucw.short_desc": {
+          "source": "Include site icons with the results",
+          "message": "결과에 사이트 아이콘 포함"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.d2l0aF9mYXZpY29ucw.desc": {
+          "source": "Include site icons with the results.",
+          "message": "결과에 사이트 아이콘 포함."
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.display_name": {
+          "source": "Segment Text",
+          "message": "텍스트 분할"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.short_desc": {
+          "source": "Count tokens and split text into manageable chunks",
+          "message": "토큰을 계산하고 텍스트를 관리 가능한 청크로 분할합니다."
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.desc": {
+          "source": "Prepare long documents for embeddings or language models by splitting `content` into chunks. Request token IDs when needed and use `head` or `tail` to select part of the text.",
+          "message": "긴 문서를 임베딩 또는 언어 모델을 위해 `content`로 분할하여 준비합니다. 필요 시 토큰 ID를 요청하고 `head` 또는 `tail`를 사용하여 텍스트의 일부를 선택합니다."
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.Y29udGVudA.display_name": {
+          "source": "Text Content",
+          "message": "텍스트 내용"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.Y29udGVudA.short_desc": {
+          "source": "Text to count or split into chunks",
+          "message": "개수를 세거나 청크로 분할할 텍스트"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.Y29udGVudA.desc": {
+          "source": "Text to count or split into chunks.",
+          "message": "개수를 세거나 청크로 분할할 텍스트."
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.dG9rZW5pemVy.display_name": {
+          "source": "Tokenizer",
+          "message": "토크나이저"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.dG9rZW5pemVy.short_desc": {
+          "source": "Tokenizer used to count the input",
+          "message": "입력 개수를 세는 데 사용되는 토크나이저"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.dG9rZW5pemVy.desc": {
+          "source": "Tokenizer used to count the input.",
+          "message": "입력 개수를 세는 데 사용되는 토크나이저."
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.dG9rZW5pemVy.allowed-value.c3RyaW5nOmNsMTAwa19iYXNl.display_name": {
+          "source": "Cl100K Base",
+          "message": "Cl100K Base"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.dG9rZW5pemVy.allowed-value.c3RyaW5nOm8yMDBrX2Jhc2U.display_name": {
+          "source": "O200K Base",
+          "message": "O200K Base"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.dG9rZW5pemVy.allowed-value.c3RyaW5nOnA1MGtfYmFzZQ.display_name": {
+          "source": "P50K Base",
+          "message": "P50K Base"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.dG9rZW5pemVy.allowed-value.c3RyaW5nOnI1MGtfYmFzZQ.display_name": {
+          "source": "R50K Base",
+          "message": "R50K Base"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.dG9rZW5pemVy.allowed-value.c3RyaW5nOnA1MGtfZWRpdA.display_name": {
+          "source": "P50K Edit",
+          "message": "P50K Edit"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.dG9rZW5pemVy.allowed-value.c3RyaW5nOmdwdDI.display_name": {
+          "source": "Gpt2",
+          "message": "Gpt2"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.cmV0dXJuX3Rva2Vucw.display_name": {
+          "source": "Return Tokens",
+          "message": "토큰 반환"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.cmV0dXJuX3Rva2Vucw.short_desc": {
+          "source": "Include tokens and their numeric IDs",
+          "message": "토큰 및 숫자 ID 포함"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.cmV0dXJuX3Rva2Vucw.desc": {
+          "source": "Include tokens and their numeric IDs.",
+          "message": "토큰 및 숫자 ID 포함."
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.cmV0dXJuX2NodW5rcw.display_name": {
+          "source": "Return Chunks",
+          "message": "청크 반환"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.cmV0dXJuX2NodW5rcw.short_desc": {
+          "source": "Include semantically grouped text chunks",
+          "message": "의미론적으로 그룹화된 텍스트 청크 포함"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.cmV0dXJuX2NodW5rcw.desc": {
+          "source": "Include semantically grouped text chunks.",
+          "message": "의미론적으로 그룹화된 텍스트 청크 포함."
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.bWF4X2NodW5rX2xlbmd0aA.display_name": {
+          "source": "Maximum Chunk Length",
+          "message": "최대 청크 길이"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.bWF4X2NodW5rX2xlbmd0aA.short_desc": {
+          "source": "Maximum characters per chunk",
+          "message": "청크당 최대 문자 수"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.bWF4X2NodW5rX2xlbmd0aA.desc": {
+          "source": "Maximum characters per chunk.",
+          "message": "청크당 최대 문자 수."
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.aGVhZA.display_name": {
+          "source": "First Tokens",
+          "message": "첫 번째 토큰"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.aGVhZA.short_desc": {
+          "source": "Return only this many leading tokens",
+          "message": "이 개수만큼의 선행 토큰만 반환"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.aGVhZA.desc": {
+          "source": "Return only this many leading tokens.",
+          "message": "이 개수만큼의 선행 토큰만 반환합니다."
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.dGFpbA.display_name": {
+          "source": "Last Tokens",
+          "message": "마지막 토큰"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.dGFpbA.short_desc": {
+          "source": "Return only this many trailing tokens",
+          "message": "이 개수만큼의 후행 토큰만 반환"
+        },
+        "app.SmluYUFp.action.c2VnbWVudC10ZXh0.option.dGFpbA.desc": {
+          "source": "Return only this many trailing tokens.",
+          "message": "이 개수만큼의 후행 토큰만 반환합니다."
+        },
+        "app.SmluYUFp.action.Y2hhdA.display_name": {
+          "source": "Chat with Vision Model",
+          "message": "비전 모델과 채팅"
+        },
+        "app.SmluYUFp.action.Y2hhdA.short_desc": {
+          "source": "Answer questions about text and images with Jina VLM",
+          "message": "Jina VLM으로 텍스트 및 이미지에 대한 질문에 답변"
+        },
+        "app.SmluYUFp.action.Y2hhdA.desc": {
+          "source": "Generate a completed answer from conversation `messages`, including image content. **Experimental:** Jina does not guarantee production availability of this endpoint.",
+          "message": "대화 `messages`에서 이미지 콘텐츠를 포함한 완성된 답변을 생성합니다. **실험적:** Jina는 이 엔드포인트의 프로덕션 가용성을 보장하지 않습니다."
+        },
+        "app.SmluYUFp.action.Y2hhdA.option.bWVzc2FnZXM.display_name": {
+          "source": "Conversation",
+          "message": "대화"
+        },
+        "app.SmluYUFp.action.Y2hhdA.option.bWVzc2FnZXM.short_desc": {
+          "source": "Conversation messages containing text or multimodal content",
+          "message": "텍스트 또는 멀티모달 콘텐츠가 포함된 대화 메시지"
+        },
+        "app.SmluYUFp.action.Y2hhdA.option.bWVzc2FnZXM.desc": {
+          "source": "Conversation messages containing text or multimodal content.",
+          "message": "텍스트 또는 멀티모달 콘텐츠가 포함된 대화 메시지."
+        },
+        "app.SmluYUFp.action.Y2hhdA.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "모델"
+        },
+        "app.SmluYUFp.action.Y2hhdA.option.bW9kZWw.short_desc": {
+          "source": "Vision-language model used to answer the conversation",
+          "message": "대화에 답변하는 데 사용되는 비전-언어 모델"
+        },
+        "app.SmluYUFp.action.Y2hhdA.option.bW9kZWw.desc": {
+          "source": "Vision-language model used to answer the conversation.",
+          "message": "대화에 답변하는 데 사용되는 비전-언어 모델."
+        },
+        "app.SmluYUFp.action.Y2hhdA.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtdmxt.display_name": {
+          "source": "Jina Vlm",
+          "message": "Jina Vlm"
+        },
+        "app.SmluYUFp.action.Y2hhdA.option.bWF4X3Rva2Vucw.display_name": {
+          "source": "Maximum Output Tokens",
+          "message": "최대 출력 토큰"
+        },
+        "app.SmluYUFp.action.Y2hhdA.option.bWF4X3Rva2Vucw.short_desc": {
+          "source": "Maximum length of the generated response",
+          "message": "생성된 응답의 최대 길이"
+        },
+        "app.SmluYUFp.action.Y2hhdA.option.bWF4X3Rva2Vucw.desc": {
+          "source": "Maximum length of the generated response.",
+          "message": "생성된 응답의 최대 길이."
+        },
+        "app.SmluYUFp.action.Y2hhdA.option.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "온도"
+        },
+        "app.SmluYUFp.action.Y2hhdA.option.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "Sampling temperature controlling response variation",
+          "message": "응답 변동을 제어하는 샘플링 온도"
+        },
+        "app.SmluYUFp.action.Y2hhdA.option.dGVtcGVyYXR1cmU.desc": {
+          "source": "Sampling temperature controlling response variation.",
+          "message": "응답 변동을 제어하는 샘플링 온도입니다."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.display_name": {
+          "source": "Deep Search",
+          "message": "Deep Search"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.short_desc": {
+          "source": "Research a question across web sources and return a grounded answer",
+          "message": "웹 소스에서 질문을 조사하고 근거 있는 답변 반환"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.desc": {
+          "source": "Research a question in `messages` using web search and source reading. Control `budget_tokens` and `reasoning_effort` to manage cost and latency. Use `response_format` for structured answers or fact-checking. **Long requests:** this action returns a completed response and may reach the service timeout; reduce the research budget when necessary.",
+          "message": "`messages`에서 웹 검색 및 소스 읽기를 사용하여 질문을 조사합니다. 비용 및 지연 시간을 관리하려면 `budget_tokens` 및 `reasoning_effort`를 제어하십시오. 구조화된 답변 또는 사실 확인을 위해 `response_format`를 사용하십시오. **장기 요청:** 이 작업은 완료된 응답을 반환하며 서비스 시간 초과에 도달할 수 있습니다. 필요한 경우 연구 예산을 줄이십시오."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bWVzc2FnZXM.display_name": {
+          "source": "Conversation",
+          "message": "대화"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bWVzc2FnZXM.short_desc": {
+          "source": "Conversation messages containing text or multimodal content",
+          "message": "텍스트 또는 멀티모달 콘텐츠가 포함된 대화 메시지"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bWVzc2FnZXM.desc": {
+          "source": "Conversation messages containing text or multimodal content.",
+          "message": "텍스트 또는 멀티모달 콘텐츠가 포함된 대화 메시지."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "모델"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bW9kZWw.short_desc": {
+          "source": "DeepSearch model used for web research",
+          "message": "웹 연구에 사용되는 DeepSearch 모델"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bW9kZWw.desc": {
+          "source": "DeepSearch model used for web research.",
+          "message": "웹 연구에 사용되는 DeepSearch 모델."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZGVlcHNlYXJjaC12MQ.display_name": {
+          "source": "Jina Deepsearch V1",
+          "message": "Jina Deepsearch V1"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.cmVhc29uaW5nX2VmZm9ydA.display_name": {
+          "source": "Research Effort",
+          "message": "연구 노력"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.cmVhc29uaW5nX2VmZm9ydA.short_desc": {
+          "source": "Choose a preset balance between response quality, time, and token usage",
+          "message": "응답 품질, 시간, 토큰 사용량 간의 사전 설정된 균형을 선택하세요."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.cmVhc29uaW5nX2VmZm9ydA.desc": {
+          "source": "Choose a preset balance between response quality, time, and token usage.",
+          "message": "응답 품질, 시간, 토큰 사용량 간의 사전 설정된 균형을 선택하세요."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "Low",
+          "message": "낮음"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOm1lZGl1bQ.display_name": {
+          "source": "Medium",
+          "message": "보통"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "High",
+          "message": "높음"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.YnVkZ2V0X3Rva2Vucw.display_name": {
+          "source": "Token Budget",
+          "message": "토큰 예산"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.YnVkZ2V0X3Rva2Vucw.short_desc": {
+          "source": "Maximum tokens for the complete research process",
+          "message": "전체 연구 프로세스 최대 토큰"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.YnVkZ2V0X3Rva2Vucw.desc": {
+          "source": "Maximum tokens for the complete research process.",
+          "message": "전체 연구 프로세스 최대 토큰."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bWF4X2F0dGVtcHRz.display_name": {
+          "source": "Maximum Attempts",
+          "message": "최대 시도 횟수"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bWF4X2F0dGVtcHRz.short_desc": {
+          "source": "Maximum attempts to refine an answer",
+          "message": "답변 개선 최대 시도 횟수"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bWF4X2F0dGVtcHRz.desc": {
+          "source": "Maximum attempts to refine an answer.",
+          "message": "답변 개선 최대 시도 횟수."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.dGVhbV9zaXpl.display_name": {
+          "source": "Research Team Size",
+          "message": "연구팀 규모"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.dGVhbV9zaXpl.short_desc": {
+          "source": "Number of research workers sharing the token budget",
+          "message": "토큰 예산을 공유하는 연구 작업자 수"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.dGVhbV9zaXpl.desc": {
+          "source": "Number of research workers sharing the token budget.",
+          "message": "토큰 예산을 공유하는 연구 작업자 수."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bm9fZGlyZWN0X2Fuc3dlcg.display_name": {
+          "source": "Always Search",
+          "message": "항상 검색"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bm9fZGlyZWN0X2Fuc3dlcg.short_desc": {
+          "source": "Force a web search before answering",
+          "message": "답변하기 전에 웹 검색 강제 실행"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bm9fZGlyZWN0X2Fuc3dlcg.desc": {
+          "source": "Force a web search before answering.",
+          "message": "답변하기 전에 웹 검색을 강제 실행합니다."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.c2VhcmNoX3Byb3ZpZGVy.display_name": {
+          "source": "Search Provider",
+          "message": "검색 공급자"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.c2VhcmNoX3Byb3ZpZGVy.short_desc": {
+          "source": "Restrict research to arXiv when selected",
+          "message": "선택 시 arXiv로 연구 제한"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.c2VhcmNoX3Byb3ZpZGVy.desc": {
+          "source": "Restrict research to arXiv when selected.",
+          "message": "선택 시 arXiv로 연구 제한."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.c2VhcmNoX3Byb3ZpZGVy.allowed-value.c3RyaW5nOmFyeGl2.display_name": {
+          "source": "arXiv",
+          "message": "arXiv"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.cmVzcG9uc2VfZm9ybWF0.display_name": {
+          "source": "Structured Output",
+          "message": "구조화된 출력"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.cmVzcG9uc2VfZm9ybWF0.short_desc": {
+          "source": "JSON Schema response format for structured answers and fact-checking",
+          "message": "구조화된 답변 및 사실 확인을 위한 JSON 스키마 응답 형식"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.cmVzcG9uc2VfZm9ybWF0.desc": {
+          "source": "JSON Schema response format for structured answers and fact-checking.",
+          "message": "구조화된 답변 및 사실 확인을 위한 JSON 스키마 응답 형식."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.c2VhcmNoX2xhbmd1YWdlX2NvZGU.display_name": {
+          "source": "Search Language",
+          "message": "검색 언어"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.c2VhcmNoX2xhbmd1YWdlX2NvZGU.short_desc": {
+          "source": "Language code for search queries",
+          "message": "검색 쿼리용 언어 코드"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.c2VhcmNoX2xhbmd1YWdlX2NvZGU.desc": {
+          "source": "Language code for search queries.",
+          "message": "검색 쿼리용 언어 코드."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bGFuZ3VhZ2VfY29kZQ.display_name": {
+          "source": "Answer Language",
+          "message": "답변 언어"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bGFuZ3VhZ2VfY29kZQ.short_desc": {
+          "source": "Language code for the answer and reasoning",
+          "message": "답변 및 추론용 언어 코드"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bGFuZ3VhZ2VfY29kZQ.desc": {
+          "source": "Language code for the answer and reasoning.",
+          "message": "답변 및 추론용 언어 코드."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bWF4X3JldHVybmVkX3VybHM.display_name": {
+          "source": "Maximum Source URLs",
+          "message": "최대 소스 URL"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bWF4X3JldHVybmVkX3VybHM.short_desc": {
+          "source": "Maximum source URLs to include with the answer",
+          "message": "답변에 포함할 최대 소스 URL"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.bWF4X3JldHVybmVkX3VybHM.desc": {
+          "source": "Maximum source URLs to include with the answer.",
+          "message": "답변에 포함할 최대 소스 URL."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.Ym9vc3RfaG9zdG5hbWVz.display_name": {
+          "source": "Preferred Domains",
+          "message": "우선할 도메인"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.Ym9vc3RfaG9zdG5hbWVz.short_desc": {
+          "source": "Prefer these domains when reading sources",
+          "message": "소스를 읽을 때 이 도메인들을 선호합니다"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.Ym9vc3RfaG9zdG5hbWVz.desc": {
+          "source": "Prefer these domains when reading sources.",
+          "message": "소스를 읽을 때 이 도메인들을 선호합니다."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.YmFkX2hvc3RuYW1lcw.display_name": {
+          "source": "Excluded Domains",
+          "message": "제외할 도메인"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.YmFkX2hvc3RuYW1lcw.short_desc": {
+          "source": "Exclude these domains from source reading",
+          "message": "소스 읽기에서 다음 도메인을 제외합니다."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.YmFkX2hvc3RuYW1lcw.desc": {
+          "source": "Exclude these domains from source reading.",
+          "message": "소스 읽기에서 다음 도메인을 제외합니다."
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.b25seV9ob3N0bmFtZXM.display_name": {
+          "source": "Allowed Domains",
+          "message": "허용된 도메인"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.b25seV9ob3N0bmFtZXM.short_desc": {
+          "source": "Read sources only from these domains",
+          "message": "이 도메인에서만 소스를 읽습니다"
+        },
+        "app.SmluYUFp.action.ZGVlcC1zZWFyY2g.option.b25seV9ob3N0bmFtZXM.desc": {
+          "source": "Read sources only from these domains.",
+          "message": "이 도메인에서만 소스를 읽습니다."
+        },
+        "app.SmluYUFp.action.ZG93bmxvYWQtYmF0Y2gtb3V0cHV0.display_name": {
+          "source": "Download Batch Output",
+          "message": "배치 출력 다운로드"
+        },
+        "app.SmluYUFp.action.ZG93bmxvYWQtYmF0Y2gtb3V0cHV0.short_desc": {
+          "source": "Download and parse completed batch embeddings",
+          "message": "완료된 배치 임베딩 다운로드 및 구문 분석"
+        },
+        "app.SmluYUFp.action.ZG93bmxvYWQtYmF0Y2gtb3V0cHV0.desc": {
+          "source": "Download the JSONL output for `batch_id` as an ordered list of records. Each record retains its `custom_id` for matching embeddings to the original documents.",
+          "message": "`batch_id`에 대한 JSONL 출력을 정렬된 레코드 목록으로 다운로드합니다. 각 레코드는 임베딩을 원본 문서와 일치시키기 위해 `custom_id`을(를) 유지합니다."
+        },
+        "app.SmluYUFp.action.ZG93bmxvYWQtYmF0Y2gtb3V0cHV0.option.YmF0Y2hfaWQ.display_name": {
+          "source": "Batch",
+          "message": "배치"
+        },
+        "app.SmluYUFp.action.ZG93bmxvYWQtYmF0Y2gtb3V0cHV0.option.YmF0Y2hfaWQ.short_desc": {
+          "source": "Completed batch whose JSONL results or errors to download",
+          "message": "JSONL 결과 또는 오류를 다운로드할 완료된 배치"
+        },
+        "app.SmluYUFp.action.ZG93bmxvYWQtYmF0Y2gtb3V0cHV0.option.YmF0Y2hfaWQ.desc": {
+          "source": "Completed batch whose JSONL results or errors to download.",
+          "message": "JSONL 결과 또는 오류를 다운로드할 완료된 배치"
+        },
+        "app.SmluYUFp.action.ZG93bmxvYWQtYmF0Y2gtZXJyb3Jz.display_name": {
+          "source": "Download Batch Errors",
+          "message": "배치 오류 다운로드"
+        },
+        "app.SmluYUFp.action.ZG93bmxvYWQtYmF0Y2gtZXJyb3Jz.short_desc": {
+          "source": "Download and parse errors from batch embedding jobs",
+          "message": "배치 임베딩 작업에서 오류 다운로드 및 구문 분석"
+        },
+        "app.SmluYUFp.action.ZG93bmxvYWQtYmF0Y2gtZXJyb3Jz.desc": {
+          "source": "Inspect failed records for `batch_id` and use their `custom_id` to correct the source data before resubmitting it.",
+          "message": "`batch_id`의 실패한 레코드를 검사하고 `custom_id`를 사용하여 다시 제출하기 전에 소스 데이터를 수정합니다."
+        },
+        "app.SmluYUFp.action.ZG93bmxvYWQtYmF0Y2gtZXJyb3Jz.option.YmF0Y2hfaWQ.display_name": {
+          "source": "Batch",
+          "message": "배치"
+        },
+        "app.SmluYUFp.action.ZG93bmxvYWQtYmF0Y2gtZXJyb3Jz.option.YmF0Y2hfaWQ.short_desc": {
+          "source": "Completed batch whose JSONL results or errors to download",
+          "message": "JSONL 결과 또는 오류를 다운로드할 완료된 배치"
+        },
+        "app.SmluYUFp.action.ZG93bmxvYWQtYmF0Y2gtZXJyb3Jz.option.YmF0Y2hfaWQ.desc": {
+          "source": "Completed batch whose JSONL results or errors to download.",
+          "message": "JSONL 결과 또는 오류를 다운로드할 완료된 배치"
         }
       }
     }
