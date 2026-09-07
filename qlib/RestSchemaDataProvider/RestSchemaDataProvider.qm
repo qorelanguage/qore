@@ -79,6 +79,8 @@ module RestSchemaDataProvider {
     @section restschemamdataprovider_relnotes Release Notes
 
     @subsection restschemamdataprovider_v2_4 RestSchemaDataProvider v2.4
+    - OpenAPI multipart binary request fields accept named `FileDataType` values without losing
+      filename or media type metadata; existing raw binary inputs remain supported
     - preserve empty hashes, empty lists, zero, and false response bodies
     - migrated from @ref RestClient::RestClient "RestClient" (synchronous HTTP/1.x) to
       @ref RestClientIo::RestClientIo "RestClientIo" (async HTTP/1.x, HTTP/2, and HTTP/3) as the

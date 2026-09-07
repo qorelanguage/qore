@@ -90,6 +90,7 @@ module CohereDataProvider {
     - task-filtered model dropdowns and references to existing datasets and jobs
     - complete current v2 request contracts, including multimodal embeddings and grounded chat
     - v1 and v2 paths are routed explicitly rather than appended to the connection API prefix
+    - named multipart files preserve extensions and media types for audio and dataset uploads
 
     @par Example
     @code{.q}
@@ -99,6 +100,17 @@ module CohereDataProvider {
         "model": "embed-multilingual-v3.0",
         "texts": ("A customer asked to reschedule delivery.",),
         "input_type": "search_document",
+    });
+    @endcode
+
+    Upload actions accept `FileDataType` values. Supply the original filename so Cohere can determine
+    the audio or dataset format; `content` accepts raw binary data or base64-encoded data.
+    @par Audio upload example
+    @code{.q}
+    auto transcript = provider.getChildProvider("transcribe").doRequest({
+        "language": "en",
+        "file": {"name": "delivery-note.wav", "content": File::readBinaryFile("delivery-note.wav"),
+            "mime_type": "audio/wav"},
     });
     @endcode
 

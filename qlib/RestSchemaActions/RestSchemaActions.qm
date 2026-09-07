@@ -404,6 +404,7 @@ module RestSchemaActions {
     @section restschemaactionsrelnotes Release Notes
 
     @subsection restschemaactionsv1_0 RestSchemaActions v1.0
+    - generated multipart actions expose named files alongside raw binary inputs, preserving upload metadata
     - the initial version of the %RestSchemaActions module
     - omit schema `readOnly` properties from flattened request options, including unwrapped bodies
     - enforce overlay required groups and mutually exclusive options before sending requests

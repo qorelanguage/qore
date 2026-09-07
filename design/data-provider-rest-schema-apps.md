@@ -210,6 +210,19 @@ assertEq((), drift, "the manifest and the vendored schema agree");
 If the committed schema and the manifest ever disagree, that assertion fails rather than the
 disagreement surfacing when a user opens an action.
 
+## Multipart file requests
+
+OpenAPI multipart binary properties accept the existing raw bytes or a `FileDataType` value with
+`name`, `content`, and optional `mime_type`. Named files preserve their filename and media type;
+content can be raw binary or base64. The request field is a union of file and binary types. This
+conversion applies only to multipart request fields and does not widen response contracts.
+
+The operation validates the decoded file contents against its wire schema while retaining file
+metadata for serialization. Both direct schema requests and generated actions use the same multipart
+serializer. Ordinary fields have no filename and precede file parts; raw binary inputs retain the
+field name as their legacy filename. APIs that determine format from an extension require a named
+file, for example `invoice.wav` for Cohere transcription or `invoices.jsonl` for a dataset.
+
 ## Per-application test conventions
 
 Beyond the drift-agreement test, each application's `.qtest` should cover:

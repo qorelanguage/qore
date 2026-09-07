@@ -302,6 +302,8 @@ excluded from the union and make it @ref RestSchemaValidator::AbstractSchemaObje
     @section openapi3_relnotes OpenApi3 Module Release Notes
 
     @subsection openapi3_1_0 OpenApi3 v1.0
+    - multipart binary inputs accept named `FileDataType` values as well as raw bytes;
+      file names and media types are preserved, and ordinary form fields precede file parts
     - preserve literal prefixes and suffixes in path templates such as `/v2/batches/{id}:cancel`,
       prefer these over whole-component wildcards, and extract all path parameters together
     - initial release of the %OpenApi3 module
@@ -2014,14 +2016,7 @@ public class OpenApi3Schema inherits ObjectBase, AbstractRestSchemaValidator {
                 continue;
             }
             if (content == MimeTypeMultipartFormData) {
-                # only send binary values with a "filename" attribute
-                hash<string, hash<FormDataMessageInfo>> parts =
-                    cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>({
-                        "name": $1.key,
-                        "hdr": {"Content-Type": MimeTypeText},
-                        "body": remove body{$1.key},
-                    } + ($1.value.typeCode() == NT_BINARY ? {"filename": $1.key} : NOTHING))}, body.pairIterator());
-                hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
+                hash<MessageInfo> mh = OperationObject::serializeMultipartBody(body);
                 return rv += {
                     "body": mh.body,
                     "content": mh.hdr."Content-Type",
@@ -2972,6 +2967,114 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         }
     }
 
+    #! Returns the request body field, including named file inputs for multipart operations
+    /** @param pio the path item containing this operation
+        @param rest optional REST client used to derive field reference data
+        @return the request body field, or @ref NOTHING when no body is declared
+
+        Multipart binary properties accept a @ref DataProvider::FileDataType "FileDataType" value
+        containing `name`, `content`, and optional `mime_type`, as well as existing raw binary inputs.
+        The schema's response types remain unchanged.
+    */
+    *AbstractDataField getRequestBodyField(PathItemObject pio, *object rest) {
+        *ParameterObject param = body ?? pio.body;
+        if (!param || !param.schema) {
+            return;
+        }
+        AbstractDataField field = param.schema.getField("body", "REST request body argument",
+            param.required ?? False, rest);
+        if (!consumes{MimeTypeMultipartFormData} || !(field.getType().getMandatoryType() instanceof HashDataType)) {
+            return field;
+        }
+        HashDataType type = cast<HashDataType>(field.getType().getMandatoryType());
+        hash<string, AbstractDataField> fields = type.getFields();
+        foreach string name in (keys getMultipartFileProperties(param)) {
+            if (!fields{name}) {
+                continue;
+            }
+            QoreDataField f = cast<QoreDataField>(fields{name}.copy());
+            AbstractDataProviderType file_type = new QoreUnionDataType((FileDataType,
+                AbstractDataProviderType::get(SoftBinaryType)));
+            f.updateFieldType(f.isMandatory() ? file_type : file_type.getOrNothingType());
+            fields{name} = f;
+        }
+        QoreDataField result = cast<QoreDataField>(field.copy());
+        AbstractDataProviderType body_type = type.copyWithFields(fields);
+        result.updateFieldType(field.isMandatory() ? body_type : body_type.getOrNothingType());
+        return result;
+    }
+
+    #! Finds binary properties that are represented by individual multipart file parts
+    private hash<string, bool> getMultipartFileProperties(ParameterObject param) {
+        hash<string, bool> fields = {};
+        if (consumes{MimeTypeMultipartFormData}) {
+            foreach hash<auto> entry in (param.schema.properties.pairIterator()) {
+                if (entry.value.type == "string" && entry.value.format == "binary") {
+                    fields{entry.key} = True;
+                }
+            }
+        }
+        return fields;
+    }
+
+    #! Validates file contents against the wire schema without discarding their upload metadata
+    private checkBodyParameter(ParameterObject param, bool serialize, reference<auto> value) {
+        auto checked = value;
+        hash<auto> files;
+        if (serialize && checked.typeCode() == NT_HASH) {
+            foreach string name in (keys getMultipartFileProperties(param)) {
+                if (checked{name}.typeCode() != NT_HASH) {
+                    continue;
+                }
+                hash<auto> file = FileDataType.acceptsValue(checked{name});
+                if (!file.name.val()) {
+                    throw "SCHEMA-VALIDATION-ERROR", sprintf("multipart file %y requires a non-empty filename", name);
+                }
+                files{name} = file;
+                checked{name} = parse_base64_string(file.content);
+            }
+        }
+        param.check(serialize, True, path, method, "body", \checked);
+        value = files ? checked + files : checked;
+    }
+
+    #! Serializes multipart request fields with file names, media types, and unmodified bytes
+    /** @param body validated multipart request properties
+        @return the serialized body and Content-Type header including its boundary
+        @throw MULTIPART-FORMDATA-ERROR an invalid part name or filename was supplied
+        @throw BASE64-PARSE-ERROR encoded file contents are invalid
+
+        Text parameters precede file parts so APIs can read their options before streaming an upload.
+    */
+    static hash<MessageInfo> serializeMultipartBody(hash<auto> body) {
+        MultiPartFormDataMessage message();
+        hash<string, hash<FormDataMessageInfo>> files;
+        foreach hash<auto> entry in (body.pairIterator()) {
+            if (entry.value.typeCode() == NT_HASH) {
+                hash<auto> file = FileDataType.acceptsValue(entry.value);
+                files{entry.key} = <FormDataMessageInfo>{
+                    "name": entry.key,
+                    "filename": file.name,
+                    "hdr": {"Content-Type": file.mime_type},
+                    "body": parse_base64_string(file.content),
+                };
+            } else if (entry.value.typeCode() == NT_BINARY) {
+                files{entry.key} = <FormDataMessageInfo>{
+                    "name": entry.key,
+                    "filename": entry.key,
+                    "hdr": {"Content-Type": MimeTypeOctetStream},
+                    "body": entry.value,
+                };
+            } else {
+                message.addPart(formScalar(entry.value), entry.key);
+            }
+        }
+        foreach hash<FormDataMessageInfo> file in (files.iterator()) {
+            message.addPart(file);
+        }
+        return message.getMsgAndHeaders();
+    }
+
     #! Processes a generated request
     /** @param pio the path item object
         @param body the request body
@@ -2985,7 +3088,7 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         PathItemObject real_pio = cast<PathItemObject>(pio);
         *ParameterObject body_po = self.body ?? real_pio.body;
         if (body_po) {
-            body_po.check(True, True, path, method, "body", \body);
+            checkBodyParameter(body_po, True, \body);
         } else if (formData) {
             map $1.value.check(True, True, path, method, "formData." + $1.key, \body{$1.key}),
                 formData.pairIterator();
@@ -3005,15 +3108,7 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         string ct = consumes.firstKey();
 
         if (ct == MimeTypeMultipartFormData) {
-            hash<string, hash<FormDataMessageInfo>> parts =
-                cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>({
-                    "name": $1.key,
-                    "filename": $1.key,
-                    "hdr": {"Content-Type": MimeTypeText},
-                    "body": $1.value,
-                })}, body.pairIterator());
-
-            hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
+            hash<MessageInfo> mh = OperationObject::serializeMultipartBody(body);
             headers."Content-Type" = mh.hdr."Content-Type";
             return mh.body;
         }
@@ -3239,7 +3334,7 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         {
             *ParameterObject body_po = self.body ?? real_pio.body;
             if (body_po) {
-                body_po.check(serialize, True, path, method, "body", \body);
+                checkBodyParameter(body_po, serialize, \body);
             } else if (formData) {
                 foreach hash<auto> i in (formData.pairIterator()) {
                     i.value.check(serialize, True, path, method, "formData." + i.key, \body{i.key});

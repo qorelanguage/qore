@@ -259,8 +259,7 @@ public class RestSchemaRequestDataProvider inherits RestSchemaDataProviderBase {
         # In OpenAPI 3.0, body is converted to a ParameterObject just like in Swagger
         *OpenApi3::ParameterObject body = openapi3_op.body ?? openapi3_pio.body;
         if (body && body.schema) {
-            AbstractDataField body_field = openapi3.getFieldFromSchema("body", "REST request body argument",
-                body.schema, body.required ?? False, rest);
+            AbstractDataField body_field = openapi3_op.getRequestBodyField(openapi3_pio, rest);
             rv.addField(body_field);
             if (!required && body.required) {
                 required = True;

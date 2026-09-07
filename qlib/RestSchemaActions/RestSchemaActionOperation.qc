@@ -884,8 +884,7 @@ public class RestSchemaActionOperation {
             return;
         }
         bool body_required = body.required ?? False;
-        AbstractDataField body_field = schema.getFieldFromSchema("body", "REST request body argument",
-            body.schema, body_required);
+        AbstractDataField body_field = op.getRequestBodyField(pio);
         AbstractDataProviderType body_type = body_field.getType();
 
         # an object body is flattened to its properties; anything else -- an array or a scalar -- has no

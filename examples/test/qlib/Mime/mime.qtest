@@ -1,11 +1,12 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires QUnit
-%requires Mime
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
 
 %exec-class MimeTest
 
@@ -68,6 +69,7 @@ aωb\r
         addTestCase("Header word b test", \wordBTest());
         addTestCase("urlencoding", \urlEncodingTest());
         addTestCase("form data", \formDataTest());
+        addTestCase("RFC 2046 multipart boundary parameters", \boundaryParameterTest());
         addTestCase("form data has no MIME preamble", \formDataNoPreambleTest());
         addTestCase("form data field content types", \formDataFieldContentTypeTest());
         addTestCase("form data repeated field names", \formDataRepeatedPartTest());
@@ -85,6 +87,27 @@ aωb\r
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    boundaryParameterTest() {
+        list<string> boundaries = ("a", "gc0pJq0M:08jU534c0p", "space and '()+_,./:=?-",
+            sprintf("%070d", 1), MultiPartMessage::getBoundary());
+        foreach string boundary in (boundaries) {
+            MultiPartFormDataMessage msg(boundary);
+            msg.addPart("invoice 5433", "text");
+            hash<MessageInfo> serialized = msg.getMsgAndHeaders();
+            assertEq("multipart/form-data; boundary=\"" + boundary + "\"",
+                serialized.hdr."Content-Type");
+            assertEq("--" + boundary + "\r\n", serialized.body.substr(0, boundary.size() + 4).toString());
+            assertEq("\r\n--" + boundary + "--", serialized.body.substr(-boundary.size() - 6).toString());
+            hash<string, hash<FormDataMessageInfo>> parsed = MultiPartFormDataMessage::parseMessage(
+                serialized.hdr."Content-Type", serialized.body.toString());
+            assertEq("invoice 5433", parsed.text.body);
+        }
+        foreach string boundary in ("", "trailing ", "bad\r\nheader", "line\n", "tab\t", "quote\"",
+                "back\\slash", "non-ascii-é", sprintf("%071d", 1)) {
+            assertThrows("MULTIPART-BOUNDARY-ERROR", sub () { new MultiPartFormDataMessage(boundary); });
+        }
     }
 
     textTests() {

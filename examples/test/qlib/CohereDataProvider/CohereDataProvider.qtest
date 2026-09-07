@@ -237,6 +237,8 @@ public class CohereDataProviderTest inherits QUnit::Test {
         addTestCase("model and object dropdowns use their listing endpoints", \referenceDataTest());
         addTestCase("invalid and incomplete requests never reach the transport", \negativeTest());
         addTestCase("HTTP routes, authentication, and multipart bytes", \wireTest());
+        addTestCase("live image parsing and audio transcription", \liveMediaTest());
+        addTestCase("live dataset upload, retrieval, and cleanup", \liveDatasetTest());
         addTestCase("live key-check action", \liveKeyTest());
 
         # Live test requires a real Cohere connection.
@@ -483,6 +485,10 @@ public class CohereDataProviderTest inherits QUnit::Test {
                 {"action": "rerank", "request": {"query": "invoice"}},
                 {"action": "parse", "request": {"document": {"type": "image_url", "image_url": "https://example.org/a.png"}, "output_format": "pdf"}},
                 {"action": "transcribe", "request": {"language": "en"}},
+                {"action": "transcribe", "request": {"language": "en",
+                    "file": {"name": "", "content": binary("RIFF")}}},
+                {"action": "transcribe", "request": {"language": "en",
+                    "file": {"name": "invoice.wav"}}},
                 {"action": "create-dataset", "request": {"name": "test", "type": "invalid", "data": binary("x")}},
                 {"action": "get-batch", "request": {}},
                 {"action": "create-batch", "request": {"name": "Invoices"}}) {
@@ -526,6 +532,87 @@ public class CohereDataProviderTest inherits QUnit::Test {
         root.getChildProvider("create-dataset").doRequest(Requests{"create-dataset"});
         assertRegex("multipart/form-data;", handler.getRequest()."content-type");
         assertRegex("Invoice paid", handler.getBody().toString());
+        root.getChildProvider("transcribe").doRequest(Requests.transcribe + {
+            "file": {"name": "invoice.wav", "content": binary("RIFFcohere-audio"), "mime_type": "audio/wav"},
+        });
+        hash<string, hash<FormDataMessageInfo>> parts = MultiPartFormDataMessage::parseMessage(
+            handler.getRequest()."content-type", handler.getBody().toString());
+        assertRegex("boundary=\"[^\"]+\"$", handler.getRequest()."content-type");
+        assertEq("invoice.wav", parts.file.filename);
+        assertEq("audio/wav", parts.file.hdr."content-type");
+        assertEq(binary("RIFFcohere-audio"), parts.file.body);
+        assertEq("en", parts.language.body);
+        assertEq(NOTHING, parts.language.filename);
+        assertEq("cohere-transcribe-03-2026", parts.model.body);
+        assertEq(NOTHING, parts.model.filename);
+        root.getChildProvider("create-dataset").doRequest(Requests{"create-dataset"} + {
+            "data": {"name": "invoices.jsonl", "content": Requests{"create-dataset"}.data},
+        });
+        parts = MultiPartFormDataMessage::parseMessage(handler.getRequest()."content-type",
+            handler.getBody().toString());
+        assertEq("invoices.jsonl", parts.data.filename);
+        assertEq(Requests{"create-dataset"}.data, binary(parts.data.body));
+    }
+
+    private liveMediaTest() {
+        if (!ENV.COHERE_APIKEY || !ENV.COHERE_TEST_IMAGE || !ENV.COHERE_TEST_AUDIO) {
+            testSkip("set COHERE_APIKEY, COHERE_TEST_IMAGE, and COHERE_TEST_AUDIO for live media checks");
+        }
+        CohereDataProvider::CohereDataProvider root({"apikey": ENV.COHERE_APIKEY});
+        auto parsed = root.getChildProvider("parse").doRequest({
+            "document": {"type": "image_url", "image_url": "data:image/png;base64,"
+                + make_base64_string(File::readBinaryFile(ENV.COHERE_TEST_IMAGE))},
+            "output_format": "markdown",
+        });
+        assertTrue(parsed.pages[0].markdown.content.val());
+        if (ENV.COHERE_TEST_IMAGE_TEXT) {
+            assertTrue(parsed.pages[0].markdown.content.find(ENV.COHERE_TEST_IMAGE_TEXT) >= 0);
+        }
+        auto transcript = root.getChildProvider("transcribe").doRequest({
+            "language": "en",
+            "file": {"name": basename(ENV.COHERE_TEST_AUDIO),
+                "content": File::readBinaryFile(ENV.COHERE_TEST_AUDIO)},
+        });
+        assertTrue(transcript.text.val());
+        if (ENV.COHERE_TEST_AUDIO_TEXT) {
+            assertTrue(transcript.text.find(ENV.COHERE_TEST_AUDIO_TEXT) >= 0);
+        }
+    }
+
+    private liveDatasetTest() {
+        if (!ENV.COHERE_APIKEY || ENV.COHERE_TEST_RESOURCES != "1") {
+            testSkip("set COHERE_APIKEY and COHERE_TEST_RESOURCES=1 to create and delete a test dataset");
+        }
+        CohereDataProvider::CohereDataProvider root({"apikey": ENV.COHERE_APIKEY});
+        *string cleanup_id;
+        on_exit {
+            if (cleanup_id.val()) {
+                root.getChildProvider("delete-dataset").doRequest({"id": cleanup_id});
+            }
+        }
+        string name = "qore-5433-" + now_us().format("YYYYMMDDHHmmSSus");
+        auto created = root.getChildProvider("create-dataset").doRequest({
+            "name": name, "type": "embed-input",
+            "data": {"name": "invoices.jsonl", "content": binary("{\"text\":\"Invoice total 42 EUR\"}\n")},
+        });
+        cleanup_id = created.id;
+        assertTrue(cleanup_id.val());
+        string id = cleanup_id;
+        auto retrieved = root.getChildProvider("get-dataset").doRequest({"id": id});
+        assertEq(id, retrieved.dataset.id);
+        assertEq(name, retrieved.dataset.name);
+        assertEq("embed-input", retrieved.dataset.dataset_type);
+        root.getChildProvider("delete-dataset").doRequest({"id": id});
+        cleanup_id = NOTHING;
+        *hash<ExceptionInfo> error;
+        try {
+            root.getChildProvider("get-dataset").doRequest({"id": id});
+        } catch (hash<ExceptionInfo> ex) {
+            error = ex;
+        }
+        assertTrue(exists error);
+        assertEq("REST-RESPONSE-ERROR", error.err);
+        assertEq(404, error.arg.status_code);
     }
 
     private liveKeyTest() {

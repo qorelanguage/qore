@@ -1,0 +1,112 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/OpenApi3.qm
+%requires json
+%exec-class MultipartFilesTest
+
+class MultipartFilesTest inherits QUnit::Test {
+    private {
+        OpenApi3Schema schema = new OpenApi3Schema("multipart test", {
+            "openapi": "3.0.3", "info": {"title": "Invoice upload", "version": "1"},
+            "paths": {"/upload": {"post": {
+                "requestBody": {"required": True, "content": {"multipart/form-data": {"schema": {
+                    "type": "object", "required": ("file", "model"), "properties": {
+                        "file": {"type": "string", "format": "binary"},
+                        "model": {"type": "string"},
+                        "enabled": {"type": "boolean"},
+                        "temperature": {"type": "number"},
+                        "comment": {"type": "string"},
+                        "extra": {"type": "string", "format": "binary"},
+                    },
+                }}}},
+                "responses": {"200": {"description": "Stored file", "content": {
+                    "application/octet-stream": {"schema": {"type": "string", "format": "binary"}},
+                }}},
+            }}},
+        });
+    }
+    constructor() : Test("OpenAPI multipart files", "1.0", \ARGV) {
+        addTestCase("named files retain bytes, filenames, media types and field order", \fileTest());
+        addTestCase("legacy binary files and empty files", \binaryTest());
+        addTestCase("invalid file input is rejected before serialization", \negativeTest());
+        addTestCase("file request types preserve requiredness and cached wire types", \fieldTest());
+        set_return_value(main());
+    }
+    private fileTest() {
+        binary bytes = <00017FFF52494646>;
+        hash<auto> request = {
+            "file": {"name": "invoice.wav", "content": bytes, "mime_type": "audio/wav"},
+            "model": "transcribe", "enabled": False, "temperature": 0, "comment": "",
+            "extra": {"name": "notes.txt", "content": make_base64_string("invoice 42")},
+        };
+        hash<auto> original = request;
+        hash<RestRequestClientInfo> result = schema.processRequest("POST", "/upload", request);
+        hash<string, hash<FormDataMessageInfo>> parts = MultiPartFormDataMessage::parseMessage(
+            result.content, result.body.toString());
+        assertEq(original, request, "serialization must not mutate the caller's file objects");
+        assertEq("invoice.wav", parts.file.filename);
+        assertEq("audio/wav", parts.file.hdr."content-type");
+        assertEq(bytes, parts.file.body);
+        assertEq("notes.txt", parts.extra.filename);
+        assertEq("text/plain", parts.extra.hdr."content-type");
+        assertEq("invoice 42", parts.extra.body);
+        assertEq("false", parts.enabled.body);
+        assertEq(0.0, parts.temperature.body.toFloat());
+        assertEq("", parts.comment.body);
+        assertEq("transcribe", parts.model.body);
+        assertEq(NOTHING, parts.model.filename);
+        assertEq(NOTHING, parts.model.hdr."content-type");
+        hash<MessageInfo> raw_parts = MultiPartMessage::parseBody(
+            (result.content =~ x/boundary="([^"]+)"/)[0], result.body);
+        assertRegex("name=\"model\"", raw_parts.part[0].hdr."content-disposition");
+        assertRegex("filename=\"invoice.wav\"", raw_parts.part[4].hdr."content-disposition");
+        assertRegex("filename=\"notes.txt\"", raw_parts.part[5].hdr."content-disposition");
+    }
+    private binaryTest() {
+        foreach binary bytes in (binary(), binary("raw data")) {
+            hash<RestRequestClientInfo> result = schema.processRequest("POST", "/upload", {
+                "model": "transcribe", "file": bytes,
+            });
+            hash<string, hash<FormDataMessageInfo>> parts = MultiPartFormDataMessage::parseMessage(
+                result.content, result.body.toString());
+            assertEq("file", parts.file.filename);
+            assertEq("application/octet-stream", parts.file.hdr."content-type");
+            assertEq(bytes, parts.file.body);
+        }
+    }
+    private negativeTest() {
+        foreach hash<auto> file in ({"name": "invoice.wav"}, {"content": binary("x")},
+                {"name": "", "content": binary("x")}, {"name": "invoice.wav", "content": 5},
+                {"name": "invoice.wav", "content": binary("x"), "unexpected": True}) {
+            *hash<ExceptionInfo> error;
+            try {
+                schema.processRequest("POST", "/upload", {"model": "transcribe", "file": file});
+            } catch (hash<ExceptionInfo> ex) {
+                error = ex;
+            }
+            assertTrue(exists error);
+            assertRegex("^(SCHEMA-VALIDATION-ERROR|RUNTIME-TYPE-ERROR|MISSING-VALUE-ERROR)$", error.err);
+        }
+    }
+    private fieldTest() {
+        OpenApi3::PathItemObject pio = schema.paths.match("/upload");
+        OpenApi3::OperationObject op = pio.getOperation("post", "/upload");
+        AbstractDataField field = op.getRequestBodyField(pio);
+        hash<string, AbstractDataField> fields = field.getType().getFields();
+        assertTrue(fields.file.isMandatory());
+        assertFalse(fields.extra.isMandatory());
+        assertTrue(fields.file.getType() instanceof QoreUnionDataType);
+        assertEq(binary("bytes"), fields.file.acceptsValue(binary("bytes")));
+        hash<auto> file = fields.file.acceptsValue({"name": "invoice.wav", "content": binary("bytes")});
+        assertEq("invoice.wav", file.name);
+        assertEq(binary("bytes"), parse_base64_string(file.content));
+        assertEq(NOTHING, fields.extra.acceptsValue(NOTHING));
+        # The interned wire schema may be reused in a response or a JSON operation.
+        AbstractDataField wire = schema.getFieldFromSchema("body", "Wire body", op.body.schema);
+        assertEq(NT_BINARY, wire.getType().getFields().file.getType().getBaseTypeCode());
+        assertEq(NT_STRING, fields.model.getType().getBaseTypeCode());
+    }
+}
