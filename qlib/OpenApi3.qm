@@ -4101,6 +4101,14 @@ public class TagObject inherits ObjectBase {
     It validates data against oneOf, anyOf, not, allOf schemas as well as readOnly/writeOnly constraints.
 */
 public class OpenApi3HashDataType inherits HashDataType {
+    public {
+        #! How deep a nested composition is followed when matching a value against a subschema
+        /** A constraint composition is a level or two deep in practice; the limit is what stops a schema
+            that refers back to itself through a composition from recursing without end.
+        */
+        const MaxCompositionMatchDepth = 16;
+    }
+
     private {
         #! Reference to the schema object for validation
         SchemaObject schema;
@@ -4219,7 +4227,51 @@ public class OpenApi3HashDataType inherits HashDataType {
     }
 
     #! Checks if a value matches a schema (for oneOf/anyOf/not validation)
-    private bool matchesSchema(SchemaObject s, hash<auto> value) {
+    private bool matchesSchema(SchemaObject s, hash<auto> value, int depth = 0) {
+        # a composition keyword inside the subschema decides the match as much as "required" does, and a
+        # subschema that carries nothing else is decided by it entirely: Pinecone excludes the two query
+        # combinations it will not take by writing
+        #     not: {anyOf: [{required: [id, vector]}, {required: [id, sparseVector]}]}
+        # and that "not" declares no properties and no "required" of its own.  Ignoring the nested
+        # "anyOf" made it match every value, so the "not" fired on every request and the operation could
+        # not be called at all.
+        #
+        # The depth limit bounds a schema that refers back to itself through a composition; real
+        # constraint compositions are a level or two deep.
+        if (depth < MaxCompositionMatchDepth) {
+            foreach SchemaObject m in (s.allOf) {
+                if (!matchesSchema(m, value, depth + 1)) {
+                    return False;
+                }
+            }
+            if (s.anyOf) {
+                bool matched = False;
+                foreach SchemaObject m in (s.anyOf) {
+                    if (matchesSchema(m, value, depth + 1)) {
+                        matched = True;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    return False;
+                }
+            }
+            if (s.oneOf) {
+                int matches = 0;
+                foreach SchemaObject m in (s.oneOf) {
+                    if (matchesSchema(m, value, depth + 1)) {
+                        ++matches;
+                    }
+                }
+                if (matches != 1) {
+                    return False;
+                }
+            }
+            if (s.notSchema && matchesSchema(s.notSchema, value, depth + 1)) {
+                return False;
+            }
+        }
+
         # Check required properties
         if (s.required) {
             foreach string key in (keys s.required) {
@@ -4599,6 +4651,9 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         @param openapi3 the REST schema for resolving references
         @param hash_str the unique hash for the value being parsed
         @param require_items require items for arrays
+        @param composed this object is a member of an \c "allOf", \c "oneOf", \c "anyOf" or \c "not"
+        composition, so the schema composing it supplies the property declarations its \c "required" list
+        names
 
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
@@ -4606,7 +4661,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
     */
-    private constructor(string name, hash<auto> oh, OpenApi3Schema openapi3, *string hash_str, *bool require_items)
+    private constructor(string name, hash<auto> oh, OpenApi3Schema openapi3, *string hash_str, *bool require_items,
+            *bool composed)
             : ObjectBase(oh), SchemaBase("Schema", oh) {
         self.name = name;
         self.openapi3 := openapi3;
@@ -4735,7 +4791,17 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
             if (!required)
                 throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: field 'required' is an empty list", name);
             # make sure all required properties are defined
-            if (!additionalProperties && (*list<string> missing = keys (required - keys properties))) {
+            #
+            # JSON Schema does not require a "required" name to appear in "properties" - the keyword asserts only
+            # that the member is present - so this is a lint that catches a typo in a document where "properties"
+            # is the complete declaration, and it is skipped where that premise does not hold.
+            #
+            # A composition member is exactly that case: refining a constraint by narrowing one property and
+            # requiring another, while the schema composing it declares them both, is the standard idiom.  Pinecone
+            # writes a document scoring method as an object declaring every property, plus an "anyOf" of four
+            # branches selecting a "type" and requiring the property that type needs; each branch names a property
+            # of its parent, and checking them in isolation rejects a valid document.
+            if (!composed && !additionalProperties && (*list<string> missing = keys (required - keys properties))) {
                 throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: the following required properties are not "
                     "defined: %y", name, missing);
             }
@@ -4793,7 +4859,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
                     if (val.typeCode() != NT_HASH)
                         throw "INVALID-FIELD-TYPE", sprintf("Schema Object %y: invalid 'allOf' list value "
                             "datatype: %y", name, val.type());
-                    allOf[allOf.size()] = SchemaObject::newSchemaObject(name + "AllOf", val, openapi3);
+                    allOf[allOf.size()] = SchemaObject::newSchemaObject(name + "AllOf", val, openapi3,
+                        NOTHING, True);
                 }
                 # Merge allOf member schemas into this schema so that getDataType()
                 # exposes the union of their properties and required sets. Local
@@ -4839,7 +4906,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
                     if (val.typeCode() != NT_HASH)
                         throw "INVALID-FIELD-TYPE", sprintf("Schema Object %y: invalid 'oneOf' list value "
                             "datatype: %y", name, val.type());
-                    SchemaObject member = SchemaObject::newSchemaObject(name + "OneOf", val, openapi3);
+                    SchemaObject member = SchemaObject::newSchemaObject(name + "OneOf", val, openapi3,
+                        NOTHING, True);
                     oneOf[oneOf.size()] = member;
                     # a "null"-typed member expresses nullability of the composition itself
                     if (member.nullType) {
@@ -4858,7 +4926,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
                     if (val.typeCode() != NT_HASH)
                         throw "INVALID-FIELD-TYPE", sprintf("Schema Object %y: invalid 'anyOf' list value "
                             "datatype: %y", name, val.type());
-                    SchemaObject member = SchemaObject::newSchemaObject(name + "AnyOf", val, openapi3);
+                    SchemaObject member = SchemaObject::newSchemaObject(name + "AnyOf", val, openapi3,
+                        NOTHING, True);
                     anyOf[anyOf.size()] = member;
                     # a "null"-typed member expresses nullability of the composition itself
                     if (member.nullType) {
@@ -4871,7 +4940,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         {
             *hash notObj;
             if (optional_field(obj_type, oh, "not", NT_HASH, \notObj)) {
-                notSchema = SchemaObject::newSchemaObject(name + "Not", notObj, openapi3);
+                notSchema = SchemaObject::newSchemaObject(name + "Not", notObj, openapi3, NOTHING, True);
             }
         }
 
@@ -5008,17 +5077,68 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         Exposing that as a union type would replace an object with nine well-typed options by a single
         opaque one, so the object's own type is used and the composition is left to validation, which
         @ref OpenApi3::OpenApi3HashDataType "OpenApi3HashDataType" performs.
+
+        A member states a constraint rather than a shape when it introduces nothing: no type, no array
+        items, no \c allOf, and no property the composing object does not already declare.  A member that
+        narrows a property the object declares - \c {"properties": {"delete_all": {"enum": [false]}}} -
+        adds no option and is a constraint, as is a \c not, which only excludes values, and as is a
+        nested \c anyOf of the same.  Pinecone writes all three of its document selectors that way, each
+        branch naming a property of the parent, and reading the branches as alternative shapes published
+        a delete and an update action with **no options at all** - not a poor option shape, an absent
+        one.
     */
     bool isConstraintOnlyComposition() {
-        if (!properties && type != "object") {
+        # the composing schema has to declare the shape itself, or there is nothing for the members to be
+        # constraints *on*: an object with properties, or an array with items
+        if (!properties && type != "object" && !(type == "array" && items)) {
             return False;
         }
         if (!oneOf && !anyOf) {
             return False;
         }
         foreach SchemaObject member in (oneOf + anyOf) {
-            if (member.own_type || member.properties || member.allOf || member.oneOf || member.anyOf
-                || member.notSchema || member.items) {
+            if (!member.isConstraintOnlyMember(properties, exists items)) {
+                return False;
+            }
+        }
+        return True;
+    }
+
+    #! Returns True if this composition member introduces no shape of its own
+    /** @param parent_properties the properties declared by the object composing this member; a property
+        named here is being narrowed by the member rather than introduced by it
+        @param parent_has_items the composing schema declares \c "items", so a member declaring them is
+        narrowing the element type rather than introducing one
+
+        @return True if the member only constrains what the composing schema already declares
+    */
+    private bool isConstraintOnlyMember(*hash<string, SchemaObject> parent_properties,
+            bool parent_has_items = False) {
+        # a member that declares its own type, or an "allOf", is describing a shape
+        if (own_type || allOf) {
+            return False;
+        }
+        # "items" on a member of an array that already declares them narrows the element - Pinecone's
+        # document search declares its scoring clauses as an array and then uses the composition to say
+        # "one clause, or several that all score by text", which constrains the element rather than
+        # replacing it.  On a schema that declares no items of its own it really is a shape.
+        if (items && !parent_has_items) {
+            return False;
+        }
+        # a property the composing object does not declare would be lost by using the object's own type,
+        # so such a member really is an alternative shape
+        foreach string k in (keys properties) {
+            if (!parent_properties{k}) {
+                return False;
+            }
+        }
+        # "not" contributes no property to the resulting type; it only excludes values
+        if (notSchema && !notSchema.isConstraintOnlyMember(parent_properties, parent_has_items)) {
+            return False;
+        }
+        # a nested composition of constraints is still constraints
+        foreach SchemaObject nested in (oneOf + anyOf) {
+            if (!nested.isConstraintOnlyMember(parent_properties, parent_has_items)) {
                 return False;
             }
         }
@@ -5341,8 +5461,21 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         SchemaBase::check(serialize, request, type, format, items, path, method, name, \value);
     }
 
+    #! Rejects an object-only keyword on a schema that declares an incompatible type
+    /** An untyped schema is accepted, because a JSON Schema assertion applies only to an instance of the type it
+        describes and is otherwise ignored - so an object-only keyword on a schema that declares no type at all is
+        valid, and constrains nothing else.
+
+        This is the form a composition branch takes when it refines a constraint on a property the schema composing
+        it declares: Pinecone narrows a document update's \c "set_fields" to \c {"minProperties": 1} in an \c "anyOf"
+        branch, while \c "type: object" is declared once, on the parent.  Reading the branch in isolation and
+        demanding a type there rejects a valid document.
+
+        A **declared** non-object type is still refused, which is where the check earns its place: \c "minProperties"
+        on a \c "type: string" is a mistake in any document.
+    */
     private checkObjectProperty(string name, string prop) {
-        if (type != "object") {
+        if (type != "object" && type != "any") {
             throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: %y cannot be given on an object of type %y",
                 name, prop, type);
         }
@@ -5510,6 +5643,9 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         @param oh deserialized hash from the source schema description describing an object in the schema
         @param openapi3 the REST schema for resolving references
         @param require_items if @ref True, require \c items for array types
+        @param composed the object is a member of an \c "allOf", \c "oneOf", \c "anyOf" or \c "not"
+        composition, so the schema composing it supplies the property declarations its \c "required"
+        list names
 
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
@@ -5517,7 +5653,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
     */
-    static SchemaObject newSchemaObject(string name, hash<auto> oh, OpenApi3Schema openapi3, *bool require_items) {
+    static SchemaObject newSchemaObject(string name, hash<auto> oh, OpenApi3Schema openapi3, *bool require_items,
+            *bool composed) {
         string refstr;
         if (optional_field("Schema", oh, "$ref", NT_STRING, \refstr))
             return openapi3.resolveSchemaObject(name, refstr, oh);
@@ -5527,7 +5664,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         if (rv) {
             return rv;
         }
-        return new SchemaObject(name, oh, openapi3, hash_str, require_items);
+        return new SchemaObject(name, oh, openapi3, hash_str, require_items, composed);
     }
 
     #! throws an \c "INVALID-FIELD-TYPE" exception
