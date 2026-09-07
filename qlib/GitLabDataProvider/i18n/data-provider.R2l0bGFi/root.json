@@ -3640,8 +3640,8 @@
           "message": "Due Date"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRJc3N1ZXM.option.ZHVlX2RhdGU.short_desc": {
-          "source": "Return issues that have no due date ('{{0}}'), or whose due date is this week,…",
-          "message": "Return issues that have no due date ('{{0}}'), or whose due date is this week,…"
+          "source": "Return issues that have no due date ('0'), or whose due date is this week,…",
+          "message": "Return issues that have no due date ('0'), or whose due date is this week,…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRJc3N1ZXM.option.ZHVlX2RhdGU.desc": {
           "source": "Return issues that have no due date (`0`), or whose due date is this week, this month, between two weeks ago and next month, or which are overdue. Accepts: `overdue`, `week`, `month`, `next_month_and_previous_two_weeks`, `0`",
@@ -4376,8 +4376,8 @@
           "message": "Due Date"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkSXNzdWVz.option.ZHVlX2RhdGU.short_desc": {
-          "source": "Return issues that have no due date ('{{0}}'), or whose due date is this week,…",
-          "message": "Return issues that have no due date ('{{0}}'), or whose due date is this week,…"
+          "source": "Return issues that have no due date ('0'), or whose due date is this week,…",
+          "message": "Return issues that have no due date ('0'), or whose due date is this week,…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkSXNzdWVz.option.ZHVlX2RhdGU.desc": {
           "source": "Return issues that have no due date (`0`), or whose due date is this week, this month, between two weeks ago and next month, or which are overdue. Accepts: `overdue`, `week`, `month`, `next_month_and_previous_two_weeks`, `0`",
@@ -7488,8 +7488,8 @@
           "message": "Not[labels]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2xhYmVsc10.short_desc": {
-          "source": "'<Negated>' Returns merge requests matching a comma-separated list of labels.…",
-          "message": "'<Negated>' Returns merge requests matching a comma-separated list of labels.…"
+          "source": "'<Negated>' Returns merge requests matching a comma-separated list of labels",
+          "message": "'<Negated>' Returns merge requests matching a comma-separated list of labels"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2xhYmVsc10.desc": {
           "source": "`<Negated>` Returns merge requests matching a comma-separated list of labels. `None` lists all merge requests with no labels. `Any` lists all merge requests with at least one label. Predefined names are case-insensitive.",
@@ -7500,8 +7500,8 @@
           "message": "Not[milestone]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W21pbGVzdG9uZV0.short_desc": {
-          "source": "'<Negated>' Returns merge requests for a specific milestone. 'None' returns…",
-          "message": "'<Negated>' Returns merge requests for a specific milestone. 'None' returns…"
+          "source": "'<Negated>' Returns merge requests for a specific milestone",
+          "message": "'<Negated>' Returns merge requests for a specific milestone"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W21pbGVzdG9uZV0.desc": {
           "source": "`<Negated>` Returns merge requests for a specific milestone. `None` returns merge requests with no milestone. `Any` returns merge requests that have an assigned milestone.",

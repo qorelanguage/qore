@@ -138,6 +138,30 @@
      "message": "Zatrzymaj import, który nadal trwa",
      "source": "Stop an import that is still running"
     },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.desc": {
+     "source": "Creates new records in the given table",
+     "message": "Tworzy nowe rekordy w podanej tabeli"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.display_name": {
+     "source": "Create Records",
+     "message": "Utwórz rekordy"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "Tabela do pracy z: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` lub `documents`"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Tabela"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "Nazwa tabeli do pracy"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.short_desc": {
+     "source": "Create new records in the given table",
+     "message": "Utwórz nowe rekordy w podanej tabeli"
+    },
     "app.UGluZWNvbmU.action.Y3JlYXRlLW5hbWVzcGFjZQ.desc": {
      "message": "Tworzy przestrzeń nazw w indeksie.\n\nZwykle przestrzeni nazw nie trzeba tworzyć — powstaje przez zapis do niej — dlatego twórz ją jawnie, gdy chcesz z góry zadeklarować jej **schemat metadanych**.\n\nTylko indeksy bezserwerowe.  Nazwa `__default__` jest zarezerwowana i zawsze istnieje.",
      "source": "Creates a namespace in an index.\n\nA namespace does not normally have to be created — writing to one brings it into existence — so create one explicitly when you want to declare its **metadata schema** up front.\n\nServerless indexes only.  `__default__` is reserved and always exists."
@@ -825,6 +849,30 @@
     "app.UGluZWNvbmU.action.Y3JlYXRlLWluZGV4LWZyb20tYmFja3Vw.short_desc": {
      "message": "Przywróć kopię zapasową do nowego indeksu",
      "source": "Restore a backup into a new index"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.desc": {
+     "source": "Deletes every record in the given table matching the search criteria",
+     "message": "Usuwa wszystkie rekordy w podanej tabeli spełniające kryteria wyszukiwania"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.display_name": {
+     "source": "Delete Records",
+     "message": "Usuń rekordy"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "Tabela do pracy z: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` lub `documents`"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Tabela"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "Nazwa tabeli do pracy"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.short_desc": {
+     "source": "Delete the records matching the search criteria",
+     "message": "Usuń rekordy spełniające kryteria wyszukiwania"
     },
     "app.UGluZWNvbmU.action.ZGVsZXRlLW5hbWVzcGFjZQ.desc": {
      "message": "Usuwa przestrzeń nazw i wszystkie znajdujące się w niej rekordy.  **Tej operacji nie można cofnąć.**\n\nTylko indeksy bezserwerowe.",
@@ -2514,6 +2562,30 @@
      "message": "Wykonaj niestandardowe wywołanie API do Pinecone",
      "source": "Make a custom API call to Pinecone"
     },
+    "app.UGluZWNvbmU.action.c2VhcmNo.desc": {
+     "source": "Returns every record in the given table matching the search criteria",
+     "message": "Zwraca każdy rekord w danej tabeli spełniający kryteria wyszukiwania"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.display_name": {
+     "source": "Search Records",
+     "message": "Wyszukaj rekordy"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "Tabela do pracy z: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` lub `documents`"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Tabela"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "Nazwa tabeli do pracy"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.short_desc": {
+     "source": "Search for matching records in the given table",
+     "message": "Wyszukaj pasujące rekordy w danej tabeli"
+    },
     "app.UGluZWNvbmU.action.c2VhcmNoLWRvY3VtZW50cw.desc": {
      "message": "Wyszukuje dokumenty w przestrzeni nazw i zwraca najlepsze dopasowania wraz z ich wynikami.\n\nPole **Oceniaj według** wybiera sposób oceniania i jest istotą tej akcji:\n- `{\"type\": \"dense_vector\", \"fields\": [\"embedding\"], \"values\": [...]}`\n- `{\"type\": \"sparse_vector\", \"fields\": [\"sparse\"], \"sparse_values\": {...}}`\n- `{\"type\": \"text\", \"fields\": [\"body\"], \"query\": \"...\"}` — BM25\n- `{\"type\": \"query_string\", \"query\": \"title:(cat OR dog)\"}` — składnia Lucene; dodatkowe wskazanie pola jest odrzucane\n\nPrzekazanie **listy** tych metod ocenia kilkoma naraz — właśnie tak wyraża się tutaj wyszukiwanie hybrydowe.",
      "source": "Searches documents in a namespace and returns the best matches with their scores.\n\n**Score By** chooses how they are scored, and is the whole point of this action:\n- `{\"type\": \"dense_vector\", \"fields\": [\"embedding\"], \"values\": [...]}`\n- `{\"type\": \"sparse_vector\", \"fields\": [\"sparse\"], \"sparse_values\": {...}}`\n- `{\"type\": \"text\", \"fields\": [\"body\"], \"query\": \"...\"}` — BM25\n- `{\"type\": \"query_string\", \"query\": \"title:(cat OR dog)\"}` — Lucene syntax; naming a field as well is rejected\n\nPassing a **list** of these scores by several methods at once, which is how hybrid search is expressed here."
@@ -2729,6 +2801,30 @@
     "app.UGluZWNvbmU.action.c2VhcmNoLXJlY29yZHM.short_desc": {
      "message": "Wyszukaj za pomocą tekstu zapytania i opcjonalnie zmień kolejność",
      "source": "Search with a query text and optionally rerank"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.desc": {
+     "source": "Returns the one record in the given table matching the search criteria; it is an error if more than one matches",
+     "message": "Zwraca jeden rekord w danej tabeli spełniający kryteria wyszukiwania; dopasowanie więcej niż jednego rekordu stanowi błąd"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.display_name": {
+     "source": "Find a Single Record",
+     "message": "Znajdź pojedynczy rekord"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "Tabela do pracy z: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` lub `documents`"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Tabela"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "Nazwa tabeli do pracy"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.short_desc": {
+     "source": "Search for a single matching record in the given table",
+     "message": "Wyszukaj pojedynczy pasujący rekord w danej tabeli"
     },
     "app.UGluZWNvbmU.action.c3RhcnQtaW1wb3J0.desc": {
      "message": "Rozpoczyna asynchroniczny import rekordów z magazynu obiektów do indeksu — sposób na wczytanie dużego zbioru danych bez przesyłania go przez to API rekord po rekordzie.\n\nPole **Źródłowy URI** wskazuje prefiks magazynu do odczytu, a **Integracja magazynu** dostarcza poświadczenia do jego odczytu; konfiguruje się ją w konsoli Pinecone.\n\nZwracany jest identyfikator importu; postęp raportuje akcja **Opisz import**.",
@@ -3029,6 +3125,30 @@
     "app.UGluZWNvbmU.action.cmVyYW5r.short_desc": {
      "message": "Zmień kolejność dokumentów według trafności względem zapytania",
      "source": "Re-order documents by relevance to a query"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.desc": {
+     "source": "Updates every record in the given table matching the search criteria",
+     "message": "Aktualizuje każdy rekord w danej tabeli spełniający kryteria wyszukiwania"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.display_name": {
+     "source": "Update Records",
+     "message": "Zaktualizuj rekordy"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "Tabela do pracy z: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` lub `documents`"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Tabela"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "Nazwa tabeli do pracy"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.short_desc": {
+     "source": "Update the records matching the search criteria",
+     "message": "Zaktualizuj rekordy spełniające kryteria wyszukiwania"
     },
     "app.UGluZWNvbmU.action.dXBkYXRlLWJhY2t1cC1zY2hlZHVsZQ.desc": {
      "message": "Zmienia częstotliwość harmonogramu kopii zapasowych, okres przechowywania lub to, czy jest włączony.\n\nPonowne włączenie wyłączonego harmonogramu **natychmiast kolejkuje kopię zapasową** i jest odrzucane z kodem **409**, gdy indeks ma już inny włączony harmonogram.",

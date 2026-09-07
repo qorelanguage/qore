@@ -68,6 +68,7 @@ public class CohereChatMessageDataType inherits HashDataType {
 
 public class CohereChatRequestDataType inherits HashDataType {
     public {
+        #! Original common field descriptions; use getFields() for the complete current contract
         const Fields = {
             "model": {
                 "display_name": "Model",
@@ -160,12 +161,13 @@ public class CohereChatRequestDataType inherits HashDataType {
     }
 
     constructor() {
-        addQoreFields(Fields);
+        map addField($1), CohereSchema::getActionSet().getOperationEx("chat").getRequestType().getFields().iterator();
     }
 }
 
 public class CohereChatResponseDataType inherits HashDataType {
     private {
+        #! Original common field descriptions; use getFields() for the complete current contract
         const Fields = {
             "id": {
                 "display_name": "Response ID",
@@ -194,12 +196,13 @@ public class CohereChatResponseDataType inherits HashDataType {
     }
 
     constructor() {
-        addQoreFields(Fields);
+        map addField($1), CohereSchema::getActionSet().getOperationEx("chat").getResponseType().getFields().iterator();
     }
 }
 
 public class CohereEmbedRequestDataType inherits HashDataType {
     public {
+        #! Original common field descriptions; use getFields() for the complete current contract
         const Fields = {
             "model": {
                 "display_name": "Model",
@@ -258,12 +261,13 @@ public class CohereEmbedRequestDataType inherits HashDataType {
     }
 
     constructor() {
-        addQoreFields(Fields);
+        map addField($1), CohereSchema::getActionSet().getOperationEx("embed").getRequestType().getFields().iterator();
     }
 }
 
 public class CohereEmbedResponseDataType inherits HashDataType {
     private {
+        #! Original common field descriptions; use getFields() for the complete current contract
         const Fields = {
             "id": {
                 "display_name": "Response ID",
@@ -290,12 +294,13 @@ public class CohereEmbedResponseDataType inherits HashDataType {
     }
 
     constructor() {
-        addQoreFields(Fields);
+        map addField($1), CohereSchema::getActionSet().getOperationEx("embed").getResponseType().getFields().iterator();
     }
 }
 
 public class CohereRerankRequestDataType inherits HashDataType {
     public {
+        #! Original common field descriptions; use getFields() for the complete current contract
         const Fields = {
             "model": {
                 "display_name": "Model",
@@ -346,7 +351,7 @@ public class CohereRerankRequestDataType inherits HashDataType {
     }
 
     constructor() {
-        addQoreFields(Fields);
+        map addField($1), CohereSchema::getActionSet().getOperationEx("rerank").getRequestType().getFields().iterator();
     }
 }
 
@@ -380,6 +385,7 @@ public class CohereRerankResultDataType inherits HashDataType {
 
 public class CohereRerankResponseDataType inherits HashDataType {
     private {
+        #! Original common field descriptions; use getFields() for the complete current contract
         const Fields = {
             "id": {
                 "display_name": "Response ID",
@@ -401,7 +407,7 @@ public class CohereRerankResponseDataType inherits HashDataType {
     }
 
     constructor() {
-        addQoreFields(Fields);
+        map addField($1), CohereSchema::getActionSet().getOperationEx("rerank").getResponseType().getFields().iterator();
     }
 }
 
@@ -428,6 +434,7 @@ public class CohereClassifyExampleDataType inherits HashDataType {
 
 public class CohereClassifyRequestDataType inherits HashDataType {
     public {
+        #! Original common field descriptions; use getFields() for the complete current contract
         const Fields = {
             "inputs": {
                 "display_name": "Inputs",
@@ -471,7 +478,7 @@ public class CohereClassifyRequestDataType inherits HashDataType {
     }
 
     constructor() {
-        addQoreFields(Fields);
+        map addField($1), CohereSchema::getActionSet().getOperationEx("classify").getRequestType().getFields().iterator();
     }
 }
 
@@ -513,6 +520,7 @@ public class CohereClassifyResultDataType inherits HashDataType {
 
 public class CohereClassifyResponseDataType inherits HashDataType {
     private {
+        #! Original common field descriptions; use getFields() for the complete current contract
         const Fields = {
             "id": {
                 "display_name": "Response ID",
@@ -534,7 +542,7 @@ public class CohereClassifyResponseDataType inherits HashDataType {
     }
 
     constructor() {
-        addQoreFields(Fields);
+        map addField($1), CohereSchema::getActionSet().getOperationEx("classify").getResponseType().getFields().iterator();
     }
 }
 }

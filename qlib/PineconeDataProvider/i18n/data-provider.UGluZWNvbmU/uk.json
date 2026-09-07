@@ -138,6 +138,30 @@
      "message": "Зупинити імпорт, який ще виконується",
      "source": "Stop an import that is still running"
     },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.desc": {
+     "source": "Creates new records in the given table",
+     "message": "Створює нові записи у вказаній таблиці"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.display_name": {
+     "source": "Create Records",
+     "message": "Створити записи"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "Таблиця для роботи: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` або `documents`"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Таблиця"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "Назва таблиці для роботи"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.short_desc": {
+     "source": "Create new records in the given table",
+     "message": "Створити нові записи у вказаній таблиці"
+    },
     "app.UGluZWNvbmU.action.Y3JlYXRlLW5hbWVzcGFjZQ.desc": {
      "message": "Створює простір імен в індексі.\n\nЗазвичай простір імен не потрібно створювати — він з'являється після запису в нього — тож створюйте його явно тоді, коли хочете заздалегідь оголосити його **схему метаданих**.\n\nЛише безсерверні індекси.  Назва `__default__` зарезервована й існує завжди.",
      "source": "Creates a namespace in an index.\n\nA namespace does not normally have to be created — writing to one brings it into existence — so create one explicitly when you want to declare its **metadata schema** up front.\n\nServerless indexes only.  `__default__` is reserved and always exists."
@@ -825,6 +849,30 @@
     "app.UGluZWNvbmU.action.Y3JlYXRlLWluZGV4LWZyb20tYmFja3Vw.short_desc": {
      "message": "Відновити резервну копію в новий індекс",
      "source": "Restore a backup into a new index"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.desc": {
+     "source": "Deletes every record in the given table matching the search criteria",
+     "message": "Видаляє кожен запис у вказаній таблиці, який відповідає критеріям пошуку"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.display_name": {
+     "source": "Delete Records",
+     "message": "Видалити записи"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "Таблиця для роботи: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` або `documents`"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Таблиця"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "Назва таблиці для роботи"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.short_desc": {
+     "source": "Delete the records matching the search criteria",
+     "message": "Видалити записи, які відповідають критеріям пошуку"
     },
     "app.UGluZWNvbmU.action.ZGVsZXRlLW5hbWVzcGFjZQ.desc": {
      "message": "Видаляє простір імен і всі записи в ньому.  **Цю дію не можна скасувати.**\n\nЛише безсерверні індекси.",
@@ -2514,6 +2562,30 @@
      "message": "Виконати власний виклик API до Pinecone",
      "source": "Make a custom API call to Pinecone"
     },
+    "app.UGluZWNvbmU.action.c2VhcmNo.desc": {
+     "source": "Returns every record in the given table matching the search criteria",
+     "message": "Повертає кожен запис у вказаній таблиці, що відповідає критеріям пошуку"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.display_name": {
+     "source": "Search Records",
+     "message": "Пошук записів"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "Таблиця для роботи: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` або `documents`"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Таблиця"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "Назва таблиці для роботи"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.short_desc": {
+     "source": "Search for matching records in the given table",
+     "message": "Пошук відповідних записів у вказаній таблиці"
+    },
     "app.UGluZWNvbmU.action.c2VhcmNoLWRvY3VtZW50cw.desc": {
      "message": "Шукає документи в просторі імен і повертає найкращі збіги з їхніми оцінками.\n\n**Оцінювати за** визначає спосіб оцінювання і є суттю цієї дії:\n- `{\"type\": \"dense_vector\", \"fields\": [\"embedding\"], \"values\": [...]}`\n- `{\"type\": \"sparse_vector\", \"fields\": [\"sparse\"], \"sparse_values\": {...}}`\n- `{\"type\": \"text\", \"fields\": [\"body\"], \"query\": \"...\"}` — BM25\n- `{\"type\": \"query_string\", \"query\": \"title:(cat OR dog)\"}` — синтаксис Lucene; додаткове зазначення поля відхиляється\n\nПередавання **списку** цих методів оцінює кількома способами одночасно — саме так тут виражається гібридний пошук.",
      "source": "Searches documents in a namespace and returns the best matches with their scores.\n\n**Score By** chooses how they are scored, and is the whole point of this action:\n- `{\"type\": \"dense_vector\", \"fields\": [\"embedding\"], \"values\": [...]}`\n- `{\"type\": \"sparse_vector\", \"fields\": [\"sparse\"], \"sparse_values\": {...}}`\n- `{\"type\": \"text\", \"fields\": [\"body\"], \"query\": \"...\"}` — BM25\n- `{\"type\": \"query_string\", \"query\": \"title:(cat OR dog)\"}` — Lucene syntax; naming a field as well is rejected\n\nPassing a **list** of these scores by several methods at once, which is how hybrid search is expressed here."
@@ -2729,6 +2801,30 @@
     "app.UGluZWNvbmU.action.c2VhcmNoLXJlY29yZHM.short_desc": {
      "message": "Виконати пошук за текстом запиту та за потреби перевпорядкувати",
      "source": "Search with a query text and optionally rerank"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.desc": {
+     "source": "Returns the one record in the given table matching the search criteria; it is an error if more than one matches",
+     "message": "Повертає один запис у вказаній таблиці, що відповідає критеріям пошуку; якщо збігів більше одного, виникає помилка"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.display_name": {
+     "source": "Find a Single Record",
+     "message": "Знайти один запис"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "Таблиця для роботи: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` або `documents`"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Таблиця"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "Назва таблиці для роботи"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.short_desc": {
+     "source": "Search for a single matching record in the given table",
+     "message": "Пошук одного відповідного запису у вказаній таблиці"
     },
     "app.UGluZWNvbmU.action.c3RhcnQtaW1wb3J0.desc": {
      "message": "Розпочинає асинхронний імпорт записів з об'єктного сховища до індексу — спосіб завантажити великий набір даних, не надсилаючи його через цей API запис за записом.\n\n**URI джерела** вказує префікс сховища для читання, а **Інтеграція сховища** надає облікові дані для його читання; вона налаштовується в консолі Pinecone.\n\nПовертається ідентифікатор імпорту; поступ повідомляє дія **Описати імпорт**.",
@@ -3029,6 +3125,30 @@
     "app.UGluZWNvbmU.action.cmVyYW5r.short_desc": {
      "message": "Перевпорядкувати документи за релевантністю до запиту",
      "source": "Re-order documents by relevance to a query"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.desc": {
+     "source": "Updates every record in the given table matching the search criteria",
+     "message": "Оновлює кожен запис у вказаній таблиці, що відповідає критеріям пошуку"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.display_name": {
+     "source": "Update Records",
+     "message": "Оновити записи"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "Таблиця для роботи: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` або `documents`"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Таблиця"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "Назва таблиці для роботи"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.short_desc": {
+     "source": "Update the records matching the search criteria",
+     "message": "Оновити записи, що відповідають критеріям пошуку"
     },
     "app.UGluZWNvbmU.action.dXBkYXRlLWJhY2t1cC1zY2hlZHVsZQ.desc": {
      "message": "Змінює частоту розкладу резервного копіювання, термін зберігання або те, чи він увімкнений.\n\nПовторне ввімкнення вимкненого розкладу **негайно ставить резервне копіювання в чергу** і відхиляється з кодом **409**, якщо індекс уже має інший увімкнений розклад.",

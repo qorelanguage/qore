@@ -405,6 +405,10 @@ module RestSchemaActions {
 
     @subsection restschemaactionsv1_0 RestSchemaActions v1.0
     - the initial version of the %RestSchemaActions module
+    - omit schema `readOnly` properties from flattened request options, including unwrapped bodies
+    - enforce overlay required groups and mutually exclusive options before sending requests
+    - schema imports can repair incorrect required-property lists with explicit expected values;
+      stale repairs, duplicate names, and undeclared replacement properties are rejected
 */
 
 public namespace RestSchemaActions {

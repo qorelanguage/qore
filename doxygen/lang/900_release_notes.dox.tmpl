@@ -1489,6 +1489,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         <a href="https://github.com/qoretechnologies/module-amqp">amqp</a> module
 
     - @ref dataproviderintro "DataProvider" module
+      - fixed short-description derivation corrupting words and literal braces when help text contains quoted parameter names or numbers
       - added DPQL (Data Provider Query Language) — a human/AI-readable query syntax with a tokenizer,
         parser, serializer, and IDE completion provider, plus \c qdp CLI integration
       - application, action, option, and allowed-value presentation metadata can now be localized through
@@ -2073,6 +2074,8 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
 
     - @ref coheredataproviderintro "CohereDataProvider" module
       - new module providing a data provider API for <a href="https://cohere.com">Cohere</a> chat (Command R/R+), embeddings, reranking, and classification services
+      - 24 schema-derived actions with model and object dropdowns, datasets, embedding jobs, batch inference,
+        tokenization, document image parsing, and audio transcription
 
     - @ref cohererestclientintro "CohereRestClient" module
       - new module providing a REST client for <a href="https://cohere.com">Cohere</a>'s v2 REST API
@@ -2507,6 +2510,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         for use with the @ref httpserverintro "HttpServer" module
 
     - @ref openapi3intro "OpenApi3" module
+      - matches literal prefixes and suffixes in parameterized paths and extracts multiple path parameters
       - new module supporting OpenAPI 3.* schemas for REST API integration
 
     - @ref openapi3dataproviderintro "OpenApi3DataProvider" module
@@ -2521,6 +2525,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing batched <a href="https://opensearch.org/">OpenSearch</a> Bulk API log appending and generic rendered-event search support
 
     - @ref paddledataproviderintro "PaddleDataProvider" module
+      - customer creation no longer offers the read-only customer ID as an import option
       - new module providing a data provider API for <a href="https://www.paddle.com">Paddle</a> billing,
         subscriptions and payments, with actions generated from Paddle's own OpenAPI 3.1 description and
         webhook events in place of polling
@@ -2641,6 +2646,8 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing a REST client API over multiplexed HTTP/2 and HTTP/3 connections
 
     - @ref restschemaactionsintro "RestSchemaActions" module
+      - excludes read-only request options, enforces required alternatives and exclusions, and supports
+        checked repairs to upstream required-property lists
       - record tables support shared host routing, ID-map responses, batch hydration, alternate filtered
         listings, per-action identities and scope, and request-derived create/update record types
       - reference-data lookups can enumerate partitions from another reference-data declaration
@@ -2648,6 +2655,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         explicitly selected set of REST schema operations, including schema normalization and pruning
 
     - @ref restschemadataproviderintro "RestSchemaDataProvider" module
+      - preserves empty collections, zero, and false response bodies
       - honors OpenAPI array \c style / \c explode and Swagger \c collectionFormat in query arguments,
         preserving reserved characters inside individual values
       - new module providing a unified data provider API for both Swagger 2.0 and OpenAPI 3.0 / 3.1 REST schemas

@@ -1,0 +1,26 @@
+# Copyright 2026 Qore Technologies, s.r.o.
+# Re-import a reviewed upstream revision and check action drift.
+documents:
+  - name: Cohere
+    source: https://raw.githubusercontent.com/cohere-ai/cohere-developer-experience/f19a6485639746f919d2b7fc2b63b476e2f39490/cohere-openapi.yaml
+    output: cohere-openapi.yaml
+    manifest: CohereDataProvider:CohereManifest::Manifest
+    provenance: CohereSchema.qc
+    json: false
+    normalize:
+      - reason: >-
+          Cohere LogprobItem declares text, token_ids, and logprobs but its required list uses obsolete
+          token and logprob names. The published properties and cohere-python LogprobItem model use
+          text and logprobs as optional fields; only token_ids is required: https://github.com/cohere-ai/cohere-python/blob/main/src/cohere/types/logprob_item.py
+        replace_required:
+          - pointer: '#/components/schemas/LogprobItem'
+            expected: [token, token_ids, logprob]
+            replacement: [token_ids]
+      - reason: >-
+          Cohere EmbedByTypeResponse incorrectly requires a top-level api_version absent from its properties.
+          Version information is optional under meta.api_version; the Embed API v2 response requires id
+          and embeddings: https://docs.cohere.com/reference/embed
+        replace_required:
+          - pointer: '#/components/schemas/EmbedByTypeResponse'
+            expected: [id, embeddings, api_version]
+            replacement: [id, embeddings]

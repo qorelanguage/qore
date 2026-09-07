@@ -451,7 +451,7 @@ public class RestSchemaRequestDataProvider inherits RestSchemaDataProviderBase {
             }
             info = rest.restDoRawRequest(method, uri_path, body, hdr);
             *hash<auto> rv;
-            if (info.body.val()) {
+            if (exists info.body) {
                 rv.body = info.body;
             }
             if (options.include_response_headers) {

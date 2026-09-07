@@ -283,6 +283,7 @@ public class RestSchemaActionOperation {
                     info.action, name, sort(keys flat_map));
             }
         }
+        validateOptionGroups(options);
         # a value whose properties were published in its place is assembled from them here, so that it
         # travels as the single value the schema declares
         foreach hash<RestSchemaLiftedValueInfo> lv in (lifted_values) {
@@ -555,6 +556,32 @@ public class RestSchemaActionOperation {
         }
     }
 
+    #! Enforces the same nonempty alternatives and exclusions advertised by the action's form
+    private validateOptionGroups(*hash<auto> options) {
+        hash<string, bool> groups;
+        foreach hash<auto> entry in (getRequestFields().pairIterator()) {
+            *hash<auto> attr = entry.value.getAttributes();
+            bool supplied = exists options{entry.key} && options{entry.key}.val();
+            foreach string group in (attr.required_groups) {
+                groups{group} = groups{group} || supplied;
+            }
+            if (supplied) {
+                foreach string other in (attr.exclusive_with) {
+                    if (exists options{other} && options{other}.val()) {
+                        throw "REST-SCHEMA-ACTION-ERROR", sprintf("action %y: options %y and %y cannot "
+                            "be supplied together", info.action, entry.key, other);
+                    }
+                }
+            }
+        }
+        foreach hash<auto> group in (groups.pairIterator()) {
+            if (!group.value) {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("action %y: at least one option in required "
+                    "group %y must have a value", info.action, group.key);
+            }
+        }
+    }
+
     #! Returns the hash with the value set at the given path below it, creating the levels it names
     private static hash<auto> setNested(hash<auto> h, *list<string> path, string name, auto value) {
         if (!path) {
@@ -702,7 +729,7 @@ public class RestSchemaActionOperation {
                     # not repeat the same display name and dropdown on two dozen actions
                     ov = RestSchemaActionOperation::mergeOverlay(entry.base_overlay, ov);
                 }
-                if (ov.ignore) {
+                if (ov.ignore || entry.read_only) {
                     # a header the action does not ask for is one the connection supplies; the schema may
                     # still require it, and dropping it from the action must not produce a request the
                     # schema rejects
@@ -890,6 +917,19 @@ public class RestSchemaActionOperation {
         }
         hash<string, bool> fixed = getFixedProperties(landing_schema);
         foreach hash<auto> i in (body_fields.pairIterator()) {
+            auto property = RestSchemaActionOperation::getSchemaProperty(landing_schema, i.key);
+            if (property.readOnly) {
+                # Response-owned values must not become editable request options, even when an API
+                # reuses the same object schema for creating and retrieving a resource. Keep the
+                # declaration addressable so existing manifests may still explicitly ignore it.
+                derived{RSAL_BODY} += {
+                    "wire_name": i.key,
+                    "wire_path": request_wrap,
+                    "field": i.value,
+                    "read_only": True,
+                };
+                continue;
+            }
             if (fixed{i.key}) {
                 # a discriminator the level the options were lifted to fixes is filled in rather than
                 # published, exactly as one beside the path is: there is nothing for a caller to choose,

@@ -71,18 +71,6 @@
           "source": "Import information for this entity",
           "message": "Importinformationen für diese Entität"
         },
-        "app.UGFkZGxl.action.Y3JlYXRlX2N1c3RvbWVy.option.aWQ.desc": {
-          "source": "Unique Paddle ID for this customer entity, prefixed with `ctm_`.",
-          "message": "Eindeutige Paddle-ID für diese Kundenentität, mit dem Präfix `ctm_`."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX2N1c3RvbWVy.option.aWQ.display_name": {
-          "source": "Customer ID",
-          "message": "Kunden-ID"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX2N1c3RvbWVy.option.aWQ.short_desc": {
-          "source": "Import an existing customer under a known Paddle ID",
-          "message": "Einen vorhandenen Kunden unter einer bekannten Paddle-ID importieren"
-        },
         "app.UGFkZGxl.action.Y3JlYXRlX2N1c3RvbWVy.option.bG9jYWxl.desc": {
           "source": "Valid IETF BCP 47 short form locale tag. If omitted, defaults to `en`.",
           "message": "Gültiges IETF BCP 47-Kurzform-Locale-Tag. Wenn weggelassen, ist der Standardwert `en`."
@@ -531,18 +519,6 @@
           "source": "Paddle Checkout details for this transaction",
           "message": "Paddle-Checkout-Details für diese Transaktion"
         },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.Y3JlYXRlZF9hdA.desc": {
-          "source": "RFC 3339 datetime string of when this entity was created. Set automatically by Paddle.",
-          "message": "RFC 3339-Datum-/Uhrzeit-Zeichenfolge des Zeitpunkts, zu dem diese Entität erstellt wurde. Wird automatisch von Paddle festgelegt."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.Y3JlYXRlZF9hdA.display_name": {
-          "source": "Created At",
-          "message": "Erstellt am"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.Y3JlYXRlZF9hdA.short_desc": {
-          "source": "RFC 3339 datetime string of when this entity was created",
-          "message": "RFC-3339-Datums-/Zeitangabe der Erstellung dieser Entität"
-        },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.Y3VycmVuY3lfY29kZQ.desc": {
           "source": "Supported three-letter ISO 4217 currency code. Must be `USD`, `EUR`, or `GBP` if `collection_mode` is `manual`.",
           "message": "Unterstützter dreistelliger ISO 4217-Währungscode. Muss `USD`, `EUR` oder `GBP` sein, wenn `collection_mode` den Wert `manual` hat."
@@ -588,20 +564,8 @@
           "message": "Adress-ID"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YWRkcmVzc19pZA.short_desc": {
-          "source": "Paddle ID of the address that this transaction is for, prefixed with 'add_'.…",
-          "message": "Paddle-ID der Adresse dieser Transaktion, mit Präfix 'add_'.…"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YmlsbGVkX2F0.desc": {
-          "source": "RFC 3339 datetime string of when this transaction was marked as `billed`. `null` for transactions that aren't `billed` or `completed`. Set automatically by Paddle.",
-          "message": "RFC-3339-Datum-/Uhrzeitzeichenfolge des Zeitpunkts, zu dem diese Transaktion als `billed` markiert wurde. `null` für Transaktionen, die nicht `billed` oder `completed` sind. Wird automatisch von Paddle festgelegt."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YmlsbGVkX2F0.display_name": {
-          "source": "Billed At",
-          "message": "Abgerechnet am"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YmlsbGVkX2F0.short_desc": {
-          "source": "RFC 3339 datetime string of when this transaction was marked as 'billed'",
-          "message": "RFC-3339-Zeitstempel der Markierung dieser Transaktion als 'billed'"
+          "source": "Paddle ID of the address that this transaction is for, prefixed with 'add_'",
+          "message": "Paddle-ID der Adresse, für die diese Transaktion bestimmt ist, mit dem Präfix „add_“."
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YmlsbGluZ19kZXRhaWxz.desc": {
           "source": "Details for invoicing. Required if `collection_mode` is `manual`.",
@@ -636,20 +600,8 @@
           "message": "Unternehmens-ID"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YnVzaW5lc3NfaWQ.short_desc": {
-          "source": "Paddle ID of the business that this transaction is for, prefixed with 'biz_'.…",
-          "message": "Paddle-ID des Unternehmens dieser Transaktion, mit Präfix 'biz_'.…"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.ZGV0YWlscw.desc": {
-          "source": "Calculated totals for a transaction, including proration, discounts, tax, and currency conversion. Considered the source of truth for totals on a transaction.",
-          "message": "Berechnete Gesamtsummen für eine Transaktion, einschließlich anteiliger Verrechnung, Rabatten, Steuern und Währungsumrechnung. Gilt als verlässliche Quelle für Gesamtsummen einer Transaktion."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.ZGV0YWlscw.display_name": {
-          "source": "Details",
-          "message": "Details"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.ZGV0YWlscw.short_desc": {
-          "source": "Calculated totals for a transaction, including proration, discounts, tax, and…",
-          "message": "Berechnete Transaktionssummen inkl. Rundung, Rabatten, Steuern usw.…"
+          "source": "Paddle ID of the business that this transaction is for, prefixed with 'biz_'",
+          "message": "Paddle-ID des Unternehmens, für das diese Transaktion bestimmt ist, mit dem Präfix „biz_“."
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.ZGlzY291bnQ.desc": {
           "source": "Apply a non-catalog discount to a transaction. Send one of `discount_id` or `discount`.",
@@ -675,30 +627,6 @@
           "source": "Paddle ID of the discount to apply to this transaction, prefixed with 'dsc_'",
           "message": "Paddle-ID des auf diese Transaktion anzuwendenden Rabatts, mit dem Präfix 'dsc_'"
         },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9pZA.desc": {
-          "source": "Paddle ID of the invoice that this transaction is related to, prefixed with `inv_`. Used for compatibility with the Paddle Invoice API, which is now deprecated. This field is scheduled to be removed in the next version of the Paddle API.",
-          "message": "Paddle-ID der Rechnung, auf die sich diese Transaktion bezieht, mit dem Präfix `inv_`. Wird zur Kompatibilität mit der Paddle Invoice API verwendet, die jetzt veraltet ist. Dieses Feld soll in der nächsten Version der Paddle API entfernt werden."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9pZA.display_name": {
-          "source": "Invoice ID",
-          "message": "Rechnungs-ID"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9pZA.short_desc": {
-          "source": "Paddle ID of the invoice that this transaction is related to, prefixed with…",
-          "message": "Paddle-ID der Rechnung zu dieser Transaktion, mit Präfix …"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9udW1iZXI.desc": {
-          "source": "Invoice number for this transaction. Automatically generated by Paddle when you mark a transaction as `billed` where `collection_mode` is `manual`.",
-          "message": "Rechnungsnummer für diese Transaktion. Wird automatisch von Paddle generiert, wenn Sie eine Transaktion als `billed` markieren, bei der `collection_mode` `manual` ist."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9udW1iZXI.display_name": {
-          "source": "Invoice Number",
-          "message": "Rechnungsnummer"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9udW1iZXI.short_desc": {
-          "source": "Invoice number for this transaction",
-          "message": "Rechnungsnummer für diese Transaktion"
-        },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW5jbHVkZQ.desc": {
           "source": "Include related entities in the response. Use a comma-separated list to specify multiple entities.",
           "message": "Zugehörige Entitäten in die Antwort einschließen. Verwenden Sie eine durch Kommas getrennte Liste, um mehrere Entitäten anzugeben."
@@ -710,18 +638,6 @@
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW5jbHVkZQ.short_desc": {
           "source": "Include related entities, ex: \"totals\", in the response",
           "message": "Zugehörige Entitäten, z. B. „totals“, in die Antwort einschließen"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aWQ.desc": {
-          "source": "Unique Paddle ID for this transaction entity, prefixed with `txn_`.",
-          "message": "Eindeutige Paddle-ID für diese Transaktionsentität, mit dem Präfix `txn_`."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aWQ.display_name": {
-          "source": "ID",
-          "message": "ID"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aWQ.short_desc": {
-          "source": "Unique Paddle ID for this transaction entity, prefixed with 'txn_'",
-          "message": "Eindeutige Paddle-ID für diese Transaktionsentität, mit dem Präfix 'txn_'"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aXRlbXM.desc": {
           "source": "List of items to charge for. You can charge for items that you've added to your catalog by passing the Paddle ID of an existing price entity, or you can charge for non-catalog items by passing a price object.\n\nNon-catalog items can be for existing products, or you can pass a product object as part of your price to charge for a non-catalog product.",
@@ -822,30 +738,6 @@
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.c3Vic2NyaXB0aW9uX2lk.short_desc": {
           "source": "Paddle ID of the subscription that this transaction is for, prefixed with 'sub_'",
           "message": "Paddle-ID des Abonnements für diese Transaktion mit Präfix 'sub_'"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.cGF5bWVudHM.desc": {
-          "source": "List of payment attempts for this transaction, including successful payments. Sorted by `created_at` in descending order, so most recent attempts are returned first.",
-          "message": "Liste der Zahlungsversuche für diese Transaktion, einschließlich erfolgreicher Zahlungen. Sortiert nach `created_at` in absteigender Reihenfolge, sodass die neuesten Versuche zuerst zurückgegeben werden."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.cGF5bWVudHM.display_name": {
-          "source": "Payments",
-          "message": "Zahlungen"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.cGF5bWVudHM.short_desc": {
-          "source": "List of payment attempts for this transaction, including successful payments",
-          "message": "Liste der Zahlungsversuche für diese Transaktion inklusive erfolgreicher"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.dXBkYXRlZF9hdA.desc": {
-          "source": "RFC 3339 datetime string of when this entity was updated. Set automatically by Paddle.",
-          "message": "RFC-3339-Datum-/Uhrzeitzeichenfolge des Zeitpunkts, zu dem diese Entität aktualisiert wurde. Wird automatisch von Paddle festgelegt."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.dXBkYXRlZF9hdA.display_name": {
-          "source": "Updated At",
-          "message": "Aktualisiert am"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.dXBkYXRlZF9hdA.short_desc": {
-          "source": "RFC 3339 datetime string of when this entity was updated",
-          "message": "RFC-3339-Datums-/Zeitangabe der Aktualisierung dieser Entität"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.short_desc": {
           "source": "Create a transaction, optionally billing it",

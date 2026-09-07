@@ -1,0 +1,1613 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "zh-TW": {
+      "messages": {
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.desc": {
+          "source": "Create an API key for a project to authenticate Data Plane and Control Plane requests.\n\n**Save the key:** the API returns the new key only when it is created. Use it with a separate Pinecone database connection.",
+          "message": "為專案建立 API 金鑰以對資料平面和控制平面請求進行身份驗證。\n\n**儲存金鑰：** API 僅在建立新金鑰時傳回新金鑰。將其與單獨的 Pinecone 資料庫連接一起使用。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.display_name": {
+          "source": "Create API Key",
+          "message": "建立 API 金鑰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.bmFtZQ.desc": {
+          "source": "The name of the API key. The name must be 1-80 characters long.",
+          "message": "API 金鑰的名稱。名稱長度必須為 1-80 個字元。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "控制平面編輯器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "控制平面檢視器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "資料平面編輯器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "資料平面檢視器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "專案編輯"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "項目檢視器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.desc": {
+          "source": "The roles to create the API key with. Default is `[\"ProjectEditor\"]`.",
+          "message": "用於建立 API 金鑰的角色。預設值為 `[\"ProjectEditor\"]`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.display_name": {
+          "source": "Roles",
+          "message": "角色"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.short_desc": {
+          "source": "Roles",
+          "message": "角色"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.short_desc": {
+          "source": "Create an API key",
+          "message": "建立 API 金鑰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.desc": {
+          "source": "Invite a user to the organization by email and grant their initial role bindings.\n\n**Sends email:** delivers an invitation to the specified address.",
+          "message": "透過電子郵件邀請使用者加入組織並授予其初始角色綁定。\n\n**發送電子郵件：** 將邀請發送到指定地址。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.display_name": {
+          "source": "Create Invite",
+          "message": "創建邀請"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.desc": {
+          "source": "The email address to invite.",
+          "message": "要邀請的電子郵件地址。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "電子郵件"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.short_desc": {
+          "source": "Email",
+          "message": "電子郵件"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.desc": {
+          "source": "Role bindings for the invitee. Must include at least one `organization`-scoped binding that grants organization membership (`OrgOwner`, `OrgManager`, `OrgBillingAdmin`, or `OrgMember`); `project`-scoped bindings are optional. Not returned in the response.",
+          "message": "受邀者的角色綁定。必須至少包含一個 `organization` 範圍的綁定，授予組織成員資格（`OrgOwner`、`OrgManager`、`OrgBillingAdmin` 或 `OrgMember`）；`project` 範圍的綁定為選填。此欄位不會出現在回應中。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.display_name": {
+          "source": "Role Bindings",
+          "message": "角色綁定"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.short_desc": {
+          "source": "Role Bindings",
+          "message": "角色綁定"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.short_desc": {
+          "source": "Invite a user to the organization",
+          "message": "邀請使用者加入組織"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.desc": {
+          "source": "Create a project to separate a team or workload's indexes, API keys, and deployment settings.",
+          "message": "建立一個專案來分離團隊或工作負載的索引、API 金鑰和部署設定。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.display_name": {
+          "source": "Create Project",
+          "message": "建立專案"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.desc": {
+          "source": "Whether to force encryption with a customer-managed encryption key (CMEK). Default is `false`.",
+          "message": "是否使用客戶管理的加密金鑰 (CMEK) 強制加密。預設值為 `false`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.display_name": {
+          "source": "Force Encryption With CMEK",
+          "message": "使用 CMEK 強制加密"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.short_desc": {
+          "source": "Force Encryption With CMEK",
+          "message": "使用 CMEK 強制加密"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.desc": {
+          "source": "The maximum number of Pods that can be created in the project. Default is `0` (serverless only).",
+          "message": "專案中可以創建的最大 Pod 數量。預設值為 `0`（僅限無伺服器）。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.display_name": {
+          "source": "Max Pods",
+          "message": "最大 Pod 數"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.short_desc": {
+          "source": "Max Pods",
+          "message": "最大 Pod 數"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.desc": {
+          "source": "The name of the new project.",
+          "message": "新項目的名稱。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.short_desc": {
+          "source": "Create a new project",
+          "message": "建立新專案"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.desc": {
+          "source": "Grant a user or service account the role it needs at organization or project scope.",
+          "message": "授予使用者或服務帳戶在組織或專案範圍內所需的角色。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.display_name": {
+          "source": "Create Role Binding",
+          "message": "建立角色綁定"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.desc": {
+          "source": "The resource ID of the selected `principal_type`, from **List Users**, **List Service Accounts**, **List Project API Keys**, or **List Invites**. For a service account use its `id`, not its OAuth2 `client_id`.",
+          "message": "所選 `principal_type` 的資源 ID，來自 **列出使用者**、**列出服務帳戶**、**列出專案 API 金鑰**或 **列出邀請**。對於服務帳戶，請使用其 `id`，而不是其 OAuth2 `client_id`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.display_name": {
+          "source": "Principal ID",
+          "message": "委託人 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.short_desc": {
+          "source": "Principal ID",
+          "message": "委託人 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmFwaV9rZXk.display_name": {
+          "source": "API Key",
+          "message": "API 金鑰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmludml0ZQ.display_name": {
+          "source": "Invite",
+          "message": "邀請"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnNlcnZpY2VfYWNjb3VudA.display_name": {
+          "source": "Service Account",
+          "message": "服務帳號"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "使用者"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.desc": {
+          "source": "The kind of principal that receives permissions from a role binding.\nPossible values: `user`, `service_account`, `api_key`, `invite`.",
+          "message": "從角色綁定接收權限的主體類型。\n可能的值：`user`、`service_account`、`api_key`、`invite`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.display_name": {
+          "source": "Principal Type",
+          "message": "主要類型"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.short_desc": {
+          "source": "Principal Type",
+          "message": "主要類型"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
+          "source": "Organization Manager",
+          "message": "組織經理"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
+          "source": "Organization Member",
+          "message": "組織成員"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
+          "source": "Organization Owner",
+          "message": "組織所有者"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
+          "source": "Organization Billing Admin",
+          "message": "組織計費管理員"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "控制平面編輯器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "控制平面檢視器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "資料平面編輯器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "資料平面檢視器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "專案編輯"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
+          "source": "Project Manager",
+          "message": "專案經理"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
+          "source": "Project Member",
+          "message": "專案成員"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
+          "source": "Project Owner",
+          "message": "專案業主"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "項目檢視器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.desc": {
+          "source": "A role assigned to a principal at a resource scope.",
+          "message": "在資源範圍內分配給主體的角色。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "角色"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.short_desc": {
+          "source": "Role",
+          "message": "角色"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.desc": {
+          "source": "Project UUID. Required when `resource_type` is `project`; omit for `organization` scope.",
+          "message": "項目 UUID。當`resource_type`為`project`時需要；省略`organization`範圍。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.display_name": {
+          "source": "Resource ID",
+          "message": "資源 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.short_desc": {
+          "source": "Resource ID",
+          "message": "資源 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Organization",
+          "message": "組織"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "專案"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.desc": {
+          "source": "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`.",
+          "message": "角色綁定適用的資源範圍類型。\n可能的值：`organization`、`project`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.display_name": {
+          "source": "Resource Type",
+          "message": "資源類型"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.short_desc": {
+          "source": "Resource Type",
+          "message": "資源類型"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.short_desc": {
+          "source": "Create a role binding",
+          "message": "建立角色綁定"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Create a service account for automated workflows, optionally assigning its initial roles.\n\n**Save the secret:** `client_secret` is returned only once and cannot be read again.",
+          "message": "為自動化工作流程建立服務帳戶，可以選擇指派其初始角色。\n\n**儲存秘密：** `client_secret`只回傳一次，無法再讀取。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Create Service Account",
+          "message": "建立服務帳戶"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.desc": {
+          "source": "The human-readable name of the service account.",
+          "message": "服務帳戶的人類可讀名稱。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.desc": {
+          "source": "Optional initial role bindings. Omitting the field or passing an empty array creates the service account with no role bindings; roles can be added later via the role binding endpoints. A service account may be granted any organization- or project-scoped role. Not returned in the response.",
+          "message": "可選的初始角色綁定。省略該欄位或傳遞空數組將建立沒有角色綁定的服務帳戶；稍後可以透過角色綁定端點新增角色。服務帳戶可以被授予任何組織或專案範圍的角色。未在響應中返回。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.display_name": {
+          "source": "Role Bindings",
+          "message": "角色綁定"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.short_desc": {
+          "source": "Role Bindings",
+          "message": "角色綁定"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Create a service account",
+          "message": "建立服務帳戶"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.desc": {
+          "source": "Read an organization's configuration to review its plan and administrative settings.",
+          "message": "閱讀組織的配置以查看其計劃和管理設定。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Get Organization",
+          "message": "取得組織"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
+          "source": "Organization ID",
+          "message": "組織 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
+          "source": "Organization ID",
+          "message": "組織 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
+          "source": "Organization ID",
+          "message": "組織 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.short_desc": {
+          "source": "Get organization details",
+          "message": "獲取組織詳細信息"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.desc": {
+          "source": "Read an API key's configuration and roles to review its access. The response excludes the secret.",
+          "message": "閱讀 API 金鑰的配置和角色以查看其存取權限。響應排除了秘密。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.display_name": {
+          "source": "Get API Key",
+          "message": "取得API金鑰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
+          "source": "API key ID",
+          "message": "API金鑰ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.option.YXBpX2tleV9pZA.display_name": {
+          "source": "API Key ID",
+          "message": "API金鑰ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.option.YXBpX2tleV9pZA.short_desc": {
+          "source": "API Key ID",
+          "message": "API金鑰ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.short_desc": {
+          "source": "Get API key details",
+          "message": "獲取 API 密鑰詳細信息"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.desc": {
+          "source": "Read an invitation's details before following up, resending it, or withdrawing access.",
+          "message": "在跟進、重新發送或撤回訪問權限之前，請閱讀邀請的詳細資訊。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.display_name": {
+          "source": "Get Invite",
+          "message": "獲得邀請"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.desc": {
+          "source": "Invite ID",
+          "message": "邀請ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.display_name": {
+          "source": "Invite ID",
+          "message": "邀請ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
+          "source": "Invite ID",
+          "message": "邀請ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.short_desc": {
+          "source": "Get invite details",
+          "message": "取得邀請詳情"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.desc": {
+          "source": "Read a project's configuration before changing deployment limits or encryption settings.",
+          "message": "在變更部署限製或加密設定之前，請閱讀項目的配置。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.display_name": {
+          "source": "Get Project",
+          "message": "取得專案"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.short_desc": {
+          "source": "Get project details",
+          "message": "取得專案詳細資訊"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.desc": {
+          "source": "Read a role assignment to check which principal has access to the selected resource.",
+          "message": "讀取角色分配以檢查哪個主體有權存取所選資源。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.display_name": {
+          "source": "Get Role Binding",
+          "message": "獲取角色綁定"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.desc": {
+          "source": "Role binding ID",
+          "message": "角色綁定ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.display_name": {
+          "source": "Role Binding ID",
+          "message": "角色綁定ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.short_desc": {
+          "source": "Role Binding ID",
+          "message": "角色綁定ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.short_desc": {
+          "source": "Get role binding details",
+          "message": "獲取角色綁定詳細信息"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Read a service account's details to review an integration's identity. Its secret is available only when created or rotated.",
+          "message": "讀取服務帳戶的詳細資訊以查看整合的身份。它的秘密僅在創建或旋轉時才可用。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Get Service Account",
+          "message": "取得服務帳號"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "服務帳戶的唯一識別碼。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "服務帳號 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "服務帳號 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Get service account details",
+          "message": "取得服務帳戶詳細信息"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.desc": {
+          "source": "Read a team member's organization details before reviewing their access or removing membership.",
+          "message": "在查看團隊成員的存取權限或刪除成員資格之前，請先閱讀團隊成員的組織詳細資訊。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.display_name": {
+          "source": "Get User",
+          "message": "取得使用者"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.desc": {
+          "source": "User ID",
+          "message": "使用者 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.display_name": {
+          "source": "User ID",
+          "message": "使用者 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.short_desc": {
+          "source": "User ID",
+          "message": "使用者 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.short_desc": {
+          "source": "Get user details",
+          "message": "獲取用戶詳細信息"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.desc": {
+          "source": "Delete an organization and all its configuration; delete all its projects first.",
+          "message": "刪除組織及其所有配置；先刪除其所有項目。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Delete Organization",
+          "message": "刪除組織"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
+          "source": "Organization ID",
+          "message": "組織 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
+          "source": "Organization ID",
+          "message": "組織 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
+          "source": "Organization ID",
+          "message": "組織 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.short_desc": {
+          "source": "Delete an organization",
+          "message": "刪除組織"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.desc": {
+          "source": "Revoke a project API key when an integration is retired or its credentials must be replaced.",
+          "message": "當整合停用或必須更換其憑證時，撤銷專案 API 金鑰。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.display_name": {
+          "source": "Delete API Key",
+          "message": "刪除 API 金鑰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
+          "source": "API key ID",
+          "message": "API金鑰ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.display_name": {
+          "source": "API Key ID",
+          "message": "API金鑰ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.short_desc": {
+          "source": "API Key ID",
+          "message": "API金鑰ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.short_desc": {
+          "source": "Delete an API key",
+          "message": "刪除 API 金鑰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.desc": {
+          "source": "Delete a pending or expired invite and its role bindings; to remove an accepted user, delete the user instead.",
+          "message": "刪除待處理或過期的邀請及其角色綁定；要刪除已接受的用戶，請刪除該用戶。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.display_name": {
+          "source": "Delete Invite",
+          "message": "刪除邀請"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.desc": {
+          "source": "Invite ID",
+          "message": "邀請ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.display_name": {
+          "source": "Invite ID",
+          "message": "邀請ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
+          "source": "Invite ID",
+          "message": "邀請ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.short_desc": {
+          "source": "Delete an invite",
+          "message": "刪除邀請"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.desc": {
+          "source": "Delete a project and all its configuration; delete its indexes, assistants, backups, and collections first.",
+          "message": "刪除項目及其所有配置；先刪除其索引、助理、備份和集合。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.display_name": {
+          "source": "Delete Project",
+          "message": "刪除專案"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.short_desc": {
+          "source": "Delete a project",
+          "message": "刪除專案"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.desc": {
+          "source": "Remove a role assignment when access is no longer needed. Permissions are revoked when deletion completes.",
+          "message": "當不再需要存取權限時刪除角色分配。刪除完成後，權限將被撤銷。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.display_name": {
+          "source": "Delete Role Binding",
+          "message": "刪除角色綁定"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.desc": {
+          "source": "Role binding ID",
+          "message": "角色綁定ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.display_name": {
+          "source": "Role Binding ID",
+          "message": "角色綁定ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.short_desc": {
+          "source": "Role Binding ID",
+          "message": "角色綁定ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.short_desc": {
+          "source": "Delete a role binding",
+          "message": "刪除角色綁定"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Delete a service account and its role bindings; tokens it minted are revoked within a few seconds.",
+          "message": "刪除服務帳戶及其角色綁定；它鑄造的代幣會在幾秒鐘內被撤銷。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Delete Service Account",
+          "message": "刪除服務帳戶"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "服務帳戶的唯一識別碼。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "服務帳號 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "服務帳號 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Delete a service account",
+          "message": "刪除服務帳戶"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.desc": {
+          "source": "Remove a user from the organization and revoke their role bindings; their Pinecone account is not deleted.",
+          "message": "從組織中刪除使用者並撤銷其角色綁定；他們的 Pinecone 帳戶並未被刪除。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.display_name": {
+          "source": "Delete User",
+          "message": "刪除用戶"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.desc": {
+          "source": "User ID",
+          "message": "使用者 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.display_name": {
+          "source": "User ID",
+          "message": "使用者 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.short_desc": {
+          "source": "User ID",
+          "message": "使用者 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.short_desc": {
+          "source": "Remove a user from the organization",
+          "message": "從組織中移除使用者"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.desc": {
+          "source": "List users in the caller's organization, optionally filtered by email address.",
+          "message": "列出呼叫者組織中的用戶，可以選擇按電子郵件地址進行篩選。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.display_name": {
+          "source": "List Users",
+          "message": "列出使用者"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.desc": {
+          "source": "Case-insensitive filter on the user's email address. Malformed email returns `400 INVALID_ARGUMENT`.",
+          "message": "使用者電子郵件地址的不區分大小寫的過濾器。格式錯誤的電子郵件回傳 `400 INVALID_ARGUMENT`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "電子郵件"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.short_desc": {
+          "source": "Email",
+          "message": "電子郵件"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "每頁傳回的結果數。省略時，伺服器預設為 100。超出範圍的值回傳 `400 OUT_OF_RANGE`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "限制"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "限制"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "遊標來自先前回應的`pagination.next`。必須與相同的查詢上下文（路徑參數、過濾器和`limit`）一起重複使用。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "分頁權杖"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "分頁權杖"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.short_desc": {
+          "source": "List users in the organization",
+          "message": "列出組織中的用戶"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.desc": {
+          "source": "List pending and expired invites in the caller's organization.",
+          "message": "列出呼叫者組織中待處理和過期的邀請。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.display_name": {
+          "source": "List Invites",
+          "message": "列出邀請"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "每頁傳回的結果數。省略時，伺服器預設為 100。超出範圍的值回傳 `400 OUT_OF_RANGE`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "限制"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "限制"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "遊標來自先前回應的`pagination.next`。必須與相同的查詢上下文（路徑參數、過濾器和`limit`）一起重複使用。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "分頁權杖"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "分頁權杖"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.short_desc": {
+          "source": "List invites",
+          "message": "列出邀請"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.desc": {
+          "source": "List all organizations associated with an account.",
+          "message": "列出與帳戶關聯的所有組織。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.display_name": {
+          "source": "List Organizations",
+          "message": "列出組織"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.short_desc": {
+          "source": "List organizations",
+          "message": "列出組織"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.desc": {
+          "source": "List all API keys in a project.",
+          "message": "列出專案中的所有 API 金鑰。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.display_name": {
+          "source": "List Project API Keys",
+          "message": "列出專案 API 金鑰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.short_desc": {
+          "source": "List API keys",
+          "message": "列出 API 金鑰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.desc": {
+          "source": "List all projects in an organization.",
+          "message": "列出組織中的所有項目。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.display_name": {
+          "source": "List Projects",
+          "message": "列出專案"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.short_desc": {
+          "source": "List projects",
+          "message": "列出項目"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.desc": {
+          "source": "List role bindings in the caller's organization, optionally filtered by principal, resource, and role.",
+          "message": "列出呼叫者組織中的角色綁定，可以選擇依主體、資源和角色篩選。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.display_name": {
+          "source": "List Role Bindings",
+          "message": "列出角色綁定"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "每頁傳回的結果數。省略時，伺服器預設為 100。超出範圍的值回傳 `400 OUT_OF_RANGE`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "限制"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "限制"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "遊標來自先前回應的`pagination.next`。必須與相同的查詢上下文（路徑參數、過濾器和`limit`）一起重複使用。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "分頁權杖"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "分頁權杖"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.desc": {
+          "source": "The resource ID of the selected `principal_type`, from **List Users**, **List Service Accounts**, **List Project API Keys**, or **List Invites**. For a service account use its `id`, not its OAuth2 `client_id`.",
+          "message": "所選 `principal_type` 的資源 ID，來自 **列出使用者**、**列出服務帳戶**、**列出專案 API 金鑰**或 **列出邀請**。對於服務帳戶，請使用其 `id`，而不是其 OAuth2 `client_id`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.display_name": {
+          "source": "Principal ID",
+          "message": "委託人 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.short_desc": {
+          "source": "Principal ID",
+          "message": "委託人 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmFwaV9rZXk.display_name": {
+          "source": "API Key",
+          "message": "API 金鑰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmludml0ZQ.display_name": {
+          "source": "Invite",
+          "message": "邀請"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnNlcnZpY2VfYWNjb3VudA.display_name": {
+          "source": "Service Account",
+          "message": "服務帳號"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "使用者"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.desc": {
+          "source": "Filter by principal type. Required when `principal_id` is set.",
+          "message": "按主要類型過濾。當設定`principal_id`時需要。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.display_name": {
+          "source": "Principal Type",
+          "message": "主要類型"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.short_desc": {
+          "source": "Principal Type",
+          "message": "主要類型"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
+          "source": "Organization Manager",
+          "message": "組織經理"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
+          "source": "Organization Member",
+          "message": "組織成員"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
+          "source": "Organization Owner",
+          "message": "組織所有者"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
+          "source": "Organization Billing Admin",
+          "message": "組織計費管理員"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "控制平面編輯器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "控制平面檢視器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "資料平面編輯器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "資料平面檢視器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "專案編輯"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
+          "source": "Project Manager",
+          "message": "專案經理"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
+          "source": "Project Member",
+          "message": "專案成員"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
+          "source": "Project Owner",
+          "message": "專案業主"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "項目檢視器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.desc": {
+          "source": "Filter by role.",
+          "message": "按角色過濾。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "角色"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.short_desc": {
+          "source": "Role",
+          "message": "角色"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.desc": {
+          "source": "Filter by resource ID. Requires `resource_type`.",
+          "message": "按資源 ID 過濾。需要`resource_type`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.display_name": {
+          "source": "Resource ID",
+          "message": "資源 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.short_desc": {
+          "source": "Resource ID",
+          "message": "資源 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Organization",
+          "message": "組織"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "專案"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.desc": {
+          "source": "Filter by resource type. Required when `resource_id` is set.",
+          "message": "按資源類型過濾。當設定`resource_id`時需要。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.display_name": {
+          "source": "Resource Type",
+          "message": "資源類型"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.short_desc": {
+          "source": "Resource Type",
+          "message": "資源類型"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.short_desc": {
+          "source": "List role bindings",
+          "message": "列出角色綁定"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.desc": {
+          "source": "List service accounts in the caller's organization.",
+          "message": "列出呼叫者組織中的服務帳戶。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.display_name": {
+          "source": "List Service Accounts",
+          "message": "列出服務帳戶"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "每頁傳回的結果數。省略時，伺服器預設為 100。超出範圍的值回傳 `400 OUT_OF_RANGE`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "限制"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "限制"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "遊標來自先前回應的`pagination.next`。必須與相同的查詢上下文（路徑參數、過濾器和`limit`）一起重複使用。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "分頁權杖"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "分頁權杖"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.short_desc": {
+          "source": "List service accounts",
+          "message": "列出服務帳戶"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.desc": {
+          "source": "Make a custom HTTP / REST API call to **Pinecone Admin** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
+          "message": "使用設定的連線驗證對 **Pinecone Admin** 進行自訂 HTTP/REST API 呼叫。\n\n指定 HTTP 方法、URI 路徑（相對於連接的 API 基本 URL）、可選查詢參數、標頭和請求正文。回應以包含狀態代碼、回應標頭和回應正文的哈希形式傳回。\n\n將此操作用於尚未在此應用程式上公開為一級操作的端點。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.display_name": {
+          "source": "Make an API call",
+          "message": "進行 API 呼叫"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.desc": {
+          "source": "The request body. The effective type depends on `body_type`: JSON/form/YAML expect a hash, XML/text expect a string, multipart expects a file structure, binary expects raw bytes.",
+          "message": "請求主體。有效類型取決於 `body_type`：JSON/表單/YAML 預期為雜湊，XML/文字預期為字串，multipart 預期為檔案結構，二進位預期為原始位元組。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.display_name": {
+          "source": "Body",
+          "message": "內文"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.short_desc": {
+          "source": "The request body",
+          "message": "請求主體"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.desc": {
+          "source": "Upload a file using `multipart/form-data`. The body must be a @ref DataProvider::FileDataType \"FileDataType\" structure (filename + content + mime_type). The framework builds the multipart envelope and sets the boundary header.",
+          "message": "使用 `multipart/form-data` 上傳檔案。主體必須是 @ref DataProvider::FileDataType \"FileDataType\" 結構 (filename + content + mime_type)。框架會建立 multipart 信封並設定 boundary 標頭。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.display_name": {
+          "source": "Multipart Form",
+          "message": "Multipart 表單"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.short_desc": {
+          "source": "Upload a file using multipart/form-data",
+          "message": "使用 multipart/form-data 上傳檔案"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Pass the body to the REST client unchanged; the client decides serialization based on its configured `data` option and the value type",
+          "message": "將主體原封不動地傳遞給 REST 用戶端；用戶端會根據其設定的 `data` 選項與數值類型來決定序列化方式"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "自動"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Pass-through; use connection serialization and let the REST client decide",
+          "message": "透傳；使用連線序列化並由 REST 用戶端決定"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.desc": {
+          "source": "Send the body as raw bytes. The body must be a binary value. Sets `Content-Type: application/octet-stream` unless overridden by `hdr`.",
+          "message": "將主體作為原始位元組傳送。主體必須是二進位值。除非被 `hdr` 覆寫，否則會設定 `Content-Type: application/octet-stream`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
+          "source": "Raw Binary",
+          "message": "原始二進位"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.short_desc": {
+          "source": "Send body as raw bytes",
+          "message": "將主體作為原始位元組傳送"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.desc": {
+          "source": "Serialize a hash of form fields as `application/x-www-form-urlencoded`. The body must be a hash whose values are scalars (strings/numbers/booleans).",
+          "message": "將表單欄位的雜湊序列化為 `application/x-www-form-urlencoded`。主體必須是值為純量 (字串/數字/布林值) 的雜湊。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.display_name": {
+          "source": "Form (URL-encoded)",
+          "message": "表單 (URL 編碼)"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.short_desc": {
+          "source": "Serialize body as application/x-www-form-urlencoded form fields",
+          "message": "將主體序列化為 application/x-www-form-urlencoded 表單欄位"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.desc": {
+          "source": "Serialize the body as JSON; sets `Content-Type: application/json`. The body should be a hash, list, or scalar value.",
+          "message": "將主體序列化為 JSON；設定 `Content-Type: application/json`。主體應為雜湊、清單或純量值。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.short_desc": {
+          "source": "Serialize body as JSON",
+          "message": "將主體序列化為 JSON"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Send the body as plain text. The body must be a string. Sets `Content-Type: text/plain`.",
+          "message": "將主體作為純文字傳送。主體必須是字串。設定 `Content-Type: text/plain`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "純文字"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Send body as text/plain",
+          "message": "將主體作為 text/plain 傳送"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.desc": {
+          "source": "Send the body as XML. If the body is a hash it is serialized to XML; if it is a string it is sent verbatim. Sets `Content-Type: application/xml`.",
+          "message": "將主體作為 XML 傳送。若主體為雜湊，則會序列化為 XML；若為字串，則原樣傳送。設定 `Content-Type: application/xml`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.display_name": {
+          "source": "XML",
+          "message": "XML"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.short_desc": {
+          "source": "Send body as XML",
+          "message": "將主體作為 XML 傳送"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.desc": {
+          "source": "Send the body as YAML. If the body is a hash it is serialized to YAML; if it is a string it is sent verbatim. Sets `Content-Type: application/x-yaml`.",
+          "message": "將主體作為 YAML 傳送。若主體為雜湊，則會序列化為 YAML；若為字串，則原樣傳送。設定 `Content-Type: application/x-yaml`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.display_name": {
+          "source": "YAML",
+          "message": "YAML"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.short_desc": {
+          "source": "Send body as YAML",
+          "message": "將主體作為 YAML 傳送"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.desc": {
+          "source": "Selects the body serialization mode and the corresponding `Content-Type` header. Changing this field reshapes the `body` editor - selecting JSON exposes a JSON editor, selecting Multipart Form exposes a file picker, and so on.",
+          "message": "選擇主體序列化模式與相應的 `Content-Type` 標頭。變更此欄位會重塑 `body` 編輯器 - 選擇 JSON 會顯示 JSON 編輯器，選擇 Multipart Form 會顯示檔案選擇器，依此類推。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.display_name": {
+          "source": "Body Type",
+          "message": "主體類型"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.short_desc": {
+          "source": "How the body is serialized and what Content-Type is sent",
+          "message": "主體如何序列化以及傳送何種 Content-Type"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.desc": {
+          "source": "If `True`, non-2xx HTTP responses return as the normal response hash (with the actual status code) instead of raising `REST-RESPONSE-ERROR`. Useful for handling 4xx/5xx as data - e.g. checking whether a resource exists. Overrides the connection's `error_passthru` setting for this call only.",
+          "message": "若為 `True`，非 2xx 的 HTTP 回應將作為正常的回應雜湊 (包含實際狀態碼) 返回，而不是引發 `REST-RESPONSE-ERROR`。適用於將 4xx/5xx 作為資料處理 - 例如檢查資源是否存在。僅針對本次呼叫覆寫連線的 `error_passthru` 設定。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.display_name": {
+          "source": "Return Errors as Data",
+          "message": "將錯誤作為資料返回"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.short_desc": {
+          "source": "Return non-2xx responses normally instead of throwing",
+          "message": "正常返回非 2xx 回應，而不是拋出例外"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.desc": {
+          "source": "Optional list of HTTP status codes treated as success. If set and the response status is not in this list, the action throws `REST-STATUS-ERROR`. When unset, the REST client's default behavior applies (typically: 2xx is success, non-2xx throws).",
+          "message": "視為成功的選擇性 HTTP 狀態碼清單。若已設定且回應狀態不在此清單中，該動作將拋出 `REST-STATUS-ERROR`。未設定時，套用 REST 用戶端的預設行為 (通常：2xx 代表成功，非 2xx 拋出例外)。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.display_name": {
+          "source": "Expected Status Codes",
+          "message": "預期的狀態碼"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.short_desc": {
+          "source": "Response status codes treated as success",
+          "message": "視為成功的回應狀態碼"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.desc": {
+          "source": "Hash of custom headers added to the request. These override any default headers set by `body_type` (e.g. supplying `Content-Type` here wins over the body-type default).",
+          "message": "新增至請求的自訂標頭雜湊。這些會覆寫由 `body_type` 設定的任何預設標頭 (例如：在此處提供 `Content-Type` 會優先於主體類型的預設值)。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.display_name": {
+          "source": "Custom Headers",
+          "message": "自訂標頭"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.short_desc": {
+          "source": "Extra request headers",
+          "message": "額外的請求標頭"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.desc": {
+          "source": "If `True`, the response hash includes a `debug` sub-hash containing the request method/URL/headers (with sensitive values redacted), request and response sizes, and round-trip duration. Useful when investigating slow or failing calls. Off by default to keep responses lean.",
+          "message": "若為 `True`，回應雜湊包含一個 `debug` 子雜湊，其中包含請求方法/URL/標頭 (敏感值已遮蔽)、請求與回應大小以及來回時間。在調查過慢或失敗的呼叫時很有用。預設關閉以維持回應精簡。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.display_name": {
+          "source": "Include Debug Info",
+          "message": "包含除錯資訊"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.short_desc": {
+          "source": "Include request/timing/size debug info in the response",
+          "message": "在回應中包含請求/時序/大小除錯資訊"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.desc": {
+          "source": "HTTP `OPTIONS`",
+          "message": "HTTP `OPTIONS`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.display_name": {
+          "source": "OPTIONS",
+          "message": "OPTIONS"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.short_desc": {
+          "source": "HTTP OPTIONS",
+          "message": "HTTP OPTIONS"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.desc": {
+          "source": "HTTP `DELETE`",
+          "message": "HTTP `DELETE`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.display_name": {
+          "source": "DELETE",
+          "message": "DELETE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.short_desc": {
+          "source": "HTTP DELETE",
+          "message": "HTTP DELETE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.desc": {
+          "source": "HTTP `GET`",
+          "message": "HTTP `GET`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.display_name": {
+          "source": "GET",
+          "message": "GET"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.short_desc": {
+          "source": "HTTP GET",
+          "message": "HTTP GET"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.desc": {
+          "source": "HTTP `HEAD`",
+          "message": "HTTP `HEAD`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.display_name": {
+          "source": "HEAD",
+          "message": "HEAD"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.short_desc": {
+          "source": "HTTP HEAD",
+          "message": "HTTP HEAD"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.desc": {
+          "source": "HTTP `PATCH`",
+          "message": "HTTP `PATCH`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.display_name": {
+          "source": "PATCH",
+          "message": "PATCH"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.short_desc": {
+          "source": "HTTP PATCH",
+          "message": "HTTP PATCH"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.desc": {
+          "source": "HTTP `POST`",
+          "message": "HTTP `POST`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.display_name": {
+          "source": "POST",
+          "message": "POST"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.short_desc": {
+          "source": "HTTP POST",
+          "message": "HTTP POST"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.desc": {
+          "source": "HTTP `PUT`",
+          "message": "HTTP `PUT`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.display_name": {
+          "source": "PUT",
+          "message": "PUT"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.short_desc": {
+          "source": "HTTP PUT",
+          "message": "HTTP PUT"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.desc": {
+          "source": "HTTP `TRACE`",
+          "message": "HTTP `TRACE`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.display_name": {
+          "source": "TRACE",
+          "message": "TRACE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.short_desc": {
+          "source": "HTTP TRACE",
+          "message": "HTTP TRACE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.desc": {
+          "source": "The HTTP method to use for the request",
+          "message": "用於請求的 HTTP 方法"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.display_name": {
+          "source": "HTTP Method",
+          "message": "HTTP 方法"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.short_desc": {
+          "source": "The HTTP method to use for the request",
+          "message": "用於請求的 HTTP 方法"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.desc": {
+          "source": "The URI path relative to the connection's API base URL. May contain `{name}` placeholders that are replaced from `path_vars`. Example: `/users/{id}/comments`.",
+          "message": "相於連線 API 基本 URL 的 URI 路徑。可能包含從 `path_vars` 替換的 `{name}` 預留位置。範例：`/users/{id}/comments`。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.display_name": {
+          "source": "URI Path",
+          "message": "URI 路徑"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.short_desc": {
+          "source": "The URI path relative to the connection's API base URL",
+          "message": "相對於連線 API 基礎 URL 的 URI 路徑"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.desc": {
+          "source": "Hash of values substituted into `{name}` placeholders in the URI path. Example: with `path = /users/{id}` and `path_vars = {id: 123}` the framework sends `/users/123`. Values are URL-encoded.",
+          "message": "替換至 URI 路徑中 `{name}` 預留位置的值 Hash。範例：使用 `path = /users/{id}` 與 `path_vars = {id: 123}` 時，框架會傳送 `/users/123`。數值均經過 URL 編碼。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.display_name": {
+          "source": "Path Variables",
+          "message": "路徑變數"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.short_desc": {
+          "source": "Values for {name} placeholders in path",
+          "message": "路徑中 {name} 預留位置的值"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.desc": {
+          "source": "Hash of query string parameters to append to the URI path. Values are URL-encoded; list values are joined with `,`.",
+          "message": "要附加至 URI 路徑的查詢字串參數 Hash。數值均經過 URL 編碼；清單值會使用 `,` 連接。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.display_name": {
+          "source": "Query Arguments",
+          "message": "查詢引數"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.short_desc": {
+          "source": "Query string parameters",
+          "message": "查詢字串參數"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.short_desc": {
+          "source": "Make a custom API call to Pinecone Admin",
+          "message": "對 Pinecone Admin 進行自訂 API 呼叫"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.desc": {
+          "source": "Rotate a service account's OAuth client secret; the previous secret and its tokens are revoked within seconds and the new secret is returned only once.\n\n**Save the secret:** store `client_secret` securely when returned; it cannot be read again. Update the connections that use this service account after rotation.",
+          "message": "輪換服務帳戶的 OAuth 用戶端金鑰；先前的秘密及其令牌將在幾秒鐘內撤銷，並且新的秘密僅返回一次。\n\n**儲存秘密：**返回時安全儲存`client_secret`；無法再讀取。輪換後更新使用此服務帳戶的連線。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.display_name": {
+          "source": "Rotate Service Account Secret",
+          "message": "輪調服務帳戶秘密"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "服務帳戶的唯一識別碼。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "服務帳號 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "服務帳號 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.short_desc": {
+          "source": "Rotate a service account's OAuth client secret",
+          "message": "輪換服務帳戶的 OAuth 用戶端金鑰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.desc": {
+          "source": "Resend the invite email and extend its expiration to 7 days from now; limited to 100 emails per hour per organization.\n\n**Sends email:** delivers another invitation and renews its expiry.",
+          "message": "重新發送邀請郵件並將有效期延長至7天後；每個組織每小時最多發送 100 封電子郵件。\n\n**發送電子郵件：** 發送另一份邀請並更新其有效期。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.display_name": {
+          "source": "Resend Invite",
+          "message": "重新發送邀請"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.desc": {
+          "source": "Invite ID",
+          "message": "邀請ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.display_name": {
+          "source": "Invite ID",
+          "message": "邀請ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
+          "source": "Invite ID",
+          "message": "邀請ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.short_desc": {
+          "source": "Resend an invite email",
+          "message": "重新發送邀請電子郵件"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.desc": {
+          "source": "Rename an organization so its display name matches the business or team it serves.",
+          "message": "重新命名組織，使其顯示名稱與其服務的業務或團隊相符。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Update Organization",
+          "message": "更新組織"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
+          "source": "Organization ID",
+          "message": "組織 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
+          "source": "Organization ID",
+          "message": "組織 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
+          "source": "Organization ID",
+          "message": "組織 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.desc": {
+          "source": "The new name for the organization.",
+          "message": "組織的新名稱。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.short_desc": {
+          "source": "Update an organization",
+          "message": "更新組織"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.desc": {
+          "source": "Change an API key's name or roles to keep its access aligned with the integration it serves.",
+          "message": "變更 API 金鑰的名稱或角色，以使其存取權限與其所服務的整合保持一致。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.display_name": {
+          "source": "Update API Key",
+          "message": "更新 API 金鑰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
+          "source": "API key ID",
+          "message": "API金鑰ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.display_name": {
+          "source": "API Key ID",
+          "message": "API金鑰ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.short_desc": {
+          "source": "API Key ID",
+          "message": "API金鑰ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.bmFtZQ.desc": {
+          "source": "A new name for the API key. The name must be 1-80 characters long. If omitted, the name will not be updated.",
+          "message": "API 金鑰的新名稱。名稱長度必須為 1-80 個字元。如果省略，名稱將不會更新。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "控制平面編輯器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "控制平面檢視器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "資料平面編輯器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "資料平面檢視器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "專案編輯"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "項目檢視器"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.desc": {
+          "source": "A new set of roles for the API key. Existing roles will be removed if not included.\nIf this field is omitted, the roles will not be updated.",
+          "message": "API 金鑰的一組新角色。如果不包含，現有角色將被刪除。\n如果省略此字段，則角色將不會更新。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.display_name": {
+          "source": "Roles",
+          "message": "角色"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.short_desc": {
+          "source": "Roles",
+          "message": "角色"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.short_desc": {
+          "source": "Update an API key",
+          "message": "更新 API 金鑰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.desc": {
+          "source": "Adjust a project's name, pod limit, or customer-managed encryption settings as its workload changes.",
+          "message": "隨著工作負載的變化調整項目的名稱、Pod 限製或客戶管理的加密設定。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.display_name": {
+          "source": "Update Project",
+          "message": "更新專案"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.desc": {
+          "source": "Whether to force encryption with a customer-managed encryption key (CMEK). Once enabled, CMEK encryption cannot be disabled.",
+          "message": "是否使用客戶管理的加密金鑰 (CMEK) 強制加密。一旦啟用，CMEK 加密就無法停用。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.display_name": {
+          "source": "Force Encryption With CMEK",
+          "message": "使用 CMEK 強制加密"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.short_desc": {
+          "source": "Force Encryption With CMEK",
+          "message": "使用 CMEK 強制加密"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.desc": {
+          "source": "The maximum number of Pods that can be created in the project.",
+          "message": "專案中可以創建的最大 Pod 數量。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.display_name": {
+          "source": "Max Pods",
+          "message": "最大 Pod 數"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.short_desc": {
+          "source": "Max Pods",
+          "message": "最大 Pod 數"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.desc": {
+          "source": "The name of the new project.",
+          "message": "新項目的名稱。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "專案 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.short_desc": {
+          "source": "Update a project",
+          "message": "更新項目"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Rename a service account to identify the integration it serves. Manage its permissions with the role-binding actions.",
+          "message": "重新命名服務帳戶以標識它所服務的整合。透過角色綁定操作管理其權限。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Update Service Account",
+          "message": "更新服務帳戶"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.desc": {
+          "source": "A new name for the service account. If omitted, the name is unchanged.",
+          "message": "服務帳戶的新名稱。如果省略，則名稱不變。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "名稱"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "服務帳戶的唯一識別碼。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "服務帳號 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "服務帳號 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Update a service account",
+          "message": "更新服務帳戶"
+        },
+        "app.UGluZWNvbmVBZG1pbg.desc": {
+          "source": "Automate organization administration in [Pinecone](https://www.pinecone.io).\n\n**Administration tasks**:\n- Create and configure projects for teams and workloads\n- Issue and revoke project API keys\n- Manage service accounts and rotate their credentials\n- Assign roles, invite users, and manage organization access\n\n**Connection**: Uses a **Pinecone Admin** service-account connection with OAuth2 client credentials. Use the **Pinecone** application with a project API key for indexes and records.",
+          "message": "在[Pinecone](https://www.pinecone.io)中實現組織管理自動化。\n\n**管理任務**：\n- 為團隊和工作負載建立和設定項目\n- 發布和撤銷項目API金鑰\n- 管理服務帳戶並輪換其憑證\n- 指派角色、邀請使用者並管理組織存取權限\n\n**連線**：使用 OAuth2 用戶端憑證的 **Pinecone Admin** 服務帳戶連線。將 **Pinecone** 應用程式與專案 API 金鑰一起用於索引和記錄。"
+        },
+        "app.UGluZWNvbmVBZG1pbg.display_name": {
+          "source": "Pinecone Admin",
+          "message": "松果管理員"
+        },
+        "app.UGluZWNvbmVBZG1pbg.short_desc": {
+          "source": "Provision Pinecone projects and manage organization access",
+          "message": "配置 Pinecone 專案並管理組織訪問"
+        }
+      }
+    }
+  }
+}

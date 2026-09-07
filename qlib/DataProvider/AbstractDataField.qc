@@ -715,30 +715,39 @@ public class AbstractDataField inherits Qore::Serializable {
         desc =~ s/\*\*([^*]+)\*\*/$1/g;
         desc =~ s/(^|[[:space:]])_([^_]+)_(?=[[:space:][:punct:]]|$)/$1$2/g;
 
-        # get single-quoted strings; an apostrophe inside a word is not an
-        # opening quote (for example, the apostrophe in "connection's")
-        *list<string> sq = (desc =~ x/(?<![[:alnum:]])'([^\'\n]*)'/g);
-        # replace them with markers
-        if (sq) {
-            map desc = replace(desc, $1, "{{" + $# + "}}"), sq;
+        # Mask complete quoted spans without changing character offsets. Replacing their contents with
+        # numbered markers can alter ordinary words (a quoted "k" also occurs in "tokens"), and quoted
+        # digits can overwrite the markers themselves. Keep the original text for the final slice.
+        string masked = "";
+        int offset = 0;
+        int newline = desc.find("\n");
+        int limit = newline >= 0 ? newline : desc.length();
+        for (int i = 0; i < limit; ++i) {
+            string quote = desc.substr(i, 1);
+            if (quote != "'" && quote != "\"") {
+                continue;
+            }
+            if (quote == "'" && i && desc.substr(i - 1, 1) =~ /[[:alnum:]]/) {
+                continue;
+            }
+            int close = desc.find(quote, i + 1);
+            if (close < 0 || close >= limit) {
+                continue;
+            }
+            string span = desc.substr(i, close - i + 1);
+            span =~ s/./ /g;
+            masked += desc.substr(offset, i - offset) + span;
+            offset = close + 1;
+            i = close;
         }
-        # get double-quoted strings
-        *list<string> dq = (desc =~ x/"([^\"\n]*)"/g);
-        # replace them with markers
-        if (dq) {
-            map desc = replace(desc, $1, "{{" + $# + "}}"), dq;
-        }
+        masked += desc.substr(offset);
 
         # end after the first sentence or newline, if any
-        int end = AbstractDataField::findSentenceEnd(desc);
+        int end = AbstractDataField::findSentenceEnd(masked);
         if (end >= 0) {
             splice desc, end;
         }
         trim desc;
-
-        # re-add quotes to what's left
-        map desc = replace(desc, "{{" + $# + "}}", $1), sq;
-        map desc = replace(desc, "{{" + $# + "}}", $1), dq;
 
         if (maxlen > 0 && char_width(desc) > maxlen) {
             desc = AbstractDataField::truncateShortDescription(desc,

@@ -1,0 +1,78 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/OpenApi3.qm
+
+%exec-class PathTemplatesTest
+
+class PathTemplatesTest inherits QUnit::Test {
+    constructor() : Test("OpenAPI Path Templates", "1.0", \ARGV) {
+        addTestCase("literal and template routing", \routingTest());
+        addTestCase("parameter extraction", \parametersTest());
+        addTestCase("invalid and ambiguous templates", \invalidTest());
+        set_return_value(main());
+    }
+
+    private OpenApi3Schema schema(list<string> paths) {
+        hash<auto> definitions;
+        foreach string path in (paths) {
+            *list<hash<auto>> params = map (
+                "name": $1, "in": "path", "required": True, "schema": {"type": "string"},
+            ), path =~ x/\{([^}]+)\}/g;
+            definitions{path} = {"get": {
+                "operationId": path, "parameters": params ?? (),
+                "responses": {"200": {"description": "Success"}},
+            }};
+        }
+        return new OpenApi3Schema("", {
+            "openapi": "3.1.0", "info": {"title": "Template test", "version": "1"},
+            "paths": definitions,
+        });
+    }
+
+    private routingTest() {
+        list<string> paths = ("/batches/{id}", "/batches/{id}:cancel", "/batches/special:cancel",
+            "/batches/{id}:pause", "/files/file-{name}.json", "/files/{name}",
+            "/batches/{id}:cancel/status");
+        OpenApi3Schema s = schema(paths);
+        assertEq(sort(map $1.substr(1), paths), sort(keys s.getPathOperationHash()));
+        foreach hash<auto> entry in ({
+            "/batches/123": "/batches/{id}",
+            "/batches/123:cancel": "/batches/{id}:cancel",
+            "/batches/special:cancel": "/batches/special:cancel",
+            "/batches/123:pause": "/batches/{id}:pause",
+            "/batches/123:other": "/batches/{id}",
+            "/files/file-a.json": "/files/file-{name}.json",
+            "/files/file-aXjson": "/files/{name}",
+            "/files/file-a.json.extra": "/files/{name}",
+            "/batches/123:cancel/status": "/batches/{id}:cancel/status",
+        }.pairIterator()) {
+            assertEq(entry.value, s.paths.match(entry.key).getOperation("get", entry.key).path);
+        }
+        # The template itself is also used when generating action contracts.
+        foreach string path in (paths) {
+            assertEq(path, s.paths.match(path).getOperation("get", path).path);
+        }
+        OpenApi3Schema partial = schema(("/files/file-{name}.json",));
+        assertThrows("SCHEMA-VALIDATION-ERROR", \partial.paths.match(), "/files/file-aXjson");
+        assertThrows("SCHEMA-VALIDATION-ERROR", \partial.paths.match(), "/files/file-.json");
+        assertThrows("SCHEMA-VALIDATION-ERROR", \partial.paths.match(), "/files/file-a.json.extra");
+    }
+
+    private parametersTest() {
+        OpenApi3Schema s = schema(("/batches/{id}:cancel", "/files/{folder}/file-{name}.json",));
+        hash<auto> headers;
+        hash<RestRequestServerInfo> req = s.parseRequest("GET", "/batches/abc:cancel", NOTHING, \headers);
+        assertEq({"id": "abc"}, req.path_args);
+        req = s.parseRequest("GET", "/files/reports/file-september.json", NOTHING, \headers);
+        assertEq({"folder": "reports", "name": "september"}, req.path_args);
+    }
+
+    private invalidTest() {
+        assertThrows("INVALID-PATH-COMPONENT", \schema(), (("/batches/{id}", "/batches/{other}"),));
+        assertThrows("INVALID-PATH-COMPONENT", \schema(),
+            (("/batches/{id}:cancel", "/batches/{other}:cancel"),));
+        assertThrows("INVALID-PATH-COMPONENT", \schema(), (("/files/prefix-{}",),));
+    }
+}

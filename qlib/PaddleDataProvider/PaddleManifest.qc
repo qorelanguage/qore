@@ -302,16 +302,12 @@ public class PaddleManifest {
                     "Use `custom_data` to carry your own identifier for the customer, so the two systems "
                     "can be reconciled later.",
                 "groups": (GroupCustomers,),
-                "field_order": ("email", "name", "locale", "custom_data", "marketing_consent", "id"),
+                "field_order": ("email", "name", "locale", "custom_data", "marketing_consent"),
                 "response_unwrap": ("data",),
                 "fields": {
                     "email": <RestSchemaFieldOverlayInfo>{
                         "display_name": "Email",
                         "preselected": True,
-                    },
-                    "id": <RestSchemaFieldOverlayInfo>{
-                        "display_name": "Customer ID",
-                        "short_desc": "Import an existing customer under a known Paddle ID",
                     },
                     "name": <RestSchemaFieldOverlayInfo>{
                         "display_name": "Name",

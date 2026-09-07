@@ -1,16 +1,28 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
 %modern
 %allow-injection
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Logger
-%requires ConnectionProvider
-%requires DataProvider
-%requires CohereDataProvider
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/DataProvider
+%try-module yaml
+%define MissingYaml
+%endtry
+%ifdef MissingYaml
+printf("SKIP: this test requires the external yaml module\n");
+%else
+%requires ../../../../qlib/RestSchemaActions
+%requires ../../../../qlib/CohereDataProvider
+
+%requires json
+%requires ../../../../qlib/HttpServer.qm
 
 %exec-class CohereDataProviderTest
 
@@ -19,10 +31,29 @@ class FakeCohereRestClientIo inherits RestClientIo::RestClientIo {
         *hash<auto> last_request;
         string last_method;
         string last_path;
-        hash<auto> response_body;
+        hash<auto> response_body = {};
+        *data last_raw;
+        *hash<auto> last_headers;
+        int requests = 0;
     }
 
     constructor() : RestClientIo({"url": "https://api.cohere.com", "token": "x"}) {
+    }
+
+    RestClient::AbstractRestClient copyWithUrl(string new_url) {
+        return self;
+    }
+
+    hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body,
+            *hash<auto> hdr) {
+        last_method = method;
+        last_path = path;
+        last_raw = body;
+        last_headers = hdr;
+        ++requests;
+        last_request = body.val() && (hdr."Content-Type" ?? hdr."content-type" ?? "") !~ /^multipart\//
+            ? parse_json(body.toString()) : NOTHING;
+        return <RestClient::RestResponseInfo>{"status_code": 200, "body": response_body};
     }
 
     hash<RestClient::RestResponseInfo> restDoRequest(string method, string path,
@@ -52,6 +83,29 @@ class FakeCohereRestClientIo inherits RestClientIo::RestClientIo {
     }
 }
 
+#! Local HTTP fixture for verifying actual request paths, headers, and multipart payloads
+class CohereWireHandler inherits AbstractHttpRequestHandler {
+    private {
+        Mutex lock();
+        hash<auto> request;
+        *data request_body;
+    }
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        AutoLock al(lock);
+        request = hdr;
+        request_body = body;
+        return makeResponse(200, "{}", {"Content-Type": MimeTypeJson});
+    }
+    hash<auto> getRequest() {
+        AutoLock al(lock);
+        return request;
+    }
+    *data getBody() {
+        AutoLock al(lock);
+        return request_body;
+    }
+}
+
 public class CohereDataProviderTest inherits QUnit::Test {
     public {
         const MyOpts = Opts + {
@@ -59,6 +113,108 @@ public class CohereDataProviderTest inherits QUnit::Test {
         };
 
         const OptionColumn = 22;
+
+        const Requests = {
+            "chat": {
+                "model": "command-a-03-2025",
+                "messages": ({
+                    "role": "user",
+                    "content": "Hello",
+                },),
+            },
+            "embed": {
+                "model": "embed-v4.0",
+                "texts": ("Invoice paid",),
+                "input_type": "search_document",
+            },
+            "rerank": {
+                "model": "rerank-v3.5",
+                "query": "invoice",
+                "documents": ("Invoice paid", "Appointment changed",),
+            },
+            "classify": {
+                "inputs": ("A positive comment",),
+                "model": "classification-model",
+                "examples": ({
+                    "text": "Great",
+                    "label": "positive",
+                }, {
+                    "text": "Bad",
+                    "label": "negative",
+                },),
+            },
+            "list-models": {
+                "endpoint": "chat",
+                "page_size": 2,
+            },
+            "get-model": {
+                "model": "command-a-03-2025",
+            },
+            "tokenize": {
+                "model": "command-a-03-2025",
+                "text": "Invoice paid",
+            },
+            "detokenize": {
+                "model": "command-a-03-2025",
+                "tokens": (10, 20,),
+            },
+            "parse": {
+                "model": "parse-v5.0",
+                "document": {
+                    "type": "image_url",
+                    "image_url": "https://example.org/invoice.png",
+                },
+                "output_format": "blocks",
+            },
+            "transcribe": {
+                "model": "cohere-transcribe-03-2026",
+                "language": "en",
+                "file": binary("RIFFcohere-audio"),
+            },
+            "create-dataset": {
+                "name": "Invoices",
+                "type": "embed-input",
+                "data": binary("{\"text\":\"Invoice paid\"}\n"),
+            },
+            "list-datasets": {
+                "limit": 2,
+                "offset": 0,
+            },
+            "get-dataset": {
+                "id": "dataset-1",
+            },
+            "delete-dataset": {
+                "id": "dataset-1",
+            },
+            "get-dataset-usage": {},
+            "create-embed-job": {
+                "model": "embed-v4.0",
+                "dataset_id": "dataset-1",
+                "input_type": "search_document",
+            },
+            "list-embed-jobs": {},
+            "get-embed-job": {
+                "id": "job-1",
+            },
+            "cancel-embed-job": {
+                "id": "job-1",
+            },
+            "create-batch": {
+                "name": "Invoices",
+                "input_dataset_id": "dataset-1",
+                "model": "command-a-03-2025",
+            },
+            "list-batches": {
+                "page_size": 2,
+            },
+            "get-batch": {
+                "id": "batch-1",
+            },
+            "cancel-batch": {
+                "id": "batch-1",
+            },
+            "check-api-key": {},
+        };
     }
 
     private {
@@ -68,13 +224,20 @@ public class CohereDataProviderTest inherits QUnit::Test {
     constructor() : Test("CohereDataProvider Test", "1.0", \ARGV, MyOpts) {
         conn_name = m_options.conn ?? ENV.COHERE_CONNECTION;
 
-        addTestCase("factory + app + 4 actions registered", \registrationTest());
-        addTestCase("root provider lists 4 children",       \rootProviderTest());
+        addTestCase("factory + app + 24 actions registered", \registrationTest());
+        addTestCase("root provider resolves all 24 action paths",       \rootProviderTest());
         addTestCase("chat hits /v2/chat",                   \chatRequestTest());
         addTestCase("embed injects embedding_types default", \embedRequestTest());
         addTestCase("rerank hits /v2/rerank",               \rerankRequestTest());
         addTestCase("classify uses absolute /v1/classify path",
             \classifyRequestTest());
+
+        addTestCase("all API operations serialize valid requests", \allOperationsTest());
+        addTestCase("complete types, enums, and reference metadata", \contractTest());
+        addTestCase("model and object dropdowns use their listing endpoints", \referenceDataTest());
+        addTestCase("invalid and incomplete requests never reach the transport", \negativeTest());
+        addTestCase("HTTP routes, authentication, and multipart bytes", \wireTest());
+        addTestCase("live key-check action", \liveKeyTest());
 
         # Live test requires a real Cohere connection.
         # Cost: 1 embedding on embed-english-light-v3.0 (Cohere trial-key
@@ -109,9 +272,9 @@ public class CohereDataProviderTest inherits QUnit::Test {
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("Cohere"),
             $1.action != AbstractDataProvider::GenericApiCallActionName;
-        assertEq(4, actions.size());
+        assertEq(24, actions.size());
         list<string> action_names = sort(map $1.action, actions);
-        assertEq(("chat", "classify", "embed", "rerank"), action_names);
+        assertEq(sort(keys Requests), action_names);
     }
 
     private rootProviderTest() {
@@ -121,7 +284,13 @@ public class CohereDataProviderTest inherits QUnit::Test {
         # GenericApiCallAutoInjection.qtest in RestClientDataProvider)
         list<string> children = sort(select prov.getChildProviderNames(),
             $1 != AbstractDataProvider::GenericApiCallChildName);
-        assertEq(("chat", "classify", "embed", "rerank"), children);
+        assertEq(sort(keys Requests), children);
+        foreach string name in (children) {
+            AbstractDataProvider child = prov.getChildProvider(name);
+            assertTrue(child.supportsRequest(), name);
+            assertEq(name != "cancel-embed-job", exists child.getResponseType(), name);
+        }
+        assertNothing(prov.getChildProvider("unknown"));
     }
 
     private chatRequestTest() {
@@ -145,7 +314,7 @@ public class CohereDataProviderTest inherits QUnit::Test {
         });
 
         assertEq("POST", fake.last_method);
-        assertEq("chat", fake.last_path);
+        assertEq("/v2/chat", fake.last_path);
         assertEq("COMPLETE", resp.finish_reason);
         assertEq("Hi", resp.message.content[0].text);
     }
@@ -165,7 +334,7 @@ public class CohereDataProviderTest inherits QUnit::Test {
         });
 
         assertEq("POST", fake.last_method);
-        assertEq("embed", fake.last_path);
+        assertEq("/v2/embed", fake.last_path);
         # `embedding_types` injected by doRequestImpl when caller omits it
         assertEq(("float",), fake.last_request.embedding_types);
         assertEq("search_document", fake.last_request.input_type);
@@ -190,7 +359,7 @@ public class CohereDataProviderTest inherits QUnit::Test {
         });
 
         assertEq("POST", fake.last_method);
-        assertEq("rerank", fake.last_path);
+        assertEq("/v2/rerank", fake.last_path);
         assertEq(0.88, resp.results[0].relevance_score);
     }
 
@@ -219,6 +388,156 @@ public class CohereDataProviderTest inherits QUnit::Test {
         assertEq("positive", resp.classifications[0].prediction);
     }
 
+    private allOperationsTest() {
+        FakeCohereRestClientIo fake();
+        CohereDataProvider::CohereDataProvider root(fake);
+        foreach hash<RestSchemaActionInfo> info in (CohereManifest::Manifest) {
+            root.getChildProvider(info.action).doRequest(Requests{info.action});
+            assertEq(info.method, fake.last_method, info.action);
+            string path = info.path;
+            path = replace(path, "{id}", Requests{info.action}.id ?? "");
+            path = replace(path, "{model}", Requests{info.action}.model ?? "");
+            assertEq(path, fake.last_path.split("?")[0], info.action);
+        }
+        assertEq(24, fake.requests);
+    }
+
+    private contractTest() {
+        list<hash<DataProviderActionInfo>> actions = DataProviderActionCatalog::getActions("Cohere");
+        foreach hash<DataProviderActionInfo> action in (actions) {
+            if (action.action == AbstractDataProvider::GenericApiCallActionName) {
+                continue;
+            }
+            assertTrue(action.display_name.val(), action.action);
+            assertTrue(action.short_desc.val() && action.short_desc.size() < 80, action.action);
+            assertTrue(action.desc.val(), action.action);
+            assertEq(action.action != "cancel-embed-job", exists action.output_type, action.action);
+            assertFalse(exists action.cls, action.action);
+            RestSchemaActionOperation op = CohereSchema::getActionSet().getOperationEx(action.action);
+            if (op.getRequestType()) {
+                assertEq(sort(keys op.getRequestType().getFields()), sort(keys action.options), action.action);
+            }
+        }
+        hash<string, AbstractDataField> chat = new CohereChatRequestDataType().getFields();
+        foreach string name in ("documents", "thinking", "citation_options", "strict_tools", "logprobs") {
+            assertTrue(exists chat{name}, name);
+        }
+        assertFalse(exists chat.stream);
+        hash<string, AbstractDataField> embed = new CohereEmbedRequestDataType().getFields();
+        foreach string name in ("images", "inputs", "output_dimension", "max_tokens") {
+            assertTrue(exists embed{name}, name);
+        }
+        assertTrue(chat.model.getAttributes().ref_data.val());
+        assertTrue(embed.input_type.getAllowedValues().size() > 1);
+        assertEq("Top-K", chat.k.getDisplayName());
+        assertEq(("Required", "None"), map $1.display_name, chat.tool_choice.getAllowedValues());
+        assertEq(("search_document", "search_query", "classification", "clustering", "image"),
+            map $1.value, embed.input_type.getAllowedValues());
+        assertEq("Search Document - text to be indexed", embed.input_type.getAllowedValues()[0].display_name);
+        assertEq(("float", "int8", "uint8", "binary", "ubinary"),
+            map $1.value, embed.embedding_types.getElementAllowedValues());
+        assertTrue(CohereSchema::getActionSet().getOperationEx("parse").getRequestType()
+            .getFields().output_format.getAllowedValues().size() > 1);
+        hash<string, AbstractDataField> batch = CohereSchema::getActionSet().getOperationEx("create-batch")
+            .getRequestType().getFields();
+        foreach string field in ("id", "created_at", "status", "org_id", "output_dataset_id") {
+            assertFalse(exists batch{field}, "read-only batch fields are not request options");
+        }
+    }
+
+    private referenceDataTest() {
+        FakeCohereRestClientIo fake();
+        CohereDataProvider::CohereDataProvider root(fake);
+        foreach string action in ("chat", "embed", "rerank", "classify") {
+            fake.response_body = {"models": ({"name": "model-a"}, {"name": "model-b"})};
+            *list<hash<AllowedValueInfo>> values = root.getChildProvider(action)
+                .getReferenceData(action + "-models");
+            assertEq(("model-a", "model-b"), map $1.value, values);
+            assertTrue(fake.last_path.startsWith("/v1/models?"));
+            assertTrue(index(fake.last_path, "endpoint=" + action) >= 0);
+        }
+        foreach hash<auto> test in (
+                {"action": "get-dataset", "ref": "datasets", "key": "datasets", "id": "id", "path": "/v1/datasets"},
+                {"action": "get-embed-job", "ref": "embed-jobs", "key": "embed_jobs", "id": "job_id", "path": "/v1/embed-jobs"},
+                {"action": "get-batch", "ref": "batches", "key": "batches", "id": "id", "path": "/v2/batches"}) {
+            fake.response_body = {test.key: ({test.id: "id-1", "name": "Invoices"},)};
+            *list<hash<AllowedValueInfo>> values = root.getChildProvider(test.action).getReferenceData(test.ref);
+            assertEq("id-1", values[0].value);
+            assertEq("Invoices", values[0].display_name);
+            assertEq(test.path, fake.last_path);
+        }
+        fake.response_body = {"models": ()};
+        assertNothing(root.getChildProvider("chat").getReferenceData("chat-models"));
+    }
+
+    private negativeTest() {
+        assertThrows("CONSTRUCTOR-ERROR", sub () { new CohereDataProvider::CohereDataProvider({}); });
+        FakeCohereRestClientIo fake();
+        CohereDataProvider::CohereDataProvider root({"restclient": fake});
+        foreach hash<auto> test in (
+                {"action": "chat", "request": {}},
+                {"action": "chat", "request": {"messages": ({"role": "wrong", "content": "Hi"},)}},
+                {"action": "embed", "request": {}},
+                {"action": "embed", "request": {"texts": ("hi",), "images": ("data:image/png;base64,AA==",)}},
+                {"action": "embed", "request": {"texts": ("hi",), "input_type": "invalid"}},
+                {"action": "rerank", "request": {"query": "invoice"}},
+                {"action": "parse", "request": {"document": {"type": "image_url", "image_url": "https://example.org/a.png"}, "output_format": "pdf"}},
+                {"action": "transcribe", "request": {"language": "en"}},
+                {"action": "create-dataset", "request": {"name": "test", "type": "invalid", "data": binary("x")}},
+                {"action": "get-batch", "request": {}},
+                {"action": "create-batch", "request": {"name": "Invoices"}}) {
+            *hash<ExceptionInfo> error;
+            try {
+                root.getChildProvider(test.action).doRequest(test.request);
+            } catch (hash<ExceptionInfo> ex) {
+                error = ex;
+            }
+            assertTrue(exists error, test.action);
+            assertRegex("^(INVALID-REQUEST|RUNTIME-TYPE-ERROR|MISSING-VALUE-ERROR|REST-SCHEMA-ACTION-ERROR|"
+                "SCHEMA-VALIDATION-ERROR)$", error.err, test.action);
+        }
+        assertEq(0, fake.requests, "invalid inputs must be rejected before network I/O");
+    }
+
+    private wireTest() {
+        Logger logger("cohere-wire", LoggerLevel::getLevelWarn());
+        HttpServer server(<HttpServerOptionInfo>{"logger": logger});
+        on_exit delete server;
+        CohereWireHandler handler();
+        server.setDefaultHandler("cohere", handler);
+        int port = server.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        CohereRestClient::CohereRestClientIo client({
+            "url": sprintf("http://127.0.0.1:%d", port), "apikey": "wire-key", "http_version": "1.1",
+        });
+        CohereDataProvider::CohereDataProvider root(client);
+        root.getChildProvider("classify").doRequest(Requests.classify);
+        assertEq("v1/classify", handler.getRequest().path);
+        assertEq("Bearer wire-key", handler.getRequest().authorization);
+        root.getChildProvider("rerank").doRequest(Requests.rerank);
+        assertEq("v2/rerank", handler.getRequest().path);
+        # The provider owns a copy; using it must not change the supplied client's v2 prefix.
+        client.restPost("chat", Requests.chat);
+        assertEq("v2/chat", handler.getRequest().path);
+        root.getChildProvider("get-dataset").doRequest({"id": "invoice/a b?"});
+        assertEq("v1/datasets/invoice/a b?", handler.getRequest().path);
+        root.getChildProvider("transcribe").doRequest(Requests.transcribe);
+        assertRegex("multipart/form-data;", handler.getRequest()."content-type");
+        assertRegex("RIFFcohere-audio", handler.getBody().toString());
+        root.getChildProvider("create-dataset").doRequest(Requests{"create-dataset"});
+        assertRegex("multipart/form-data;", handler.getRequest()."content-type");
+        assertRegex("Invoice paid", handler.getBody().toString());
+    }
+
+    private liveKeyTest() {
+        if (!ENV.COHERE_APIKEY) {
+            testSkip("set COHERE_APIKEY to exercise the live key-check action");
+        }
+        CohereDataProvider::CohereDataProvider root({"apikey": ENV.COHERE_APIKEY});
+        assertTrue(root.getChildProvider("check-api-key").doRequest({}).valid);
+        CohereDataProvider::CohereDataProvider invalid({"apikey": "invalid-qore-test-key"});
+        assertFalse(invalid.getChildProvider("check-api-key").doRequest({}).valid);
+    }
+
     #! Exercises Cohere's live embed endpoint
     /** Verifies the actual wire format against Cohere's production embed
         endpoint with a single-text request on `embed-english-light-v3.0`.
@@ -241,3 +560,5 @@ public class CohereDataProviderTest inherits QUnit::Test {
             "Cohere returned non-empty embedding vector");
     }
 }
+
+%endif
