@@ -1,24 +1,25 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires ConnectionProvider
-%requires DataProvider
-%requires Logger
-%requires Mime
-%requires HttpServerUtil
-%requires HttpServerAsyncIo
-%requires HttpServer
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/HttpServerAsyncIo
+%requires ../../../../qlib/HttpServer.qm
 %requires json
-%requires QoreLlmTypes
-%requires QoreLlmUtils
-%requires QoreRagTypes
-%requires QoreRagUtils
-%requires CohereRestClient
+%requires ../../../../qlib/QoreLlmTypes.qm
+%requires ../../../../qlib/QoreLlmUtils
+%requires ../../../../qlib/QoreRagTypes.qm
+%requires ../../../../qlib/QoreRagUtils
+%requires ../../../../qlib/CohereRestClient.qm
 
 %exec-class CohereRestClientTest
 
@@ -53,6 +54,44 @@ class FakeCohereChatHandler inherits AbstractHttpRequestHandler {
     }
 }
 
+#! Records requests and simulates Cohere's HTTP 200 key-check responses
+class FakeCohereKeyHandler inherits AbstractHttpRequestHandler {
+    private {
+        Mutex m();
+        string response = "{\"valid\":true}";
+        int status = 200;
+        hash<auto> request;
+    }
+
+    setResponse(string response, int status = 200) {
+        AutoLock al(m);
+        self.response = response;
+        self.status = status;
+    }
+
+    hash<auto> getRequest() {
+        AutoLock al(m);
+        return request;
+    }
+
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        AutoLock al(m);
+        request = hdr;
+        return makeResponse(status, response, {"Content-Type": MimeTypeJson});
+    }
+}
+
+#! Exercises the synchronous fallback as well as the usual async client
+class SyncCohereConnection inherits CohereRestClient::CohereRestConnection {
+    constructor(string url, hash<auto> options)
+            : CohereRestConnection("sync-test", "test", url, {}, options) {
+    }
+
+    private object getAsyncImpl(bool connect = True, *hash<auto> rtopts) {
+        throw "CONNECTION-ASYNC-UNSUPPORTED", "exercise synchronous ping";
+    }
+}
+
 public class CohereRestClientTest inherits QUnit::Test {
     public {
         #! command-line options; use -c/--connection to run the live tests
@@ -70,6 +109,7 @@ public class CohereRestClientTest inherits QUnit::Test {
         HttpServer http;
         int port;
         FakeCohereChatHandler chat_handler;
+        FakeCohereKeyHandler key_handler;
     }
 
     constructor() : Test("CohereRestClient Test", "1.0", \ARGV, MyOpts) {
@@ -89,6 +129,10 @@ public class CohereRestClientTest inherits QUnit::Test {
             \connectionOptionsTest());
         addTestCase("chat uses the default model when none is configured",
             \chatDefaultModelTest());
+        addTestCase("ping validates credentials on all transports", \pingTest());
+        addTestCase("ping rejects false, missing, malformed, and non-boolean validity", \pingFailureTest());
+        addTestCase("connection migrates saved ping options and canonical URL", \connectionMigrationTest());
+        addTestCase("live: valid and invalid key pings", \livePingTest());
         addTestCase("live: ping + chat + embed + rerank with the connection's models",
             \liveConnectionTest());
         set_return_value(main());
@@ -103,6 +147,8 @@ public class CohereRestClientTest inherits QUnit::Test {
         port = http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
         chat_handler = new FakeCohereChatHandler();
         http.setHandler("cohere", "/", MimeTypeJson, chat_handler);
+        key_handler = new FakeCohereKeyHandler();
+        http.setHandler("key", "/v1/check-api-key", MimeTypeJson, key_handler);
     }
 
     globalTearDown() {
@@ -290,6 +336,115 @@ public class CohereRestClientTest inherits QUnit::Test {
         });
         p2.chat((<QoreLlmUtils::ChatMessage>{"role": "user", "content": "hi"},));
         assertEq("command-r7b-12-2024", chat_handler.getLastBody().model);
+    }
+
+    private CohereRestClient::CohereRestConnection makeConnection() {
+        return new CohereRestClient::CohereRestConnection("ping-test", "test",
+            sprintf("http://127.0.0.1:%d", port), {}, {"apikey": "trial-key", "http_version": "1.1"});
+    }
+
+    #! Drives the public polling API using socket readiness, with a single bounded deadline
+    private drivePing(AbstractPollOperation op) {
+        on_exit op.abort();
+        date deadline = now_us() + 15s;
+        while (!op.goalReached()) {
+            *hash<SocketPollInfo> info = op.continuePoll();
+            if (info) {
+                timeout remaining = deadline - now_us();
+                assertTrue(remaining > 0, "ping completes before deadline");
+                assertTrue(exists Socket::poll((info,), remaining), "ping socket becomes ready");
+            }
+        }
+    }
+
+    private runPing(int transport) {
+        if (transport == 0) {
+            makeConnection().ping(True);
+        } else if (transport == 1) {
+            drivePing(makeConnection().startPollConnect());
+        } else if (transport == 2) {
+            SyncCohereConnection conn(sprintf("http://127.0.0.1:%d", port),
+                {"apikey": "trial-key", "http_version": "1.1"});
+            conn.ping(True);
+        } else {
+            CohereRestClient::CohereRestConnection conn = makeConnection();
+            drivePing(new RestClient::RestPingPollOperation(conn, conn.get(False), conn.getRealOptions()));
+        }
+    }
+
+    private pingTest() {
+        key_handler.setResponse("{\"valid\":true}");
+        for (int transport = 0; transport < 4; ++transport) {
+            runPing(transport);
+            hash<auto> request = key_handler.getRequest();
+            assertEq("POST", request.method);
+            assertEq("v1/check-api-key", request.path, sprintf("transport %d", transport));
+            assertEq("Bearer trial-key", request.authorization);
+        }
+    }
+
+    private pingFailureTest() {
+        foreach string response in ("{\"valid\":false}", "{}", "{\"valid\":\"true\"}",
+                "{\"valid\":1}", "[]", "null", "not JSON") {
+            key_handler.setResponse(response);
+            for (int transport = 0; transport < 4; ++transport) {
+                *hash<ExceptionInfo> error;
+                try {
+                    runPing(transport);
+                } catch (hash<ExceptionInfo> ex) {
+                    error = ex;
+                }
+                assertTrue(exists error, "invalid ping must fail");
+                assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|DESERIALIZATION-ERROR|JSON-PARSE-ERROR)$", error.err);
+            }
+        }
+        foreach int status in (401, 429, 500) {
+            key_handler.setResponse("{\"valid\":true}", status);
+            for (int transport = 0; transport < 4; ++transport) {
+                *hash<ExceptionInfo> error;
+                try {
+                    runPing(transport);
+                } catch (hash<ExceptionInfo> ex) {
+                    error = ex;
+                }
+                assertTrue(exists error, "invalid ping must fail");
+                assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|HTTP-CLIENT-RECEIVE-ERROR)$", error.err);
+            }
+        }
+        key_handler.setResponse("{\"valid\":true}");
+        assertTrue(makeConnection().ping(True).ok, "a new successful ping recovers from failure");
+    }
+
+    private connectionMigrationTest() {
+        foreach string path in ("models", "/models", "/v2/models") {
+            CohereRestClient::CohereRestConnection conn({
+                "name": "saved-cohere", "desc": "saved connection", "url": "cohere://localhost",
+                "opts": {"apikey": "key", "ping_method": "GET", "ping_path": path},
+            });
+            assertEq("Cohere", conn.getAppName());
+            assertEq("Cohere", conn.getInfo().app);
+            assertEq("https://api.cohere.com", conn.getConnectionOptions().url);
+            assertEq("POST", conn.getRealOptions().ping_method);
+            assertEq("/v1/check-api-key", conn.getRealOptions().ping_path);
+        }
+        assertTrue(CohereRestClient::CohereRestConnection::ConnectionScheme.options.apikey.sensitive);
+        assertThrows("CONNECTION-OPTION-ERROR", sub () {
+            new CohereRestClient::CohereRestConnection("missing", "test");
+        });
+    }
+
+    private livePingTest() {
+        if (!ENV.COHERE_APIKEY) {
+            testSkip("set COHERE_APIKEY to run live authentication checks");
+        }
+        CohereRestClient::CohereRestConnection conn("live-cohere", "live trial key",
+            CohereRestClient::CohereRestConnection::DefaultUrl, {}, {"apikey": ENV.COHERE_APIKEY});
+        assertTrue(conn.ping(True).ok);
+        drivePing(conn.startPollConnect());
+        CohereRestClient::CohereRestConnection invalid("invalid-cohere", "invalid key",
+            CohereRestClient::CohereRestConnection::DefaultUrl, {}, {"apikey": "invalid-qore-test-key"});
+        assertThrows("REST-PING-ERROR", sub () { invalid.ping(True); });
+        assertThrows("REST-PING-ERROR", sub () { drivePing(invalid.startPollConnect()); });
     }
 
     #! exercises a real Cohere connection end to end: ping, chat, embed, rerank

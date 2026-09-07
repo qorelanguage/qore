@@ -80,6 +80,18 @@ public hashdecl RestSchemaOperationMatchInfo {
     bool normalized;
 }
 
+#! A checked replacement for an upstream object schema's required-property list
+public hashdecl RestSchemaRequiredFieldsRepairInfo {
+    #! JSON pointer to the object schema to repair
+    string pointer;
+
+    #! The exact required list in the reviewed upstream document
+    list<string> expected;
+
+    #! Correct required property names; an empty list removes the requirement
+    list<string> replacement;
+}
+
 #! One declared repair applied to a source document before it is pruned
 /** A vendor's description is sometimes **incomplete** rather than merely unhelpful: it omits something the
     API accepts and the vendor documents elsewhere.  Bitbucket describes \c page and \c pagelen on a shared
@@ -140,6 +152,14 @@ public hashdecl RestSchemaNormalizationInfo {
         repair disappears by failing the next import once upstream corrects the document.
     */
     *list<string> relax_oneof;
+
+    #! Repairs incorrect required-property names in an object schema
+    /** Every repair checks the old list and verifies the replacement names against the object's
+        properties. An upstream correction or another change therefore fails the next import rather
+        than being silently overwritten. Cohere's schema, for example, declares text and logprobs
+        but requires the obsolete names token and logprob in its LogprobItem response type.
+    */
+    *list<hash<RestSchemaRequiredFieldsRepairInfo>> replace_required;
 }
 
 #! Describes one document to import
@@ -525,8 +545,44 @@ public class RestSchemaImporter {
                 rv = RestSchemaImporter::relaxOneOf(rv, ptr, n.reason);
                 ++operations_normalized;
             }
+            foreach hash<RestSchemaRequiredFieldsRepairInfo> repair in (n.replace_required) {
+                rv = RestSchemaImporter::replaceRequired(rv, repair, n.reason);
+                ++operations_normalized;
+            }
         }
         return rv;
+    }
+
+    #! Corrects a reviewed required list without changing any declared property
+    private static hash<auto> replaceRequired(hash<auto> schema,
+            hash<RestSchemaRequiredFieldsRepairInfo> repair, string reason) {
+        auto node = RestSchemaPruner::resolveRef(schema, repair.pointer);
+        if (node.typeCode() != NT_HASH || node.required.typeCode() != NT_LIST || node.required != repair.expected
+                || repair.expected == repair.replacement) {
+            throw "REST-SCHEMA-IMPORT-ERROR", sprintf("the repair %y expects required %y at %y; "
+                "the document has changed or the repair is a no-op and must be reviewed",
+                reason, repair.expected, repair.pointer);
+        }
+        hash<string, bool> seen;
+        foreach string name in (repair.replacement) {
+            if (!exists node.properties{name} || seen{name}) {
+                throw "REST-SCHEMA-IMPORT-ERROR", sprintf("the repair %y requires an undefined or "
+                    "duplicate property %y at %y", reason, name, repair.pointer);
+            }
+            seen{name} = True;
+        }
+        if (repair.replacement) {
+            node.required = repair.replacement;
+        } else {
+            remove node.required;
+        }
+        list<string> tokens;
+        foreach string raw in (split("/", repair.pointer.substr(2), False, True)) {
+            raw =~ s/~1/\//g;
+            raw =~ s/~0/~/g;
+            push tokens, raw;
+        }
+        return RestSchemaImporter::setAtPath(schema, tokens, node);
     }
 
     #! Turns a \c "oneOf" composition into an \c "anyOf" at the given JSON pointer
@@ -564,11 +620,20 @@ public class RestSchemaImporter {
     }
 
     #! Returns a copy of a document with the value at a path of member names replaced
-    private static hash<auto> setAtPath(hash<auto> node, list<string> tokens, auto value) {
+    private static auto setAtPath(auto node, list<string> tokens, auto value) {
         if (!tokens) {
             return value;
         }
         string name = tokens[0];
+        if (node.typeCode() == NT_LIST) {
+            @assert(name =~ /^[0-9]+$/);
+            int index = name.toInt();
+            @assert(index >= 0 && index < node.size());
+            list<auto> rv = node;
+            rv[index] = RestSchemaImporter::setAtPath(node[index], tokens[1..], value);
+            return rv;
+        }
+        @assert(node.typeCode() == NT_HASH);
         hash<auto> rv = node;
         if (tokens.size() == 1) {
             rv{name} = value;
@@ -885,7 +950,7 @@ public class RestSchemaImporter {
             rv += sprintf("  pruned:   %d bytes, %d path(s), %d operation(s), %d reference(s)\n",
                 r.output_size, r.paths_kept, r.operations_kept, r.refs_kept);
             if (r.normalized_operations) {
-                rv += sprintf("  repaired: %d operation(s) before pruning; the artifact records this "
+                rv += sprintf("  repaired: %d declaration(s) before pruning; the artifact records this "
                     "under %y\n", r.normalized_operations, NormalizationMarker);
             }
             list<hash<RestSchemaOperationMatchInfo>> norm = ();

@@ -68,7 +68,7 @@ public hashdecl PineconeSchemaProvenanceInfo {
 
 #! Loads and holds the vendored Pinecone API descriptions
 /** Pinecone publishes one description per API rather than one per product, and this application uses
-    three of them.  A @ref RestSchemaActions::RestSchemaActionSet "RestSchemaActionSet" binds one schema,
+    four of them across two applications.  A @ref RestSchemaActions::RestSchemaActionSet "RestSchemaActionSet" binds one schema,
     because a request's URI prefix comes from that schema's base path, so each document becomes its own
     set.
 
@@ -77,6 +77,7 @@ public hashdecl PineconeSchemaProvenanceInfo {
     The sets are built in dependency order, and a cycle therefore cannot be expressed:
 
     |!Set|!Peers|!Why
+    |admin|none|separate organization credentials and application
     |inference|none|its model listing depends on nothing
     |db_control|inference|the integrated-embedding index action offers a model dropdown
     |db_data|db_control, inference|the index dropdown and the host source come from the control plane; the reranking model from inference
@@ -84,13 +85,13 @@ public hashdecl PineconeSchemaProvenanceInfo {
     The control-plane set also declares the @ref PineconeDataProvider::PineconeManifest::HostSources
     "host source" that routes every data-plane request, because it exports the lookup that resolves it.
 
-    @section pineconeschema_version All Three Move Together
+    @section pineconeschema_version All Four Move Together
 
-    Pinecone versions all of its APIs with one dated version, so the three documents are imported at the
+    Pinecone versions all of its APIs with one dated version, so the four documents are imported at the
     same version and updated together;
     @ref PineconeRestClient::PineconeRestClientBase::ApiVersion "PineconeRestClientBase::ApiVersion" is
     the version they describe and the version the client sends, and this module's tests assert that the
-    two agree.  Re-import all three when it moves, not one.
+    two agree.  Re-import all four when it moves, not one.
 
     Each document is parsed once, on first use, rather than when the module loads, so that a program that
     only holds the connection never pays for it.
@@ -135,6 +136,21 @@ public class PineconeSchema {
             "source_webhooks": 0,
         };
 
+        #! Provenance of the separate OAuth2 Admin API
+        const AdminProvenance = <PineconeSchemaProvenanceInfo>{
+            "source_url": "https://raw.githubusercontent.com/pinecone-io/pinecone-api/main/2026-07/admin_2026-07.oas.yaml",
+            "source_sha256": "4b0860571ffb538ae58205ec97f28d76ae8d020af0cce8ac018469e1bc3291a2",
+            "source_size": 140279,
+            "imported": 2026-09-07,
+            "source_paths": 16,
+            "source_operations": 32,
+            "source_schemas": 27,
+            "source_webhooks": 0,
+        };
+
+        #! Vendored organization administration schema
+        const AdminSchemaFileName = "pinecone-admin.yaml";
+
         #! The name of the vendored control-plane description, which lives beside this module
         const ControlSchemaFileName = "pinecone-db-control.yaml";
 
@@ -151,6 +167,9 @@ public class PineconeSchema {
 
         #! The action set built from the control-plane description and its manifest
         static *RestSchemaActions::RestSchemaActionSet control_set;
+
+        #! Separate Admin action set, using service-account authentication
+        static *RestSchemaActions::RestSchemaActionSet admin_set;
 
         #! The action set built from the data-plane description and its manifest
         static *RestSchemaActions::RestSchemaActionSet data_set;
@@ -178,6 +197,29 @@ public class PineconeSchema {
     static OpenApi3::OpenApi3Schema getInferenceSchema() {
         AutoLock al(lck);
         return PineconeSchema::getSchemaIntern(InferenceSchemaFileName);
+    }
+
+    #! Returns the pinned Admin schema
+    /** @return the parsed Admin schema
+        @throw REST-SCHEMA-ERROR the vendored schema cannot be parsed
+    */
+    static OpenApi3::OpenApi3Schema getAdminSchema() {
+        AutoLock al(lck);
+        return PineconeSchema::getSchemaIntern(AdminSchemaFileName);
+    }
+
+    #! Returns the independent Admin action set
+    /** @return all 32 Admin actions and their reference data
+        @throw REST-SCHEMA-ACTION-ERROR the manifest does not match the schema
+    */
+    static RestSchemaActions::RestSchemaActionSet getAdminActionSet() {
+        AutoLock al(lck);
+        if (!admin_set) {
+            admin_set = new RestSchemaActions::RestSchemaActionSet(
+                PineconeSchema::getSchemaIntern(AdminSchemaFileName), PineconeAdminManifest::Manifest,
+                PineconeAdminManifest::ReferenceData);
+        }
+        return admin_set;
     }
 
     #! Returns the inference action set, building it on first use

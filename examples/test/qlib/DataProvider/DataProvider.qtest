@@ -5,11 +5,11 @@
 %allow-injection
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Logger
-%requires Mime
-%requires DataProvider
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/DataProvider
 
 %requires reflection
 
@@ -5465,6 +5465,14 @@ public class DataProviderTest inherits QUnit::Test {
             "an apostrophe inside a word does not start a quoted span");
         assertEq("Use 'a.b' here", AbstractDataField::getShortDescription("Use 'a.b' here. More here."),
             "sentence punctuation inside a quoted span remains protected");
+        assertEq("Use 'k' to pick likely tokens", AbstractDataField::getShortDescription(
+            "Use `k` to pick likely tokens. When `k` is `0`, disable sampling."));
+        assertEq("Use 'a. b' and \"c; d\" together", AbstractDataField::getShortDescription(
+            "Use 'a. b' and \"c; d\" together. More."));
+        assertEq("Keep {{0}} with '0'", AbstractDataField::getShortDescription("Keep {{0}} with '0'. More."));
+        assertEq("Use '' and \"\"", AbstractDataField::getShortDescription("Use '' and \"\". More."));
+        assertEq("Keep an unmatched 'quote", AbstractDataField::getShortDescription("Keep an unmatched 'quote. More."));
+        assertEq("Use 'č. text' safely", AbstractDataField::getShortDescription("Use 'č. text' safely. More."));
         assertEq("The important part", AbstractDataField::getShortDescription("The **important** part"));
         assertEq("(Deprecated) Disable email notifications",
             AbstractDataField::getShortDescription("_(Deprecated)_ Disable email notifications"),

@@ -25,16 +25,21 @@
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires DataProvider
-%requires ConnectionProvider
-%requires PaddleDataProvider
-%requires PaddleRestClient
-%requires RestClientIo
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/ConnectionProvider
+%try-module yaml
+%define MissingYaml
+%endtry
+%ifdef MissingYaml
+printf("SKIP: this test requires the external yaml module\n");
+%else
+%requires ../../../../qlib/PaddleDataProvider
+%requires ../../../../qlib/PaddleRestClient
+%requires ../../../../qlib/RestClientIo.qm
 
 %requires json
-%requires yaml
 
 %exec-class PaddleDataProviderTest
 
@@ -516,6 +521,9 @@ public class PaddleDataProviderTest inherits QUnit::Test {
         # "email" is a one-member "allOf" around a scalar $ref, the standard way to attach a description
         assertEq("email", fields.email.getType().getName());
         assertTrue(fields.email.isMandatory(), "Paddle requires an email address to create a customer");
+        assertFalse(exists fields.id, "the customer ID is assigned by Paddle, not supplied when creating a customer");
+        assertThrows("REST-SCHEMA-ACTION-ERROR", \create.unflatten(),
+            {"email": "accounts@example.com", "id": "ctm_01grnn4zta5a1mf02jjze7y2ys"});
         # "name" is anyOf [Name, null], the OpenAPI 3.1 nullability idiom
         assertEq("*softstring", fields.name.getType().getName());
         assertFalse(fields.name.isMandatory());
@@ -1155,3 +1163,5 @@ public class PaddleDataProviderTest inherits QUnit::Test {
         assertEq(("ctm_01h8xce4x86pq3byrwgc7k4qbn", "ctm_01h8xce4x86pq3byrwgc7k4qbp"), (map $1.id, found));
     }
 }
+
+%endif

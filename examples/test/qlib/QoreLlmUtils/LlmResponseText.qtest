@@ -3,8 +3,8 @@
 # MIT License
 %modern
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires QUnit
-%requires QoreLlmUtils
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/QoreLlmUtils
 %exec-class LlmResponseTextTest
 
 class LlmResponseTextTest inherits QUnit::Test {

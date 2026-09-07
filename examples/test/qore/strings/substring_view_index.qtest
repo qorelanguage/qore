@@ -1,0 +1,45 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%exec-class SubstringViewIndexTest
+
+class SubstringViewIndexTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Character indexing of substring views", "1.0") {
+        addTestCase("UTF-8 views preserve character offsets", \unicodeViews());
+        addTestCase("Single-byte views preserve character offsets", \singleByteViews());
+        set_return_value(main());
+    }
+
+    private check(string prefix, string middle, string suffix, string encoding) {
+        string padding = sprintf("%8192s", "");
+        string source = convert_encoding(prefix + middle + padding + suffix, encoding);
+        string tail = source.substr(prefix.length());
+        # Index before any operation that could materialize the view's buffer.
+        assertEq(middle[0], tail[0], "the first character comes from the parent buffer");
+        assertEq(suffix[-1], tail[-1], "negative indexing uses the end of the view");
+        assertEq(NOTHING, tail[tail.length()], "indexing beyond the view returns nothing");
+        assertEq(NOTHING, tail[-tail.length() - 1], "negative indexing before the view returns nothing");
+
+        string inside = source.substr(prefix.length(), middle.length() + padding.length());
+        assertEq(middle[0], inside[0], "a middle view can be indexed before materialization");
+        assertEq(c' ', inside[-1], "the last character respects the middle view's length");
+
+        string nested = tail.substr(middle.length());
+        assertEq(c' ', nested[0], "a view of a view preserves its offset");
+        assertEq(suffix[-1], nested[-1], "a nested view retains the parent's final character");
+        tail = "replaced";
+        source = "released";
+        assertEq(suffix[-1], nested[-1], "a nested view owns its parent after variables are replaced");
+    }
+
+    unicodeViews() {
+        check("prefix:", "žluťoučký", "😀", "UTF-8");
+    }
+
+    singleByteViews() {
+        check("prefix:", "hello", "!", "ISO-8859-1");
+    }
+}

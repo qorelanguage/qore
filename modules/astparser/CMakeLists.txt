@@ -1,8 +1,8 @@
 # tree-sitter build infrastructure for the astparser module
 #
 # Build flow:
-#   grammar.js → tree-sitter generate → parser.c (at build time)
-#   parser.c + tree-sitter C runtime → static libraries
+#   grammar.js → tree-sitter generate → parser.c (developer regeneration)
+#   parser.c + scanner.c + tree-sitter C runtime → static libraries
 #   astparser module links against these static libraries
 #
 # Runtime dependency: system tree-sitter when available; otherwise the
@@ -72,12 +72,17 @@ set(TS_QORE_SRC_DIR ${TS_QORE_GRAMMAR_DIR}/src)
 # Build Qore grammar parser as a static library from committed generated sources
 add_library(tree-sitter-qore-grammar STATIC
     ${TS_QORE_SRC_DIR}/parser.c
+    ${TS_QORE_SRC_DIR}/scanner.c
 )
 set_property(TARGET tree-sitter-qore-grammar PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_include_directories(tree-sitter-qore-grammar PUBLIC
     ${TREE_SITTER_INCLUDE_DIRS_FOR_BUILD}
     ${TS_QORE_SRC_DIR}
 )
+
+# Standalone grammar checks also permit memory testing without the Qore runtime.
+add_executable(astparser-brace-regex-test EXCLUDE_FROM_ALL test/brace-regex.c)
+target_link_libraries(astparser-brace-regex-test PRIVATE tree-sitter-qore-grammar tree-sitter-lib)
 
 # start of hacks to simulate installed QoreConfig.cmake
 # which cannot be available yet - the QORE_LIBRARY is missing
@@ -199,6 +204,7 @@ qore_install_qpp_metadata(${astparser_module_name} ${ASTPARSER_QPP_META_SRC})
 # Install grammar artifacts so module-treesitter can reuse them
 install(FILES
     ${TS_QORE_SRC_DIR}/parser.c
+    ${TS_QORE_SRC_DIR}/scanner.c
     ${TS_QORE_SRC_DIR}/grammar.json
     ${TS_QORE_SRC_DIR}/node-types.json
     DESTINATION ${CMAKE_INSTALL_DATADIR}/qore/treesitter/tree-sitter-qore/src

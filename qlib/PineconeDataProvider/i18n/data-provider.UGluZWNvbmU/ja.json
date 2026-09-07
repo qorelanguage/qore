@@ -138,6 +138,30 @@
      "message": "実行中のインポートを停止します",
      "source": "Stop an import that is still running"
     },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.desc": {
+     "source": "Creates new records in the given table",
+     "message": "指定されたテーブルに新しいレコードを作成します"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.display_name": {
+     "source": "Create Records",
+     "message": "レコードを作成"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "使用するテーブル: `indexes`、`collections`、`backups`、`backup-schedules`、`restore-jobs`、`models`、`namespaces`、 `imports`、`vectors` または `documents`"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "表"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "操作対象のテーブル名"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.short_desc": {
+     "source": "Create new records in the given table",
+     "message": "指定されたテーブルに新しいレコードを作成"
+    },
     "app.UGluZWNvbmU.action.Y3JlYXRlLW5hbWVzcGFjZQ.desc": {
      "message": "インデックス内に名前空間を作成します。\n\n通常、名前空間を明示的に作成する必要はありません（書き込むと作成されます）。**メタデータスキーマ** を事前に宣言したい場合に明示的に作成してください。\n\nサーバーレスインデックスのみ。  `__default__` は予約されており、常に存在します。",
      "source": "Creates a namespace in an index.\n\nA namespace does not normally have to be created — writing to one brings it into existence — so create one explicitly when you want to declare its **metadata schema** up front.\n\nServerless indexes only.  `__default__` is reserved and always exists."
@@ -825,6 +849,30 @@
     "app.UGluZWNvbmU.action.Y3JlYXRlLWluZGV4LWZyb20tYmFja3Vw.short_desc": {
      "message": "バックアップを新しいインデックスに復元します",
      "source": "Restore a backup into a new index"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.desc": {
+     "source": "Deletes every record in the given table matching the search criteria",
+     "message": "検索条件に一致する指定テーブルのすべてのレコードを削除します"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.display_name": {
+     "source": "Delete Records",
+     "message": "レコードを削除"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "使用するテーブル: `indexes`、`collections`、`backups`、`backup-schedules`、`restore-jobs`、`models`、`namespaces`、 `imports`、`vectors` または `documents`"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "表"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "操作対象のテーブル名"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.short_desc": {
+     "source": "Delete the records matching the search criteria",
+     "message": "検索条件に一致するレコードを削除"
     },
     "app.UGluZWNvbmU.action.ZGVsZXRlLW5hbWVzcGFjZQ.desc": {
      "message": "名前空間とその中のすべてのレコードを削除します。  **この操作は取り消せません。**\n\nサーバーレスインデックスのみ。",
@@ -2514,6 +2562,30 @@
      "message": "Pinecone にカスタム API 呼び出しを行います",
      "source": "Make a custom API call to Pinecone"
     },
+    "app.UGluZWNvbmU.action.c2VhcmNo.desc": {
+     "source": "Returns every record in the given table matching the search criteria",
+     "message": "検索条件に一致する指定テーブルのすべてのレコードを返します"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.display_name": {
+     "source": "Search Records",
+     "message": "レコードの検索"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "使用するテーブル: `indexes`、`collections`、`backups`、`backup-schedules`、`restore-jobs`、`models`、`namespaces`、 `imports`、`vectors` または `documents`"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "表"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "操作対象のテーブル名"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.short_desc": {
+     "source": "Search for matching records in the given table",
+     "message": "指定テーブル内の一致するレコードを検索"
+    },
     "app.UGluZWNvbmU.action.c2VhcmNoLWRvY3VtZW50cw.desc": {
      "message": "名前空間内のドキュメントを検索し、最も一致するものをスコアとともに返します。\n\n**スコアリング方法** はスコアの付け方を選ぶもので、このアクションの要です:\n- `{\"type\": \"dense_vector\", \"fields\": [\"embedding\"], \"values\": [...]}`\n- `{\"type\": \"sparse_vector\", \"fields\": [\"sparse\"], \"sparse_values\": {...}}`\n- `{\"type\": \"text\", \"fields\": [\"body\"], \"query\": \"...\"}` — BM25\n- `{\"type\": \"query_string\", \"query\": \"title:(cat OR dog)\"}` — Lucene 構文。あわせてフィールドを指定すると拒否されます\n\nこれらの **リスト** を渡すと複数の方法で同時にスコアリングされます。ここではこれがハイブリッド検索の表現方法です。",
      "source": "Searches documents in a namespace and returns the best matches with their scores.\n\n**Score By** chooses how they are scored, and is the whole point of this action:\n- `{\"type\": \"dense_vector\", \"fields\": [\"embedding\"], \"values\": [...]}`\n- `{\"type\": \"sparse_vector\", \"fields\": [\"sparse\"], \"sparse_values\": {...}}`\n- `{\"type\": \"text\", \"fields\": [\"body\"], \"query\": \"...\"}` — BM25\n- `{\"type\": \"query_string\", \"query\": \"title:(cat OR dog)\"}` — Lucene syntax; naming a field as well is rejected\n\nPassing a **list** of these scores by several methods at once, which is how hybrid search is expressed here."
@@ -2729,6 +2801,30 @@
     "app.UGluZWNvbmU.action.c2VhcmNoLXJlY29yZHM.short_desc": {
      "message": "クエリテキストで検索し、必要に応じて再ランク付けします",
      "source": "Search with a query text and optionally rerank"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.desc": {
+     "source": "Returns the one record in the given table matching the search criteria; it is an error if more than one matches",
+     "message": "検索条件に一致する指定テーブルの1件のレコードを返します。複数一致した場合はエラーになります"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.display_name": {
+     "source": "Find a Single Record",
+     "message": "単一レコードの検索"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "使用するテーブル: `indexes`、`collections`、`backups`、`backup-schedules`、`restore-jobs`、`models`、`namespaces`、 `imports`、`vectors` または `documents`"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "表"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "操作対象のテーブル名"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.short_desc": {
+     "source": "Search for a single matching record in the given table",
+     "message": "指定テーブル内の一致する単一レコードを検索"
     },
     "app.UGluZWNvbmU.action.c3RhcnQtaW1wb3J0.desc": {
      "message": "オブジェクトストレージからインデックスへのレコードの非同期インポートを開始します — 大規模なデータセットを、この API でレコードを 1 件ずつ送ることなく読み込む方法です。\n\n**ソース URI** は読み取るストレージのプレフィックスを指定し、**ストレージ統合** がその読み取りに使う認証情報を提供します（Pinecone コンソールで構成します）。\n\nインポート ID が返され、進捗は **インポートの詳細を取得** が報告します。",
@@ -3029,6 +3125,30 @@
     "app.UGluZWNvbmU.action.cmVyYW5r.short_desc": {
      "message": "クエリとの関連度でドキュメントを並べ替えます",
      "source": "Re-order documents by relevance to a query"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.desc": {
+     "source": "Updates every record in the given table matching the search criteria",
+     "message": "指定されたテーブル内で検索条件に一致するすべてのレコードを更新します"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.display_name": {
+     "source": "Update Records",
+     "message": "レコードを更新"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "使用するテーブル: `indexes`、`collections`、`backups`、`backup-schedules`、`restore-jobs`、`models`、`namespaces`、 `imports`、`vectors` または `documents`"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "表"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "操作対象のテーブル名"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.short_desc": {
+     "source": "Update the records matching the search criteria",
+     "message": "検索条件に一致するレコードを更新"
     },
     "app.UGluZWNvbmU.action.dXBkYXRlLWJhY2t1cC1zY2hlZHVsZQ.desc": {
      "message": "バックアップスケジュールの頻度、保持期間、または有効かどうかを変更します。\n\n無効なスケジュールを再度有効にすると **ただちにバックアップがキューに入り**、インデックスに既に別の有効なスケジュールがある場合は **409** で拒否されます。",

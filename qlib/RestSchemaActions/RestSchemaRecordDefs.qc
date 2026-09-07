@@ -325,6 +325,12 @@ public hashdecl RestSchemaRecordQueryInfo {
     */
     *hash<string, hash<string, bool>> field_ops;
 
+    #! Accepts user-defined field names or operands that cannot be enumerated in a static field table
+    /** Applied in addition to fields/field_ops and operator validation. Return false when the expression
+        must be evaluated on the client, for example for vector components outside metadata.
+    */
+    *code<bool(hash<DataProviderExpression>)> can_render;
+
     #! Operators the language can render but whose meaning is not exactly the operator's
     /** A rendered query is normally taken as exact, because the service evaluates it.  An operator listed
         here is the exception: it is still rendered and sent, because it narrows what has to be read, but the
@@ -338,6 +344,27 @@ public hashdecl RestSchemaRecordQueryInfo {
 
     #! Record field to the name the query language uses for it, where the two differ
     *hash<string, string> field_map;
+}
+
+#! A complete collection listing, optionally containing only identities to fetch in a second action
+public hashdecl RestSchemaRecordListingInfo {
+    #! The action enumerating this collection
+    string list_action;
+
+    #! Path to the records in the action response
+    *softlist<string> records_path;
+
+    #! Whether the records are a map of identity to record rather than an array
+    bool records_are_map = False;
+
+    #! Fetch each page's identities using the table's get action before returning full records
+    /** The get action must accept a list of identities. Missing records (deleted between list and fetch)
+        are skipped, without ending the walk through subsequent pages.
+    */
+    bool hydrate_list = False;
+
+    #! How this listing walks from one page to the next
+    hash<RestSchemaRecordPagingInfo> paging;
 }
 
 #! Describes one record-shaped resource an application exposes as a table
@@ -370,7 +397,7 @@ public hashdecl RestSchemaRecordQueryInfo {
     rather than the API's shape.  A projection is a real product decision - it is what existing mappers read -
     and it needs @ref to_record and @ref to_wire to convert in both directions.
 */
-public hashdecl RestSchemaRecordTableInfo {
+public hashdecl RestSchemaRecordTableInfo inherits RestSchemaRecordListingInfo {
     #! The table name, unique within the application
     string name;
 
@@ -383,8 +410,33 @@ public hashdecl RestSchemaRecordTableInfo {
     #! The table description with Markdown formatting
     string desc;
 
-    #! The action listing the collection
-    string list_action;
+    #! The complete listing used when a native query is sent
+    /** Unfiltered searches use the main listing. This allows an API requiring a nonempty metadata
+        filter to coexist with an ID listing used for full scans. This listing must enumerate all matches;
+        a ranked top-k search is not a complete collection.
+    */
+    *hash<RestSchemaRecordListingInfo> query_listing;
+
+    #! Whether the single-record response at record_path is a map keyed by identity
+    bool record_is_map = False;
+
+    #! Identity option overrides keyed by action ID, for APIs spelling fetch/delete as ids and update as id
+    *hash<string, string> action_id_options;
+
+    #! Actions taking a list of identities even for a single record
+    *softlist<string> id_list_actions;
+
+    #! Check identity existence before direct writes whose API does not report missing records
+    bool check_write_identity = False;
+
+    #! Whether create returns a record; false returns the submitted record for acknowledgement-only APIs
+    bool write_returns_record = True;
+
+    #! Create scopes, when they differ from the listing scopes; names options of the create action
+    *softlist<string> create_scope_options;
+
+    #! Per-action list wrapper for writes; overrides write_list_option
+    *hash<string, string> write_list_options;
 
     #! The action reading one record by its identity
     /** When present, a search whose predicate is exactly an equality on @ref id_field is answered by reading
@@ -434,11 +486,6 @@ public hashdecl RestSchemaRecordTableInfo {
     */
     *hash<string, string> id_parts;
 
-    #! A path of field names leading from the listing response to the list of records
-    /** Not needed when the listing's output is itself the list.
-    */
-    *softlist<string> records_path;
-
     #! A path of field names leading from the single-record response to the record
     *softlist<string> record_path;
 
@@ -451,9 +498,6 @@ public hashdecl RestSchemaRecordTableInfo {
     /** @see @ref restschemarecordtable_scope
     */
     *softlist<string> scope_options;
-
-    #! How the listing walks from one page to the next
-    hash<RestSchemaRecordPagingInfo> paging;
 
     #! The predicates the listing action can evaluate itself
     *softlist<hash<RestSchemaRecordFilterInfo>> filters;

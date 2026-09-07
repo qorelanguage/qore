@@ -3,7 +3,7 @@
 
 %modern
 
-%prepend-module-path "${SCRIPT_DIR}/../../../build/modules/astparser"
+%prepend-module-path "${SCRIPT_DIR}/../../../qlib"
 %requires ../../../qlib/Util.qm
 %requires ../../../qlib/QUnit.qm
 %requires astparser

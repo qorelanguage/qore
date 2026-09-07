@@ -28,9 +28,11 @@
 %requires(reexport) DataProvider
 %requires(reexport) CohereRestClient
 %requires RestClientIo
+%requires RestSchemaActions
+%requires OpenApi3
 
 module CohereDataProvider {
-    version = "1.0";
+    version = "1.1";
     desc = "user module providing a data provider API for Cohere services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -42,14 +44,15 @@ module CohereDataProvider {
             "name": CohereDataProvider::AppName,
             "presentation_source_locale": "en",
             "display_name": "Cohere",
-            "short_desc": "Cohere chat (Command R/R+), embeddings, reranking, and classification",
-            "desc": "Provides access to [Cohere](https://cohere.com) — enterprise-grade chat "
-                "with Command R / R+, multilingual embeddings, and best-in-class reranking.\n\n"
-                "**Common use cases**:\n"
-                "- **Tool-calling chat agents** with Command R+\n"
-                "- **Multilingual RAG embeddings** with embed-multilingual-v3.0\n"
-                "- **Production rerank** with rerank-v3.5 — pairs naturally with any embedder\n"
-                "- **Text classification** via the dedicated /classify endpoint",
+            "short_desc": "Chat, search, document extraction, audio transcription, and batch inference",
+            "desc": "Use [Cohere](https://cohere.com) to understand and retrieve business content.\n\n"
+                "- Generate grounded answers and call tools with chat models\n"
+                "- Embed text and images, and rerank search results\n"
+                "- Extract document images and transcribe recorded speech\n"
+                "- Upload datasets and manage embedding or inference batches\n"
+                "- Discover models and inspect model-specific tokens\n\n"
+                "A Cohere API key is required. Trial keys have a monthly quota; connection pings "
+                "verify authentication separately from inference availability.",
             "scheme": "cohere",
             "logo": CohereLogo,
             "logo_file_name": "cohere-logo.svg",
@@ -57,110 +60,7 @@ module CohereDataProvider {
             "groups": (DataProvider::AppGroup::AiLlm,),
         });
 
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": CohereDataProvider::AppName,
-            "path": "/chat",
-            "action": "chat",
-            "display_name": "Chat",
-            "short_desc": "Generate a chat completion from a Cohere Command model",
-            "desc": "Sends a list of chat messages to a Cohere Command model via "
-                "`/v2/chat` and returns the generated response.",
-            "action_code": DPAT_API,
-            "groups": ("Chat",),
-            "options": DataProviderActionCatalog::getActionOptionFromFields(
-                CohereChatRequestDataType::Fields{"messages", "model",}, {
-                    "preselected": True, "required": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                CohereChatRequestDataType::Fields{"temperature", "max_tokens",}, {
-                    "preselected": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                CohereChatRequestDataType::Fields - (
-                    "messages", "model", "temperature", "max_tokens",
-                )
-            ),
-            "output_type": CohereChatDataProvider::ResponseType,
-        });
-
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": CohereDataProvider::AppName,
-            "path": "/embed",
-            "action": "embed",
-            "display_name": "Create Embeddings",
-            "short_desc": "Generate embedding vectors from a Cohere embedding model",
-            "desc": "Converts text inputs into embedding vectors via Cohere's `/v2/embed` "
-                "endpoint with task-aware `input_type` selection.",
-            "action_code": DPAT_API,
-            "groups": ("Embeddings",),
-            "options": DataProviderActionCatalog::getActionOptionFromFields(
-                CohereEmbedRequestDataType::Fields{"texts", "model",}, {
-                    "preselected": True, "required": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                CohereEmbedRequestDataType::Fields{"input_type",}, {
-                    "preselected": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                CohereEmbedRequestDataType::Fields - ("texts", "model", "input_type")
-            ),
-            "output_type": CohereEmbedDataProvider::ResponseType,
-        });
-
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": CohereDataProvider::AppName,
-            "path": "/rerank",
-            "action": "rerank",
-            "display_name": "Rerank Documents",
-            "short_desc": "Rerank candidate documents against a query using Cohere Rerank",
-            "desc": "Reranks a list of candidate documents against a query using "
-                "Cohere's rerank-v3.5 cross-encoder via `/v2/rerank`.  Returns top-N "
-                "documents sorted by relevance score.",
-            "action_code": DPAT_API,
-            "groups": ("Rerank",),
-            "options": DataProviderActionCatalog::getActionOptionFromFields(
-                CohereRerankRequestDataType::Fields{"query", "documents", "model",}, {
-                    "preselected": True, "required": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                CohereRerankRequestDataType::Fields{"top_n",}, {
-                    "preselected": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                CohereRerankRequestDataType::Fields - (
-                    "query", "documents", "model", "top_n",
-                )
-            ),
-            "output_type": CohereRerankDataProvider::ResponseType,
-        });
-
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": CohereDataProvider::AppName,
-            "path": "/classify",
-            "action": "classify",
-            "display_name": "Classify Text",
-            "short_desc": "Classify text inputs into labeled categories using Cohere Classify",
-            "desc": "Classifies text inputs into one of a set of labels using "
-                "few-shot examples or fine-tuned classification models via "
-                "Cohere's `/v1/classify` endpoint.\n\n"
-                "Note: classify currently uses the v1 endpoint; the rest of this provider "
-                "uses v2.  The request body path is absolute (`/v1/classify`) to address "
-                "the v1 surface.",
-            "action_code": DPAT_API,
-            "groups": ("Classification",),
-            "options": DataProviderActionCatalog::getActionOptionFromFields(
-                CohereClassifyRequestDataType::Fields{"inputs",}, {
-                    "preselected": True, "required": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                CohereClassifyRequestDataType::Fields{"model", "examples",}, {
-                    "preselected": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                CohereClassifyRequestDataType::Fields - ("inputs", "model", "examples")
-            ),
-            "output_type": CohereClassifyDataProvider::ResponseType,
-        });
+        (CohereSchema::getActionSet()).registerActions(CohereDataProvider::AppName);
     };
 }
 
@@ -172,7 +72,8 @@ module CohereDataProvider {
 
     The %CohereDataProvider module provides a data provider API for
     [Cohere](https://cohere.com) chat, embeddings, reranking, and
-    classification services.
+    classification services, plus model discovery, tokenization, document image parsing, audio
+    transcription, datasets, and batch jobs.
 
     The following data providers are exposed:
     - @ref CohereDataProvider::CohereDataProvider "CohereDataProvider" — root
@@ -182,6 +83,42 @@ module CohereDataProvider {
     - @ref CohereDataProvider::CohereClassifyDataProvider "CohereClassifyDataProvider" — classification
 
     @section CohereDataProviderRelnotes Release Notes
+
+    @subsection coheredataproviderv1_1 CohereDataProvider v1.1
+    - 24 schema-derived actions, including model discovery, tokenization, datasets, embedding jobs,
+      batch inference, document image parsing, and audio transcription
+    - task-filtered model dropdowns and references to existing datasets and jobs
+    - complete current v2 request contracts, including multimodal embeddings and grounded chat
+    - v1 and v2 paths are routed explicitly rather than appended to the connection API prefix
+    - named multipart files preserve extensions and media types for audio and dataset uploads
+
+    @par Example
+    @code{.q}
+    CohereDataProvider provider({"apikey": ENV.COHERE_APIKEY});
+    auto models = provider.getChildProvider("list-models").doRequest({"endpoint": "embed"});
+    auto vectors = provider.getChildProvider("embed").doRequest({
+        "model": "embed-multilingual-v3.0",
+        "texts": ("A customer asked to reschedule delivery.",),
+        "input_type": "search_document",
+    });
+    @endcode
+
+    Upload actions accept `FileDataType` values. Supply the original filename so Cohere can determine
+    the audio or dataset format; `content` accepts raw binary data or base64-encoded data.
+    @par Audio upload example
+    @code{.q}
+    auto transcript = provider.getChildProvider("transcribe").doRequest({
+        "language": "en",
+        "file": {"name": "delivery-note.wav", "content": File::readBinaryFile("delivery-note.wav"),
+            "mime_type": "audio/wav"},
+    });
+    @endcode
+
+    The vendored schema is pinned to a reviewed upstream revision. Re-import it with
+    `tools/rest-schema-import.qr --spec qlib/CohereDataProvider/cohere-import.yaml` and review drift.
+    Classify remains for existing integrations but is deprecated by Cohere; new workflows can use
+    Chat with structured output. The Chat action returns a completed response and does not expose
+    the streaming transport switch.
 
     @subsection CohereDataProviderv1_0 CohereDataProvider v1.0
     - the initial version of the %CohereDataProvider module
@@ -193,5 +130,9 @@ public namespace CohereDataProvider {
 public const AppName = "Cohere";
 }
 
-#! App logo loaded from file
-public const CohereLogo = File::readTextFile(get_script_dir() + "/cohere-logo.svg");
+namespace Priv {
+#! App logo loaded from its module resource
+const CohereLogo = File::readTextFile(get_script_dir() + "/cohere-logo.svg");
+}
+#! The original public logo constant, retained for source compatibility
+public const CohereLogo = Priv::CohereLogo;

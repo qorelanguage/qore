@@ -149,6 +149,11 @@ printf("%Y\n", ans.body);
       values, preserving optional scopes and callback state containing reserved characters; missing values and
       empty optional scope lists serialize as empty query values
       (<a href="https://github.com/qoretechnologies/qore/issues/5443">issue 5443</a>)
+    - connection pings can validate service-specific authentication information with
+      @ref RestClient::RestConnection::validatePingResponse() "validatePingResponse()" on all transports
+    - clearing the connection path also clears the default path so opening a socket cannot restore
+      the API prefix on a ping that addresses the host root
+    - renews expiring client-credentials tokens by acquiring another token when no refresh token is issued
     - fixed a connection using an OAuth2 grant with no authorization step reporting that it has nothing to
       do with OAuth2; the only OAuth2 features published were the two interactive flows and the general
       \c oauth2-auth flag, so a fully configured \c client_credentials connection was indistinguishable
@@ -1493,6 +1498,9 @@ RestClient rest({"url": "http://localhost:8001/rest"});
     /** Called from the constructor when a REST validator is present that manages the URI path
     */
     clearConnectionPath() {
+        # A disconnected HTTPClient restores default_path when it opens the socket. Clearing
+        # only the active path would therefore still prepend the old API prefix on first use.
+        setDefaultPath();
         setConnectionPath();
     }
 
@@ -2185,7 +2193,8 @@ hash<auto> ans = rest.del("/orders/1");
     /** @since %RestClient 2.2
     */
     bool requiresRefresh() {
-        return token.val() && (refresh_token.val() || custom_token_auth) && oauth2_token_expiry
+        return token.val() && (refresh_token.val() || custom_token_auth
+            || oauth2_grant_type == "client_credentials") && oauth2_token_expiry
             && ((now_us() + Oauth2TokenRefreshWindow) > oauth2_token_expiry);
     }
 
@@ -5461,7 +5470,25 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
             throw "REST-PING-ERROR", sprintf("HTTP %d returned from ping %s %s",
                 h.status_code, opts.ping_method, ping_path);
         }
+        {
+            on_error authFailure();
+            validatePingResponse(h.body);
+        }
         authSuccess();
+    }
+
+    #! Validates service-specific authentication information in a successful ping response
+    /** Called by synchronous and polling pings before reporting authentication success.
+        The default implementation accepts the response; subclasses can reject APIs that report
+        authentication failures in an HTTP 2xx response body.
+
+        @param body the response body, either deserialized or raw string/binary data depending on
+            the transport; overrides must handle both forms
+        @throw REST-PING-ERROR a subclass can raise this error when the body rejects authentication
+
+        @since %RestClient 2.7
+    */
+    validatePingResponse(auto body) {
     }
 
     #! Returns the ping path from the \c ping_path option
@@ -5598,6 +5625,9 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation<auto> {
         if (real_opts.ping_path[0] == "/") {
             # use the path directly if it's an absolute path
             use_path_as_is = True;
+            if (!conn.pingInheritsConnectionPath()) {
+                rc.clearConnectionPath();
+            }
         }
 
         if (real_opts.openapi3 && !rc.getValidator().managesUriPath()) {
@@ -5792,6 +5822,10 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation<auto> {
                         err = True;
                     }
                     if (!err) {
+                        {
+                            on_error conn.authFailure();
+                            conn.validatePingResponse(respinfo.body);
+                        }
                         rc.debug("RestConnection ping: ping successful");
                         conn.authSuccess();
                         goal_reached = True;

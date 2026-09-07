@@ -302,6 +302,10 @@ excluded from the union and make it @ref RestSchemaValidator::AbstractSchemaObje
     @section openapi3_relnotes OpenApi3 Module Release Notes
 
     @subsection openapi3_1_0 OpenApi3 v1.0
+    - multipart binary inputs accept named `FileDataType` values as well as raw bytes;
+      file names and media types are preserved, and ordinary form fields precede file parts
+    - preserve literal prefixes and suffixes in path templates such as `/v2/batches/{id}:cancel`,
+      prefer these over whole-component wildcards, and extract all path parameters together
     - initial release of the %OpenApi3 module
     - YAML MIME type equivalence: \c "application/yaml" (RFC 9512), \c "text/x-yaml",
       \c "application/x-yaml", and \c "text/yaml" are treated as interchangeable when
@@ -2012,14 +2016,7 @@ public class OpenApi3Schema inherits ObjectBase, AbstractRestSchemaValidator {
                 continue;
             }
             if (content == MimeTypeMultipartFormData) {
-                # only send binary values with a "filename" attribute
-                hash<string, hash<FormDataMessageInfo>> parts =
-                    cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>({
-                        "name": $1.key,
-                        "hdr": {"Content-Type": MimeTypeText},
-                        "body": remove body{$1.key},
-                    } + ($1.value.typeCode() == NT_BINARY ? {"filename": $1.key} : NOTHING))}, body.pairIterator());
-                hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
+                hash<MessageInfo> mh = OperationObject::serializeMultipartBody(body);
                 return rv += {
                     "body": mh.body,
                     "content": mh.hdr."Content-Type",
@@ -2426,8 +2423,11 @@ public class PathComponent inherits Qore::Serializable {
         #! the PathItemObject associated with this path (if any)
         *PathItemObject pio;
 
-        #! hash of non-wildcard paths to the next level
+        #! Literal paths to the next level
         hash<string, PathComponent> paths;
+
+        #! Partial templates, indexed by their anchored pattern with parameter names removed
+        hash<string, PathComponent> templates;
     }
 
     #! creates the object
@@ -2467,13 +2467,38 @@ public class PathComponent inherits Qore::Serializable {
 
         PathComponent next;
         string key = l[offset];
-        if (key =~ /^{/) {
+        if (key =~ /^\{[^{}]+\}$/) {
             next = wildcard ?? (wildcard = new PathComponent(full_path, l, offset + 1, oh));
+        } else if (index(key, "{") >= 0) {
+            string pattern = PathComponent::getTemplatePattern(key);
+            next = templates{pattern} ?? (templates{pattern} = new PathComponent(full_path, l, offset + 1, oh));
         } else {
             next = paths{key} ?? (paths{key} = new PathComponent(full_path, l, offset + 1, oh));
         }
 
         next.add(full_path, l, offset + 1, oh, openapi3);
+    }
+
+    #! Builds a literal-safe pattern for a path template, optionally capturing its parameter values
+    /** @param path the literal path containing brace-delimited parameters
+        @param capture whether to capture each parameter value in template order
+        @return an anchored regular expression with all literal path characters escaped
+        @throw INVALID-PATH-COMPONENT an empty or unterminated parameter was encountered
+    */
+    static string getTemplatePattern(string path, bool capture = False) {
+        string pattern = "^";
+        int offset = 0;
+        int start;
+        while ((start = index(path, "{", offset)) >= 0) {
+            int end = index(path, "}", start + 1);
+            if (end <= start + 1) {
+                throw "INVALID-PATH-COMPONENT", sprintf("Invalid path template %y", path);
+            }
+            pattern += Util::regex_escape(path.substr(offset, start - offset));
+            pattern += capture ? "([^/]+)" : "[^/]+";
+            offset = end + 1;
+        }
+        return pattern + Util::regex_escape(path.substr(offset)) + "$";
     }
 
     #! returns either a PathItemObject for the path
@@ -2492,7 +2517,18 @@ public class PathComponent inherits Qore::Serializable {
     *PathItemObject tryMatch(list<auto> path) {
         PathComponent w = self;
         for (int i = 1; i < path.size(); ++i) {
-            *PathComponent next = w.paths{path[i]} ?? w.wildcard;
+            *PathComponent next = w.paths{path[i]};
+            if (!next) {
+                foreach hash<auto> entry in (w.templates.pairIterator()) {
+                    if (path[i].regex(entry.key)) {
+                        next = entry.value;
+                        break;
+                    }
+                }
+                if (!next) {
+                    next = w.wildcard;
+                }
+            }
             if (!next) {
                 if (w.paths) {
                     throw "SCHEMA-VALIDATION-ERROR", sprintf("path component %y cannot be matched in %y; expected "
@@ -2511,11 +2547,14 @@ public class PathComponent inherits Qore::Serializable {
     /** @param h reference to the hash to populate with URI paths as keys and lists of supported HTTP methods as values
     */
     getPathOperationHash(reference<hash<string, list<string>>> h) {
-        if (pio)
+        if (pio) {
             h{pfx} = pio.getMethods();
+        }
         map $1.getPathOperationHash(\h), paths.iterator();
-        if (wildcard)
+        map $1.getPathOperationHash(\h), templates.iterator();
+        if (wildcard) {
             wildcard.getPathOperationHash(\h);
+        }
     }
 }
 
@@ -2928,6 +2967,114 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         }
     }
 
+    #! Returns the request body field, including named file inputs for multipart operations
+    /** @param pio the path item containing this operation
+        @param rest optional REST client used to derive field reference data
+        @return the request body field, or @ref NOTHING when no body is declared
+
+        Multipart binary properties accept a @ref DataProvider::FileDataType "FileDataType" value
+        containing `name`, `content`, and optional `mime_type`, as well as existing raw binary inputs.
+        The schema's response types remain unchanged.
+    */
+    *AbstractDataField getRequestBodyField(PathItemObject pio, *object rest) {
+        *ParameterObject param = body ?? pio.body;
+        if (!param || !param.schema) {
+            return;
+        }
+        AbstractDataField field = param.schema.getField("body", "REST request body argument",
+            param.required ?? False, rest);
+        if (!consumes{MimeTypeMultipartFormData} || !(field.getType().getMandatoryType() instanceof HashDataType)) {
+            return field;
+        }
+        HashDataType type = cast<HashDataType>(field.getType().getMandatoryType());
+        hash<string, AbstractDataField> fields = type.getFields();
+        foreach string name in (keys getMultipartFileProperties(param)) {
+            if (!fields{name}) {
+                continue;
+            }
+            QoreDataField f = cast<QoreDataField>(fields{name}.copy());
+            AbstractDataProviderType file_type = new QoreUnionDataType((FileDataType,
+                AbstractDataProviderType::get(SoftBinaryType)));
+            f.updateFieldType(f.isMandatory() ? file_type : file_type.getOrNothingType());
+            fields{name} = f;
+        }
+        QoreDataField result = cast<QoreDataField>(field.copy());
+        AbstractDataProviderType body_type = type.copyWithFields(fields);
+        result.updateFieldType(field.isMandatory() ? body_type : body_type.getOrNothingType());
+        return result;
+    }
+
+    #! Finds binary properties that are represented by individual multipart file parts
+    private hash<string, bool> getMultipartFileProperties(ParameterObject param) {
+        hash<string, bool> fields = {};
+        if (consumes{MimeTypeMultipartFormData}) {
+            foreach hash<auto> entry in (param.schema.properties.pairIterator()) {
+                if (entry.value.type == "string" && entry.value.format == "binary") {
+                    fields{entry.key} = True;
+                }
+            }
+        }
+        return fields;
+    }
+
+    #! Validates file contents against the wire schema without discarding their upload metadata
+    private checkBodyParameter(ParameterObject param, bool serialize, reference<auto> value) {
+        auto checked = value;
+        hash<auto> files;
+        if (serialize && checked.typeCode() == NT_HASH) {
+            foreach string name in (keys getMultipartFileProperties(param)) {
+                if (checked{name}.typeCode() != NT_HASH) {
+                    continue;
+                }
+                hash<auto> file = FileDataType.acceptsValue(checked{name});
+                if (!file.name.val()) {
+                    throw "SCHEMA-VALIDATION-ERROR", sprintf("multipart file %y requires a non-empty filename", name);
+                }
+                files{name} = file;
+                checked{name} = parse_base64_string(file.content);
+            }
+        }
+        param.check(serialize, True, path, method, "body", \checked);
+        value = files ? checked + files : checked;
+    }
+
+    #! Serializes multipart request fields with file names, media types, and unmodified bytes
+    /** @param body validated multipart request properties
+        @return the serialized body and Content-Type header including its boundary
+        @throw MULTIPART-FORMDATA-ERROR an invalid part name or filename was supplied
+        @throw BASE64-PARSE-ERROR encoded file contents are invalid
+
+        Text parameters precede file parts so APIs can read their options before streaming an upload.
+    */
+    static hash<MessageInfo> serializeMultipartBody(hash<auto> body) {
+        MultiPartFormDataMessage message();
+        hash<string, hash<FormDataMessageInfo>> files;
+        foreach hash<auto> entry in (body.pairIterator()) {
+            if (entry.value.typeCode() == NT_HASH) {
+                hash<auto> file = FileDataType.acceptsValue(entry.value);
+                files{entry.key} = <FormDataMessageInfo>{
+                    "name": entry.key,
+                    "filename": file.name,
+                    "hdr": {"Content-Type": file.mime_type},
+                    "body": parse_base64_string(file.content),
+                };
+            } else if (entry.value.typeCode() == NT_BINARY) {
+                files{entry.key} = <FormDataMessageInfo>{
+                    "name": entry.key,
+                    "filename": entry.key,
+                    "hdr": {"Content-Type": MimeTypeOctetStream},
+                    "body": entry.value,
+                };
+            } else {
+                message.addPart(formScalar(entry.value), entry.key);
+            }
+        }
+        foreach hash<FormDataMessageInfo> file in (files.iterator()) {
+            message.addPart(file);
+        }
+        return message.getMsgAndHeaders();
+    }
+
     #! Processes a generated request
     /** @param pio the path item object
         @param body the request body
@@ -2941,7 +3088,7 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         PathItemObject real_pio = cast<PathItemObject>(pio);
         *ParameterObject body_po = self.body ?? real_pio.body;
         if (body_po) {
-            body_po.check(True, True, path, method, "body", \body);
+            checkBodyParameter(body_po, True, \body);
         } else if (formData) {
             map $1.value.check(True, True, path, method, "formData." + $1.key, \body{$1.key}),
                 formData.pairIterator();
@@ -2961,15 +3108,7 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         string ct = consumes.firstKey();
 
         if (ct == MimeTypeMultipartFormData) {
-            hash<string, hash<FormDataMessageInfo>> parts =
-                cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>({
-                    "name": $1.key,
-                    "filename": $1.key,
-                    "hdr": {"Content-Type": MimeTypeText},
-                    "body": $1.value,
-                })}, body.pairIterator());
-
-            hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
+            hash<MessageInfo> mh = OperationObject::serializeMultipartBody(body);
             headers."Content-Type" = mh.hdr."Content-Type";
             return mh.body;
         }
@@ -3195,7 +3334,7 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         {
             *ParameterObject body_po = self.body ?? real_pio.body;
             if (body_po) {
-                body_po.check(serialize, True, path, method, "body", \body);
+                checkBodyParameter(body_po, serialize, \body);
             } else if (formData) {
                 foreach hash<auto> i in (formData.pairIterator()) {
                     i.value.check(serialize, True, path, method, "formData." + i.key, \body{i.key});
@@ -3206,16 +3345,20 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         }
 
         # check path parameters
-        foreach string param in (path =~ x/{([^}]+)}/g) {
+        *list<string> path_names = path =~ x/{([^}]+)}/g;
+        *list<string> path_values;
+        if (path_names) {
+            string actual_path = h.method.startsWith("/") ? h.method : "/" + h.method;
+            path_values = regex_extract(actual_path, PathComponent::getTemplatePattern(path, True));
+        }
+        foreach string param in (path_names) {
             *ParameterObject po = parameters{param} ?? real_pio.parameters{param};
             if (!po) {
                 error("SCHEMA-VALIDATION-ERROR", "No path parameter named %y defined for this path and method; "
                     "known parameters: %y", param, keys (parameters + real_pio.parameters));
             }
 
-            string pattern = replace(path, "{" + param + "}", "(.*)");
-            pattern =~ s/^\//\/?/;
-            auto val = regex_extract(h.method, pattern)[0];
+            auto val = path_values[$#];
 
             # convert string to actual type
             switch (po.schema.type) {

@@ -1352,6 +1352,8 @@ fetch
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v3_8 DataProvider v3.8
+    - fixed short descriptions containing quoted parameter names or numbers to preserve ordinary words
+      and literal braces while ignoring sentence punctuation inside quoted spans
     - fixed @ref DataProvider::QoreStringDataTypeBase "QoreStringDataTypeBase" to honor the value conversion
       implemented by a wrapped user-defined @ref Qore::Reflection::Type "Type" subclass; the generic string
       conversion silently replaced the type's own @ref Qore::Reflection::Type::acceptsValue() "acceptsValue()"

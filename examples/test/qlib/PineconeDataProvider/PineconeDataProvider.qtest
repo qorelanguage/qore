@@ -5,14 +5,14 @@
 %allow-injection
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Logger
-%requires ConnectionProvider
-%requires DataProvider
-%requires PineconeRestClient
-%requires PineconeDataProvider
-%requires RestSchemaActions
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/PineconeRestClient.qm
+%requires ../../../../qlib/PineconeDataProvider
+%requires ../../../../qlib/RestSchemaActions
 
 %exec-class PineconeDataProviderTest
 
@@ -100,7 +100,7 @@ public class PineconeDataProviderTest inherits QUnit::Test {
         # the framework-injected generic call is covered by its own test elsewhere
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("Pinecone"),
-            $1.action != AbstractDataProvider::GenericApiCallActionName;
+            $1.action != AbstractDataProvider::GenericApiCallActionName && $1.action_code == DPAT_API;
         # 24 control-plane + 24 data-plane + 4 inference operations, all exported
         assertEq(52, actions.size(), sprintf("%d actions registered", actions.size()));
         hash<string, hash<DataProviderActionInfo>> by_id = map {$1.action: $1}, actions;
@@ -202,7 +202,7 @@ public class PineconeDataProviderTest inherits QUnit::Test {
     private actionPresentationTest() {
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("Pinecone"),
-            $1.action != AbstractDataProvider::GenericApiCallActionName;
+            $1.action != AbstractDataProvider::GenericApiCallActionName && $1.action_code == DPAT_API;
         hash<string, hash<DataProviderActionInfo>> by_id = map {$1.action: $1}, actions;
 
         # every action needs a name and a description a user can read
@@ -385,7 +385,7 @@ public class PineconeDataProviderTest inherits QUnit::Test {
 
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("Pinecone"),
-            $1.action != AbstractDataProvider::GenericApiCallActionName;
+            $1.action != AbstractDataProvider::GenericApiCallActionName && $1.action_code == DPAT_API;
         hash<string, hash<DataProviderActionInfo>> by_id = map {$1.action: $1}, actions;
 
         int routed = 0;
@@ -535,7 +535,7 @@ public class PineconeDataProviderTest inherits QUnit::Test {
     */
     private liveIndexTest() {
         AbstractDataProvider prov = get_connection(conn_name).getDataProvider();
-        string idx = sprintf("qore-test-%d", now_us().durationMicroseconds() % 1000000);
+        string idx = sprintf("qore-test-%d", now_us().getEpochMicroseconds() % 1000000);
         string ns = "qore-test-ns";
 
         hash<auto> created = prov.getChildProviderEx("create-index").doRequest({

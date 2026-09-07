@@ -253,6 +253,7 @@ public class ConnectionSchemeCache {
             "pdfco": "PdfCoRestClient",
 
             "pinecone": "PineconeRestClient",
+            "pinecone-admin": "PineconeRestClient",
 
             "segment": "SegmentRestClient",
 

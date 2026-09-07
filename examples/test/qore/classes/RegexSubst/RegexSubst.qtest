@@ -1,10 +1,11 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../../qlib"
-%requires QUnit
+%requires ../../../../../qlib/QUnit.qm
 
 %exec-class RegexSubstTest
 
@@ -283,22 +284,33 @@ public class RegexSubstTest inherits QUnit::Test {
 
     private globalCancellationTest() {
         Queue ready();
+        Queue gate();
         Queue result();
         background sub () {
-            string subject = strmul("éx", 5000000);
+            auto outcome;
+            # Cancellation releases the gate and leaves the flag set for substitution.
+            # This avoids racing a cancellation request against a completed replacement.
             ready.push(gettid());
             try {
-                result.push(regex_subst(subject, "x", "y", RE_Global));
+                gate.get();
+            } catch (hash<ExceptionInfo> ex) {
+                @assert(ex.err == "THREAD-CANCELLED");
+            }
+            try {
+                outcome = regex_subst("éx éx", "x", "y", RE_Global);
             } catch (hash<ExceptionInfo> ex) {
                 clear_thread_cancel();
-                result.push(ex);
+                outcome = ex;
             }
+            result.push(outcome);
         }();
         int tid = ready.get(30000);
         assertTrue(cancel_thread(tid, "global substitution regression"));
         auto rv = result.get(30000);
-        assertEq("hash", rv.type(), "substitution did not run to completion");
+        assertEq("hash", rv.type(), "substitution must observe the thread cancellation flag");
         assertEq("THREAD-CANCELLED", rv.err);
+        assertTrue(rv.desc =~ /regular expression substitution/,
+            "cancellation must be reported by the substitution loop");
     }
 
     private globalInterruptTest() {

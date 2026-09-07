@@ -1,0 +1,1613 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "ko": {
+      "messages": {
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.desc": {
+          "source": "Create an API key for a project to authenticate Data Plane and Control Plane requests.\n\n**Save the key:** the API returns the new key only when it is created. Use it with a separate Pinecone database connection.",
+          "message": "데이터 영역 및 제어 영역 요청을 인증하기 위해 프로젝트에 대한 API 키를 만듭니다.\n\n**키 저장:** API는 새 키가 생성될 때만 새 키를 반환합니다. 별도의 Pinecone 데이터베이스 연결과 함께 사용하세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.display_name": {
+          "source": "Create API Key",
+          "message": "API 키 생성"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.bmFtZQ.desc": {
+          "source": "The name of the API key. The name must be 1-80 characters long.",
+          "message": "API 키의 이름입니다. 이름은 1~80자여야 합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "컨트롤 플레인 편집기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "컨트롤 플레인 뷰어"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "데이터 플레인 편집기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "데이터 플레인 뷰어"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "프로젝트 편집자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "프로젝트 뷰어"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.desc": {
+          "source": "The roles to create the API key with. Default is `[\"ProjectEditor\"]`.",
+          "message": "API 키를 생성하는 데 사용할 역할입니다. 기본값은 `[\"ProjectEditor\"]`입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.display_name": {
+          "source": "Roles",
+          "message": "역할"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.short_desc": {
+          "source": "Roles",
+          "message": "역할"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.short_desc": {
+          "source": "Create an API key",
+          "message": "API 키 만들기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.desc": {
+          "source": "Invite a user to the organization by email and grant their initial role bindings.\n\n**Sends email:** delivers an invitation to the specified address.",
+          "message": "이메일로 사용자를 조직에 초대하고 초기 역할 바인딩을 부여합니다.\n\n**이메일 보내기:** 지정된 주소로 초대장을 전달합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.display_name": {
+          "source": "Create Invite",
+          "message": "초대 만들기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.desc": {
+          "source": "The email address to invite.",
+          "message": "초대할 이메일 주소입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "이메일"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.short_desc": {
+          "source": "Email",
+          "message": "이메일"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.desc": {
+          "source": "Role bindings for the invitee. Must include at least one `organization`-scoped binding that grants organization membership (`OrgOwner`, `OrgManager`, `OrgBillingAdmin`, or `OrgMember`); `project`-scoped bindings are optional. Not returned in the response.",
+          "message": "초대 대상자의 역할 바인딩. 조직 멤버십을 부여하는 하나 이상의 `organization` 범위 바인딩(`OrgOwner`, `OrgManager`, `OrgBillingAdmin` 또는 `OrgMember`)을 포함해야 합니다. `project` 범위 바인딩은 선택 사항입니다. 응답으로 반환되지 않았습니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.display_name": {
+          "source": "Role Bindings",
+          "message": "역할 바인딩"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.short_desc": {
+          "source": "Role Bindings",
+          "message": "역할 바인딩"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.short_desc": {
+          "source": "Invite a user to the organization",
+          "message": "사용자를 조직에 초대"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.desc": {
+          "source": "Create a project to separate a team or workload's indexes, API keys, and deployment settings.",
+          "message": "팀 또는 워크로드의 인덱스, API 키 및 배포 설정을 분리하는 프로젝트를 만듭니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.display_name": {
+          "source": "Create Project",
+          "message": "프로젝트 생성"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.desc": {
+          "source": "Whether to force encryption with a customer-managed encryption key (CMEK). Default is `false`.",
+          "message": "고객 관리 암호화 키(CMEK)를 사용하여 암호화를 강제할지 여부입니다. 기본값은 `false`입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.display_name": {
+          "source": "Force Encryption With CMEK",
+          "message": "CMEK를 사용한 강제 암호화"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.short_desc": {
+          "source": "Force Encryption With CMEK",
+          "message": "CMEK를 사용한 강제 암호화"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.desc": {
+          "source": "The maximum number of Pods that can be created in the project. Default is `0` (serverless only).",
+          "message": "프로젝트에서 생성할 수 있는 최대 Pod 수입니다. 기본값은 `0`(서버리스에만 해당)입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.display_name": {
+          "source": "Max Pods",
+          "message": "최대 포드"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.short_desc": {
+          "source": "Max Pods",
+          "message": "최대 포드"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.desc": {
+          "source": "The name of the new project.",
+          "message": "새 프로젝트의 이름입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.short_desc": {
+          "source": "Create a new project",
+          "message": "새 프로젝트 생성"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.desc": {
+          "source": "Grant a user or service account the role it needs at organization or project scope.",
+          "message": "사용자 또는 서비스 계정에 조직 또는 프로젝트 범위에 필요한 역할을 부여합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.display_name": {
+          "source": "Create Role Binding",
+          "message": "역할 결합 생성"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.desc": {
+          "source": "The resource ID of the selected `principal_type`, from **List Users**, **List Service Accounts**, **List Project API Keys**, or **List Invites**. For a service account use its `id`, not its OAuth2 `client_id`.",
+          "message": "**사용자 나열**, **서비스 계정 나열**, **프로젝트 API 키 나열** 또는 **초대 나열**에서 선택한 `principal_type`의 리소스 ID입니다. 서비스 계정의 경우 OAuth2 `client_id`가 아닌 `id`를 사용하세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.display_name": {
+          "source": "Principal ID",
+          "message": "주체 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.short_desc": {
+          "source": "Principal ID",
+          "message": "주체 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmFwaV9rZXk.display_name": {
+          "source": "API Key",
+          "message": "API 키"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmludml0ZQ.display_name": {
+          "source": "Invite",
+          "message": "초대"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnNlcnZpY2VfYWNjb3VudA.display_name": {
+          "source": "Service Account",
+          "message": "서비스 계정"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "사용자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.desc": {
+          "source": "The kind of principal that receives permissions from a role binding.\nPossible values: `user`, `service_account`, `api_key`, `invite`.",
+          "message": "역할 바인딩에서 권한을 받는 주 구성원의 종류입니다.\n가능한 값: `user`, `service_account`, `api_key`, `invite`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.display_name": {
+          "source": "Principal Type",
+          "message": "주체 유형"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.short_desc": {
+          "source": "Principal Type",
+          "message": "주체 유형"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
+          "source": "Organization Manager",
+          "message": "조직 관리자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
+          "source": "Organization Member",
+          "message": "조직 구성원"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
+          "source": "Organization Owner",
+          "message": "조직 소유자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
+          "source": "Organization Billing Admin",
+          "message": "조직 청구 관리자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "컨트롤 플레인 편집기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "컨트롤 플레인 뷰어"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "데이터 플레인 편집기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "데이터 플레인 뷰어"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "프로젝트 편집자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
+          "source": "Project Manager",
+          "message": "프로젝트 관리자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
+          "source": "Project Member",
+          "message": "프로젝트 구성원"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
+          "source": "Project Owner",
+          "message": "프로젝트 소유자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "프로젝트 뷰어"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.desc": {
+          "source": "A role assigned to a principal at a resource scope.",
+          "message": "리소스 범위에서 주 구성원에게 할당된 역할입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "역할"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.short_desc": {
+          "source": "Role",
+          "message": "역할"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.desc": {
+          "source": "Project UUID. Required when `resource_type` is `project`; omit for `organization` scope.",
+          "message": "프로젝트 UUID. `resource_type`이 `project`인 경우 필수입니다. `organization` 범위는 생략하세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.display_name": {
+          "source": "Resource ID",
+          "message": "리소스 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.short_desc": {
+          "source": "Resource ID",
+          "message": "리소스 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Organization",
+          "message": "조직"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "프로젝트"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.desc": {
+          "source": "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`.",
+          "message": "역할 바인딩이 적용되는 리소스 범위의 종류입니다.\n가능한 값: `organization`, `project`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.display_name": {
+          "source": "Resource Type",
+          "message": "리소스 유형"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.short_desc": {
+          "source": "Resource Type",
+          "message": "리소스 유형"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.short_desc": {
+          "source": "Create a role binding",
+          "message": "역할 바인딩 만들기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Create a service account for automated workflows, optionally assigning its initial roles.\n\n**Save the secret:** `client_secret` is returned only once and cannot be read again.",
+          "message": "자동화된 워크플로를 위한 서비스 계정을 만들고 선택적으로 초기 역할을 할당합니다.\n\n**비밀번호 저장:** `client_secret`는 한 번만 반환되며 다시 읽을 수 없습니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Create Service Account",
+          "message": "서비스 계정 만들기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.desc": {
+          "source": "The human-readable name of the service account.",
+          "message": "사람이 읽을 수 있는 서비스 계정 이름입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.desc": {
+          "source": "Optional initial role bindings. Omitting the field or passing an empty array creates the service account with no role bindings; roles can be added later via the role binding endpoints. A service account may be granted any organization- or project-scoped role. Not returned in the response.",
+          "message": "선택적 초기 역할 결합. 필드를 생략하거나 빈 배열을 전달하면 역할 바인딩이 없는 서비스 계정이 생성됩니다. 역할 바인딩 엔드포인트를 통해 나중에 역할을 추가할 수 있습니다. 서비스 계정에는 조직 또는 프로젝트 범위의 역할이 부여될 수 있습니다. 응답으로 반환되지 않았습니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.display_name": {
+          "source": "Role Bindings",
+          "message": "역할 바인딩"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.short_desc": {
+          "source": "Role Bindings",
+          "message": "역할 바인딩"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Create a service account",
+          "message": "서비스 계정 만들기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.desc": {
+          "source": "Read an organization's configuration to review its plan and administrative settings.",
+          "message": "조직의 구성을 읽고 계획 및 관리 설정을 검토합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Get Organization",
+          "message": "조직 가져오기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
+          "source": "Organization ID",
+          "message": "조직 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
+          "source": "Organization ID",
+          "message": "조직 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
+          "source": "Organization ID",
+          "message": "조직 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.short_desc": {
+          "source": "Get organization details",
+          "message": "조직 세부정보 가져오기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.desc": {
+          "source": "Read an API key's configuration and roles to review its access. The response excludes the secret.",
+          "message": "API 키의 구성과 역할을 읽고 액세스를 검토하세요. 응답에서 비밀이 제외됩니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.display_name": {
+          "source": "Get API Key",
+          "message": "API 키 받기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
+          "source": "API key ID",
+          "message": "API 키 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.option.YXBpX2tleV9pZA.display_name": {
+          "source": "API Key ID",
+          "message": "API 키 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.option.YXBpX2tleV9pZA.short_desc": {
+          "source": "API Key ID",
+          "message": "API 키 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.short_desc": {
+          "source": "Get API key details",
+          "message": "API 키 세부정보 가져오기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.desc": {
+          "source": "Read an invitation's details before following up, resending it, or withdrawing access.",
+          "message": "후속 조치를 취하거나, 다시 보내거나, 액세스 권한을 철회하기 전에 초대장의 세부정보를 읽어보세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.display_name": {
+          "source": "Get Invite",
+          "message": "초대받기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.desc": {
+          "source": "Invite ID",
+          "message": "초대 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.display_name": {
+          "source": "Invite ID",
+          "message": "초대 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
+          "source": "Invite ID",
+          "message": "초대 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.short_desc": {
+          "source": "Get invite details",
+          "message": "초대 세부정보 받기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.desc": {
+          "source": "Read a project's configuration before changing deployment limits or encryption settings.",
+          "message": "배포 제한이나 암호화 설정을 변경하기 전에 프로젝트 구성을 읽어보세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.display_name": {
+          "source": "Get Project",
+          "message": "프로젝트 가져오기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.short_desc": {
+          "source": "Get project details",
+          "message": "프로젝트 세부정보 조회"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.desc": {
+          "source": "Read a role assignment to check which principal has access to the selected resource.",
+          "message": "선택한 리소스에 액세스할 수 있는 보안 주체를 확인하려면 역할 할당을 읽어보세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.display_name": {
+          "source": "Get Role Binding",
+          "message": "역할 바인딩 가져오기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.desc": {
+          "source": "Role binding ID",
+          "message": "역할 결합 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.display_name": {
+          "source": "Role Binding ID",
+          "message": "역할 바인딩 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.short_desc": {
+          "source": "Role Binding ID",
+          "message": "역할 바인딩 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.short_desc": {
+          "source": "Get role binding details",
+          "message": "역할 결합 세부정보 가져오기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Read a service account's details to review an integration's identity. Its secret is available only when created or rotated.",
+          "message": "통합의 ID를 검토하려면 서비스 계정의 세부정보를 읽어보세요. 해당 비밀은 생성되거나 회전된 경우에만 사용할 수 있습니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Get Service Account",
+          "message": "서비스 계정 받기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "서비스 계정의 고유 식별자입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "서비스 계정 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "서비스 계정 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Get service account details",
+          "message": "서비스 계정 세부정보 가져오기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.desc": {
+          "source": "Read a team member's organization details before reviewing their access or removing membership.",
+          "message": "액세스 권한을 검토하거나 멤버십을 제거하기 전에 팀 구성원의 조직 세부 정보를 읽어보세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.display_name": {
+          "source": "Get User",
+          "message": "사용자 가져오기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.desc": {
+          "source": "User ID",
+          "message": "사용자 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.display_name": {
+          "source": "User ID",
+          "message": "사용자 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.short_desc": {
+          "source": "User ID",
+          "message": "사용자 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.short_desc": {
+          "source": "Get user details",
+          "message": "사용자 세부정보 가져오기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.desc": {
+          "source": "Delete an organization and all its configuration; delete all its projects first.",
+          "message": "조직 및 모든 구성을 삭제합니다. 먼저 모든 프로젝트를 삭제하세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Delete Organization",
+          "message": "조직 삭제"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
+          "source": "Organization ID",
+          "message": "조직 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
+          "source": "Organization ID",
+          "message": "조직 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
+          "source": "Organization ID",
+          "message": "조직 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.short_desc": {
+          "source": "Delete an organization",
+          "message": "조직 삭제"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.desc": {
+          "source": "Revoke a project API key when an integration is retired or its credentials must be replaced.",
+          "message": "통합이 중단되거나 자격 증명을 교체해야 하는 경우 프로젝트 API 키를 취소합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.display_name": {
+          "source": "Delete API Key",
+          "message": "API 키 삭제"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
+          "source": "API key ID",
+          "message": "API 키 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.display_name": {
+          "source": "API Key ID",
+          "message": "API 키 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.short_desc": {
+          "source": "API Key ID",
+          "message": "API 키 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.short_desc": {
+          "source": "Delete an API key",
+          "message": "API 키 삭제"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.desc": {
+          "source": "Delete a pending or expired invite and its role bindings; to remove an accepted user, delete the user instead.",
+          "message": "보류 중이거나 만료된 초대 및 해당 역할 바인딩을 삭제합니다. 허용된 사용자를 제거하려면 대신 사용자를 삭제하십시오."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.display_name": {
+          "source": "Delete Invite",
+          "message": "초대 삭제"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.desc": {
+          "source": "Invite ID",
+          "message": "초대 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.display_name": {
+          "source": "Invite ID",
+          "message": "초대 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
+          "source": "Invite ID",
+          "message": "초대 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.short_desc": {
+          "source": "Delete an invite",
+          "message": "초대 삭제"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.desc": {
+          "source": "Delete a project and all its configuration; delete its indexes, assistants, backups, and collections first.",
+          "message": "프로젝트 및 모든 구성을 삭제합니다. 인덱스, 보조자, 백업 및 컬렉션을 먼저 삭제하십시오."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.display_name": {
+          "source": "Delete Project",
+          "message": "프로젝트 삭제"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.short_desc": {
+          "source": "Delete a project",
+          "message": "프로젝트 삭제"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.desc": {
+          "source": "Remove a role assignment when access is no longer needed. Permissions are revoked when deletion completes.",
+          "message": "액세스가 더 이상 필요하지 않으면 역할 할당을 제거합니다. 삭제가 완료되면 권한이 취소됩니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.display_name": {
+          "source": "Delete Role Binding",
+          "message": "역할 바인딩 삭제"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.desc": {
+          "source": "Role binding ID",
+          "message": "역할 결합 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.display_name": {
+          "source": "Role Binding ID",
+          "message": "역할 바인딩 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.short_desc": {
+          "source": "Role Binding ID",
+          "message": "역할 바인딩 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.short_desc": {
+          "source": "Delete a role binding",
+          "message": "역할 바인딩 삭제"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Delete a service account and its role bindings; tokens it minted are revoked within a few seconds.",
+          "message": "서비스 계정 및 해당 역할 결합을 삭제합니다. 발행된 토큰은 몇 초 내에 취소됩니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Delete Service Account",
+          "message": "서비스 계정 삭제"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "서비스 계정의 고유 식별자입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "서비스 계정 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "서비스 계정 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Delete a service account",
+          "message": "서비스 계정 삭제"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.desc": {
+          "source": "Remove a user from the organization and revoke their role bindings; their Pinecone account is not deleted.",
+          "message": "조직에서 사용자를 제거하고 역할 바인딩을 취소합니다. 해당 Pinecone 계정은 삭제되지 않습니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.display_name": {
+          "source": "Delete User",
+          "message": "사용자 삭제"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.desc": {
+          "source": "User ID",
+          "message": "사용자 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.display_name": {
+          "source": "User ID",
+          "message": "사용자 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.short_desc": {
+          "source": "User ID",
+          "message": "사용자 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.short_desc": {
+          "source": "Remove a user from the organization",
+          "message": "조직에서 사용자 제거"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.desc": {
+          "source": "List users in the caller's organization, optionally filtered by email address.",
+          "message": "발신자 조직의 사용자를 나열하고 선택적으로 이메일 주소로 필터링합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.display_name": {
+          "source": "List Users",
+          "message": "사용자 목록"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.desc": {
+          "source": "Case-insensitive filter on the user's email address. Malformed email returns `400 INVALID_ARGUMENT`.",
+          "message": "사용자의 이메일 주소에 대해 대소문자를 구분하지 않는 필터입니다. 잘못된 이메일이 `400 INVALID_ARGUMENT`로 반환됩니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "이메일"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.short_desc": {
+          "source": "Email",
+          "message": "이메일"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "페이지당 반환할 결과 수입니다. 생략하면 서버의 기본값은 100입니다. 범위를 벗어난 값은 `400 OUT_OF_RANGE`을 반환합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "제한"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "제한"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "이전 응답의 `pagination.next`에 있는 커서입니다. 동일한 쿼리 컨텍스트(경로 매개변수, 필터 및 `limit`)와 함께 재사용되어야 합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "페이지네이션 토큰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "페이지네이션 토큰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.short_desc": {
+          "source": "List users in the organization",
+          "message": "조직의 사용자 나열"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.desc": {
+          "source": "List pending and expired invites in the caller's organization.",
+          "message": "발신자의 조직에서 보류 중이거나 만료된 초대를 나열합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.display_name": {
+          "source": "List Invites",
+          "message": "초대 나열"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "페이지당 반환할 결과 수입니다. 생략하면 서버의 기본값은 100입니다. 범위를 벗어난 값은 `400 OUT_OF_RANGE`을 반환합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "제한"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "제한"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "이전 응답의 `pagination.next`에 있는 커서입니다. 동일한 쿼리 컨텍스트(경로 매개변수, 필터 및 `limit`)와 함께 재사용되어야 합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "페이지네이션 토큰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "페이지네이션 토큰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.short_desc": {
+          "source": "List invites",
+          "message": "초대 나열"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.desc": {
+          "source": "List all organizations associated with an account.",
+          "message": "계정과 연결된 모든 조직을 나열합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.display_name": {
+          "source": "List Organizations",
+          "message": "조직 나열"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.short_desc": {
+          "source": "List organizations",
+          "message": "조직 나열"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.desc": {
+          "source": "List all API keys in a project.",
+          "message": "프로젝트의 모든 API 키를 나열합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.display_name": {
+          "source": "List Project API Keys",
+          "message": "프로젝트 API 키 나열"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.short_desc": {
+          "source": "List API keys",
+          "message": "API 키 나열"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.desc": {
+          "source": "List all projects in an organization.",
+          "message": "조직의 모든 프로젝트를 나열합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.display_name": {
+          "source": "List Projects",
+          "message": "프로젝트 목록 조회"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.short_desc": {
+          "source": "List projects",
+          "message": "프로젝트 나열"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.desc": {
+          "source": "List role bindings in the caller's organization, optionally filtered by principal, resource, and role.",
+          "message": "선택적으로 주체, 리소스, 역할별로 필터링하여 호출자 조직의 역할 결합을 나열합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.display_name": {
+          "source": "List Role Bindings",
+          "message": "역할 바인딩 나열"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "페이지당 반환할 결과 수입니다. 생략하면 서버의 기본값은 100입니다. 범위를 벗어난 값은 `400 OUT_OF_RANGE`을 반환합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "제한"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "제한"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "이전 응답의 `pagination.next`에 있는 커서입니다. 동일한 쿼리 컨텍스트(경로 매개변수, 필터 및 `limit`)와 함께 재사용되어야 합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "페이지네이션 토큰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "페이지네이션 토큰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.desc": {
+          "source": "The resource ID of the selected `principal_type`, from **List Users**, **List Service Accounts**, **List Project API Keys**, or **List Invites**. For a service account use its `id`, not its OAuth2 `client_id`.",
+          "message": "**사용자 나열**, **서비스 계정 나열**, **프로젝트 API 키 나열** 또는 **초대 나열**에서 선택한 `principal_type`의 리소스 ID입니다. 서비스 계정의 경우 OAuth2 `client_id`가 아닌 `id`를 사용하세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.display_name": {
+          "source": "Principal ID",
+          "message": "주체 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.short_desc": {
+          "source": "Principal ID",
+          "message": "주체 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmFwaV9rZXk.display_name": {
+          "source": "API Key",
+          "message": "API 키"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmludml0ZQ.display_name": {
+          "source": "Invite",
+          "message": "초대"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnNlcnZpY2VfYWNjb3VudA.display_name": {
+          "source": "Service Account",
+          "message": "서비스 계정"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "사용자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.desc": {
+          "source": "Filter by principal type. Required when `principal_id` is set.",
+          "message": "주 구성원 유형별로 필터링합니다. `principal_id`가 설정된 경우 필수입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.display_name": {
+          "source": "Principal Type",
+          "message": "주체 유형"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.short_desc": {
+          "source": "Principal Type",
+          "message": "주체 유형"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
+          "source": "Organization Manager",
+          "message": "조직 관리자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
+          "source": "Organization Member",
+          "message": "조직 구성원"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
+          "source": "Organization Owner",
+          "message": "조직 소유자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
+          "source": "Organization Billing Admin",
+          "message": "조직 청구 관리자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "컨트롤 플레인 편집기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "컨트롤 플레인 뷰어"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "데이터 플레인 편집기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "데이터 플레인 뷰어"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "프로젝트 편집자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
+          "source": "Project Manager",
+          "message": "프로젝트 관리자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
+          "source": "Project Member",
+          "message": "프로젝트 구성원"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
+          "source": "Project Owner",
+          "message": "프로젝트 소유자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "프로젝트 뷰어"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.desc": {
+          "source": "Filter by role.",
+          "message": "역할별로 필터링합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "역할"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.short_desc": {
+          "source": "Role",
+          "message": "역할"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.desc": {
+          "source": "Filter by resource ID. Requires `resource_type`.",
+          "message": "리소스 ID로 필터링합니다. `resource_type`이 필요합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.display_name": {
+          "source": "Resource ID",
+          "message": "리소스 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.short_desc": {
+          "source": "Resource ID",
+          "message": "리소스 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Organization",
+          "message": "조직"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "프로젝트"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.desc": {
+          "source": "Filter by resource type. Required when `resource_id` is set.",
+          "message": "리소스 유형별로 필터링합니다. `resource_id`가 설정된 경우 필수입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.display_name": {
+          "source": "Resource Type",
+          "message": "리소스 유형"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.short_desc": {
+          "source": "Resource Type",
+          "message": "리소스 유형"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.short_desc": {
+          "source": "List role bindings",
+          "message": "역할 바인딩 나열"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.desc": {
+          "source": "List service accounts in the caller's organization.",
+          "message": "호출자 조직의 서비스 계정을 나열합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.display_name": {
+          "source": "List Service Accounts",
+          "message": "서비스 계정 나열"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "페이지당 반환할 결과 수입니다. 생략하면 서버의 기본값은 100입니다. 범위를 벗어난 값은 `400 OUT_OF_RANGE`을 반환합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "제한"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "제한"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "이전 응답의 `pagination.next`에 있는 커서입니다. 동일한 쿼리 컨텍스트(경로 매개변수, 필터 및 `limit`)와 함께 재사용되어야 합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "페이지네이션 토큰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "페이지네이션 토큰"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.short_desc": {
+          "source": "List service accounts",
+          "message": "서비스 계정 나열"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.desc": {
+          "source": "Make a custom HTTP / REST API call to **Pinecone Admin** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
+          "message": "구성된 연결 인증을 사용하여 **Pinecone Admin**에 대한 사용자 정의 HTTP/REST API 호출을 수행합니다.\n\nHTTP 메서드, URI 경로(연결의 API 기본 URL 기준), 선택적 쿼리 매개변수, 헤더 및 요청 본문을 지정합니다. 응답은 상태 코드, 응답 헤더 및 응답 본문을 포함하는 해시로 반환됩니다.\n\n이 앱에서 아직 최고 수준의 작업으로 노출되지 않은 엔드포인트에 대해 이 작업을 사용하세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.display_name": {
+          "source": "Make an API call",
+          "message": "API 호출 실행"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.desc": {
+          "source": "The request body. The effective type depends on `body_type`: JSON/form/YAML expect a hash, XML/text expect a string, multipart expects a file structure, binary expects raw bytes.",
+          "message": "요청 본문입니다. 유효한 유형은 `body_type`에 따라 달라집니다. JSON/form/YAML은 해시를, XML/text는 문자열을, multipart는 파일 구조를, binary는 원시 바이트를 요구합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.display_name": {
+          "source": "Body",
+          "message": "본문"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.short_desc": {
+          "source": "The request body",
+          "message": "요청 본문"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.desc": {
+          "source": "Upload a file using `multipart/form-data`. The body must be a @ref DataProvider::FileDataType \"FileDataType\" structure (filename + content + mime_type). The framework builds the multipart envelope and sets the boundary header.",
+          "message": "`multipart/form-data`을(를) 사용하여 파일을 업로드합니다. 본문은 @ref DataProvider::FileDataType \"FileDataType\" 구조(filename + content + mime_type)여야 합니다. 프레임워크가 multipart 봉투를 작성하고 boundary 헤더를 설정합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.display_name": {
+          "source": "Multipart Form",
+          "message": "멀티파트 폼"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.short_desc": {
+          "source": "Upload a file using multipart/form-data",
+          "message": "multipart/form-data를 사용하여 파일 업로드"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Pass the body to the REST client unchanged; the client decides serialization based on its configured `data` option and the value type",
+          "message": "본문을 변경하지 않고 REST 클라이언트에 전달합니다. 클라이언트는 구성된 `data` 옵션과 값 유형을 기반으로 직렬화를 결정합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "자동"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Pass-through; use connection serialization and let the REST client decide",
+          "message": "패스스루: 연결 직렬화를 사용하고 REST 클라이언트가 결정하도록 합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.desc": {
+          "source": "Send the body as raw bytes. The body must be a binary value. Sets `Content-Type: application/octet-stream` unless overridden by `hdr`.",
+          "message": "본문을 원시 바이트로 전송합니다. 본문은 바이너리 값이어야 합니다. `hdr`에 의해 재정의되지 않는 한 `Content-Type: application/octet-stream`을(를) 설정합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
+          "source": "Raw Binary",
+          "message": "원시 바이너리"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.short_desc": {
+          "source": "Send body as raw bytes",
+          "message": "본문을 원시 바이트로 전송"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.desc": {
+          "source": "Serialize a hash of form fields as `application/x-www-form-urlencoded`. The body must be a hash whose values are scalars (strings/numbers/booleans).",
+          "message": "폼 필드의 해시를 `application/x-www-form-urlencoded`(으)로 직렬화합니다. 본문은 값이 스칼라(문자열/숫자/불리언)인 해시여야 합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.display_name": {
+          "source": "Form (URL-encoded)",
+          "message": "폼 (URL 인코딩)"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.short_desc": {
+          "source": "Serialize body as application/x-www-form-urlencoded form fields",
+          "message": "본문을 application/x-www-form-urlencoded 폼 필드로 직렬화"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.desc": {
+          "source": "Serialize the body as JSON; sets `Content-Type: application/json`. The body should be a hash, list, or scalar value.",
+          "message": "본문을 JSON으로 직렬화하며, `Content-Type: application/json`을(를) 설정합니다. 본문은 해시, 리스트 또는 스칼라 값이어야 합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.short_desc": {
+          "source": "Serialize body as JSON",
+          "message": "본문을 JSON으로 직렬화"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Send the body as plain text. The body must be a string. Sets `Content-Type: text/plain`.",
+          "message": "본문을 일반 텍스트로 전송합니다. 본문은 문자열이어야 합니다. `Content-Type: text/plain`을(를) 설정합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "일반 텍스트"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Send body as text/plain",
+          "message": "본문을 text/plain으로 전송"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.desc": {
+          "source": "Send the body as XML. If the body is a hash it is serialized to XML; if it is a string it is sent verbatim. Sets `Content-Type: application/xml`.",
+          "message": "본문을 XML로 전송합니다. 본문이 해시인 경우 XML로 직렬화되고, 문자열인 경우 그대로 전송됩니다. `Content-Type: application/xml`을(를) 설정합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.display_name": {
+          "source": "XML",
+          "message": "XML"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.short_desc": {
+          "source": "Send body as XML",
+          "message": "본문을 XML로 전송"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.desc": {
+          "source": "Send the body as YAML. If the body is a hash it is serialized to YAML; if it is a string it is sent verbatim. Sets `Content-Type: application/x-yaml`.",
+          "message": "본문을 YAML로 전송합니다. 본문이 해시인 경우 YAML로 직렬화되고, 문자열인 경우 그대로 전송됩니다. `Content-Type: application/x-yaml`을(를) 설정합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.display_name": {
+          "source": "YAML",
+          "message": "YAML"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.short_desc": {
+          "source": "Send body as YAML",
+          "message": "본문을 YAML로 전송"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.desc": {
+          "source": "Selects the body serialization mode and the corresponding `Content-Type` header. Changing this field reshapes the `body` editor - selecting JSON exposes a JSON editor, selecting Multipart Form exposes a file picker, and so on.",
+          "message": "본문 직렬화 모드 및 해당되는 `Content-Type` 헤더를 선택합니다. 이 필드를 변경하면 `body` 에디터의 형태가 변경됩니다. JSON을 선택하면 JSON 에디터가 표시되고, 멀티파트 폼을 선택하면 파일 선택기가 표시되는 방식입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.display_name": {
+          "source": "Body Type",
+          "message": "본문 유형"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.short_desc": {
+          "source": "How the body is serialized and what Content-Type is sent",
+          "message": "본문이 직렬화되는 방식 및 전송되는 Content-Type"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.desc": {
+          "source": "If `True`, non-2xx HTTP responses return as the normal response hash (with the actual status code) instead of raising `REST-RESPONSE-ERROR`. Useful for handling 4xx/5xx as data - e.g. checking whether a resource exists. Overrides the connection's `error_passthru` setting for this call only.",
+          "message": "`True`인 경우, 2xx가 아닌 HTTP 응답은 `REST-RESPONSE-ERROR`을(를) 발생시키는 대신 (실제 상태 코드와 함께) 일반 응답 해시로 반환됩니다. 리소스 존재 여부 확인 등 4xx/5xx를 데이터로 처리할 때 유용합니다. 이 호출에 대해서만 연결의 `error_passthru` 설정을 재정의합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.display_name": {
+          "source": "Return Errors as Data",
+          "message": "오류를 데이터로 반환"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.short_desc": {
+          "source": "Return non-2xx responses normally instead of throwing",
+          "message": "예외를 발생시키는 대신 2xx가 아닌 응답을 정상적으로 반환"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.desc": {
+          "source": "Optional list of HTTP status codes treated as success. If set and the response status is not in this list, the action throws `REST-STATUS-ERROR`. When unset, the REST client's default behavior applies (typically: 2xx is success, non-2xx throws).",
+          "message": "성공으로 처리되는 HTTP 상태 코드의 선택적 목록입니다. 설정되어 있고 응답 상태가 이 목록에 없는 경우 작업이 `REST-STATUS-ERROR` 예외를 발생시킵니다. 설정되지 않은 경우 REST 클라이언트의 기본 동작이 적용됩니다(일반적으로 2xx는 성공, 2xx 이외는 예외 발생)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.display_name": {
+          "source": "Expected Status Codes",
+          "message": "예상되는 상태 코드"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.short_desc": {
+          "source": "Response status codes treated as success",
+          "message": "성공으로 처리되는 응답 상태 코드"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.desc": {
+          "source": "Hash of custom headers added to the request. These override any default headers set by `body_type` (e.g. supplying `Content-Type` here wins over the body-type default).",
+          "message": "요청에 추가되는 사용자 지정 헤더의 해시입니다. 이는 `body_type`에 의해 설정된 기본 헤더보다 우선합니다(예: 여기에 `Content-Type`을(를) 제공하면 본문 유형 기본값보다 우선 적용됨)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.display_name": {
+          "source": "Custom Headers",
+          "message": "사용자 지정 헤더"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.short_desc": {
+          "source": "Extra request headers",
+          "message": "추가 요청 헤더"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.desc": {
+          "source": "If `True`, the response hash includes a `debug` sub-hash containing the request method/URL/headers (with sensitive values redacted), request and response sizes, and round-trip duration. Useful when investigating slow or failing calls. Off by default to keep responses lean.",
+          "message": "`True`인 경우 응답 해시에 요청 메서드/URL/헤더(민감한 값은 가려짐), 요청 및 응답 크기, 왕복 시간이 포함된 `debug` 하위 해시가 포함됩니다. 느리거나 실패한 호출을 조사할 때 유용합니다. 응답을 가볍게 유지하기 위해 기본적으로 비활성화되어 있습니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.display_name": {
+          "source": "Include Debug Info",
+          "message": "디버그 정보 포함"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.short_desc": {
+          "source": "Include request/timing/size debug info in the response",
+          "message": "응답에 요청/타이밍/크기 디버그 정보 포함"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.desc": {
+          "source": "HTTP `OPTIONS`",
+          "message": "HTTP `OPTIONS`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.display_name": {
+          "source": "OPTIONS",
+          "message": "OPTIONS"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.short_desc": {
+          "source": "HTTP OPTIONS",
+          "message": "HTTP OPTIONS"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.desc": {
+          "source": "HTTP `DELETE`",
+          "message": "HTTP `DELETE`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.display_name": {
+          "source": "DELETE",
+          "message": "DELETE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.short_desc": {
+          "source": "HTTP DELETE",
+          "message": "HTTP DELETE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.desc": {
+          "source": "HTTP `GET`",
+          "message": "HTTP `GET`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.display_name": {
+          "source": "GET",
+          "message": "GET"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.short_desc": {
+          "source": "HTTP GET",
+          "message": "HTTP GET"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.desc": {
+          "source": "HTTP `HEAD`",
+          "message": "HTTP `HEAD`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.display_name": {
+          "source": "HEAD",
+          "message": "HEAD"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.short_desc": {
+          "source": "HTTP HEAD",
+          "message": "HTTP HEAD"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.desc": {
+          "source": "HTTP `PATCH`",
+          "message": "HTTP `PATCH`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.display_name": {
+          "source": "PATCH",
+          "message": "PATCH"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.short_desc": {
+          "source": "HTTP PATCH",
+          "message": "HTTP PATCH"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.desc": {
+          "source": "HTTP `POST`",
+          "message": "HTTP `POST`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.display_name": {
+          "source": "POST",
+          "message": "POST"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.short_desc": {
+          "source": "HTTP POST",
+          "message": "HTTP POST"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.desc": {
+          "source": "HTTP `PUT`",
+          "message": "HTTP `PUT`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.display_name": {
+          "source": "PUT",
+          "message": "PUT"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.short_desc": {
+          "source": "HTTP PUT",
+          "message": "HTTP PUT"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.desc": {
+          "source": "HTTP `TRACE`",
+          "message": "HTTP `TRACE`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.display_name": {
+          "source": "TRACE",
+          "message": "TRACE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.short_desc": {
+          "source": "HTTP TRACE",
+          "message": "HTTP TRACE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.desc": {
+          "source": "The HTTP method to use for the request",
+          "message": "요청에 사용할 HTTP 메서드"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.display_name": {
+          "source": "HTTP Method",
+          "message": "HTTP 메서드"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.short_desc": {
+          "source": "The HTTP method to use for the request",
+          "message": "요청에 사용할 HTTP 메서드"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.desc": {
+          "source": "The URI path relative to the connection's API base URL. May contain `{name}` placeholders that are replaced from `path_vars`. Example: `/users/{id}/comments`.",
+          "message": "연결의 API 기본 URL에 대한 상대 URI 경로입니다. `path_vars`에서 대체되는 `{name}` 자리 표시자가 포함될 수 있습니다. 예: `/users/{id}/comments`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.display_name": {
+          "source": "URI Path",
+          "message": "URI 경로"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.short_desc": {
+          "source": "The URI path relative to the connection's API base URL",
+          "message": "연결의 API 기본 URL에 대한 상대 URI 경로"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.desc": {
+          "source": "Hash of values substituted into `{name}` placeholders in the URI path. Example: with `path = /users/{id}` and `path_vars = {id: 123}` the framework sends `/users/123`. Values are URL-encoded.",
+          "message": "URI 경로의 `{name}` 자리 표시자에 대체되는 값의 해시입니다. 예: `path = /users/{id}` 및 `path_vars = {id: 123}`이 있으면 프레임워크가 `/users/123`을(를) 전송합니다. 값은 URL 인코딩됩니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.display_name": {
+          "source": "Path Variables",
+          "message": "경로 변수"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.short_desc": {
+          "source": "Values for {name} placeholders in path",
+          "message": "경로 내 {name} 자리 표시자의 값"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.desc": {
+          "source": "Hash of query string parameters to append to the URI path. Values are URL-encoded; list values are joined with `,`.",
+          "message": "URI 경로에 추가할 쿼리 문자열 매개변수 해시입니다. 값은 URL 인코딩되며, 목록 값은 `,`(으)로 연결됩니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.display_name": {
+          "source": "Query Arguments",
+          "message": "쿼리 인수"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.short_desc": {
+          "source": "Query string parameters",
+          "message": "쿼리 문자열 매개변수"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.short_desc": {
+          "source": "Make a custom API call to Pinecone Admin",
+          "message": "Pinecone 관리자에게 사용자 정의 API 호출하기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.desc": {
+          "source": "Rotate a service account's OAuth client secret; the previous secret and its tokens are revoked within seconds and the new secret is returned only once.\n\n**Save the secret:** store `client_secret` securely when returned; it cannot be read again. Update the connections that use this service account after rotation.",
+          "message": "서비스 계정의 OAuth 클라이언트 비밀번호를 순환합니다. 이전 비밀과 해당 토큰은 몇 초 내에 취소되고 새 비밀은 한 번만 반환됩니다.\n\n**비밀번호를 저장하세요.** 반환 시 `client_secret`를 안전하게 보관하세요. 다시 읽을 수 없습니다. 교체 후 이 서비스 계정을 사용하는 연결을 업데이트하세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.display_name": {
+          "source": "Rotate Service Account Secret",
+          "message": "서비스 계정 비밀번호 순환"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "서비스 계정의 고유 식별자입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "서비스 계정 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "서비스 계정 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.short_desc": {
+          "source": "Rotate a service account's OAuth client secret",
+          "message": "서비스 계정의 OAuth 클라이언트 비밀번호 순환"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.desc": {
+          "source": "Resend the invite email and extend its expiration to 7 days from now; limited to 100 emails per hour per organization.\n\n**Sends email:** delivers another invitation and renews its expiry.",
+          "message": "초대 이메일을 다시 보내고 만료일을 지금부터 7일로 연장하세요. 조직당 시간당 이메일 100개로 제한됩니다.\n\n**이메일 보내기:** 또 다른 초대장을 전달하고 만료를 갱신합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.display_name": {
+          "source": "Resend Invite",
+          "message": "초대 다시 보내기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.desc": {
+          "source": "Invite ID",
+          "message": "초대 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.display_name": {
+          "source": "Invite ID",
+          "message": "초대 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
+          "source": "Invite ID",
+          "message": "초대 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.short_desc": {
+          "source": "Resend an invite email",
+          "message": "초대 이메일 다시 보내기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.desc": {
+          "source": "Rename an organization so its display name matches the business or team it serves.",
+          "message": "표시 이름이 서비스를 제공하는 비즈니스 또는 팀과 일치하도록 조직의 이름을 바꿉니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Update Organization",
+          "message": "조직 업데이트"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
+          "source": "Organization ID",
+          "message": "조직 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
+          "source": "Organization ID",
+          "message": "조직 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
+          "source": "Organization ID",
+          "message": "조직 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.desc": {
+          "source": "The new name for the organization.",
+          "message": "조직의 새 이름입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.short_desc": {
+          "source": "Update an organization",
+          "message": "조직 업데이트"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.desc": {
+          "source": "Change an API key's name or roles to keep its access aligned with the integration it serves.",
+          "message": "API 키의 이름이나 역할을 변경하여 API 키가 제공하는 통합에 맞게 액세스를 유지하세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.display_name": {
+          "source": "Update API Key",
+          "message": "API 키 업데이트"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
+          "source": "API key ID",
+          "message": "API 키 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.display_name": {
+          "source": "API Key ID",
+          "message": "API 키 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.short_desc": {
+          "source": "API Key ID",
+          "message": "API 키 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.bmFtZQ.desc": {
+          "source": "A new name for the API key. The name must be 1-80 characters long. If omitted, the name will not be updated.",
+          "message": "API 키의 새 이름입니다. 이름은 1~80자여야 합니다. 생략하면 이름이 업데이트되지 않습니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "컨트롤 플레인 편집기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "컨트롤 플레인 뷰어"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "데이터 플레인 편집기"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "데이터 플레인 뷰어"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "프로젝트 편집자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "프로젝트 뷰어"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.desc": {
+          "source": "A new set of roles for the API key. Existing roles will be removed if not included.\nIf this field is omitted, the roles will not be updated.",
+          "message": "API 키에 대한 새로운 역할 세트입니다. 포함되지 않은 경우 기존 역할은 제거됩니다.\n이 필드를 생략하면 역할이 업데이트되지 않습니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.display_name": {
+          "source": "Roles",
+          "message": "역할"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.short_desc": {
+          "source": "Roles",
+          "message": "역할"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.short_desc": {
+          "source": "Update an API key",
+          "message": "API 키 업데이트"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.desc": {
+          "source": "Adjust a project's name, pod limit, or customer-managed encryption settings as its workload changes.",
+          "message": "워크로드 변경에 따라 프로젝트 이름, 포드 한도 또는 고객 관리 암호화 설정을 조정합니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.display_name": {
+          "source": "Update Project",
+          "message": "프로젝트 업데이트"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.desc": {
+          "source": "Whether to force encryption with a customer-managed encryption key (CMEK). Once enabled, CMEK encryption cannot be disabled.",
+          "message": "고객 관리 암호화 키(CMEK)를 사용하여 암호화를 강제할지 여부입니다. CMEK 암호화를 사용 설정한 후에는 사용 중지할 수 없습니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.display_name": {
+          "source": "Force Encryption With CMEK",
+          "message": "CMEK를 사용한 강제 암호화"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.short_desc": {
+          "source": "Force Encryption With CMEK",
+          "message": "CMEK를 사용한 강제 암호화"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.desc": {
+          "source": "The maximum number of Pods that can be created in the project.",
+          "message": "프로젝트에서 생성할 수 있는 최대 Pod 수입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.display_name": {
+          "source": "Max Pods",
+          "message": "최대 포드"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.short_desc": {
+          "source": "Max Pods",
+          "message": "최대 포드"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.desc": {
+          "source": "The name of the new project.",
+          "message": "새 프로젝트의 이름입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.short_desc": {
+          "source": "Update a project",
+          "message": "프로젝트 업데이트"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Rename a service account to identify the integration it serves. Manage its permissions with the role-binding actions.",
+          "message": "서비스 계정의 이름을 변경하여 서비스 계정이 제공하는 통합을 식별합니다. 역할 바인딩 작업을 통해 권한을 관리하세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Update Service Account",
+          "message": "서비스 계정 업데이트"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.desc": {
+          "source": "A new name for the service account. If omitted, the name is unchanged.",
+          "message": "서비스 계정의 새 이름입니다. 생략하면 이름이 변경되지 않습니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "이름"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "서비스 계정의 고유 식별자입니다."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "서비스 계정 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "서비스 계정 ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Update a service account",
+          "message": "서비스 계정 업데이트"
+        },
+        "app.UGluZWNvbmVBZG1pbg.desc": {
+          "source": "Automate organization administration in [Pinecone](https://www.pinecone.io).\n\n**Administration tasks**:\n- Create and configure projects for teams and workloads\n- Issue and revoke project API keys\n- Manage service accounts and rotate their credentials\n- Assign roles, invite users, and manage organization access\n\n**Connection**: Uses a **Pinecone Admin** service-account connection with OAuth2 client credentials. Use the **Pinecone** application with a project API key for indexes and records.",
+          "message": "[파인콘](https://www.pinecone.io)에서 조직 관리를 자동화하세요.\n\n**관리 작업**:\n- 팀 및 워크로드를 위한 프로젝트 생성 및 구성\n- 프로젝트 API 키 발급 및 취소\n- 서비스 계정을 관리하고 자격 증명을 교체합니다.\n- 역할 할당, 사용자 초대, 조직 액세스 관리\n\n**연결**: OAuth2 클라이언트 자격 증명과 **Pinecone Admin** 서비스 계정 연결을 사용합니다. 인덱스 및 레코드용 프로젝트 API 키와 함께 **Pinecone** 애플리케이션을 사용하세요."
+        },
+        "app.UGluZWNvbmVBZG1pbg.display_name": {
+          "source": "Pinecone Admin",
+          "message": "솔방울 관리자"
+        },
+        "app.UGluZWNvbmVBZG1pbg.short_desc": {
+          "source": "Provision Pinecone projects and manage organization access",
+          "message": "Pinecone 프로젝트 프로비저닝 및 조직 액세스 관리"
+        }
+      }
+    }
+  }
+}

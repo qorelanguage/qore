@@ -138,6 +138,30 @@
      "message": "Detener una importación que sigue en curso",
      "source": "Stop an import that is still running"
     },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.desc": {
+     "source": "Creates new records in the given table",
+     "message": "Crea nuevos registros en la tabla indicada"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.display_name": {
+     "source": "Create Records",
+     "message": "Crear registros"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "La tabla con la que trabajar: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` o `documents`"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Tabla"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "El nombre de la tabla con la que trabajar"
+    },
+    "app.UGluZWNvbmU.action.Y3JlYXRl.short_desc": {
+     "source": "Create new records in the given table",
+     "message": "Crear nuevos registros en la tabla indicada"
+    },
     "app.UGluZWNvbmU.action.Y3JlYXRlLW5hbWVzcGFjZQ.desc": {
      "message": "Crea un espacio de nombres en un índice.\n\nNormalmente no hace falta crear un espacio de nombres —escribir en él lo crea—, así que créelo explícitamente cuando quiera declarar de antemano su **esquema de metadatos**.\n\nSolo índices sin servidor.  `__default__` está reservado y siempre existe.",
      "source": "Creates a namespace in an index.\n\nA namespace does not normally have to be created — writing to one brings it into existence — so create one explicitly when you want to declare its **metadata schema** up front.\n\nServerless indexes only.  `__default__` is reserved and always exists."
@@ -825,6 +849,30 @@
     "app.UGluZWNvbmU.action.Y3JlYXRlLWluZGV4LWZyb20tYmFja3Vw.short_desc": {
      "message": "Restaurar una copia de seguridad en un nuevo índice",
      "source": "Restore a backup into a new index"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.desc": {
+     "source": "Deletes every record in the given table matching the search criteria",
+     "message": "Elimina todos los registros de la tabla indicada que coincidan con los criterios de búsqueda"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.display_name": {
+     "source": "Delete Records",
+     "message": "Eliminar registros"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "La tabla con la que trabajar: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` o `documents`"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Tabla"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "El nombre de la tabla con la que trabajar"
+    },
+    "app.UGluZWNvbmU.action.ZGVsZXRl.short_desc": {
+     "source": "Delete the records matching the search criteria",
+     "message": "Eliminar los registros que coinciden con los criterios de búsqueda"
     },
     "app.UGluZWNvbmU.action.ZGVsZXRlLW5hbWVzcGFjZQ.desc": {
      "message": "Elimina un espacio de nombres y todos sus registros.  **Esta acción no se puede deshacer.**\n\nSolo índices sin servidor.",
@@ -2514,6 +2562,30 @@
      "message": "Realizar una llamada personalizada a la API de Pinecone",
      "source": "Make a custom API call to Pinecone"
     },
+    "app.UGluZWNvbmU.action.c2VhcmNo.desc": {
+     "source": "Returns every record in the given table matching the search criteria",
+     "message": "Devuelve todos los registros de la tabla dada que coinciden con los criterios de búsqueda"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.display_name": {
+     "source": "Search Records",
+     "message": "Buscar registros"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "La tabla con la que trabajar: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` o `documents`"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Tabla"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "El nombre de la tabla con la que trabajar"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNo.short_desc": {
+     "source": "Search for matching records in the given table",
+     "message": "Buscar registros coincidentes en la tabla dada"
+    },
     "app.UGluZWNvbmU.action.c2VhcmNoLWRvY3VtZW50cw.desc": {
      "message": "Busca documentos en un espacio de nombres y devuelve las mejores coincidencias con sus puntuaciones.\n\n**Puntuar por** elige cómo se puntúan, y es la razón de ser de esta acción:\n- `{\"type\": \"dense_vector\", \"fields\": [\"embedding\"], \"values\": [...]}`\n- `{\"type\": \"sparse_vector\", \"fields\": [\"sparse\"], \"sparse_values\": {...}}`\n- `{\"type\": \"text\", \"fields\": [\"body\"], \"query\": \"...\"}`: BM25\n- `{\"type\": \"query_string\", \"query\": \"title:(cat OR dog)\"}`: sintaxis Lucene; indicar además un campo se rechaza\n\nPasar una **lista** de estos métodos puntúa por varios a la vez, que es como se expresa aquí la búsqueda híbrida.",
      "source": "Searches documents in a namespace and returns the best matches with their scores.\n\n**Score By** chooses how they are scored, and is the whole point of this action:\n- `{\"type\": \"dense_vector\", \"fields\": [\"embedding\"], \"values\": [...]}`\n- `{\"type\": \"sparse_vector\", \"fields\": [\"sparse\"], \"sparse_values\": {...}}`\n- `{\"type\": \"text\", \"fields\": [\"body\"], \"query\": \"...\"}` — BM25\n- `{\"type\": \"query_string\", \"query\": \"title:(cat OR dog)\"}` — Lucene syntax; naming a field as well is rejected\n\nPassing a **list** of these scores by several methods at once, which is how hybrid search is expressed here."
@@ -2729,6 +2801,30 @@
     "app.UGluZWNvbmU.action.c2VhcmNoLXJlY29yZHM.short_desc": {
      "message": "Buscar con un texto de consulta y, opcionalmente, reordenar",
      "source": "Search with a query text and optionally rerank"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.desc": {
+     "source": "Returns the one record in the given table matching the search criteria; it is an error if more than one matches",
+     "message": "Devuelve el único registro de la tabla dada que coincide con los criterios de búsqueda; es un error si coincide más de uno"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.display_name": {
+     "source": "Find a Single Record",
+     "message": "Buscar un único registro"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "La tabla con la que trabajar: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` o `documents`"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Tabla"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "El nombre de la tabla con la que trabajar"
+    },
+    "app.UGluZWNvbmU.action.c2VhcmNoLXNpbmdsZQ.short_desc": {
+     "source": "Search for a single matching record in the given table",
+     "message": "Buscar un único registro coincidente en la tabla dada"
     },
     "app.UGluZWNvbmU.action.c3RhcnQtaW1wb3J0.desc": {
      "message": "Inicia una importación asíncrona de registros desde el almacenamiento de objetos a un índice: la forma de cargar un conjunto de datos grande sin enviarlo por esta API registro a registro.\n\nLa **URI de origen** indica el prefijo de almacenamiento que se leerá, y una **Integración de almacenamiento** aporta las credenciales para leerlo, configurada en la consola de Pinecone.\n\nDevuelve un ID de importación; **Describir importación** informa del progreso.",
@@ -3029,6 +3125,30 @@
     "app.UGluZWNvbmU.action.cmVyYW5r.short_desc": {
      "message": "Reordenar documentos por relevancia respecto a una consulta",
      "source": "Re-order documents by relevance to a query"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.desc": {
+     "source": "Updates every record in the given table matching the search criteria",
+     "message": "Actualiza todos los registros de la tabla indicada que coincidan con los criterios de búsqueda"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.display_name": {
+     "source": "Update Records",
+     "message": "Actualizar registros"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.option.dGFibGU.desc": {
+     "source": "The table to work with: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` or `documents`",
+     "message": "La tabla con la que trabajar: `indexes`, `collections`, `backups`, `backup-schedules`, `restore-jobs`, `models`, `namespaces`, `imports`, `vectors` o `documents`"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.option.dGFibGU.display_name": {
+     "source": "Table",
+     "message": "Tabla"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.option.dGFibGU.short_desc": {
+     "source": "The name of the table to work with",
+     "message": "El nombre de la tabla con la que trabajar"
+    },
+    "app.UGluZWNvbmU.action.dXBkYXRl.short_desc": {
+     "source": "Update the records matching the search criteria",
+     "message": "Actualizar los registros que coinciden con los criterios de búsqueda"
     },
     "app.UGluZWNvbmU.action.dXBkYXRlLWJhY2t1cC1zY2hlZHVsZQ.desc": {
      "message": "Cambia la frecuencia de una programación de copias de seguridad, su retención o si está habilitada.\n\nVolver a habilitar una programación deshabilitada **pone una copia de seguridad en cola de inmediato**, y se rechaza con **409** si el índice ya tiene otra programación habilitada.",

@@ -48,7 +48,7 @@ public class CohereChatDataProvider inherits CohereDataProviderCommon {
     private hash<DataProviderInfo> getStaticInfoImpl() { return ProviderInfo; }
 
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return doRestCommand("POST", "chat", req).body;
+        return getSchemaProvider("chat").doRequest(req, request_options);
     }
 }
 }

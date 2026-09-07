@@ -107,6 +107,8 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
     @section mimereleasenotes Release Notes
 
     @subsection mime_1_9 v1.9
+    - multipart boundary parameters are quoted as required by RFC 2046, including generated
+      boundaries containing a timezone colon; invalid boundary characters and lengths are rejected
     - added \c "application/fhir+json" to @ref Mime::MimeTypesJson "MimeTypesJson"
       for HL7 FHIR JSON payloads
     - @ref Mime::MultiPartFormDataMessage "MultiPartFormDataMessage" no longer emits a MIME
@@ -1528,12 +1530,19 @@ public namespace Mime {
 
         #! creates the object
         /** @param mptype the type of multi-part message: see @ref MultiPartConstants for possible values
-            @param boundary the boundary to use between parts
+            @param boundary the boundary to use between parts, following RFC 2046 section 5.1.1
+            @throw MULTIPART-BOUNDARY-ERROR the boundary is empty, exceeds 70 characters, contains
+            invalid characters, or ends in a space
          */
         constructor(string mptype, string boundary = MultiPartMessage::getBoundary()) {
+            if (boundary !~ /^[0-9A-Za-z'()+_,.\/:=? -]{0,69}[0-9A-Za-z'()+_,.\/:=?-]\z/) {
+                throw "MULTIPART-BOUNDARY-ERROR", "boundary must contain 1 to 70 RFC 2046 boundary characters "
+                    "and must not end in a space";
+            }
             self.mptype = mptype;
             self.boundary = boundary;
-            ct = sprintf("multipart/%s; boundary=%s", mptype, boundary);
+            # A colon is legal in a boundary but requires quoting in a MIME parameter value.
+            ct = sprintf("multipart/%s; boundary=\"%s\"", mptype, boundary);
         }
 
         #! serializes the message with the Content-Type header first and returns a binary object ready to send over a socket

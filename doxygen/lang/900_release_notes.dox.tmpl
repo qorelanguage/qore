@@ -38,6 +38,7 @@
     - copy-on-write @ref string_views "string view" layer makes
       @ref <string>::substr() "<string>::substr()" and
       @ref string_slicing "[] slice operations" allocation-free for read-only consumers
+      - fixed character indexing and C++ substring extraction from string views to read the parent buffer
     - regex matching and global string substitution avoid repeated UTF-8 validation, improving
       processing time for large documents with many matches while retaining input validation
     - passing a @ref lvalue_references "reference" to a variable holding objects no longer costs time
@@ -1450,6 +1451,8 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
 
     @subsection qore_3_0_0_updated_modules Updated Modules
     - @ref astparserintro "astparser" module
+      - supports brace-delimited regex match, substitution, transliteration and extraction expressions,
+        preserving nested/escaped braces and ordinary hash access through variables named \c m, \c s, \c tr and \c x
       - added a <a href="https://tree-sitter.github.io/tree-sitter/">tree-sitter</a>-based parser backend
         providing a full concrete syntax tree (CST) for accurate formatting and code transformation, covering
         all Qore constructs (parse directives, regex literals, heredocs, implicit arguments)
@@ -1487,6 +1490,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         <a href="https://github.com/qoretechnologies/module-amqp">amqp</a> module
 
     - @ref dataproviderintro "DataProvider" module
+      - fixed short-description derivation corrupting words and literal braces when help text contains quoted parameter names or numbers
       - added DPQL (Data Provider Query Language) — a human/AI-readable query syntax with a tokenizer,
         parser, serializer, and IDE completion provider, plus \c qdp CLI integration
       - application, action, option, and allowed-value presentation metadata can now be localized through
@@ -1652,6 +1656,8 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - OAuth consent URLs encode optional authorization arguments and state, preserving scope lists and
         reserved characters without introducing extra query parameters
         (<a href="https://github.com/qoretechnologies/qore/issues/5443">issue 5443</a>)
+      - renews expiring client-credentials tokens without requiring a refresh token, in both synchronous
+        and asynchronous REST clients
       - new @ref RestClient::RestClientPool "RestClientPool" class providing thread-safe connection pooling
         for @ref RestClient::RestClient "RestClient" instances, built on
         @ref Qore::Thread::AbstractConnectionPool "AbstractConnectionPool"
@@ -2072,9 +2078,13 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
 
     - @ref coheredataproviderintro "CohereDataProvider" module
       - new module providing a data provider API for <a href="https://cohere.com">Cohere</a> chat (Command R/R+), embeddings, reranking, and classification services
+      - 24 schema-derived actions with model and object dropdowns, datasets, embedding jobs, batch inference,
+        tokenization, document image parsing, and audio transcription
 
     - @ref cohererestclientintro "CohereRestClient" module
       - new module providing a REST client for <a href="https://cohere.com">Cohere</a>'s v2 REST API
+      - connection pings validate the key-check response, including invalid keys returned with HTTP 200;
+        quota-exhausted trial keys can still authenticate without consuming inference quota
 
     - @ref confluencedataproviderintro "ConfluenceDataProvider" module
       - new module providing a data provider API for <a href="https://www.atlassian.com/software/confluence">Confluence</a>
@@ -2504,6 +2514,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         for use with the @ref httpserverintro "HttpServer" module
 
     - @ref openapi3intro "OpenApi3" module
+      - matches literal prefixes and suffixes in parameterized paths and extracts multiple path parameters
       - new module supporting OpenAPI 3.* schemas for REST API integration
 
     - @ref openapi3dataproviderintro "OpenApi3DataProvider" module
@@ -2518,6 +2529,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing batched <a href="https://opensearch.org/">OpenSearch</a> Bulk API log appending and generic rendered-event search support
 
     - @ref paddledataproviderintro "PaddleDataProvider" module
+      - customer creation no longer offers the read-only customer ID as an import option
       - new module providing a data provider API for <a href="https://www.paddle.com">Paddle</a> billing,
         subscriptions and payments, with actions generated from Paddle's own OpenAPI 3.1 description and
         webhook events in place of polling
@@ -2539,9 +2551,13 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing a REST client for <a href="https://pdf.co/">PDF.co</a>'s document processing API
 
     - @ref pineconedataproviderintro "PineconeDataProvider" module
+      - exposes ten record tables with paginated, hydrated reads and CRUD operations, plus a separate
+        Pinecone Admin application with 32 organization-management actions (issues 5440 and 5442)
       - new module providing a data provider API for <a href="https://www.pinecone.io">Pinecone</a> vector databases, covering indexes, vectors, documents, namespaces, backups, bulk imports and inference, with data-plane requests routed to each index's own host
 
     - @ref pineconerestclientintro "PineconeRestClient" module
+      - adds the \c pinecone-admin connection with service-account OAuth2, fixed audience, automatic token
+        renewal and an authenticated project-list ping
       - new module providing a REST client and connection for <a href="https://www.pinecone.io">Pinecone</a> vector-database servers, pinning the dated API version and registering a \c pinecone vector-store backend
 
     - @ref qdrantdataproviderintro "QdrantDataProvider" module
@@ -2634,10 +2650,18 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing a REST client API over multiplexed HTTP/2 and HTTP/3 connections
 
     - @ref restschemaactionsintro "RestSchemaActions" module
+      - excludes read-only request options, enforces required alternatives and exclusions, and supports
+        checked repairs to upstream required-property lists
+      - record tables support shared host routing, ID-map responses, batch hydration, alternate filtered
+        listings, per-action identities and scope, and request-derived create/update record types
+      - reference-data lookups can enumerate partitions from another reference-data declaration
       - new module providing the reusable machinery for registering data provider application actions from an
         explicitly selected set of REST schema operations, including schema normalization and pruning
 
     - @ref restschemadataproviderintro "RestSchemaDataProvider" module
+      - preserves empty collections, zero, and false response bodies
+      - honors OpenAPI array \c style / \c explode and Swagger \c collectionFormat in query arguments,
+        preserving reserved characters inside individual values
       - new module providing a unified data provider API for both Swagger 2.0 and OpenAPI 3.0 / 3.1 REST schemas
 
     - @ref searchindexdataproviderintro "SearchIndexDataProvider" module

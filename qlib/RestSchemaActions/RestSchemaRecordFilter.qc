@@ -88,6 +88,9 @@ public class RestSchemaRecordFilter {
                 DP_SEARCH_OP_GE,
                 DP_SEARCH_OP_BETWEEN,
                 DP_SEARCH_OP_IN,
+                DP_OP_NOT_IN,
+                DP_OP_IS_NULL,
+                DP_OP_IS_NOT_NULL,
                 DP_SEARCH_OP_REGEX,
                 DP_OP_STARTS_WITH,
                 DP_OP_ENDS_WITH,
@@ -399,6 +402,9 @@ public class RestSchemaRecordFilter {
                 return False;
             }
         }
+        if (table.query.can_render && !table.query.can_render(c)) {
+            return False;
+        }
         if (RestSchemaRecordFilter::hasOp(syn, c.exp)) {
             return True;
         }
@@ -441,8 +447,9 @@ public class RestSchemaRecordFilter {
 
     #! Returns the values of an "in" predicate, flattening a list argument into its elements
     /** @param c the predicate
+        @return the flattened immediate values, preserving their order
     */
-    private static list<auto> getInValues(hash<DataProviderExpression> c) {
+    static list<auto> getInValues(hash<DataProviderExpression> c) {
         list<auto> rv = ();
         for (int j = 1; j < c.args.size(); ++j) {
             rv += c.args[j].typeCode() == NT_LIST ? c.args[j] : list(c.args[j]);

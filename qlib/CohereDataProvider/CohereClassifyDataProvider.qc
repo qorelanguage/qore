@@ -52,8 +52,7 @@ public class CohereClassifyDataProvider inherits CohereDataProviderCommon {
     private hash<DataProviderInfo> getStaticInfoImpl() { return ProviderInfo; }
 
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        # use absolute path to target v1 from a v2-default REST client
-        return doRestCommand("POST", "/v1/classify", req).body;
+        return getSchemaProvider("classify").doRequest(req, request_options);
     }
 }
 }

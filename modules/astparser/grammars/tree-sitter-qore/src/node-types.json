@@ -241,6 +241,10 @@
           "named": true
         },
         {
+          "type": "regex",
+          "named": true
+        },
+        {
           "type": "ternary_expression",
           "named": true
         },
@@ -4649,10 +4653,6 @@
           "named": true
         },
         {
-          "type": "regex",
-          "named": true
-        },
-        {
           "type": "scoped_identifier",
           "named": true
         },
@@ -4795,6 +4795,26 @@
         }
       ]
     }
+  },
+  {
+    "type": "regex_extract",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "regex_literal",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "regex_subst",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "regex_trans",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "rethrow_statement",
@@ -7901,6 +7921,10 @@
     "named": false
   },
   {
+    "type": "m{",
+    "named": false
+  },
+  {
     "type": "namespace",
     "named": false
   },
@@ -7995,22 +8019,6 @@
   {
     "type": "reference",
     "named": false
-  },
-  {
-    "type": "regex_extract",
-    "named": true
-  },
-  {
-    "type": "regex_literal",
-    "named": true
-  },
-  {
-    "type": "regex_subst",
-    "named": true
-  },
-  {
-    "type": "regex_trans",
-    "named": true
   },
   {
     "type": "relative",
@@ -8121,6 +8129,10 @@
     "named": false
   },
   {
+    "type": "s{",
+    "named": false
+  },
+  {
     "type": "take",
     "named": false
   },
@@ -8165,6 +8177,10 @@
     "named": false
   },
   {
+    "type": "tr{",
+    "named": false
+  },
+  {
     "type": "typedef",
     "named": false
   },
@@ -8186,6 +8202,10 @@
   },
   {
     "type": "while",
+    "named": false
+  },
+  {
+    "type": "x{",
     "named": false
   },
   {

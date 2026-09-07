@@ -23,6 +23,21 @@
 
     This module is always delivered with %Qore and therefore mirrors the %Qore version.
 
+    @subsection astparser_3_0 astparser Module Version 3.0
+    - supports brace-delimited match, substitution, transliteration and extraction expressions,
+      including nested and escaped braces, multiline contents and operation-specific modifiers
+    - rejects unterminated brace expressions and comments between substitution/transliteration parts,
+      matching the runtime scanner
+    - recognizes regex prefixes only in regex contexts, preserving ordinary hash access such as
+      \c m{"key"} and \c s{"key"}
+
+    For example, source passed to @ref astparser::AstParser may contain:
+    @code{.py}
+string path = "https://example.org/service///";
+path =~ s{/+$}{};
+bool valid = "aaa" =~ m{^a{3}$};
+    @endcode
+
     @subsection astparser_2_2 astparser Module Version 2.2
     - added @ref astparser::AstTreeSearcher::findScopeSymbols() "AstTreeSearcher::findScopeSymbols()"
       for scope-aware symbol completion

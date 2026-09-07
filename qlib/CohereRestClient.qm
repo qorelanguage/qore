@@ -60,6 +60,19 @@ module CohereRestClient {
     [Cohere](https://cohere.com) REST services — chat (Command R/R+),
     embeddings, and reranking.
 
+    Connection pings call `POST /v1/check-api-key` and require a boolean `valid: true`
+    response. This verifies credentials even after a trial key exhausts its monthly inference
+    quota. A successful ping verifies authentication, not remaining inference quota. Cohere
+    currently documents this endpoint as deprecated; it remains the dedicated key check.
+
+    @par Example
+    @code{.q}
+    CohereRestConnection conn("cohere", "Cohere trial account", CohereRestConnection::DefaultUrl, {}, {
+        "apikey": ENV.COHERE_APIKEY,
+    });
+    conn.ping(True);
+    @endcode
+
     Cohere exposes:
     - `/v2/chat` — chat completions (Command R, Command R+)
     - `/v2/embed` — embedding models (embed-v3.0, multilingual variants)
@@ -73,6 +86,7 @@ module CohereRestClient {
 
     @subsection CohereRestClientv1_0 CohereRestClient v1.0
     - the initial version of the %CohereRestClient module
+    - authentication-aware pings that work with quota-exhausted trial keys and reject invalid keys
 */
 
 %requires json
@@ -156,7 +170,9 @@ public class CohereRestConnection inherits RestClient::RestConnection {
                 "[Cohere dashboard](https://dashboard.cohere.com/api-keys).\n\n"
                 "The models used when this connection is selected for chat, embeddings, and "
                 "reranking are set independently with the `chat-model`, `embedding-model`, "
-                "and `rerank-model` options.",
+                "and `rerank-model` options.\n\n"
+                "Pings verify the API key without generating content. A successful ping does "
+                "not mean that a trial key has remaining inference quota.",
             "cls": Class::forName("CohereRestConnection"),
             "auto_url": True,
             "schemes": {"cohere": True},
@@ -173,9 +189,13 @@ public class CohereRestConnection inherits RestClient::RestConnection {
                 "api": <ConnectionOptionInfo>{
                     "display_name": "API Version",
                     "short_desc": "The API version to use",
-                    "desc": "The API version to use.  Defaults to v2.",
+                    "desc": "The API version for inference requests. App actions use `v2`.",
                     "type": "string",
                     "default_value": CohereRestClientBase::DefaultApiVersion,
+                    "allowed_values": (
+                        <AllowedValueInfo>{"value": "v2", "display_name": "V2"},
+                        <AllowedValueInfo>{"value": "v1", "display_name": "V1 (Legacy)"},
+                    ),
                 },
                 "chat-model": <ConnectionOptionInfo>{
                     "display_name": "Chat Model",
@@ -230,18 +250,70 @@ public class CohereRestConnection inherits RestClient::RestConnection {
             "required_options": "apikey",
         };
 
-        const DefaultPingMethod = "GET";
+        const DefaultPingMethod = "POST";
         const DefaultPingHeaders = {"Accept": MimeTypeJson};
-        const DefaultPingPath = "models";
+        const DefaultPingPath = "/v1/check-api-key";
     }
 
     constructor(string name, string description, string url = DefaultUrl,
             hash<auto> attributes = {}, hash<auto> options = {})
-            : RestConnection(name, description, url, attributes, options) {
+            : RestConnection(name, description, url, attributes, CohereRestConnection::fixPingOptions(options)) {
     }
 
     constructor(hash<auto> config, *hash<auto> attr)
-            : RestConnection(config + (exists config.url ? {} : {"url": DefaultUrl}), attr) {
+            : RestConnection(CohereRestConnection::getConfig(config), attr) {
+    }
+
+    private static hash<auto> getConfig(hash<auto> config) {
+        config.url = DefaultUrl;
+        config.opts = fixPingOptions(config.opts ?? {});
+        return config;
+    }
+
+    #! Replaces the previously shipped models ping when loading existing connections
+    private static hash<auto> fixPingOptions(hash<auto> options) {
+        if ((options.ping_method ?? "GET") == "GET"
+                && (!exists options.ping_path
+                    || options.ping_path == "models" || options.ping_path == "/models"
+                    || options.ping_path == "/v2/models")) {
+            options.ping_method = DefaultPingMethod;
+            options.ping_path = DefaultPingPath;
+        }
+        return options;
+    }
+
+    #! Keeps automatically generated connection URLs at Cohere's fixed endpoint
+    setUpdateOptionsCode(*code update_options) {
+        UpdateOptionsInterface::setUpdateOptionsCode(update_options);
+        if (update_options && url != DefaultUrl && url != CohereRestClientBase::DefaultUrl) {
+            doUpdateOptions(self, {"url": DefaultUrl});
+        }
+    }
+
+    #! Associates the connection with the Cohere app
+    /** @return the name registered by the CohereDataProvider module */
+    *string getAppName() {
+        return "Cohere";
+    }
+
+    #! Requires an affirmative key-check response, including for HTTP 200 responses
+    /** @param body raw or deserialized JSON returned by the key-check endpoint
+        @throw REST-PING-ERROR the response is malformed or does not contain boolean `valid: true`
+    */
+    validatePingResponse(auto body) {
+        try {
+            if (body.typeCode() == NT_BINARY) {
+                body = body.toString();
+            }
+            if (body.typeCode() == NT_STRING) {
+                body = parse_json(body);
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            throw "REST-PING-ERROR", "Cohere key check returned malformed JSON";
+        }
+        if (body.typeCode() != NT_HASH || body.valid.typeCode() != NT_BOOLEAN || !body.valid) {
+            throw "REST-PING-ERROR", "Cohere key check did not confirm a valid API key";
+        }
     }
 
     string getType() {

@@ -40,6 +40,7 @@ module PineconeRestClient {
     init = sub () {
         ConnectionSchemeCache::registerScheme("pinecone",
             PineconeRestConnection::ConnectionScheme);
+        ConnectionSchemeCache::registerScheme("pinecone-admin", PineconeAdminRestConnection::ConnectionScheme);
         QoreRagUtils::RagProviderRegistry::registerVectorStoreFactory(
             new PineconeVectorStoreFactory());
     };
@@ -97,6 +98,19 @@ module PineconeRestClient {
     authenticated read Pinecone offers, and is what the connection pings: it answers \c 200 for a key
     the server accepts and \c 401 for one it does not, and it names no object, so it works against a
     project with no indexes in it.
+
+    @section pineconerestclientadmin Organization Administration
+
+    The separate \c pinecone-admin scheme uses PineconeAdminRestConnection and the synchronous or
+    asynchronous PineconeAdminRestClient / PineconeAdminRestClientIo. Supply the service account's
+    \c oauth2_client_id and \c oauth2_client_secret. Both are sensitive connection options.
+
+    Tokens come from \c https://login.pinecone.io/oauth/token using \c client_credentials and the fixed
+    audience \c https://api.pinecone.io/. Expiring tokens are renewed with another client-credentials
+    request. There is no interactive authorization step and no refresh token. The connection ping makes
+    an authenticated \c GET /admin/projects request; invalid credentials fail the ping.
+
+    Database operations continue to use the project's API key through the \c pinecone scheme.
 
     @section PineconeRestClientRelnotes Release Notes
 
@@ -315,6 +329,203 @@ public class PineconeRestConnection inherits RestClient::RestConnection {
         return PineconeRestClientBase::getOptions(rv);
     }
 }
+
+#! OAuth2 defaults for Pinecone organization administration
+public class PineconeAdminRestClientBase {
+    public {
+        #! The endpoint issuing short-lived service-account access tokens
+        const TokenUrl = "https://login.pinecone.io/oauth/token";
+
+        #! The only audience accepted by Pinecone's client-credentials endpoint
+        const Audience = "https://api.pinecone.io/";
+
+        #! Defaults shared by synchronous, asynchronous and connection-based clients
+        const DefaultOptions = {
+            "url": PineconeRestClientBase::DefaultControlPlaneUrl,
+            "oauth2_grant_type": "client_credentials",
+            "oauth2_token_url": TokenUrl,
+            "oauth2_token_args": {"audience": Audience},
+        };
+    }
+
+    #! Adds the fixed grant, audience and version to Admin client options
+    /** @param options REST options including the service account's client ID and secret
+        @return complete Admin REST options
+        @throw PINECONE-ADMIN-OPTION-ERROR an API key or another OAuth grant was supplied
+        @note Token renewal uses client credentials again; Pinecone does not issue a refresh token.
+    */
+    static hash<auto> getOptions(hash<auto> options) {
+        hash<auto!> rv = DefaultOptions + options;
+        if (options.apikey || rv.oauth2_grant_type != "client_credentials") {
+            throw "PINECONE-ADMIN-OPTION-ERROR", "Pinecone Admin requires OAuth2 client credentials";
+        }
+        rv.oauth2_token_args = (rv.oauth2_token_args ?? {}) + {"audience": Audience};
+        rv.headers = {PineconeRestClientBase::VersionHeader: PineconeRestClientBase::ApiVersion}
+            + (rv.headers ?? {});
+        return rv;
+    }
+}
+
+#! Synchronous REST client for Pinecone's Admin API
+/** @par Example
+    @code{.py}
+PineconeAdminRestClient admin({
+    "oauth2_client_id": ENV.PINECONE_CLIENT_ID,
+    "oauth2_client_secret": ENV.PINECONE_CLIENT_SECRET,
+});
+hash<auto> projects = admin.restGet("/admin/projects").body;
+    @endcode
+*/
+public class PineconeAdminRestClient inherits RestClient::RestClient, PineconeAdminRestClientBase {
+    #! Creates an Admin client
+    /** @param opts REST options including client credentials
+        @param do_not_connect retained for the standard REST client constructor contract
+        @throw OAUTH2-ERROR required credentials are missing or token acquisition fails
+    */
+    constructor(hash<auto> opts, *softbool do_not_connect)
+            : RestClient(PineconeAdminRestClientBase::getOptions(opts), True) {
+    }
+}
+
+#! Multiplexed REST client for Pinecone's Admin API
+public class PineconeAdminRestClientIo inherits RestClientIo::RestClientIo, PineconeAdminRestClientBase {
+    #! Creates an asynchronous Admin client
+    /** @param opts REST options including client credentials
+        @param shared_mgr an optional shared HTTP connection manager
+        @throw OAUTH2-ERROR required credentials are missing or token acquisition fails
+    */
+    constructor(hash<auto> opts, *HttpClientIo::HttpClientConnectionManager shared_mgr)
+            : RestClientIo(PineconeAdminRestClientBase::getOptions(opts), shared_mgr) {
+    }
+}
+
+#! Service-account connection for Pinecone organization provisioning
+/** Keeps organization credentials separate from the project API key used by PineconeRestConnection.
+    The connection authenticates by listing projects and publishes the noninteractive OAuth2 capability.
+*/
+public class PineconeAdminRestConnection inherits RestClient::RestConnection {
+    public {
+        #! The Admin connection URL
+        const DefaultUrl = "pinecone-admin://api.pinecone.io";
+
+        #! Cheap authenticated read that also works for an organization without projects
+        const PingPath = "/admin/projects";
+
+        #! Connection options and discovery metadata
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Pinecone Admin Connection",
+            "short_desc": "Manage Pinecone organizations with a service account",
+            "desc": "Connect to [Pinecone Admin](https://docs.pinecone.io/guides/organizations/manage-service-accounts) "
+                "to provision projects and manage access.\n\n"
+                "- Uses the service account's **Client ID** and **Client Secret**\n"
+                "- Acquires and renews OAuth2 bearer tokens automatically\n"
+                "- Verifies credentials by listing accessible projects\n\n"
+                "Create the service account in your Pinecone organization and grant the roles its workflows need.",
+            "cls": Class::forName("PineconeAdminRestConnection"),
+            "auto_url": True,
+            "schemes": {"pinecone-admin": True},
+            "base_scheme_map": {"https": "pinecone-admin"},
+            "required_options": "oauth2_grant_type,oauth2_token_url,oauth2_client_id,oauth2_client_secret",
+            "options": RestConnection::ConnectionScheme.options + {
+                "oauth2_grant_type": RestConnection::ConnectionScheme.options.oauth2_grant_type
+                    + <ConnectionOptionInfo>{"default_value": "client_credentials", "allowed_values": (
+                        <AllowedValueInfo>{"value": "client_credentials", "display_name": "Client Credentials"},)},
+                "oauth2_token_url": RestConnection::ConnectionScheme.options.oauth2_token_url
+                    + <ConnectionOptionInfo>{"default_value": PineconeAdminRestClientBase::TokenUrl},
+                "oauth2_client_id": RestConnection::ConnectionScheme.options.oauth2_client_id
+                    + <ConnectionOptionInfo>{"display_name": "Client ID", "preselected": True, "sensitive": True,
+                        "desc": "The OAuth2 client ID of a service account in your Pinecone organization. "
+                            "This differs from the service account's resource ID."},
+                "oauth2_client_secret": RestConnection::ConnectionScheme.options.oauth2_client_secret
+                    + <ConnectionOptionInfo>{"display_name": "Client Secret", "preselected": True, "sensitive": True,
+                        "desc": "The secret issued when the service account is created or rotated."},
+                "ping_method": RestConnection::ConnectionScheme.options.ping_method
+                    + <ConnectionOptionInfo>{"default_value": "GET"},
+                "ping_path": RestConnection::ConnectionScheme.options.ping_path
+                    + <ConnectionOptionInfo>{"default_value": PingPath},
+            },
+        };
+    }
+
+    #! Creates a named service-account connection
+    /** @param name connection name
+        @param description connection description
+        @param url Admin connection URL
+        @param attributes connection attributes
+        @param options service-account credentials and optional REST settings
+        @throw CONNECTION-OPTION-ERROR the options are invalid
+    */
+    constructor(string name, string description, string url = DefaultUrl,
+            hash<auto> attributes = {}, hash<auto> options = {})
+            : RestConnection(name, description, url, attributes, options) {
+    }
+
+    #! Creates a connection from its configuration
+    /** @param config connection configuration
+        @param attr attribute overrides
+        @throw CONNECTION-OPTION-ERROR the options are invalid
+    */
+    constructor(hash<auto> config, *hash<auto> attr)
+            : RestConnection(config + (exists config.url ? {} : {"url": DefaultUrl}), attr) {
+    }
+
+    #! Returns the registered connection type
+    /** @return pinecone-admin
+    */
+    string getType() {
+        return "pinecone-admin";
+    }
+
+    #! Returns the application served by this connection
+    /** @return PineconeAdmin
+    */
+    *string getAppName() {
+        return "PineconeAdmin";
+    }
+
+    #! Returns whether the connection provides an application
+    /** @return True
+    */
+    bool hasDataProvider() {
+        return True;
+    }
+
+    #! Returns the Admin data provider
+    /** @param constructor_options optional provider options
+        @return the Admin application root using this connection's asynchronous client
+        @throw LOAD-MODULE-ERROR PineconeDataProvider could not be loaded
+    */
+    DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
+        load_module("PineconeDataProvider");
+        return create_object("PineconeAdminDataProvider", getAsync());
+    }
+
+    private setChildCapabilities() {
+        children_can_support_apis = True;
+    }
+
+    private PineconeAdminRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        return new PineconeAdminRestClient(getConnectionOptions(rtopts), !connect);
+    }
+
+    private object getAsyncImpl(bool connect = True, *hash<auto> rtopts) {
+        return new PineconeAdminRestClientIo(getConnectionOptions(rtopts));
+    }
+
+    private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
+        return ConnectionScheme;
+    }
+
+    #! Returns REST options with the fixed Admin OAuth2 configuration
+    /** @param rtopts per-request REST options
+        @return complete REST client options
+        @throw PINECONE-ADMIN-OPTION-ERROR incompatible authentication was supplied
+    */
+    *hash<auto> getConnectionOptions(*hash<auto> rtopts) {
+        return PineconeAdminRestClientBase::getOptions(RestConnection::getConnectionOptions(rtopts));
+    }
+}
+
 }
 
 public namespace QoreRagUtils {

@@ -355,8 +355,15 @@ public class RestSchemaActionDataProvider inherits AbstractDataProvider {
             owner.getOperationEx(rd.action), rest, router);
         # a collection an API will not list whole is read once per partition; see
         # RestSchemaReferenceDataInfo::option_sets
+        list<hash<auto>> variants = rd.option_sets ?* ({},);
+        if (rd.options_reference.val()) {
+            variants = ();
+            foreach hash<AllowedValueInfo> partition in (getReferenceDataImpl(rd.options_reference, action_opts)) {
+                push variants, {rd.reference_option: partition.value};
+            }
+        }
         list<auto> records = ();
-        foreach hash<auto> variant in (rd.option_sets ?* ({},)) {
+        foreach hash<auto> variant in (variants) {
             auto resp = lister.doRequest(opts + variant);
             foreach string name in (rd.records_path) {
                 if (!exists resp) {

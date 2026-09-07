@@ -71,18 +71,6 @@
           "source": "Import information for this entity",
           "message": "Informácie o importe pre túto entitu"
         },
-        "app.UGFkZGxl.action.Y3JlYXRlX2N1c3RvbWVy.option.aWQ.desc": {
-          "source": "Unique Paddle ID for this customer entity, prefixed with `ctm_`.",
-          "message": "Jedinečné Paddle ID pre túto entitu zákazníka s predponou `ctm_`."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX2N1c3RvbWVy.option.aWQ.display_name": {
-          "source": "Customer ID",
-          "message": "ID zákazníka"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX2N1c3RvbWVy.option.aWQ.short_desc": {
-          "source": "Import an existing customer under a known Paddle ID",
-          "message": "Importovať existujúceho zákazníka pod známym Paddle ID"
-        },
         "app.UGFkZGxl.action.Y3JlYXRlX2N1c3RvbWVy.option.bG9jYWxl.desc": {
           "source": "Valid IETF BCP 47 short form locale tag. If omitted, defaults to `en`.",
           "message": "Platný skrátený tag jazykového nastavenia (locale) podľa IETF BCP 47. Ak sa vynechá, predvolená hodnota je `en`."
@@ -531,18 +519,6 @@
           "source": "Paddle Checkout details for this transaction",
           "message": "Podrobnosti Paddle Checkout pre túto transakciu"
         },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.Y3JlYXRlZF9hdA.desc": {
-          "source": "RFC 3339 datetime string of when this entity was created. Set automatically by Paddle.",
-          "message": "Reťazec dátumu a času vo formáte RFC 3339 určujúci, kedy bola táto entita vytvorená. Nastavuje sa automaticky systémom Paddle."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.Y3JlYXRlZF9hdA.display_name": {
-          "source": "Created At",
-          "message": "Vytvorené"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.Y3JlYXRlZF9hdA.short_desc": {
-          "source": "RFC 3339 datetime string of when this entity was created",
-          "message": "Časový reťazec RFC 3339 určujúci, kedy bola entita vytvorená"
-        },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.Y3VycmVuY3lfY29kZQ.desc": {
           "source": "Supported three-letter ISO 4217 currency code. Must be `USD`, `EUR`, or `GBP` if `collection_mode` is `manual`.",
           "message": "Podporovaný trojpísmenový kód meny ISO 4217. Musí byť `USD`, `EUR` alebo `GBP`, ak `collection_mode` je `manual`."
@@ -588,20 +564,8 @@
           "message": "ID adresy"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YWRkcmVzc19pZA.short_desc": {
-          "source": "Paddle ID of the address that this transaction is for, prefixed with 'add_'.…",
-          "message": "Paddle ID adresy pre túto transakciu s prefixom 'add_'.…"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YmlsbGVkX2F0.desc": {
-          "source": "RFC 3339 datetime string of when this transaction was marked as `billed`. `null` for transactions that aren't `billed` or `completed`. Set automatically by Paddle.",
-          "message": "Reťazec dátumu a času vo formáte RFC 3339 určujúci, kedy bola táto transakcia označená ako `billed`. `null` pre transakcie, ktoré nie sú `billed` ani `completed`. Nastavuje sa automaticky systémom Paddle."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YmlsbGVkX2F0.display_name": {
-          "source": "Billed At",
-          "message": "Vyfakturované dňa"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YmlsbGVkX2F0.short_desc": {
-          "source": "RFC 3339 datetime string of when this transaction was marked as 'billed'",
-          "message": "Časový reťazec RFC 3339 určujúci označenie transakcie ako 'billed'"
+          "source": "Paddle ID of the address that this transaction is for, prefixed with 'add_'",
+          "message": "ID pádla adresy, pre ktorú je táto transakcia určená, s predponou „add_“"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YmlsbGluZ19kZXRhaWxz.desc": {
           "source": "Details for invoicing. Required if `collection_mode` is `manual`.",
@@ -636,20 +600,8 @@
           "message": "ID firmy"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YnVzaW5lc3NfaWQ.short_desc": {
-          "source": "Paddle ID of the business that this transaction is for, prefixed with 'biz_'.…",
-          "message": "Paddle ID firmy pre túto transakciu s prefixom 'biz_'.…"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.ZGV0YWlscw.desc": {
-          "source": "Calculated totals for a transaction, including proration, discounts, tax, and currency conversion. Considered the source of truth for totals on a transaction.",
-          "message": "Vypočítané celkové sumy transakcie vrátane pomerného rozpočítania, zliav, dane a prevodu meny. Považuje sa za smerodajný zdroj celkových súm transakcie."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.ZGV0YWlscw.display_name": {
-          "source": "Details",
-          "message": "Podrobnosti"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.ZGV0YWlscw.short_desc": {
-          "source": "Calculated totals for a transaction, including proration, discounts, tax, and…",
-          "message": "Vypočítané sumy transakcie vrátane pomerných čiastok, zliav, dane…"
+          "source": "Paddle ID of the business that this transaction is for, prefixed with 'biz_'",
+          "message": "Paddle ID firmy, pre ktorú je táto transakcia určená, s predponou „biz_“"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.ZGlzY291bnQ.desc": {
           "source": "Apply a non-catalog discount to a transaction. Send one of `discount_id` or `discount`.",
@@ -675,30 +627,6 @@
           "source": "Paddle ID of the discount to apply to this transaction, prefixed with 'dsc_'",
           "message": "Paddle ID zľavy, ktorá sa má uplatniť na túto transakciu, s predponou 'dsc_'"
         },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9pZA.desc": {
-          "source": "Paddle ID of the invoice that this transaction is related to, prefixed with `inv_`. Used for compatibility with the Paddle Invoice API, which is now deprecated. This field is scheduled to be removed in the next version of the Paddle API.",
-          "message": "Paddle ID faktúry, s ktorou táto transakcia súvisí, s predponou `inv_`. Používa sa na kompatibilitu s Paddle Invoice API, ktoré je už zastarané. Odstránenie tohto poľa je naplánované v nasledujúcej verzii Paddle API."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9pZA.display_name": {
-          "source": "Invoice ID",
-          "message": "ID faktúry"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9pZA.short_desc": {
-          "source": "Paddle ID of the invoice that this transaction is related to, prefixed with…",
-          "message": "Paddle ID faktúry súvisiacej s touto transakciou s prefixom…"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9udW1iZXI.desc": {
-          "source": "Invoice number for this transaction. Automatically generated by Paddle when you mark a transaction as `billed` where `collection_mode` is `manual`.",
-          "message": "Číslo faktúry pre túto transakciu. Automaticky vygenerované službou Paddle, keď označíte transakciu ako `billed`, kde `collection_mode` je `manual`."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9udW1iZXI.display_name": {
-          "source": "Invoice Number",
-          "message": "Číslo faktúry"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9udW1iZXI.short_desc": {
-          "source": "Invoice number for this transaction",
-          "message": "Číslo faktúry pre túto transakciu"
-        },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW5jbHVkZQ.desc": {
           "source": "Include related entities in the response. Use a comma-separated list to specify multiple entities.",
           "message": "Zahrnúť súvisiace entity do odpovede. Ak chcete zadať viacero entít, použite zoznam oddelený čiarkami."
@@ -710,18 +638,6 @@
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW5jbHVkZQ.short_desc": {
           "source": "Include related entities, ex: \"totals\", in the response",
           "message": "Zahrnúť do odpovede súvisiace entity, napr.: \"totals\""
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aWQ.desc": {
-          "source": "Unique Paddle ID for this transaction entity, prefixed with `txn_`.",
-          "message": "Jedinečné Paddle ID pre túto entitu transakcie s predponou `txn_`."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aWQ.display_name": {
-          "source": "ID",
-          "message": "ID"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aWQ.short_desc": {
-          "source": "Unique Paddle ID for this transaction entity, prefixed with 'txn_'",
-          "message": "Jedinečné Paddle ID pre túto entitu transakcie s predponou 'txn_'"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aXRlbXM.desc": {
           "source": "List of items to charge for. You can charge for items that you've added to your catalog by passing the Paddle ID of an existing price entity, or you can charge for non-catalog items by passing a price object.\n\nNon-catalog items can be for existing products, or you can pass a product object as part of your price to charge for a non-catalog product.",
@@ -822,30 +738,6 @@
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.c3Vic2NyaXB0aW9uX2lk.short_desc": {
           "source": "Paddle ID of the subscription that this transaction is for, prefixed with 'sub_'",
           "message": "Paddle ID predplatného, pre ktoré je táto transakcia určená, s predponou 'sub_'"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.cGF5bWVudHM.desc": {
-          "source": "List of payment attempts for this transaction, including successful payments. Sorted by `created_at` in descending order, so most recent attempts are returned first.",
-          "message": "Zoznam pokusov o platbu pre túto transakciu vrátane úspešných platieb. Zoradené podľa `created_at` v zostupnom poradí, takže najnovšie pokusy sa vracajú ako prvé."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.cGF5bWVudHM.display_name": {
-          "source": "Payments",
-          "message": "Platby"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.cGF5bWVudHM.short_desc": {
-          "source": "List of payment attempts for this transaction, including successful payments",
-          "message": "Zoznam pokusov o platbu pre túto transakciu vrátane úspešných platieb"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.dXBkYXRlZF9hdA.desc": {
-          "source": "RFC 3339 datetime string of when this entity was updated. Set automatically by Paddle.",
-          "message": "Dátum a čas vo formáte RFC 3339 určujúci, kedy bola táto entita aktualizovaná. Nastavuje sa automaticky službou Paddle."
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.dXBkYXRlZF9hdA.display_name": {
-          "source": "Updated At",
-          "message": "Aktualizované"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.dXBkYXRlZF9hdA.short_desc": {
-          "source": "RFC 3339 datetime string of when this entity was updated",
-          "message": "Dátum a čas vo formáte RFC 3339 určujúci, kedy bola táto entita aktualizovaná"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.short_desc": {
           "source": "Create a transaction, optionally billing it",

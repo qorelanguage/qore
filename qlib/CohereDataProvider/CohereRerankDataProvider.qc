@@ -48,7 +48,7 @@ public class CohereRerankDataProvider inherits CohereDataProviderCommon {
     private hash<DataProviderInfo> getStaticInfoImpl() { return ProviderInfo; }
 
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return doRestCommand("POST", "rerank", req).body;
+        return getSchemaProvider("rerank").doRequest(req, request_options);
     }
 }
 }

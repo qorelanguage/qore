@@ -25,14 +25,19 @@
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires FsUtil
-%requires QUnit
-%requires DataProvider
-%requires RestSchemaActions
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
+%try-module yaml
+%define MissingYaml
+%endtry
+%ifdef MissingYaml
+printf("SKIP: this test requires the external yaml module\n");
+%else
+%requires ../../../../qlib/RestSchemaActions
 
 %requires json
-%requires yaml
 
 %exec-class RestSchemaImporterTest
 
@@ -128,6 +133,7 @@ public class TestSchema {
         addTestCase("fetch", \fetchTest());
         addTestCase("serialize", \serializeTest());
         addTestCase("import", \importTest());
+        addTestCase("checked required-property repairs", \requiredRepairTest());
         addTestCase("normalization", \normalizationTest());
         addTestCase("replacing a parameter the vendor declares wrongly",
             \replaceParameterTest());
@@ -135,6 +141,58 @@ public class TestSchema {
         addTestCase("provenance", \provenanceTest());
         addTestCase("report", \reportTest());
         set_return_value(main());
+    }
+
+    private requiredRepairTest() {
+        hash<auto> source = Schema;
+        source.components.schemas.Board.required = ("old_id",);
+        hash<RestSchemaRequiredFieldsRepairInfo> repair = <RestSchemaRequiredFieldsRepairInfo>{
+            "pointer": "#/components/schemas/Board", "expected": ("old_id",), "replacement": ("id",),
+        };
+        hash<RestSchemaNormalizationInfo> norm = <RestSchemaNormalizationInfo>{
+            "reason": "The published SDK uses id", "operations": (), "replace_required": (repair,),
+        };
+        int count = 0;
+        hash<auto> result = RestSchemaImporter::normalize(source, (norm,), \count);
+        assertEq(("id",), result.components.schemas.Board.required);
+        assertEq(("old_id",), source.components.schemas.Board.required, "source is not modified");
+        assertEq(1, count);
+        assertThrows("REST-SCHEMA-IMPORT-ERROR", sub () {
+            RestSchemaImporter::normalize(result, (norm,), \count);
+        });
+        foreach hash<auto> bad in (
+                {"pointer": "#/components/schemas/Absent"},
+                {"expected": ("different",)},
+                {"replacement": ("absent",)},
+                {"replacement": ("id", "id")},
+                {"replacement": ("old_id",)}) {
+            hash<RestSchemaNormalizationInfo> invalid = norm;
+            invalid.replace_required = (cast<hash<RestSchemaRequiredFieldsRepairInfo>>(repair + bad),);
+            assertThrows("REST-SCHEMA-IMPORT-ERROR", sub () {
+                RestSchemaImporter::normalize(source, (invalid,), \count);
+            });
+        }
+        norm.replace_required = (cast<hash<RestSchemaRequiredFieldsRepairInfo>>(repair + {"replacement": ()}),);
+        result = RestSchemaImporter::normalize(source, (norm,), \count);
+        assertFalse(exists result.components.schemas.Board.required);
+        # JSON Pointer escaping must select the literal property name.
+        source.components.schemas."A/B~C" = source.components.schemas.Board;
+        norm.replace_required = (cast<hash<RestSchemaRequiredFieldsRepairInfo>>(repair + {
+            "pointer": "#/components/schemas/A~1B~0C",
+        }),);
+        result = RestSchemaImporter::normalize(source, (norm,), \count);
+        assertEq(("id",), result.components.schemas."A/B~C".required);
+        # A JSON Pointer can also traverse composition arrays or name an empty key.
+        source.components.schemas.Composed = {"allOf": (source.components.schemas.Board,)};
+        source.components.schemas."" = source.components.schemas.Board;
+        foreach string pointer in ("#/components/schemas/Composed/allOf/0", "#/components/schemas/") {
+            norm.replace_required = (cast<hash<RestSchemaRequiredFieldsRepairInfo>>(repair + {
+                "pointer": pointer,
+            }),);
+            result = RestSchemaImporter::normalize(source, (norm,), \count);
+            assertEq(("id",), RestSchemaPruner::resolveRef(result, pointer).required);
+            assertEq(("old_id",), RestSchemaPruner::resolveRef(source, pointer).required);
+        }
     }
 
     private normalizePathTest() {
@@ -514,7 +572,7 @@ public class TestSchema {
                 },
             )}));
 
-        assertRegex("repaired: 1 operation", RestSchemaImporter::getReport(res));
+        assertRegex("repaired: 1 declaration", RestSchemaImporter::getReport(res));
 
         # a composition the document writes as "oneOf" where it means "anyOf"
         string relaxed = tmp.path + DirSep + "relaxed.json";
@@ -656,3 +714,5 @@ public class TestSchema {
         assertRegex("1 operation\\(s\\) matched only after normalizing", report);
     }
 }
+
+%endif

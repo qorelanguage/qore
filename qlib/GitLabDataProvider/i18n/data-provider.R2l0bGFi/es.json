@@ -752,8 +752,8 @@
           "message": "Fecha de vencimiento"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRJc3N1ZXM.option.ZHVlX2RhdGU.short_desc": {
-          "source": "Return issues that have no due date ('{{0}}'), or whose due date is this week,…",
-          "message": "Devuelve incidencias sin plazo ('{{0}}') o para esta semana,…"
+          "source": "Return issues that have no due date ('0'), or whose due date is this week,…",
+          "message": "Devolver números que no tienen fecha de vencimiento (“0”), o cuya fecha de vencimiento es esta semana,…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRJc3N1ZXM.option.ZXBpY19pZA.desc": {
           "source": "The ID of an epic associated with the issues",
@@ -1648,8 +1648,8 @@
           "message": "Fecha de vencimiento"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkSXNzdWVz.option.ZHVlX2RhdGU.short_desc": {
-          "source": "Return issues that have no due date ('{{0}}'), or whose due date is this week,…",
-          "message": "Devuelve incidencias sin plazo ('{{0}}') o para esta semana,…"
+          "source": "Return issues that have no due date ('0'), or whose due date is this week,…",
+          "message": "Devolver números que no tienen fecha de vencimiento (“0”), o cuya fecha de vencimiento es esta semana,…"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkSXNzdWVz.option.ZXBpY19pZA.desc": {
           "source": "The ID of an epic associated with the issues",
@@ -2880,8 +2880,8 @@
           "message": "Not[milestone]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W21pbGVzdG9uZV0.short_desc": {
-          "source": "'<Negated>' Returns merge requests for a specific milestone. 'None' returns…",
-          "message": "'<Negated>' Devuelve las merge requests de un hito concreto. 'None' devuelve…"
+          "source": "'<Negated>' Returns merge requests for a specific milestone",
+          "message": "'<Negado>' Devuelve solicitudes de fusión para un hito específico"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2F1dGhvcl91c2VybmFtZV0.desc": {
           "source": "`<Negated>` Returns merge requests created by the given `username`. Mutually exclusive with `author_id`.",
@@ -2940,8 +2940,8 @@
           "message": "Not[labels]"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W2xhYmVsc10.short_desc": {
-          "source": "'<Negated>' Returns merge requests matching a comma-separated list of labels.…",
-          "message": "'<Negated>' Devuelve las merge requests que coinciden con una lista de…"
+          "source": "'<Negated>' Returns merge requests matching a comma-separated list of labels",
+          "message": "'<Negado>' Devuelve solicitudes de combinación que coinciden con una lista de etiquetas separadas por comas"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0cw.option.bm90W3Jldmlld2VyX2lkXQ.desc": {
           "source": "`<Negated>` Returns merge requests which have the user as a reviewer with the given user `id`. `None` returns merge requests with no reviewers. `Any` returns merge requests with any reviewer. Mutually exclusive with `reviewer_username`.",

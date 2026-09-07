@@ -3,13 +3,133 @@
   "locales": {
     "de": {
       "messages": {
+        "app.Q29oZXJl.action.Y2FuY2VsLWJhdGNo.desc": {
+          "source": "Request cancellation of a batch that is still running.",
+          "message": "Fordern Sie den Abbruch einer noch laufenden Charge an."
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWJhdGNo.display_name": {
+          "source": "Cancel Batch",
+          "message": "Stapel abbrechen"
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWJhdGNo.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWJhdGNo.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWJhdGNo.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWJhdGNo.option.aWQ.desc": {
+          "source": "The batch ID.",
+          "message": "Die Chargen-ID."
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWJhdGNo.option.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWJhdGNo.option.aWQ.short_desc": {
+          "source": "The batch ID",
+          "message": "Die Chargen-ID"
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWJhdGNo.short_desc": {
+          "source": "Cancel an unfinished batch inference job",
+          "message": "Brechen Sie einen nicht abgeschlossenen Batch-Inferenzauftrag ab"
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWVtYmVkLWpvYg.desc": {
+          "source": "Request cancellation of an embedding job that is still running.",
+          "message": "Fordern Sie den Abbruch eines Einbettungsauftrags an, der noch ausgeführt wird."
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWVtYmVkLWpvYg.display_name": {
+          "source": "Cancel Embedding Job",
+          "message": "Einbettungsauftrag abbrechen"
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWVtYmVkLWpvYg.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWVtYmVkLWpvYg.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWVtYmVkLWpvYg.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWVtYmVkLWpvYg.option.aWQ.desc": {
+          "source": "The ID of the embed job to cancel.",
+          "message": "Die ID des Einbettungsauftrags, der abgebrochen werden soll."
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWVtYmVkLWpvYg.option.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWVtYmVkLWpvYg.option.aWQ.short_desc": {
+          "source": "The ID of the embed job to cancel",
+          "message": "Die ID des Einbettungsauftrags, der abgebrochen werden soll"
+        },
+        "app.Q29oZXJl.action.Y2FuY2VsLWVtYmVkLWpvYg.short_desc": {
+          "source": "Cancel an unfinished embedding job",
+          "message": "Brechen Sie einen nicht abgeschlossenen Einbettungsauftrag ab"
+        },
         "app.Q29oZXJl.action.Y2hhdA.desc": {
-          "source": "Sends a list of chat messages to a Cohere Command model via `/v2/chat` and returns the generated response.",
-          "message": "Sendet eine Liste von Chat-Nachrichten über `/v2/chat` an ein Cohere-Command-Modell und gibt die generierte Antwort zurück."
+          "source": "Generate a response from conversation messages. Add `tools` for function calls, `documents` for grounded answers, or `response_format` for structured JSON. This action returns the completed response.",
+          "message": "Generieren Sie eine Antwort aus Konversationsnachrichten. Fügen Sie `tools` für Funktionsaufrufe, `documents` für fundierte Antworten oder `response_format` für strukturiertes JSON hinzu. Diese Aktion gibt die vollständige Antwort zurück."
         },
         "app.Q29oZXJl.action.Y2hhdA.display_name": {
           "source": "Chat",
           "message": "Chat"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.Y2l0YXRpb25fb3B0aW9ucw.desc": {
+          "source": "Options for controlling citation generation.",
+          "message": "Optionen zur Steuerung der Zitatgenerierung."
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.Y2l0YXRpb25fb3B0aW9ucw.display_name": {
+          "source": "Citation Options",
+          "message": "Zitieroptionen"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.Y2l0YXRpb25fb3B0aW9ucw.short_desc": {
+          "source": "Options for controlling citation generation",
+          "message": "Optionen zur Steuerung der Zitatgenerierung"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.ZG9jdW1lbnRz.desc": {
+          "source": "A list of relevant documents that the model can cite to generate a more accurate reply. Each document is either a string or document object with content and metadata.\n",
+          "message": "Eine Liste relevanter Dokumente, die das Modell zitieren kann, um eine genauere Antwort zu generieren. Jedes Dokument ist entweder eine Zeichenfolge oder ein Dokumentobjekt mit Inhalt und Metadaten."
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.ZG9jdW1lbnRz.display_name": {
+          "source": "Documents",
+          "message": "Dokumente"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.ZG9jdW1lbnRz.short_desc": {
+          "source": "A list of relevant documents that the model can cite to generate a more…",
+          "message": "Eine Liste relevanter Dokumente, die das Modell zitieren kann, um mehr zu generieren …"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.ZnJlcXVlbmN5X3BlbmFsdHk.desc": {
+          "source": "Defaults to `0.0`, min value of `0.0`, max value of `1.0`.\nUsed to reduce repetitiveness of generated tokens. The higher the value, the stronger a penalty is applied to previously present tokens, proportional to how many times they have already appeared in the prompt or prior generation.\n",
+          "message": "Der Standardwert ist `0.0`, der Mindestwert ist `0.0` und der Höchstwert ist `1.0`.\nWird verwendet, um die Wiederholung generierter Token zu reduzieren. Je höher der Wert, desto stärker wird eine Strafe auf zuvor vorhandene Token angewendet, proportional dazu, wie oft sie bereits in der Eingabeaufforderung oder in der vorherigen Generation erschienen sind."
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.ZnJlcXVlbmN5X3BlbmFsdHk.display_name": {
+          "source": "Frequency Penalty",
+          "message": "Frequency Penalty"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.ZnJlcXVlbmN5X3BlbmFsdHk.short_desc": {
+          "source": "Defaults to '0.0', min value of '0.0', max value of '1.0'",
+          "message": "Der Standardwert ist „0,0“, der Mindestwert ist „0,0“, der Höchstwert ist „1,0“."
         },
         "app.Q29oZXJl.action.Y2hhdA.option.aw.desc": {
           "source": "Restrict sampling to the K most likely next tokens.",
@@ -23,9 +143,21 @@
           "source": "Sample only from the K most likely next tokens",
           "message": "Nur aus den K wahrscheinlichsten nächsten Token samplen"
         },
+        "app.Q29oZXJl.action.Y2hhdA.option.bG9ncHJvYnM.desc": {
+          "source": "Defaults to `false`. When set to `true`, the log probabilities of the generated tokens will be included in the response.\n",
+          "message": "Der Standardwert ist `false`. Bei Einstellung auf `true` werden die Protokollwahrscheinlichkeiten der generierten Token in die Antwort einbezogen."
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.bG9ncHJvYnM.display_name": {
+          "source": "Logprobs",
+          "message": "Logprobs"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.bG9ncHJvYnM.short_desc": {
+          "source": "Defaults to 'false'",
+          "message": "Standardmäßig ist „false“"
+        },
         "app.Q29oZXJl.action.Y2hhdA.option.bW9kZWw.desc": {
-          "source": "Cohere chat model identifier, e.g. `command-r-plus`, `command-r`, `command-r7b`.",
-          "message": "Cohere-Chat-Modellbezeichner, z. B. `command-r-plus`, `command-r`, `command-r7b`."
+          "source": "The name of a compatible [Cohere model](https://docs.cohere.com/v2/docs/models).",
+          "message": "Der Name eines kompatiblen [Cohere-Modells](https://docs.cohere.com/v2/docs/models)."
         },
         "app.Q29oZXJl.action.Y2hhdA.option.bW9kZWw.display_name": {
           "source": "Model",
@@ -59,17 +191,41 @@
           "source": "List of chat messages forming the conversation",
           "message": "Liste von Chat-Nachrichten, die die Unterhaltung bilden"
         },
+        "app.Q29oZXJl.action.Y2hhdA.option.c2FmZXR5X21vZGU.allowed-value.c3RyaW5nOk9GRg.display_name": {
+          "source": "Off",
+          "message": "Aus"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.c2FmZXR5X21vZGU.allowed-value.c3RyaW5nOkNPTlRFWFRVQUw.display_name": {
+          "source": "Contextual",
+          "message": "Kontextbezogen"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.c2FmZXR5X21vZGU.allowed-value.c3RyaW5nOlNUUklDVA.display_name": {
+          "source": "Strict",
+          "message": "Streng"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.c2FmZXR5X21vZGU.desc": {
+          "source": "Used to select the [safety instruction](https://docs.cohere.com/v2/docs/safety-modes) inserted into the prompt. Defaults to `CONTEXTUAL`.\nWhen `OFF` is specified, the safety instruction will be omitted.\n\nSafety modes are not yet configurable in combination with `tools` and `documents` parameters.\n\n**Note**: This parameter is only compatible newer Cohere models, starting with [Command R 08-2024](https://docs.cohere.com/docs/command-r#august-2024-release) and [Command R+ 08-2024](https://docs.cohere.com/docs/command-r-plus#august-2024-release).\n\n**Note**: `command-r7b-12-2024` and newer models only support `\"CONTEXTUAL\"` and `\"STRICT\"` modes.\n",
+          "message": "Wird verwendet, um die in die Eingabeaufforderung eingefügte [Sicherheitsanweisung] (https://docs.cohere.com/v2/docs/safety-modes) auszuwählen. Der Standardwert ist `CONTEXTUAL`.\nBei Angabe von `OFF` entfällt der Sicherheitshinweis.\n\nSicherheitsmodi sind in Kombination mit den Parametern `tools` und `documents` noch nicht konfigurierbar.\n\n**Hinweis**: Dieser Parameter ist nur mit neueren Cohere-Modellen kompatibel, beginnend mit [Command R 08-2024](https://docs.cohere.com/docs/command-r#august-2024-release) und [Command R+ 08-2024](https://docs.cohere.com/docs/command-r-plus#august-2024-release).\n\n**Hinweis**: `command-r7b-12-2024` und neuere Modelle unterstützen nur die Modi `\"CONTEXTUAL\"` und `\"STRICT\"`."
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.c2FmZXR5X21vZGU.display_name": {
+          "source": "Safety Mode",
+          "message": "Sicherheitsmodus"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.c2FmZXR5X21vZGU.short_desc": {
+          "source": "Used to select the…",
+          "message": "Wird verwendet, um … auszuwählen."
+        },
         "app.Q29oZXJl.action.Y2hhdA.option.c2VlZA.desc": {
-          "source": "Integer seed for deterministic sampling.",
-          "message": "Ganzzahliger Seed für deterministisches Sampling."
+          "source": "If specified, the backend will make a best effort to sample tokens\ndeterministically, such that repeated requests with the same\nseed and parameters should return the same result. However,\ndeterminism cannot be totally guaranteed.\n",
+          "message": "Falls angegeben, bemüht sich das Backend nach besten Kräften, Token abzutasten\ndeterministisch, so dass wiederholte Anfragen mit dem gleichen\nSeed und Parameter sollten das gleiche Ergebnis liefern. Allerdings\nDeterminismus kann nicht vollständig garantiert werden."
         },
         "app.Q29oZXJl.action.Y2hhdA.option.c2VlZA.display_name": {
           "source": "Seed",
           "message": "Seed"
         },
         "app.Q29oZXJl.action.Y2hhdA.option.c2VlZA.short_desc": {
-          "source": "Deterministic sampling seed",
-          "message": "Deterministischer Sampling-Seed"
+          "source": "Sampling seed for repeatable requests",
+          "message": "Probenahme von Saatgut für wiederholbare Anfragen"
         },
         "app.Q29oZXJl.action.Y2hhdA.option.c3RvcF9zZXF1ZW5jZXM.desc": {
           "source": "List of stop sequences; generation halts when any is emitted.",
@@ -83,6 +239,18 @@
           "source": "List of stop sequences",
           "message": "Liste von Stoppsequenzen"
         },
+        "app.Q29oZXJl.action.Y2hhdA.option.c3RyaWN0X3Rvb2xz.desc": {
+          "source": "When set to `true`, tool calls in the Assistant message will be forced to follow the tool definition strictly. Learn more in the [Structured Outputs (Tools) guide](https://docs.cohere.com/docs/structured-outputs-json#structured-outputs-tools).\n\n**Note**: The first few requests with a new set of tools will take longer to process.\n",
+          "message": "Bei der Einstellung `true` werden Werkzeugaufrufe in der Assistentennachricht gezwungen, sich strikt an die Werkzeugdefinition zu halten. Weitere Informationen finden Sie im [Leitfaden zu strukturierten Ausgaben (Tools)](https://docs.cohere.com/docs/structured-outputs-json#structured-outputs-tools).\n\n**Hinweis**: Die Bearbeitung der ersten paar Anfragen mit einem neuen Satz an Tools dauert länger."
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.c3RyaWN0X3Rvb2xz.display_name": {
+          "source": "Strict Tools",
+          "message": "Strenge Werkzeuge"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.c3RyaWN0X3Rvb2xz.short_desc": {
+          "source": "When set to 'true', tool calls in the Assistant message will be forced to…",
+          "message": "Wenn der Wert auf „true“ gesetzt ist, werden Toolaufrufe in der Assistentennachricht gezwungen, …"
+        },
         "app.Q29oZXJl.action.Y2hhdA.option.cA.desc": {
           "source": "Nucleus sampling cutoff.",
           "message": "Grenzwert für Nucleus-Sampling."
@@ -94,6 +262,30 @@
         "app.Q29oZXJl.action.Y2hhdA.option.cA.short_desc": {
           "source": "Nucleus sampling cutoff (0-1)",
           "message": "Grenzwert für Nucleus-Sampling (0-1)"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.cHJlc2VuY2VfcGVuYWx0eQ.desc": {
+          "source": "Defaults to `0.0`, min value of `0.0`, max value of `1.0`.\nUsed to reduce repetitiveness of generated tokens. Similar to `frequency_penalty`, except that this penalty is applied equally to all tokens that have already appeared, regardless of their exact frequencies.\n",
+          "message": "Der Standardwert ist `0.0`, der Mindestwert ist `0.0` und der Höchstwert ist `1.0`.\nWird verwendet, um die Wiederholung generierter Token zu reduzieren. Ähnlich wie `frequency_penalty`, außer dass diese Strafe gleichermaßen auf alle bereits erschienenen Token angewendet wird, unabhängig von ihrer genauen Häufigkeit."
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.cHJlc2VuY2VfcGVuYWx0eQ.display_name": {
+          "source": "Presence Penalty",
+          "message": "Presence Penalty"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.cHJlc2VuY2VfcGVuYWx0eQ.short_desc": {
+          "source": "Defaults to '0.0', min value of '0.0', max value of '1.0'",
+          "message": "Der Standardwert ist „0,0“, der Mindestwert ist „0,0“, der Höchstwert ist „1,0“."
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.cHJpb3JpdHk.desc": {
+          "source": "Controls how early the request is handled. Lower numbers indicate higher priority (default: 0, the highest). When the system is under load, higher-priority requests are processed first and are the least likely to be dropped.",
+          "message": "Steuert, wie früh die Anfrage bearbeitet wird. Niedrigere Zahlen bedeuten eine höhere Priorität (Standard: 0, die höchste). Wenn das System ausgelastet ist, werden Anfragen mit höherer Priorität zuerst verarbeitet und es ist am unwahrscheinlichsten, dass sie verworfen werden."
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.cHJpb3JpdHk.display_name": {
+          "source": "Priority",
+          "message": "Priorität"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.cHJpb3JpdHk.short_desc": {
+          "source": "Controls how early the request is handled",
+          "message": "Steuert, wie früh die Anfrage bearbeitet wird"
         },
         "app.Q29oZXJl.action.Y2hhdA.option.cmVzcG9uc2VfZm9ybWF0.desc": {
           "source": "Hash that forces a structured response shape, e.g. `{type: \"json_object\"}` or `{type: \"json_object\", schema: {...}}`.",
@@ -107,29 +299,25 @@
           "source": "Force structured output (e.g. JSON schema)",
           "message": "Strukturierte Ausgabe erzwingen (z. B. JSON-Schema)"
         },
-        "app.Q29oZXJl.action.Y2hhdA.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOm5vbmU.display_name": {
-          "source": "None - never call a tool",
-          "message": "Keine – niemals ein Tool aufrufen"
+        "app.Q29oZXJl.action.Y2hhdA.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOk5PTkU.display_name": {
+          "source": "None",
+          "message": "Keine"
         },
-        "app.Q29oZXJl.action.Y2hhdA.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOmF1dG8.display_name": {
-          "source": "Auto - model decides",
-          "message": "Automatisch – Modell entscheidet"
-        },
-        "app.Q29oZXJl.action.Y2hhdA.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOnJlcXVpcmVk.display_name": {
-          "source": "Required - must call a tool",
-          "message": "Erforderlich – muss ein Tool aufrufen"
+        "app.Q29oZXJl.action.Y2hhdA.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOlJFUVVJUkVE.display_name": {
+          "source": "Required",
+          "message": "Erforderlich"
         },
         "app.Q29oZXJl.action.Y2hhdA.option.dG9vbF9jaG9pY2U.desc": {
-          "source": "Tool invocation mode: `none`, `auto`, or `required`.",
-          "message": "Tool-Aufrufmodus: `none`, `auto` oder `required`."
+          "source": "Use `REQUIRED` to request a tool call or `NONE` to prevent one. Omit this option to let the model choose.",
+          "message": "Verwenden Sie `REQUIRED`, um einen Tool-Aufruf anzufordern, oder `NONE`, um einen solchen zu verhindern. Lassen Sie diese Option weg, damit das Modell auswählen kann."
         },
         "app.Q29oZXJl.action.Y2hhdA.option.dG9vbF9jaG9pY2U.display_name": {
           "source": "Tool Choice",
           "message": "Tool-Auswahl"
         },
         "app.Q29oZXJl.action.Y2hhdA.option.dG9vbF9jaG9pY2U.short_desc": {
-          "source": "Tool invocation mode",
-          "message": "Tool-Aufrufmodus"
+          "source": "Control whether the model calls a tool",
+          "message": "Steuern Sie, ob das Modell ein Werkzeug aufruft"
         },
         "app.Q29oZXJl.action.Y2hhdA.option.dG9vbHM.desc": {
           "source": "List of tool definitions.  Each entry has `type: function` and a `function` hash with `name`, `description`, and JSON-schema `parameters`.",
@@ -144,76 +332,136 @@
           "message": "Tool-Definitionen, die das Modell aufrufen darf"
         },
         "app.Q29oZXJl.action.Y2hhdA.option.dGVtcGVyYXR1cmU.desc": {
-          "source": "Controls randomness of the output.  Cohere recommends `0.3` as default.",
-          "message": "Steuert die Zufälligkeit der Ausgabe. Cohere empfiehlt standardmäßig `0.3`."
+          "source": "Adjust sampling randomness. Lower values give more focused responses; higher values produce more varied wording.",
+          "message": "Passen Sie die Zufälligkeit der Stichproben an. Niedrigere Werte führen zu fokussierteren Antworten; Höhere Werte führen zu abwechslungsreicheren Formulierungen."
         },
         "app.Q29oZXJl.action.Y2hhdA.option.dGVtcGVyYXR1cmU.display_name": {
           "source": "Temperature",
           "message": "Temperatur"
         },
         "app.Q29oZXJl.action.Y2hhdA.option.dGVtcGVyYXR1cmU.short_desc": {
-          "source": "Sampling temperature (0-1)",
-          "message": "Sampling-Temperatur (0-1)"
+          "source": "Control response randomness",
+          "message": "Kontrollieren Sie die Zufälligkeit der Reaktion"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.dGhpbmtpbmc.desc": {
+          "source": "Configuration for [reasoning features](https://docs.cohere.com/docs/reasoning).\n",
+          "message": "Konfiguration für [Begründungsfunktionen](https://docs.cohere.com/docs/reasoning)."
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.dGhpbmtpbmc.display_name": {
+          "source": "Thinking",
+          "message": "Denken"
+        },
+        "app.Q29oZXJl.action.Y2hhdA.option.dGhpbmtpbmc.short_desc": {
+          "source": "Configuration for [reasoning features](https://docs.cohere.com/docs/reasoning)",
+          "message": "Konfiguration für [Begründungsfunktionen](https://docs.cohere.com/docs/reasoning)"
         },
         "app.Q29oZXJl.action.Y2hhdA.short_desc": {
-          "source": "Generate a chat completion from a Cohere Command model",
-          "message": "Eine Chat-Vervollständigung von einem Cohere-Command-Modell generieren"
+          "source": "Generate a response with tools, grounding, and structured output",
+          "message": "Antworten mit Tools, Quellenbezug und strukturierten Ausgaben erzeugen"
+        },
+        "app.Q29oZXJl.action.Y2hlY2stYXBpLWtleQ.desc": {
+          "source": "Check the connection's API key without generating content. Inspect the boolean `valid` result; HTTP success alone does not mean that a key is valid. This does not check remaining trial quota.",
+          "message": "Überprüfen Sie den API-Schlüssel der Verbindung, ohne Inhalte zu generieren. Überprüfen Sie das boolesche `valid`-Ergebnis. HTTP-Erfolg allein bedeutet nicht, dass ein Schlüssel gültig ist. Das verbleibende Testkontingent wird dabei nicht überprüft."
+        },
+        "app.Q29oZXJl.action.Y2hlY2stYXBpLWtleQ.display_name": {
+          "source": "Check API Key",
+          "message": "Überprüfen Sie den API-Schlüssel"
+        },
+        "app.Q29oZXJl.action.Y2hlY2stYXBpLWtleQ.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.Y2hlY2stYXBpLWtleQ.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.Y2hlY2stYXBpLWtleQ.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.Y2hlY2stYXBpLWtleQ.short_desc": {
+          "source": "Check whether the connection API key is valid",
+          "message": "Überprüfen Sie, ob der Verbindungs-API-Schlüssel gültig ist"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.desc": {
-          "source": "Classifies text inputs into one of a set of labels using few-shot examples or fine-tuned classification models via Cohere's `/v1/classify` endpoint.\n\nNote: classify currently uses the v1 endpoint; the rest of this provider uses v2.  The request body path is absolute (`/v1/classify`) to address the v1 surface.",
-          "message": "Klassifiziert Texteingaben über den Cohere-Endpunkt `/v1/classify` mithilfe von Few-Shot-Beispielen oder feinabgestimmten Klassifizierungsmodellen in eine Reihe von Labels.\n\nHinweis: classify verwendet derzeit den v1-Endpunkt; der Rest dieses Providers verwendet v2. Der Pfad des Anforderungstexts ist absolut (`/v1/classify`), um die v1-Oberfläche zu adressieren."
+          "source": "Classify text with Cohere's legacy classification API. **Deprecated by Cohere**: use a supported fine-tuned classification model. For new workflows, consider Chat with structured output.",
+          "message": "Klassifizieren Sie Text mit der alten Klassifizierungs-API von Cohere. **Von Cohere veraltet**: Verwenden Sie ein unterstütztes, fein abgestimmtes Klassifizierungsmodell. Erwägen Sie für neue Arbeitsabläufe Chat mit strukturierter Ausgabe."
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.display_name": {
           "source": "Classify Text",
           "message": "Text klassifizieren"
         },
+        "app.Q29oZXJl.action.Y2xhc3NpZnk.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.Y2xhc3NpZnk.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.Y2xhc3NpZnk.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.ZXhhbXBsZXM.desc": {
-          "source": "List of `{text, label}` hashes providing few-shot examples.  Required when no fine-tuned model is supplied; minimum 2 examples per label and at least 2 labels.",
-          "message": "Liste von `{text, label}`-Hashes, die Few-Shot-Beispiele bereitstellen. Erforderlich, wenn kein feinabgestimmtes Modell angegeben ist; mindestens 2 Beispiele pro Label und mindestens 2 Labels."
+          "source": "An array of examples to provide context to the model. Each example is a text string and its associated label/class. Each unique label requires at least 2 examples associated with it; the maximum number of examples is 2500, and each example has a maximum length of 512 tokens. The values should be structured as `{text: \"...\",label: \"...\"}`.\nNote: [Fine-tuned Models](https://docs.cohere.com/docs/classify-fine-tuning) trained on classification examples don't require the `examples` parameter to be passed in explicitly.",
+          "message": "Eine Reihe von Beispielen, um dem Modell einen Kontext zu geben. Jedes Beispiel ist eine Textzeichenfolge und die zugehörige Bezeichnung/Klasse. Für jedes eindeutige Label sind mindestens zwei Beispiele erforderlich. Die maximale Anzahl an Beispielen beträgt 2500 und jedes Beispiel hat eine maximale Länge von 512 Token. Die Werte sollten als `{text: \"...\",label: \"...\"}` strukturiert sein.\nHinweis: [Feinabgestimmte Modelle](https://docs.cohere.com/docs/classify-fine-tuning), die anhand von Klassifizierungsbeispielen trainiert werden, erfordern nicht, dass der Parameter `examples` explizit übergeben wird."
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.ZXhhbXBsZXM.display_name": {
           "source": "Examples",
           "message": "Beispiele"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.ZXhhbXBsZXM.short_desc": {
-          "source": "Few-shot labeled examples (required without fine-tuned model)",
-          "message": "Gelabelte Few-Shot-Beispiele (erforderlich ohne feinabgestimmtes Modell)"
+          "source": "An array of examples to provide context to the model",
+          "message": "Eine Reihe von Beispielen, um dem Modell einen Kontext zu geben"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.aW5wdXRz.desc": {
-          "source": "List of input texts to classify into one of the labels supplied via `examples` (few-shot) or the fine-tuned model's vocabulary.",
-          "message": "Liste der Eingabetexte, die in eines der über `examples` (Few-Shot) bereitgestellten Labels oder das Vokabular des feinabgestimmten Modells klassifiziert werden sollen."
+          "source": "A list of up to 96 texts to be classified. Each one must be a non-empty string.\nThere is, however, no consistent, universal limit to the length a particular input can be. We perform classification on the first `x` tokens of each input, and `x` varies depending on which underlying model is powering classification. The maximum token length for each model is listed in the \"max tokens\" column [here](https://docs.cohere.com/docs/models).\nNote: by default the `truncate` parameter is set to `END`, so tokens exceeding the limit will be automatically dropped. This behavior can be disabled by setting `truncate` to `NONE`, which will result in validation errors for longer texts.",
+          "message": "Eine Liste mit bis zu 96 zu klassifizierenden Texten. Jeder muss ein nicht leerer String sein.\nEs gibt jedoch keine einheitliche, universelle Grenze für die Länge einer bestimmten Eingabe. Wir führen eine Klassifizierung für die ersten `x`-Tokens jeder Eingabe durch, und `x` variiert je nachdem, welches zugrunde liegende Modell die Klassifizierung antreibt. Die maximale Token-Länge für jedes Modell ist in der Spalte „maximale Token“ [hier](https://docs.cohere.com/docs/models) aufgeführt.\nHinweis: Standardmäßig ist der Parameter `truncate` auf `END` gesetzt, sodass Token, die das Limit überschreiten, automatisch verworfen werden. Dieses Verhalten kann deaktiviert werden, indem `truncate` auf `NONE` gesetzt wird, was zu Validierungsfehlern bei längeren Texten führt."
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.aW5wdXRz.display_name": {
           "source": "Inputs",
           "message": "Eingaben"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.aW5wdXRz.short_desc": {
-          "source": "List of input texts to classify",
-          "message": "Liste der zu klassifizierenden Eingabetexte"
+          "source": "A list of up to 96 texts to be classified",
+          "message": "Eine Liste mit bis zu 96 zu klassifizierenden Texten"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.bW9kZWw.desc": {
-          "source": "Fine-tuned classification model identifier.  Optional when `examples` is supplied for few-shot classification.",
-          "message": "Bezeichner des feinabgestimmten Klassifizierungsmodells. Optional, wenn `examples` für die Few-Shot-Klassifizierung angegeben wird."
+          "source": "ID of a [Fine-tuned](https://docs.cohere.com/v2/docs/classify-starting-the-training) Classify model",
+          "message": "ID eines [Feinabgestimmten](https://docs.cohere.com/v2/docs/classify-starting-the-training)-Klassifizierungsmodells"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.bW9kZWw.display_name": {
           "source": "Model",
           "message": "Modell"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.bW9kZWw.short_desc": {
-          "source": "Fine-tuned classification model (optional with examples)",
-          "message": "Feinabgestimmtes Klassifizierungsmodell (optional mit Beispielen)"
+          "source": "Existing fine-tuned classification model",
+          "message": "Vorhandenes fein abgestimmtes Klassifizierungsmodell"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.cHJlc2V0.desc": {
-          "source": "Cohere classification preset name (alternative to inline `examples`).",
-          "message": "Cohere-Klassifizierungs-Preset-Name (Alternative zu Inline-`examples`)."
+          "source": "The ID of a custom playground preset. You can create presets in the [playground](https://dashboard.cohere.com/playground). If you use a preset, all other parameters become optional, and any included parameters will override the preset's parameters.",
+          "message": "Die ID einer benutzerdefinierten Playground-Voreinstellung. Sie können Voreinstellungen im [Playground](https://dashboard.cohere.com/playground) erstellen. Wenn Sie eine Voreinstellung verwenden, werden alle anderen Parameter optional und alle enthaltenen Parameter überschreiben die Parameter der Voreinstellung."
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.cHJlc2V0.display_name": {
           "source": "Preset",
           "message": "Preset"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.cHJlc2V0.short_desc": {
-          "source": "Preset name (alternative to inline examples)",
-          "message": "Preset-Name (Alternative zu Inline-Beispielen)"
+          "source": "The ID of a custom playground preset",
+          "message": "Die ID einer benutzerdefinierten Playground-Voreinstellung"
+        },
+        "app.Q29oZXJl.action.Y2xhc3NpZnk.option.dHJ1bmNhdGU.allowed-value.c3RyaW5nOk5PTkU.display_name": {
+          "source": "None",
+          "message": "Keine"
+        },
+        "app.Q29oZXJl.action.Y2xhc3NpZnk.option.dHJ1bmNhdGU.allowed-value.c3RyaW5nOkVORA.display_name": {
+          "source": "End",
+          "message": "Ende"
+        },
+        "app.Q29oZXJl.action.Y2xhc3NpZnk.option.dHJ1bmNhdGU.allowed-value.c3RyaW5nOlNUQVJU.display_name": {
+          "source": "Start",
+          "message": "Starten"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.dHJ1bmNhdGU.desc": {
           "source": "Truncation strategy: `NONE`, `START`, or `END` (default).",
@@ -228,16 +476,676 @@
           "message": "Wie Eingaben gekürzt werden sollen, die den Kontext überschreiten"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.short_desc": {
-          "source": "Classify text inputs into labeled categories using Cohere Classify",
-          "message": "Texteingaben mithilfe von Cohere Classify in gelabelte Kategorien klassifizieren"
+          "source": "Classify text with an existing classification model",
+          "message": "Klassifizieren Sie Text mit einem vorhandenen Klassifizierungsmodell"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.desc": {
+          "source": "Submit a dataset for batch inference with the selected model. Give the batch a recognizable `name` so it can be found later.",
+          "message": "Senden Sie einen Datensatz zur Batch-Inferenz mit dem ausgewählten Modell. Geben Sie dem Stapel ein erkennbares `name`, damit er später gefunden werden kann."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.display_name": {
+          "source": "Create Batch",
+          "message": "Stapel erstellen"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.option.aW5wdXRfZGF0YXNldF9pZA.desc": {
+          "source": "ID of the dataset the batch reads inputs from.",
+          "message": "ID des Datensatzes, aus dem der Batch Eingaben liest."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.option.aW5wdXRfZGF0YXNldF9pZA.display_name": {
+          "source": "Input Dataset ID",
+          "message": "Eingabedatensatz-ID"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.option.aW5wdXRfZGF0YXNldF9pZA.short_desc": {
+          "source": "ID of the dataset the batch reads inputs from",
+          "message": "ID des Datensatzes, aus dem der Batch Eingaben liest"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.option.bW9kZWw.desc": {
+          "source": "The name of the model the batch uses.",
+          "message": "Der Name des Modells, das der Batch verwendet."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.option.bW9kZWw.short_desc": {
+          "source": "The name of the model the batch uses",
+          "message": "Der Name des Modells, das der Batch verwendet"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.option.bmFtZQ.desc": {
+          "source": "Batch name (e.g. `foobar`).",
+          "message": "Chargenname (z. B. `foobar`)."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.option.bmFtZQ.short_desc": {
+          "source": "Batch name (e.g. 'foobar')",
+          "message": "Chargenname (z. B. „foobar“)"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWJhdGNo.short_desc": {
+          "source": "Process a dataset with batch inference",
+          "message": "Verarbeiten Sie einen Datensatz mit Batch-Inferenz"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.desc": {
+          "source": "Upload a JSONL or CSV dataset for the selected task. `data` contains the file bytes; `eval_data` optionally supplies evaluation data. Check dataset validation before starting a job.",
+          "message": "Laden Sie einen JSONL- oder CSV-Datensatz für die ausgewählte Aufgabe hoch. `data` enthält die Dateibytes; `eval_data` liefert optional Auswertungsdaten. Überprüfen Sie die Datensatzvalidierung, bevor Sie einen Auftrag starten."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.display_name": {
+          "source": "Create Dataset",
+          "message": "Dataset erstellen"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.Y3N2X2RlbGltaXRlcg.desc": {
+          "source": "The delimiter used for .csv uploads.",
+          "message": "Das für CSV-Uploads verwendete Trennzeichen."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.Y3N2X2RlbGltaXRlcg.display_name": {
+          "source": "CSV Delimiter",
+          "message": "CSV-Trennzeichen"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.Y3N2X2RlbGltaXRlcg.short_desc": {
+          "source": "The delimiter used for .csv uploads",
+          "message": "Das für CSV-Uploads verwendete Trennzeichen"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.ZGF0YQ.desc": {
+          "source": "The file to upload",
+          "message": "Die hochzuladende Datei"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.ZGF0YQ.display_name": {
+          "source": "Data",
+          "message": "Daten"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.ZGF0YQ.short_desc": {
+          "source": "The file to upload",
+          "message": "Die hochzuladende Datei"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.ZXZhbF9kYXRh.desc": {
+          "source": "An optional evaluation file to upload",
+          "message": "Eine optionale Evaluierungsdatei zum Hochladen"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.ZXZhbF9kYXRh.display_name": {
+          "source": "Eval Data",
+          "message": "Daten auswerten"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.ZXZhbF9kYXRh.short_desc": {
+          "source": "An optional evaluation file to upload",
+          "message": "Eine optionale Evaluierungsdatei zum Hochladen"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.a2VlcF9maWVsZHM.desc": {
+          "source": "List of names of fields that will be persisted in the Dataset. By default the Dataset will retain only the required fields indicated in the [schema for the corresponding Dataset type](https://docs.cohere.com/docs/datasets#dataset-types). For example, datasets of type `embed-input` will drop all fields other than the required `text` field. If any of the fields in `keep_fields` are missing from the uploaded file, Dataset validation will fail.",
+          "message": "Liste der Namen von Feldern, die im Datensatz beibehalten werden. Standardmäßig behält der Datensatz nur die erforderlichen Felder bei, die im [Schema für den entsprechenden Datensatztyp](https://docs.cohere.com/docs/datasets#dataset-types) angegeben sind. Beispielsweise werden bei Datensätzen vom Typ `embed-input` alle Felder außer dem erforderlichen Feld `text` gelöscht. Wenn eines der Felder in `keep_fields` in der hochgeladenen Datei fehlt, schlägt die Datensatzvalidierung fehl."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.a2VlcF9maWVsZHM.display_name": {
+          "source": "Keep Fields",
+          "message": "Felder behalten"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.a2VlcF9maWVsZHM.short_desc": {
+          "source": "List of names of fields that will be persisted in the Dataset",
+          "message": "Liste der Namen von Feldern, die im Datensatz beibehalten werden"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.a2VlcF9vcmlnaW5hbF9maWxl.desc": {
+          "source": "Indicates if the original file should be stored.",
+          "message": "Gibt an, ob die Originaldatei gespeichert werden soll."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.a2VlcF9vcmlnaW5hbF9maWxl.display_name": {
+          "source": "Keep Original File",
+          "message": "Behalten Sie die Originaldatei"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.a2VlcF9vcmlnaW5hbF9maWxl.short_desc": {
+          "source": "Indicates if the original file should be stored",
+          "message": "Gibt an, ob die Originaldatei gespeichert werden soll"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.b3B0aW9uYWxfZmllbGRz.desc": {
+          "source": "List of names of fields that will be persisted in the Dataset. By default the Dataset will retain only the required fields indicated in the [schema for the corresponding Dataset type](https://docs.cohere.com/docs/datasets#dataset-types). For example, Datasets of type `embed-input` will drop all fields other than the required `text` field. If any of the fields in `optional_fields` are missing from the uploaded file, Dataset validation will pass.",
+          "message": "Liste der Namen von Feldern, die im Datensatz beibehalten werden. Standardmäßig behält der Datensatz nur die erforderlichen Felder bei, die im [Schema für den entsprechenden Datensatztyp] (https://docs.cohere.com/docs/datasets#dataset-types) angegeben sind. Beispielsweise werden bei Datensätzen vom Typ `embed-input` alle Felder außer dem erforderlichen Feld `text` gelöscht. Wenn eines der Felder in `optional_fields` in der hochgeladenen Datei fehlt, ist die Datensatzvalidierung erfolgreich."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.b3B0aW9uYWxfZmllbGRz.display_name": {
+          "source": "Optional Fields",
+          "message": "Optionale Felder"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.b3B0aW9uYWxfZmllbGRz.short_desc": {
+          "source": "List of names of fields that will be persisted in the Dataset",
+          "message": "Liste der Namen von Feldern, die im Datensatz beibehalten werden"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.bmFtZQ.desc": {
+          "source": "The name of the uploaded dataset.",
+          "message": "Der Name des hochgeladenen Datensatzes."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.bmFtZQ.short_desc": {
+          "source": "The name of the uploaded dataset",
+          "message": "Der Name des hochgeladenen Datensatzes"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.c2tpcF9tYWxmb3JtZWRfaW5wdXQ.desc": {
+          "source": "Indicates whether rows with malformed input should be dropped (instead of failing the validation check). Dropped rows will be returned in the warnings field.",
+          "message": "Gibt an, ob Zeilen mit fehlerhafter Eingabe gelöscht werden sollen (anstatt die Validierungsprüfung nicht zu bestehen). Verworfene Zeilen werden im Warnungsfeld zurückgegeben."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.c2tpcF9tYWxmb3JtZWRfaW5wdXQ.display_name": {
+          "source": "Skip Malformed Input",
+          "message": "Überspringen Sie fehlerhafte Eingaben"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.c2tpcF9tYWxmb3JtZWRfaW5wdXQ.short_desc": {
+          "source": "Indicates whether rows with malformed input should be dropped…",
+          "message": "Gibt an, ob Zeilen mit fehlerhafter Eingabe gelöscht werden sollen."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dGV4dF9zZXBhcmF0b3I.desc": {
+          "source": "Raw .txt uploads will be split into entries using the text_separator value.",
+          "message": "Rohe TXT-Uploads werden mithilfe des text_separator-Werts in Einträge aufgeteilt."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dGV4dF9zZXBhcmF0b3I.display_name": {
+          "source": "Text Separator",
+          "message": "Texttrennzeichen"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dGV4dF9zZXBhcmF0b3I.short_desc": {
+          "source": "Raw .txt uploads will be split into entries using the text_separator value",
+          "message": "Rohe TXT-Uploads werden mithilfe des text_separator-Werts in Einträge aufgeteilt"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.allowed-value.c3RyaW5nOm11bHRpLWxhYmVsLWNsYXNzaWZpY2F0aW9uLWZpbmV0dW5lLWlucHV0.display_name": {
+          "source": "Multi Label Classification Finetune Input",
+          "message": "Feinabstimmung der Eingabe für die Multi-Label-Klassifizierung"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.allowed-value.c3RyaW5nOmJhdGNoLW9wZW5haS1jaGF0LWlucHV0.display_name": {
+          "source": "Batch OpenAI Chat Input",
+          "message": "Batch-OpenAI-Chat-Eingabe"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.allowed-value.c3RyaW5nOmJhdGNoLWNoYXQtaW5wdXQ.display_name": {
+          "source": "Batch Chat Input",
+          "message": "Batch-Chat-Eingabe"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.allowed-value.c3RyaW5nOmJhdGNoLWNoYXQtdjItaW5wdXQ.display_name": {
+          "source": "Batch Chat V2 Input",
+          "message": "Batch-Chat V2-Eingabe"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.allowed-value.c3RyaW5nOmJhdGNoLWVtYmVkLXYyLWlucHV0.display_name": {
+          "source": "Batch Embed V2 Input",
+          "message": "Batch-Einbettung V2-Eingabe"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.allowed-value.c3RyaW5nOmNoYXQtZmluZXR1bmUtaW5wdXQ.display_name": {
+          "source": "Chat Finetune Input",
+          "message": "Chat-Feinabstimmungseingabe"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.allowed-value.c3RyaW5nOmNsdXN0ZXItb3V0bGllcnM.display_name": {
+          "source": "Cluster Outliers",
+          "message": "Cluster-Ausreißer"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.allowed-value.c3RyaW5nOmNsdXN0ZXItcmVzdWx0.display_name": {
+          "source": "Cluster Result",
+          "message": "Clusterergebnis"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.allowed-value.c3RyaW5nOmVtYmVkLWlucHV0.display_name": {
+          "source": "Embed Input",
+          "message": "Eingabe einbetten"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.allowed-value.c3RyaW5nOmVtYmVkLXJlc3VsdA.display_name": {
+          "source": "Embed Result",
+          "message": "Ergebnis einbetten"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.allowed-value.c3RyaW5nOnJlcmFua2VyLWZpbmV0dW5lLWlucHV0.display_name": {
+          "source": "Reranker Finetune Input",
+          "message": "Reranker-Feinabstimmungseingabe"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.allowed-value.c3RyaW5nOnNpbmdsZS1sYWJlbC1jbGFzc2lmaWNhdGlvbi1maW5ldHVuZS1pbnB1dA.display_name": {
+          "source": "Single Label Classification Finetune Input",
+          "message": "Feinabstimmung der Eingabe für die Klassifizierung einzelner Etiketten"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.desc": {
+          "source": "The dataset type, which is used to validate the data. The only valid type is `embed-input` used in conjunction with the Embed Jobs API.: The type of the dataset",
+          "message": "Der Datensatztyp, der zur Validierung der Daten verwendet wird. Der einzig gültige Typ ist `embed-input`, der in Verbindung mit der Embed Jobs API verwendet wird.: Der Typ des Datensatzes"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Typ"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.option.dHlwZQ.short_desc": {
+          "source": "The dataset type, which is used to validate the data",
+          "message": "Der Datensatztyp, der zur Validierung der Daten verwendet wird"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWRhdGFzZXQ.short_desc": {
+          "source": "Upload data for embedding, batch inference, or fine-tuning",
+          "message": "Laden Sie Daten zur Einbettung, Batch-Inferenz oder Feinabstimmung hoch"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.desc": {
+          "source": "Submit an `embed-input` dataset for batch embedding. Select an embedding model and the intended `input_type`. The response contains the `job_id` used to inspect or cancel the job.",
+          "message": "Senden Sie einen `embed-input`-Datensatz zur Stapeleinbettung. Wählen Sie ein Einbettungsmodell und das vorgesehene `input_type` aus. Die Antwort enthält den `job_id`, der zum Überprüfen oder Abbrechen des Jobs verwendet wird."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.display_name": {
+          "source": "Create Embedding Job",
+          "message": "Einbettungsjob erstellen"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.ZGF0YXNldF9pZA.desc": {
+          "source": "ID of a [Dataset](https://docs.cohere.com/docs/datasets). The Dataset must be of type `embed-input` and must have a validation status `Validated`",
+          "message": "ID eines [Datensatzes](https://docs.cohere.com/docs/datasets). Der Datensatz muss vom Typ `embed-input` sein und den Validierungsstatus `Validated` haben"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.ZGF0YXNldF9pZA.display_name": {
+          "source": "Dataset ID",
+          "message": "Datensatz-ID"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.ZGF0YXNldF9pZA.short_desc": {
+          "source": "ID of a [Dataset](https://docs.cohere.com/docs/datasets)",
+          "message": "ID eines [Datensatzes](https://docs.cohere.com/docs/datasets)"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.ZW1iZWRkaW5nX3R5cGVz.desc": {
+          "source": "Specifies the types of embeddings you want to get back. Not required and default is None, which returns the Embed Floats response type. Can be one or more of the following types.\n\n* `\"float\"`: Use this when you want to get back the default float embeddings. Valid for all models.\n* `\"int8\"`: Use this when you want to get back signed int8 embeddings. Valid for v3 and newer model versions.\n* `\"uint8\"`: Use this when you want to get back unsigned int8 embeddings. Valid for v3 and newer model versions.\n* `\"binary\"`: Use this when you want to get back signed binary embeddings. Valid for v3 and newer model versions.\n* `\"ubinary\"`: Use this when you want to get back unsigned binary embeddings. Valid for v3 and newer model versions.",
+          "message": "Gibt die Arten von Einbettungen an, die Sie zurückerhalten möchten. Nicht erforderlich und der Standardwert ist „Keine“, wodurch der Antworttyp „Embed Floats“ zurückgegeben wird. Kann einer oder mehrere der folgenden Typen sein.\n\n* `\"float\"`: Verwenden Sie dies, wenn Sie die Standard-Float-Einbettungen wiederherstellen möchten. Gültig für alle Modelle.\n* `\"int8\"`: Verwenden Sie dies, wenn Sie signierte int8-Einbettungen zurückerhalten möchten. Gültig für v3 und neuere Modellversionen.\n* `\"uint8\"`: Verwenden Sie dies, wenn Sie unsignierte int8-Einbettungen zurückerhalten möchten. Gültig für v3 und neuere Modellversionen.\n* `\"binary\"`: Verwenden Sie dies, wenn Sie signierte binäre Einbettungen zurückerhalten möchten. Gültig für v3 und neuere Modellversionen.\n* `\"ubinary\"`: Verwenden Sie dies, wenn Sie vorzeichenlose binäre Einbettungen zurückerhalten möchten. Gültig für v3 und neuere Modellversionen."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.ZW1iZWRkaW5nX3R5cGVz.display_name": {
+          "source": "Embedding Types",
+          "message": "Einbettungstypen"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.ZW1iZWRkaW5nX3R5cGVz.short_desc": {
+          "source": "Specifies the types of embeddings you want to get back",
+          "message": "Gibt die Arten von Einbettungen an, die Sie zurückerhalten möchten"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.aW5wdXRfdHlwZQ.allowed-value.c3RyaW5nOmNsYXNzaWZpY2F0aW9u.display_name": {
+          "source": "Classification",
+          "message": "Klassifizierung"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.aW5wdXRfdHlwZQ.allowed-value.c3RyaW5nOmNsdXN0ZXJpbmc.display_name": {
+          "source": "Clustering",
+          "message": "Clustering"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.aW5wdXRfdHlwZQ.allowed-value.c3RyaW5nOmltYWdl.display_name": {
+          "source": "Image",
+          "message": "Bild"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.aW5wdXRfdHlwZQ.allowed-value.c3RyaW5nOnNlYXJjaF9kb2N1bWVudA.display_name": {
+          "source": "Search Document - text to be indexed",
+          "message": "Suchdokument - zu indexierender Text"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.aW5wdXRfdHlwZQ.allowed-value.c3RyaW5nOnNlYXJjaF9xdWVyeQ.display_name": {
+          "source": "Search Query - user query",
+          "message": "Suchanfrage - Benutzerabfrage"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.aW5wdXRfdHlwZQ.desc": {
+          "source": "Specifies the type of input passed to the model. Required for embedding models v3 and higher.\n\n- `\"search_document\"`: Used for embeddings stored in a vector database for search use-cases.\n- `\"search_query\"`: Used for embeddings of search queries run against a vector DB to find relevant documents.\n- `\"classification\"`: Used for embeddings passed through a text classifier.\n- `\"clustering\"`: Used for the embeddings run through a clustering algorithm.\n- `\"image\"`: Used for embeddings with image input.\n",
+          "message": "Gibt den Typ der an das Modell übergebenen Eingabe an. Erforderlich für die Einbettung von Modellen v3 und höher.\n\n- `\"search_document\"`: Wird für in einer Vektordatenbank gespeicherte Einbettungen für Suchanwendungsfälle verwendet.\n- `\"search_query\"`: Wird zum Einbetten von Suchanfragen verwendet, die für eine Vektor-Datenbank ausgeführt werden, um relevante Dokumente zu finden.\n- `\"classification\"`: Wird für Einbettungen verwendet, die einen Textklassifikator durchlaufen.\n- `\"clustering\"`: Wird für die Einbettungen verwendet, die einen Clustering-Algorithmus durchlaufen.\n- `\"image\"`: Wird für Einbettungen mit Bildeingabe verwendet."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.aW5wdXRfdHlwZQ.display_name": {
+          "source": "Input Type",
+          "message": "Eingabetyp"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.aW5wdXRfdHlwZQ.short_desc": {
+          "source": "Specifies the type of input passed to the model",
+          "message": "Gibt den Typ der an das Modell übergebenen Eingabe an"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.bW9kZWw.desc": {
+          "source": "ID of the embedding model.\n\nAvailable models and corresponding embedding dimensions:\n\n- `embed-english-v3.0` : 1024\n- `embed-multilingual-v3.0` : 1024\n- `embed-english-light-v3.0` : 384\n- `embed-multilingual-light-v3.0` : 384\n",
+          "message": "ID des Einbettungsmodells.\n\nVerfügbare Modelle und entsprechende Einbaumaße:\n\n- `embed-english-v3.0`: 1024\n- `embed-multilingual-v3.0`: 1024\n- `embed-english-light-v3.0`: 384\n- `embed-multilingual-light-v3.0`: 384"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.bW9kZWw.short_desc": {
+          "source": "ID of the embedding model",
+          "message": "ID des Einbettungsmodells"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.bmFtZQ.desc": {
+          "source": "The name of the embed job.",
+          "message": "Der Name des Einbettungsauftrags."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.bmFtZQ.short_desc": {
+          "source": "The name of the embed job",
+          "message": "Der Name des Einbettungsauftrags"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.dHJ1bmNhdGU.allowed-value.c3RyaW5nOkVORA.display_name": {
+          "source": "End",
+          "message": "Ende"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.dHJ1bmNhdGU.allowed-value.c3RyaW5nOlNUQVJU.display_name": {
+          "source": "Start",
+          "message": "Starten"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.dHJ1bmNhdGU.desc": {
+          "source": "One of `START|END` to specify how the API will handle inputs longer than the maximum token length.\n\nPassing `START` will discard the start of the input. `END` will discard the end of the input. In both cases, input is discarded until the remaining input is exactly the maximum input token length for the model.\n",
+          "message": "Einer von `START|END`, um anzugeben, wie die API Eingaben verarbeitet, die länger als die maximale Tokenlänge sind.\n\nDurch die Übergabe von `START` wird der Anfang der Eingabe verworfen. `END` verwirft das Ende der Eingabe. In beiden Fällen wird die Eingabe verworfen, bis die verbleibende Eingabe genau der maximalen Eingabe-Token-Länge für das Modell entspricht."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.dHJ1bmNhdGU.display_name": {
+          "source": "Truncate",
+          "message": "Kürzen"
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.option.dHJ1bmNhdGU.short_desc": {
+          "source": "One of 'START|END' to specify how the API will handle inputs longer than the…",
+          "message": "Eines von „START|END“, um anzugeben, wie die API Eingaben verarbeitet, die länger als die… sind."
+        },
+        "app.Q29oZXJl.action.Y3JlYXRlLWVtYmVkLWpvYg.short_desc": {
+          "source": "Generate embeddings for an uploaded dataset",
+          "message": "Einbettungen für einen hochgeladenen Datensatz generieren"
+        },
+        "app.Q29oZXJl.action.Z2V0LW1vZGVs.desc": {
+          "source": "Retrieve the capabilities, context size, tokenizer URL, and defaults for a selected model.",
+          "message": "Rufen Sie die Funktionen, die Kontextgröße, die Tokenizer-URL und die Standardeinstellungen für ein ausgewähltes Modell ab."
+        },
+        "app.Q29oZXJl.action.Z2V0LW1vZGVs.display_name": {
+          "source": "Get Model",
+          "message": "Modell abrufen"
+        },
+        "app.Q29oZXJl.action.Z2V0LW1vZGVs.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.Z2V0LW1vZGVs.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.Z2V0LW1vZGVs.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.Z2V0LW1vZGVs.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.Q29oZXJl.action.Z2V0LW1vZGVs.short_desc": {
+          "source": "Inspect a model and its supported capabilities",
+          "message": "Untersuchen Sie ein Modell und seine unterstützten Funktionen"
+        },
+        "app.Q29oZXJl.action.Z2V0LWJhdGNo.desc": {
+          "source": "Retrieve batch status, record counts, token usage, and the output dataset identifier.",
+          "message": "Rufen Sie den Batch-Status, die Datensatzanzahl, die Token-Nutzung und die Kennung des Ausgabe-Datasets ab."
+        },
+        "app.Q29oZXJl.action.Z2V0LWJhdGNo.display_name": {
+          "source": "Get Batch",
+          "message": "Stapel abrufen"
+        },
+        "app.Q29oZXJl.action.Z2V0LWJhdGNo.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.Z2V0LWJhdGNo.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.Z2V0LWJhdGNo.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.Z2V0LWJhdGNo.option.aWQ.desc": {
+          "source": "The batch ID.",
+          "message": "Die Chargen-ID."
+        },
+        "app.Q29oZXJl.action.Z2V0LWJhdGNo.option.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.Q29oZXJl.action.Z2V0LWJhdGNo.option.aWQ.short_desc": {
+          "source": "The batch ID",
+          "message": "Die Chargen-ID"
+        },
+        "app.Q29oZXJl.action.Z2V0LWJhdGNo.short_desc": {
+          "source": "Inspect batch progress and output data",
+          "message": "Überprüfen Sie den Batch-Fortschritt und die Ausgabedaten"
+        },
+        "app.Q29oZXJl.action.Z2V0LWRhdGFzZXQ.desc": {
+          "source": "Retrieve dataset metadata, validation errors, and available download URLs.",
+          "message": "Rufen Sie Datensatzmetadaten, Validierungsfehler und verfügbare Download-URLs ab."
+        },
+        "app.Q29oZXJl.action.Z2V0LWRhdGFzZXQ.display_name": {
+          "source": "Get Dataset",
+          "message": "Dataset abrufen"
+        },
+        "app.Q29oZXJl.action.Z2V0LWRhdGFzZXQ.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.Z2V0LWRhdGFzZXQ.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.Z2V0LWRhdGFzZXQ.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.Z2V0LWRhdGFzZXQ.option.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.Q29oZXJl.action.Z2V0LWRhdGFzZXQ.short_desc": {
+          "source": "Inspect dataset validation and download information",
+          "message": "Überprüfen Sie die Datensatzvalidierung und laden Sie Informationen herunter"
+        },
+        "app.Q29oZXJl.action.Z2V0LWRhdGFzZXQtdXNhZ2U.desc": {
+          "source": "Review dataset storage usage before uploading additional data.",
+          "message": "Überprüfen Sie die Speichernutzung des Datensatzes, bevor Sie zusätzliche Daten hochladen."
+        },
+        "app.Q29oZXJl.action.Z2V0LWRhdGFzZXQtdXNhZ2U.display_name": {
+          "source": "Get Dataset Usage",
+          "message": "Datensatznutzung abrufen"
+        },
+        "app.Q29oZXJl.action.Z2V0LWRhdGFzZXQtdXNhZ2U.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.Z2V0LWRhdGFzZXQtdXNhZ2U.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.Z2V0LWRhdGFzZXQtdXNhZ2U.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.Z2V0LWRhdGFzZXQtdXNhZ2U.short_desc": {
+          "source": "Inspect dataset storage usage",
+          "message": "Überprüfen Sie die Speichernutzung des Datensatzes"
+        },
+        "app.Q29oZXJl.action.Z2V0LWVtYmVkLWpvYg.desc": {
+          "source": "Retrieve the status of an embedding job and the dataset containing its results.",
+          "message": "Rufen Sie den Status eines Einbettungsauftrags und den Datensatz mit seinen Ergebnissen ab."
+        },
+        "app.Q29oZXJl.action.Z2V0LWVtYmVkLWpvYg.display_name": {
+          "source": "Get Embedding Job",
+          "message": "Holen Sie sich den Einbettungsjob"
+        },
+        "app.Q29oZXJl.action.Z2V0LWVtYmVkLWpvYg.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.Z2V0LWVtYmVkLWpvYg.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.Z2V0LWVtYmVkLWpvYg.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.Z2V0LWVtYmVkLWpvYg.option.aWQ.desc": {
+          "source": "The ID of the embed job to retrieve.",
+          "message": "Die ID des abzurufenden Einbettungsauftrags."
+        },
+        "app.Q29oZXJl.action.Z2V0LWVtYmVkLWpvYg.option.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.Q29oZXJl.action.Z2V0LWVtYmVkLWpvYg.option.aWQ.short_desc": {
+          "source": "The ID of the embed job to retrieve",
+          "message": "Die ID des abzurufenden Einbettungsauftrags"
+        },
+        "app.Q29oZXJl.action.Z2V0LWVtYmVkLWpvYg.short_desc": {
+          "source": "Inspect an embedding job and its output dataset",
+          "message": "Untersuchen Sie einen Einbettungsauftrag und seinen Ausgabedatensatz"
+        },
+        "app.Q29oZXJl.action.ZGV0b2tlbml6ZQ.desc": {
+          "source": "Decode token IDs produced for the selected model into text.",
+          "message": "Dekodieren Sie die für das ausgewählte Modell erstellten Token-IDs in Text."
+        },
+        "app.Q29oZXJl.action.ZGV0b2tlbml6ZQ.display_name": {
+          "source": "Detokenize Tokens",
+          "message": "Token enttokenisieren"
+        },
+        "app.Q29oZXJl.action.ZGV0b2tlbml6ZQ.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.ZGV0b2tlbml6ZQ.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.ZGV0b2tlbml6ZQ.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.ZGV0b2tlbml6ZQ.option.bW9kZWw.desc": {
+          "source": "An optional parameter to provide the model name. This will ensure that the detokenization is done by the tokenizer used by that model.",
+          "message": "Ein optionaler Parameter zur Bereitstellung des Modellnamens. Dadurch wird sichergestellt, dass die Detokenisierung durch den von diesem Modell verwendeten Tokenizer erfolgt."
+        },
+        "app.Q29oZXJl.action.ZGV0b2tlbml6ZQ.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.Q29oZXJl.action.ZGV0b2tlbml6ZQ.option.bW9kZWw.short_desc": {
+          "source": "An optional parameter to provide the model name",
+          "message": "Ein optionaler Parameter zur Bereitstellung des Modellnamens"
+        },
+        "app.Q29oZXJl.action.ZGV0b2tlbml6ZQ.option.dG9rZW5z.desc": {
+          "source": "The list of tokens to be detokenized.",
+          "message": "Die Liste der Token, die detokenisiert werden sollen."
+        },
+        "app.Q29oZXJl.action.ZGV0b2tlbml6ZQ.option.dG9rZW5z.display_name": {
+          "source": "Tokens",
+          "message": "Token"
+        },
+        "app.Q29oZXJl.action.ZGV0b2tlbml6ZQ.option.dG9rZW5z.short_desc": {
+          "source": "The list of tokens to be detokenized",
+          "message": "Die Liste der Token, die detokenisiert werden sollen"
+        },
+        "app.Q29oZXJl.action.ZGV0b2tlbml6ZQ.short_desc": {
+          "source": "Convert model-specific token IDs back into text",
+          "message": "Wandeln Sie modellspezifische Token-IDs wieder in Text um"
+        },
+        "app.Q29oZXJl.action.ZGVsZXRlLWRhdGFzZXQ.desc": {
+          "source": "Permanently delete the selected dataset. Download any needed input or output data before deleting it.",
+          "message": "Den ausgewählten Datensatz dauerhaft löschen. Laden Sie alle benötigten Eingabe- oder Ausgabedaten herunter, bevor Sie sie löschen."
+        },
+        "app.Q29oZXJl.action.ZGVsZXRlLWRhdGFzZXQ.display_name": {
+          "source": "Delete Dataset",
+          "message": "Dataset löschen"
+        },
+        "app.Q29oZXJl.action.ZGVsZXRlLWRhdGFzZXQ.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.ZGVsZXRlLWRhdGFzZXQ.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.ZGVsZXRlLWRhdGFzZXQ.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.ZGVsZXRlLWRhdGFzZXQ.option.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.Q29oZXJl.action.ZGVsZXRlLWRhdGFzZXQ.short_desc": {
+          "source": "Remove a dataset from the account",
+          "message": "Entfernen Sie einen Datensatz aus dem Konto"
         },
         "app.Q29oZXJl.action.ZW1iZWQ.desc": {
-          "source": "Converts text inputs into embedding vectors via Cohere's `/v2/embed` endpoint with task-aware `input_type` selection.",
-          "message": "Konvertiert Texteingaben über den `/v2/embed`-Endpunkt von Cohere mit aufgabenbezogener `input_type`-Auswahl in Embedding-Vektoren."
+          "source": "Create vectors for semantic search, classification, or clustering. Supply one of `texts`, `images`, or `inputs`, choose the matching `input_type`, and select the numeric `embedding_types` needed by your vector store. Use an Embed v4 model for mixed-content `inputs`.",
+          "message": "Erstellen Sie Vektoren für semantische Suche, Klassifizierung oder Clustering. Geben Sie einen von `texts`, `images` oder `inputs` an, wählen Sie den passenden `input_type` und dann den numerischen `embedding_types` aus, den Ihr Vektorspeicher benötigt. Verwenden Sie ein Embed v4-Modell für `inputs` mit gemischtem Inhalt."
         },
         "app.Q29oZXJl.action.ZW1iZWQ.display_name": {
           "source": "Create Embeddings",
           "message": "Embeddings erstellen"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.ZW1iZWRkaW5nX3R5cGVz.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
+          "source": "Binary",
+          "message": "Binär"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.ZW1iZWRkaW5nX3R5cGVz.allowed-value.c3RyaW5nOmZsb2F0.display_name": {
+          "source": "Float",
+          "message": "Schweben"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.ZW1iZWRkaW5nX3R5cGVz.allowed-value.c3RyaW5nOmludDg.display_name": {
+          "source": "Signed 8-Bit Integer",
+          "message": "Vorzeichenbehaftete 8-Bit-Ganzzahl"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.ZW1iZWRkaW5nX3R5cGVz.allowed-value.c3RyaW5nOnViaW5hcnk.display_name": {
+          "source": "Unsigned Binary",
+          "message": "Vorzeichenlose Binärdatei"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.ZW1iZWRkaW5nX3R5cGVz.allowed-value.c3RyaW5nOnVpbnQ4.display_name": {
+          "source": "Unsigned 8-Bit Integer",
+          "message": "Vorzeichenlose 8-Bit-Ganzzahl"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.ZW1iZWRkaW5nX3R5cGVz.desc": {
+          "source": "Specifies the types of embeddings you want to get back. Can be one or more of the following types.\n\n* `\"float\"`: Use this when you want to get back the default float embeddings. Supported with all Embed models.\n* `\"int8\"`: Use this when you want to get back signed int8 embeddings. Supported with Embed v3.0 and newer Embed models.\n* `\"uint8\"`: Use this when you want to get back unsigned int8 embeddings. Supported with Embed v3.0 and newer Embed models.\n* `\"binary\"`: Use this when you want to get back signed binary embeddings. Supported with Embed v3.0 and newer Embed models.\n* `\"ubinary\"`: Use this when you want to get back unsigned binary embeddings. Supported with Embed v3.0 and newer Embed models.\n* `\"base64\"`: Use this when you want to get back base64 embeddings. Supported with Embed v3.0 and newer Embed models.",
+          "message": "Gibt die Arten von Einbettungen an, die Sie zurückerhalten möchten. Kann einer oder mehrere der folgenden Typen sein.\n\n* `\"float\"`: Verwenden Sie dies, wenn Sie die Standard-Float-Einbettungen wiederherstellen möchten. Wird von allen Embed-Modellen unterstützt.\n* `\"int8\"`: Verwenden Sie dies, wenn Sie signierte int8-Einbettungen zurückerhalten möchten. Unterstützt mit Embed v3.0 und neueren Embed-Modellen.\n* `\"uint8\"`: Verwenden Sie dies, wenn Sie unsignierte int8-Einbettungen zurückerhalten möchten. Unterstützt mit Embed v3.0 und neueren Embed-Modellen.\n* `\"binary\"`: Verwenden Sie dies, wenn Sie signierte binäre Einbettungen zurückerhalten möchten. Unterstützt mit Embed v3.0 und neueren Embed-Modellen.\n* `\"ubinary\"`: Verwenden Sie dies, wenn Sie vorzeichenlose binäre Einbettungen zurückerhalten möchten. Unterstützt mit Embed v3.0 und neueren Embed-Modellen.\n* `\"base64\"`: Verwenden Sie dies, wenn Sie Base64-Einbettungen zurückerhalten möchten. Unterstützt mit Embed v3.0 und neueren Embed-Modellen."
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.ZW1iZWRkaW5nX3R5cGVz.display_name": {
+          "source": "Embedding Types",
+          "message": "Einbettungstypen"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.ZW1iZWRkaW5nX3R5cGVz.short_desc": {
+          "source": "Specifies the types of embeddings you want to get back",
+          "message": "Gibt die Arten von Einbettungen an, die Sie zurückerhalten möchten"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.aW1hZ2Vz.desc": {
+          "source": "An array of image data URIs for the model to embed.\n\nThe image must be a valid [data URI](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data). The image must be in either `image/jpeg`, `image/png`, `image/webp`, or `image/gif` format.\n\nImage embeddings are supported with Embed v3.0 and newer models.\n\nFor **Embed v3.x** models, the maximum number of images per call is `1`, and each image has a maximum size of `5MB`.\n\nFor **Embed v4.0 and newer** models, there is no limit on the number of images per call. The combined size of all images in the request must be at most `20MB`.",
+          "message": "Ein Array von Bilddaten-URIs für das einzubettende Modell.\n\nDas Bild muss ein gültiger [Daten-URI](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data) sein. Das Bild muss entweder im Format `image/jpeg`, `image/png`, `image/webp` oder `image/gif` vorliegen.\n\nBildeinbettungen werden mit Embed v3.0 und neueren Modellen unterstützt.\n\nFür **Embed v3.x**-Modelle beträgt die maximale Anzahl von Bildern pro Aufruf `1`, und jedes Bild hat eine maximale Größe von `5MB`.\n\nFür **Embed v4.0 und neuere** Modelle gibt es keine Begrenzung für die Anzahl der Bilder pro Aufruf. Die Gesamtgröße aller Bilder in der Anfrage darf höchstens `20MB` betragen."
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.aW1hZ2Vz.display_name": {
+          "source": "Images",
+          "message": "Bilder"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.aW1hZ2Vz.short_desc": {
+          "source": "An array of image data URIs for the model to embed",
+          "message": "Ein Array von Bilddaten-URIs für das einzubettende Modell"
         },
         "app.Q29oZXJl.action.ZW1iZWQ.option.aW5wdXRfdHlwZQ.allowed-value.c3RyaW5nOmNsYXNzaWZpY2F0aW9u.display_name": {
           "source": "Classification",
@@ -246,6 +1154,10 @@
         "app.Q29oZXJl.action.ZW1iZWQ.option.aW5wdXRfdHlwZQ.allowed-value.c3RyaW5nOmNsdXN0ZXJpbmc.display_name": {
           "source": "Clustering",
           "message": "Clustering"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.aW5wdXRfdHlwZQ.allowed-value.c3RyaW5nOmltYWdl.display_name": {
+          "source": "Image",
+          "message": "Bild"
         },
         "app.Q29oZXJl.action.ZW1iZWQ.option.aW5wdXRfdHlwZQ.allowed-value.c3RyaW5nOnNlYXJjaF9kb2N1bWVudA.display_name": {
           "source": "Search Document - text to be indexed",
@@ -256,20 +1168,44 @@
           "message": "Suchanfrage - Benutzerabfrage"
         },
         "app.Q29oZXJl.action.ZW1iZWQ.option.aW5wdXRfdHlwZQ.desc": {
-          "source": "Task hint required by Cohere v3 embedding models.  Choosing the right input type improves retrieval relevance — query and document embeddings are optimized differently.",
-          "message": "Für Cohere-v3-Embedding-Modelle erforderlicher Aufgabenhinweis. Die Wahl des richtigen Eingabetyps verbessert die Abrufrelevanz – Abfrage- und Dokument-Embeddings sind unterschiedlich optimiert."
+          "source": "Specifies the type of input passed to the model. Required for embedding models v3 and higher.\n\n- `\"search_document\"`: Used for embeddings stored in a vector database for search use-cases.\n- `\"search_query\"`: Used for embeddings of search queries run against a vector DB to find relevant documents.\n- `\"classification\"`: Used for embeddings passed through a text classifier.\n- `\"clustering\"`: Used for the embeddings run through a clustering algorithm.\n- `\"image\"`: Used for embeddings with image input.\n",
+          "message": "Gibt den Typ der an das Modell übergebenen Eingabe an. Erforderlich für die Einbettung von Modellen v3 und höher.\n\n- `\"search_document\"`: Wird für in einer Vektordatenbank gespeicherte Einbettungen für Suchanwendungsfälle verwendet.\n- `\"search_query\"`: Wird zum Einbetten von Suchanfragen verwendet, die für eine Vektor-Datenbank ausgeführt werden, um relevante Dokumente zu finden.\n- `\"classification\"`: Wird für Einbettungen verwendet, die einen Textklassifikator durchlaufen.\n- `\"clustering\"`: Wird für die Einbettungen verwendet, die einen Clustering-Algorithmus durchlaufen.\n- `\"image\"`: Wird für Einbettungen mit Bildeingabe verwendet."
         },
         "app.Q29oZXJl.action.ZW1iZWQ.option.aW5wdXRfdHlwZQ.display_name": {
           "source": "Input Type",
           "message": "Eingabetyp"
         },
         "app.Q29oZXJl.action.ZW1iZWQ.option.aW5wdXRfdHlwZQ.short_desc": {
-          "source": "Task hint (required for v3 models)",
-          "message": "Aufgabenhinweis (erforderlich für v3-Modelle)"
+          "source": "Choose how the embeddings will be used",
+          "message": "Wählen Sie aus, wie die Einbettungen verwendet werden sollen"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.aW5wdXRz.desc": {
+          "source": "An array of inputs for the model to embed. Maximum number of inputs per call is `96`. An input can contain a mix of text and image components.",
+          "message": "Ein Array von Eingaben, die das Modell einbetten soll. Die maximale Anzahl von Eingaben pro Aufruf beträgt `96`. Eine Eingabe kann eine Mischung aus Text- und Bildkomponenten enthalten."
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.aW5wdXRz.display_name": {
+          "source": "Inputs",
+          "message": "Eingaben"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.aW5wdXRz.short_desc": {
+          "source": "An array of inputs for the model to embed",
+          "message": "Ein Array von Eingaben, die das Modell einbetten soll"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.b3V0cHV0X2RpbWVuc2lvbg.desc": {
+          "source": "The number of dimensions of the output embedding. This is only available for `embed-v4` and newer models.\nPossible values are `256`, `512`, `1024`, and `1536`. The default is `1536`.",
+          "message": "Die Anzahl der Dimensionen der Ausgabeeinbettung. Dies ist nur für `embed-v4` und neuere Modelle verfügbar.\nMögliche Werte sind `256`, `512`, `1024` und `1536`. Der Standardwert ist `1536`."
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.b3V0cHV0X2RpbWVuc2lvbg.display_name": {
+          "source": "Output Dimension",
+          "message": "Ausgabedimension"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.b3V0cHV0X2RpbWVuc2lvbg.short_desc": {
+          "source": "The number of dimensions of the output embedding",
+          "message": "Die Anzahl der Dimensionen der Ausgabeeinbettung"
         },
         "app.Q29oZXJl.action.ZW1iZWQ.option.bW9kZWw.desc": {
-          "source": "Cohere embedding model identifier.  Examples:\n\n- `embed-multilingual-v3.0` — 100+ languages (recommended default)\n- `embed-english-v3.0` — English-only, slightly faster\n- `embed-multilingual-light-v3.0` — smaller, lower-cost variant",
-          "message": "Cohere-Embedding-Modellbezeichner. Beispiele:\n\n- `embed-multilingual-v3.0` — 100+ Sprachen (empfohlener Standard)\n- `embed-english-v3.0` — Nur Englisch, etwas schneller\n- `embed-multilingual-light-v3.0` — kleinere, kostengünstigere Variante"
+          "source": "ID of one of the available [Embedding models](https://docs.cohere.com/docs/cohere-embed).",
+          "message": "ID eines der verfügbaren [Einbettungsmodelle](https://docs.cohere.com/docs/cohere-embed)."
         },
         "app.Q29oZXJl.action.ZW1iZWQ.option.bW9kZWw.display_name": {
           "source": "Model",
@@ -278,6 +1214,30 @@
         "app.Q29oZXJl.action.ZW1iZWQ.option.bW9kZWw.short_desc": {
           "source": "Cohere embedding model",
           "message": "Cohere-Embedding-Modell"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.bWF4X3Rva2Vucw.desc": {
+          "source": "The maximum number of tokens to embed per input. If the input text is longer than this, it will be truncated according to the `truncate` parameter.",
+          "message": "Die maximale Anzahl einzubettender Token pro Eingabe. Wenn der Eingabetext länger ist, wird er entsprechend dem Parameter `truncate` gekürzt."
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.bWF4X3Rva2Vucw.display_name": {
+          "source": "Max Tokens",
+          "message": "Max. Tokens"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.bWF4X3Rva2Vucw.short_desc": {
+          "source": "The maximum number of tokens to embed per input",
+          "message": "Die maximale Anzahl einzubettender Token pro Eingabe"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.cHJpb3JpdHk.desc": {
+          "source": "Controls how early the request is handled. Lower numbers indicate higher priority (default: 0, the highest). When the system is under load, higher-priority requests are processed first and are the least likely to be dropped.",
+          "message": "Steuert, wie früh die Anfrage bearbeitet wird. Niedrigere Zahlen bedeuten eine höhere Priorität (Standard: 0, die höchste). Wenn das System ausgelastet ist, werden Anfragen mit höherer Priorität zuerst verarbeitet und es ist am unwahrscheinlichsten, dass sie verworfen werden."
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.cHJpb3JpdHk.display_name": {
+          "source": "Priority",
+          "message": "Priorität"
+        },
+        "app.Q29oZXJl.action.ZW1iZWQ.option.cHJpb3JpdHk.short_desc": {
+          "source": "Controls how early the request is handled",
+          "message": "Steuert, wie früh die Anfrage bearbeitet wird"
         },
         "app.Q29oZXJl.action.ZW1iZWQ.option.dGV4dHM.desc": {
           "source": "List of input texts to convert to embedding vectors.",
@@ -316,8 +1276,348 @@
           "message": "Wie Eingaben gekürzt werden sollen, die den Kontext überschreiten"
         },
         "app.Q29oZXJl.action.ZW1iZWQ.short_desc": {
-          "source": "Generate embedding vectors from a Cohere embedding model",
-          "message": "Embedding-Vektoren aus einem Cohere-Embedding-Modell generieren"
+          "source": "Embed text, images, or mixed content for search and retrieval",
+          "message": "Betten Sie Text, Bilder oder gemischte Inhalte zum Suchen und Abrufen ein"
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.desc": {
+          "source": "List batch inference jobs. Follow `next_page_token` using `page_token` to retrieve subsequent pages.",
+          "message": "Batch-Inferenzjobs auflisten. Folgen Sie `next_page_token` mit `page_token`, um nachfolgende Seiten abzurufen."
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.display_name": {
+          "source": "List Batches",
+          "message": "Stapel auflisten"
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.option.b3JkZXJfYnk.desc": {
+          "source": "Batches can be ordered by creation time or last updated time.\nUse `created_at` for creation time or `updated_at` for last updated time.",
+          "message": "Stapel können nach Erstellungszeit oder dem Zeitpunkt der letzten Aktualisierung sortiert werden.\nVerwenden Sie `created_at` für die Erstellungszeit oder `updated_at` für die letzte Aktualisierungszeit."
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.option.b3JkZXJfYnk.display_name": {
+          "source": "Order By",
+          "message": "Sortieren nach"
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.option.b3JkZXJfYnk.short_desc": {
+          "source": "Batches can be ordered by creation time or last updated time",
+          "message": "Stapel können nach Erstellungszeit oder dem Zeitpunkt der letzten Aktualisierung sortiert werden"
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.option.cGFnZV90b2tlbg.desc": {
+          "source": "A page token, received from a previous `ListBatches` call.\nProvide this to retrieve the subsequent page.",
+          "message": "Ein Seitentoken, das von einem vorherigen `ListBatches`-Aufruf empfangen wurde.\nGeben Sie dies an, um die nächste Seite abzurufen."
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.option.cGFnZV90b2tlbg.display_name": {
+          "source": "Page Token",
+          "message": "Seiten-Token"
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.option.cGFnZV90b2tlbg.short_desc": {
+          "source": "A page token, received from a previous 'ListBatches' call",
+          "message": "Ein Seitentoken, das von einem vorherigen „ListBatches“-Aufruf empfangen wurde"
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.option.cGFnZV9zaXpl.desc": {
+          "source": "The maximum number of batches to return. The service may return fewer than\nthis value.\nIf unspecified, at most 50 batches will be returned.\nThe maximum value is 1000; values above 1000 will be coerced to 1000.",
+          "message": "Die maximale Anzahl der zurückzugebenden Batches. Der Dienst gibt möglicherweise weniger als zurück\ndiesen Wert.\nOhne Angabe werden höchstens 50 Chargen zurückgegeben.\nDer Maximalwert beträgt 1000; Werte über 1000 werden auf 1000 erzwungen."
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.option.cGFnZV9zaXpl.display_name": {
+          "source": "Page Size",
+          "message": "Seitengröße"
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.option.cGFnZV9zaXpl.short_desc": {
+          "source": "The maximum number of batches to return",
+          "message": "Die maximale Anzahl der zurückzugebenden Batches"
+        },
+        "app.Q29oZXJl.action.bGlzdC1iYXRjaGVz.short_desc": {
+          "source": "Find batch inference jobs",
+          "message": "Suchen Sie nach Batch-Inferenzjobs"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.desc": {
+          "source": "Find datasets to process or review. Filter by type and validation status, and use `limit` and `offset` for pagination.",
+          "message": "Finden Sie Datensätze zum Verarbeiten oder Überprüfen. Filtern Sie nach Typ und Validierungsstatus und verwenden Sie `limit` und `offset` für die Paginierung."
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.display_name": {
+          "source": "List Datasets",
+          "message": "Datensätze auflisten"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.YWZ0ZXI.desc": {
+          "source": "optional filter after a date",
+          "message": "optionaler Filter nach einem Datum"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.YWZ0ZXI.display_name": {
+          "source": "After",
+          "message": "Nach"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.YWZ0ZXI.short_desc": {
+          "source": "optional filter after a date",
+          "message": "optionaler Filter nach einem Datum"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.YmVmb3Jl.desc": {
+          "source": "optional filter before a date",
+          "message": "optionaler Filter vor einem Datum"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.YmVmb3Jl.display_name": {
+          "source": "Before",
+          "message": "Vor"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.YmVmb3Jl.short_desc": {
+          "source": "optional filter before a date",
+          "message": "optionaler Filter vor einem Datum"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.allowed-value.c3RyaW5nOm11bHRpLWxhYmVsLWNsYXNzaWZpY2F0aW9uLWZpbmV0dW5lLWlucHV0.display_name": {
+          "source": "Multi Label Classification Finetune Input",
+          "message": "Feinabstimmung der Eingabe für die Multi-Label-Klassifizierung"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.allowed-value.c3RyaW5nOmJhdGNoLW9wZW5haS1jaGF0LWlucHV0.display_name": {
+          "source": "Batch OpenAI Chat Input",
+          "message": "Batch-OpenAI-Chat-Eingabe"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.allowed-value.c3RyaW5nOmJhdGNoLWNoYXQtaW5wdXQ.display_name": {
+          "source": "Batch Chat Input",
+          "message": "Batch-Chat-Eingabe"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.allowed-value.c3RyaW5nOmJhdGNoLWNoYXQtdjItaW5wdXQ.display_name": {
+          "source": "Batch Chat V2 Input",
+          "message": "Batch-Chat V2-Eingabe"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.allowed-value.c3RyaW5nOmJhdGNoLWVtYmVkLXYyLWlucHV0.display_name": {
+          "source": "Batch Embed V2 Input",
+          "message": "Batch-Einbettung V2-Eingabe"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.allowed-value.c3RyaW5nOmNoYXQtZmluZXR1bmUtaW5wdXQ.display_name": {
+          "source": "Chat Finetune Input",
+          "message": "Chat-Feinabstimmungseingabe"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.allowed-value.c3RyaW5nOmNsdXN0ZXItb3V0bGllcnM.display_name": {
+          "source": "Cluster Outliers",
+          "message": "Cluster-Ausreißer"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.allowed-value.c3RyaW5nOmNsdXN0ZXItcmVzdWx0.display_name": {
+          "source": "Cluster Result",
+          "message": "Clusterergebnis"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.allowed-value.c3RyaW5nOmVtYmVkLWlucHV0.display_name": {
+          "source": "Embed Input",
+          "message": "Eingabe einbetten"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.allowed-value.c3RyaW5nOmVtYmVkLXJlc3VsdA.display_name": {
+          "source": "Embed Result",
+          "message": "Ergebnis einbetten"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.allowed-value.c3RyaW5nOnJlcmFua2VyLWZpbmV0dW5lLWlucHV0.display_name": {
+          "source": "Reranker Finetune Input",
+          "message": "Reranker-Feinabstimmungseingabe"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.allowed-value.c3RyaW5nOnNpbmdsZS1sYWJlbC1jbGFzc2lmaWNhdGlvbi1maW5ldHVuZS1pbnB1dA.display_name": {
+          "source": "Single Label Classification Finetune Input",
+          "message": "Feinabstimmung der Eingabe für die Klassifizierung einzelner Etiketten"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.desc": {
+          "source": "optional filter by dataset type",
+          "message": "optionaler Filter nach Datensatztyp"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.display_name": {
+          "source": "Dataset Type",
+          "message": "Datensatztyp"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.ZGF0YXNldFR5cGU.short_desc": {
+          "source": "optional filter by dataset type",
+          "message": "optionaler Filter nach Datensatztyp"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.b2Zmc2V0.desc": {
+          "source": "optional offset to start of results",
+          "message": "optionaler Offset zum Beginn der Ergebnisse"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.b2Zmc2V0.display_name": {
+          "source": "Offset",
+          "message": "Offset"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.b2Zmc2V0.short_desc": {
+          "source": "optional offset to start of results",
+          "message": "optionaler Offset zum Beginn der Ergebnisse"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.bGltaXQ.desc": {
+          "source": "optional limit to number of results",
+          "message": "optionale Begrenzung der Anzahl der Ergebnisse"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.bGltaXQ.short_desc": {
+          "source": "optional limit to number of results",
+          "message": "optionale Begrenzung der Anzahl der Ergebnisse"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.dmFsaWRhdGlvblN0YXR1cw.allowed-value.c3RyaW5nOmZhaWxlZA.display_name": {
+          "source": "Failed",
+          "message": "Fehlgeschlagen"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.dmFsaWRhdGlvblN0YXR1cw.allowed-value.c3RyaW5nOnByb2Nlc3Npbmc.display_name": {
+          "source": "Processing",
+          "message": "In Bearbeitung"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.dmFsaWRhdGlvblN0YXR1cw.allowed-value.c3RyaW5nOnF1ZXVlZA.display_name": {
+          "source": "Queued",
+          "message": "In der Warteschlange"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.dmFsaWRhdGlvblN0YXR1cw.allowed-value.c3RyaW5nOnNraXBwZWQ.display_name": {
+          "source": "Skipped",
+          "message": "Übersprungen"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.dmFsaWRhdGlvblN0YXR1cw.allowed-value.c3RyaW5nOnVua25vd24.display_name": {
+          "source": "Unknown",
+          "message": "Unbekannt"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.dmFsaWRhdGlvblN0YXR1cw.allowed-value.c3RyaW5nOnZhbGlkYXRlZA.display_name": {
+          "source": "Validated",
+          "message": "Validiert"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.dmFsaWRhdGlvblN0YXR1cw.desc": {
+          "source": "optional filter by validation status: The validation status of the dataset",
+          "message": "optionaler Filter nach Validierungsstatus: Der Validierungsstatus des Datensatzes"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.dmFsaWRhdGlvblN0YXR1cw.display_name": {
+          "source": "Validation Status",
+          "message": "Validierungsstatus"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.option.dmFsaWRhdGlvblN0YXR1cw.short_desc": {
+          "source": "optional filter by validation status: The validation status of the dataset",
+          "message": "optionaler Filter nach Validierungsstatus: Der Validierungsstatus des Datensatzes"
+        },
+        "app.Q29oZXJl.action.bGlzdC1kYXRhc2V0cw.short_desc": {
+          "source": "Find datasets by task, validation status, and creation time",
+          "message": "Finden Sie Datensätze nach Aufgabe, Validierungsstatus und Erstellungszeit"
+        },
+        "app.Q29oZXJl.action.bGlzdC1lbWJlZC1qb2Jz.desc": {
+          "source": "List embedding jobs and inspect their current status.",
+          "message": "Listen Sie Einbettungsaufträge auf und überprüfen Sie deren aktuellen Status."
+        },
+        "app.Q29oZXJl.action.bGlzdC1lbWJlZC1qb2Jz.display_name": {
+          "source": "List Embedding Jobs",
+          "message": "Einbettungsjobs auflisten"
+        },
+        "app.Q29oZXJl.action.bGlzdC1lbWJlZC1qb2Jz.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.bGlzdC1lbWJlZC1qb2Jz.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.bGlzdC1lbWJlZC1qb2Jz.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.bGlzdC1lbWJlZC1qb2Jz.short_desc": {
+          "source": "Find submitted embedding jobs",
+          "message": "Finden Sie eingereichte Einbettungsaufträge"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.desc": {
+          "source": "List models available to this account. Filter by `endpoint` to choose a compatible model. Follow `next_page_token` with `page_token` to retrieve subsequent pages.",
+          "message": "Für dieses Konto verfügbare Modelle auflisten. Filtern Sie nach `endpoint`, um ein kompatibles Modell auszuwählen. Folgen Sie `next_page_token` mit `page_token`, um nachfolgende Seiten abzurufen."
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.display_name": {
+          "source": "List Models",
+          "message": "Modelle auflisten"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.ZGVmYXVsdF9vbmx5.desc": {
+          "source": "When provided, filters the list of models to only the default model to the endpoint. This parameter is only valid when `endpoint` is provided.",
+          "message": "Wenn bereitgestellt, wird die Liste der Modelle nur auf das Standardmodell für den Endpunkt gefiltert. Dieser Parameter ist nur gültig, wenn `endpoint` angegeben wird."
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.ZGVmYXVsdF9vbmx5.display_name": {
+          "source": "Default Only",
+          "message": "Nur Standard"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.ZGVmYXVsdF9vbmx5.short_desc": {
+          "source": "When provided, filters the list of models to only the default model to the…",
+          "message": "Wenn bereitgestellt, wird die Liste der Modelle nur auf das Standardmodell gefiltert, um …"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.ZW5kcG9pbnQ.allowed-value.c3RyaW5nOmNoYXQ.display_name": {
+          "source": "Chat",
+          "message": "Chat"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.ZW5kcG9pbnQ.allowed-value.c3RyaW5nOmNsYXNzaWZ5.display_name": {
+          "source": "Classify",
+          "message": "Klassifizierung"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.ZW5kcG9pbnQ.allowed-value.c3RyaW5nOmVtYmVk.display_name": {
+          "source": "Embed",
+          "message": "Einbetten"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.ZW5kcG9pbnQ.allowed-value.c3RyaW5nOmdlbmVyYXRl.display_name": {
+          "source": "Generate",
+          "message": "Generieren"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.ZW5kcG9pbnQ.allowed-value.c3RyaW5nOnJhdGU.display_name": {
+          "source": "Rate",
+          "message": "Tarif"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.ZW5kcG9pbnQ.allowed-value.c3RyaW5nOnJlcmFuaw.display_name": {
+          "source": "Rerank",
+          "message": "Neu sortieren"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.ZW5kcG9pbnQ.allowed-value.c3RyaW5nOnN1bW1hcml6ZQ.display_name": {
+          "source": "Summarize",
+          "message": "Zusammenfassen"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.ZW5kcG9pbnQ.desc": {
+          "source": "When provided, filters the list of models to only those that are compatible with the specified endpoint.: One of the Cohere API endpoints that the model can be used with.",
+          "message": "Wenn angegeben, wird die Liste der Modelle nur auf diejenigen gefiltert, die mit dem angegebenen Endpunkt kompatibel sind.: Einer der Cohere API-Endpunkte, mit denen das Modell verwendet werden kann."
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.ZW5kcG9pbnQ.display_name": {
+          "source": "Endpoint",
+          "message": "Endpunkt"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.ZW5kcG9pbnQ.short_desc": {
+          "source": "When provided, filters the list of models to only those that are compatible…",
+          "message": "Wenn angegeben, wird die Liste der Modelle nur auf diejenigen gefiltert, die kompatibel sind."
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.cGFnZV90b2tlbg.desc": {
+          "source": "Page token provided in the `next_page_token` field of a previous response.",
+          "message": "Seitentoken, das im Feld `next_page_token` einer vorherigen Antwort bereitgestellt wurde."
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.cGFnZV90b2tlbg.display_name": {
+          "source": "Page Token",
+          "message": "Seiten-Token"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.cGFnZV90b2tlbg.short_desc": {
+          "source": "Page token provided in the 'next_page_token' field of a previous response",
+          "message": "Seitentoken, das im Feld „next_page_token“ einer vorherigen Antwort bereitgestellt wird"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.cGFnZV9zaXpl.desc": {
+          "source": "Maximum number of models to include in a page\nDefaults to `20`, min value of `1`, max value of `1000`.",
+          "message": "Maximale Anzahl von Modellen, die in eine Seite aufgenommen werden sollen\nDer Standardwert ist `20`, der Mindestwert ist `1` und der Höchstwert ist `1000`."
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.cGFnZV9zaXpl.display_name": {
+          "source": "Page Size",
+          "message": "Seitengröße"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.option.cGFnZV9zaXpl.short_desc": {
+          "source": "Maximum number of models to include in a page",
+          "message": "Maximale Anzahl von Modellen, die in eine Seite aufgenommen werden sollen"
+        },
+        "app.Q29oZXJl.action.bGlzdC1tb2RlbHM.short_desc": {
+          "source": "Find available models and their supported tasks",
+          "message": "Finden Sie verfügbare Modelle und deren unterstützte Aufgaben"
         },
         "app.Q29oZXJl.action.bWFrZS1hcGktY2FsbA.desc": {
           "source": "Make a custom HTTP / REST API call to **Cohere** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
@@ -643,13 +1943,93 @@
           "source": "Make a custom API call to Cohere",
           "message": "Benutzerdefinierten API-Aufruf an Cohere ausführen"
         },
+        "app.Q29oZXJl.action.cGFyc2U.desc": {
+          "source": "Extract text, tables, and image regions from a document image. Supply an image URL or data URI in `document.image_url`. Cohere currently accepts images, not PDF files. Choose `output_format` for Markdown or structured blocks.",
+          "message": "Extrahieren Sie Text, Tabellen und Bildbereiche aus einem Dokumentbild. Geben Sie in `document.image_url` eine Bild-URL oder einen Daten-URI an. Cohere akzeptiert derzeit Bilder, keine PDF-Dateien. Wählen Sie `output_format` für Markdown oder strukturierte Blöcke."
+        },
+        "app.Q29oZXJl.action.cGFyc2U.display_name": {
+          "source": "Parse Document Image",
+          "message": "Dokumentbild analysieren"
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.ZG9jdW1lbnQ.desc": {
+          "source": "Document to parse. Currently only `image_url` documents are supported.\n",
+          "message": "Zu analysierendes Dokument. Derzeit werden nur `image_url`-Dokumente unterstützt."
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.ZG9jdW1lbnQ.display_name": {
+          "source": "Document",
+          "message": "Dokument"
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.ZG9jdW1lbnQ.short_desc": {
+          "source": "Document to parse",
+          "message": "Zu analysierendes Dokument"
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.b3V0cHV0X2Zvcm1hdA.allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.b3V0cHV0X2Zvcm1hdA.allowed-value.c3RyaW5nOmJsb2Nrcw.display_name": {
+          "source": "Structured Blocks",
+          "message": "Strukturierte Blöcke"
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.b3V0cHV0X2Zvcm1hdA.desc": {
+          "source": "Selects the page payload shape in the response. Defaults to `\"markdown\"`.\n\n- `\"markdown\"`: each page includes markdown content. Tables are inlined as\n  HTML, and images are referenced as `![<description>](<image_id>)` with\n  matching entries in `page.markdown.images`.\n- `\"blocks\"`: each page includes an ordered `blocks` array of text, image,\n  and table content regions, including bounding boxes where available.\n",
+          "message": "Wählt die Form der Seitennutzlast in der Antwort aus. Der Standardwert ist `\"markdown\"`.\n\n- `\"markdown\"`: Jede Seite enthält Markdown-Inhalte. Tabellen sind eingebunden als\n  HTML und Bilder werden als `![<description>](<image_id>)` mit referenziert\n  übereinstimmende Einträge in `page.markdown.images`.\n- `\"blocks\"`: Jede Seite enthält ein geordnetes `blocks`-Array aus Text, Bild,\n  und Tabelleninhaltsbereiche, einschließlich Begrenzungsrahmen, sofern verfügbar."
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.b3V0cHV0X2Zvcm1hdA.display_name": {
+          "source": "Output Format",
+          "message": "Ausgabeformat"
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.b3V0cHV0X2Zvcm1hdA.short_desc": {
+          "source": "Selects the page payload shape in the response",
+          "message": "Wählt die Form der Seitennutzlast in der Antwort aus"
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.bW9kZWw.desc": {
+          "source": "The name of a compatible Cohere parse model.",
+          "message": "Der Name eines kompatiblen Cohere-Analysemodells."
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.Q29oZXJl.action.cGFyc2U.option.bW9kZWw.short_desc": {
+          "source": "The name of a compatible Cohere parse model",
+          "message": "Der Name eines kompatiblen Cohere-Analysemodells"
+        },
+        "app.Q29oZXJl.action.cGFyc2U.short_desc": {
+          "source": "Extract structured blocks or Markdown from a document image",
+          "message": "Extrahieren Sie strukturierte Blöcke oder Markdown aus einem Dokumentbild"
+        },
         "app.Q29oZXJl.action.cmVyYW5r.desc": {
-          "source": "Reranks a list of candidate documents against a query using Cohere's rerank-v3.5 cross-encoder via `/v2/rerank`.  Returns top-N documents sorted by relevance score.",
-          "message": "Ordnet eine Liste von Kandidatendokumenten anhand einer Abfrage mithilfe des rerank-v3.5-Cross-Encoders von Cohere über `/v2/rerank` neu an. Gibt die Top-N-Dokumente sortiert nach Relevanzwert zurück."
+          "source": "Improve search results by scoring candidate documents against a query. Use `top_n` to return only the best matches; each result identifies the original document by its `index`.",
+          "message": "Verbessern Sie die Suchergebnisse, indem Sie Kandidatendokumente anhand einer Abfrage bewerten. Verwenden Sie `top_n`, um nur die besten Übereinstimmungen zurückzugeben. Jedes Ergebnis identifiziert das Originaldokument anhand seines `index`."
         },
         "app.Q29oZXJl.action.cmVyYW5r.display_name": {
           "source": "Rerank Documents",
           "message": "Dokumente neu anordnen"
+        },
+        "app.Q29oZXJl.action.cmVyYW5r.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.cmVyYW5r.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.cmVyYW5r.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
         },
         "app.Q29oZXJl.action.cmVyYW5r.option.ZG9jdW1lbnRz.desc": {
           "source": "List of candidate documents to rerank against the query.",
@@ -664,8 +2044,8 @@
           "message": "Neu anzuordnende Kandidatendokumente"
         },
         "app.Q29oZXJl.action.cmVyYW5r.option.bW9kZWw.desc": {
-          "source": "Cohere reranker model.  Examples:\n\n- `rerank-v3.5` — latest cross-encoder (recommended default)\n- `rerank-english-v3.0` — English-only v3\n- `rerank-multilingual-v3.0` — multilingual v3",
-          "message": "Cohere-Reranker-Modell. Beispiele:\n\n- `rerank-v3.5` — neuester Cross-Encoder (empfohlener Standard)\n- `rerank-english-v3.0` — Nur Englisch v3\n- `rerank-multilingual-v3.0` — mehrsprachig v3"
+          "source": "The identifier of the model to use, eg `rerank-v3.5`.",
+          "message": "Die Kennung des zu verwendenden Modells, z. B. `rerank-v3.5`."
         },
         "app.Q29oZXJl.action.cmVyYW5r.option.bW9kZWw.display_name": {
           "source": "Model",
@@ -675,17 +2055,29 @@
           "source": "Cohere reranker model",
           "message": "Cohere-Reranker-Modell"
         },
-        "app.Q29oZXJl.action.cmVyYW5r.option.bWF4X2NodW5rc19wZXJfZG9j.desc": {
-          "source": "When documents exceed the rerank context window, Cohere chunks them internally.  This caps the number of chunks per document.",
-          "message": "Wenn Dokumente das Rerank-Kontextfenster überschreiten, unterteilt Cohere sie intern in Chunks. Dies begrenzt die Anzahl der Chunks pro Dokument."
+        "app.Q29oZXJl.action.cmVyYW5r.option.bWF4X3Rva2Vuc19wZXJfZG9j.desc": {
+          "source": "Defaults to `4096`. Long documents will be automatically truncated to the specified number of tokens.",
+          "message": "Der Standardwert ist `4096`. Lange Dokumente werden automatisch auf die angegebene Anzahl von Tokens gekürzt."
         },
-        "app.Q29oZXJl.action.cmVyYW5r.option.bWF4X2NodW5rc19wZXJfZG9j.display_name": {
-          "source": "Max Chunks Per Doc",
-          "message": "Max. Chunks pro Dokument"
+        "app.Q29oZXJl.action.cmVyYW5r.option.bWF4X3Rva2Vuc19wZXJfZG9j.display_name": {
+          "source": "Max Tokens per Doc",
+          "message": "Max. Token pro Dokument"
         },
-        "app.Q29oZXJl.action.cmVyYW5r.option.bWF4X2NodW5rc19wZXJfZG9j.short_desc": {
-          "source": "Maximum chunks per document for long-document rerank",
-          "message": "Maximale Anzahl Chunks pro Dokument für das Reranken langer Dokumente"
+        "app.Q29oZXJl.action.cmVyYW5r.option.bWF4X3Rva2Vuc19wZXJfZG9j.short_desc": {
+          "source": "Defaults to '4096'",
+          "message": "Standardmäßig ist „4096“"
+        },
+        "app.Q29oZXJl.action.cmVyYW5r.option.cHJpb3JpdHk.desc": {
+          "source": "Controls how early the request is handled. Lower numbers indicate higher priority (default: 0, the highest). When the system is under load, higher-priority requests are processed first and are the least likely to be dropped.",
+          "message": "Steuert, wie früh die Anfrage bearbeitet wird. Niedrigere Zahlen bedeuten eine höhere Priorität (Standard: 0, die höchste). Wenn das System ausgelastet ist, werden Anfragen mit höherer Priorität zuerst verarbeitet und es ist am unwahrscheinlichsten, dass sie verworfen werden."
+        },
+        "app.Q29oZXJl.action.cmVyYW5r.option.cHJpb3JpdHk.display_name": {
+          "source": "Priority",
+          "message": "Priorität"
+        },
+        "app.Q29oZXJl.action.cmVyYW5r.option.cHJpb3JpdHk.short_desc": {
+          "source": "Controls how early the request is handled",
+          "message": "Steuert, wie früh die Anfrage bearbeitet wird"
         },
         "app.Q29oZXJl.action.cmVyYW5r.option.cXVlcnk.desc": {
           "source": "Free-form user query.",
@@ -698,18 +2090,6 @@
         "app.Q29oZXJl.action.cmVyYW5r.option.cXVlcnk.short_desc": {
           "source": "The user query to rerank documents against",
           "message": "Die Benutzerabfrage, anhand derer Dokumente neu angeordnet werden sollen"
-        },
-        "app.Q29oZXJl.action.cmVyYW5r.option.cmV0dXJuX2RvY3VtZW50cw.desc": {
-          "source": "When `True` (default), each result includes the document.",
-          "message": "Wenn `True` (Standard), enthält jedes Ergebnis das Dokument."
-        },
-        "app.Q29oZXJl.action.cmVyYW5r.option.cmV0dXJuX2RvY3VtZW50cw.display_name": {
-          "source": "Return Documents",
-          "message": "Dokumente zurückgeben"
-        },
-        "app.Q29oZXJl.action.cmVyYW5r.option.cmV0dXJuX2RvY3VtZW50cw.short_desc": {
-          "source": "Whether to echo the document text in the response",
-          "message": "Gibt an, ob der Dokumenttext in der Antwort wiederholt werden soll"
         },
         "app.Q29oZXJl.action.cmVyYW5r.option.dG9wX24.desc": {
           "source": "Number of top-ranked documents to return.",
@@ -724,20 +2104,184 @@
           "message": "Wie viele Ergebnisse mit den höchsten Bewertungen zurückgegeben werden sollen"
         },
         "app.Q29oZXJl.action.cmVyYW5r.short_desc": {
-          "source": "Rerank candidate documents against a query using Cohere Rerank",
-          "message": "Kandidatendokumente anhand einer Abfrage mithilfe von Cohere Rerank neu anordnen"
+          "source": "Rank candidate documents by relevance to a query",
+          "message": "Ordnen Sie Kandidatendokumente nach Relevanz für eine Abfrage"
+        },
+        "app.Q29oZXJl.action.dG9rZW5pemU.desc": {
+          "source": "Count and inspect tokens before constructing prompts. Token IDs depend on the selected model; use the same model when detokenizing.",
+          "message": "Zählen und prüfen Sie die Token, bevor Sie Eingabeaufforderungen erstellen. Token-IDs hängen vom ausgewählten Modell ab; Verwenden Sie beim Detokenisieren dasselbe Modell."
+        },
+        "app.Q29oZXJl.action.dG9rZW5pemU.display_name": {
+          "source": "Tokenize Text",
+          "message": "Text tokenisieren"
+        },
+        "app.Q29oZXJl.action.dG9rZW5pemU.option.WC1DbGllbnQtTmFtZQ.desc": {
+          "source": "The name of the project that is making the request.\n",
+          "message": "Der Name des Projekts, das die Anfrage stellt."
+        },
+        "app.Q29oZXJl.action.dG9rZW5pemU.option.WC1DbGllbnQtTmFtZQ.display_name": {
+          "source": "X Client Name",
+          "message": "X-Clientname"
+        },
+        "app.Q29oZXJl.action.dG9rZW5pemU.option.WC1DbGllbnQtTmFtZQ.short_desc": {
+          "source": "The name of the project that is making the request",
+          "message": "Der Name des Projekts, das die Anfrage stellt"
+        },
+        "app.Q29oZXJl.action.dG9rZW5pemU.option.bW9kZWw.desc": {
+          "source": "The input will be tokenized by the tokenizer that is used by this model.",
+          "message": "Die Eingabe wird vom Tokenizer, der von diesem Modell verwendet wird, tokenisiert."
+        },
+        "app.Q29oZXJl.action.dG9rZW5pemU.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.Q29oZXJl.action.dG9rZW5pemU.option.bW9kZWw.short_desc": {
+          "source": "The input will be tokenized by the tokenizer that is used by this model",
+          "message": "Die Eingabe wird vom Tokenizer, der von diesem Modell verwendet wird, tokenisiert"
+        },
+        "app.Q29oZXJl.action.dG9rZW5pemU.option.dGV4dA.desc": {
+          "source": "The string to be tokenized, the minimum text length is 1 character, and the maximum text length is 65536 characters.",
+          "message": "Die zu tokenisierende Zeichenfolge. Die minimale Textlänge beträgt 1 Zeichen und die maximale Textlänge beträgt 65536 Zeichen."
+        },
+        "app.Q29oZXJl.action.dG9rZW5pemU.option.dGV4dA.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.Q29oZXJl.action.dG9rZW5pemU.option.dGV4dA.short_desc": {
+          "source": "The string to be tokenized, the minimum text length is 1 character, and the…",
+          "message": "Die zu tokenisierende Zeichenfolge, die Mindesttextlänge beträgt 1 Zeichen und die…"
+        },
+        "app.Q29oZXJl.action.dG9rZW5pemU.short_desc": {
+          "source": "Convert text to model-specific token IDs",
+          "message": "Konvertieren Sie Text in modellspezifische Token-IDs"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.desc": {
+          "source": "Transcribe audio from a FLAC, MP3, MPEG, MPGA, OGG, or WAV file. Specify the spoken `language` and an audio transcription model.",
+          "message": "Transkribieren Sie Audio aus einer FLAC-, MP3-, MPEG-, MPGA-, OGG- oder WAV-Datei. Geben Sie das gesprochene `language` und ein Audiotranskriptionsmodell an."
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.display_name": {
+          "source": "Transcribe Audio",
+          "message": "Audio transkribieren"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.ZmlsZQ.desc": {
+          "source": "The audio file object to transcribe. Supported file extensions are flac, mp3, mpeg, mpga, ogg, and wav.",
+          "message": "Das zu transkribierende Audiodateiobjekt. Unterstützte Dateierweiterungen sind FLAC, MP3, MPEG, MPGA, OGG und WAV."
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.ZmlsZQ.display_name": {
+          "source": "File",
+          "message": "Datei"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.ZmlsZQ.short_desc": {
+          "source": "The audio file object to transcribe",
+          "message": "Das zu transkribierende Audiodateiobjekt"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOm5s.display_name": {
+          "source": "Dutch",
+          "message": "Niederländisch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOmFy.display_name": {
+          "source": "Arabic",
+          "message": "Arabisch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOmRl.display_name": {
+          "source": "German",
+          "message": "Deutsch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOmVs.display_name": {
+          "source": "Greek",
+          "message": "Griechisch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOmVu.display_name": {
+          "source": "English",
+          "message": "Englisch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOmVz.display_name": {
+          "source": "Spanish",
+          "message": "Spanisch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOmZy.display_name": {
+          "source": "French",
+          "message": "Französisch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOml0.display_name": {
+          "source": "Italian",
+          "message": "Italienisch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOmph.display_name": {
+          "source": "Japanese",
+          "message": "Japanisch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOmtv.display_name": {
+          "source": "Korean",
+          "message": "Koreanisch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOnB0.display_name": {
+          "source": "Portuguese",
+          "message": "Portugiesisch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOnBs.display_name": {
+          "source": "Polish",
+          "message": "Polnisch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOnZp.display_name": {
+          "source": "Vietnamese",
+          "message": "Vietnamesisch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.allowed-value.c3RyaW5nOnpo.display_name": {
+          "source": "Chinese",
+          "message": "Chinesisch"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.desc": {
+          "source": "The language of the input audio, supplied in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) format.",
+          "message": "Die Sprache des Eingabeaudios, bereitgestellt im Format [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes)."
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.display_name": {
+          "source": "Language",
+          "message": "Sprache"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bGFuZ3VhZ2U.short_desc": {
+          "source": "The language of the input audio, supplied in…",
+          "message": "Die Sprache des Eingangsaudios, bereitgestellt in…"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bW9kZWw.desc": {
+          "source": "ID of the model to use.",
+          "message": "ID des zu verwendenden Modells."
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.bW9kZWw.short_desc": {
+          "source": "ID of the model to use",
+          "message": "ID des zu verwendenden Modells"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.dGVtcGVyYXR1cmU.desc": {
+          "source": "The sampling temperature, between 0 and 1. Higher values like 0.8 make the output more random, while lower values like 0.2 make it more focused and deterministic.",
+          "message": "Die Abtasttemperatur liegt zwischen 0 und 1. Höhere Werte wie 0,8 machen die Ausgabe zufälliger, während niedrigere Werte wie 0,2 sie fokussierter und deterministischer machen."
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "Temperatur"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.option.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "The sampling temperature, between 0 and 1",
+          "message": "Die Probenahmetemperatur liegt zwischen 0 und 1"
+        },
+        "app.Q29oZXJl.action.dHJhbnNjcmliZQ.short_desc": {
+          "source": "Turn recorded speech into text",
+          "message": "Wandeln Sie aufgezeichnete Sprache in Text um"
         },
         "app.Q29oZXJl.desc": {
-          "source": "Provides access to [Cohere](https://cohere.com) — enterprise-grade chat with Command R / R+, multilingual embeddings, and best-in-class reranking.\n\n**Common use cases**:\n- **Tool-calling chat agents** with Command R+\n- **Multilingual RAG embeddings** with embed-multilingual-v3.0\n- **Production rerank** with rerank-v3.5 — pairs naturally with any embedder\n- **Text classification** via the dedicated /classify endpoint",
-          "message": "Bietet Zugriff auf [Cohere](https://cohere.com) — Chat auf Enterprise-Niveau mit Command R / R+, mehrsprachigen Embeddings und erstklassigem Reranking.\n\n**Typische Anwendungsfälle**:\n- **Tool-Calling-Chat-Agenten** mit Command R+\n- **Mehrsprachige RAG-Embeddings** mit embed-multilingual-v3.0\n- **Produktions-Rerank** mit rerank-v3.5 — lässt sich nahtlos mit jedem Embedder kombinieren\n- **Textklassifizierung** über den dedizierten /classify-Endpunkt"
+          "source": "Use [Cohere](https://cohere.com) to understand and retrieve business content.\n\n- Generate grounded answers and call tools with chat models\n- Embed text and images, and rerank search results\n- Extract document images and transcribe recorded speech\n- Upload datasets and manage embedding or inference batches\n- Discover models and inspect model-specific tokens\n\nA Cohere API key is required. Trial keys have a monthly quota; connection pings verify authentication separately from inference availability.",
+          "message": "Verwenden Sie [Cohere](https://cohere.com), um Geschäftsinhalte zu verstehen und abzurufen.\n\n- Generieren Sie Antworten basierend auf Quelldokumenten und Anruftools mit Chat-Modellen\n- Betten Sie Text und Bilder ein und ordnen Sie Suchergebnisse neu\n- Extrahieren Sie Dokumentbilder und transkribieren Sie aufgezeichnete Sprache\n- Laden Sie Datensätze hoch und verwalten Sie Einbettungs- oder Inferenzbatches\n- Entdecken Sie Modelle und prüfen Sie modellspezifische Token\n\nEin Cohere-API-Schlüssel ist erforderlich. Für Testschlüssel gilt ein monatliches Kontingent. Verbindungs-Pings überprüfen die Authentifizierung getrennt von der Inferenzverfügbarkeit."
         },
         "app.Q29oZXJl.display_name": {
           "source": "Cohere",
           "message": "Cohere"
         },
         "app.Q29oZXJl.short_desc": {
-          "source": "Cohere chat (Command R/R+), embeddings, reranking, and classification",
-          "message": "Cohere Chat (Command R/R+), Embeddings, Reranking und Klassifizierung"
+          "source": "Chat, search, document extraction, audio transcription, and batch inference",
+          "message": "Chat, Suche, Dokumentenextraktion, Audiotranskription und Batch-Inferenz"
         }
       }
     }

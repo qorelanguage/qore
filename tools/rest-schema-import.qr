@@ -250,9 +250,9 @@ class RestSchemaImport {
             if (!n.reason.val()) {
                 error("every entry of \"normalize\" in %y needs a \"reason\"", path);
             }
-            if (!n.operations && !n.relax_oneof) {
-                error("the repair %y in %y does nothing: it names neither operations nor \"relax_oneof\" "
-                    "pointers", n.reason, path);
+            if (!n.operations && !n.relax_oneof && !n.replace_required) {
+                error("the repair %y in %y does nothing: it names no operations, compositions, or "
+                    "required-property repairs", n.reason, path);
             }
             list<hash<auto>> params = ();
             foreach auto p in (n.add_parameters ?? ()) {
@@ -280,6 +280,7 @@ class RestSchemaImport {
                 "add_parameters": params,
                 "replace_parameters": replace,
                 "relax_oneof": relax,
+                "replace_required": n.replace_required,
             };
         }
         return rv;
@@ -372,8 +373,8 @@ class RestSchemaImport {
 "  --yaml               write YAML; the default is the format of the source document\n\n"
 "The operations to keep:\n"
 "  --ops FILE           a file of \"METHOD /path\" lines; \"#\" comments are ignored\n"
-"                       a spec file may also declare \"normalize\" repairs, which add\n"
-"                       parameters a vendor documents but omits; see the module docs\n"
+"                       a spec file may also declare \"normalize\" repairs for documented\n"
+"                       upstream defects; see the module docs\n"
 "  --op \"METHOD /path\"  a single operation; may be repeated\n"
 "  -m,--manifest MOD:EXPR  take them from a manifest, ex:\n"
 "                       \"PaddleDataProvider:PaddleManifest::Manifest\"\n\n"

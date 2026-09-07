@@ -71,18 +71,6 @@
           "source": "Import information for this entity",
           "message": "このエンティティのインポート情報"
         },
-        "app.UGFkZGxl.action.Y3JlYXRlX2N1c3RvbWVy.option.aWQ.desc": {
-          "source": "Unique Paddle ID for this customer entity, prefixed with `ctm_`.",
-          "message": "この顧客エンティティの一意のPaddle ID（プレフィックス: `ctm_`）。"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX2N1c3RvbWVy.option.aWQ.display_name": {
-          "source": "Customer ID",
-          "message": "顧客ID"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX2N1c3RvbWVy.option.aWQ.short_desc": {
-          "source": "Import an existing customer under a known Paddle ID",
-          "message": "既知のPaddle IDで既存の顧客をインポート"
-        },
         "app.UGFkZGxl.action.Y3JlYXRlX2N1c3RvbWVy.option.bG9jYWxl.desc": {
           "source": "Valid IETF BCP 47 short form locale tag. If omitted, defaults to `en`.",
           "message": "有効なIETF BCP 47短縮形式ロケールタグ。省略した場合のデフォルトは`en`です。"
@@ -531,18 +519,6 @@
           "source": "Paddle Checkout details for this transaction",
           "message": "このトランザクションのPaddle Checkoutの詳細"
         },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.Y3JlYXRlZF9hdA.desc": {
-          "source": "RFC 3339 datetime string of when this entity was created. Set automatically by Paddle.",
-          "message": "このエンティティが作成された日時のRFC 3339形式の日時文字列。Paddleによって自動的に設定されます。"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.Y3JlYXRlZF9hdA.display_name": {
-          "source": "Created At",
-          "message": "作成日時"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.Y3JlYXRlZF9hdA.short_desc": {
-          "source": "RFC 3339 datetime string of when this entity was created",
-          "message": "このエンティティが作成された日時のRFC 3339形式の日時文字列"
-        },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.Y3VycmVuY3lfY29kZQ.desc": {
           "source": "Supported three-letter ISO 4217 currency code. Must be `USD`, `EUR`, or `GBP` if `collection_mode` is `manual`.",
           "message": "サポートされている3文字のISO 4217通貨コード。`collection_mode` が `manual` の場合、`USD`、`EUR`、または `GBP` である必要があります。"
@@ -588,20 +564,8 @@
           "message": "住所ID"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YWRkcmVzc19pZA.short_desc": {
-          "source": "Paddle ID of the address that this transaction is for, prefixed with 'add_'.…",
-          "message": "この取引の対象となる住所の Paddle ID（接頭辞 'add_'）…"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YmlsbGVkX2F0.desc": {
-          "source": "RFC 3339 datetime string of when this transaction was marked as `billed`. `null` for transactions that aren't `billed` or `completed`. Set automatically by Paddle.",
-          "message": "このトランザクションが `billed` としてマークされた日時のRFC 3339形式の日時文字列。`billed` または `completed` ではないトランザクションの場合は `null`。Paddleによって自動的に設定されます。"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YmlsbGVkX2F0.display_name": {
-          "source": "Billed At",
-          "message": "請求日時"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YmlsbGVkX2F0.short_desc": {
-          "source": "RFC 3339 datetime string of when this transaction was marked as 'billed'",
-          "message": "この取引が 'billed' として記録された日時の RFC 3339 形式文字列"
+          "source": "Paddle ID of the address that this transaction is for, prefixed with 'add_'",
+          "message": "このトランザクションの対象となるアドレスのパドル ID (接頭辞「add_」)"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YmlsbGluZ19kZXRhaWxz.desc": {
           "source": "Details for invoicing. Required if `collection_mode` is `manual`.",
@@ -636,20 +600,8 @@
           "message": "法人ID"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.YnVzaW5lc3NfaWQ.short_desc": {
-          "source": "Paddle ID of the business that this transaction is for, prefixed with 'biz_'.…",
-          "message": "この取引の対象となる事業者の Paddle ID（接頭辞 'biz_'）…"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.ZGV0YWlscw.desc": {
-          "source": "Calculated totals for a transaction, including proration, discounts, tax, and currency conversion. Considered the source of truth for totals on a transaction.",
-          "message": "日割り計算、割引、税金、通貨換算を含む、トランザクションの計算済み合計額。トランザクションの合計額に関する信頼できる唯一の情報源とみなされます。"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.ZGV0YWlscw.display_name": {
-          "source": "Details",
-          "message": "詳細"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.ZGV0YWlscw.short_desc": {
-          "source": "Calculated totals for a transaction, including proration, discounts, tax, and…",
-          "message": "日割り計算、割引、税金などを含む取引の計算済み合計…"
+          "source": "Paddle ID of the business that this transaction is for, prefixed with 'biz_'",
+          "message": "このトランザクションの対象となるビジネスのパドル ID (接頭辞「biz_」が付きます)"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.ZGlzY291bnQ.desc": {
           "source": "Apply a non-catalog discount to a transaction. Send one of `discount_id` or `discount`.",
@@ -675,30 +627,6 @@
           "source": "Paddle ID of the discount to apply to this transaction, prefixed with 'dsc_'",
           "message": "この取引に適用する割引のPaddle ID（プレフィックス: 'dsc_'）"
         },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9pZA.desc": {
-          "source": "Paddle ID of the invoice that this transaction is related to, prefixed with `inv_`. Used for compatibility with the Paddle Invoice API, which is now deprecated. This field is scheduled to be removed in the next version of the Paddle API.",
-          "message": "この取引に関連付けられている請求書のPaddle ID（プレフィックス: `inv_`）。現在は非推奨となっているPaddle Invoice APIとの互換性のために使用されます。このフィールドはPaddle APIの次期バージョンで削除される予定です。"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9pZA.display_name": {
-          "source": "Invoice ID",
-          "message": "請求書ID"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9pZA.short_desc": {
-          "source": "Paddle ID of the invoice that this transaction is related to, prefixed with…",
-          "message": "この取引に関連する請求書の Paddle ID（接頭辞付き）…"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9udW1iZXI.desc": {
-          "source": "Invoice number for this transaction. Automatically generated by Paddle when you mark a transaction as `billed` where `collection_mode` is `manual`.",
-          "message": "この取引の請求書番号。`collection_mode` が `manual` の場合に取引を `billed` としてマークすると、Paddleによって自動的に生成されます。"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9udW1iZXI.display_name": {
-          "source": "Invoice Number",
-          "message": "請求書番号"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW52b2ljZV9udW1iZXI.short_desc": {
-          "source": "Invoice number for this transaction",
-          "message": "この取引の請求書番号"
-        },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW5jbHVkZQ.desc": {
           "source": "Include related entities in the response. Use a comma-separated list to specify multiple entities.",
           "message": "レスポンスに関連エンティティを含めます。複数のエンティティを指定するにはカンマ区切りリストを使用します。"
@@ -710,18 +638,6 @@
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aW5jbHVkZQ.short_desc": {
           "source": "Include related entities, ex: \"totals\", in the response",
           "message": "レスポンスに関連エンティティ（例: \"totals\"）を含める"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aWQ.desc": {
-          "source": "Unique Paddle ID for this transaction entity, prefixed with `txn_`.",
-          "message": "この取引エンティティの一意のPaddle ID（プレフィックス: `txn_`）。"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aWQ.display_name": {
-          "source": "ID",
-          "message": "ID"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aWQ.short_desc": {
-          "source": "Unique Paddle ID for this transaction entity, prefixed with 'txn_'",
-          "message": "この取引エンティティの一意のPaddle ID（プレフィックス: 'txn_'）"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.aXRlbXM.desc": {
           "source": "List of items to charge for. You can charge for items that you've added to your catalog by passing the Paddle ID of an existing price entity, or you can charge for non-catalog items by passing a price object.\n\nNon-catalog items can be for existing products, or you can pass a product object as part of your price to charge for a non-catalog product.",
@@ -822,30 +738,6 @@
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.c3Vic2NyaXB0aW9uX2lk.short_desc": {
           "source": "Paddle ID of the subscription that this transaction is for, prefixed with 'sub_'",
           "message": "この取引の対象となるサブスクリプションのPaddle ID（プレフィックス: 'sub_'）"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.cGF5bWVudHM.desc": {
-          "source": "List of payment attempts for this transaction, including successful payments. Sorted by `created_at` in descending order, so most recent attempts are returned first.",
-          "message": "成功した支払いを含む、この取引の支払い試行リスト。`created_at` の降順でソートされるため、最新の試行が先頭に返されます。"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.cGF5bWVudHM.display_name": {
-          "source": "Payments",
-          "message": "支払い"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.cGF5bWVudHM.short_desc": {
-          "source": "List of payment attempts for this transaction, including successful payments",
-          "message": "成功した支払いを含む、この取引の支払い試行リスト"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.dXBkYXRlZF9hdA.desc": {
-          "source": "RFC 3339 datetime string of when this entity was updated. Set automatically by Paddle.",
-          "message": "このエンティティが更新された日時のRFC 3339日時文字列。Paddleによって自動的に設定されます。"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.dXBkYXRlZF9hdA.display_name": {
-          "source": "Updated At",
-          "message": "更新日時"
-        },
-        "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.option.dXBkYXRlZF9hdA.short_desc": {
-          "source": "RFC 3339 datetime string of when this entity was updated",
-          "message": "このエンティティが更新された日時のRFC 3339日時文字列"
         },
         "app.UGFkZGxl.action.Y3JlYXRlX3RyYW5zYWN0aW9u.short_desc": {
           "source": "Create a transaction, optionally billing it",

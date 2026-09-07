@@ -1,0 +1,117 @@
+#!/usr/bin/env qore
+/** RestSchemaQueryArrays.qtest Copyright 2026 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/RestSchemaDataProvider
+%requires json
+%exec-class QueryArraysTest
+
+class QueryArrayClient inherits RestClientIo::RestClientIo {
+    public {
+        string request_path;
+        int requests = 0;
+    }
+    constructor() : RestClientIo({"url": "https://example.com"}) {
+    }
+    hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body,
+            *hash<auto> headers) {
+        request_path = path;
+        ++requests;
+        return <RestClient::RestResponseInfo>{"status_code": 200, "body": {}, "headers": {}};
+    }
+}
+class QueryArraysTest inherits QUnit::Test {
+    constructor() : Test("REST query array serialization", "1.0") {
+        addTestCase("OpenAPI defaults, explode, separators and path-level declarations", \openapiTest());
+        addTestCase("Swagger collection formats", \swaggerTest());
+        addTestCase("empty arrays, numeric validation and single literal comma", \edgeTest());
+        set_return_value(main());
+    }
+    private AbstractDataProvider provider(QueryArrayClient client, bool swagger, hash<auto> format,
+            bool path_level = False, string item_type = "string") {
+        hash<auto!> param = {"name": "ids", "in": "query", "required": True};
+        if (swagger) {
+            param += {"type": "array", "items": {"type": item_type}} + format;
+        } else {
+            param += {"schema": {"type": "array", "items": {"type": item_type}}} + format;
+        }
+        hash<auto!> path = {"get": {"responses": {"200": {"description": "Success"}}}};
+        if (path_level) {
+            path.parameters = (param,);
+        } else {
+            path.get = path.get + {"parameters": (param,)};
+        }
+        hash<auto!> schema = {"info": {"title": "Query formats", "version": "1.0"}, "paths": {"/items": path}};
+        schema += swagger ? {"swagger": "2.0", "host": "example.com", "schemes": ("https",)}
+            : {"openapi": "3.0.3", "servers": ({"url": "https://example.com"},)};
+        RestSchemaDataProvider meta({"schema": make_json(schema)});
+        RestSchemaDataProvider root(meta.getSchema(), client);
+        return root.getChildProviderPath("items/GET");
+    }
+    private openapiTest() {
+        foreach hash<auto> scenario in ((
+            {"format": {}, "expected": "ids=a%2Cb&ids=c%26d"},
+            {"format": {"explode": True}, "expected": "ids=a%2Cb&ids=c%26d"},
+            {"format": {"explode": False}, "expected": "ids=a%2Cb,c%26d"},
+            {"format": {"style": "spaceDelimited"}, "expected": "ids=a%2Cb%20c%26d"},
+            {"format": {"style": "pipeDelimited"}, "expected": "ids=a%2Cb%7Cc%26d"},
+        )) {
+            foreach bool path_level in ((False, True)) {
+                QueryArrayClient client();
+                AbstractDataProvider p = provider(client, False, scenario.format, path_level);
+                p.doRequest({"query": {"ids": ("a,b", "c&d")}});
+                assertEq("/items?" + scenario.expected, client.request_path);
+                assertEq(1, client.requests);
+            }
+        }
+    }
+    private swaggerTest() {
+        foreach hash<auto> scenario in ((
+            {"format": {}, "expected": "ids=a%2Cb,c%26d"},
+            {"format": {"collectionFormat": "multi"}, "expected": "ids=a%2Cb&ids=c%26d"},
+            {"format": {"collectionFormat": "csv"}, "expected": "ids=a%2Cb,c%26d"},
+            {"format": {"collectionFormat": "ssv"}, "expected": "ids=a%2Cb%20c%26d"},
+            {"format": {"collectionFormat": "tsv"}, "expected": "ids=a%2Cb%09c%26d"},
+            {"format": {"collectionFormat": "pipes"}, "expected": "ids=a%2Cb%7Cc%26d"},
+        )) {
+            QueryArrayClient client();
+            AbstractDataProvider p = provider(client, True, scenario.format);
+            p.doRequest({"query": {"ids": ("a,b", "c&d")}});
+            assertEq("/items?" + scenario.expected, client.request_path);
+        }
+    }
+    private edgeTest() {
+        QueryArrayClient client();
+        AbstractDataProvider p = provider(client, False, {});
+        p.doRequest({"query": {"ids": ("one,id",)}});
+        assertEq("/items?ids=one%2Cid", client.request_path);
+        p.doRequest({"query": {"ids": ()}});
+        assertEq("/items?", client.request_path);
+        p = provider(client, False, {}, False, "integer");
+        p.doRequest({"query": {"ids": (1, 2)}});
+        assertEq("/items?ids=1&ids=2", client.request_path);
+        int count = client.requests;
+        assertThrows("INVALID-STYLE", sub () { provider(client, False, {"style": "invalid"}); });
+        assertEq(count, client.requests);
+    }
+}

@@ -52,10 +52,7 @@ public class CohereEmbedDataProvider inherits CohereDataProviderCommon {
         `["float"]` so the response uses `embeddings.float`.
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        if (req.typeCode() == NT_HASH && !exists req.embedding_types) {
-            req.embedding_types = ("float",);
-        }
-        return doRestCommand("POST", "embed", req).body;
+        return getSchemaProvider("embed").doRequest(req, request_options);
     }
 }
 }

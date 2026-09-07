@@ -343,7 +343,7 @@ module RestSchemaActions {
 
     @subsection restschemaactions_records_paths The Paths a Record Is Read Through
 
-    @ref RestSchemaActions::RestSchemaRecordTableInfo::records_path "records_path",
+    @ref RestSchemaActions::RestSchemaRecordListingInfo::records_path "records_path",
     @ref RestSchemaActions::RestSchemaRecordTableInfo::record_path "record_path" and
     @ref RestSchemaActions::RestSchemaRecordTableInfo::write_record_path "write_record_path" say where in a
     response the records are, and a path that does not resolve fails **silently**: a single read whose record
@@ -404,7 +404,12 @@ module RestSchemaActions {
     @section restschemaactionsrelnotes Release Notes
 
     @subsection restschemaactionsv1_0 RestSchemaActions v1.0
+    - generated multipart actions expose named files alongside raw binary inputs, preserving upload metadata
     - the initial version of the %RestSchemaActions module
+    - omit schema `readOnly` properties from flattened request options, including unwrapped bodies
+    - enforce overlay required groups and mutually exclusive options before sending requests
+    - schema imports can repair incorrect required-property lists with explicit expected values;
+      stale repairs, duplicate names, and undeclared replacement properties are rejected
 */
 
 public namespace RestSchemaActions {

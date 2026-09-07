@@ -1,0 +1,1613 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "de": {
+      "messages": {
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.desc": {
+          "source": "Create an API key for a project to authenticate Data Plane and Control Plane requests.\n\n**Save the key:** the API returns the new key only when it is created. Use it with a separate Pinecone database connection.",
+          "message": "Erstellen Sie einen API-Schlüssel für ein Projekt, um Datenebenen- und Steuerungsebenenanforderungen zu authentifizieren.\n\n**Speichern Sie den Schlüssel:** Die API gibt den neuen Schlüssel erst zurück, wenn er erstellt wird. Verwenden Sie es mit einer separaten Pinecone-Datenbankverbindung."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.display_name": {
+          "source": "Create API Key",
+          "message": "API-Schlüssel erstellen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.bmFtZQ.desc": {
+          "source": "The name of the API key. The name must be 1-80 characters long.",
+          "message": "Der Name des API-Schlüssels. Der Name muss 1–80 Zeichen lang sein."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "Steuerungsebenen-Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "Control Plane Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "Datenebenen-Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "Datenebenen-Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "Projekteditor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "Projektbetrachter"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.desc": {
+          "source": "The roles to create the API key with. Default is `[\"ProjectEditor\"]`.",
+          "message": "Die Rollen, mit denen der API-Schlüssel erstellt werden soll. Der Standardwert ist `[\"ProjectEditor\"]`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.display_name": {
+          "source": "Roles",
+          "message": "Rollen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.short_desc": {
+          "source": "Roles",
+          "message": "Rollen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.short_desc": {
+          "source": "Create an API key",
+          "message": "Erstellen Sie einen API-Schlüssel"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.desc": {
+          "source": "Invite a user to the organization by email and grant their initial role bindings.\n\n**Sends email:** delivers an invitation to the specified address.",
+          "message": "Laden Sie einen Benutzer per E-Mail in die Organisation ein und gewähren Sie ihm anfängliche Rollenbindungen.\n\n**Sendet E-Mail:** sendet eine Einladung an die angegebene Adresse."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.display_name": {
+          "source": "Create Invite",
+          "message": "Einladung erstellen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.desc": {
+          "source": "The email address to invite.",
+          "message": "Die E-Mail-Adresse zur Einladung."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "E-Mail"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.short_desc": {
+          "source": "Email",
+          "message": "E-Mail"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.desc": {
+          "source": "Role bindings for the invitee. Must include at least one `organization`-scoped binding that grants organization membership (`OrgOwner`, `OrgManager`, `OrgBillingAdmin`, or `OrgMember`); `project`-scoped bindings are optional. Not returned in the response.",
+          "message": "Rollenbindungen für den Eingeladenen. Muss mindestens eine `organization`-Gültigkeitsbindung enthalten, die Organisationsmitgliedschaft gewährt (`OrgOwner`, `OrgManager`, `OrgBillingAdmin` oder `OrgMember`); `project`-gebundene Bindungen sind optional. Wird in der Antwort nicht zurückgegeben."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.display_name": {
+          "source": "Role Bindings",
+          "message": "Rollenbindungen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.short_desc": {
+          "source": "Role Bindings",
+          "message": "Rollenbindungen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.short_desc": {
+          "source": "Invite a user to the organization",
+          "message": "Laden Sie einen Benutzer in die Organisation ein"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.desc": {
+          "source": "Create a project to separate a team or workload's indexes, API keys, and deployment settings.",
+          "message": "Erstellen Sie ein Projekt, um die Indizes, API-Schlüssel und Bereitstellungseinstellungen eines Teams oder einer Arbeitslast zu trennen."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.display_name": {
+          "source": "Create Project",
+          "message": "Projekt erstellen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.desc": {
+          "source": "Whether to force encryption with a customer-managed encryption key (CMEK). Default is `false`.",
+          "message": "Ob die Verschlüsselung mit einem vom Kunden verwalteten Verschlüsselungsschlüssel (CMEK) erzwungen werden soll. Der Standardwert ist `false`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.display_name": {
+          "source": "Force Encryption With CMEK",
+          "message": "Verschlüsselung mit CMEK erzwingen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.short_desc": {
+          "source": "Force Encryption With CMEK",
+          "message": "Verschlüsselung mit CMEK erzwingen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.desc": {
+          "source": "The maximum number of Pods that can be created in the project. Default is `0` (serverless only).",
+          "message": "Die maximale Anzahl von Pods, die im Projekt erstellt werden können. Der Standardwert ist `0` (nur serverlos)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.display_name": {
+          "source": "Max Pods",
+          "message": "Max Pods"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.short_desc": {
+          "source": "Max Pods",
+          "message": "Max Pods"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.desc": {
+          "source": "The name of the new project.",
+          "message": "Der Name des neuen Projekts."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.short_desc": {
+          "source": "Create a new project",
+          "message": "Neues Projekt erstellen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.desc": {
+          "source": "Grant a user or service account the role it needs at organization or project scope.",
+          "message": "Gewähren Sie einem Benutzer oder Dienstkonto die Rolle, die er auf Organisations- oder Projektebene benötigt."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.display_name": {
+          "source": "Create Role Binding",
+          "message": "Rollenbindung erstellen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.desc": {
+          "source": "The resource ID of the selected `principal_type`, from **List Users**, **List Service Accounts**, **List Project API Keys**, or **List Invites**. For a service account use its `id`, not its OAuth2 `client_id`.",
+          "message": "Die Ressourcen-ID des ausgewählten `principal_type` aus **Benutzer auflisten**, **Dienstkonten auflisten**, **Projekt-API-Schlüssel auflisten** oder **Einladungen auflisten**. Verwenden Sie für ein Dienstkonto dessen `id`, nicht seinen OAuth2 `client_id`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.display_name": {
+          "source": "Principal ID",
+          "message": "Haupt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.short_desc": {
+          "source": "Principal ID",
+          "message": "Haupt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmFwaV9rZXk.display_name": {
+          "source": "API Key",
+          "message": "API-Schlüssel"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmludml0ZQ.display_name": {
+          "source": "Invite",
+          "message": "Einladen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnNlcnZpY2VfYWNjb3VudA.display_name": {
+          "source": "Service Account",
+          "message": "Dienstkonto"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "Benutzer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.desc": {
+          "source": "The kind of principal that receives permissions from a role binding.\nPossible values: `user`, `service_account`, `api_key`, `invite`.",
+          "message": "Die Art von Prinzipal, der Berechtigungen von einer Rollenbindung erhält.\nMögliche Werte: `user`, `service_account`, `api_key`, `invite`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.display_name": {
+          "source": "Principal Type",
+          "message": "Haupttyp"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.short_desc": {
+          "source": "Principal Type",
+          "message": "Haupttyp"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
+          "source": "Organization Manager",
+          "message": "Organisationsmanager"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
+          "source": "Organization Member",
+          "message": "Organisationsmitglied"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
+          "source": "Organization Owner",
+          "message": "Eigentümer der Organisation"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
+          "source": "Organization Billing Admin",
+          "message": "Abrechnungsadministrator der Organisation"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "Steuerungsebenen-Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "Control Plane Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "Datenebenen-Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "Datenebenen-Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "Projekteditor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
+          "source": "Project Manager",
+          "message": "Projektmanager"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
+          "source": "Project Member",
+          "message": "Projektmitglied"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
+          "source": "Project Owner",
+          "message": "Projektinhaber"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "Projektbetrachter"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.desc": {
+          "source": "A role assigned to a principal at a resource scope.",
+          "message": "Eine einem Prinzipal auf Ressourcenebene zugewiesene Rolle."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Rolle"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.short_desc": {
+          "source": "Role",
+          "message": "Rolle"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.desc": {
+          "source": "Project UUID. Required when `resource_type` is `project`; omit for `organization` scope.",
+          "message": "Projekt-UUID. Erforderlich, wenn `resource_type` gleich `project` ist; für den Bereich `organization` weglassen."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.display_name": {
+          "source": "Resource ID",
+          "message": "Ressourcen-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.short_desc": {
+          "source": "Resource ID",
+          "message": "Ressourcen-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Organization",
+          "message": "Organisation"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.desc": {
+          "source": "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`.",
+          "message": "Die Art des Ressourcenbereichs, für den eine Rollenbindung gilt.\nMögliche Werte: `organization`, `project`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.display_name": {
+          "source": "Resource Type",
+          "message": "Ressourcentyp"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.short_desc": {
+          "source": "Resource Type",
+          "message": "Ressourcentyp"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.short_desc": {
+          "source": "Create a role binding",
+          "message": "Erstellen Sie eine Rollenbindung"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Create a service account for automated workflows, optionally assigning its initial roles.\n\n**Save the secret:** `client_secret` is returned only once and cannot be read again.",
+          "message": "Erstellen Sie ein Dienstkonto für automatisierte Workflows und weisen Sie optional dessen anfängliche Rollen zu.\n\n**Speichern Sie das Geheimnis:** `client_secret` wird nur einmal zurückgegeben und kann nicht erneut gelesen werden."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Create Service Account",
+          "message": "Erstellen Sie ein Dienstkonto"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.desc": {
+          "source": "The human-readable name of the service account.",
+          "message": "Der für Menschen lesbare Name des Dienstkontos."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.desc": {
+          "source": "Optional initial role bindings. Omitting the field or passing an empty array creates the service account with no role bindings; roles can be added later via the role binding endpoints. A service account may be granted any organization- or project-scoped role. Not returned in the response.",
+          "message": "Optionale anfängliche Rollenbindungen. Wenn Sie das Feld weglassen oder ein leeres Array übergeben, wird das Dienstkonto ohne Rollenbindungen erstellt. Rollen können später über die Rollenbindungsendpunkte hinzugefügt werden. Einem Dienstkonto kann jede organisations- oder projektbezogene Rolle zugewiesen werden. Wird in der Antwort nicht zurückgegeben."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.display_name": {
+          "source": "Role Bindings",
+          "message": "Rollenbindungen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.short_desc": {
+          "source": "Role Bindings",
+          "message": "Rollenbindungen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Create a service account",
+          "message": "Erstellen Sie ein Dienstkonto"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.desc": {
+          "source": "Read an organization's configuration to review its plan and administrative settings.",
+          "message": "Lesen Sie die Konfiguration einer Organisation, um deren Plan und Verwaltungseinstellungen zu überprüfen."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Get Organization",
+          "message": "Organisation abrufen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
+          "source": "Organization ID",
+          "message": "Organisations-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
+          "source": "Organization ID",
+          "message": "Organisations-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
+          "source": "Organization ID",
+          "message": "Organisations-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.short_desc": {
+          "source": "Get organization details",
+          "message": "Erhalten Sie Organisationsdetails"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.desc": {
+          "source": "Read an API key's configuration and roles to review its access. The response excludes the secret.",
+          "message": "Lesen Sie die Konfiguration und Rollen eines API-Schlüssels, um seinen Zugriff zu überprüfen. Die Antwort schließt das Geheimnis aus."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.display_name": {
+          "source": "Get API Key",
+          "message": "Holen Sie sich den API-Schlüssel"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
+          "source": "API key ID",
+          "message": "API-Schlüssel-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.option.YXBpX2tleV9pZA.display_name": {
+          "source": "API Key ID",
+          "message": "API-Schlüssel-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.option.YXBpX2tleV9pZA.short_desc": {
+          "source": "API Key ID",
+          "message": "API-Schlüssel-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.short_desc": {
+          "source": "Get API key details",
+          "message": "Holen Sie sich Details zum API-Schlüssel"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.desc": {
+          "source": "Read an invitation's details before following up, resending it, or withdrawing access.",
+          "message": "Lesen Sie die Details einer Einladung, bevor Sie der Einladung nachgehen, sie erneut senden oder den Zugriff entziehen."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.display_name": {
+          "source": "Get Invite",
+          "message": "Holen Sie sich eine Einladung"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.desc": {
+          "source": "Invite ID",
+          "message": "Einladungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.display_name": {
+          "source": "Invite ID",
+          "message": "Einladungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
+          "source": "Invite ID",
+          "message": "Einladungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.short_desc": {
+          "source": "Get invite details",
+          "message": "Erhalten Sie Einladungsdetails"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.desc": {
+          "source": "Read a project's configuration before changing deployment limits or encryption settings.",
+          "message": "Lesen Sie die Konfiguration eines Projekts, bevor Sie Bereitstellungsbeschränkungen oder Verschlüsselungseinstellungen ändern."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.display_name": {
+          "source": "Get Project",
+          "message": "Projekt abrufen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.short_desc": {
+          "source": "Get project details",
+          "message": "Projektdetails abrufen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.desc": {
+          "source": "Read a role assignment to check which principal has access to the selected resource.",
+          "message": "Lesen Sie eine Rollenzuweisung, um zu überprüfen, welcher Prinzipal Zugriff auf die ausgewählte Ressource hat."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.display_name": {
+          "source": "Get Role Binding",
+          "message": "Rollenbindung abrufen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.desc": {
+          "source": "Role binding ID",
+          "message": "Rollenbindungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.display_name": {
+          "source": "Role Binding ID",
+          "message": "Rollenbindungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.short_desc": {
+          "source": "Role Binding ID",
+          "message": "Rollenbindungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.short_desc": {
+          "source": "Get role binding details",
+          "message": "Rufen Sie Details zur Rollenbindung ab"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Read a service account's details to review an integration's identity. Its secret is available only when created or rotated.",
+          "message": "Lesen Sie die Details eines Dienstkontos, um die Identität einer Integration zu überprüfen. Sein Geheimnis ist nur verfügbar, wenn es erstellt oder gedreht wird."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Get Service Account",
+          "message": "Holen Sie sich ein Dienstkonto"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "Die eindeutige Kennung des Dienstkontos."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "Dienstkonto-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "Dienstkonto-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Get service account details",
+          "message": "Rufen Sie die Details des Dienstkontos ab"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.desc": {
+          "source": "Read a team member's organization details before reviewing their access or removing membership.",
+          "message": "Lesen Sie die Organisationsdetails eines Teammitglieds, bevor Sie seinen Zugriff überprüfen oder die Mitgliedschaft entfernen."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.display_name": {
+          "source": "Get User",
+          "message": "Benutzer abrufen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.desc": {
+          "source": "User ID",
+          "message": "Benutzer-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.display_name": {
+          "source": "User ID",
+          "message": "Benutzer-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.short_desc": {
+          "source": "User ID",
+          "message": "Benutzer-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.short_desc": {
+          "source": "Get user details",
+          "message": "Benutzerdetails abrufen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.desc": {
+          "source": "Delete an organization and all its configuration; delete all its projects first.",
+          "message": "Eine Organisation und ihre gesamte Konfiguration löschen; Löschen Sie zunächst alle seine Projekte."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Delete Organization",
+          "message": "Organisation löschen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
+          "source": "Organization ID",
+          "message": "Organisations-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
+          "source": "Organization ID",
+          "message": "Organisations-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
+          "source": "Organization ID",
+          "message": "Organisations-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.short_desc": {
+          "source": "Delete an organization",
+          "message": "Eine Organisation löschen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.desc": {
+          "source": "Revoke a project API key when an integration is retired or its credentials must be replaced.",
+          "message": "Widerrufen Sie einen Projekt-API-Schlüssel, wenn eine Integration außer Betrieb genommen wird oder ihre Anmeldeinformationen ersetzt werden müssen."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.display_name": {
+          "source": "Delete API Key",
+          "message": "API-Schlüssel löschen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
+          "source": "API key ID",
+          "message": "API-Schlüssel-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.display_name": {
+          "source": "API Key ID",
+          "message": "API-Schlüssel-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.short_desc": {
+          "source": "API Key ID",
+          "message": "API-Schlüssel-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.short_desc": {
+          "source": "Delete an API key",
+          "message": "Löschen Sie einen API-Schlüssel"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.desc": {
+          "source": "Delete a pending or expired invite and its role bindings; to remove an accepted user, delete the user instead.",
+          "message": "Löschen Sie eine ausstehende oder abgelaufene Einladung und ihre Rollenbindungen. Um einen akzeptierten Benutzer zu entfernen, löschen Sie stattdessen den Benutzer."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.display_name": {
+          "source": "Delete Invite",
+          "message": "Einladung löschen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.desc": {
+          "source": "Invite ID",
+          "message": "Einladungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.display_name": {
+          "source": "Invite ID",
+          "message": "Einladungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
+          "source": "Invite ID",
+          "message": "Einladungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.short_desc": {
+          "source": "Delete an invite",
+          "message": "Eine Einladung löschen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.desc": {
+          "source": "Delete a project and all its configuration; delete its indexes, assistants, backups, and collections first.",
+          "message": "Ein Projekt und seine gesamte Konfiguration löschen; Löschen Sie zuerst seine Indizes, Assistenten, Sicherungen und Sammlungen."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.display_name": {
+          "source": "Delete Project",
+          "message": "Projekt löschen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.short_desc": {
+          "source": "Delete a project",
+          "message": "Ein Projekt löschen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.desc": {
+          "source": "Remove a role assignment when access is no longer needed. Permissions are revoked when deletion completes.",
+          "message": "Entfernen Sie eine Rollenzuweisung, wenn der Zugriff nicht mehr benötigt wird. Berechtigungen werden widerrufen, wenn der Löschvorgang abgeschlossen ist."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.display_name": {
+          "source": "Delete Role Binding",
+          "message": "Rollenbindung löschen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.desc": {
+          "source": "Role binding ID",
+          "message": "Rollenbindungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.display_name": {
+          "source": "Role Binding ID",
+          "message": "Rollenbindungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.short_desc": {
+          "source": "Role Binding ID",
+          "message": "Rollenbindungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.short_desc": {
+          "source": "Delete a role binding",
+          "message": "Löschen Sie eine Rollenbindung"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Delete a service account and its role bindings; tokens it minted are revoked within a few seconds.",
+          "message": "Löschen Sie ein Dienstkonto und seine Rollenbindungen. Geprägte Token werden innerhalb weniger Sekunden widerrufen."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Delete Service Account",
+          "message": "Dienstkonto löschen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "Die eindeutige Kennung des Dienstkontos."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "Dienstkonto-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "Dienstkonto-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Delete a service account",
+          "message": "Löschen Sie ein Dienstkonto"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.desc": {
+          "source": "Remove a user from the organization and revoke their role bindings; their Pinecone account is not deleted.",
+          "message": "Einen Benutzer aus der Organisation entfernen und seine Rollenbindungen widerrufen; Ihr Pinecone-Konto wird nicht gelöscht."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.display_name": {
+          "source": "Delete User",
+          "message": "Benutzer löschen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.desc": {
+          "source": "User ID",
+          "message": "Benutzer-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.display_name": {
+          "source": "User ID",
+          "message": "Benutzer-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.short_desc": {
+          "source": "User ID",
+          "message": "Benutzer-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.short_desc": {
+          "source": "Remove a user from the organization",
+          "message": "Einen Benutzer aus der Organisation entfernen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.desc": {
+          "source": "List users in the caller's organization, optionally filtered by email address.",
+          "message": "Listen Sie Benutzer in der Organisation des Anrufers auf, optional gefiltert nach E-Mail-Adresse."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.display_name": {
+          "source": "List Users",
+          "message": "Benutzer auflisten"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.desc": {
+          "source": "Case-insensitive filter on the user's email address. Malformed email returns `400 INVALID_ARGUMENT`.",
+          "message": "Filter ohne Berücksichtigung der Groß-/Kleinschreibung für die E-Mail-Adresse des Benutzers. Eine fehlerhafte E-Mail gibt `400 INVALID_ARGUMENT` zurück."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "E-Mail"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.short_desc": {
+          "source": "Email",
+          "message": "E-Mail"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "Die Anzahl der Ergebnisse, die pro Seite zurückgegeben werden sollen. Wenn es weggelassen wird, verwendet der Server standardmäßig 100. Werte außerhalb des Bereichs geben `400 OUT_OF_RANGE` zurück."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "Cursor von `pagination.next` einer vorherigen Antwort. Muss mit demselben Abfragekontext (Pfadparameter, Filter und `limit`) wiederverwendet werden."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "Paginierungstoken"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "Paginierungstoken"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.short_desc": {
+          "source": "List users in the organization",
+          "message": "Listen Sie Benutzer in der Organisation auf"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.desc": {
+          "source": "List pending and expired invites in the caller's organization.",
+          "message": "Liste ausstehender und abgelaufener Einladungen in der Organisation des Anrufers."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.display_name": {
+          "source": "List Invites",
+          "message": "Einladungen auflisten"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "Die Anzahl der Ergebnisse, die pro Seite zurückgegeben werden sollen. Wenn es weggelassen wird, verwendet der Server standardmäßig 100. Werte außerhalb des Bereichs geben `400 OUT_OF_RANGE` zurück."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "Cursor von `pagination.next` einer vorherigen Antwort. Muss mit demselben Abfragekontext (Pfadparameter, Filter und `limit`) wiederverwendet werden."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "Paginierungstoken"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "Paginierungstoken"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.short_desc": {
+          "source": "List invites",
+          "message": "Einladungen auflisten"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.desc": {
+          "source": "List all organizations associated with an account.",
+          "message": "Listen Sie alle mit einem Konto verknüpften Organisationen auf."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.display_name": {
+          "source": "List Organizations",
+          "message": "Organisationen auflisten"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.short_desc": {
+          "source": "List organizations",
+          "message": "Organisationen auflisten"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.desc": {
+          "source": "List all API keys in a project.",
+          "message": "Listen Sie alle API-Schlüssel in einem Projekt auf."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.display_name": {
+          "source": "List Project API Keys",
+          "message": "Projekt-API-Schlüssel auflisten"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.short_desc": {
+          "source": "List API keys",
+          "message": "API-Schlüssel auflisten"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.desc": {
+          "source": "List all projects in an organization.",
+          "message": "Listen Sie alle Projekte in einer Organisation auf."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.display_name": {
+          "source": "List Projects",
+          "message": "Projekte auflisten"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.short_desc": {
+          "source": "List projects",
+          "message": "Listen Sie Projekte auf"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.desc": {
+          "source": "List role bindings in the caller's organization, optionally filtered by principal, resource, and role.",
+          "message": "Listen Sie Rollenbindungen in der Organisation des Anrufers auf, optional gefiltert nach Prinzipal, Ressource und Rolle."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.display_name": {
+          "source": "List Role Bindings",
+          "message": "Rollenbindungen auflisten"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "Die Anzahl der Ergebnisse, die pro Seite zurückgegeben werden sollen. Wenn es weggelassen wird, verwendet der Server standardmäßig 100. Werte außerhalb des Bereichs geben `400 OUT_OF_RANGE` zurück."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "Cursor von `pagination.next` einer vorherigen Antwort. Muss mit demselben Abfragekontext (Pfadparameter, Filter und `limit`) wiederverwendet werden."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "Paginierungstoken"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "Paginierungstoken"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.desc": {
+          "source": "The resource ID of the selected `principal_type`, from **List Users**, **List Service Accounts**, **List Project API Keys**, or **List Invites**. For a service account use its `id`, not its OAuth2 `client_id`.",
+          "message": "Die Ressourcen-ID des ausgewählten `principal_type` aus **Benutzer auflisten**, **Dienstkonten auflisten**, **Projekt-API-Schlüssel auflisten** oder **Einladungen auflisten**. Verwenden Sie für ein Dienstkonto dessen `id`, nicht seinen OAuth2 `client_id`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.display_name": {
+          "source": "Principal ID",
+          "message": "Haupt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.short_desc": {
+          "source": "Principal ID",
+          "message": "Haupt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmFwaV9rZXk.display_name": {
+          "source": "API Key",
+          "message": "API-Schlüssel"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmludml0ZQ.display_name": {
+          "source": "Invite",
+          "message": "Einladen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnNlcnZpY2VfYWNjb3VudA.display_name": {
+          "source": "Service Account",
+          "message": "Dienstkonto"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "Benutzer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.desc": {
+          "source": "Filter by principal type. Required when `principal_id` is set.",
+          "message": "Filtern Sie nach Haupttyp. Erforderlich, wenn `principal_id` eingestellt ist."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.display_name": {
+          "source": "Principal Type",
+          "message": "Haupttyp"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.short_desc": {
+          "source": "Principal Type",
+          "message": "Haupttyp"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
+          "source": "Organization Manager",
+          "message": "Organisationsmanager"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
+          "source": "Organization Member",
+          "message": "Organisationsmitglied"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
+          "source": "Organization Owner",
+          "message": "Eigentümer der Organisation"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
+          "source": "Organization Billing Admin",
+          "message": "Abrechnungsadministrator der Organisation"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "Steuerungsebenen-Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "Control Plane Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "Datenebenen-Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "Datenebenen-Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "Projekteditor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
+          "source": "Project Manager",
+          "message": "Projektmanager"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
+          "source": "Project Member",
+          "message": "Projektmitglied"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
+          "source": "Project Owner",
+          "message": "Projektinhaber"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "Projektbetrachter"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.desc": {
+          "source": "Filter by role.",
+          "message": "Nach Rolle filtern."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Rolle"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.short_desc": {
+          "source": "Role",
+          "message": "Rolle"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.desc": {
+          "source": "Filter by resource ID. Requires `resource_type`.",
+          "message": "Nach Ressourcen-ID filtern. Erfordert `resource_type`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.display_name": {
+          "source": "Resource ID",
+          "message": "Ressourcen-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.short_desc": {
+          "source": "Resource ID",
+          "message": "Ressourcen-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Organization",
+          "message": "Organisation"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.desc": {
+          "source": "Filter by resource type. Required when `resource_id` is set.",
+          "message": "Filtern Sie nach Ressourcentyp. Erforderlich, wenn `resource_id` eingestellt ist."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.display_name": {
+          "source": "Resource Type",
+          "message": "Ressourcentyp"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.short_desc": {
+          "source": "Resource Type",
+          "message": "Ressourcentyp"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.short_desc": {
+          "source": "List role bindings",
+          "message": "Rollenbindungen auflisten"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.desc": {
+          "source": "List service accounts in the caller's organization.",
+          "message": "Dienstkonten in der Organisation des Anrufers auflisten."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.display_name": {
+          "source": "List Service Accounts",
+          "message": "Dienstkonten auflisten"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "Die Anzahl der Ergebnisse, die pro Seite zurückgegeben werden sollen. Wenn es weggelassen wird, verwendet der Server standardmäßig 100. Werte außerhalb des Bereichs geben `400 OUT_OF_RANGE` zurück."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "Cursor von `pagination.next` einer vorherigen Antwort. Muss mit demselben Abfragekontext (Pfadparameter, Filter und `limit`) wiederverwendet werden."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "Paginierungstoken"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "Paginierungstoken"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.short_desc": {
+          "source": "List service accounts",
+          "message": "Dienstkonten auflisten"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.desc": {
+          "source": "Make a custom HTTP / REST API call to **Pinecone Admin** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
+          "message": "Führen Sie mithilfe der Authentifizierung der konfigurierten Verbindung einen benutzerdefinierten HTTP-/REST-API-Aufruf an **Pinecone Admin** durch.\n\nGeben Sie die HTTP-Methode, den URI-Pfad (relativ zur API-Basis-URL der Verbindung), optionale Abfrageparameter, Header und den Anforderungstext an. Die Antwort wird als Hash zurückgegeben, der den Statuscode, die Antwortheader und den Antworttext enthält.\n\nVerwenden Sie diese Aktion für Endpunkte, die in dieser App noch nicht als erstklassige Aktionen verfügbar sind."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.display_name": {
+          "source": "Make an API call",
+          "message": "API-Aufruf ausführen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.desc": {
+          "source": "The request body. The effective type depends on `body_type`: JSON/form/YAML expect a hash, XML/text expect a string, multipart expects a file structure, binary expects raw bytes.",
+          "message": "Der Anfragen-Body. Der effektive Typ hängt von `body_type` ab: JSON/form/YAML erwarten einen Hash, XML/Text erwarten einen String, Multipart erwartet eine Dateistruktur, Binary erwartet Rohbytes."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.display_name": {
+          "source": "Body",
+          "message": "Body"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.short_desc": {
+          "source": "The request body",
+          "message": "Der Anfragen-Body"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.desc": {
+          "source": "Upload a file using `multipart/form-data`. The body must be a @ref DataProvider::FileDataType \"FileDataType\" structure (filename + content + mime_type). The framework builds the multipart envelope and sets the boundary header.",
+          "message": "Laden Sie eine Datei mit `multipart/form-data` hoch. Der Body muss eine @ref DataProvider::FileDataType \"FileDataType\"-Struktur sein (filename + content + mime_type). Das Framework erstellt die Multipart-Hülle und setzt den Boundary-Header."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.display_name": {
+          "source": "Multipart Form",
+          "message": "Multipart-Formular"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.short_desc": {
+          "source": "Upload a file using multipart/form-data",
+          "message": "Eine Datei mit multipart/form-data hochladen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Pass the body to the REST client unchanged; the client decides serialization based on its configured `data` option and the value type",
+          "message": "Übergeben Sie den Body unverändert an den REST-Client; der Client entscheidet über die Serialisierung basierend auf seiner konfigurierten `data`-Option und dem Werttyp"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Auto"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Pass-through; use connection serialization and let the REST client decide",
+          "message": "Durchreichen; Verbindungsserialisierung nutzen, REST-Client entscheiden lassen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.desc": {
+          "source": "Send the body as raw bytes. The body must be a binary value. Sets `Content-Type: application/octet-stream` unless overridden by `hdr`.",
+          "message": "Senden Sie den Body als Rohbytes. Der Body muss ein Binärwert sein. Setzt `Content-Type: application/octet-stream`, sofern nicht durch `hdr` überschrieben."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
+          "source": "Raw Binary",
+          "message": "Rohbinärdaten"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.short_desc": {
+          "source": "Send body as raw bytes",
+          "message": "Body als Rohbytes senden"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.desc": {
+          "source": "Serialize a hash of form fields as `application/x-www-form-urlencoded`. The body must be a hash whose values are scalars (strings/numbers/booleans).",
+          "message": "Serialisieren Sie einen Hash von Formularfeldern als `application/x-www-form-urlencoded`. Der Body muss ein Hash sein, dessen Werte Skalare sind (Strings/Zahlen/Booleans)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.display_name": {
+          "source": "Form (URL-encoded)",
+          "message": "Formular (URL-kodiert)"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.short_desc": {
+          "source": "Serialize body as application/x-www-form-urlencoded form fields",
+          "message": "Body als application/x-www-form-urlencoded-Formularfelder serialisieren"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.desc": {
+          "source": "Serialize the body as JSON; sets `Content-Type: application/json`. The body should be a hash, list, or scalar value.",
+          "message": "Serialisieren Sie den Body als JSON; setzt `Content-Type: application/json`. Der Body sollte ein Hash, eine Liste oder ein Skalarwert sein."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.short_desc": {
+          "source": "Serialize body as JSON",
+          "message": "Body als JSON serialisieren"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Send the body as plain text. The body must be a string. Sets `Content-Type: text/plain`.",
+          "message": "Senden Sie den Body als Klartext. Der Body muss ein String sein. Setzt `Content-Type: text/plain`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "Klartext"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Send body as text/plain",
+          "message": "Body als text/plain senden"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.desc": {
+          "source": "Send the body as XML. If the body is a hash it is serialized to XML; if it is a string it is sent verbatim. Sets `Content-Type: application/xml`.",
+          "message": "Senden Sie den Body als XML. Wenn der Body ein Hash ist, wird er zu XML serialisiert; wenn er ein String ist, wird er wörtlich gesendet. Setzt `Content-Type: application/xml`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.display_name": {
+          "source": "XML",
+          "message": "XML"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.short_desc": {
+          "source": "Send body as XML",
+          "message": "Body als XML senden"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.desc": {
+          "source": "Send the body as YAML. If the body is a hash it is serialized to YAML; if it is a string it is sent verbatim. Sets `Content-Type: application/x-yaml`.",
+          "message": "Senden Sie den Body als YAML. Wenn der Body ein Hash ist, wird er zu YAML serialisiert; wenn er ein String ist, wird er wörtlich gesendet. Setzt `Content-Type: application/x-yaml`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.display_name": {
+          "source": "YAML",
+          "message": "YAML"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.short_desc": {
+          "source": "Send body as YAML",
+          "message": "Body als YAML senden"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.desc": {
+          "source": "Selects the body serialization mode and the corresponding `Content-Type` header. Changing this field reshapes the `body` editor - selecting JSON exposes a JSON editor, selecting Multipart Form exposes a file picker, and so on.",
+          "message": "Wählt den Body-Serialisierungsmodus und den entsprechenden Header `Content-Type` aus. Das Ändern dieses Feldes passt den Editor `body` an – die Auswahl von JSON zeigt einen JSON-Editor an, die Auswahl von Multipart Form zeigt eine Dateiauswahl an usw."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.display_name": {
+          "source": "Body Type",
+          "message": "Body-Typ"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.short_desc": {
+          "source": "How the body is serialized and what Content-Type is sent",
+          "message": "Wie der Body serialisiert wird und welcher Content-Type gesendet wird"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.desc": {
+          "source": "If `True`, non-2xx HTTP responses return as the normal response hash (with the actual status code) instead of raising `REST-RESPONSE-ERROR`. Useful for handling 4xx/5xx as data - e.g. checking whether a resource exists. Overrides the connection's `error_passthru` setting for this call only.",
+          "message": "Wenn `True`, werden Nicht-2xx-HTTP-Antworten als normaler Antwort-Hash (mit dem tatsächlichen Statuscode) zurückgegeben, anstatt `REST-RESPONSE-ERROR` auszulösen. Nützlich für die Behandlung von 4xx/5xx als Daten – z. B. zum Überprüfen, ob eine Ressource existiert. Überschreibt die Einstellung `error_passthru` der Verbindung nur für diesen Aufruf."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.display_name": {
+          "source": "Return Errors as Data",
+          "message": "Fehler als Daten zurückgeben"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.short_desc": {
+          "source": "Return non-2xx responses normally instead of throwing",
+          "message": "Nicht-2xx-Antworten normal zurückgeben, anstatt eine Exception auszulösen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.desc": {
+          "source": "Optional list of HTTP status codes treated as success. If set and the response status is not in this list, the action throws `REST-STATUS-ERROR`. When unset, the REST client's default behavior applies (typically: 2xx is success, non-2xx throws).",
+          "message": "Optionale Liste von HTTP-Statuscodes, die als Erfolg behandelt werden. Wenn festgelegt und der Antwortstatus nicht in dieser Liste enthalten ist, löst die Aktion `REST-STATUS-ERROR` aus. Wenn nicht festgelegt, gilt das Standardverhalten des REST-Clients (typischerweise: 2xx ist Erfolg, Nicht-2xx löst eine Exception aus)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.display_name": {
+          "source": "Expected Status Codes",
+          "message": "Erwartete Statuscodes"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.short_desc": {
+          "source": "Response status codes treated as success",
+          "message": "Antwort-Statuscodes, die als Erfolg behandelt werden"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.desc": {
+          "source": "Hash of custom headers added to the request. These override any default headers set by `body_type` (e.g. supplying `Content-Type` here wins over the body-type default).",
+          "message": "Hash benutzerdefinierter Header, die der Anfrage hinzugefügt werden. Diese überschreiben alle von `body_type` festgelegten Standard-Header (z. B. überschreibt die Angabe von `Content-Type` hier den Standard für den Body-Typ)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.display_name": {
+          "source": "Custom Headers",
+          "message": "Benutzerdefinierte Header"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.short_desc": {
+          "source": "Extra request headers",
+          "message": "Zusätzliche Anfrage-Header"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.desc": {
+          "source": "If `True`, the response hash includes a `debug` sub-hash containing the request method/URL/headers (with sensitive values redacted), request and response sizes, and round-trip duration. Useful when investigating slow or failing calls. Off by default to keep responses lean.",
+          "message": "Wenn `True`, enthält der Antwort-Hash einen Sub-Hash `debug`, der die Anfragemethode/URL/Header (mit unkenntlich gemachten sensiblen Werten), Anfrage- und Antwortgrößen sowie die Verarbeitungsdauer enthält. Nützlich bei der Untersuchung langsamer oder fehlschlagender Aufrufe. Standardmäßig deaktiviert, um Antworten schlank zu halten."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.display_name": {
+          "source": "Include Debug Info",
+          "message": "Debug-Informationen einschließen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.short_desc": {
+          "source": "Include request/timing/size debug info in the response",
+          "message": "Debug-Informationen zu Anfrage/Laufzeit/Größe in die Antwort einschließen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.desc": {
+          "source": "HTTP `OPTIONS`",
+          "message": "HTTP `OPTIONS`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.display_name": {
+          "source": "OPTIONS",
+          "message": "OPTIONS"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.short_desc": {
+          "source": "HTTP OPTIONS",
+          "message": "HTTP OPTIONS"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.desc": {
+          "source": "HTTP `DELETE`",
+          "message": "HTTP `DELETE`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.display_name": {
+          "source": "DELETE",
+          "message": "DELETE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.short_desc": {
+          "source": "HTTP DELETE",
+          "message": "HTTP DELETE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.desc": {
+          "source": "HTTP `GET`",
+          "message": "HTTP `GET`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.display_name": {
+          "source": "GET",
+          "message": "GET"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.short_desc": {
+          "source": "HTTP GET",
+          "message": "HTTP GET"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.desc": {
+          "source": "HTTP `HEAD`",
+          "message": "HTTP `HEAD`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.display_name": {
+          "source": "HEAD",
+          "message": "HEAD"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.short_desc": {
+          "source": "HTTP HEAD",
+          "message": "HTTP HEAD"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.desc": {
+          "source": "HTTP `PATCH`",
+          "message": "HTTP `PATCH`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.display_name": {
+          "source": "PATCH",
+          "message": "PATCH"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.short_desc": {
+          "source": "HTTP PATCH",
+          "message": "HTTP PATCH"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.desc": {
+          "source": "HTTP `POST`",
+          "message": "HTTP `POST`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.display_name": {
+          "source": "POST",
+          "message": "POST"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.short_desc": {
+          "source": "HTTP POST",
+          "message": "HTTP POST"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.desc": {
+          "source": "HTTP `PUT`",
+          "message": "HTTP `PUT`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.display_name": {
+          "source": "PUT",
+          "message": "PUT"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.short_desc": {
+          "source": "HTTP PUT",
+          "message": "HTTP PUT"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.desc": {
+          "source": "HTTP `TRACE`",
+          "message": "HTTP `TRACE`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.display_name": {
+          "source": "TRACE",
+          "message": "TRACE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.short_desc": {
+          "source": "HTTP TRACE",
+          "message": "HTTP TRACE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.desc": {
+          "source": "The HTTP method to use for the request",
+          "message": "Die für die Anfrage zu verwendende HTTP-Methode"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.display_name": {
+          "source": "HTTP Method",
+          "message": "HTTP-Methode"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.short_desc": {
+          "source": "The HTTP method to use for the request",
+          "message": "Die für die Anfrage zu verwendende HTTP-Methode"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.desc": {
+          "source": "The URI path relative to the connection's API base URL. May contain `{name}` placeholders that are replaced from `path_vars`. Example: `/users/{id}/comments`.",
+          "message": "Der URI-Pfad relativ zur API-Basis-URL der Verbindung. Kann `{name}`-Platzhalter enthalten, die aus `path_vars` ersetzt werden. Beispiel: `/users/{id}/comments`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.display_name": {
+          "source": "URI Path",
+          "message": "URI-Pfad"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.short_desc": {
+          "source": "The URI path relative to the connection's API base URL",
+          "message": "Der URI-Pfad relativ zur API-Basis-URL der Verbindung"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.desc": {
+          "source": "Hash of values substituted into `{name}` placeholders in the URI path. Example: with `path = /users/{id}` and `path_vars = {id: 123}` the framework sends `/users/123`. Values are URL-encoded.",
+          "message": "Hash von Werten, die in `{name}`-Platzhalter im URI-Pfad eingesetzt werden. Beispiel: Bei `path = /users/{id}` und `path_vars = {id: 123}` sendet das Framework `/users/123`. Werte werden URL-codiert."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.display_name": {
+          "source": "Path Variables",
+          "message": "Pfadvariablen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.short_desc": {
+          "source": "Values for {name} placeholders in path",
+          "message": "Werte für {name}-Platzhalter im Pfad"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.desc": {
+          "source": "Hash of query string parameters to append to the URI path. Values are URL-encoded; list values are joined with `,`.",
+          "message": "Hash von Abfragezeichenfolgen-Parametern, die an den URI-Pfad angehängt werden sollen. Werte werden URL-codiert; Listenwerte werden mit `,` zusammengefügt."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.display_name": {
+          "source": "Query Arguments",
+          "message": "Abfrageargumente"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.short_desc": {
+          "source": "Query string parameters",
+          "message": "Abfragezeichenfolgen-Parameter"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.short_desc": {
+          "source": "Make a custom API call to Pinecone Admin",
+          "message": "Führen Sie einen benutzerdefinierten API-Aufruf an Pinecone Admin durch"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.desc": {
+          "source": "Rotate a service account's OAuth client secret; the previous secret and its tokens are revoked within seconds and the new secret is returned only once.\n\n**Save the secret:** store `client_secret` securely when returned; it cannot be read again. Update the connections that use this service account after rotation.",
+          "message": "Rotieren Sie das OAuth-Client-Geheimnis eines Dienstkontos. Das vorherige Geheimnis und seine Token werden innerhalb von Sekunden widerrufen und das neue Geheimnis wird nur einmal zurückgegeben.\n\n**Bewahren Sie das Geheimnis auf:** Bewahren Sie `client_secret` bei der Rückgabe sicher auf; es kann nicht noch einmal gelesen werden. Aktualisieren Sie die Verbindungen, die dieses Dienstkonto nach der Rotation verwenden."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.display_name": {
+          "source": "Rotate Service Account Secret",
+          "message": "Dienstkontogeheimnis rotieren"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "Die eindeutige Kennung des Dienstkontos."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "Dienstkonto-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "Dienstkonto-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.short_desc": {
+          "source": "Rotate a service account's OAuth client secret",
+          "message": "Rotieren Sie das OAuth-Client-Geheimnis eines Dienstkontos"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.desc": {
+          "source": "Resend the invite email and extend its expiration to 7 days from now; limited to 100 emails per hour per organization.\n\n**Sends email:** delivers another invitation and renews its expiry.",
+          "message": "Senden Sie die Einladungs-E-Mail erneut und verlängern Sie deren Ablauf auf 7 Tage; begrenzt auf 100 E-Mails pro Stunde und Organisation.\n\n**Sendet E-Mail:** stellt eine weitere Einladung zu und verlängert deren Ablauf."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.display_name": {
+          "source": "Resend Invite",
+          "message": "Einladung erneut senden"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.desc": {
+          "source": "Invite ID",
+          "message": "Einladungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.display_name": {
+          "source": "Invite ID",
+          "message": "Einladungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
+          "source": "Invite ID",
+          "message": "Einladungs-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.short_desc": {
+          "source": "Resend an invite email",
+          "message": "Senden Sie erneut eine Einladungs-E-Mail"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.desc": {
+          "source": "Rename an organization so its display name matches the business or team it serves.",
+          "message": "Benennen Sie eine Organisation um, damit ihr Anzeigename mit dem Unternehmen oder Team übereinstimmt, dem sie dient."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Update Organization",
+          "message": "Organisation aktualisieren"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
+          "source": "Organization ID",
+          "message": "Organisations-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
+          "source": "Organization ID",
+          "message": "Organisations-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
+          "source": "Organization ID",
+          "message": "Organisations-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.desc": {
+          "source": "The new name for the organization.",
+          "message": "Der neue Name für die Organisation."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.short_desc": {
+          "source": "Update an organization",
+          "message": "Aktualisieren Sie eine Organisation"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.desc": {
+          "source": "Change an API key's name or roles to keep its access aligned with the integration it serves.",
+          "message": "Ändern Sie den Namen oder die Rollen eines API-Schlüssels, um seinen Zugriff an die von ihm bereitgestellte Integration anzupassen."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.display_name": {
+          "source": "Update API Key",
+          "message": "API-Schlüssel aktualisieren"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
+          "source": "API key ID",
+          "message": "API-Schlüssel-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.display_name": {
+          "source": "API Key ID",
+          "message": "API-Schlüssel-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.short_desc": {
+          "source": "API Key ID",
+          "message": "API-Schlüssel-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.bmFtZQ.desc": {
+          "source": "A new name for the API key. The name must be 1-80 characters long. If omitted, the name will not be updated.",
+          "message": "Ein neuer Name für den API-Schlüssel. Der Name muss 1–80 Zeichen lang sein. Wenn es weggelassen wird, wird der Name nicht aktualisiert."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "Steuerungsebenen-Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "Control Plane Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "Datenebenen-Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "Datenebenen-Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "Projekteditor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "Projektbetrachter"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.desc": {
+          "source": "A new set of roles for the API key. Existing roles will be removed if not included.\nIf this field is omitted, the roles will not be updated.",
+          "message": "Ein neuer Rollensatz für den API-Schlüssel. Vorhandene Rollen werden entfernt, wenn sie nicht enthalten sind.\nWenn dieses Feld weggelassen wird, werden die Rollen nicht aktualisiert."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.display_name": {
+          "source": "Roles",
+          "message": "Rollen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.short_desc": {
+          "source": "Roles",
+          "message": "Rollen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.short_desc": {
+          "source": "Update an API key",
+          "message": "Aktualisieren Sie einen API-Schlüssel"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.desc": {
+          "source": "Adjust a project's name, pod limit, or customer-managed encryption settings as its workload changes.",
+          "message": "Passen Sie den Namen, das Pod-Limit oder die vom Kunden verwalteten Verschlüsselungseinstellungen eines Projekts an, wenn sich seine Arbeitslast ändert."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.display_name": {
+          "source": "Update Project",
+          "message": "Projekt aktualisieren"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.desc": {
+          "source": "Whether to force encryption with a customer-managed encryption key (CMEK). Once enabled, CMEK encryption cannot be disabled.",
+          "message": "Ob die Verschlüsselung mit einem vom Kunden verwalteten Verschlüsselungsschlüssel (CMEK) erzwungen werden soll. Nach der Aktivierung kann die CMEK-Verschlüsselung nicht deaktiviert werden."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.display_name": {
+          "source": "Force Encryption With CMEK",
+          "message": "Verschlüsselung mit CMEK erzwingen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.short_desc": {
+          "source": "Force Encryption With CMEK",
+          "message": "Verschlüsselung mit CMEK erzwingen"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.desc": {
+          "source": "The maximum number of Pods that can be created in the project.",
+          "message": "Die maximale Anzahl von Pods, die im Projekt erstellt werden können."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.display_name": {
+          "source": "Max Pods",
+          "message": "Max Pods"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.short_desc": {
+          "source": "Max Pods",
+          "message": "Max Pods"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.desc": {
+          "source": "The name of the new project.",
+          "message": "Der Name des neuen Projekts."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "Projekt-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.short_desc": {
+          "source": "Update a project",
+          "message": "Aktualisieren Sie ein Projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Rename a service account to identify the integration it serves. Manage its permissions with the role-binding actions.",
+          "message": "Benennen Sie ein Dienstkonto um, um die Integration zu identifizieren, die es bedient. Verwalten Sie seine Berechtigungen mit den Rollenbindungsaktionen."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Update Service Account",
+          "message": "Dienstkonto aktualisieren"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.desc": {
+          "source": "A new name for the service account. If omitted, the name is unchanged.",
+          "message": "Ein neuer Name für das Dienstkonto. Wenn es weggelassen wird, bleibt der Name unverändert."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "Die eindeutige Kennung des Dienstkontos."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "Dienstkonto-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "Dienstkonto-ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Update a service account",
+          "message": "Aktualisieren Sie ein Dienstkonto"
+        },
+        "app.UGluZWNvbmVBZG1pbg.desc": {
+          "source": "Automate organization administration in [Pinecone](https://www.pinecone.io).\n\n**Administration tasks**:\n- Create and configure projects for teams and workloads\n- Issue and revoke project API keys\n- Manage service accounts and rotate their credentials\n- Assign roles, invite users, and manage organization access\n\n**Connection**: Uses a **Pinecone Admin** service-account connection with OAuth2 client credentials. Use the **Pinecone** application with a project API key for indexes and records.",
+          "message": "Automatisieren Sie die Organisationsverwaltung in [Pinecone](https://www.pinecone.io).\n\n**Administrationsaufgaben**:\n- Erstellen und konfigurieren Sie Projekte für Teams und Workloads\n- Projekt-API-Schlüssel ausstellen und widerrufen\n- Verwalten Sie Dienstkonten und rotieren Sie deren Anmeldeinformationen\n- Weisen Sie Rollen zu, laden Sie Benutzer ein und verwalten Sie den Organisationszugriff\n\n**Verbindung**: Verwendet eine **Pinecone Admin**-Dienstkontoverbindung mit OAuth2-Client-Anmeldeinformationen. Verwenden Sie die Anwendung **Pinecone** mit einem Projekt-API-Schlüssel für Indizes und Datensätze."
+        },
+        "app.UGluZWNvbmVBZG1pbg.display_name": {
+          "source": "Pinecone Admin",
+          "message": "Pinecone-Administrator"
+        },
+        "app.UGluZWNvbmVBZG1pbg.short_desc": {
+          "source": "Provision Pinecone projects and manage organization access",
+          "message": "Stellen Sie Pinecone-Projekte bereit und verwalten Sie den Organisationszugriff"
+        }
+      }
+    }
+  }
+}

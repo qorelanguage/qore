@@ -39,6 +39,23 @@ module PineconeDataProvider {
     license = "MIT";
     init = sub () {
         DataProvider::registerFactory(new PineconeDataProviderFactory());
+        DataProvider::registerFactory(new PineconeAdminDataProviderFactory());
+        DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
+            "name": "PineconeAdmin", "display_name": "Pinecone Admin", "presentation_source_locale": "en",
+            "short_desc": "Provision Pinecone projects and manage organization access",
+            "desc": "Automate organization administration in [Pinecone](https://www.pinecone.io).\n\n"
+                "**Administration tasks**:\n"
+                "- Create and configure projects for teams and workloads\n"
+                "- Issue and revoke project API keys\n"
+                "- Manage service accounts and rotate their credentials\n"
+                "- Assign roles, invite users, and manage organization access\n\n"
+                "**Connection**: Uses a **Pinecone Admin** service-account connection with OAuth2 client credentials. "
+                "Use the **Pinecone** application with a project API key for indexes and records.",
+            "scheme": "pinecone-admin", "logo": PineconeLogo, "logo_file_name": "pinecone-logo.svg",
+            "logo_mime_type": MimeTypeSvg, "groups": (AppGroup::Databases, AppGroup::AiLlm),
+        });
+        RestSchemaActionSet admin = PineconeSchema::getAdminActionSet();
+        admin.registerActions("PineconeAdmin");
 
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": PineconeDataProvider::AppName,
@@ -81,6 +98,9 @@ module PineconeDataProvider {
         # every action generated from the vendored Pinecone API descriptions; see PineconeManifest for
         # what is exported and why
         map $1.registerActions(PineconeDataProvider::AppName), PineconeSchema::getActionSets();
+        RestSchemaTablesDataProvider::registerRecordActions(PineconeDataProvider::AppName, "tables",
+            PineconeSchema::getActionSets(), PineconeRecordTables::Tables,
+            <RestSchemaRecordActionIds>{}, {"groups": ("Record-Based",)});
     };
 }
 
@@ -93,7 +113,9 @@ module PineconeDataProvider {
     Data-provider integration for [Pinecone](https://www.pinecone.io), a managed vector database for
     semantic search, hybrid search and retrieval-augmented generation.
 
-    The application covers three of Pinecone's published APIs, 52 operations in all:
+    The **Pinecone** application covers the database and inference APIs, with 52 API actions and
+    ten record tables. The separate **Pinecone Admin** application exposes 32 organization-management
+    actions using a service-account connection.
 
     |!Group|!What it does
     |Indexes|create, describe, configure and delete indexes, including indexes with integrated embedding
@@ -104,6 +126,9 @@ module PineconeDataProvider {
     |Collections|snapshot a pod-based index (legacy; see below)
     |Imports|load a large dataset from object storage
     |Inference|embed and rerank text with Pinecone's hosted models
+
+    Use @subpage pineconerecords for record-table scopes, CRUD examples, and consistency rules, and
+    @subpage pineconeadmin for organization provisioning and service-account authentication.
 
     @section pineconedataproviderhost The Index Decides Where the Request Goes
 
@@ -183,13 +208,15 @@ hash<auto> found = pinecone.getChildProviderEx("search-records").doRequest({
     Two things about Pinecone's descriptions are worth knowing here.  They declare **no** \c "enum" for
     any finite value set, writing them as an \c "x-enum" vendor extension the parser cannot see, so the
     metric, cloud, deletion protection, backup frequency, import error mode and model type would all
-    generate as free text; the manifest restores them, with the vendor's own values.  And all 52
+    generate as free text; the manifest restores them, with the vendor's own values.  All 84 API
     operations declare a required \c X-Pinecone-Api-Version header, which the connection owns and
     sends on every call, so no action asks for it.
 
     @section PineconeDataProviderRelnotes Release Notes
 
     @subsection PineconeDataProviderv1_0 PineconeDataProvider v1.0
+    - added ten record tables with complete paginated reads and schema-derived write forms
+    - added the separate Pinecone Admin application with 32 service-account actions
     - the initial version of the %PineconeDataProvider module
 */
 

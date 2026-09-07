@@ -1131,50 +1131,6 @@
           "source": "An optional parameter for the payment. A boolean indicating whether you would like the payment to be created as reconciled when using PUT, or whether a payment has been reconciled when using GET",
           "message": "An optional parameter for the payment. A boolean indicating whether you would like the payment to be created as reconciled when using PUT, or whether a payment has been reconciled when using GET"
         },
-        "app.WGVybw.action.Y3JlYXRlUGF5bWVudA.option.UGF5bWVudFR5cGU.display_name": {
-          "source": "Payment Type",
-          "message": "Payment Type"
-        },
-        "app.WGVybw.action.Y3JlYXRlUGF5bWVudA.option.UGF5bWVudFR5cGU.short_desc": {
-          "source": "See Payment Types",
-          "message": "See Payment Types"
-        },
-        "app.WGVybw.action.Y3JlYXRlUGF5bWVudA.option.UGF5bWVudFR5cGU.desc": {
-          "source": "See Payment Types.",
-          "message": "See Payment Types."
-        },
-        "app.WGVybw.action.Y3JlYXRlUGF5bWVudA.option.UGF5bWVudFR5cGU.allowed-value.c3RyaW5nOkFDQ1JFQ1BBWU1FTlQ.display_name": {
-          "source": "ACCRECPAYMENT",
-          "message": "ACCRECPAYMENT"
-        },
-        "app.WGVybw.action.Y3JlYXRlUGF5bWVudA.option.UGF5bWVudFR5cGU.allowed-value.c3RyaW5nOkFDQ1BBWVBBWU1FTlQ.display_name": {
-          "source": "ACCPAYPAYMENT",
-          "message": "ACCPAYPAYMENT"
-        },
-        "app.WGVybw.action.Y3JlYXRlUGF5bWVudA.option.UGF5bWVudFR5cGU.allowed-value.c3RyaW5nOkFSQ1JFRElUUEFZTUVOVA.display_name": {
-          "source": "ARCREDITPAYMENT",
-          "message": "ARCREDITPAYMENT"
-        },
-        "app.WGVybw.action.Y3JlYXRlUGF5bWVudA.option.UGF5bWVudFR5cGU.allowed-value.c3RyaW5nOkFQQ1JFRElUUEFZTUVOVA.display_name": {
-          "source": "APCREDITPAYMENT",
-          "message": "APCREDITPAYMENT"
-        },
-        "app.WGVybw.action.Y3JlYXRlUGF5bWVudA.option.UGF5bWVudFR5cGU.allowed-value.c3RyaW5nOkFST1ZFUlBBWU1FTlRQQVlNRU5U.display_name": {
-          "source": "AROVERPAYMENTPAYMENT",
-          "message": "AROVERPAYMENTPAYMENT"
-        },
-        "app.WGVybw.action.Y3JlYXRlUGF5bWVudA.option.UGF5bWVudFR5cGU.allowed-value.c3RyaW5nOkFSUFJFUEFZTUVOVFBBWU1FTlQ.display_name": {
-          "source": "ARPREPAYMENTPAYMENT",
-          "message": "ARPREPAYMENTPAYMENT"
-        },
-        "app.WGVybw.action.Y3JlYXRlUGF5bWVudA.option.UGF5bWVudFR5cGU.allowed-value.c3RyaW5nOkFQUFJFUEFZTUVOVFBBWU1FTlQ.display_name": {
-          "source": "APPREPAYMENTPAYMENT",
-          "message": "APPREPAYMENTPAYMENT"
-        },
-        "app.WGVybw.action.Y3JlYXRlUGF5bWVudA.option.UGF5bWVudFR5cGU.allowed-value.c3RyaW5nOkFQT1ZFUlBBWU1FTlRQQVlNRU5U.display_name": {
-          "source": "APOVERPAYMENTPAYMENT",
-          "message": "APOVERPAYMENTPAYMENT"
-        },
         "app.WGVybw.action.Y3JlYXRlUGF5bWVudA.option.UGF5bWVudElE.display_name": {
           "source": "Payment ID",
           "message": "Payment ID"
