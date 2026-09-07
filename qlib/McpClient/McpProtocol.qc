@@ -130,7 +130,7 @@ public hashdecl McpUiResourceCsp {
 
     #! Origins for images, scripts, stylesheets, fonts and media
     /** Maps to the \c img-src, \c script-src, \c style-src, \c font-src and \c media-src
-        directives.  Wildcard subdomains are supported, e.g. \c "https://*.example.com".
+        directives.  Wildcard subdomains are supported, e.g. \c "https://<!--%%-->*.example.com".
     */
     *list<string> resourceDomains;
 

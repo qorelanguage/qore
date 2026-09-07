@@ -158,7 +158,7 @@ printf("%Y\n", ans.body);
       @ref RestClient::RestConnection::getOAuth2GrantType() "getOAuth2GrantType()" hook, which connection
       classes configuring OAuth2 through options of their own can override
       (<a href="https://github.com/qoretechnologies/qore/issues/5441">issue 5441</a>)
-    - fixed a \c charset parameter being appended to a \c "multipart/*" \c Content-Type header;
+    - fixed a \c charset parameter being appended to a \c "multipart/<!--%%-->*" \c Content-Type header;
       \c charset is not defined for multipart types, and appending it after the \c boundary
       parameter breaks strict multipart parsers.  @ref Qore::HTTPClient "HTTPClient" already
       applied this rule when adding the charset itself, so the two disagreed

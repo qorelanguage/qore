@@ -233,11 +233,6 @@ public class AnthropicMessageCreateDataProvider inherits AnthropicDataProviderCo
         return result;
     }
 
-    #! Converts a FileDataType value to an Anthropic content block
-    /** Maps file MIME types to the appropriate Anthropic content block type:
-        - \c image/* -> \c image content block with base64 source
-        - \c application/pdf -> \c document content block with base64 source
-    */
     public {
         #! Supported image MIME types for the Anthropic API
         const SupportedImageTypes = {
@@ -248,6 +243,11 @@ public class AnthropicMessageCreateDataProvider inherits AnthropicDataProviderCo
         };
     }
 
+    #! Converts a FileDataType value to an Anthropic content block
+    /** Maps file MIME types to the appropriate Anthropic content block type:
+        - \c image/<!--%%-->* -> \c image content block with base64 source
+        - \c application/pdf -> \c document content block with base64 source
+    */
     static hash<auto> convertFileToContentBlock(hash<auto> file) {
         string mime_type = file.mime_type ?? "application/octet-stream";
         string content = file.content;

@@ -53,7 +53,7 @@ module StabilityAiRestClient {
 
     The %StabilityAiRestClient module provides a REST client for
     [Stability AI](https://stability.ai) — the company behind Stable
-    Diffusion.  The v2beta `/stable-image/generate/*` API exposes the
+    Diffusion.  The v2beta `/stable-image/generate/<!--%%-->*` API exposes the
     `ultra`, `sd3` (Stable Diffusion 3 / 3.5), and `core` models for
     text-to-image generation.
 

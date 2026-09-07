@@ -53,6 +53,8 @@ public class AstProcessorTests inherits QUnit::Test {
         addTestCase("Conditional parsing if/elif/else/endif", \testConditionalIfElif());
         addTestCase("Nested conditionals", \testNestedConditionals());
         addTestCase("Format parse diagnostics", \testFormatParseDiagnostics());
+        addTestCase("Doc prose containing \"/*\" survives", \testDocProseWithBlockCommentChars());
+        addTestCase("A real block comment still ends collection", \testNonDocBlockCommentStops());
         set_return_value(main());
     }
 
@@ -244,6 +246,60 @@ namespace MyNamespace {
         assertTrue(output =~ /\/\/! This is a namespace doc comment/, "namespace doc comment converted");
         assertTrue(output =~ /namespace MyNamespace \{/, "namespace declaration");
         assertTrue(output =~ /class MyClass/, "class inside namespace");
+    }
+
+    #! A MIME type, URL path or SQL hint in doc prose must not be read as the start of a block comment
+    /** The doc comment collector scanned backwards for the block's opening \c "/**" and stopped at any
+        line containing \c "/*", to avoid scanning past a non-doc comment.  The test was unanchored, so
+        a line of prose containing those two characters - \c "multipart/*" in RestClient's release notes,
+        \c "/v1/*" in SGLangRestClient's - discarded the entire doc comment: three modules published no
+        main page at all, intro and release notes included, with no warning from the docs build.
+    */
+    testDocProseWithBlockCommentChars() {
+        string code = '
+%modern
+module TestModule {
+    version = "1.0";
+}
+/** @mainpage Test Module
+
+    @section test_intro Introduction
+
+    - fixed a charset parameter appended to a "multipart/*" Content-Type header
+    - the HTTP API lives at `/v1/*` on the server
+*/
+#! Public namespace docs
+public namespace TestModule {
+    #! Converts a value
+    /** Maps MIME types to content blocks:
+        - image/* -> an image block
+    */
+    class MyClass { }
+}
+';
+        string output = processCode(code);
+
+        # the regression: the whole main page vanished, and with it every release note
+        assertTrue(output =~ /@mainpage Test Module/, "mainpage survives \"multipart/*\" in its prose");
+        assertTrue(output =~ /@section test_intro Introduction/, "and so does its content");
+        assertTrue(output =~ /v1/, "including the line with the URL path");
+        assertTrue(output =~ /Maps MIME types to content blocks/, "a declaration doc survives it too");
+        assertTrue(output =~ /class MyClass/, "and the declaration is still emitted");
+    }
+
+    #! The anchored test must still stop at a real block comment, or it would collect unrelated text
+    testNonDocBlockCommentStops() {
+        string code = '
+/** Documentation that belongs to nothing here
+*/
+/* an ordinary comment between the doc comment and the class */
+class MyClass { }
+';
+        string output = processCode(code);
+
+        assertFalse(output =~ /Documentation that belongs to nothing here/,
+            "a non-doc comment still ends the backwards scan");
+        assertTrue(output =~ /class MyClass/, "and the class is still emitted");
     }
 
     testMainpageAssociation() {

@@ -2384,7 +2384,9 @@ string doxygen_output = proc.process();
         }
 
         private bool isBlockCommentStart(string line) {
-            return line =~ /\/\*\*/;
+            # anchored at the start of the line: "/**" appearing in the middle of a line is prose inside a
+            # doc comment (or a "#" comment mentioning one), not the start of a new block comment
+            return trim(line) =~ /^\/\*\*/;
         }
 
         private list<string> collectLineDoc(int end_line) {
@@ -2435,8 +2437,11 @@ string doxygen_output = proc.process();
                         return result;
                     }
                     # Stop at non-doc block comment start (/* without **) to prevent
-                    # scanning past non-doc comments like /* FIXME ... */
-                    if (cur =~ /\/\*/) {
+                    # scanning past non-doc comments like /* FIXME ... */; the test is anchored at the
+                    # start of the line, since "/*" anywhere else is prose in the doc comment being
+                    # collected - a MIME type ("multipart/*"), a URL path ("/v1/*"), or an SQL hint -
+                    # and discarding the block for it silently deletes the whole doc comment
+                    if (trim(cur) =~ /^\/\*/) {
                         return ();
                     }
                 }
