@@ -292,6 +292,9 @@ QoreStringNode* QoreRegexSubst::exec(const QoreString* target, const QoreString*
 
     pcre2_match_data* md = pcre2_match_data_create_from_pattern(p, nullptr);
     ON_BLOCK_EXIT(pcre2_match_data_free, md);
+    // Validate the immutable UTF-8 subject on the first match only. Revalidating the whole
+    // subject for every global replacement makes dense substitutions quadratic.
+    uint32_t match_options = 0;
 
     //printd(5, "QoreRegexSubst::exec(%s) this=%p: global=%s\n", ptr, this, global ? "true" : "false");
     while (true) {
@@ -304,7 +307,8 @@ QoreStringNode* QoreRegexSubst::exec(const QoreString* target, const QoreString*
         if ((unsigned)offset >= t->size()) {
             break;
         }
-        int rc = qore_pcre2_match(p, reinterpret_cast<PCRE2_SPTR8>(t->c_str()), t->size(), offset, 0, md);
+        int rc = qore_pcre2_match(p, reinterpret_cast<PCRE2_SPTR8>(t->c_str()), t->size(), offset,
+            match_options, md);
         //int rc = pcre_exec(p, 0, t->c_str(), t->strlen(), offset, 0, ovector, SUBST_OVECSIZE);
 
         //printd(5, "QoreRegexSubst::exec() prec_exec() rc: %d ovector[0]: %d\n", rc, ovector[0]);
@@ -342,6 +346,9 @@ QoreStringNode* QoreRegexSubst::exec(const QoreString* target, const QoreString*
         //printd(5, "QoreRegexSubst::exec() '%s' =~ s/?/%s/%s offset=%d, 0=%d, 1=%d ('%s')\n", t->c_str(), nstr->c_str(), global ? "g" : "", offset, ovector[0], ovector[1], tstr->c_str());
 
         ptr = t->c_str() + ovector[1];
+        // A byte-matching pattern such as \C can end inside a UTF-8 character. In that case,
+        // retain PCRE2's offset validation (and BADUTFOFFSET error) on the next match.
+        match_options = (static_cast<unsigned char>(*ptr) & 0xc0) == 0x80 ? 0 : PCRE2_NO_UTF_CHECK;
 
         if (!global) {
             break;

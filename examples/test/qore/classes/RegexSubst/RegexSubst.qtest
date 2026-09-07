@@ -24,6 +24,12 @@ public class RegexSubstTest inherits QUnit::Test {
         addTestCase("$0 full match test", \dollarZeroTest());
         addTestCase("RE_Ungreedy test", \ungreedyTest());
         addTestCase("callback substitution test", \callbackTest());
+        addTestCase("global UTF-8 substitution", \globalUtf8Test());
+        addTestCase("global substitution validates each subject", \subjectValidationTest());
+        addTestCase("global substitution preserves UTF-8 offset errors", \utf8OffsetTest());
+        addTestCase("dense global substitution is bounded", \denseGlobalTest());
+        addTestCase("global string substitution is cancellable", \globalCancellationTest());
+        addTestCase("global substitution honors pre-requested interrupt", \globalInterruptTest());
 
         set_return_value(main());
     }
@@ -215,6 +221,97 @@ public class RegexSubstTest inherits QUnit::Test {
         # RE_Ungreedy with global substitution
         RegexSubst r3("<.*>", "[]", RE_Global | RE_Ungreedy);
         assertEq("[]bold[] and []italic[]", r3.subst("<b>bold</b> and <i>italic</i>"));
+    }
+
+    private globalUtf8Test() {
+        string subject = "é中🙂 café é中🙂";
+        RegexSubst r("(é中)(🙂)", "$2:$1", RE_Global);
+        assertEq("🙂:é中 café 🙂:é中", r.subst(subject));
+        assertEq("[é中🙂] café [é中🙂]", r.subst(subject, "[$0]"));
+        assertEq("🙂:é中 café 🙂:é中", regex_subst(subject, "(é中)(🙂)", "$2:$1", RE_Global));
+        string changed = subject;
+        changed =~ s/(é中)(🙂)/$2:$1/g;
+        assertEq("🙂:é中 café 🙂:é中", changed);
+        assertEq(subject, r.subst(subject, "$0"), "replacement never changes the input being scanned");
+        assertEq("é中🙂 café é中🙂", subject);
+        assertEq("", r.subst(""));
+        assertEq("none", r.subst("none"));
+        assertEq("", regex_subst("éé", "é", "", RE_Global));
+        assertThrows("REGEX-SUBST-ERROR", \regex_subst(), ("éé", "^", "X", RE_Global));
+    }
+
+    private subjectValidationTest() {
+        RegexSubst r("x", "y", RE_Global);
+        assertEq("yéy", r.subst("xéx"));
+        # Invalid bytes at either end must prevent even an otherwise valid prefix from matching.
+        foreach binary invalid in ((<80>, <ff>, <c3>, <eda080>, <f4908080>)) {
+            foreach string subject in ((binary_to_string(invalid) + "xxx", "xxx" + binary_to_string(invalid))) {
+                assertEq(subject, r.subst(subject), "validation is not cached on a reused RegexSubst");
+                assertEq(subject, regex_subst(subject, "x", "y", RE_Global));
+                string changed = subject;
+                changed =~ s/x/y/g;
+                assertEq(subject, changed);
+            }
+        }
+        assertEq("yéy", r.subst("xéx"), "invalid input does not poison the next call");
+    }
+
+    private utf8OffsetTest() {
+        foreach string prefix in (("", "(*NO_JIT)")) {
+            RegexSubst r(prefix + "\\C", "X", RE_Global);
+            assertThrows("REGEX-ERROR", "bad offset into UTF string", \r.subst(), ("éé",));
+            assertThrows("REGEX-ERROR", "bad offset into UTF string", \regex_subst(),
+                ("中🙂", prefix + "\\C", "X", RE_Global));
+            assertEq("XXX", r.subst("abc"), "byte matches at character boundaries remain valid");
+        }
+    }
+
+    private denseGlobalTest() {
+        # Documentation ingestion strips many tags from large HTML pages. Rechecking all UTF-8
+        # bytes for each tag formerly made this take minutes. Keep a generous bound for debug CI.
+        string subject = strmul("<p>é中</p>", 131072);
+        string expected = strmul(" é中 ", 131072);
+        RegexSubst r("<[^>]+>", " ", RE_Global);
+        int started = clock_getmicros_monotonic();
+        assertEq(expected, r.subst(subject));
+        assertEq(expected, regex_subst(subject, "<[^>]+>", " ", RE_Global));
+        subject =~ s/<[^>]+>/ /g;
+        assertEq(expected, subject);
+        assertLt(20000000, clock_getmicros_monotonic() - started,
+            "three dense substitutions finish within 20 seconds");
+    }
+
+    private globalCancellationTest() {
+        Queue ready();
+        Queue result();
+        background sub () {
+            string subject = strmul("éx", 5000000);
+            ready.push(gettid());
+            try {
+                result.push(regex_subst(subject, "x", "y", RE_Global));
+            } catch (hash<ExceptionInfo> ex) {
+                clear_thread_cancel();
+                result.push(ex);
+            }
+        }();
+        int tid = ready.get(30000);
+        assertTrue(cancel_thread(tid, "global substitution regression"));
+        auto rv = result.get(30000);
+        assertEq("hash", rv.type(), "substitution did not run to completion");
+        assertEq("THREAD-CANCELLED", rv.err);
+    }
+
+    private globalInterruptTest() {
+        Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+        p.parse("%modern\nstring sub substitute(string subject) {\n"
+            + "return regex_subst(subject, \"x\", \"y\", RE_Global);\n}\n", "regex-subst-interrupt");
+        SandboxManager sm();
+        p.setSandboxManager(sm);
+        sm.requestInterrupt();
+        on_exit sm.clearInterrupt();
+        assertThrows("PROGRAM-INTERRUPTED", \p.callFunction(), ("substitute", "éx éx"));
+        sm.clearInterrupt();
+        assertEq("éy éy", p.callFunction("substitute", "éx éx"));
     }
 
     private callbackTest() {
