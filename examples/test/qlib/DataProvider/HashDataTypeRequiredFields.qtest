@@ -1,0 +1,69 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
+%exec-class RequiredFieldsTest
+
+class RequiredFieldsTest inherits QUnit::Test {
+    constructor() : QUnit::Test("HashDataType required fields with defaults", "1.0") {
+        addTestCase("Required-before-default field order preserves requiredness", \requiredFirst());
+        addTestCase("Default-before-required field order preserves requiredness", \defaultFirst());
+        addTestCase("Explicit optional containers retain required fields when present", \optional());
+        addTestCase("Fully defaulted fields still provide a complete optional record", \defaulted());
+        set_return_value(main());
+    }
+
+    private QoreDataField code() {
+        return new QoreDataField("code", "Invoice currency code", StringType);
+    }
+
+    private QoreDataField flag() {
+        return new QoreDataField("flag", "Approval status", BoolOrNothingType, False);
+    }
+
+    private check(HashDataType t) {
+        assertTrue(t.isMandatory());
+        assertTrue(t.getInfo().mandatory);
+        assertEq(NOTHING, t.getDefaultValue());
+        assertThrows("MISSING-VALUE-ERROR", \t.acceptsValue(), (NOTHING,));
+        assertThrows("MISSING-VALUE-ERROR", \t.acceptsValue(), ({},));
+        assertEq({"code": "EUR", "flag": False}, t.acceptsValue({"code": "EUR"}));
+        assertThrows("RUNTIME-TYPE-ERROR", \t.acceptsValue(), ({"code": "EUR", "unknown": 7},));
+    }
+
+    requiredFirst() {
+        HashDataType t("Invoice");
+        t.addField(code());
+        t.addField(flag());
+        check(t);
+    }
+
+    defaultFirst() {
+        HashDataType t("Invoice");
+        t.addField(flag());
+        t.addField(code());
+        check(t);
+    }
+
+    optional() {
+        HashDataType t(AutoHashOrNothingType, "Optional invoice");
+        t.addField(code());
+        t.addField(flag());
+        assertFalse(t.isMandatory());
+        assertEq(NOTHING, t.acceptsValue(NOTHING));
+        assertThrows("MISSING-VALUE-ERROR", \t.acceptsValue(), ({},));
+        assertEq({"code": "EUR", "flag": False}, t.acceptsValue({"code": "EUR"}));
+    }
+
+    defaulted() {
+        HashDataType t("Default invoice");
+        t.addField(new QoreDataField("code", "Invoice currency code", StringType, "EUR"));
+        t.addField(flag());
+        assertFalse(t.isMandatory());
+        assertEq({"code": "EUR", "flag": False}, t.getDefaultValue());
+        assertEq({"code": "EUR", "flag": False}, t.acceptsValue({}));
+    }
+}

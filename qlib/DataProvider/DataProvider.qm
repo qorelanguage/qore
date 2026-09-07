@@ -1379,6 +1379,8 @@ fetch
       \c "Straße Name")
 
     @subsection dataprovider_v3_7 DataProvider v3.7
+    - fixed \c HashDataType required-field tracking when an optional field with a default is added after a
+      mandatory field; record metadata now retains mandatory status independently of field insertion order
     - added source-owned native i18n catalog metadata and deterministic message identities for localized application,
       action, and option presentation without changing technical identities
     - fixed provider catalog composition when the same module owner is installed in multiple catalog search roots;

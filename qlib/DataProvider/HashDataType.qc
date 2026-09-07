@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore HashDataType class definition
 
-/** HashDataType.qc Copyright 2019 - 2025 Qore Technologies, s.r.o.
+/** HashDataType.qc Copyright 2019 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -387,6 +387,20 @@ auto v = t.getDefaultValue();
     }
 
     #! Adds a field to the type
+    /** @param field field to add
+        @return this type
+        @note A mandatory field without a default keeps an automatically constructed hash mandatory,
+        regardless of whether other fields with defaults are added before or after it. Explicitly optional
+        hash types remain optional while retaining their fields' requirements when a hash is supplied.
+
+        @par Example
+        @code{.py}
+HashDataType invoice("Invoice");
+invoice.addField(new QoreDataField("currency", "Invoice currency", StringType));
+invoice.addField(new QoreDataField("approved", "Approval status", BoolOrNothingType, False));
+# The invoice and currency field remain mandatory; approved defaults to False.
+        @endcode
+    */
     HashDataType addField(AbstractDataField field) {
         addFieldIntern(field);
         return self;
@@ -490,9 +504,13 @@ auto v = t.getDefaultValue();
                     if (!default_value_needs_check) {
                         default_value_needs_check = True;
                     }
-                } else if ((type == AutoHashOrNothingType) && field.isMandatory()) {
-                    # or_nothing_type == False and type == *hash<auto> can only happen dynamically
-                    type = AutoHashType;
+                } else if (field.isMandatory()) {
+                    # Record mandatory fields even before a default is added. Otherwise a later default
+                    # incorrectly makes the container optional when the mandatory field came first.
+                    if (type == AutoHashOrNothingType) {
+                        # or_nothing_type == False and type == *hash<auto> can only happen dynamically
+                        type = AutoHashType;
+                    }
                     required_fields = True;
                 }
             }
