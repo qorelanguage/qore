@@ -158,6 +158,13 @@ instruction fields. The IR interpreter uses it for ownership use counts,
 preventing dedicated instruction fields from diverging from generic operand
 handling.
 
+LLVM call-argument cleanup must preserve a temporary while its SSA value has
+remaining uses. Virtual implicit arguments can share one mapped value across
+several calls, as in `map (f($1), g($1)), (map make($1), xs)`. Only the final
+use may pass the temporary's cleanup slot to a consuming call helper; earlier
+calls borrow it. `AOTSharedMapArgs.qtest` covers this lifetime through calls,
+branches, duplicate arguments, and exception unwinding.
+
 The first generic optimization built on this layer is conservative scalar
 loop-invariant code motion. It moves only native scalar constants, proven
 assigned and non-NOTHING non-reference IR-only local loads, and non-throwing

@@ -80,6 +80,21 @@ module QoreLlmUtils {
     These classes are generic infrastructure: applications supply their own
     domain policy and authorized source bundles.
 
+    @section qorellmutils_response_text Response Text and Token Budgets
+
+    @ref QoreLlmUtils::LlmBackend::cleanResponseText() removes leading
+    reasoning blocks and an enclosing code fence from completed response
+    text. Gateways returning OpenAI-compatible response hashes can use
+    @ref QoreLlmUtils::LlmBackend::cleanChatCompletionResponse() to clean
+    assistant text while preserving tool calls and provider metadata.
+
+    Reasoning models may consume their output budget before producing visible
+    text. Size @c max_output_tokens (or @c max_tokens) for both reasoning and
+    the answer, not just the requested answer length. Use supported reasoning
+    controls such as @c reasoning_token_budget or @c disable_reasoning when
+    appropriate. Explicit caller limits are preserved; there is no universal
+    token floor across providers and models.
+
     @par Example: HTTP mode (OpenAI-compatible)
     @code{.py}
 %modern
