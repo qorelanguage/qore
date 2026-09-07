@@ -91,6 +91,7 @@ module CohereDataProvider {
     - complete current v2 request contracts, including multimodal embeddings and grounded chat
     - v1 and v2 paths are routed explicitly rather than appended to the connection API prefix
     - named multipart files preserve extensions and media types for audio and dataset uploads
+    - classification guidance reflects Cohere's retirement of classification fine-tuning and existing fine-tuned models
 
     @par Example
     @code{.q}
@@ -116,9 +117,11 @@ module CohereDataProvider {
 
     The vendored schema is pinned to a reviewed upstream revision. Re-import it with
     `tools/rest-schema-import.qr --spec qlib/CohereDataProvider/cohere-import.yaml` and review drift.
-    Classify remains for existing integrations but is deprecated by Cohere; new workflows can use
-    Chat with structured output. The Chat action returns a completed response and does not expose
-    the streaming transport switch.
+    Classify remains for compatibility, but Cohere has retired classification fine-tuning and
+    previously fine-tuned models. See Cohere's
+    [September 2025 deprecation notice](https://docs.cohere.com/changelog/2025-09-15-major-command-deprecations).
+    Use Chat with structured output for new classification workflows. The Chat action returns a
+    completed response and does not expose the streaming transport switch.
 
     @subsection CohereDataProviderv1_0 CohereDataProvider v1.0
     - the initial version of the %CohereDataProvider module

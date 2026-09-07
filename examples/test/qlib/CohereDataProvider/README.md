@@ -28,3 +28,16 @@ The resource test does not wait for asynchronous validation. Live embedding-job 
 batch lifecycle results are recorded in the accompanying audit. Cohere requires a production API
 key to create v2 batches. A trial key may reject model listing with HTTP 429 while still allowing
 individual model lookup, inference, parsing, transcription, and v1 embedding jobs.
+
+Production verification for issue 5433 used `COHERE_PROD_APIKEY` from the local profile, without
+changing the saved trial-key connection. Model listings and task dropdowns succeeded. A single
+batch record using `command-r7b-12-2024`, the prompt `Reply OK.`, and `max_tokens: 4` exercised
+creation, cancellation, retrieval, and output validation. Cancellation was accepted while queued,
+but the record completed before cancellation took effect. Both test datasets were deleted.
+See [the production audit](audits/5433-production.md) for results and the exact scope of validation.
+
+Cohere's [September 2025 retirement notice](https://docs.cohere.com/changelog/2025-09-15-major-command-deprecations)
+covers classification fine-tuning and previously fine-tuned models. The production account lists
+no classification models, and the classification dropdown correctly returns no options. A production
+key alone cannot enable a successful legacy classification check. Use Chat with structured output
+for new classification workflows.

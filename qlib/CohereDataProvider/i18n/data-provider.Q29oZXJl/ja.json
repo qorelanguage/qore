@@ -384,8 +384,8 @@
           "message": "接続APIキーが有効かどうかを確認する"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.desc": {
-          "source": "Classify text with Cohere's legacy classification API. **Deprecated by Cohere**: use a supported fine-tuned classification model. For new workflows, consider Chat with structured output.",
-          "message": "Cohere の従来の分類 API を使用してテキストを分類します。 **Cohereでは非推奨**: サポートされている微調整された分類モデルを使用します。新しいワークフローの場合は、構造化された出力を使用したチャットを検討してください。"
+          "source": "Legacy classification endpoint, retained for compatibility. **Cohere has retired classification fine-tuning and previously fine-tuned models.** Use Chat with structured output for new classification workflows.",
+          "message": "互換性のために維持されている従来の分類エンドポイントです。**Cohere は分類用のファインチューニングと、以前にファインチューニングされたモデルの提供を終了しました。** 新しい分類ワークフローには、構造化出力を使用する Chat を利用してください。"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.display_name": {
           "source": "Classify Text",

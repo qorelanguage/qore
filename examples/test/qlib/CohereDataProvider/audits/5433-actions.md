@@ -2,6 +2,9 @@
 
 Copyright 2026 Qore Technologies, s.r.o.
 
+The subsequent [production verification](5433-production.md) updates the model-list and batch
+coverage and corrects the classification availability guidance recorded in this earlier audit.
+
 Reviewed 2026-09-07 using `/home/david/.codex/skills/audit-changes/SKILL.md` after merging origin/develop through 20517a962. This report covers the Cohere action expansion and the shared fixes it exposed; the authentication commit has its own connection audit.
 
 |!Check|!Status|!Evidence

@@ -924,8 +924,8 @@
           "message": "Classify text with an existing classification model"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.desc": {
-          "source": "Classify text with Cohere's legacy classification API. **Deprecated by Cohere**: use a supported fine-tuned classification model. For new workflows, consider Chat with structured output.",
-          "message": "Classify text with Cohere's legacy classification API. **Deprecated by Cohere**: use a supported fine-tuned classification model. For new workflows, consider Chat with structured output."
+          "source": "Legacy classification endpoint, retained for compatibility. **Cohere has retired classification fine-tuning and previously fine-tuned models.** Use Chat with structured output for new classification workflows.",
+          "message": "Legacy classification endpoint, retained for compatibility. **Cohere has retired classification fine-tuning and previously fine-tuned models.** Use Chat with structured output for new classification workflows."
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.option.aW5wdXRz.display_name": {
           "source": "Inputs",

@@ -384,8 +384,8 @@
           "message": "Перевірте, чи дійсний ключ API підключення"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.desc": {
-          "source": "Classify text with Cohere's legacy classification API. **Deprecated by Cohere**: use a supported fine-tuned classification model. For new workflows, consider Chat with structured output.",
-          "message": "Класифікуйте текст за допомогою застарілого API класифікації Cohere. **Застаріло Cohere**: використовуйте підтримувану точно налаштовану модель класифікації. Для нових робочих процесів розгляньте Чат із структурованим виведенням."
+          "source": "Legacy classification endpoint, retained for compatibility. **Cohere has retired classification fine-tuning and previously fine-tuned models.** Use Chat with structured output for new classification workflows.",
+          "message": "Застаріла кінцева точка класифікації, збережена для сумісності. **Cohere припинив підтримку донавчання моделей класифікації та раніше донавчених моделей.** Для нових процесів класифікації використовуйте Chat зі структурованим виводом."
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.display_name": {
           "source": "Classify Text",

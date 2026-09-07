@@ -2,6 +2,9 @@
 
 Copyright 2026 Qore Technologies, s.r.o.
 
+The subsequent [production verification](5433-production.md) updates the model-list and batch
+coverage and corrects the classification availability guidance recorded in this earlier audit.
+
 Applied `/home/david/.codex/skills/audit-changes/SKILL.md` to the multipart follow-up after the
 24-action implementation. The upstream regex merge is audited separately. This report covers
 all 62 checklist items for the Qore modules, tests, and documentation in this commit.

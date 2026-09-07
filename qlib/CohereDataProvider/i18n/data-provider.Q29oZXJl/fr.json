@@ -384,8 +384,8 @@
           "message": "Vérifiez si la clé API de connexion est valide"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.desc": {
-          "source": "Classify text with Cohere's legacy classification API. **Deprecated by Cohere**: use a supported fine-tuned classification model. For new workflows, consider Chat with structured output.",
-          "message": "Classez le texte avec l'ancienne API de classification de Cohere. **Obsolète par Cohere** : utilisez un modèle de classification affiné pris en charge. Pour les nouveaux flux de travail, envisagez Chat avec une sortie structurée."
+          "source": "Legacy classification endpoint, retained for compatibility. **Cohere has retired classification fine-tuning and previously fine-tuned models.** Use Chat with structured output for new classification workflows.",
+          "message": "Ancien point de terminaison de classification, conservé pour la compatibilité. **Cohere a supprimé le réglage fin des modèles de classification ainsi que les modèles précédemment ajustés.** Pour les nouveaux processus de classification, utilisez Chat avec une sortie structurée."
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.display_name": {
           "source": "Classify Text",

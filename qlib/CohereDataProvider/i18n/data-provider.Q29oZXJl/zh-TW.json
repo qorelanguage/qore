@@ -384,8 +384,8 @@
           "message": "檢查連接API密鑰是否有效"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.desc": {
-          "source": "Classify text with Cohere's legacy classification API. **Deprecated by Cohere**: use a supported fine-tuned classification model. For new workflows, consider Chat with structured output.",
-          "message": "使用 Cohere 的舊版分類 API 對文字進行分類。 **Cohere 已棄用**：使用支援的微調分類模型。對於新的工作流程，請考慮使用結構化輸出進行聊天。"
+          "source": "Legacy classification endpoint, retained for compatibility. **Cohere has retired classification fine-tuning and previously fine-tuned models.** Use Chat with structured output for new classification workflows.",
+          "message": "為相容性保留的舊版分類端點。**Cohere 已停止提供分類微調及先前微調的模型。** 新的分類工作流程請使用具有結構化輸出的 Chat。"
         },
         "app.Q29oZXJl.action.Y2xhc3NpZnk.display_name": {
           "source": "Classify Text",

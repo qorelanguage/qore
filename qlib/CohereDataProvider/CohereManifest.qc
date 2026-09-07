@@ -423,7 +423,7 @@ public class CohereManifest {
                 "operation_id": "classify",
                 "display_name": "Classify Text",
                 "short_desc": "Classify text with an existing classification model",
-                "desc": "Classify text with Cohere's legacy classification API. **Deprecated by Cohere**: use a supported fine-tuned classification model. For new workflows, consider Chat with structured output.",
+                "desc": "Legacy classification endpoint, retained for compatibility. **Cohere has retired classification fine-tuning and previously fine-tuned models.** Use Chat with structured output for new classification workflows.",
                 "groups": (
                     "Classification",
                 ),
