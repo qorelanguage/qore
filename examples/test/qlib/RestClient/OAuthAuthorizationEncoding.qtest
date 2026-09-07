@@ -12,7 +12,22 @@ class OAuthAuthorizationEncodingTest inherits QUnit::Test {
         addTestCase("required and optional arguments", \testArguments());
         addTestCase("implicit and template arguments", \testImplicit());
         addTestCase("PKCE and scalar optional scopes", \testPkce());
+        addTestCase("empty required scopes", \testEmptyScopes());
         set_return_value(main());
+    }
+
+    testEmptyScopes() {
+        foreach *list<auto> scopes in (NOTHING, ()) {
+            RestConnection conn = makeConnection({"oauth2_scopes": scopes});
+            hash<auto> args = Util::parse_uri_query(conn.getAuthorizationCodeRequest()).params;
+            assertEq("", args.scope);
+            assertEq("content cms.domains.read", args.optional_scope);
+        }
+        RestConnection conn = makeConnection();
+        hash<auto> args = Util::parse_uri_query(conn.getAuthorizationCodeRequest(
+            <AuthCodeInfo>{"scopes": ()})).params;
+        assertEq("", args.scope);
+        assertEq("content cms.domains.read", args.optional_scope);
     }
 
     RestConnection makeConnection(hash<auto> extra = {}) {

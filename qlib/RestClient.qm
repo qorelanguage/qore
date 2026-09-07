@@ -4061,7 +4061,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                     "desc": "Optional arguments for authentication requests for the `authorization_code` grant type; "
                         "ignored if the `token` option is set.  Note that the `authorization_code` grant type "
                         "requires external user authorization to acquire an access token. Supply unencoded "
-                        "keys and values; consent URL generation URL-encodes each value exactly once, including "
+                        "keys and values; consent URL generation URL-encodes keys and values exactly once, including "
                         "scope lists",
                 },
                 "oauth2_auth_url": <ConnectionOptionInfo>{

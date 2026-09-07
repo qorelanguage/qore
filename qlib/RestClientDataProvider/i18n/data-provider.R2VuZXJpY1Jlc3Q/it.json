@@ -332,8 +332,8 @@
           "message": "Indica se i token vengono aggiornati automaticamente"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.desc": {
-          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token. Supply unencoded keys and values; consent URL generation URL-encodes each value exactly once, including scope lists",
-          "message": "Argomenti opzionali per le richieste di autenticazione per il grant type `authorization_code`; ignorato se l'opzione `token` è impostata. Nota che il grant type `authorization_code` richiede l'autorizzazione dell'utente esterno per acquisire un token di accesso. Fornire chiavi e valori non codificati; durante la generazione dell’URL di consenso, ogni valore viene codificato per l’URL una sola volta, inclusi gli elenchi di autorizzazioni"
+          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token. Supply unencoded keys and values; consent URL generation URL-encodes keys and values exactly once, including scope lists",
+          "message": "Argomenti opzionali per le richieste di autenticazione per il grant type `authorization_code`; ignorato se l'opzione `token` è impostata. Nota che il grant type `authorization_code` richiede l'autorizzazione dell'utente esterno per acquisire un token di accesso. Fornire chiavi e valori non codificati; durante la generazione dell’URL di consenso, le chiavi e i valori vengono codificati per l’URL una sola volta, inclusi gli elenchi di autorizzazioni"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.display_name": {
           "source": "OAuth2 Authorization Args",

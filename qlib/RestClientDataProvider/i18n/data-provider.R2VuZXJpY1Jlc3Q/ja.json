@@ -332,8 +332,8 @@
           "message": "トークンが自動的に更新されるかどうか"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.desc": {
-          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token. Supply unencoded keys and values; consent URL generation URL-encodes each value exactly once, including scope lists",
-          "message": "`authorization_code` 付与タイプの認証リクエスト用のオプション引数。`token` オプションが設定されている場合は無視されます。`authorization_code` 付与タイプではアクセストークンを取得するために外部ユーザーによる認可が必要なことに注意してください。エンコードされていないキーと値を指定してください。同意 URL の生成時に、スコープのリストを含む各値が一度だけ URL エンコードされます"
+          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token. Supply unencoded keys and values; consent URL generation URL-encodes keys and values exactly once, including scope lists",
+          "message": "`authorization_code` 付与タイプの認証リクエスト用のオプション引数。`token` オプションが設定されている場合は無視されます。`authorization_code` 付与タイプではアクセストークンを取得するために外部ユーザーによる認可が必要なことに注意してください。エンコードされていないキーと値を指定してください。同意 URL の生成時に、スコープのリストを含むキーと値が一度だけ URL エンコードされます"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.display_name": {
           "source": "OAuth2 Authorization Args",
