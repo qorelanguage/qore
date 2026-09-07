@@ -1,18 +1,20 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
 %requires reflection
-%requires Mime
-%requires MapperUtil
-%requires Logger
-%requires DataProvider
-%requires ConnectionProvider
-%requires RestClient
-%requires CdsRestClient
-%requires CdsRestDataProvider
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/MapperUtil.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/CdsRestClient.qm
+%requires ../../../../qlib/CdsRestDataProvider
 
 %requires json
 
@@ -431,7 +433,7 @@ class CdsTest inherits QUnit::Test {
             });
             assertEq(True, crc instanceof DynamicsRestConnection);
             assertEq("https://login.microsoftonline.com/common/oauth2/v2.0/authorize?"
-                "scope=offline_access%20https://example.com/user_impersonation&redirect_uri=auto&"
+                "scope=offline_access%20https%3A%2F%2Fexample.com%2Fuser_impersonation&redirect_uri=auto&"
                 "client_id=x&response_type=code&response_mode=query",
                 crc.getAuthorizationCodeRequest());
             assertEq("https://login.microsoftonline.com/common/oauth2/v2.0/authorize", crc.getAuthUrl());

@@ -1,0 +1,129 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+# SPDX-License-Identifier: MIT
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/QUnit.qm
+%exec-class OAuthAuthorizationEncodingTest
+
+class OAuthAuthorizationEncodingTest inherits QUnit::Test {
+    constructor() : Test("OAuth authorization encoding", "1.0") {
+        addTestCase("required and optional arguments", \testArguments());
+        addTestCase("implicit and template arguments", \testImplicit());
+        addTestCase("PKCE and scalar optional scopes", \testPkce());
+        addTestCase("empty required scopes", \testEmptyScopes());
+        set_return_value(main());
+    }
+
+    testEmptyScopes() {
+        foreach *list<auto> scopes in (NOTHING, ()) {
+            RestConnection conn = makeConnection({"oauth2_scopes": scopes});
+            hash<auto> args = Util::parse_uri_query(conn.getAuthorizationCodeRequest()).params;
+            assertEq("", args.scope);
+            assertEq("content cms.domains.read", args.optional_scope);
+        }
+        RestConnection conn = makeConnection();
+        hash<auto> args = Util::parse_uri_query(conn.getAuthorizationCodeRequest(
+            <AuthCodeInfo>{"scopes": ()})).params;
+        assertEq("", args.scope);
+        assertEq("content cms.domains.read", args.optional_scope);
+    }
+
+    RestConnection makeConnection(hash<auto> extra = {}) {
+        return new RestConnection("fixture", "fixture", "https://api.example.test", {}, {
+            "oauth2_grant_type": "authorization_code",
+            "oauth2_auth_url": "https://auth.example.test/authorize?existing=yes",
+            "oauth2_token_url": "https://api.example.test/token",
+            "oauth2_client_id": "id&x=1+%",
+            "oauth2_client_secret": "fixture-secret",
+            "oauth2_redirect_url": "https://callback.example.test/return?a=1&b=two words",
+            "oauth2_scopes": ("oauth", "crm.read"),
+            "oauth2_auth_args": {
+                "optional_scope": ("content", "cms.domains.read"),
+                "include_granted_scopes": True,
+                "empty": "",
+                "max_age": 3600,
+                "false_value": False,
+                "zero": 0,
+                "missing": NOTHING,
+                "empty_list": (),
+                "ratio": 1.5,
+                "key&with=separators": "value&injected=yes+% ü",
+            },
+        } + extra);
+    }
+
+    testArguments() {
+        RestConnection conn = makeConnection();
+        string state = "nonce&scope=admin+% #ü";
+        string uri = conn.getAuthorizationCodeRequest(<AuthCodeInfo>{"state": state});
+        assertFalse(uri =~ /[[:space:]]/);
+        hash<auto> args = Util::parse_uri_query(uri).params;
+        assertEq("yes", args.existing);
+        assertEq("oauth crm.read", args.scope);
+        assertEq("content cms.domains.read", args.optional_scope);
+        assertEq("id&x=1+%", args.client_id);
+        assertEq(state, args.state);
+        assertEq("https://callback.example.test/return?a=1&b=two words", args.redirect_uri);
+        assertEq("value&injected=yes+% ü", args{"key&with=separators"});
+        assertEq("true", args.include_granted_scopes);
+        assertEq("", args.empty);
+        assertEq("3600", args.max_age);
+        assertEq("false", args.false_value);
+        assertEq("0", args.zero);
+        assertEq("", args.missing);
+        assertEq("", args.empty_list);
+        assertEq("1.5", args.ratio);
+        assertNothing(args.injected);
+        assertNothing(args.x);
+        args = Util::parse_uri_query(conn.getAuthorizationCodeRequest(<AuthCodeInfo>{
+            "scopes": ("selected.read",),
+            "redirect_uri": "https://callback.example.test/override?x=1&y=2",
+        })).params;
+        assertEq("selected.read", args.scope);
+        assertEq("content cms.domains.read", args.optional_scope);
+        assertNothing(args.state);
+        assertEq("https://callback.example.test/override?x=1&y=2", args.redirect_uri);
+    }
+
+    testImplicit() {
+        foreach bool passthrough in (True, False) {
+            RestConnection conn = makeConnection({
+                "oauth2_grant_type": "implicit",
+                "oauth2_redirect_passthrough_state": passthrough,
+                "oauth2_auth_args": {"audience": "{{oauth2_client_id}}"},
+            });
+            string state = "state&other=value+%";
+            hash<auto> args = Util::parse_uri_query(conn.getAuthorizationCodeRequest(
+                <AuthCodeInfo>{"state": state})).params;
+            assertEq("token", args.response_type);
+            assertEq("id&x=1+%", args.audience);
+            assertEq(state, args.state);
+            assertEq(args.redirect_uri, args.return_url);
+            hash<auto> redirect = Util::parse_uri_query(args.redirect_uri).params;
+            assertEq(passthrough ? NOTHING : state, redirect.state);
+            assertNothing(args.other);
+        }
+    }
+
+    testPkce() {
+        foreach string method in ("plain", "S256") {
+            RestConnection conn = makeConnection({
+                "oauth2_pkce": method,
+                "oauth2_scope_separator_char": ",",
+                "oauth2_scopes": ("scope&name", "scope+name"),
+                "oauth2_auth_args": {"optional_scope": "content cms.domains.read"},
+            });
+            string verifier = "test-verifier.with~unreserved_characters-1234567890";
+            hash<auto> args = Util::parse_uri_query(conn.getAuthorizationCodeRequest(<AuthCodeInfo>{
+                "code_verifier": verifier,
+            })).params;
+            assertEq("scope&name,scope+name", args.scope);
+            assertEq("content cms.domains.read", args.optional_scope);
+            assertEq(method, args.code_challenge_method);
+            assertEq(method == "plain" ? verifier : make_base64_url_string(digest("sha256", verifier)),
+                args.code_challenge);
+        }
+    }
+}

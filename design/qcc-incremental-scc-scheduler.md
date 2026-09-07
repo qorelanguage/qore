@@ -117,11 +117,10 @@ The rule for who freezes and who reads live is one sentence:
   different output list, or naming a node outside the context — is discarded for
   a live scan. A partly-applicable snapshot would mis-attribute a dependency.
 - **A snapshot does not outlive the whole-group publication it was frozen from.**
-  The file stays in the script directory between builds, and a build tool is free
-  to run an object recipe before the next build's first freeze: target-level
-  ordering onto the coordinator reaches the group's order targets, but CMake
-  duplicates each object rule into every independent target that depends on the
-  object stamps, and such a target carries no planner barrier. The snapshot
+  The file stays in the script directory between builds, and a standalone helper
+  invocation can precede the next build's first freeze. Generated object rules
+  depend on the coordinator target, including copies attached to independent
+  object-stamp consumers. The snapshot
   therefore dates the whole-group publication it was read from (`format` 3), and
   is discarded when that date has moved — a shared parse rewrites every depfile in
   the group, so the frozen edge set describes a graph it superseded. Without
@@ -819,6 +818,14 @@ predicate rather than a builder that has to be sequenced. So the group publishes
 stamp and on the coordinator. `ORDER_TARGETS_VAR` still returns one entry per
 source — the same target repeated — so a caller that indexes it by source is
 unaffected.
+
+Each object custom command also depends on the coordinator target. CMake copies
+these commands into independent targets that consume object stamps directly, so
+ordering only the exported group target is insufficient. The command dependency
+makes every such consumer complete the coordinator before examining object
+recipes. This prevents an incremental compile from changing the dependency graph
+while the coordinator freezes or republishes it, including when a current tree
+is adopted after its bootstrap stamp was removed. It adds no per-source targets.
 
 On a 200-source group this takes the build tool from 206 targets to 7, a 600 KB
 `Makefile2` to 21 KB, and a no-op build from 31 s to 0.7 s.

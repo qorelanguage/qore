@@ -332,8 +332,8 @@
           "message": "Indica si los tokens se renuevan automáticamente"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.desc": {
-          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token",
-          "message": "Argumentos opcionales para solicitudes de autenticación para el tipo de concesión `authorization_code`; se ignora si se establece la opción `token`. Tenga en cuenta que el tipo de concesión `authorization_code` requiere autorización externa del usuario para adquirir un token de acceso"
+          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token. Supply unencoded keys and values; consent URL generation URL-encodes keys and values exactly once, including scope lists",
+          "message": "Argumentos opcionales para solicitudes de autenticación para el tipo de concesión `authorization_code`; se ignora si se establece la opción `token`. Tenga en cuenta que el tipo de concesión `authorization_code` requiere autorización externa del usuario para adquirir un token de acceso. Proporcione claves y valores sin codificar; al generar la URL de consentimiento, las claves y los valores se codifican para URL exactamente una vez, incluidas las listas de permisos"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.display_name": {
           "source": "OAuth2 Authorization Args",

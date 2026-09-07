@@ -332,8 +332,8 @@
           "message": "Či sa tokeny obnovujú automaticky"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.desc": {
-          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token",
-          "message": "Voliteľné argumenty pre autentifikačné požiadavky pre typ udelenia prístupu `authorization_code`; ignorované, ak je nastavená možnosť `token`. Všimnite si, že typ udelenia prístupu `authorization_code` vyžaduje externú autorizáciu používateľa na získanie prístupového tokenu"
+          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token. Supply unencoded keys and values; consent URL generation URL-encodes keys and values exactly once, including scope lists",
+          "message": "Voliteľné argumenty pre autentifikačné požiadavky pre typ udelenia prístupu `authorization_code`; ignorované, ak je nastavená možnosť `token`. Všimnite si, že typ udelenia prístupu `authorization_code` vyžaduje externú autorizáciu používateľa na získanie prístupového tokenu. Zadajte nekódované kľúče a hodnoty; pri vytváraní adresy URL na udelenie súhlasu sa kľúče a hodnoty zakódujú pre URL práve raz, vrátane zoznamov oprávnení"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.display_name": {
           "source": "OAuth2 Authorization Args",

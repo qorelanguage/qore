@@ -332,8 +332,8 @@
           "message": "Чи оновлюються токени автоматично"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.desc": {
-          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token",
-          "message": "Необов'язкові аргументи для запитів автентифікації для типу надання доступу `authorization_code`; ігнорується, якщо встановлено параметр `token`. Зверніть увагу, що тип надання доступу `authorization_code` вимагає зовнішньої авторизації користувача для отримання токена доступу"
+          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token. Supply unencoded keys and values; consent URL generation URL-encodes keys and values exactly once, including scope lists",
+          "message": "Необов'язкові аргументи для запитів автентифікації для типу надання доступу `authorization_code`; ігнорується, якщо встановлено параметр `token`. Зверніть увагу, що тип надання доступу `authorization_code` вимагає зовнішньої авторизації користувача для отримання токена доступу. Надавайте незакодовані ключі та значення; під час створення URL-адреси згоди ключі та значення, зокрема списки дозволів, кодуються для URL рівно один раз"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.display_name": {
           "source": "OAuth2 Authorization Args",

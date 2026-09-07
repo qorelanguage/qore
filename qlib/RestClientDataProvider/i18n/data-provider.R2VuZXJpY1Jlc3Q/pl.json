@@ -332,8 +332,8 @@
           "message": "Określa, czy tokeny są odświeżane automatycznie"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.desc": {
-          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token",
-          "message": "Opcjonalne argumenty dla żądań uwierzytelnienia dla typu przydziału `authorization_code`; ignorowane, jeśli ustawiona jest opcja `token`. Uwaga: typ przydziału `authorization_code` wymaga zewnętrznej autoryzacji użytkownika w celu uzyskania tokenu dostępu"
+          "source": "Optional arguments for authentication requests for the `authorization_code` grant type; ignored if the `token` option is set.  Note that the `authorization_code` grant type requires external user authorization to acquire an access token. Supply unencoded keys and values; consent URL generation URL-encodes keys and values exactly once, including scope lists",
+          "message": "Opcjonalne argumenty dla żądań uwierzytelnienia dla typu przydziału `authorization_code`; ignorowane, jeśli ustawiona jest opcja `token`. Uwaga: typ przydziału `authorization_code` wymaga zewnętrznej autoryzacji użytkownika w celu uzyskania tokenu dostępu. Podaj niezakodowane klucze i wartości; podczas generowania adresu URL zgody klucze i wartości, w tym listy uprawnień, są kodowane w formacie URL dokładnie raz"
         },
         "app.R2VuZXJpY1Jlc3Q.action.Y2FsbA.option.b2F1dGgyX2F1dGhfYXJncw.display_name": {
           "source": "OAuth2 Authorization Args",

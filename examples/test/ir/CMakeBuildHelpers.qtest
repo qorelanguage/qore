@@ -7,10 +7,12 @@
 %no-child-restrictions
 
 %prepend-module-path "${SCRIPT_DIR}/../../../qlib"
-%requires QUnit
-%requires FsUtil
+%requires ../../../qlib/QUnit.qm
+%requires ../../../qlib/FsUtil.qm
 # catalog install reconciliation is verified by composing what it leaves installed
-%requires DataProvider
+%requires ../../../qlib/DataProvider
+%requires i18n
+%requires json
 
 %exec-class CMakeBuildHelpersTest
 
@@ -1338,6 +1340,9 @@ file(WRITE \"${CMAKE_BINARY_DIR}/qo-objects.txt\" \"${QO_OBJECTS}\")
                     ++group_order_targets;
                 }
             }
+            assertTrue(makefile2.find("CMakeFiles/qo-objects.dir/all: "
+                    + "CMakeFiles/qore_qcc_cmake_smoke_incremental_plan.dir/all") != -1,
+                "direct object-stamp consumers depend on the group coordinator");
             assertEq(0, per_source_targets,
                 "no build-tool target is emitted per source");
             assertTrue(group_order_targets > 0,
@@ -1576,10 +1581,9 @@ file(WRITE \"${CMAKE_BINARY_DIR}/qo-objects.txt\" \"${QO_OBJECTS}\")
 
         # The frozen dependency graph is an ordinary file that outlives the build
         # that wrote it, so it records the whole-group publication it was frozen
-        # from.  A target that depends on the object stamps rather than on the
-        # group's order targets -- which is what qo-objects above does -- carries
-        # no planner barrier, so the build tool may run an object recipe before
-        # this build's first freeze.  Applying the previous build's edge set
+        # from. Direct object-stamp consumers now inherit the planner barrier,
+        # but standalone helper invocations can still run before a build's first
+        # freeze. Applying the previous build's edge set
         # there resolves a compile plan the coordinator's freeze then refuses to
         # publish, and the component is compiled a second time.
         string snapshot_path = context_path + ".graph-snapshot.json";
@@ -1712,11 +1716,7 @@ file(WRITE \"${CMAKE_BINARY_DIR}/qo-objects.txt\" \"${QO_OBJECTS}\")
             # A component whose artifacts are all intact -- which is the case
             # here, only the generation records were removed -- republishes
             # without recompiling, so zero is a valid count too.
-            # Not an exact count: this fixture's qo-objects target depends on
-            # the object stamps rather than on the group's order target, so an
-            # object recipe can reach a stale component before the coordinator
-            # does and compile it a second time.  What the smaller closure must
-            # not do is reparse the group.
+            # The smaller closure must not reparse the group.
             assertTrue(recovery_compiles < object_paths.size(),
                 sprintf("a smaller closure does not reparse the group (%d of "
                     "%d): %s", recovery_compiles, object_paths.size(),

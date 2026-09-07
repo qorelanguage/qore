@@ -38,6 +38,15 @@ The JIT path must preserve:
   mutate variables outside native SSA state.
 - Debugger-driven AST override in tiered mode.
 
+Implicit `copy()` calls are constructor operations, not ordinary methods. Both
+parser paths that create `SelfFunctionCallNode` mark that identity before IR
+lowering, including the bare-function rewrite that calls `parseInitCall()`
+directly. The flag survives argument-list cloning and directs execution through
+`execCopy()`, preserving the dynamic class, copy hooks, and exception cleanup.
+Normal method dispatch cannot invoke a copy variant: its calling convention is
+different. `ImplicitCopyDispatch.qtest` exercises polymorphic copies and failing
+copy hooks in all four execution modes.
+
 ## Tiered Execution
 
 Tiered mode starts functions on AST and promotes by call count:

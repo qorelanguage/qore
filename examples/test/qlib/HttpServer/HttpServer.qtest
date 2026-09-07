@@ -1,29 +1,30 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Mime
-%requires Logger
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/HttpServerUtil.qm
-%requires AsyncSocketIo
-%requires HttpServerAsyncIo
+%requires ../../../../qlib/AsyncSocketIo
+%requires ../../../../qlib/HttpServerAsyncIo
 %requires ../../../../qlib/HttpServer.qm
-%requires WebSocketUtil
-%requires WebSocketHandler
-%requires WebSocketClient
-%requires RestClientIo
-%requires DataProvider
-%requires ConnectionProvider
-%requires RestSchemaValidator
-%requires Swagger
-%requires OpenApi3
-%requires RestClient
-%requires HttpClientIo
-%requires HttpClientStreamingIo
+%requires ../../../../qlib/WebSocketUtil.qm
+%requires ../../../../qlib/WebSocketHandler.qm
+%requires ../../../../qlib/WebSocketClient.qm
+%requires ../../../../qlib/RestClientIo.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/RestSchemaValidator.qm
+%requires ../../../../qlib/Swagger.qm
+%requires ../../../../qlib/OpenApi3.qm
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/HttpClientIo
+%requires ../../../../qlib/HttpClientStreamingIo
 
 %exec-class HttpServerTest
 
@@ -172,7 +173,7 @@ class ReqHandler inherits AbstractHttpRequestHandler {
                 "Content-Encoding": "gzip",
             });
         } else if (rpath =~ /^fileupload/) {
-            string boundary = (hdr."_qore_orig_content_type" =~ x/boundary="?(.+)"?/i)[0];
+            string boundary = (hdr."_qore_orig_content_type" =~ x/boundary="?([^";]+)"?/i)[0];
             hash<MessageInfo> h = MultiPartMessage::parseBody(boundary, body, True);
             #printf("h: %N\n", h);
             return makeResponse(200, new BinaryInputStream(h.part[1].body), {"Content-Type": h.part[1].hdr."content-type"});

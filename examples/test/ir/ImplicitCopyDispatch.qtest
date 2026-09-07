@@ -1,0 +1,97 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%no-child-restrictions
+%prepend-module-path "${SCRIPT_DIR}/../../../qlib"
+%requires ../../../qlib/QUnit.qm
+
+%exec-class ImplicitCopyDispatchTest
+
+class ImplicitCopyDispatchTest inherits QUnit::Test {
+    constructor() : Test("ImplicitCopyDispatchTest", "1.0", \ARGV) {
+        addTestCase("implicit copies in AST", sub() { testMode(EM_AST); });
+        addTestCase("implicit copies in IR", sub() { testMode(EM_IR); });
+        addTestCase("implicit copies in JIT", sub() { testMode(EM_JIT); });
+        addTestCase("implicit copies in tiered execution", sub() { testMode(EM_TIERED); });
+        addTestCase("implicit copies reject arguments", \testCopyArguments());
+        set_return_value(main());
+    }
+
+    private testCopyArguments() {
+        foreach string expression in ("return copy(42);", "CopyArgs result = copy(42); return result;") {
+            Program p(PO_MODERN);
+            assertThrows("PARSE-EXCEPTION", sub() {
+                p.parse("%modern\nclass CopyArgs { CopyArgs duplicate() { " + expression + " } }",
+                    "implicit-copy-arguments");
+            });
+        }
+    }
+
+    private testMode(enum<ExecMode> mode) {
+        Program p(PO_MODERN | PO_ENABLE_DEBUG);
+        p.setExecMode(mode);
+        p.parse("%modern
+class CopyBase {
+    abstract CopyBase duplicate();
+    abstract int getValue();
+}
+class CopyValue inherits CopyBase {
+    private { int value; }
+    constructor(int value) { self.value = value; }
+    CopyBase duplicate() {
+        try {
+            CopyValue result = copy();
+            ++result.value;
+            return result;
+        } catch (hash<ExceptionInfo> ex) {
+            rethrow;
+        }
+    }
+    int getValue() { return value; }
+}
+class CopyFailure inherits CopyBase {
+    copy() { throw \"COPY-FIXTURE-ERROR\", \"copy hook failed\", 42; }
+    CopyBase duplicate() {
+        try {
+            return copy();
+        } catch (hash<ExceptionInfo> ex) {
+            rethrow;
+        }
+    }
+    int getValue() { return 7; }
+}
+hash<string, int> sub exercise() {
+    CopyBase original = new CopyValue(41);
+    CopyBase failure = new CopyFailure();
+    int copies = 0;
+    int failures = 0;
+    # Polymorphic dispatch reaches the method's IR path. The try block makes
+    # IR evaluate copy() with an argument list even though it has no arguments;
+    # this exercises the failing dispatch without waiting for native promotion.
+    for (int i = 0; i < 1000; ++i) {
+        CopyBase result = original.duplicate();
+        @assert(result !== original);
+        @assert(result instanceof CopyValue);
+        @assert(result.getValue() == 42);
+        @assert(original.getValue() == 41);
+        ++copies;
+        try {
+            failure.duplicate();
+        } catch (hash<ExceptionInfo> ex) {
+            @assert(ex.err == \"COPY-FIXTURE-ERROR\");
+            @assert(ex.desc == \"copy hook failed\");
+            @assert(ex.arg == 42);
+            @assert(failure.getValue() == 7);
+            ++failures;
+        }
+    }
+    return {\"copies\": copies, \"failures\": failures};
+}
+", "implicit-copy-dispatch");
+        hash<string, int> result = p.callFunction("exercise");
+        assertEq(1000, result.copies, "every copy preserves dynamic type and independent state");
+        assertEq(1000, result.failures, "every failed copy preserves its exception and original object");
+    }
+}

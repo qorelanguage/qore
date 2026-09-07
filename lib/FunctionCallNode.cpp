@@ -948,9 +948,10 @@ int SelfFunctionCallNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
             if (!strcmp(ns.ostr, "copy")) {
                 printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolved to copy constructor\n", this);
                 is_copy = true;
-                if (args) {
+                size_t num_args = args ? args->size() : (parse_args ? parse_args->size() : 0);
+                if (num_args) {
                     parse_error(*loc, "no arguments may be passed to copy methods (%lu argument%s given in " \
-                        "call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", class_ctx->name.c_str());
+                        "call to %s::copy())", num_args, num_args == 1 ? "" : "s", class_ctx->name.c_str());
                     err = -1;
                 }
             } else {
@@ -1154,12 +1155,17 @@ int FunctionCallNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_cont
         if (abr) {
             SelfFunctionCallNode* sfcn = nullptr;
             if (!strcmp(c_str, "copy")) {
-                if (args) {
+                size_t num_args = args ? args->size() : (parse_args ? parse_args->size() : 0);
+                if (num_args) {
                     parse_error(*loc, "no arguments may be passed to copy methods (%lu argument%s given in "
-                        "call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
+                        "call to %s::copy())", num_args, num_args == 1 ? "" : "s", qc->getName());
                     return -1;
                 }
-                sfcn = new SelfFunctionCallNode(loc, takeName(), 0);
+                // parseInitCall() below does not run SelfFunctionCallNode's
+                // parseInitImpl(), which normally recognizes implicit copy.
+                // Preserve that identity here so IR/JIT calls with evaluated
+                // arguments never dispatch the copy variant as a normal method.
+                sfcn = new SelfFunctionCallNode(loc, takeName(), nullptr, qc, true);
             } else {
                 const QoreMethod* m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass*>(qc), c_str);
                 if (m) {
