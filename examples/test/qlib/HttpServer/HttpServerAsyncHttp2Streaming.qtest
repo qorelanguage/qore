@@ -11,15 +11,15 @@
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Mime
-%requires Logger
-%requires HttpServerUtil
-%requires HttpServerAsyncIo
-%requires HttpServer
-%requires RestClient
-%requires RestClientIo
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/HttpServerAsyncIo
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/RestClientIo.qm
 
 %exec-class HttpServerAsyncHttp2StreamingTest
 
@@ -531,8 +531,8 @@ OKKqgBjNAlYDdPhOy8O8Agk=
         # SSE / send_callback per-chunk flush regression test
         addTestCase("H2 send_callback chunks reach wire per emit (SSE flush)",
             \testH2SendCallbackPerChunkFlush());
-        addTestCase("H2 buffered partial response waits without polling spin",
-            \testH2BufferedPartialResponseWaitsEfficiently());
+        addTestCase("H2 buffered callback response preserves all chunks",
+            \testH2BufferedCallbackResponse());
 
         set_return_value(main());
     }
@@ -1073,11 +1073,10 @@ OKKqgBjNAlYDdPhOy8O8Agk=
     }
 
     #! A normal HTTP/2 request buffers partial response DATA until END_STREAM.
-    #! Those buffered bytes are not actionable input for the client poll
-    #! operation.  Re-queuing the socket merely because the partial body is
-    #! nonempty makes the async I/O thread spin while a slow SSE-style producer
-    #! waits before emitting its next chunk.
-    testH2BufferedPartialResponseWaitsEfficiently() {
+    #! The deterministic C++ ut_http2_pending_response_data() tests in ql_debug.cpp
+    #! check readiness before END_STREAM.  Process CPU time cannot measure polling
+    #! spin here because it also includes background JIT compilation.
+    testH2BufferedCallbackResponse() {
         RestClientIo rc({
             "url": mSslUrl,
             "data": "text",
@@ -1087,45 +1086,13 @@ OKKqgBjNAlYDdPhOy8O8Agk=
             "connect_timeout": 5s,
         });
 
-        # Linux exposes process CPU time in clock ticks in /proc/self/stat.
-        # The pre-fix livelock consumes one full core for the handler's 1.75 s
-        # stagger window (>150 ticks on Linux's USER_HZ=100); the fixed path
-        # sleeps in epoll and normally consumes only a handful of ticks.  Keep
-        # the functional assertion on every platform and make the CPU bound a
-        # Linux-specific regression check.
-        *int cpu_before = getLinuxProcessCpuTicks();
         hash<auto> resp = rc.restGet("/buffered-staggered-cb");
-        *int cpu_after = getLinuxProcessCpuTicks();
 
         assertEq(200, resp.status_code, "buffered staggered response status");
-        assertTrue(string(resp.body).find("data: event-0") >= 0,
-            "buffered staggered response contains first event");
-        assertTrue(string(resp.body).find("data: event-7") >= 0,
-            "buffered staggered response contains final event");
-        if (exists cpu_before && exists cpu_after) {
-            assertLt(50, cpu_after - cpu_before,
-                sprintf("buffered partial response must wait efficiently; used %d CPU ticks",
-                    cpu_after - cpu_before));
-        } else {
-            testSkip("/proc/self/stat unavailable; CPU-spin assertion is Linux-specific");
+        string expected;
+        for (int i = 0; i < 8; ++i) {
+            expected += sprintf("data: event-%d\n\n", i);
         }
-    }
-
-    private *int getLinuxProcessCpuTicks() {
-        if (!stat("/proc/self/stat")) {
-            return NOTHING;
-        }
-        string process_stat = File::readTextFile("/proc/self/stat");
-        *list<*string> match = process_stat =~ x/^\d+ \([^)]*\) (.*)$/;
-        if (!match) {
-            return NOTHING;
-        }
-        list<string> fields = trim(match[0]).splitRegex("\\s+");
-        # After pid and comm are removed, field 3 (state) is index 0;
-        # utime/stime are process-stat fields 14/15, hence indexes 11/12.
-        if (fields.size() <= 12) {
-            return NOTHING;
-        }
-        return int(fields[11]) + int(fields[12]);
+        assertEq(expected, string(resp.body), "buffered response preserves every chunk in order");
     }
 }
