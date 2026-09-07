@@ -146,7 +146,8 @@ printf("%Y\n", ans.body);
 
     @subsection restclientv2_7 RestClient v2.7
     - OAuth consent URLs encode extra authorization argument names and values, state, client IDs, and PKCE
-      values, preserving optional scopes and callback state containing reserved characters
+      values, preserving optional scopes and callback state containing reserved characters; missing values and
+      empty optional scope lists serialize as empty query values
       (<a href="https://github.com/qoretechnologies/qore/issues/5443">issue 5443</a>)
     - fixed a connection using an OAuth2 grant with no authorization step reporting that it has nothing to
       do with OAuth2; the only OAuth2 features published were the two interactive flows and the general
@@ -1197,7 +1198,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
           with the \c oauth2_token_url value as an argument in the request
         - \c oauth2_auto_refresh: If OAuth2 tokens should be automatically refreshed (default \c True)
         - \c oauth2_auth_args: Extra arguments for OAuth2 authentication requests to \c oauth2_auth_url for the
-          \c authentication_code grant type.  Note that the \c authorization_code grant type requires external user
+          \c authorization_code grant type.  Note that the \c authorization_code grant type requires external user
           authorization to acquire an access token. Values must be unencoded; authorization URL generation
           URL-encodes keys and values, including scope lists, exactly once
         - \c oauth2_auth_url: The OAuth2 authorization URL for the \c authorization_code grant type; ignored if the
@@ -4050,7 +4051,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                     "type": "hash",
                     "desc": "Optional arguments for authentication requests for the `authorization_code` grant type; "
                         "ignored if the `token` option is set.  Note that the `authorization_code` grant type "
-                        "requires external user authorization to acquire an access token",
+                        "requires external user authorization to acquire an access token. Supply unencoded "
+                        "keys and values; consent URL generation URL-encodes each value exactly once, including "
+                        "scope lists",
                 },
                 "oauth2_auth_url": <ConnectionOptionInfo>{
                     "display_name": "OAuth2 Auth URL",
@@ -5242,9 +5245,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                 return v ? "true" : "false";
 
             case NT_LIST:
-                return RestClient::getScopeString(v, separator);
+                return RestClient::getScopeString(v, separator) ?? "";
         }
-        return v;
+        return v ?? "";
     }
 
     #! Processes OAuth2 login responses and returns updated options

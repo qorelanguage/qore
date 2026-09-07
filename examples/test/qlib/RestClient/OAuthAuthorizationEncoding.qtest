@@ -2,7 +2,7 @@
 # Copyright 2026 Qore Technologies, s.r.o.
 # SPDX-License-Identifier: MIT
 %modern
-%prepend-module-path ../../../../qlib
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
 %requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/QUnit.qm
 %exec-class OAuthAuthorizationEncodingTest
@@ -28,6 +28,12 @@ class OAuthAuthorizationEncodingTest inherits QUnit::Test {
                 "optional_scope": ("content", "cms.domains.read"),
                 "include_granted_scopes": True,
                 "empty": "",
+                "max_age": 3600,
+                "false_value": False,
+                "zero": 0,
+                "missing": NOTHING,
+                "empty_list": (),
+                "ratio": 1.5,
                 "key&with=separators": "value&injected=yes+% ü",
             },
         } + extra);
@@ -48,6 +54,12 @@ class OAuthAuthorizationEncodingTest inherits QUnit::Test {
         assertEq("value&injected=yes+% ü", args{"key&with=separators"});
         assertEq("true", args.include_granted_scopes);
         assertEq("", args.empty);
+        assertEq("3600", args.max_age);
+        assertEq("false", args.false_value);
+        assertEq("0", args.zero);
+        assertEq("", args.missing);
+        assertEq("", args.empty_list);
+        assertEq("1.5", args.ratio);
         assertNothing(args.injected);
         assertNothing(args.x);
         args = Util::parse_uri_query(conn.getAuthorizationCodeRequest(<AuthCodeInfo>{
