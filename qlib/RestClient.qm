@@ -145,6 +145,9 @@ printf("%Y\n", ans.body);
     @section restclientrelnotes Release Notes
 
     @subsection restclientv2_7 RestClient v2.7
+    - OAuth consent URLs encode extra authorization argument names and values, state, client IDs, and PKCE
+      values, preserving optional scopes and callback state containing reserved characters
+      (<a href="https://github.com/qoretechnologies/qore/issues/5443">issue 5443</a>)
     - connection pings can validate service-specific authentication information with
       @ref RestClient::RestConnection::validatePingResponse() "validatePingResponse()" on all transports
     - clearing the connection path also clears the default path so opening a socket cannot restore
@@ -1200,7 +1203,8 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         - \c oauth2_auto_refresh: If OAuth2 tokens should be automatically refreshed (default \c True)
         - \c oauth2_auth_args: Extra arguments for OAuth2 authentication requests to \c oauth2_auth_url for the
           \c authentication_code grant type.  Note that the \c authorization_code grant type requires external user
-          authorization to acquire an access token
+          authorization to acquire an access token. Values must be unencoded; authorization URL generation
+          URL-encodes keys and values, including scope lists, exactly once
         - \c oauth2_auth_url: The OAuth2 authorization URL for the \c authorization_code grant type; ignored if the
           \c token option is set.  Note that the \c authorization_code grant type requires external user authorization
           to acquire an access token
@@ -4937,7 +4941,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         *list<auto> scopes = info.hasKey("scopes") ? info.scopes : real_opts.oauth2_scopes;
         *string scope = RestClient::getScopeString(scopes, real_opts.oauth2_scope_separator_char);
         if (scope.val()) {
-            scope = encode_url(scope);
+            scope = encode_url(scope, True);
         }
         string uri = getAuthUrl();
         if (uri =~ /\?/) {
@@ -4967,8 +4971,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
             }
         }
         uri += sprintf("scope=%s&redirect_uri=%s&client_id=%s&response_type=%s", scope,
-            encode_url(redirect_uri, True), opts{oauth2_client_id_opt},
-            response_type);
+            encode_url(redirect_uri, True), encode_url(opts{oauth2_client_id_opt}, True),
+            encode_url(response_type, True));
         # For implicit grant, also add return_url since some providers (like Trello) use that instead of redirect_uri
         if (opts.oauth2_grant_type == "implicit") {
             uri += sprintf("&return_url=%s", encode_url(redirect_uri, True));
@@ -4994,12 +4998,14 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                     }
                 }
             }
-            uri += sprintf("&%s=%s", arg.key, getUriValue(val, real_opts.oauth2_scope_separator_char));
+            # Values are raw metadata, not pre-encoded URI fragments (including optional scope lists).
+            uri += sprintf("&%s=%s", encode_url(arg.key, True),
+                encode_url(getUriValue(val, real_opts.oauth2_scope_separator_char), True));
         }
         # Always add state as a separate parameter per RFC 6749 for CSRF protection
         # For implicit grant with non-compliant providers, state is also embedded in redirect_uri above
         if (info.state) {
-            uri += sprintf("&state=%s", info.state);
+            uri += sprintf("&state=%s", encode_url(info.state, True));
         }
         if (info.code_verifier.val() && opts.oauth2_pkce && (opts.oauth2_pkce != "none")) {
             string code_challenge;
@@ -5008,7 +5014,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
             } else {
                 code_challenge = info.code_verifier;
             }
-            uri += sprintf("&code_challenge=%s&code_challenge_method=%s", code_challenge, opts.oauth2_pkce);
+            uri += sprintf("&code_challenge=%s&code_challenge_method=%s", encode_url(code_challenge, True),
+                encode_url(opts.oauth2_pkce, True));
         }
         return uri;
     }
