@@ -22,15 +22,20 @@
 
 %exec-class OAuth2AuthFeatureTest
 
-#! Tests that connections supporting an OAuth2 authorization flow say so consistently
-/** A connection reports both the flow it supports (\c oauth2_auth_code / \c oauth2_implicit) and
-    whether it can be authorized at all (\c oauth2_auth).  The second is implied by the first, and a UI
-    deciding whether to offer an "Authorize" control reads the second - so a connection that sets only
-    the first cannot be authorized from the UI at all, however complete its OAuth2 configuration is.
+#! Tests that connections say consistently whether they use OAuth2 and whether they can be authorized
+/** A connection reports the flow it supports (\c oauth2_auth_code / \c oauth2_implicit), whether it can
+    be authorized at all (\c oauth2_auth), and whether it authenticates with OAuth2 at all (\c oauth2).
+    The second is implied by the first, and a UI deciding whether to offer an "Authorize" control reads
+    the second - so a connection that sets only the first cannot be authorized from the UI at all, however
+    complete its OAuth2 configuration is.
 
     Connection classes that always use the authorization code grant override \c checkAuthCodeFeature()
     to skip re-testing the grant type, which \c setFeatures() has already gated on.  Six of them were
     written before \c oauth2-auth existed and set only \c oauth2-auth-code, which is what this pins.
+
+    The third is a different question, and only the grants with an authorization step used to answer it:
+    a \c client_credentials connection published \c False for all three flags and so could not be told
+    apart from a connection doing no OAuth2 at all (issue 5441).
 */
 class OAuth2AuthFeatureTest inherits QUnit::Test {
     public {
@@ -63,11 +68,46 @@ class OAuth2AuthFeatureTest inherits QUnit::Test {
             "oauth2_client_secret": "client-secret",
             "oauth2_redirect_url": "auto",
         };
+
+        #! A complete client credentials configuration; the grant has no authorization step
+        const ClientCredentialsOptions = {
+            "oauth2_grant_type": "client_credentials",
+            "oauth2_token_url": "https://example.com/token",
+            "oauth2_client_id": "client-id",
+            "oauth2_client_secret": "client-secret",
+        };
+
+        #! A complete resource owner password credentials configuration; also with no authorization step
+        const PasswordOptions = {
+            "oauth2_grant_type": "password",
+            "oauth2_token_url": "https://example.com/token",
+            "oauth2_client_id": "client-id",
+            "oauth2_client_secret": "client-secret",
+            "username": "user",
+            "password": "pass",
+        };
+
+        #! Every OAuth2 boolean flag published with a connection's extended info
+        const OAuth2FlagKeys = (
+            "oauth2",
+            "oauth2_auth_code",
+            "oauth2_implicit",
+            "oauth2_client_credentials",
+            "oauth2_password",
+            "oauth2_auth",
+        );
+
+        #! Every OAuth2 key published with a connection's extended info
+        const OAuth2InfoKeys = OAuth2FlagKeys + ("oauth2_grant_type",);
     }
 
     constructor() : Test("OAuth2AuthFeatureTest", "1.0") {
         addTestCase("a connection supporting a flow can be authorized", \authFeatureTest());
         addTestCase("an unconfigured connection claims no authorization support", \noAuthFeatureTest());
+        addTestCase("a grant with no authorization step is still OAuth2", \nonInteractiveGrantTest());
+        addTestCase("a connection with no OAuth2 configuration claims none", \noOAuth2Test());
+        addTestCase("an incompletely configured connection still says it is OAuth2", \incompleteConfigTest());
+        addTestCase("both extended info methods publish the same OAuth2 keys", \extendedInfoAgreementTest());
         set_return_value(main());
     }
 
@@ -89,6 +129,9 @@ class OAuth2AuthFeatureTest inherits QUnit::Test {
             assertTrue(info.oauth2_auth, entry.cls + " reports that it can be authorized");
             assertEq(info.oauth2_auth_code || info.oauth2_implicit, info.oauth2_auth,
                 entry.cls + " agrees with itself about being authorizable");
+            # the general flag is set in setFeatures(), where no checkAuthCodeFeature() override can drop it
+            assertTrue(info.oauth2, entry.cls + " authenticates with OAuth2");
+            assertEq("authorization_code", info.oauth2_grant_type, entry.cls + " publishes the grant it uses");
         }
     }
 
@@ -111,5 +154,113 @@ class OAuth2AuthFeatureTest inherits QUnit::Test {
         }).getExtendedInfoAsData();
         assertTrue(info.oauth2_auth_code, "the authorization code grant is claimed");
         assertTrue(info.oauth2_auth, "and with it the ability to be authorized");
+    }
+
+    #! A grant whose credentials are configuration rather than consent is still an OAuth2 connection
+    private nonInteractiveGrantTest() {
+        RestConnection cc({
+            "name": "test-client-credentials",
+            "url": "rests://example.com",
+            "opts": ClientCredentialsOptions,
+        });
+        hash<auto> info = cc.getExtendedInfoAsData();
+        # the regression: all three published flags were False, which is what a connection doing no OAuth2
+        # at all publishes, so this connection could not be presented or filtered as an OAuth2 connection
+        assertTrue(info.oauth2, "the client credentials grant authenticates with OAuth2");
+        assertEq("client_credentials", info.oauth2_grant_type, "and publishes the grant it uses");
+        assertTrue(info.oauth2_client_credentials, "and claims the grant's own feature");
+        assertTrue(cc.getFeatures(){RestConnection::RCF_OAUTH2}, "as a connection feature as well");
+        assertTrue(cc.getFeatures(){RestConnection::RCF_OAUTH2_CLIENT_CREDENTIALS},
+            "with the grant's feature beside it");
+        # there is nothing for a user to authorize here, and the connection must keep saying so
+        assertFalse(info.oauth2_auth, "the credentials are configuration, not a user's consent");
+        assertFalse(info.oauth2_auth_code, "so no authorization code flow is offered");
+        assertFalse(info.oauth2_implicit, "and no implicit flow either");
+        assertFalse(info.oauth2_password, "and it is not the password grant");
+        assertNothing(cc.getFeatures(){RestConnection::RCF_OAUTH2_AUTH}, "and no authorization feature");
+
+        RestConnection pw({
+            "name": "test-password",
+            "url": "rests://example.com",
+            "opts": PasswordOptions,
+        });
+        info = pw.getExtendedInfoAsData();
+        assertTrue(info.oauth2, "the password grant authenticates with OAuth2 too");
+        assertEq("password", info.oauth2_grant_type, "and publishes its own grant");
+        assertTrue(info.oauth2_password, "and claims the password grant feature");
+        assertTrue(pw.getFeatures(){RestConnection::RCF_OAUTH2_PASSWORD}, "as a connection feature as well");
+        assertFalse(info.oauth2_client_credentials, "without claiming the client credentials grant");
+        assertFalse(info.oauth2_auth, "the password grant has no authorization step either");
+        assertNothing(pw.getFeatures(){RestConnection::RCF_OAUTH2_AUTH}, "and no authorization feature");
+    }
+
+    #! A connection that does no OAuth2 must claim nothing, both ways of saying so
+    private noOAuth2Test() {
+        # no OAuth2 options at all
+        RestConnection none({
+            "name": "test-no-oauth2",
+            "url": "rests://example.com",
+        });
+        hash<auto> info = none.getExtendedInfoAsData();
+        assertFalse(info.oauth2, "a connection with no OAuth2 options does not use OAuth2");
+        assertEq("none", info.oauth2_grant_type, "and reports no grant type");
+        assertNothing(none.getFeatures(){RestConnection::RCF_OAUTH2}, "and claims no OAuth2 feature");
+        map assertFalse(info{$1}, "no OAuth2 flag is claimed: " + $1), OAuth2FlagKeys;
+
+        # the grant type stated explicitly as "none" must be read the same way
+        RestConnection expl({
+            "name": "test-grant-none",
+            "url": "rests://example.com",
+            "opts": {"oauth2_grant_type": "none"},
+        });
+        info = expl.getExtendedInfoAsData();
+        assertFalse(info.oauth2, "an explicit \"none\" grant type does not use OAuth2 either");
+        assertEq("none", info.oauth2_grant_type, "and is published as such");
+        assertNothing(expl.getFeatures(){RestConnection::RCF_OAUTH2}, "and claims no OAuth2 feature");
+    }
+
+    #! A configuration too incomplete to use is still an OAuth2 configuration
+    private incompleteConfigTest() {
+        # the connection cannot connect without a token URL, but it is still an OAuth2 connection: gating the
+        # flag on a complete configuration would reintroduce the defect for every half-configured connection
+        RestConnection cc({
+            "name": "test-incomplete-client-credentials",
+            "url": "rests://example.com",
+            "opts": ClientCredentialsOptions - "oauth2_token_url",
+        });
+        hash<auto> info = cc.getExtendedInfoAsData();
+        assertFalse(info.up, "an incomplete client credentials configuration cannot connect");
+        assertTrue(info.oauth2, "but it still says that it authenticates with OAuth2");
+        assertTrue(info.oauth2_client_credentials, "and which grant it uses");
+
+        # an authorization code connection missing an endpoint is OAuth2 with no step it can offer, which is
+        # a different state from "not an OAuth2 connection" and must not be reported as one
+        RestConnection ac({
+            "name": "test-incomplete-auth-code",
+            "url": "rests://example.com",
+            "opts": AuthCodeOptions - "oauth2_auth_url",
+        });
+        info = ac.getExtendedInfoAsData();
+        assertTrue(info.oauth2, "an incomplete authorization code connection is still OAuth2");
+        assertEq("authorization_code", info.oauth2_grant_type, "and knows its grant type");
+        assertFalse(info.oauth2_auth_code, "but cannot make the authorization request");
+        assertFalse(info.oauth2_auth, "so it has no authorization step to offer");
+    }
+
+    #! Both methods publish the OAuth2 keys from one place, so they cannot drift apart
+    private extendedInfoAgreementTest() {
+        foreach hash<auto> opts in ((AuthCodeOptions, ClientCredentialsOptions, PasswordOptions)) {
+            RestConnection conn({
+                "name": "test-" + opts.oauth2_grant_type,
+                "url": "rests://example.com",
+                "opts": opts,
+            });
+            hash<auto> info = conn.getExtendedInfo();
+            hash<auto> data = conn.getExtendedInfoAsData();
+            assertEq(OAuth2InfoKeys, keys (info{OAuth2InfoKeys}),
+                opts.oauth2_grant_type + ": getExtendedInfo() publishes every OAuth2 key");
+            assertEq(info{OAuth2InfoKeys}, data{OAuth2InfoKeys},
+                opts.oauth2_grant_type + ": both methods agree about OAuth2");
+        }
     }
 }

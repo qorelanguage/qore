@@ -57,6 +57,7 @@ public class Main inherits QUnit::Test {
         addTestCase("PUT tests", \methodPutTest());
         addTestCase("neg tests", \negTest());
         addTestCase("connection tests", \connectionTest());
+        addTestCase("OAuth2 feature tests", \oauth2FeatureTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -129,5 +130,33 @@ public class Main inherits QUnit::Test {
         # issue #3321: check default timeouts
         assertEq(45000, client.getTimeout());
         assertEq(45000, client.getConnectTimeout());
+    }
+
+    #! This connection holds its OAuth2 credentials under its own option names, and must still report OAuth2
+    /** the client applies the client credentials grant whenever both credentials are present, but nothing set
+        \c oauth2_grant_type on the connection, so the connection reported that it had nothing to do with OAuth2
+        (issue 5441)
+    */
+    oauth2FeatureTest() {
+        checkModule();
+        string url = sprintf("http://localhost:%d", get_free_port());
+
+        Sap4HanaRestConnection oauth2("test", "test", url, {}, {
+            "client_id": "client-id",
+            "client_secret": "client-secret",
+        });
+        hash<auto> info = oauth2.getExtendedInfoAsData();
+        assertTrue(info.oauth2, "a connection with both credentials authenticates with OAuth2");
+        assertEq("client_credentials", info.oauth2_grant_type, "with the grant the client applies");
+        assertTrue(info.oauth2_client_credentials, "and claims that grant's feature");
+        assertTrue(oauth2.getFeatures(){RestConnection::RCF_OAUTH2}, "as a connection feature as well");
+        assertFalse(info.oauth2_auth, "the credentials are configuration, so there is nothing to authorize");
+
+        # API key authentication is not OAuth2, and the connection must not claim that it is
+        Sap4HanaRestConnection apikey("test", "test", url, {}, {"apikey": "x"});
+        info = apikey.getExtendedInfoAsData();
+        assertFalse(info.oauth2, "an API key connection does not authenticate with OAuth2");
+        assertEq("none", info.oauth2_grant_type, "and reports no grant type");
+        assertNothing(apikey.getFeatures(){RestConnection::RCF_OAUTH2}, "and claims no OAuth2 feature");
     }
 }

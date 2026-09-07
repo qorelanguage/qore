@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Sap4HanaRestClient.qm Qore user module for calling Sap4Hana REST services
 
-/*  Sap4HanaRestClient.qm Copyright (C) 2019 - 2024 Qore Technologies, s.r.o.
+/*  Sap4HanaRestClient.qm Copyright (C) 2019 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -376,6 +376,20 @@ public class Sap4HanaRestConnection inherits RestClient::RestConnection {
     #! Returns the ConnectionSchemeInfo hash for this object
     private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
         return ConnectionScheme;
+    }
+
+    #! Returns the OAuth2 grant type this connection authenticates with, if any
+    /** This connection holds the OAuth2 credentials under its own \c client_id and \c client_secret option names
+        and never sets \c oauth2_grant_type, so without this the connection would report that it does not use
+        OAuth2 at all.  The rule is the client's own: both credentials mean the client credentials grant, and
+        anything else means API key authentication, which is not OAuth2.
+
+        @since %Sap4HanaRestClient 1.2
+    */
+    private *string getOAuth2GrantType() {
+        if (opts.client_id.val() && opts.client_secret.val()) {
+            return RestConnection::getOAuth2GrantType() ?? "client_credentials";
+        }
     }
 }
 

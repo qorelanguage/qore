@@ -241,6 +241,19 @@ public class AzureOpenAiRestConnection inherits RestClient::RestConnection {
     private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
         return ConnectionScheme;
     }
+
+    #! Returns the OAuth2 grant type this connection authenticates with, if any
+    /** The Entra credentials live under this connection's own \c azure_* option names and are exchanged for a
+        token by @ref azureauthintro "AzureAuth" rather than by the OAuth2 machinery in
+        @ref RestClient::RestConnection "RestConnection", so without this the connection would report that it does
+        not use OAuth2 at all.  Only \c entra_client_credentials names an OAuth2 grant; the managed identity mode
+        takes its token from the platform, and the api-key mode is not OAuth2.
+    */
+    private *string getOAuth2GrantType() {
+        if (opts.azure_auth_mode == AuthModeEntraClientCredentials) {
+            return "client_credentials";
+        }
+    }
 }
 
 #! Azure OpenAI LLM provider — subclasses @ref OpenAiRestClient::OpenAiLlmProvider

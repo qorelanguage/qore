@@ -11,6 +11,8 @@
 %requires OpenAiRestClient
 %requires AzureAuth
 %requires AzureOpenAiRestClient
+%requires ConnectionProvider
+%requires RestClient
 
 %exec-class AzureOpenAiTest
 
@@ -30,6 +32,7 @@ public class AzureOpenAiTest inherits QUnit::Test {
         addTestCase("missing deployment throws", \missingDeploymentTest());
         addTestCase("factory getInfo advertises capabilities",
             \getInfoTest());
+        addTestCase("the connection reports the OAuth2 it uses", \oauth2FeatureTest());
         set_return_value(main());
     }
 
@@ -183,5 +186,43 @@ public class AzureOpenAiTest inherits QUnit::Test {
         assertTrue(info.supports_tools);
         assertTrue(info.supports_structured_output);
         assertTrue(info.supports_multimodal);
+    }
+
+    #! The Entra credentials live under this connection's own option names, and must still report OAuth2
+    /** \c entra_client_credentials is the OAuth2 client credentials grant against Entra, but the connection
+        never sets \c oauth2_grant_type, so it reported that it had nothing to do with OAuth2 (issue 5441)
+    */
+    private oauth2FeatureTest() {
+        AzureOpenAiRestConnection entra({
+            "name": "test-entra",
+            "url": "https://x.openai.azure.com",
+            "opts": {
+                "azure_auth_mode": AzureOpenAiRestClient::AuthModeEntraClientCredentials,
+                "azure_tenant_id": "tenant",
+                "azure_client_id": "client",
+                "azure_client_secret": "secret",
+            },
+        });
+        hash<auto> info = entra.getExtendedInfoAsData();
+        assertTrue(info.oauth2, "Entra client credentials authentication is OAuth2");
+        assertEq("client_credentials", info.oauth2_grant_type, "with the grant Entra is asked for");
+        assertTrue(info.oauth2_client_credentials, "and the grant's own feature");
+        assertTrue(entra.getFeatures(){RestConnection::RCF_OAUTH2}, "as a connection feature as well");
+        assertFalse(info.oauth2_auth, "the credentials are configuration, so there is nothing to authorize");
+
+        # neither of the other modes names an OAuth2 grant: the api-key mode is not OAuth2 at all, and a
+        # managed identity takes its token from the platform rather than from a grant
+        foreach string mode in ((AzureOpenAiRestClient::AuthModeApiKey,
+                AzureOpenAiRestClient::AuthModeEntraManagedIdentity)) {
+            AzureOpenAiRestConnection conn({
+                "name": "test-" + mode,
+                "url": "https://x.openai.azure.com",
+                "opts": {"azure_auth_mode": mode, "api_key": "key"},
+            });
+            info = conn.getExtendedInfoAsData();
+            assertFalse(info.oauth2, mode + " does not authenticate with an OAuth2 grant");
+            assertEq("none", info.oauth2_grant_type, mode + " reports no grant type");
+            assertNothing(conn.getFeatures(){RestConnection::RCF_OAUTH2}, mode + " claims no OAuth2 feature");
+        }
     }
 }

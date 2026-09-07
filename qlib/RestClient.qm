@@ -145,6 +145,19 @@ printf("%Y\n", ans.body);
     @section restclientrelnotes Release Notes
 
     @subsection restclientv2_7 RestClient v2.7
+    - fixed a connection using an OAuth2 grant with no authorization step reporting that it has nothing to
+      do with OAuth2; the only OAuth2 features published were the two interactive flows and the general
+      \c oauth2-auth flag, so a fully configured \c client_credentials connection was indistinguishable
+      from one using no OAuth2 at all.  Connections now claim
+      @ref RestClient::RestConnection::RCF_OAUTH2 "RCF_OAUTH2" for every grant type,
+      @ref RestClient::RestConnection::RCF_OAUTH2_CLIENT_CREDENTIALS "RCF_OAUTH2_CLIENT_CREDENTIALS" and
+      @ref RestClient::RestConnection::RCF_OAUTH2_PASSWORD "RCF_OAUTH2_PASSWORD" for the grants with no
+      authorization step, and publish the grant type itself in
+      @ref RestClient::RestConnection::getExtendedInfo() "getExtendedInfo()"; \c oauth2-auth keeps its
+      meaning of "there is an authorization step to offer".  The features are derived from the new
+      @ref RestClient::RestConnection::getOAuth2GrantType() "getOAuth2GrantType()" hook, which connection
+      classes configuring OAuth2 through options of their own can override
+      (<a href="https://github.com/qoretechnologies/qore/issues/5441">issue 5441</a>)
     - fixed a \c charset parameter being appended to a \c "multipart/*" \c Content-Type header;
       \c charset is not defined for multipart types, and appending it after the \c boundary
       parameter breaks strict multipart parsers.  @ref Qore::HTTPClient "HTTPClient" already
@@ -4423,9 +4436,59 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         /** Returned as a connection feature if the connection is configured for oauth2 authorization_code or
             implicit grant flow
 
+            @note This feature says only that the connection has an authorization step a user can be sent through;
+            it does not say whether the connection authenticates with OAuth2 at all - see @ref RCF_OAUTH2
+
             @since %RestClient 2.3.3
         */
         const string RCF_OAUTH2_AUTH = "oauth2-auth";
+
+        #! RestClient feature: OAuth2 Client Credentials grant support
+        /** Returned as a connection feature if the connection is configured for the oauth2 client_credentials grant
+            flow
+
+            @note The client credentials grant has no authorization step, so connections claiming this feature do not
+            claim @ref RCF_OAUTH2_AUTH
+
+            @since %RestClient 2.7
+        */
+        const string RCF_OAUTH2_CLIENT_CREDENTIALS = "oauth2-client-credentials";
+
+        #! RestClient feature: OAuth2 Resource Owner Password Credentials grant support
+        /** Returned as a connection feature if the connection is configured for the oauth2 password grant flow
+
+            @note The password grant has no authorization step, so connections claiming this feature do not claim
+            @ref RCF_OAUTH2_AUTH
+
+            @since %RestClient 2.7
+        */
+        const string RCF_OAUTH2_PASSWORD = "oauth2-password";
+
+        #! RestClient feature: the connection authenticates with OAuth2
+        /** Returned as a connection feature if the connection is configured with any OAuth2 grant type; unlike the
+            grant-specific features, this one is claimed by grants with no authorization step as well, so that a
+            connection authenticating with OAuth2 can always be told apart from one that does not use OAuth2 at all.
+
+            @note @ref RCF_OAUTH2_AUTH answers a different question: whether there is an authorization step to offer
+            a user.  A \c client_credentials connection claims this feature and not that one; its credentials are
+            configuration rather than a user's consent, so there is nothing to authorize.
+
+            @since %RestClient 2.7
+        */
+        const string RCF_OAUTH2 = "oauth2";
+
+        #! The feature claimed for each OAuth2 grant type that has no authorization step
+        /** Grants with an authorization step are handled by @ref RestClient::RestConnection::checkAuthCodeFeature()
+            "checkAuthCodeFeature()" instead, since their features are claimed only when the connection also holds
+            every option needed to make the authorization request.  The grants here have no such request, so the
+            feature follows from the grant type alone.
+
+            @since %RestClient 2.7
+        */
+        const hash<string, string> OAuth2NonInteractiveGrantFeatures = {
+            "client_credentials": RCF_OAUTH2_CLIENT_CREDENTIALS,
+            "password": RCF_OAUTH2_PASSWORD,
+        };
 
         #! Internal option returned when an OAuth2 token response requires authorization for a newly discovered URL
         /** A specialized REST connection can return this option from
@@ -4542,11 +4605,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         serializable information about the connection, see @ref getExtendedInfoAsData()
     */
     hash<auto> getExtendedInfo(*hash<auto> opts) {
-        return AbstractConnection::getExtendedInfo(opts) + {
-            "oauth2_auth_code": features{RCF_OAUTH2_AUTH_CODE} ? True : False,
-            "oauth2_implicit": features{RCF_OAUTH2_IMPLICIT} ? True : False,
-            "oauth2_auth": features{RCF_OAUTH2_AUTH} ? True : False,
-        };
+        return AbstractConnection::getExtendedInfo(opts) + getOAuth2Info();
     }
 
     #! Returns connection info plus any extended information returned by the connection
@@ -4560,9 +4619,36 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         @note All the information in this hash is data; some info in the output of @ref getExtendedInfo() may be objects
     */
     hash<auto> getExtendedInfoAsData(*hash<auto> opts) {
-        return AbstractConnection::getExtendedInfoAsData(opts) + {
+        return AbstractConnection::getExtendedInfoAsData(opts) + getOAuth2Info();
+    }
+
+    #! Returns the OAuth2 information published with the connection's extended info
+    /** @return a hash with the following keys:
+        - \c oauth2: @ref True if the connection authenticates with OAuth2 with any grant type
+        - \c oauth2_grant_type: the OAuth2 grant type the connection authenticates with, or \c "none"
+        - \c oauth2_auth_code: @ref True if the connection can offer the authorization code flow
+        - \c oauth2_implicit: @ref True if the connection can offer the implicit flow
+        - \c oauth2_client_credentials: @ref True if the connection uses the client credentials grant
+        - \c oauth2_password: @ref True if the connection uses the resource owner password credentials grant
+        - \c oauth2_auth: @ref True if the connection has an authorization step a user can be sent through
+
+        \c oauth2 and \c oauth2_auth answer two different questions, and only the first says whether the
+        connection uses OAuth2; a connection on a grant with no authorization step reports \c oauth2 as
+        @ref True and \c oauth2_auth as @ref False.
+
+        @note This is the single source of the OAuth2 keys in both @ref getExtendedInfo() and
+        @ref getExtendedInfoAsData(); all the values are data, so both can publish it unchanged
+
+        @since %RestClient 2.7
+    */
+    private hash<auto> getOAuth2Info() {
+        return {
+            "oauth2": features{RCF_OAUTH2} ? True : False,
+            "oauth2_grant_type": getOAuth2GrantType() ?? "none",
             "oauth2_auth_code": features{RCF_OAUTH2_AUTH_CODE} ? True : False,
             "oauth2_implicit": features{RCF_OAUTH2_IMPLICIT} ? True : False,
+            "oauth2_client_credentials": features{RCF_OAUTH2_CLIENT_CREDENTIALS} ? True : False,
+            "oauth2_password": features{RCF_OAUTH2_PASSWORD} ? True : False,
             "oauth2_auth": features{RCF_OAUTH2_AUTH} ? True : False,
         };
     }
@@ -5008,14 +5094,49 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
     }
 
     #! Sets features during REST client initialization
-    /** @since RestClient 2.2.0
+    /** Every OAuth2 grant type claims @ref RCF_OAUTH2, including grants with no authorization step; a connection
+        that claimed nothing for such a grant could not be told apart from one that does not use OAuth2 at all.
+        The grant-specific feature is claimed as well: for grants with an authorization step by
+        @ref checkAuthCodeFeature(), which claims it only if the connection can actually make the authorization
+        request, and for the rest from the grant type alone.
+
+        @since RestClient 2.2.0; %RestClient 2.7 added @ref RCF_OAUTH2 and the features for grants with no
+        authorization step
     */
     private setFeatures() {
         if ((opts.oauth2_grant_type && opts.oauth2_grant_type != "none") || (opts.custom_token_auth)) {
             features{CF_UPDATE_OPTIONS} = True;
         }
-        if (opts.oauth2_grant_type == "authorization_code" || opts.oauth2_grant_type == "implicit") {
+        # the grant type is taken from the overridable accessor and not from the option directly, so that a
+        # connection configuring OAuth2 through options of its own reports the features it really has
+        *string grant_type = getOAuth2GrantType();
+        if (!grant_type) {
+            return;
+        }
+        features{RCF_OAUTH2} = True;
+        if (*string feature = OAuth2NonInteractiveGrantFeatures{grant_type}) {
+            features{feature} = True;
+        } else if (grant_type == "authorization_code" || grant_type == "implicit") {
             checkAuthCodeFeature();
+        }
+    }
+
+    #! Returns the OAuth2 grant type this connection authenticates with, if any
+    /** The grant type is taken from the \c oauth2_grant_type option; connection classes that configure OAuth2
+        through options of their own must override this method, or they will report that they do not use OAuth2.
+
+        This is what @ref setFeatures() derives the OAuth2 features from and what @ref getExtendedInfo() publishes,
+        so an override keeps the two in agreement.  It does not select the grant used to acquire a token; that is
+        driven by the client's own \c oauth2_grant_type option.
+
+        @return the grant type, or @ref nothing if the connection does not authenticate with OAuth2; \c "none" is
+        normalized to @ref nothing
+
+        @since %RestClient 2.7
+    */
+    private *string getOAuth2GrantType() {
+        if (opts.oauth2_grant_type && opts.oauth2_grant_type != "none") {
+            return opts.oauth2_grant_type;
         }
     }
 
@@ -5148,6 +5269,10 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         - \c RCF_OAUTH2_IMPLICIT for implicit grant
         - \c RCF_OAUTH2_AUTH for either grant type (general authorization support)
 
+        Only grants with an authorization step are handled here, and only when the connection holds every option
+        needed to make the authorization request; the features for the other grants, and @ref RCF_OAUTH2 for all of
+        them, are set in @ref setFeatures() where no override can drop them.
+
         @since %RestClient 2.3.3 added RCF_OAUTH2_IMPLICIT and RCF_OAUTH2_AUTH features
     */
     private checkAuthCodeFeature() {
@@ -5163,7 +5288,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
     #! Declares support for a specific OAuth2 authorization flow, and for authorization in general
     /** @ref RCF_OAUTH2_AUTH says only that the connection has an authorization step a user can be sent
         through, which is true of every flow that sets one of the specific features, so the two are set
-        together here rather than by each caller.
+        together here rather than by each caller.  It does not say that the connection uses OAuth2 - grants
+        with no authorization step do not come through here at all - which is what @ref RCF_OAUTH2 says.
 
         Setting a flow's feature on its own leaves the connection saying it supports the authorization
         code grant and that it cannot be authorized at the same time; a UI deciding whether to offer an
