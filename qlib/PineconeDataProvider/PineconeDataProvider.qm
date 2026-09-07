@@ -27,6 +27,8 @@
 
 %requires(reexport) DataProvider
 %requires(reexport) PineconeRestClient
+%requires(reexport) RestSchemaActions
+%requires OpenApi3
 %requires RestClientIo
 
 module PineconeDataProvider {
@@ -42,34 +44,43 @@ module PineconeDataProvider {
             "name": PineconeDataProvider::AppName,
             "presentation_source_locale": "en",
             "display_name": "Pinecone",
-            "short_desc": "Pinecone managed vector database",
-            "desc": "Provides access to [Pinecone](https://www.pinecone.io) — a fully "
-                "managed vector database with serverless and pod-based deployment "
-                "options.\n\n"
-                "Use the @ref QoreRagUtils::PineconeVectorStore \"PineconeVectorStore\" "
-                "backend in @ref qorerragutilsintro \"QoreRagUtils\" for the supported "
-                "ingest/retrieve path through @ref QoreRagUtils::RagPipeline "
-                "\"RagPipeline\".",
+            "short_desc": "Pinecone managed vector database: indexes, vectors, documents and inference",
+            "desc": "Provides access to [Pinecone](https://www.pinecone.io) — a managed vector database "
+                "for semantic search, hybrid search and retrieval-augmented generation.\n\n"
+                "**What it covers**:\n"
+                "- **Indexes** — create, describe, configure and delete indexes, including indexes with "
+                "**integrated embedding**, where Pinecone turns your text into vectors on the way in\n"
+                "- **Vectors** — upsert, query, fetch, update and delete records by ID or by metadata "
+                "filter, and list the IDs in a namespace\n"
+                "- **Documents** — the typed-field API: upsert, search, fetch, update, delete and list "
+                "documents, with BM25 text scoring and Lucene query strings alongside vector "
+                "similarity\n"
+                "- **Namespaces** — partition an index and manage the partitions\n"
+                "- **Backups, schedules and restores** — back an index up on demand or on a schedule, "
+                "and restore one into a new index\n"
+                "- **Bulk imports** — load a large dataset from object storage without sending it "
+                "record by record\n"
+                "- **Inference** — embed and rerank text with Pinecone's hosted models, usable on their "
+                "own\n\n"
+                "**Where this earns its place**: Pinecone splits into a control plane that manages "
+                "indexes and a data plane that is served from **a different host for every index**, "
+                "which only the control plane knows.  That host is resolved and cached automatically "
+                "here, so an action takes the index as an ordinary dropdown and nothing has to be "
+                "configured per index.\n\n"
+                "For an ingest/retrieve pipeline rather than individual calls, the "
+                "@ref QoreRagUtils::PineconeVectorStore \"PineconeVectorStore\" backend in "
+                "@ref qoreragutilsintro \"QoreRagUtils\" drives the same API through "
+                "@ref QoreRagUtils::RagPipeline \"RagPipeline\".",
             "scheme": "pinecone",
             "logo": PineconeLogo,
             "logo_file_name": "pinecone-logo.svg",
             "logo_mime_type": MimeTypeSvg,
-            "groups": (DataProvider::AppGroup::Databases,),
+            "groups": (DataProvider::AppGroup::Databases, DataProvider::AppGroup::AiLlm,),
         });
 
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": PineconeDataProvider::AppName,
-            "path": "/list-indexes",
-            "action": "list-indexes",
-            "display_name": "List Indexes",
-            "short_desc": "List Pinecone indexes for the current account",
-            "desc": "Calls Pinecone's control-plane `GET /indexes` to enumerate available "
-                "indexes (name, host, dimension, metric, status).",
-            "action_code": DPAT_API,
-            "groups": ("Admin",),
-            "options": {},
-            "output_type": PineconeListIndexesDataProvider::ResponseType,
-        });
+        # every action generated from the vendored Pinecone API descriptions; see PineconeManifest for
+        # what is exported and why
+        map $1.registerActions(PineconeDataProvider::AppName), PineconeSchema::getActionSets();
     };
 }
 
@@ -79,11 +90,102 @@ module PineconeDataProvider {
 
     @section pineconedataproviderintro PineconeDataProvider Introduction
 
-    Lightweight data-provider integration for
-    [Pinecone](https://www.pinecone.io).  Exposes the control-plane
-    index-listing endpoint; for full vector operations use the
-    @ref QoreRagUtils::PineconeVectorStore "PineconeVectorStore" backend
-    via @ref QoreRagUtils::RagPipeline "RagPipeline".
+    Data-provider integration for [Pinecone](https://www.pinecone.io), a managed vector database for
+    semantic search, hybrid search and retrieval-augmented generation.
+
+    The application covers three of Pinecone's published APIs, 52 operations in all:
+
+    |!Group|!What it does
+    |Indexes|create, describe, configure and delete indexes, including indexes with integrated embedding
+    |Vectors|upsert, query, fetch, update and delete records by ID or by metadata filter
+    |Documents|the typed-field API: upsert, search, fetch, update, delete and list documents
+    |Namespaces|partition an index and manage the partitions
+    |Backups|back an index up on demand or on a schedule, and restore one into a new index
+    |Collections|snapshot a pod-based index (legacy; see below)
+    |Imports|load a large dataset from object storage
+    |Inference|embed and rerank text with Pinecone's hosted models
+
+    @section pineconedataproviderhost The Index Decides Where the Request Goes
+
+    Pinecone has a **control plane** at \c api.pinecone.io that manages indexes, and a **data plane**
+    that is served from a **different host for every index** — a host only the control plane knows.
+    Its own description says so, declaring the data-plane server as the template
+    \c "https://{index_host}", and **none of the 24 data-plane operations names an index anywhere**:
+    not in a path variable, not in a query argument, not in a body property.  The index *is* the host.
+
+    Every data-plane action therefore gains an \c index option that is **not sent**: it selects where
+    the request goes.  The host is resolved through \c describe-index once per index and cached for as
+    long as the data provider lives, so all 24 actions on one index share a single client, and the
+    option is an ordinary dropdown of the project's indexes.
+
+    Following a host out of a response means sending the connection's credentials somewhere the
+    connection URL did not name, so it fails closed: the host must be under \c pinecone.io, matched
+    label by label, the scheme comes from the declaration rather than the response, and a refused host
+    is not cached.  See @ref restschemaactions_hosts "host routing" for the mechanism.
+
+    @section pineconedataproviderpicking Which Actions to Use
+
+    Pinecone has three ways to put data in and get it out, and they are **not** interchangeable — each
+    needs the matching kind of index:
+
+    |!Family|!You supply|!Index it needs
+    |Vectors|vectors you embedded yourself|a classic vector index (the reserved \c _values / \c _sparse_values schema)
+    |Records|text, embedded by Pinecone|an index created with **Create Index with Integrated Embedding**
+    |Documents|typed fields declared in the index schema|an index created with a field schema
+
+    Sending text to an index without integrated embedding is rejected with \c 400, which is the usual
+    first surprise.  **Create Index with Integrated Embedding** is what makes **Upsert Text** and
+    **Search with Text** available.
+
+    @section pineconedataproviderusage Searching an Index
+
+    @code{.py}
+AbstractDataProvider pinecone = conn.getDataProvider();
+
+# the classic vectors API: you supply the query vector
+hash<auto> hits = pinecone.getChildProviderEx("query-vectors").doRequest({
+    "index": "products",
+    "namespace": "eu",
+    "vector": query_vector,
+    "topK": 10,
+    "filter": {"in_stock": {"$eq": True}},
+    "includeMetadata": True,
+});
+map printf("%s (%f)\n", $1.id, $1.score), hits.matches;
+
+# an index with integrated embedding searches with text directly
+hash<auto> found = pinecone.getChildProviderEx("search-records").doRequest({
+    "index": "support-articles",
+    "namespace": "__default__",
+    "inputs": {"text": "how do I rotate an API key?"},
+    "top_k": 5,
+    "rerank": {"model": "bge-reranker-v2-m3", "rank_fields": ("chunk_text",)},
+});
+    @endcode
+
+    Note that \c index is an option like any other, and neither call names a host.
+
+    @section pineconedataprovidercollections Collections Are Legacy
+
+    The four collection actions are exported, and Pinecone's own description says of each that
+    collections are supported only for pod-based indexes and that pod-based indexes **cannot be
+    created** at API version \c 2026-07.  They are kept because a project that still has an index from
+    an earlier version still has collections to manage; for anything current, use **backups**.
+
+    @section pineconedataproviderschema How the Actions Are Generated
+
+    Every action is generated from the API descriptions vendored with this module through
+    @ref restschemaactionsintro "RestSchemaActions", so its options and result types are the vendor's
+    own and an upstream change cannot alter the contract of an action a workflow already calls; see
+    @ref PineconeDataProvider::PineconeManifest "PineconeManifest" for what is exported and why, and
+    @ref PineconeDataProvider::PineconeSchema "PineconeSchema" for the pinned documents' provenance.
+
+    Two things about Pinecone's descriptions are worth knowing here.  They declare **no** \c "enum" for
+    any finite value set, writing them as an \c "x-enum" vendor extension the parser cannot see, so the
+    metric, cloud, deletion protection, backup frequency, import error mode and model type would all
+    generate as free text; the manifest restores them, with the vendor's own values.  And all 52
+    operations declare a required \c X-Pinecone-Api-Version header, which the connection owns and
+    sends on every call, so no action asks for it.
 
     @section PineconeDataProviderRelnotes Release Notes
 

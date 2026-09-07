@@ -961,6 +961,198 @@ them (the artifact is a faithful pruned copy of the document) and refuse to **se
 import time, naming `host_from` as the supported alternative. If a vendor ever ships one, that is the
 moment to implement it, with a test.
 
+## What the Pinecone port added
+
+**A vendor may declare its enums where the parser cannot see them.** Pinecone declares **no** `enum`
+anywhere in its three published descriptions. Every finite value set is written as `x-enum` — a vendor
+extension — beside a bare `type: string`:
+
+```yaml
+metric:
+  description: "The distance metric used for similarity search.\nPossible values: `cosine`, `dotproduct`, or `euclidean`."
+  x-enum: [cosine, dotproduct, euclidean]
+  type: string
+```
+
+An extension is invisible to generation, so all 28 of them would have shipped as free-text boxes where
+the API accepts three values. Grep the document for `x-enum` (and its cousins — `x-enumNames`,
+`x-ms-enum`, `enumDescriptions`) **before** estimating a port: it decides whether the generated action
+surface has dropdowns at all. The values then belong in the manifest as `allowed_values`, copied from
+the vendor's own list, and the manifest should say where they came from — because drift compares what
+the parser can see, and nothing will tell you when a fourth metric appears.
+
+**A value set the document does not declare is still a value set — verify it, then mark it creatable.**
+The counter-case is in the same document: `cloud` is declared (`gcp`, `aws`, `azure`) and `region` is
+not, and no endpoint in any of Pinecone's seven API descriptions lists regions. The vendor's own
+validation refuses an unknown pair without enumerating the known ones
+(`Resource cloud: aws region: eu-north-1 not found`), so provoking the server is a way to *check* a
+value, not to discover the set.
+
+Free text is the wrong answer there, and so is a hard-coded list on its own. The list comes from the
+vendor's published documentation, and then **every entry is verified against the live API** — here by
+creating an index in each of the eight cloud/region pairs and dropping it again, with `aws`/`eu-north-1`
+and `gcp`/`us-east-1` as controls to show the *pair* is validated rather than the region string. What
+makes it safe to ship is
+`allowed_values_creatable`: the dropdown is an aid, a list written today cannot know about a region
+opened tomorrow, and a value typed by hand is still sent. Reach for that combination whenever a set is
+real but neither declared nor queryable; reach for free text only when there is no knowable set at all.
+
+Two details worth copying. A region identifier is meaningless on its own, so the display name carries
+the cloud and the place — "AWS · Frankfurt", not `eu-central-1` — which also disambiguates identifiers
+that exist on one cloud and not another. And where the same field appears inside a discriminated union
+(`create-index` takes its cloud and region inside a `oneOf` deployment object), a nested `fields`
+overlay reaches it: an entry is applied to every alternative that declares the field, and one no
+alternative declares is refused, which is what proves the overlay was applied rather than ignored.
+
+**Read a composition before assuming it is a union.** Three of Pinecone's request bodies are an object
+declaring every property it accepts, plus an `anyOf` of branches that *narrow* those properties, plus a
+`not` excluding combinations it will not take:
+
+```yaml
+type: object
+properties: {ids: ..., filter: ..., delete_all: ...}
+anyOf:
+  - {title: "By ID",     required: [ids],        properties: {delete_all: {enum: [false]}}, not: {required: [filter]}}
+  - {title: "By filter", required: [filter],     properties: {delete_all: {enum: [false]}}, not: {required: [ids]}}
+```
+
+Those branches introduce nothing — every property they name is declared by the object above them — so
+the composition is a **constraint**, not a set of alternative shapes. `OpenApi3` already had a
+`isConstraintOnlyComposition()` predicate for the simplest form of this, but it disqualified any branch
+carrying `properties`, `not`, or a nested `anyOf`, so these read as unions and the generated actions
+came out with **no options at all** — not a poor option shape, an absent one, which is the same failure
+mode as Intercom's union body and looks identical from the outside. The corrected test is whether a
+member introduces anything: no type of its own, no `allOf`, and no property the composing object does
+not already declare; `not` and a nested composition of constraints are still constraints. The either/or
+is then expressed to the user with `required_groups` and `exclusive_with`, which say the same thing in a
+form a form can render.
+
+**The same pattern occurs on arrays, and it is easy to fix only half of it.** Pinecone declares a
+document search's scoring clauses as `type: array` with `items: DocumentScoringMethod`, then adds
+`oneOf: [{maxItems: 1}, {items: {…text or query_string…}, minItems: 2}]` — "one clause, or several that
+all score by text". Both branches constrain the array the parent already declared; the second narrows
+the *element* rather than replacing it. A predicate that only recognises objects reads this as a union
+and yields `any`, so the option loses its element type and no overlay can reach into it — which is how
+a scoring-method dropdown ends up defined in a manifest and silently attached to nothing. So the
+composing schema may be an object with `properties` **or** an array with `items`, and a member's
+`items` is a refinement exactly when the parent declares them.
+
+**Validation has to read composition keywords too, or a `not` matches everything.** The mirror of the
+above, one layer down. Pinecone excludes two query combinations with
+`not: {anyOf: [{required: [id, vector]}, {required: [id, sparseVector]}]}`. The matcher behind
+`oneOf`/`anyOf`/`not` checked `required`, `properties` and `additionalProperties` and ignored nested
+compositions — so that `not`, which declares neither properties nor `required` of its own, matched
+**every** value, and the operation could not be called at all. A subschema matcher must be recursive,
+with a depth bound for a schema that refers back to itself.
+
+**An operation can declare a required body every property of which is optional.** Pinecone's index
+statistics take an optional metadata filter and nothing else, so the ordinary call — "how many records
+are in this index" — supplies no option, and `unflatten()` built no body. The schema's own request
+validation then rejected the request before it was made, which reads as the action being broken. Where
+the body is **required** and object-typed, the minimal valid request is `{}`; an optional body is
+unaffected and still sends nothing.
+
+**A multi-document application's build order is a DAG, not a chain.** Xero established peer reference
+data with two documents and one dependency. Pinecone has three, and the dependencies do not form a line:
+inference depends on nothing, the control plane needs inference (for the embedding-model dropdown on its
+integrated-embedding index action), and the data plane needs both (the index dropdown and the host
+source from the control plane, the reranking model from inference). Peers are given at construction, so
+the sets are built in topological order and a cycle cannot be expressed — but the order has to be worked
+out rather than assumed, and it belongs in the `<App>Schema` class documentation where the next reader
+will look for it.
+
+**A reference-data listing can itself be host-routed.** Pinecone's namespace dropdown is filled by
+`list-namespaces`, which is a *data-plane* action: filling the dropdown needs the host that the option
+being filled in selects. `options_from` forwards the calling action's synthesized `index` option into
+the listing's own, and the router resolves the host for the listing exactly as it does for the action.
+Nothing special was needed, but it is worth knowing the layers compose in that order.
+
+**A vendor document can carry a scalar the parser resolves wrongly.** Pinecone writes one description as
+a single period (`description: .`), and Qore's YAML module resolved a bare `.` as the float `0.0` — so
+the in-memory document had a numeric `description`, and the failure surfaced as
+`INVALID-FIELD-TYPE: Schema Object: "description" field has invalid type "float"`, which reads as the
+vendor's schema being malformed when the vendor's schema is fine. When an import fails on a type error
+in a field that obviously should be a string, check what the *parser* made of it before blaming the
+document. (Fixed in the `yaml` module; the same class of defect is worth suspecting again.)
+
+**Fixing one parser defect exposes the next.** That YAML fix was the only thing standing between the
+import and three further defects — the two composition bugs above and an over-strict `required` check —
+none of which could be reached while the document never finished parsing. Budget for a chain, not a
+single fix, and re-run the whole import after each one.
+
+**A defined-but-unused constant in a manifest is a dropdown that never shipped.** The scoring-method
+values above were written, and then not attached, because the option they belonged to had generated as
+`any` and the overlay had nowhere to go. Nothing failed: the manifest compiled, the tests passed, and
+the audit gate — which walks the *registered* options — never saw them, because they were not registered.
+Grepping a finished manifest for constants referenced exactly once is a cheap check worth running before
+calling a port complete; it is the only thing that finds this class of gap.
+
+**Restore a nested value set too, or the same value is a dropdown in one action and a text box in
+another.** Pinecone's backup frequency is a top-level option on `update-backup-schedule` and a member of
+the `schedule` object on `create-backup-schedule`. Restoring only the first leaves a user picking
+`weekly` from a list when they edit a schedule and typing it when they create one. A nested `fields`
+overlay reaches into an object-valued option, into every alternative of a union that declares the field,
+and into a list's element type — and an entry naming a field none of those has is refused, which is how
+you check the overlay landed rather than assuming it.
+
+**Audit the generated surface, not the manifest.** A manifest can look complete and still leave an
+option with no description, because most descriptions come from the vendor document rather than from the
+overlay: Pinecone's `SearchRecordsVector` is a `$ref` target that declares none, so `search-records`
+published a *Query Vector* option with a display name, a short description and nothing else — the one
+option in 52 actions in that state. Nothing reports it. Walk every action's `getRequestType().getFields()`
+and assert that `display_name`, `getShortDescription()` and `getDescription()` are all present, that no
+short description reaches 80 characters or carries markdown, and that every option whose name refers to
+another object (`*_id`, `*_name`, `model`, `namespace`) either has `ref_data` or has a written reason not
+to. That sweep is a few lines and it is the only thing that distinguishes "the manifest covers it" from
+"the user can see it".
+
+**A published value list that nothing verifies will rot.** Pinecone's metadata-filter description names
+eleven operators; the vendored document attests exactly two of them (`$eq` and `$in` appear in examples,
+and the language itself is only linked to). The rest came from the vendor's prose, which is precisely the
+kind of claim that is right when written and wrong two versions later. Verifying it costs one live index:
+run a query per operator and assert the *match count*, not that the call was accepted — acceptance alone
+would pass even if the server ignored the filter — and send one operator the vendor does not have to
+confirm the set is enforced rather than merely tolerated. All eleven hold, and the assertion now belongs
+to the suite instead of to the description.
+
+**Nearly every option already has an example value, and that is not the same as having a good one.** The
+field layer synthesizes one when a manifest supplies none, so a survey of "options with an example" is not
+a measure of anything: 159 of Pinecone's 189 had one before any were written, mostly of the form
+`"Example Index"` or `{a: "any value"}`. Two things are worth knowing about the synthesized value. It does
+not consult the field's own `allowed_values` — a closed-set field gets `"Example Schedule Type"` where
+`time-based` is the only value the API takes — and it cannot know a format, so the fields that most need
+an example are exactly the ones it serves worst: a filter expression, a field map, a sparse vector, a
+retention policy. Curate those and leave the rest; measure by reading the values, not by counting them.
+
+**Whether a nested label is translated depends on `lift`, and nothing else.** The presentation-catalog
+extractor walks an action's *flat* option map (`DataProviderPresentation::addOptionMapMessages()`), so it
+sees a label exactly when the label belongs to a registered option. A `fields` entry under a **lifted**
+object is registered — `search-records` lifts `query`, so `query.top_k`, `query.vector` and
+`query.match_terms` are extracted and translated like any other option. A `fields` entry under an object
+that stays an object is not: `rerank.model`, `match_terms.strategy`, `read_capacity.mode` and the
+`score_by` element's scoring method have display names in the manifest and **ship in English in all 12
+locales**. Lift where lifting is honest — where the object is a grouping wrapper rather than a real
+structure — and accept English for the rest, or teach the extractor to recurse into option types (which
+changes the message-id shape and so re-translates every app).
+
+**A write that would carry nothing must be refused by the layer, not by the schema.** Fixing the
+required-empty-body case above removed an error that a record-table test was relying on: a column
+whose write option is spelled differently is dropped by the narrowing, and the write used to fail only
+because the schema rejected the absent body. Whether the schema catches that is an accident of the
+operation — a required body rejects it, an optional one does not, and now neither does a required one
+whose properties are all optional — so `getWriteBody()` refuses a write that supplied values and
+carries none of them after narrowing, naming the dropped columns, the action's real options and
+`write_field_map`. The rule generalizes: where a layer can tell that a request is meaningless, it
+should say so itself rather than depend on validation further down to happen to notice.
+
+**A broken `@ref` spreads by copy-and-paste, and per-module doc builds hide it.** A mistyped
+`qorerragutilsintro` (for `qoreragutilsintro`) had been copied into ten modules and both of two apps'
+generated i18n catalogs — 62 occurrences. It survives because building one module's documentation cannot
+resolve *any* cross-module reference without the other modules' tagfiles, so a real broken anchor is
+indistinguishable from the dozens of expected ones in that build's output. Grep for an anchor across the
+tree rather than trusting a per-module build, and remember that an app description lives in the
+generated catalogs too: fixing the module without the catalogs leaves them stale.
+
 ## Where per-application detail belongs
 
 In the module's own documentation, not here.

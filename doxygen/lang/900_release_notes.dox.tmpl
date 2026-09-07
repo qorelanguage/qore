@@ -2535,10 +2535,10 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing a REST client for <a href="https://pdf.co/">PDF.co</a>'s document processing API
 
     - @ref pineconedataproviderintro "PineconeDataProvider" module
-      - new module providing a data provider API for <a href="https://www.pinecone.io">Pinecone</a> serverless vector-database control-plane
+      - new module providing a data provider API for <a href="https://www.pinecone.io">Pinecone</a> vector databases, covering indexes, vectors, documents, namespaces, backups, bulk imports and inference, with data-plane requests routed to each index's own host
 
     - @ref pineconerestclientintro "PineconeRestClient" module
-      - new module providing a REST client for <a href="https://www.pinecone.io">Pinecone</a> serverless vector-database servers
+      - new module providing a REST client and connection for <a href="https://www.pinecone.io">Pinecone</a> vector-database servers, pinning the dated API version and registering a \c pinecone vector-store backend
 
     - @ref qdrantdataproviderintro "QdrantDataProvider" module
       - new module providing a data provider API for <a href="https://qdrant.tech/">Qdrant</a> vector database instances

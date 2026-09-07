@@ -1,0 +1,3478 @@
+openapi: "3.0.3"
+info:
+  title: "Pinecone Data Plane API"
+  description: "Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors."
+  contact:
+    name: "Pinecone Support"
+    url: "https://support.pinecone.io"
+    email: "support@pinecone.io"
+  license:
+    name: "Apache 2.0"
+    url: "https://www.apache.org/licenses/LICENSE-2.0"
+  version: "2026-07"
+servers:
+- url: "https://{index_host}"
+  variables:
+    index_host:
+      default: "unknown"
+      description: "host of the index"
+paths:
+  /bulk/imports:
+    get:
+      tags:
+      - "Bulk Operations"
+      summary: "List imports"
+      description: "List all recent and ongoing import operations.\n\nBy default, `list_imports` returns up to 100 imports per page. If the `limit` parameter is set, `list` returns up to that number of imports instead. Whenever there are additional IDs to return, the response includes `pagination.next`, a token you pass as `paginationToken` to get the next batch of imports. When the response has no `pagination`, there are no more imports to return.\n\nFor guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data)."
+      operationId: "listBulkImports"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "query"
+        name: "limit"
+        description: "Max number of operations to return per page."
+        schema:
+          default: 100
+          type: "integer"
+          format: "int32"
+          minimum: 1
+          maximum: 100
+        example: 10
+        style: "form"
+      - in: "query"
+        name: "paginationToken"
+        description: "Pagination token to continue a previous listing operation."
+        schema:
+          type: "string"
+        style: "form"
+      responses:
+        200:
+          description: "A list of import operations"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListImportsResponse"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+    post:
+      tags:
+      - "Bulk Operations"
+      summary: "Start import"
+      description: "Start an asynchronous import of vectors from object storage into an index.\n\nFor guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data)."
+      operationId: "startBulkImport"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartImportRequest"
+        required: true
+      responses:
+        200:
+          description: "Successful import operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StartImportResponse"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+  /bulk/imports/{id}:
+    get:
+      tags:
+      - "Bulk Operations"
+      summary: "Describe an import"
+      description: "Return details of a specific import operation.\n\nFor guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data)."
+      operationId: "describeBulkImport"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "id"
+        description: "Unique identifier for the import operation."
+        required: true
+        schema:
+          type: "string"
+          minLength: 1
+          maxLength: 1000
+        example: "101"
+        style: "simple"
+      responses:
+        200:
+          description: "Details of the import operation."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportModel"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+    delete:
+      tags:
+      - "Bulk Operations"
+      summary: "Cancel an import"
+      description: "Cancel an import operation if it is not yet finished. It has no effect if the operation is already finished.\n\nFor guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data)."
+      operationId: "cancelBulkImport"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "id"
+        description: "Unique identifier for the import operation."
+        required: true
+        schema:
+          type: "string"
+          minLength: 1
+          maxLength: 1000
+        example: "101"
+        style: "simple"
+      responses:
+        200:
+          description: "Operation cancelled successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CancelImportResponse"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+  /describe_index_stats:
+    post:
+      tags:
+      - "Vector Operations"
+      summary: "Get index stats"
+      description: "Return statistics about the contents of an index, including the vector count per namespace, the number of dimensions, and the index fullness.\n\nServerless indexes scale automatically as needed, so index fullness is relevant only for pod-based indexes."
+      operationId: "describeIndexStats"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DescribeIndexStatsRequest"
+        required: true
+      responses:
+        200:
+          description: "A successful response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IndexDescription"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+  /query:
+    post:
+      tags:
+      - "Vector Operations"
+      summary: "Search with a vector"
+      description: "Search a namespace using a query vector. It retrieves the ids of the most similar items in a namespace, along with their similarity scores.\n\nFor guidance, examples, and limits, see [Search](https://docs.pinecone.io/guides/search/search-overview)."
+      operationId: "queryVectors"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueryRequest"
+        required: true
+      responses:
+        200:
+          description: "A successful response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueryResponse"
+          links:
+            FetchMatchedRecord:
+              description: "Look up a record returned as a query match."
+              operationId: "fetchVectors"
+              parameters:
+                ids: "$response.body#/matches/0/id"
+                namespace: "$response.body#/namespace"
+            UpdateMatchedRecord:
+              description: "Update a record returned as a query match."
+              operationId: "updateVector"
+            DeleteMatchedRecord:
+              description: "Delete a record returned as a query match."
+              operationId: "deleteVectors"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+  /vectors/delete:
+    post:
+      tags:
+      - "Vector Operations"
+      summary: "Delete records"
+      description: "Delete records by id or by metadata from a single namespace.\n\nFor guidance and examples, see [Delete data](https://docs.pinecone.io/guides/manage-data/delete-data)."
+      operationId: "deleteVectors"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteRequest"
+        required: true
+      responses:
+        200:
+          description: "A successful response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+          links:
+            FetchDeletedRecord:
+              description: "Confirm a deleted record is gone."
+              operationId: "fetchVectors"
+              parameters:
+                ids: "$request.body#/ids/0"
+                namespace: "$request.body#/namespace"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+  /vectors/fetch:
+    get:
+      tags:
+      - "Vector Operations"
+      summary: "Fetch records"
+      description: "Look up and return records by ID from a single namespace. The returned records include the vector data and/or metadata.\nFor on-demand indexes, since vector values are retrieved from object storage, fetch operations may have increased latency. If you only need metadata or IDs, consider using the query operation with `includeValues` set to `false` instead.\nFor guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data)."
+      operationId: "fetchVectors"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "query"
+        name: "ids"
+        description: "The vector IDs to fetch."
+        required: true
+        schema:
+          type: "array"
+          items:
+            type: "string"
+            pattern: "^[\\x01-\\x7F]+$"
+            minLength: 1
+            maxLength: 512
+          minItems: 1
+          maxItems: 1000
+        explode: true
+        style: "form"
+      - in: "query"
+        name: "namespace"
+        description: "The namespace to fetch records from. If not provided, the default namespace is used."
+        schema:
+          type: "string"
+        style: "form"
+      responses:
+        200:
+          description: "A successful response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FetchResponse"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+  /vectors/fetch_by_metadata:
+    post:
+      tags:
+      - "Vector Operations"
+      summary: "Fetch records by metadata"
+      description: "Look up and return records by metadata from a single namespace. The returned records include the vector data and metadata.\nFor guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data)."
+      operationId: "fetch_vectors_by_metadata"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FetchByMetadataRequest"
+        required: true
+      responses:
+        200:
+          description: "A successful response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FetchByMetadataResponse"
+          links:
+            FetchByMetadataNextPage:
+              description: "Fetch the next page of metadata matches."
+              operationId: "fetch_vectors_by_metadata"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+  /vectors/list:
+    get:
+      tags:
+      - "Vector Operations"
+      summary: "List record IDs"
+      description: "List the IDs of records in a single namespace of a serverless index. An optional prefix can be passed to limit the results to IDs with a common prefix.\n\nReturns up to 100 IDs at a time by default in sorted order (bitwise \"C\" collation). If the `limit` parameter is set, `list` returns up to that number of IDs instead. Whenever there are additional IDs to return, the response includes `pagination.next`, a token you pass as `paginationToken` to get the next batch of IDs. When the response has no `pagination`, there are no more IDs to return.\n\nFor guidance and examples, see [List record IDs](https://docs.pinecone.io/guides/manage-data/list-record-ids).\n\n**Note:** `list` is supported only for serverless indexes."
+      operationId: "listVectors"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "query"
+        name: "prefix"
+        description: "The ID prefix to match. Only records whose ID starts with this value are returned."
+        schema:
+          type: "string"
+          pattern: "^[\\x01-\\x7F]*$"
+          maxLength: 512
+        style: "form"
+      - in: "query"
+        name: "limit"
+        description: "Max number of IDs to return per page."
+        schema:
+          default: 100
+          type: "integer"
+          format: "int64"
+          minimum: 1
+          maximum: 100
+        style: "form"
+      - in: "query"
+        name: "paginationToken"
+        description: "Pagination token to continue a previous listing operation."
+        schema:
+          type: "string"
+        style: "form"
+      - in: "query"
+        name: "namespace"
+        description: "The namespace to list vectors from. If not provided, the default namespace is used."
+        schema:
+          type: "string"
+        style: "form"
+      responses:
+        200:
+          description: "A successful response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+          links:
+            ListNextPage:
+              description: "Fetch the next page of record IDs."
+              operationId: "listVectors"
+              parameters:
+                paginationToken: "$response.body#/pagination/next"
+                namespace: "$response.body#/namespace"
+            FetchListedRecord:
+              description: "Look up a record returned by list."
+              operationId: "fetchVectors"
+              parameters:
+                ids: "$response.body#/vectors/0/id"
+                namespace: "$response.body#/namespace"
+            DeleteListedRecord:
+              description: "Delete a record returned by list."
+              operationId: "deleteVectors"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+  /vectors/update:
+    post:
+      tags:
+      - "Vector Operations"
+      summary: "Update a record"
+      description: "Update records by ID or by metadata in a namespace. Updating by ID changes the vector and/or metadata of a single record. Updating by metadata changes metadata across multiple records using a metadata filter.\nIf a vector value is included, it will overwrite the previous value. If `set_metadata` is included, only the specified metadata fields are modified, and if a specified metadata field does not exist, it is added.\nFor guidance and examples, see [Update data](https://docs.pinecone.io/guides/manage-data/update-data)."
+      operationId: "updateVector"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRequest"
+        required: true
+      responses:
+        200:
+          description: "A successful response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateResponse"
+          links:
+            FetchUpdatedRecord:
+              description: "Read back a record that was just updated."
+              operationId: "fetchVectors"
+              parameters:
+                ids: "$request.body#/id"
+                namespace: "$request.body#/namespace"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+  /vectors/upsert:
+    post:
+      tags:
+      - "Vector Operations"
+      summary: "Upsert records"
+      description: "Upsert records into a namespace. If a new value is upserted for an existing record ID, it will overwrite the previous value.\n\nFor guidance, examples, and limits, see [Upsert data](https://docs.pinecone.io/guides/index-data/upsert-data)."
+      operationId: "upsertVectors"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertRequest"
+        required: true
+      responses:
+        200:
+          description: "A successful response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpsertResponse"
+          links:
+            FetchUpsertedRecord:
+              description: "Look up a record that was just upserted."
+              operationId: "fetchVectors"
+              parameters:
+                ids: "$request.body#/vectors/0/id"
+                namespace: "$request.body#/namespace"
+            QueryUpsertedRecord:
+              description: "Use a just-upserted record as a query target."
+              operationId: "queryVectors"
+            UpdateUpsertedRecord:
+              description: "Update a record that was just upserted."
+              operationId: "updateVector"
+            DeleteUpsertedRecord:
+              description: "Delete a record that was just upserted."
+              operationId: "deleteVectors"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+  /namespaces:
+    get:
+      tags:
+      - "Namespace Operations"
+      summary: "List namespaces"
+      description: "List all namespaces in a serverless index.\n\nUp to 100 namespaces are returned at a time by default, in sorted order (bitwise “C” collation). If the `limit` parameter is set, up to that number of namespaces are returned instead. Whenever there are additional namespaces to return, the response includes `pagination.next`, a token you pass as `paginationToken` to get the next batch of namespaces. When the response has no `pagination`, there are no more namespaces to return.\n\nFor guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).\n\n**Note:** This operation is not supported for pod-based indexes."
+      operationId: "listNamespacesOperation"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "query"
+        name: "limit"
+        description: "Max number of namespaces to return per page. Defaults to 100."
+        schema:
+          default: 100
+          type: "integer"
+          format: "int32"
+          minimum: 1
+          maximum: 100
+        example: 10
+        style: "form"
+      - in: "query"
+        name: "paginationToken"
+        description: "Pagination token to continue a previous listing operation."
+        schema:
+          type: "string"
+        style: "form"
+      - in: "query"
+        name: "prefix"
+        description: "Prefix of the namespaces to list. Acts as a filter to return only namespaces that start with this prefix.\n\nMust be ASCII and must not contain the NUL character, matching the namespace names it filters. An empty prefix matches every namespace."
+        schema:
+          type: "string"
+          pattern: "^[\\x01-\\x7F]*$"
+          maxLength: 512
+        example: "prefixExample"
+        style: "form"
+      responses:
+        200:
+          description: "A successful response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListNamespacesResponse"
+        400:
+          description: "Bad request. The request included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+    post:
+      tags:
+      - "Namespace Operations"
+      summary: "Create a namespace"
+      description: "Create a namespace in a serverless index.\n\nFor guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).\n\n**Note:** This operation is not supported for pod-based indexes."
+      operationId: "createNamespace"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNamespaceRequest"
+        required: true
+      responses:
+        200:
+          description: "A successful response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NamespaceDescription"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        409:
+          description: "Namespace of the given name already exists on the index."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+  /namespaces/{namespace}:
+    get:
+      tags:
+      - "Namespace Operations"
+      summary: "Describe a namespace"
+      description: "Describe a namespace in a serverless index, including the total number of vectors in the namespace.\n\nFor guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).\n\n**Note:** This operation is not supported for pod-based indexes."
+      operationId: "describeNamespace"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "namespace"
+        description: "The namespace to describe. Must be ASCII, must not contain the NUL character, and must be 1-512 characters long. Use `__default__` to describe the namespace that requests address when they omit a namespace."
+        required: true
+        schema:
+          type: "string"
+          pattern: "^[\\x01-\\x7F]+$"
+          minLength: 1
+          maxLength: 512
+        style: "simple"
+      responses:
+        200:
+          description: "A description of a namespace."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NamespaceDescription"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        404:
+          description: "Namespace not found. No namespace of the given name exists on the index."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        429:
+          description: "Too many requests. This operation is rate limited per index and per namespace. Prefer `GET /namespaces` when describing more than one namespace: it returns the same information for every namespace in a single request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+    delete:
+      tags:
+      - "Namespace Operations"
+      summary: "Delete a namespace"
+      description: "Delete a namespace from a serverless index. Deleting a namespace is irreversible; all data in the namespace is permanently deleted.\n\nFor guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).\n\n**Note:** This operation is not supported for pod-based indexes."
+      operationId: "deleteNamespace"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "namespace"
+        description: "The namespace to delete. Must be ASCII, must not contain the NUL character, and must be 1-512 characters long."
+        required: true
+        schema:
+          type: "string"
+          pattern: "^[\\x01-\\x7F]+$"
+          minLength: 1
+          maxLength: 512
+        style: "simple"
+      responses:
+        200:
+          description: "A successful response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        404:
+          description: "Namespace not found. No namespace of the given name exists on the index."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+  /records/namespaces/{namespace}/upsert:
+    post:
+      tags:
+      - "Vector Operations"
+      summary: "Upsert text"
+      description: "Upsert text into a namespace. Pinecone converts the text to vectors automatically using the hosted embedding model associated with the index.\n\nUpserting text is supported only for [indexes with integrated embedding](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models); for any other index the request is rejected with `400`. It is not available on BYOC indexes.\n\nA request can contain at most 1000 records. Each record is identified by `_id`. The service also accepts `id` as an alias, which this schema does not model; a record must not carry both.\n\nFor guidance, examples, and limits, see [Upsert data](https://docs.pinecone.io/guides/index-data/upsert-data)."
+      operationId: "upsertRecordsNamespace"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "namespace"
+        description: "The namespace to upsert records into."
+        required: true
+        schema:
+          type: "string"
+        style: "simple"
+      requestBody:
+        description: "Each record in the request body must include an `_id` field and a field that matches your index's `field_map` configuration (such as `chunk_text` or `data`). All other fields are stored as metadata.\n"
+        content:
+          application/x-ndjson:
+            schema:
+              type: "array"
+              items:
+                $ref: "#/components/schemas/UpsertRecord"
+        required: true
+      responses:
+        201:
+          description: "A successful response."
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /records/namespaces/{namespace}/search:
+    post:
+      tags:
+      - "Vector Operations"
+      summary: "Search with text"
+      description: "Search a namespace with a query text, query vector, or record ID and return the most similar records, along with their similarity scores. Optionally, rerank the initial results based on their relevance to the query. \n\nSearching with text (`inputs`) is supported only for indexes with [integrated embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding); for any other index a text query is rejected with `400`, and it is not available on BYOC indexes; reranking (`rerank`) is likewise unavailable on BYOC indexes. Searching with a query vector (`vector`) or a record ID (`id`) works on any index served by the vectors API.\n\nFor guidance and examples, see [Search](https://docs.pinecone.io/guides/search/search-overview)."
+      operationId: "searchRecordsNamespace"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "namespace"
+        description: "The namespace to search."
+        required: true
+        schema:
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRecordsRequest"
+        required: true
+      responses:
+        200:
+          description: "A successful search namespace response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchRecordsResponse"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /namespaces/{namespace}/documents/upsert:
+    post:
+      tags:
+      - "Document Operations"
+      summary: "Upsert documents"
+      description: "Upsert documents into a namespace.\n\nEach document must include an `_id` field and at least one field defined in the index schema; metadata fields may be\nprovided alongside them.\nAny metadata field you provide that is not declared in the schema is stored on the document, returned via include_fields, and\nautomatically indexed for filtering."
+      operationId: "upsertDocuments"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "namespace"
+        description: "The namespace to upsert documents into."
+        required: true
+        schema:
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertDocumentsRequest"
+        required: true
+      responses:
+        202:
+          description: "The documents were successfully accepted for upsert."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpsertDocumentsResponse"
+          links:
+            FetchUpsertedDocument:
+              description: "Look up a document that was just upserted."
+              operationId: "fetchDocuments"
+              parameters:
+                namespace: "$request.path.namespace"
+            DeleteUpsertedDocument:
+              description: "Delete a document that was just upserted."
+              operationId: "deleteDocuments"
+              parameters:
+                namespace: "$request.path.namespace"
+            ListUpsertedDocuments:
+              description: "List the namespace a document was just written to."
+              operationId: "listDocuments"
+              parameters:
+                namespace: "$request.path.namespace"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /namespaces/{namespace}/documents/search:
+    post:
+      tags:
+      - "Document Operations"
+      summary: "Search documents"
+      description: "Search for documents in a namespace using one or more scoring methods (dense vector, sparse vector, text, or query string similarity).\n\nReturns the top-k most similar documents along with their scores and requested fields."
+      operationId: "searchDocuments"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "namespace"
+        description: "The namespace to search."
+        required: true
+        schema:
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchDocumentsRequest"
+        required: true
+      responses:
+        200:
+          description: "A successful search response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchDocumentsResponse"
+          links:
+            FetchMatchedDocument:
+              description: "Look up a document returned as a search match."
+              operationId: "fetchDocuments"
+              parameters:
+                namespace: "$request.path.namespace"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /namespaces/{namespace}/documents/fetch:
+    post:
+      tags:
+      - "Document Operations"
+      summary: "Fetch documents"
+      description: "Fetch documents from a namespace. Returns the specified fields for each document. Exactly one of `ids` or `filter` must be specified.\n\n- `ids`: Fetch the documents with the given IDs.\n- `filter`: Fetch every document matching a metadata filter expression. Results are returned a page at a time, holding `limit` documents per page (100 by default, 10000 at most). When there are more documents to return, the response includes a `pagination` token you can pass back as `pagination_token` to retrieve the next page. When no `pagination` token is returned, there are no more documents to fetch."
+      operationId: "fetchDocuments"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "namespace"
+        description: "The namespace to fetch documents from."
+        required: true
+        schema:
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FetchDocumentsRequest"
+            examples:
+              by_ids:
+                summary: "Fetch specific documents by ID"
+                value:
+                  ids:
+                  - "doc-1"
+                  - "doc-2"
+                  include_fields:
+                  - "title"
+                  - "content"
+              by_filter:
+                summary: "Fetch every document matching a metadata filter"
+                value:
+                  filter:
+                    category:
+                      $eq: "news"
+                  include_fields:
+                  - "title"
+                  - "content"
+              by_filter_next_page:
+                summary: "Fetch the next page of filter matches, 500 documents at a time"
+                value:
+                  filter:
+                    category:
+                      $eq: "news"
+                  limit: 500
+                  pagination_token: "Tm90aGluZyB0byBzZWUgaGVyZQo="
+        required: true
+      responses:
+        200:
+          description: "A successful fetch response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FetchDocumentsResponse"
+              examples:
+                by_ids:
+                  summary: "A fetch by document ID, which is never paginated"
+                  value:
+                    documents:
+                      doc-1:
+                        _id: "doc-1"
+                        title: "Introduction to Machine Learning"
+                    namespace: "my-namespace"
+                    usage:
+                      read_units: 5
+                by_filter_mid_page:
+                  summary: "A page of filter matches with more results to follow"
+                  value:
+                    documents:
+                      doc-1:
+                        _id: "doc-1"
+                        title: "Introduction to Machine Learning"
+                    namespace: "my-namespace"
+                    pagination:
+                      next: "Tm90aGluZyB0byBzZWUgaGVyZQo="
+                    usage:
+                      read_units: 5
+                by_filter_last_page:
+                  summary: "The final page of filter matches, with no `pagination` token to follow"
+                  value:
+                    documents:
+                      doc-2:
+                        _id: "doc-2"
+                        title: "Neural Networks in Practice"
+                    namespace: "my-namespace"
+                    usage:
+                      read_units: 5
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /namespaces/{namespace}/documents/delete:
+    post:
+      tags:
+      - "Document Operations"
+      summary: "Delete documents"
+      description: "Delete documents from a namespace. Exactly one of `ids`, `filter`, or `delete_all` must be specified.\n\n- `ids`: Delete documents with the given IDs.\n- `filter`: Delete every document matching a metadata filter expression. Text-match operators (`$match_phrase`, `$match_all`, `$match_any`) are not supported in a filtered delete; they are only supported in search. The response reports `matched_records`, the number of documents the filter matched.\n- `delete_all`: Delete all documents in the namespace."
+      operationId: "deleteDocuments"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "namespace"
+        description: "The namespace to delete documents from."
+        required: true
+        schema:
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteDocumentsRequest"
+            examples:
+              by_ids:
+                summary: "Delete specific documents by ID"
+                value:
+                  ids:
+                  - "doc-1"
+                  - "doc-2"
+              by_filter:
+                summary: "Delete every document matching a metadata filter"
+                value:
+                  filter:
+                    category:
+                      $eq: "news"
+              delete_all:
+                summary: "Delete every document in the namespace"
+                value:
+                  delete_all: true
+        required: true
+      responses:
+        202:
+          description: "The delete request was successfully accepted."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteDocumentsResponse"
+              examples:
+                by_filter:
+                  summary: "A filtered delete, reporting how many documents the filter matched"
+                  value:
+                    matched_records: 42
+                by_ids:
+                  summary: "A delete by ID or `delete_all`, which reports no count"
+                  value: {}
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /namespaces/{namespace}/documents/update:
+    post:
+      tags:
+      - "Document Operations"
+      summary: "Update documents"
+      description: "Apply partial updates to documents in a namespace. Documents are selected either per ID with `documents`, or in bulk with `filter`.\n\n- `documents`: Each update is identified by its `_id`. Any other fields set new values for those fields, and fields listed in `_remove_fields` are removed from the document. Fields that are not mentioned are left unchanged. Updates to a document that does not exist are accepted but have no effect.\n- `filter`: The same patch is applied to every document matching a metadata filter expression. The patch is given by `set_fields` and/or `remove_fields`, at least one of which must be specified. Text-match operators (`$match_phrase`, `$match_all`, `$match_any`) are not supported in a filtered update; they are only supported in search. The response reports `matched_records`, the number of documents the filter matched.\n\n`documents` and the by-filter fields (`filter`, `set_fields`, `remove_fields`) are mutually exclusive."
+      operationId: "updateDocuments"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "namespace"
+        description: "The namespace to update documents in."
+        required: true
+        schema:
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDocumentsRequest"
+            examples:
+              by_ids:
+                summary: "Patch specific documents by ID"
+                value:
+                  documents:
+                  - _id: "doc-1"
+                    title: "Updated title"
+                  - _id: "doc-2"
+                    _remove_fields:
+                    - "content"
+              by_filter:
+                summary: "Apply the same patch to every document matching a metadata filter"
+                value:
+                  filter:
+                    category:
+                      $eq: "news"
+                  remove_fields:
+                  - "content"
+                  set_fields:
+                    category: "archive"
+        required: true
+      responses:
+        202:
+          description: "The update request was successfully accepted."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateDocumentsResponse"
+              examples:
+                by_filter:
+                  summary: "A filtered update, reporting how many documents the filter matched"
+                  value:
+                    matched_records: 42
+                by_ids:
+                  summary: "A per-ID update, which reports no count"
+                  value: {}
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /namespaces/{namespace}/documents/list:
+    post:
+      tags:
+      - "Document Operations"
+      summary: "List documents"
+      description: "List documents in a namespace.\n\nReturns up to 100 documents per page by default, in sorted order (bitwise \"C\" collation). Use the optional `prefix` parameter to limit results to documents whose IDs start with a given prefix. When there are more documents to return, the response includes a `pagination` token you can pass to retrieve the next page. When no `pagination` token is returned, there are no more documents to list."
+      operationId: "listDocuments"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "namespace"
+        description: "The namespace to list documents from."
+        required: true
+        schema:
+          type: "string"
+        style: "simple"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListDocumentsRequest"
+        required: true
+      responses:
+        200:
+          description: "A successful list response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListDocumentsResponse"
+              examples:
+                mid_page:
+                  summary: "A page with more results to follow"
+                  value:
+                    documents:
+                    - _id: "doc-1"
+                    - _id: "doc-2"
+                    namespace: "my-namespace"
+                    pagination:
+                      next: "Tm90aGluZyB0byBzZWUgaGVyZQo="
+                    usage:
+                      read_units: 1
+                last_page:
+                  summary: "The final page with no further results"
+                  value:
+                    documents:
+                    - _id: "doc-3"
+                    namespace: "my-namespace"
+                    usage:
+                      read_units: 1
+          links:
+            FetchListedDocument:
+              description: "Look up a document returned by list."
+              operationId: "fetchDocuments"
+              parameters:
+                namespace: "$request.path.namespace"
+            ListDocumentsNextPage:
+              description: "Fetch the next page of documents."
+              operationId: "listDocuments"
+              parameters:
+                namespace: "$request.path.namespace"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: "Unauthorized. Possible causes: missing or invalid API key."
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedMessage"
+        4XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: "An unexpected error response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    StartImportRequest:
+      description: "The request for the `start_import` operation."
+      type: "object"
+      properties:
+        integrationId:
+          description: "The id of the [storage integration](https://docs.pinecone.io/guides/operations/integrations/manage-storage-integrations) that should be used to access the data."
+          type: "string"
+          maxLength: 1000
+        uri:
+          description: "The URI of the bucket (or container) and import directory containing the namespaces and Parquet files you want to import. For example, `s3://BUCKET_NAME/IMPORT_DIR` for Amazon S3, `gs://BUCKET_NAME/IMPORT_DIR` for Google Cloud Storage, or `https://STORAGE_ACCOUNT.blob.core.windows.net/CONTAINER_NAME/IMPORT_DIR` for Azure Blob Storage. For more information, see [Import records](https://docs.pinecone.io/guides/index-data/import-data#prepare-your-data)."
+          type: "string"
+          minLength: 1
+          maxLength: 1500
+        errorMode:
+          $ref: "#/components/schemas/ImportErrorMode"
+      required:
+      - "uri"
+    ImportErrorMode:
+      description: "Indicates how to respond to errors during the import process."
+      type: "object"
+      properties:
+        onError:
+          description: "Indicates how to respond to errors during the import process.\nPossible values: `abort` or `continue`."
+          x-enum:
+          - "abort"
+          - "continue"
+          type: "string"
+    StartImportResponse:
+      description: "The response for the `start_import` operation."
+      type: "object"
+      properties:
+        id:
+          example: "101"
+          description: "Unique identifier for the import operation."
+          type: "string"
+          minLength: 1
+          maxLength: 1000
+      required:
+      - "id"
+    CancelImportResponse:
+      description: "The response for the `cancel_import` operation."
+      type: "object"
+    ImportModel:
+      description: "The model for an import operation."
+      type: "object"
+      properties:
+        id:
+          example: "101"
+          description: "Unique identifier for the import operation."
+          type: "string"
+          minLength: 1
+          maxLength: 1000
+        uri:
+          description: "The URI from where the data is imported."
+          type: "string"
+        status:
+          example: "Pending"
+          description: "The status of the operation.\nPossible values: `Pending`, `InProgress`, `Failed`, `Completed`, or `Cancelled`."
+          x-enum:
+          - "Pending"
+          - "InProgress"
+          - "Failed"
+          - "Completed"
+          - "Cancelled"
+          type: "string"
+        createdAt:
+          description: "The start time of the import operation."
+          type: "string"
+          format: "date-time"
+        finishedAt:
+          description: "The end time of the import operation."
+          type: "string"
+          format: "date-time"
+        percentComplete:
+          example: 42.2
+          description: "The progress made by the operation, as a percentage."
+          type: "number"
+          format: "float"
+          minimum: 0.0
+          maximum: 100.0
+        recordsImported:
+          example: 1000000
+          description: "The number of records successfully imported."
+          type: "integer"
+          format: "int64"
+          minimum: 0
+        error:
+          description: "The error message if the import process failed."
+          type: "string"
+        validationResult:
+          $ref: "#/components/schemas/ImportValidationResult"
+      required:
+      - "id"
+      - "uri"
+      - "status"
+      - "percentComplete"
+      - "recordsImported"
+      - "createdAt"
+    ImportValidationResult:
+      description: "The result of the validation run performed on the import data. Present only once validation has run."
+      type: "object"
+      properties:
+        importSuccesses:
+          example: 999990
+          description: "The number of records that passed validation."
+          type: "integer"
+          format: "int64"
+          minimum: 0
+        importErrors:
+          example: 10
+          description: "The number of records that failed validation."
+          type: "integer"
+          format: "int64"
+          minimum: 0
+    ListImportsResponse:
+      description: "The response for the `list_imports` operation."
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ImportModel"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    DeleteRequest:
+      description: "The request for the `delete` operation."
+      type: "object"
+      properties:
+        ids:
+          example:
+          - "id-0"
+          - "id-1"
+          description: "Vectors to delete."
+          type: "array"
+          items:
+            type: "string"
+            pattern: "^[\\x01-\\x7F]+$"
+            minLength: 1
+            maxLength: 512
+          minItems: 1
+          maxItems: 1000
+        deleteAll:
+          example: false
+          description: "This indicates that all vectors in the index namespace should be deleted. Cannot be combined with `ids`."
+          default: false
+          type: "boolean"
+        namespace:
+          example: "example-namespace"
+          description: "The namespace to delete records from, if applicable."
+          type: "string"
+        filter:
+          description: "If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive with using delete_all=True. See [Delete data](https://docs.pinecone.io/guides/manage-data/delete-data#delete-records-by-metadata)."
+          type: "object"
+          minProperties: 1
+      anyOf:
+      - required:
+        - "ids"
+      - required:
+        - "filter"
+      - required:
+        - "deleteAll"
+    DeleteResponse:
+      description: "The response for the `delete` operation."
+      type: "object"
+    DescribeIndexStatsRequest:
+      description: "The request for the `describe_index_stats` operation."
+      type: "object"
+      properties:
+        filter:
+          description: "If this parameter is present, the operation only returns statistics for vectors that satisfy the filter. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata).\n\nServerless and Starter indexes do not support filtering `describe_index_stats` by metadata, and reject a request carrying a non-empty filter."
+          type: "object"
+    IndexDescription:
+      example:
+        dimension: 1024
+        indexFullness: 0.4
+        namespaces:
+          '':
+            vectorCount: 50000
+          example-namespace-2:
+            vectorCount: 30000
+        totalVectorCount: 80000
+      description: "The response for the `describe_index_stats` operation."
+      type: "object"
+      properties:
+        namespaces:
+          description: "A mapping for each namespace in the index from the namespace name to a summary of its contents."
+          type: "object"
+          additionalProperties:
+            $ref: "#/components/schemas/NamespaceSummary"
+        dimension:
+          example: 1024
+          description: "The dimension of the indexed vectors. Not specified if `sparse` index."
+          type: "integer"
+          format: "int64"
+        indexFullness:
+          example: 0.4
+          description: "The fullness of the index, reported to a granularity of 1% and capped at `1.0`. Always `0` for indexes with on-demand read capacity.\n\nServerless indexes scale automatically as needed, so index fullness  is relevant only for pod-based indexes.\n\nThe index fullness result may be inaccurate during pod resizing; to get the status of a pod resizing process, use [`describe_index`](https://docs.pinecone.io/reference/api/2024-10/control-plane/describe_index)."
+          type: "number"
+          format: "float"
+        totalVectorCount:
+          example: 80000
+          description: "The total number of vectors in the index, regardless of whether a metadata filter expression was passed"
+          type: "integer"
+          format: "int64"
+        metric:
+          example: "cosine"
+          description: "The metric used to measure similarity."
+          type: "string"
+        vectorType:
+          example: "dense"
+          description: "The type of vectors stored in the index."
+          type: "string"
+        memoryFullness:
+          description: "The amount of memory used by a dedicated index"
+          type: "number"
+          format: "float"
+        storageFullness:
+          description: "The amount of storage used by a dedicated index"
+          type: "number"
+          format: "float"
+    FetchResponse:
+      example:
+        namespace: "example-namespace"
+        usage:
+          readUnits: 1
+        vectors:
+          id-1:
+            id: "id-1"
+            values:
+            - 1.0
+            - 1.5
+          id-2:
+            id: "id-2"
+            values:
+            - 2.0
+            - 1.0
+      description: "The response for the `fetch` operation."
+      type: "object"
+      properties:
+        vectors:
+          title: "The fetched vectors, in the form of a map between the fetched ids and the fetched vectors"
+          type: "object"
+          additionalProperties:
+            $ref: "#/components/schemas/Vector"
+        namespace:
+          example: "example-namespace"
+          description: "The namespace of the vectors."
+          type: "string"
+        usage:
+          $ref: "#/components/schemas/Usage"
+    ListItem:
+      type: "object"
+      properties:
+        id:
+          example: "document1#abb"
+          type: "string"
+    ListResponse:
+      description: "The response for the `list` operation."
+      type: "object"
+      properties:
+        vectors:
+          example:
+          - id: "document1#abb"
+          - id: "document1#abc"
+          title: "A list of ids"
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ListItem"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        namespace:
+          example: "example-namespace"
+          description: "The namespace of the vectors."
+          type: "string"
+        usage:
+          $ref: "#/components/schemas/Usage"
+    NamespaceSummary:
+      description: "A summary of the contents of a namespace."
+      type: "object"
+      properties:
+        vectorCount:
+          example: 50000
+          description: "The number of vectors stored in this namespace. Note that updates to this field may lag behind updates to the underlying index and corresponding query results, etc."
+          type: "integer"
+          format: "int64"
+    Pagination:
+      type: "object"
+      properties:
+        next:
+          example: "Tm90aGluZyB0byBzZWUgaGVyZQo="
+          type: "string"
+      required:
+      - "next"
+    CreateNamespaceRequest:
+      description: "A request for creating a namespace with the specified namespace name."
+      type: "object"
+      properties:
+        name:
+          example: "example-namespace"
+          description: "The name of the namespace. Must be ASCII, must not contain the NUL character, and must be 1-512 characters long.\n\n`__default__` is reserved: it names the namespace requests address when they omit a namespace, so it always exists and cannot be created explicitly."
+          type: "string"
+          pattern: "^[\\x01-\\x7F]+$"
+          minLength: 1
+          maxLength: 512
+        schema:
+          example:
+            fields:
+              description:
+                filterable: true
+              genre:
+                filterable: true
+              year:
+                filterable: true
+          description: "Schema for the behavior of Pinecone's internal metadata index. By default, all metadata is indexed; when `schema` is present, only fields which are present in the `fields` object with a `filterable: true` are indexed. Note that `filterable: false` is not currently supported."
+          x-component-name: "MetadataSchema"
+          type: "object"
+          properties:
+            fields:
+              description: "A map of metadata field names to their configuration. The field name must be a valid metadata field name. The field name must be unique. At most 50 fields may be declared.\nField names may not begin with `$`, which introduces a filter operator. When declared at index creation, names beginning with `_` are also rejected (reserved for internal use)."
+              type: "object"
+              additionalProperties:
+                type: "object"
+                properties:
+                  filterable:
+                    description: "Whether the field is indexed and can be used in filters. Must be present and must be `true`: omitting it, or sending `false` or `null`, is rejected with `Field '<name>' is set to filterable: false. Only filterable: true is supported.` To leave a field unindexed, omit it from `fields` entirely."
+                    type: "boolean"
+                    enum:
+                    - true
+                required:
+                - "filterable"
+              maxProperties: 50
+      required:
+      - "name"
+    NamespaceDescription:
+      description: "A description of a namespace, including the name and record count."
+      type: "object"
+      properties:
+        name:
+          example: "example-namespace"
+          description: "The name of the namespace."
+          type: "string"
+        record_count:
+          example: "20000"
+          description: "The total number of records in the namespace. A 64-bit integer, serialized as a decimal string."
+          type: "string"
+          format: "uint64"
+        schema:
+          example:
+            fields:
+              description:
+                filterable: true
+              genre:
+                filterable: true
+              year:
+                filterable: true
+          description: "Schema for the behavior of Pinecone's internal metadata index. By default, all metadata is indexed; when `schema` is present, only fields which are present in the `fields` object with a `filterable: true` are indexed. Note that `filterable: false` is not currently supported."
+          x-component-name: "MetadataSchema"
+          type: "object"
+          properties:
+            fields:
+              description: "A map of metadata field names to their configuration. The field name must be a valid metadata field name. The field name must be unique. At most 50 fields may be declared.\nField names may not begin with `$`, which introduces a filter operator. When declared at index creation, names beginning with `_` are also rejected (reserved for internal use)."
+              type: "object"
+              additionalProperties:
+                type: "object"
+                properties:
+                  filterable:
+                    description: "Whether the field is indexed and can be used in filters. Must be present and must be `true`: omitting it, or sending `false` or `null`, is rejected with `Field '<name>' is set to filterable: false. Only filterable: true is supported.` To leave a field unindexed, omit it from `fields` entirely."
+                    type: "boolean"
+                    enum:
+                    - true
+                required:
+                - "filterable"
+              maxProperties: 50
+        indexed_fields:
+          description: "A list of all indexed metatadata fields in the namespace"
+          type: "object"
+          properties:
+            fields:
+              example:
+              - "genre"
+              - "year"
+              - "author"
+              type: "array"
+              items:
+                type: "string"
+        size_bytes:
+          example: "1048576"
+          description: "The total size of the namespace's data, in bytes, as a 64-bit integer serialized as a decimal string. Approximate: data written before size tracking reads as 0, and recently deleted data may still be counted; compaction converges the value."
+          type: "string"
+          format: "uint64"
+    ListNamespacesResponse:
+      type: "object"
+      properties:
+        namespaces:
+          description: "The list of namespaces belonging to this index."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/NamespaceDescription"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        total_count:
+          example: 25
+          description: "The total number of namespaces in the index matching the prefix"
+          type: "integer"
+          format: "int32"
+    QueryRequest:
+      description: "The request for the `query` operation."
+      type: "object"
+      properties:
+        namespace:
+          example: "example-namespace"
+          description: "The namespace to query."
+          type: "string"
+        topK:
+          example: 10
+          description: "The number of results to return for each query."
+          type: "integer"
+          format: "int64"
+          minimum: 1
+          maximum: 10000
+        filter:
+          example:
+            genre:
+              $in:
+              - "comedy"
+              - "documentary"
+              - "drama"
+            year:
+              $eq: 2019
+          description: "The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata)."
+          type: "object"
+        includeValues:
+          example: true
+          description: "Indicates whether vector values are included in the response. For on-demand indexes, setting this to `true` may increase latency, especially with higher `topK` values, because vector values are retrieved from object storage. Unless you need vector values, set this to `false` for better performance."
+          default: false
+          type: "boolean"
+        includeMetadata:
+          example: true
+          description: "Indicates whether metadata is included in the response as well as the ids."
+          default: false
+          type: "boolean"
+        vector:
+          example:
+          - 0.1
+          - 0.2
+          - 0.3
+          - 0.4
+          - 0.5
+          - 0.6
+          - 0.7
+          - 0.8
+          description: "The query vector. This should be the same length as the dimension of the index being queried. Each `query` request can contain only one of the parameters `id` or `vector`.\n\nWhether `vector` and `sparseVector` may be sent together depends on the index: an index that supports only a single query predicate rejects the combination."
+          type: "array"
+          items:
+            type: "number"
+            format: "float"
+          minItems: 1
+          maxItems: 20000
+        sparseVector:
+          $ref: "#/components/schemas/SparseValues"
+        id:
+          example: "example-vector-1"
+          description: "The unique ID of the vector to be used as a query vector. It is mutually exclusive with both vector forms: a request naming `id` may not also carry `vector` or `sparseVector`."
+          type: "string"
+          pattern: "^[\\x01-\\x7F]+$"
+          minLength: 1
+          maxLength: 512
+        scanFactor:
+          example: 2.0
+          description: "An optimization parameter for IVF dense indexes in dedicated read node indexes. It adjusts how much of the index is scanned to find vector candidates. Range: 0.5 – 4 (default).\nKeep the default (4.0) for the best search results. If query latency is too high, try lowering this value incrementally (minimum 0.5) to speed up the search at the cost of slightly lower accuracy. This parameter is only supported for dedicated (DRN) dense indexes."
+          type: "number"
+          format: "float"
+          minimum: 0.5
+          maximum: 4.0
+        maxCandidates:
+          example: 1000
+          description: "An optimization parameter that controls the maximum number of candidate dense vectors to rerank. Reranking computes exact distances to improve recall but increases query latency. Range: top_k – 100000.\nKeep the default for a balance of recall and latency. Increase this value if recall is too low, or decrease it to reduce latency at the cost of accuracy. This parameter is only supported for dedicated (DRN) dense indexes."
+          type: "integer"
+          format: "int64"
+          minimum: 1
+          maximum: 100000
+      required:
+      - "topK"
+      anyOf:
+      - required:
+        - "vector"
+      - required:
+        - "id"
+      - required:
+        - "sparseVector"
+      not:
+        anyOf:
+        - required:
+          - "id"
+          - "vector"
+        - required:
+          - "id"
+          - "sparseVector"
+    QueryResponse:
+      description: "The response for the `query` operation. These are the matches found for a particular query vector. The matches are ordered from most similar to least similar."
+      type: "object"
+      properties:
+        results:
+          deprecated: true
+          description: "DEPRECATED. The results of each query. The order is the same as `QueryRequest.queries`."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/SingleQueryResults"
+        matches:
+          description: "The matches for the vectors."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ScoredVector"
+        namespace:
+          description: "The namespace for the vectors."
+          type: "string"
+        usage:
+          $ref: "#/components/schemas/Usage"
+    ScoredVector:
+      type: "object"
+      properties:
+        id:
+          example: "example-vector-1"
+          description: "This is the vector's unique id."
+          type: "string"
+          minLength: 1
+          maxLength: 512
+        score:
+          example: 0.08
+          description: "This is a measure of similarity between this vector and the query vector.  The higher the score, the more they are similar."
+          type: "number"
+          format: "float"
+        values:
+          example:
+          - 0.1
+          - 0.2
+          - 0.3
+          - 0.4
+          - 0.5
+          - 0.6
+          - 0.7
+          - 0.8
+          description: "This is the vector data, if it is requested."
+          type: "array"
+          items:
+            type: "number"
+            format: "float"
+        sparseValues:
+          $ref: "#/components/schemas/SparseValues"
+        metadata:
+          example:
+            genre: "documentary"
+            year: 2019
+          description: "This is the metadata, if it is requested."
+          type: "object"
+      required:
+      - "id"
+    SingleQueryResults:
+      title: "The query results for a single query vector"
+      type: "object"
+      properties:
+        matches:
+          description: "The matches for the vectors."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ScoredVector"
+        namespace:
+          example: "example-namespace"
+          description: "The namespace for the vectors."
+          type: "string"
+    SparseValues:
+      description: "Vector sparse data. Represented as a list of indices and a list of  corresponded values, which must be with the same length."
+      type: "object"
+      properties:
+        indices:
+          example:
+          - 1
+          - 312
+          - 822
+          - 14
+          - 980
+          description: "The indices of the sparse data."
+          type: "array"
+          items:
+            type: "integer"
+            format: "int64"
+            minimum: 0
+            maximum: 4294967295
+          minItems: 1
+          maxItems: 2048
+        values:
+          example:
+          - 0.1
+          - 0.2
+          - 0.3
+          - 0.4
+          - 0.5
+          description: "The corresponding values of the sparse data, which must be with the same length as the indices."
+          type: "array"
+          items:
+            type: "number"
+            format: "float"
+          minItems: 1
+          maxItems: 2048
+      required:
+      - "indices"
+      - "values"
+    UpdateRequest:
+      description: "The request for the `update` operation."
+      type: "object"
+      properties:
+        id:
+          example: "example-vector-1"
+          description: "Vector's unique id."
+          type: "string"
+          pattern: "^[\\x01-\\x7F]+$"
+          minLength: 1
+          maxLength: 512
+        values:
+          example:
+          - 0.1
+          - 0.2
+          - 0.3
+          - 0.4
+          - 0.5
+          - 0.6
+          - 0.7
+          - 0.8
+          description: "Vector data."
+          type: "array"
+          items:
+            type: "number"
+            format: "float"
+          minItems: 1
+          maxItems: 20000
+        sparseValues:
+          $ref: "#/components/schemas/SparseValues"
+        setMetadata:
+          example:
+            genre: "documentary"
+            year: 2019
+          description: "Metadata to set for the record. Field names may not begin with `$`, which is reserved for filter operators."
+          type: "object"
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+        namespace:
+          example: "example-namespace"
+          description: "The namespace containing the record to update."
+          type: "string"
+        filter:
+          example:
+            genre:
+              $in:
+              - "comedy"
+              - "documentary"
+              - "drama"
+            year:
+              $eq: 2019
+          description: "A metadata filter expression. When updating metadata across records in a namespace, the update is applied to all records that match the filter. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata)."
+          type: "object"
+          minProperties: 1
+        dryRun:
+          example: false
+          description: "If `true`, return the number of records that match the `filter`, but do not execute the update. Default is `false`."
+          default: false
+          type: "boolean"
+      anyOf:
+      - required:
+        - "id"
+      - required:
+        - "filter"
+      not:
+        anyOf:
+        - required:
+          - "filter"
+          - "values"
+        - required:
+          - "filter"
+          - "sparseValues"
+    UpdateResponse:
+      description: "The response for the `update` operation."
+      type: "object"
+      properties:
+        matchedRecords:
+          example: 42
+          description: "The number of records that matched the filter (if a filter was provided)."
+          type: "integer"
+          format: "int32"
+    UpsertRequest:
+      description: "The request for the `upsert` operation."
+      type: "object"
+      properties:
+        vectors:
+          description: "An array containing the vectors to upsert. Recommended batch limit is up to 1000 vectors."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Vector"
+          minItems: 1
+          maxItems: 1000
+        namespace:
+          example: "example-namespace"
+          description: "The namespace where you upsert records."
+          type: "string"
+      required:
+      - "vectors"
+    UpsertResponse:
+      description: "The response for the `upsert` operation."
+      type: "object"
+      properties:
+        upsertedCount:
+          example: 2
+          description: "The number of vectors upserted."
+          type: "integer"
+          format: "int64"
+    UpsertRecord:
+      example:
+        _id: "example-record-1"
+      description: "The request for the `upsert` operation."
+      type: "object"
+      properties:
+        _id:
+          description: "The unique ID of the record to upsert. The service also accepts `id` as an alias, which this schema does not model."
+          type: "string"
+          minLength: 1
+      required:
+      - "_id"
+    SearchRecordsRequest:
+      example:
+        fields:
+        - "chunk_text"
+        query:
+          inputs:
+            text: "your query text"
+          top_k: 10
+      description: "A search request for records in a specific namespace."
+      type: "object"
+      properties:
+        query:
+          description: "."
+          type: "object"
+          properties:
+            top_k:
+              example: 10
+              description: "The number of similar records to return, from 1 to 10000."
+              type: "integer"
+              format: "int32"
+              minimum: 1
+              maximum: 10000
+            filter:
+              description: "The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata)."
+              type: "object"
+            inputs:
+              $ref: "#/components/schemas/EmbedInputs"
+            vector:
+              $ref: "#/components/schemas/SearchRecordsVector"
+            id:
+              example: "example-vector-1"
+              description: "The unique ID of the vector to be used as a query vector."
+              type: "string"
+              maxLength: 512
+            match_terms:
+              $ref: "#/components/schemas/SearchMatchTerms"
+          required:
+          - "top_k"
+        fields:
+          example:
+          - "chunk_text"
+          description: "The fields to return in the search results. If not specified, the response will include all fields."
+          type: "array"
+          items:
+            type: "string"
+        rerank:
+          description: "Parameters for reranking the initial search results."
+          type: "object"
+          properties:
+            model:
+              example: "bge-reranker-v2-m3"
+              description: "The name of the [reranking model](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) to use."
+              type: "string"
+            rank_fields:
+              example:
+              - "chunk_text"
+              - "title"
+              description: "The field(s) to consider for reranking. Every returned record must contain each\nlisted field; otherwise the request is rejected with `400`.\n\nThe number of fields supported is [model-specific](https://docs.pinecone.io/guides/search/rerank-results#reranking-models).\n"
+              type: "array"
+              items:
+                type: "string"
+            top_n:
+              example: 5
+              description: "The number of top results to return after reranking. Defaults to top_k."
+              type: "integer"
+              format: "int32"
+            parameters:
+              example:
+                truncate: "END"
+              description: "Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters."
+              type: "object"
+              additionalProperties: true
+            query:
+              example: "What is the capital of France?"
+              description: "The query to rerank documents against. If a specific rerank query is specified, it overwrites the query input that was provided at the top level. Required when the search uses `vector` or `id`, since there is no query text to rerank against; omitting it in that case is rejected with `400`."
+              type: "string"
+          required:
+          - "model"
+          - "rank_fields"
+      required:
+      - "query"
+    SearchRecordsResponse:
+      example:
+        result:
+          hits:
+          - _id: "example-record-1"
+            _score: 0.928113460540771484375
+            fields:
+              data: "your example text"
+        usage:
+          embed_total_tokens: 10
+          read_units: 5
+      description: "The records search response."
+      type: "object"
+      properties:
+        result:
+          type: "object"
+          properties:
+            hits:
+              description: "The hits for the search document request."
+              type: "array"
+              items:
+                $ref: "#/components/schemas/Hit"
+          required:
+          - "hits"
+        usage:
+          $ref: "#/components/schemas/SearchUsage"
+      required:
+      - "usage"
+      - "result"
+    Hit:
+      example:
+        _id: "example-record-1"
+        _score: 0.928113460540771484375
+        fields:
+          data: "your example text"
+          more_data:
+            text: "your example text"
+      description: "A record whose vector values are similar to the provided search query."
+      type: "object"
+      properties:
+        _id:
+          description: "The record id of the search hit."
+          type: "string"
+          minLength: 1
+        _score:
+          description: "The similarity score of the returned record."
+          type: "number"
+          format: "float"
+        fields:
+          description: "The selected record fields associated with the search hit."
+          type: "object"
+      required:
+      - "_id"
+      - "_score"
+      - "fields"
+    Usage:
+      type: "object"
+      properties:
+        readUnits:
+          example: 5
+          description: "The number of read units consumed by this operation."
+          type: "integer"
+          format: "int64"
+    SearchUsage:
+      type: "object"
+      properties:
+        read_units:
+          example: 5
+          description: "The number of read units consumed by this operation."
+          type: "integer"
+          format: "int32"
+          minimum: 0
+        embed_total_tokens:
+          example: 2
+          description: "The number of embedding tokens consumed by this operation."
+          type: "integer"
+          format: "int32"
+          minimum: 0
+        rerank_units:
+          example: 1
+          description: "The number of rerank units consumed by this operation."
+          type: "integer"
+          format: "int32"
+          minimum: 0
+      required:
+      - "read_units"
+    EmbedInputs:
+      example:
+        text: "chunk_text"
+      type: "object"
+    DocumentFieldValue:
+      description: "The value of a single document field. Scalar fields carry the same types as metadata (\"must be a boolean, number, string, or array of strings\"); a field declared in the index schema as `dense_vector` carries an array of numbers, and one declared `sparse_vector` carries sparse values. Which names are vector fields is a property of the index, not of this request."
+      anyOf:
+      - type: "string"
+      - type: "number"
+      - type: "boolean"
+      - type: "array"
+        items:
+          type: "string"
+      - type: "array"
+        items:
+          type: "number"
+          format: "float"
+      - $ref: "#/components/schemas/SparseValues"
+    MetadataValue:
+      description: "The value of a single metadata field. Nested objects and mixed-type lists are rejected: \"Metadata value must be a string, number, boolean or list of strings\"."
+      anyOf:
+      - type: "string"
+      - type: "number"
+      - type: "boolean"
+      - type: "array"
+        items:
+          type: "string"
+    VectorValues:
+      description: "This is the vector data included in the request."
+      type: "array"
+      items:
+        type: "number"
+        format: "float"
+      minItems: 1
+      maxItems: 20000
+    Vector:
+      type: "object"
+      properties:
+        id:
+          example: "example-vector-1"
+          description: "This is the vector's unique id."
+          type: "string"
+          pattern: "^[\\x01-\\x7F]+$"
+          minLength: 1
+          maxLength: 512
+        values:
+          example:
+          - 0.1
+          - 0.2
+          - 0.3
+          - 0.4
+          - 0.5
+          - 0.6
+          - 0.7
+          - 0.8
+          description: "This is the vector data. On a request it must be non-empty, and at least one value must have a magnitude of `1e-8` or greater — a vector whose values are all smaller than that is rejected as containing only zeros.\n\nOn a response this is an empty array whenever the record has no dense data to return: on a sparse index, and on any index when values were not requested. The array is therefore not constrained here, because this schema describes both directions."
+          type: "array"
+          items:
+            type: "number"
+            format: "float"
+          maxItems: 20000
+        sparseValues:
+          $ref: "#/components/schemas/SparseValues"
+        metadata:
+          example:
+            genre: "documentary"
+            year: 2019
+          description: "This is the metadata included in the request. Field names may not begin with `$`, which is reserved for filter operators. Every other name is accepted, including names that are empty, non-ASCII, or begin with `_`."
+          type: "object"
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+      required:
+      - "id"
+      anyOf:
+      - required:
+        - "values"
+      - required:
+        - "sparseValues"
+    FetchByMetadataRequest:
+      description: "The request for the `fetch_by_metadata` operation."
+      type: "object"
+      properties:
+        namespace:
+          example: "example-namespace"
+          description: "The namespace to fetch records from."
+          type: "string"
+        filter:
+          example:
+            genre:
+              $in:
+              - "comedy"
+              - "documentary"
+              - "drama"
+            year:
+              $eq: 2019
+          description: "Metadata filter expression to select vectors. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata)."
+          type: "object"
+          minProperties: 1
+        limit:
+          example: 12
+          description: "The maximum number of records to return per page. Defaults to 100."
+          default: 100
+          type: "integer"
+          format: "int64"
+          minimum: 1
+          maximum: 10000
+        paginationToken:
+          example: "Tm90aGluZyB0byBzZWUgaGVyZQo="
+          description: "Pagination token to continue a previous listing operation."
+          type: "string"
+      required:
+      - "filter"
+    FetchByMetadataResponse:
+      example:
+        namespace: "example-namespace"
+        pagination:
+          next: "Tm90aGluZyB0byBzZWUgaGVyZQo="
+        usage:
+          readUnits: 5
+        vectors:
+          id-1:
+            id: "id-1"
+            metadata:
+              genre: "documentary"
+              year: 2019
+            values:
+            - 1.0
+            - 1.5
+          id-2:
+            id: "id-2"
+            metadata:
+              genre: "comedy"
+              year: 2019
+            values:
+            - 2.0
+            - 1.0
+      description: "The response for the `fetch_by_metadata` operation."
+      type: "object"
+      properties:
+        vectors:
+          description: "The fetched vectors, in the form of a map between the fetched ids and the fetched vectors"
+          type: "object"
+          additionalProperties:
+            $ref: "#/components/schemas/Vector"
+        namespace:
+          example: "example-namespace"
+          description: "The namespace of the vectors."
+          default: ""
+          type: "string"
+        usage:
+          $ref: "#/components/schemas/Usage"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    SearchRecordsVector:
+      type: "object"
+      properties:
+        values:
+          $ref: "#/components/schemas/VectorValues"
+        sparse_values:
+          example:
+          - 0.1
+          - 0.2
+          - 0.3
+          description: "The sparse embedding values."
+          type: "array"
+          items:
+            type: "number"
+            format: "float"
+        sparse_indices:
+          example:
+          - 10
+          - 3
+          - 156
+          description: "The sparse embedding indices."
+          type: "array"
+          items:
+            type: "integer"
+            format: "int64"
+            minimum: 0
+            maximum: 4294967295
+    SearchMatchTerms:
+      example:
+        strategy: "all"
+        terms:
+        - "animal"
+        - "CHARACTER"
+        - "donald Duck"
+      description: "Specifies which terms must be present in the text of each search hit based on the specified strategy. The match is performed\nagainst the text field specified in the integrated index `field_map` configuration.\n\nTerms are normalized and tokenized into single tokens before matching, and order does not matter.\n\nExample:\n\n  `\"match_terms\": {\"terms\": [\"animal\", \"CHARACTER\", \"donald Duck\"], \"strategy\": \"all\"}` will tokenize\n  to `[\"animal\", \"character\", \"donald\", \"duck\"]`, and would match\n  `\"Donald F. Duck is a funny animal character\"` but would not match `\"A duck is a funny animal\"`.\n\nMatch terms filtering is supported only for sparse indexes with [integrated embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding)\nconfigured to use the [pinecone-sparse-english-v0](https://docs.pinecone.io/models/pinecone-sparse-english-v0) model."
+      type: "object"
+      properties:
+        strategy:
+          description: "The strategy for matching terms in the text. Currently, only `all` is supported, which means all specified terms must be present."
+          x-enum:
+          - "all"
+          type: "string"
+        terms:
+          description: "A list of terms that must be present in the text of each search hit based on the specified strategy."
+          type: "array"
+          items:
+            type: "string"
+      required:
+      - "terms"
+      - "strategy"
+    UnauthorizedMessage:
+      example: "Unauthorized"
+      description: "The plain-text body of a `401` response. Authentication failures are rejected before the request reaches the index, so they carry the message `Unauthorized` rather than an error object."
+      type: "string"
+    ErrorResponse:
+      example:
+        error:
+          code: "INVALID_ARGUMENT"
+          message: "No 'ids' or 'filter' provided in the document fetch request. Provide at least one document ID in 'ids', or a metadata filter in 'filter'."
+        status: 400
+      description: "The error response shape returned by the records and documents operations. The vector operations return `rpcStatus` instead. Requests rejected by the authentication and rate-limiting layer before they reach the service (`401`, and the `400`, `403`, and `429` it produces) return a plain-text body on every operation."
+      type: "object"
+      properties:
+        status:
+          example: 400
+          description: "The HTTP status code of the error."
+          type: "integer"
+        error:
+          description: "Detailed information about the error that occurred."
+          type: "object"
+          properties:
+            code:
+              example: "INVALID_ARGUMENT"
+              description: "The error code.\nPossible values: `OK`, `UNKNOWN`, `INVALID_ARGUMENT`, `DEADLINE_EXCEEDED`, `NOT_FOUND`, `ALREADY_EXISTS`, `PERMISSION_DENIED`, `UNAUTHENTICATED`, `RESOURCE_EXHAUSTED`, `FAILED_PRECONDITION`, `ABORTED`, `OUT_OF_RANGE`, `INTERNAL`, `FORBIDDEN`, `PAYMENT_REQUIRED`, `SERVICE_UNAVAILABLE`, or `PAYLOAD_TOO_LARGE`."
+              x-enum:
+              - "OK"
+              - "UNKNOWN"
+              - "INVALID_ARGUMENT"
+              - "DEADLINE_EXCEEDED"
+              - "NOT_FOUND"
+              - "ALREADY_EXISTS"
+              - "PERMISSION_DENIED"
+              - "UNAUTHENTICATED"
+              - "RESOURCE_EXHAUSTED"
+              - "FAILED_PRECONDITION"
+              - "ABORTED"
+              - "OUT_OF_RANGE"
+              - "INTERNAL"
+              - "FORBIDDEN"
+              - "PAYMENT_REQUIRED"
+              - "SERVICE_UNAVAILABLE"
+              - "PAYLOAD_TOO_LARGE"
+              type: "string"
+            message:
+              example: "No 'ids' or 'filter' provided in the document fetch request. Provide at least one document ID in 'ids', or a metadata filter in 'filter'."
+              description: "A human-readable description of the error, including how to correct the request where possible."
+              type: "string"
+          required:
+          - "code"
+          - "message"
+      required:
+      - "status"
+      - "error"
+    protobufAny:
+      type: "object"
+      properties:
+        typeUrl:
+          type: "string"
+        value:
+          type: "string"
+          format: "byte"
+    rpcStatus:
+      description: "The error response shape returned by the vector and bulk operations. Requests rejected by the authentication and rate-limiting layer before they reach the service (`401`, and the `400`, `403`, and `429` it produces) return a plain-text body instead."
+      type: "object"
+      properties:
+        code:
+          type: "integer"
+          format: "int32"
+        message:
+          type: "string"
+        details:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/protobufAny"
+    DocumentRecord:
+      example:
+        _id: "doc-1"
+        content: "Machine learning is a subset of artificial intelligence."
+        title: "Introduction to Machine Learning"
+      description: "A document with a unique identifier and field values. Fields named in the index schema are validated against it; any other field is stored as filterable metadata. Every document must carry at least one schema field and every schema field the index marks required; a document with only `_id` and metadata is rejected. Limits: 2 MB per document and per request, 100 KB and 10,000 tokens per full-text-search field value."
+      type: "object"
+      properties:
+        _id:
+          description: "The unique identifier for the document."
+          type: "string"
+          pattern: "^[\\x01-\\x7F]+$"
+          minLength: 1
+          maxLength: 512
+      required:
+      - "_id"
+      additionalProperties:
+        $ref: "#/components/schemas/DocumentFieldValue"
+    UpsertDocumentsRequest:
+      example:
+        documents:
+        - _id: "doc-1"
+          content: "Machine learning is a subset of artificial intelligence."
+          title: "Introduction to Machine Learning"
+        - _id: "doc-2"
+          content: "Deep learning uses neural networks with many layers."
+          title: "Deep Learning Fundamentals"
+      description: "The request for the `upsert_documents` operation."
+      type: "object"
+      properties:
+        documents:
+          description: "The list of documents to upsert into the namespace."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/DocumentRecord"
+          minItems: 1
+          maxItems: 1000
+      required:
+      - "documents"
+    UpsertDocumentsResponse:
+      example:
+        upserted_count: 2
+      description: "The response for the `upsert_documents` operation."
+      type: "object"
+      properties:
+        upserted_count:
+          example: 2
+          description: "The number of documents successfully upserted."
+          type: "integer"
+          format: "int32"
+      required:
+      - "upserted_count"
+    DocumentScoringMethod:
+      example:
+        fields:
+        - "content"
+        query: "What is machine learning?"
+        type: "text"
+      description: "A scoring method that defines how documents are scored against a query.\n\nThe `type` field determines which other fields are used:\n- `dense_vector`: Score by dense vector similarity. Requires either `field` or `fields` naming exactly one field, and a `values` array.\n- `sparse_vector`: Score by sparse vector similarity. Requires either `field` or `fields` naming exactly one field, and `sparse_values`.\n- `text`: Score by BM25 text similarity. Requires either `field` or `fields` naming one or more fields, and `query`. Naming several fields scores the query against all of them.\n- `query_string`: Score using a Lucene query string. Use field qualifiers (`field:(clause)`) to target a field, or omit field qualifiers to search against all text-searchable fields. Errors if `field` or `fields` is provided."
+      type: "object"
+      properties:
+        type:
+          description: "The scoring method type.\nPossible values: `dense_vector`, `sparse_vector`, `text`, or `query_string`."
+          x-enum:
+          - "dense_vector"
+          - "sparse_vector"
+          - "text"
+          - "query_string"
+          type: "string"
+        fields:
+          example:
+          - "content"
+          description: "The fields to score against.\n\nEither `fields` or `field` must be provided for `dense_vector`, `sparse_vector`, and `text` scoring types, and neither may be provided for `query_string`. `dense_vector` and `sparse_vector` accept exactly one field; `text` accepts one or more."
+          type: "array"
+          items:
+            type: "string"
+          minItems: 1
+        field:
+          deprecated: true
+          description: "A single field to score against. Equivalent to a one-element `fields`; prefer `fields`, which can also name more than one field. Either `field` or `fields` must be provided for `dense_vector`, `sparse_vector`, and `text` scoring types, but not both."
+          type: "string"
+        query:
+          description: "The text query to use for `text` and `query_string` scoring types. Leading and trailing whitespace is trimmed; a query that is empty after trimming is rejected. At most 10 KB."
+          type: "string"
+          minLength: 1
+        values:
+          description: "The dense vector values to use for `dense_vector` scoring type."
+          type: "array"
+          items:
+            type: "number"
+            format: "float"
+        sparse_values:
+          $ref: "#/components/schemas/SparseValues"
+      required:
+      - "type"
+      anyOf:
+      - title: "Dense vector scoring"
+        properties:
+          type:
+            enum:
+            - "dense_vector"
+          fields:
+            maxItems: 1
+        required:
+        - "type"
+        - "values"
+        anyOf:
+        - required:
+          - "field"
+        - required:
+          - "fields"
+      - title: "Sparse vector scoring"
+        properties:
+          type:
+            enum:
+            - "sparse_vector"
+          fields:
+            maxItems: 1
+        required:
+        - "type"
+        - "sparse_values"
+        anyOf:
+        - required:
+          - "field"
+        - required:
+          - "fields"
+      - title: "Text scoring"
+        properties:
+          type:
+            enum:
+            - "text"
+        required:
+        - "type"
+        - "query"
+        anyOf:
+        - required:
+          - "field"
+        - required:
+          - "fields"
+      - title: "Query string scoring"
+        properties:
+          type:
+            enum:
+            - "query_string"
+        required:
+        - "type"
+        - "query"
+        not:
+          anyOf:
+          - required:
+            - "field"
+          - required:
+            - "fields"
+      not:
+        required:
+        - "field"
+        - "fields"
+    SearchDocumentsRequest:
+      example:
+        include_fields:
+        - "title"
+        - "content"
+        score_by:
+        - fields:
+          - "content"
+          query: "What is machine learning?"
+          type: "text"
+        top_k: 10
+      description: "The request for the `search_documents` operation."
+      type: "object"
+      properties:
+        score_by:
+          description: "The list of scoring methods to use for ranking documents.\n\nA single clause of any type is always valid. Several clauses may be combined only when every one of them is `text` or `query_string`; a `dense_vector` or `sparse_vector` clause must appear on its own."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/DocumentScoringMethod"
+          minItems: 1
+          maxItems: 100
+          oneOf:
+          - title: "Single scoring clause"
+            maxItems: 1
+          - title: "Multiple text scoring clauses"
+            items:
+              type: "object"
+              properties:
+                type:
+                  description: "Multiple scoring clauses must use `text` or `query_string`."
+                  type: "string"
+                  enum:
+                  - "text"
+                  - "query_string"
+            minItems: 2
+        top_k:
+          example: 10
+          description: "The number of top-ranked documents to return."
+          type: "integer"
+          format: "int32"
+          minimum: 1
+          maximum: 10000
+        include_fields:
+          example:
+          - "title"
+          - "content"
+          description: "The document fields to return on each match alongside `_id` and `_score`. When omitted or empty, no fields are returned. Pass `[\"*\"]` to return every field."
+          type: "array"
+          items:
+            type: "string"
+        filter:
+          description: "A metadata filter expression to restrict the documents searched."
+          type: "object"
+      required:
+      - "score_by"
+      - "top_k"
+    DocumentSearchUsage:
+      example:
+        read_units: 5
+      description: "Usage information for the `search_documents` operation."
+      type: "object"
+      properties:
+        read_units:
+          example: 5
+          description: "The number of read units consumed by this operation."
+          type: "integer"
+          format: "int32"
+      required:
+      - "read_units"
+    DocumentSearchMatch:
+      example:
+        _id: "doc-1"
+        _score: 0.928113460540771484375
+        content: "Machine learning is a subset of artificial intelligence."
+        title: "Introduction to Machine Learning"
+      description: "A document match returned from a search operation, including the document ID, similarity score, and selected fields."
+      type: "object"
+      properties:
+        _id:
+          description: "The unique identifier of the matched document."
+          type: "string"
+          minLength: 1
+        _score:
+          nullable: true
+          description: "The similarity score of the matched document. `null` when the score is not a finite number, which can happen for dense vectors of very large magnitude."
+          type: "number"
+          format: "float"
+      required:
+      - "_id"
+      - "_score"
+      additionalProperties: true
+    SearchDocumentsResponse:
+      example:
+        matches:
+        - _id: "doc-1"
+          _score: 0.928113460540771484375
+          title: "Introduction to Machine Learning"
+        namespace: "my-namespace"
+        usage:
+          read_units: 5
+      description: "The response for the `search_documents` operation."
+      type: "object"
+      properties:
+        matches:
+          description: "The matching documents, ordered from most to least similar."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/DocumentSearchMatch"
+        namespace:
+          example: "my-namespace"
+          description: "The namespace that was searched."
+          type: "string"
+        usage:
+          $ref: "#/components/schemas/DocumentSearchUsage"
+      required:
+      - "matches"
+      - "namespace"
+      - "usage"
+    FetchDocumentsRequest:
+      description: "The request for the `fetch_documents` operation. Exactly one of `ids` or `filter` must be specified."
+      type: "object"
+      properties:
+        ids:
+          description: "A list of document IDs to fetch. Mutually exclusive with `filter`."
+          type: "array"
+          items:
+            type: "string"
+            pattern: "^[\\x01-\\x7F]+$"
+            minLength: 1
+            maxLength: 512
+          minItems: 1
+          maxItems: 1000
+        filter:
+          example:
+            category:
+              $eq: "news"
+          description: "A metadata filter expression selecting the documents to fetch. Must not be empty; an empty filter is rejected rather than matching every document. Mutually exclusive with `ids`."
+          type: "object"
+          minProperties: 1
+        include_fields:
+          description: "The document fields to return on each document. When omitted or empty, all fields are returned; `[\"*\"]` also returns every field."
+          type: "array"
+          items:
+            type: "string"
+        pagination_token:
+          description: "A pagination token from a previous fetch response, used to retrieve the next page of matching documents. Only valid together with `filter`."
+          type: "string"
+        limit:
+          example: 100
+          description: "The maximum number of documents to return per page. Only applies to a fetch by `filter`; a fetch by `ids` is already bounded by `ids` and ignores an in-range value, but a value outside 1-10000 is rejected on either form. Defaults to 100."
+          default: 100
+          type: "integer"
+          format: "int32"
+          minimum: 1
+          maximum: 10000
+      anyOf:
+      - required:
+        - "ids"
+        not:
+          required:
+          - "pagination_token"
+      - required:
+        - "filter"
+      not:
+        required:
+        - "ids"
+        - "filter"
+    FetchedDocumentRecord:
+      example:
+        _id: "doc-1"
+        content: "Machine learning is a subset of artificial intelligence."
+        title: "Introduction to Machine Learning"
+      description: "A fetched document containing its ID and field values."
+      type: "object"
+      properties:
+        _id:
+          description: "The unique identifier of the document."
+          type: "string"
+          minLength: 1
+      required:
+      - "_id"
+      additionalProperties: true
+    DocumentFetchUsage:
+      example:
+        read_units: 5
+      description: "Usage information for the `fetch_documents` operation."
+      type: "object"
+      properties:
+        read_units:
+          example: 5
+          description: "The number of read units consumed by this operation."
+          type: "integer"
+          format: "int32"
+      required:
+      - "read_units"
+    FetchDocumentsResponse:
+      description: "The response for the `fetch_documents` operation."
+      type: "object"
+      properties:
+        documents:
+          description: "A map of document IDs to their fetched documents."
+          type: "object"
+          additionalProperties:
+            $ref: "#/components/schemas/FetchedDocumentRecord"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        namespace:
+          example: "my-namespace"
+          description: "The namespace the documents were fetched from."
+          type: "string"
+        usage:
+          $ref: "#/components/schemas/DocumentFetchUsage"
+      required:
+      - "documents"
+      - "namespace"
+      - "usage"
+    DeleteDocumentsRequest:
+      description: "The request for the `delete_documents` operation. Exactly one of `ids`, `filter`, or `delete_all` must be specified."
+      type: "object"
+      properties:
+        ids:
+          description: "A list of document IDs to delete. Mutually exclusive with `filter` and `delete_all`."
+          type: "array"
+          items:
+            type: "string"
+            pattern: "^[\\x01-\\x7F]+$"
+            minLength: 1
+            maxLength: 512
+          minItems: 1
+          maxItems: 1000
+        filter:
+          example:
+            category:
+              $eq: "news"
+          description: "A metadata filter expression selecting the documents to delete. Must not be empty; an empty filter is rejected rather than matching every document. To delete every document in the namespace, set `delete_all`. Text-match operators (`$match_phrase`, `$match_all`, `$match_any`) are not supported here, since documents are selected on metadata alone. Mutually exclusive with `ids` and `delete_all`."
+          type: "object"
+          minProperties: 1
+        delete_all:
+          description: "If `true`, delete all documents in the namespace. Mutually exclusive with `ids` and `filter`. `false` is treated as if the field were omitted."
+          type: "boolean"
+      anyOf:
+      - title: "By ID"
+        properties:
+          delete_all:
+            enum:
+            - false
+        required:
+        - "ids"
+        not:
+          required:
+          - "filter"
+      - title: "By filter"
+        properties:
+          delete_all:
+            enum:
+            - false
+        required:
+        - "filter"
+        not:
+          required:
+          - "ids"
+      - title: "Whole namespace"
+        properties:
+          delete_all:
+            enum:
+            - true
+        required:
+        - "delete_all"
+        not:
+          anyOf:
+          - required:
+            - "ids"
+          - required:
+            - "filter"
+    DeleteDocumentsResponse:
+      description: "The response for the `delete_documents` operation."
+      type: "object"
+      properties:
+        matched_records:
+          example: 42
+          description: "The number of documents that matched `filter` when the delete was accepted. Only returned for a filtered delete, and omitted when the count could not be read in time; `0` means the filter matched no documents. The delete is applied asynchronously, so this is a point-in-time count rather than a guarantee of the number of documents ultimately deleted."
+          type: "integer"
+          format: "int32"
+    UpdateDocumentRecord:
+      example:
+        _id: "doc-1"
+        _remove_fields:
+        - "content"
+        title: "Updated title"
+      description: "A partial update to a document, identified by `_id`. Any other fields set new values for those fields. Fields named in `_remove_fields` are removed from the document."
+      type: "object"
+      properties:
+        _id:
+          description: "The unique identifier of the document to update."
+          type: "string"
+          pattern: "^[\\x01-\\x7F]+$"
+          minLength: 1
+          maxLength: 512
+        _remove_fields:
+          description: "A list of field names to delete from the document."
+          type: "array"
+          items:
+            type: "string"
+      required:
+      - "_id"
+      additionalProperties:
+        $ref: "#/components/schemas/DocumentFieldValue"
+    UpdateDocumentsRequest:
+      description: "The request for the `update_documents` operation. Either `documents` or `filter` must be specified, and they are mutually exclusive. A `filter` must be accompanied by a non-empty `set_fields` and/or `remove_fields`.\n\nAn empty `set_fields` or `remove_fields` asks for no change, so it does not make a request by-filter: it is ignored, and a request that also has `documents` is still a valid per-ID update.\n\nA by-filter patch is checked against the index schema the same way a per-ID patch is: a value must match the type its field declares, a field cannot be both set and removed, and a required field cannot be removed."
+      type: "object"
+      properties:
+        documents:
+          description: "The list of partial document updates to apply. Mutually exclusive with `filter`, and with a non-empty `set_fields` or `remove_fields`."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/UpdateDocumentRecord"
+          minItems: 1
+          maxItems: 1000
+        filter:
+          example:
+            category:
+              $eq: "news"
+          description: "A metadata filter expression selecting the documents to patch with `set_fields` and `remove_fields`. Must not be empty; an empty filter is rejected rather than matching every document. Text-match operators (`$match_phrase`, `$match_all`, `$match_any`) are not supported here, since documents are selected on metadata alone. Mutually exclusive with `documents`."
+          type: "object"
+          minProperties: 1
+        set_fields:
+          example:
+            category: "archive"
+          description: "The fields to set on every document matching `filter`, and the values to set them to. When non-empty, only valid together with `filter`; an empty object asks for no change and is ignored."
+          type: "object"
+          additionalProperties:
+            $ref: "#/components/schemas/DocumentFieldValue"
+        remove_fields:
+          example:
+          - "content"
+          description: "The names of the fields to remove from every document matching `filter`. When non-empty, only valid together with `filter`; an empty list asks for no change and is ignored."
+          type: "array"
+          items:
+            type: "string"
+      anyOf:
+      - title: "Per-ID patches"
+        required:
+        - "documents"
+        not:
+          anyOf:
+          - required:
+            - "filter"
+          - properties:
+              set_fields:
+                minProperties: 1
+            required:
+            - "set_fields"
+          - properties:
+              remove_fields:
+                minItems: 1
+            required:
+            - "remove_fields"
+      - title: "By filter"
+        required:
+        - "filter"
+        anyOf:
+        - properties:
+            set_fields:
+              minProperties: 1
+          required:
+          - "set_fields"
+        - properties:
+            remove_fields:
+              minItems: 1
+          required:
+          - "remove_fields"
+        not:
+          required:
+          - "documents"
+    UpdateDocumentsResponse:
+      description: "The response for the `update_documents` operation."
+      type: "object"
+      properties:
+        matched_records:
+          example: 42
+          description: "The number of documents that matched `filter` when the update was accepted. Only returned for a filtered update; a per-ID update reports no count. The patch is applied asynchronously, so this is a point-in-time count rather than a guarantee of the number of documents ultimately patched."
+          type: "integer"
+          format: "int32"
+    ListDocumentsRequest:
+      example:
+        limit: 20
+        prefix: "doc-"
+      description: "The request for the `list_documents` operation."
+      type: "object"
+      properties:
+        prefix:
+          description: "A prefix to filter document IDs. Only documents whose IDs begin with this prefix are returned."
+          type: "string"
+          pattern: "^[\\x01-\\x7F]*$"
+          maxLength: 512
+        limit:
+          description: "The maximum number of documents to return per page. Defaults to 100."
+          default: 100
+          type: "integer"
+          format: "int32"
+          minimum: 1
+          maximum: 100
+        pagination_token:
+          description: "A pagination token from a previous list response, used to retrieve the next page of results."
+          type: "string"
+    ListedDocumentRecord:
+      example:
+        _id: "doc-1"
+      description: "A listed document containing only its ID."
+      type: "object"
+      properties:
+        _id:
+          description: "The unique identifier of the document."
+          type: "string"
+          minLength: 1
+      required:
+      - "_id"
+    DocumentListUsage:
+      example:
+        read_units: 1
+      description: "Usage information for the `list_documents` operation."
+      type: "object"
+      properties:
+        read_units:
+          example: 1
+          description: "The number of read units consumed by this operation."
+          type: "integer"
+          format: "int32"
+      required:
+      - "read_units"
+    ListDocumentsResponse:
+      description: "The response for the `list_documents` operation."
+      type: "object"
+      properties:
+        documents:
+          description: "The listed documents, in sorted order by ID."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ListedDocumentRecord"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        namespace:
+          example: "my-namespace"
+          description: "The namespace the documents were listed from."
+          type: "string"
+        usage:
+          $ref: "#/components/schemas/DocumentListUsage"
+      required:
+      - "documents"
+      - "namespace"
+      - "usage"
+  securitySchemes:
+    ApiKeyAuth:
+      type: "apiKey"
+      in: "header"
+      name: "Api-Key"
+      description: "An API Key is required to call Pinecone APIs. Get yours from the [console](https://app.pinecone.io/)."
+security:
+- ApiKeyAuth: []
+tags:
+- name: "Vector Operations"
+- name: "Bulk Operations"
+- name: "Namespace Operations"
+- name: "Document Operations"
+  description: "Operations on documents in an index created with a document schema — one that declares at least one full-text-searchable string field or a `dense_vector` / `sparse_vector` field under a name other than the reserved `_values` / `_sparse_values`. Metadata fields alone do not make a document schema. Indexes served by the vectors API — created from `dimension`/`metric` on an earlier API version, or from a schema holding only the reserved vector fields and metadata — and indexes served by the records API — created with an integrated embedding model, whose schema holds a single `semantic_text` field — reject every document operation with `400` and name the API to use instead. A document index accepts only the document operations; the vector data operations (upsert, query, fetch, update, delete, list) reject it, while index stats and the namespace operations remain available."
+externalDocs:
+  description: "More Pinecone.io API docs"
+  url: "https://docs.pinecone.io/introduction"

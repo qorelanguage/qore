@@ -51,28 +51,52 @@ module PineconeRestClient {
 
     @section pineconerestclientintro PineconeRestClient Introduction
 
-    The %PineconeRestClient module provides a REST client for
-    [Pinecone](https://www.pinecone.io) — a managed vector database —
-    and registers `pinecone` as a vector-store backend in
-    @ref qorerragutilsintro "QoreRagUtils".
+    The %PineconeRestClient module provides a REST client and a connection for
+    [Pinecone](https://www.pinecone.io) — a managed vector database — and registers \c pinecone as a
+    vector-store backend in @ref qoreragutilsintro "QoreRagUtils".
 
-    @par Two-plane architecture
+    For the data-provider application generated from Pinecone's own API descriptions, see
+    @ref pineconedataproviderintro "PineconeDataProvider".
 
-    Pinecone has a **control plane** (index management) and a **data
-    plane** (vector operations).  Each index has its own data-plane host
-    that must be resolved via the control plane before vectors can be
-    upserted / searched.  This module:
+    @section pineconerestclientplanes Two Planes, Two Hosts
 
-    1. Talks to the control plane at \c https://api.pinecone.io with
-       \c Api-Key auth to fetch the index host (lazy, once per index).
-    2. Caches the resolved host and routes data-plane requests
-       (upsert, query, delete) at \c https://<index_host>.
+    Pinecone has a **control plane** that manages indexes and a **data plane** that reads and writes
+    their contents, and the two do not share a host: the control plane is at
+    \c https://api.pinecone.io, while each index's data is served from **its own host**, which only
+    the control plane knows.
 
-    @par Authentication
+    Which side resolves that host depends on which side you are using:
 
-    Pinecone uses the \c Api-Key header (NOT \c Authorization: Bearer).
-    The module sets this header on every request via the
-    \c headers connection option.
+    |!Using|!How the data-plane host is reached
+    |@ref pineconedataproviderintro "PineconeDataProvider"|declaratively, by the action framework's host router, with the index as an ordinary action option
+    |@ref QoreRagUtils::PineconeVectorStore "PineconeVectorStore"|by this module, which calls \c "GET /indexes/{name}" once per index and caches the host
+
+    Both follow the same rule about where the credentials may go:
+    @ref QoreRagUtils::PineconeVectorStore::checkIndexHost() "checkIndexHost()" refuses a resolved host
+    that is not \c pinecone.io or a subdomain of it, matched label by label, and refuses one that
+    names a scheme other than \c https or carries credentials.  A host that comes out of a **response**
+    is outside the bound the configured URL would otherwise set, so it is checked rather than trusted.
+
+    @section pineconerestclientauth Authentication and API Version
+
+    Pinecone authenticates with its own \c Api-Key header rather than with
+    \c "Authorization: Bearer", and selects a dated API version with \c X-Pinecone-Api-Version.  Both
+    are set by @ref PineconeRestClient::PineconeRestClientBase::getOptions() "getOptions()" as default
+    headers on the client, so every call carries them.
+
+    The version is **pinned** by this module — see
+    @ref PineconeRestClient::PineconeRestClientBase::ApiVersion "ApiVersion".  The header is declared
+    required on every operation Pinecone publishes, but the server accepts a request without one and
+    answers it under whatever version it currently defaults to, which would let the same integration
+    change behaviour without anything in the request or the response saying so.  A caller that sets the
+    header explicitly keeps its own value.
+
+    @section pineconerestclientping The Connection Ping
+
+    @ref PineconeRestClient::PineconeRestConnection::PingPath "GET /indexes" is the cheapest
+    authenticated read Pinecone offers, and is what the connection pings: it answers \c 200 for a key
+    the server accepts and \c 401 for one it does not, and it names no object, so it works against a
+    project with no indexes in it.
 
     @section PineconeRestClientRelnotes Release Notes
 
@@ -88,21 +112,51 @@ public class PineconeRestClientBase {
         #! Default Pinecone control-plane URL
         const DefaultControlPlaneUrl = "https://api.pinecone.io";
 
+        #! The header carrying the API key
+        /** Pinecone authenticates with its own header rather than with \c "Authorization: Bearer".
+        */
+        const ApiKeyHeader = "Api-Key";
+
+        #! The header selecting the dated API version
+        const VersionHeader = "X-Pinecone-Api-Version";
+
+        #! The API version this module's vendored descriptions describe
+        /** Pinecone versions its API by date and selects the version with a header.  The header is
+            declared **required** on every operation in all three of its published descriptions, but the
+            server accepts a request without one and answers it under whatever version it currently
+            defaults to - which is the dangerous case rather than the safe one, because the same
+            integration then changes behaviour when Pinecone moves that default, with nothing in the
+            request or the response saying so.
+
+            So the version is pinned here and sent on every call, and every generated action drops the
+            header rather than asking for it; the two are asserted equal in this module's tests, because
+            an action generated from one version and sent against another makes a request the description
+            does not describe.
+
+            @see @ref PineconeDataProvider::PineconeSchema "PineconeSchema" for the descriptions this
+            names
+        */
+        const ApiVersion = "2026-07";
+
         const DefaultOptions = {
             "url": DefaultControlPlaneUrl,
         };
     }
 
     static hash<auto> getOptions(hash<auto> opts) {
+        # "auto!" because a caller's literal option hash whose values happen to share a type narrows to
+        # that type, and adding a hash-valued default would then throw at run time
         hash<auto!> rv;
         rv += DefaultOptions + opts;
-        # Pinecone uses Api-Key header, not Bearer
+        # the version travels as a header on every call, so it is merged into the client's headers rather
+        # than passed per request; a caller adding a header of its own does not drop it, and a caller that
+        # set the header explicitly keeps its own value
+        rv.headers = {VersionHeader: ApiVersion} + (rv.headers ?? {});
+        # Pinecone uses the Api-Key header, not Bearer
         if (rv.apikey) {
             hash<auto!> dh;
-            if (rv.headers) {
-                dh += rv.headers;
-            }
-            dh."Api-Key" = rv.apikey;
+            dh += rv.headers;
+            dh{ApiKeyHeader} = rv.apikey;
             rv.headers = dh;
             delete rv.apikey;
         }
@@ -129,16 +183,36 @@ public class PineconeRestConnection inherits RestClient::RestConnection {
     public {
         const DefaultUrl = "pinecone://api.pinecone.io";
 
+        #! The path pinged to verify that the server accepts the API key
+        /** The index listing is the cheapest authenticated read the control plane offers: it answers
+            \c 200 with the project's indexes for a key Pinecone accepts and \c 401 for one it does not,
+            and it names no object, so it works against an empty project.
+
+            This connection declared no ping at all until the application covered more than one action,
+            so every ping returned \c "OK" in a few milliseconds without contacting the server - measured
+            at 5356 microseconds for a **deliberately invalid** key, against 962 for a valid one, both
+            reported as \c ok.  A ping that cannot fail reports a broken credential as a working
+            connection.
+        */
+        const PingPath = "/indexes";
+
         const ConnectionScheme = <ConnectionSchemeInfo>{
-            "display_name": "Pinecone Vector DB Connection",
+            "display_name": "Pinecone Vector Database Connection",
             "short_desc": "A connection to the Pinecone managed vector database",
-            "desc": "A connection to [Pinecone](https://www.pinecone.io) — a managed "
-                "vector database.\n\n"
-                "Requires an API key sent via the `Api-Key` header.  Get your API key from "
-                "the [Pinecone Console](https://app.pinecone.io/).\n\n"
-                "Pinecone has a two-plane architecture: control plane at "
-                "`https://api.pinecone.io` (for index management) and a separate data-plane "
-                "host per index (auto-discovered on first use).",
+            "desc": "A connection to [Pinecone](https://www.pinecone.io) — a managed vector database "
+                "for semantic search, hybrid search and retrieval-augmented generation.\n\n"
+                "Requires an API key, sent as the `Api-Key` header (NOT `Authorization: Bearer`).  "
+                "Create one in the [Pinecone console](https://app.pinecone.io/); a key is scoped to a "
+                "single project, so the connection reaches the indexes of that project only.\n\n"
+                "Pinecone has a **two-plane architecture**, and this connection addresses both.  The "
+                "control plane at `https://api.pinecone.io` creates and describes indexes, backups and "
+                "collections.  The data plane — searching, upserting and fetching, which is to say the "
+                "operations that *are* Pinecone — lives on a **separate host per index**, which only "
+                "the control plane knows.  Actions that reach it take the index as an option and the "
+                "host is resolved and cached automatically, so nothing here has to be configured per "
+                "index.\n\n"
+                "The dated API version is pinned by this module and sent on every call, so a change to "
+                "the server-side default cannot alter the behaviour of a flow that is already running.",
             "cls": Class::forName("PineconeRestConnection"),
             "auto_url": True,
             "schemes": {"pinecone": True},
@@ -146,10 +220,13 @@ public class PineconeRestConnection inherits RestClient::RestConnection {
             "options": RestConnection::ConnectionScheme.options + {
                 "apikey": <ConnectionOptionInfo>{
                     "display_name": "API Key",
-                    "short_desc": "Pinecone API key (sent as Api-Key header)",
+                    "short_desc": "The Pinecone API key",
                     "type": "string",
-                    "desc": "The Pinecone API key — sent as the `Api-Key` header (NOT "
-                        "`Authorization: Bearer`).",
+                    "desc": "The Pinecone API key, sent as the `Api-Key` header (NOT "
+                        "`Authorization: Bearer`).\n\n"
+                        "Create one in the [Pinecone console](https://app.pinecone.io/) under "
+                        "**API keys**.  A key belongs to one project and carries its own permissions, "
+                        "so a key that can read may not be able to create or delete an index.",
                     "sensitive": True,
                     "preselected": True,
                 },
@@ -169,6 +246,43 @@ public class PineconeRestConnection inherits RestClient::RestConnection {
 
     string getType() {
         return "pinecone";
+    }
+
+    #! Returns the data provider application name this connection serves
+    /** Without this the base class returns nothing, the connection is never associated with its app, and
+        @ref ConnectionProvider::AbstractConnection::getInfo() "getInfo()" omits \c app entirely.
+
+        @note must match @c PineconeDataProvider::AppName; the name is repeated here rather than
+        referenced because %PineconeDataProvider requires this module, not the reverse
+    */
+    *string getAppName() {
+        return "Pinecone";
+    }
+
+    #! Pings the server by listing the project's indexes
+    /** @ref PingPath "GET /indexes" is the cheapest authenticated read Pinecone offers: it answers with
+        the project's indexes for a key the server accepts and \c 401 for one it does not, so the
+        credential is actually verified rather than assumed.  It names no object, so it works against a
+        project with no indexes in it.
+
+        Set both the \c ping_method and \c ping_path options to use the standard
+        @ref RestClient::RestConnection "RestConnection" ping instead.  Note that such a ping cannot
+        detect an invalid API key unless the path it names requires one.
+
+        @throw REST-RESPONSE-ERROR the server rejected the ping request
+    */
+    private pingImpl() {
+        if (opts.ping_method && opts.ping_path) {
+            RestConnection::pingImpl();
+            return;
+        }
+        try {
+            cast<PineconeRestClientIo>(getAsync()).restGet(PingPath);
+        } catch (hash<ExceptionInfo> ex) {
+            authFailure();
+            rethrow;
+        }
+        authSuccess();
     }
 
     bool hasDataProvider() {
@@ -207,8 +321,9 @@ public namespace QoreRagUtils {
 #! Pinecone-backed vector store with lazy control-plane host resolution
 /** Wraps Pinecone's two-plane API: the control plane at
     \c https://api.pinecone.io resolves the per-index data-plane host
-    on first use, then subsequent operations route to
-    \c https://<index_host>.
+    on first use, then subsequent operations route to that host, which
+    is checked against @ref AllowedHostSuffix before any credentialed
+    request is sent to it.
 
     @par Configuration
 
@@ -226,6 +341,11 @@ public namespace QoreRagUtils {
 public class PineconeVectorStore inherits AbstractVectorStore {
     public {
         const Backend = "pinecone";
+
+        #! The only host suffix a resolved data-plane host may have
+        /** @see @ref checkIndexHost()
+        */
+        const AllowedHostSuffix = "pinecone.io";
     }
 
     private {
@@ -391,12 +511,70 @@ public class PineconeVectorStore inherits AbstractVectorStore {
             }
         }
         # build a data-plane client at https://<host>
-        string data_url = index_host =~ /^https?:\/\// ? index_host : ("https://" + index_host);
+        string data_url = "https://" + PineconeVectorStore::checkIndexHost(index_host);
         hash<auto!> opts = {
             "url": data_url,
             "apikey": config.options.api_key,
         };
         data_client = new PineconeRestClient::PineconeRestClientIo(opts);
+    }
+
+    #! Returns the bare host of a resolved data-plane host, refusing one outside Pinecone
+    /** The data-plane host is followed out of a control-plane **response**, which means sending the
+        API key somewhere the configuration never named - so it is checked rather than trusted.  The
+        equivalent check in the schema-driven application is
+        @ref RestSchemaActions::RestSchemaHostSourceInfo::allowed_host_suffixes "allowed_host_suffixes",
+        and this is the same rule applied to the hand-written path.
+
+        The suffix is matched **label by label**, so \c "evil-pinecone.io" is refused where
+        \c "idx-1234.svc.aped-1234-a56b.pinecone.io" is accepted; a plain string-suffix test accepts
+        both.  A value carrying credentials, naming no host, or naming a scheme other than \c https is
+        refused as well: the scheme is fixed here and never taken from the response, so a
+        misconfigured or compromised service cannot move a credentialed request onto cleartext.
+
+        @param host the \c host member of the index description
+
+        @return the bare host, without a scheme, port or path
+
+        @throw VECTOR-STORE-ERROR the host is not a plain host under \c pinecone.io
+
+        @note This class talks to Pinecone directly rather than through
+        @ref RestSchemaActions::RestSchemaHostRouter "RestSchemaHostRouter": the router lives in
+        \c RestSchemaActions, and %PineconeDataProvider requires this module rather than the reverse, so
+        using it here would invert the dependency and make a program that only wants a vector store load
+        the whole action framework.  What is shared is the **rule**, which is why it is spelled out
+        above.
+    */
+    static string checkIndexHost(string host) {
+        string h = host;
+        # a scheme is accepted only if it is the one this client uses
+        if (h =~ /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//) {
+            if (h !~ /^https:\/\//) {
+                throw "VECTOR-STORE-ERROR", sprintf("Pinecone returned the index host %y, which names a "
+                    "scheme other than \"https\"; refusing to send the API key over it", host);
+            }
+            h = replace(h, "https://", "");
+        }
+        # credentials in the authority would send the key to whoever the response names
+        if (h =~ /@/) {
+            throw "VECTOR-STORE-ERROR", sprintf("Pinecone returned the index host %y, which carries "
+                "credentials; refusing to use it", host);
+        }
+        # drop any path and port, leaving the bare host
+        h = (h =~ x/^([^\/]*)/)[0] ?? "";
+        h = (h =~ x/^([^:]*)/)[0] ?? "";
+        if (!h.val()) {
+            throw "VECTOR-STORE-ERROR", sprintf("Pinecone returned the index host %y, which names no "
+                "host", host);
+        }
+        # matched label by label: "pinecone.io" admits a subdomain of it and nothing else, so
+        # "evil-pinecone.io" is refused where a plain string-suffix test would accept it
+        if (h != AllowedHostSuffix
+            && h.substr(-(AllowedHostSuffix.size() + 1)) != "." + AllowedHostSuffix) {
+            throw "VECTOR-STORE-ERROR", sprintf("Pinecone returned the index host %y, which is not %y or "
+                "a subdomain of it; refusing to send the API key to it", host, AllowedHostSuffix);
+        }
+        return h;
     }
 }
 

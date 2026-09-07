@@ -20,13 +20,16 @@ public class PineconeRestClientTest inherits QUnit::Test {
             \constructorValidationTest());
         addTestCase("Api-Key header injected (not Bearer)",
             \apikeyMappingTest());
+        addTestCase("the dated API version is pinned",   \apiVersionTest());
+        addTestCase("the connection pings and names its app", \connectionPingTest());
+        addTestCase("a resolved data-plane host is checked", \hostCheckTest());
         set_return_value(main());
     }
 
     private connectionSchemeTest() {
         hash<ConnectionSchemeInfo> info =
             ConnectionProvider::ConnectionSchemeCache::getScheme("pinecone");
-        assertEq("Pinecone Vector DB Connection", info.display_name);
+        assertEq("Pinecone Vector Database Connection", info.display_name);
         assertTrue(info.schemes.pinecone);
         assertEq("apikey", info.required_options);
     }
@@ -79,5 +82,74 @@ public class PineconeRestClientTest inherits QUnit::Test {
         assertEq(NOTHING, opts.apikey);
         # Api-Key header injected via headers
         assertEq("my-pinecone-key", opts.headers."Api-Key");
+    }
+
+    #! The version travels as a header on every call, so it is the client's rather than each request's
+    /** The header is declared required on every operation Pinecone publishes, but the server accepts a
+        request without one and answers it under whatever version it currently defaults to - so pinning
+        it is what keeps a running flow from changing behaviour when that default moves.
+    */
+    private apiVersionTest() {
+        assertEq("2026-07", PineconeRestClient::PineconeRestClientBase::ApiVersion);
+        assertEq("X-Pinecone-Api-Version", PineconeRestClient::PineconeRestClientBase::VersionHeader);
+        assertEq("Api-Key", PineconeRestClient::PineconeRestClientBase::ApiKeyHeader);
+
+        hash<auto> opts = PineconeRestClient::PineconeRestClientBase::getOptions({"apikey": "k"});
+        assertEq("2026-07", opts.headers."X-Pinecone-Api-Version");
+
+        # a caller adding a header of its own does not drop it ...
+        hash<auto> with_hdr = PineconeRestClient::PineconeRestClientBase::getOptions({
+            "apikey": "k",
+            "headers": {"X-Other": "v"},
+        });
+        assertEq("2026-07", with_hdr.headers."X-Pinecone-Api-Version");
+        assertEq("v", with_hdr.headers."X-Other");
+        assertEq("k", with_hdr.headers."Api-Key");
+
+        # ... and a caller that sets it explicitly keeps its own value
+        assertEq("2025-01", PineconeRestClient::PineconeRestClientBase::getOptions({
+            "apikey": "k",
+            "headers": {"X-Pinecone-Api-Version": "2025-01"},
+        }).headers."X-Pinecone-Api-Version");
+    }
+
+    #! The ping has to authenticate
+    /** This connection declared no ping at all until the application covered more than one action, so
+        every ping returned "OK" in a few milliseconds without contacting the server - including with an
+        API key Pinecone would reject.  A live ping is exercised by the PineconeDataProvider test; what
+        is checked here is that the connection declares one at all and names its application.
+    */
+    private connectionPingTest() {
+        assertEq("/indexes", PineconeRestClient::PineconeRestConnection::PingPath);
+        PineconeRestClient::PineconeRestConnection conn("pinecone-test", "test connection",
+            PineconeRestClient::PineconeRestConnection::DefaultUrl, {}, {"apikey": "k"});
+        assertEq("pinecone", conn.getType());
+        assertEq("Pinecone", conn.getAppName(), "the connection is associated with its application");
+        assertTrue(conn.hasDataProvider());
+    }
+
+    #! A data-plane host comes out of a control-plane response, so it is checked rather than trusted
+    private hostCheckTest() {
+        assertEq("pinecone.io", QoreRagUtils::PineconeVectorStore::AllowedHostSuffix);
+
+        assertEq("idx-1.svc.aped-1234-a56b.pinecone.io",
+            QoreRagUtils::PineconeVectorStore::checkIndexHost("idx-1.svc.aped-1234-a56b.pinecone.io"));
+        assertEq("idx.svc.pinecone.io",
+            QoreRagUtils::PineconeVectorStore::checkIndexHost("https://idx.svc.pinecone.io"));
+        assertEq("idx.svc.pinecone.io",
+            QoreRagUtils::PineconeVectorStore::checkIndexHost("idx.svc.pinecone.io:443/x"));
+
+        # matched label by label: a plain string-suffix test accepts the first two of these
+        assertThrows("VECTOR-STORE-ERROR", "not .* or a subdomain",
+            \QoreRagUtils::PineconeVectorStore::checkIndexHost(), "evil-pinecone.io");
+        assertThrows("VECTOR-STORE-ERROR", "not .* or a subdomain",
+            \QoreRagUtils::PineconeVectorStore::checkIndexHost(), "pinecone.io.attacker.example");
+        # the scheme comes from the module and never from the response
+        assertThrows("VECTOR-STORE-ERROR", "scheme other than",
+            \QoreRagUtils::PineconeVectorStore::checkIndexHost(), "http://idx.svc.pinecone.io");
+        assertThrows("VECTOR-STORE-ERROR", "carries credentials",
+            \QoreRagUtils::PineconeVectorStore::checkIndexHost(), "user:pw@idx.svc.pinecone.io");
+        assertThrows("VECTOR-STORE-ERROR", "names no host",
+            \QoreRagUtils::PineconeVectorStore::checkIndexHost(), "");
     }
 }

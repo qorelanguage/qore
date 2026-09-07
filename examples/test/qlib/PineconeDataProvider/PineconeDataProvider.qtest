@@ -10,25 +10,11 @@
 %requires Logger
 %requires ConnectionProvider
 %requires DataProvider
+%requires PineconeRestClient
 %requires PineconeDataProvider
+%requires RestSchemaActions
 
 %exec-class PineconeDataProviderTest
-
-class FakePineconeRestClientIo inherits RestClientIo::RestClientIo {
-    public {
-        string last_method;
-        string last_path;
-        hash<auto> response_body;
-    }
-    constructor() : RestClientIo({"url": "https://api.pinecone.io"}) {}
-
-    hash<RestClient::RestResponseInfo> restGet(string path, *hash<auto> hdr) {
-        last_method = "GET";
-        last_path = path;
-        return <RestClient::RestResponseInfo>{"body": response_body};
-    }
-    string getSafeUrl() { return "https://api.pinecone.io"; }
-}
 
 public class PineconeDataProviderTest inherits QUnit::Test {
     public {
@@ -37,6 +23,38 @@ public class PineconeDataProviderTest inherits QUnit::Test {
         };
 
         const OptionColumn = 22;
+
+        #! The 24 data-plane actions, each of which is routed to the selected index's own host
+        const DataPlaneActions = (
+            "describe-index-stats", "query-vectors", "upsert-vectors", "update-vector",
+            "delete-vectors", "fetch-vectors", "fetch-vectors-by-metadata", "list-vector-ids",
+            "list-namespaces", "create-namespace", "describe-namespace", "delete-namespace",
+            "upsert-records", "search-records", "upsert-documents", "search-documents",
+            "fetch-documents", "update-documents", "delete-documents", "list-documents",
+            "list-imports", "start-import", "describe-import", "cancel-import",
+        );
+
+        #! The two operations whose only declared parameter is the connection-owned version header
+        /** Both are bare listings taking no argument at all, so an empty request type is correct for
+            them and for nothing else.
+        */
+        const NoOptionActions = ("list-indexes", "list-collections");
+
+        #! Options that name another object but deliberately have no dropdown
+        /** @c schedule_id because Pinecone lists backup schedules per index
+            (@c "GET /indexes/{index_name}/backup-schedules") and none of the four actions
+            that take a schedule ID has an index to scope the listing with; @c cmek_id
+            because no endpoint in any of the three documents lists encryption keys
+        */
+        const NoDropdownOptions = ("schedule_id", "cmek_id");
+
+        #! The operations Pinecone answers with no response body at all
+        /** Four deletes answering 202/204, plus the text upsert, which answers 201 with nothing in it.
+        */
+        const NoOutputActions = (
+            "delete-index", "delete-backup", "delete-backup-schedule", "delete-collection",
+            "upsert-records",
+        );
     }
 
     private {
@@ -46,19 +64,21 @@ public class PineconeDataProviderTest inherits QUnit::Test {
     constructor() : Test("PineconeDataProvider Test", "1.0", \ARGV, MyOpts) {
         conn_name = m_options.conn ?? ENV.PINECONE_CONNECTION;
 
-        addTestCase("factory + app + action registered", \registrationTest());
-        addTestCase("list-indexes hits the right control-plane endpoint",
-            \listIndexesTest());
+        addTestCase("factory + app + actions registered", \registrationTest());
+        addTestCase("the manifests agree with the pinned schemas", \schemaTest());
+        addTestCase("every action publishes a usable form", \actionShapeTest());
+        addTestCase("action presentation", \actionPresentationTest());
+        addTestCase("every option is presented completely", \optionPresentationTest());
+        addTestCase("data-plane actions are routed by index", \hostRoutingTest());
+        addTestCase("the API version is pinned and never asked for", \apiVersionTest());
+        addTestCase("a resolved data-plane host is checked", \hostCheckTest());
 
-        # Live test requires a real Pinecone connection AND a
-        # `PINECONE_INDEX` env var naming an existing index in the
-        # account.  The PineconeDataProvider currently exposes a
-        # control-plane `list-indexes` action; the live test verifies
-        # that the named index actually shows up in the response.
-        # Cost: Pinecone serverless: 1 query — free-tier eligible.
+        # Live tests need a real Pinecone connection.  The index lifecycle test creates an index of
+        # its own and deletes it again, so it does not depend on anything already in the project.
         if (conn_name) {
-            addTestCase("live: ping + list-indexes (verifies existing index)",
-                \livePineconeTest());
+            addTestCase("live: the ping verifies the API key", \livePingTest());
+            addTestCase("live: read-only listings and dropdowns", \liveReadTest());
+            addTestCase("live: index lifecycle, vectors and host routing", \liveIndexTest());
         }
         set_return_value(main());
     }
@@ -66,83 +86,586 @@ public class PineconeDataProviderTest inherits QUnit::Test {
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-c,--connection=ARG",
-            "set the Pinecone connection name; without it (and without the "
-            "PINECONE_CONNECTION env var) the live test is skipped.  Also "
-            "requires PINECONE_INDEX naming an existing index in the "
-            "account.",
-            OptionColumn);
+            "set the Pinecone connection name; without it (and without the PINECONE_CONNECTION "
+            "environment variable) the live tests are skipped", OptionColumn);
     }
 
     private registrationTest() {
-        DataProvider::AbstractDataProviderFactory f =
-            DataProvider::DataProvider::getFactory("pinecone");
+        DataProvider::AbstractDataProviderFactory f = DataProvider::DataProvider::getFactory("pinecone");
         assertEq("pinecone", f.getInfo().name);
-        hash<DataProviderAppInfo> app =
-            DataProvider::DataProviderActionCatalog::getApp("Pinecone");
+        hash<DataProviderAppInfo> app = DataProvider::DataProviderActionCatalog::getApp("Pinecone");
         assertEq("Pinecone", app.name);
         assertEq("pinecone", app.scheme);
-        # filter out the framework-injected make-api-call action (covered by
-        # GenericApiCallAutoInjection.qtest in RestClientDataProvider)
+
+        # the framework-injected generic call is covered by its own test elsewhere
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("Pinecone"),
             $1.action != AbstractDataProvider::GenericApiCallActionName;
-        assertEq(1, actions.size());
-        assertEq("list-indexes", actions[0].action);
-    }
+        # 24 control-plane + 24 data-plane + 4 inference operations, all exported
+        assertEq(52, actions.size(), sprintf("%d actions registered", actions.size()));
+        hash<string, hash<DataProviderActionInfo>> by_id = map {$1.action: $1}, actions;
 
-    private listIndexesTest() {
-        FakePineconeRestClientIo fake();
-        fake.response_body = {
-            "indexes": (
-                {"name": "demo-1", "dimension": 1024, "metric": "cosine",
-                 "host": "demo-1-abc.svc.us-east-1.pinecone.io"},
-                {"name": "demo-2", "dimension": 768, "metric": "dotproduct",
-                 "host": "demo-2-xyz.svc.us-east-1.pinecone.io"},
-            ),
-        };
-        PineconeDataProvider::PineconeListIndexesDataProvider prov(fake);
-        auto resp = prov.doRequest(NOTHING);
-        assertEq("GET", fake.last_method);
-        assertEq("/indexes", fake.last_path);
-        assertEq(2, resp.indexes.size());
-        assertEq("demo-1", resp.indexes[0].name);
-        assertEq(1024, resp.indexes[0].dimension);
-    }
+        # the one action ID this application published before the manifest is kept
+        assertTrue(exists by_id."list-indexes", "list-indexes keeps the ID it was published with");
 
-    #! Exercises Pinecone's live `/indexes` control-plane endpoint
-    /** Verifies the actual wire format against Pinecone's control-plane
-        API.  Requires both a connection name AND a `PINECONE_INDEX` env
-        var naming an existing index; the test asserts that the named
-        index appears in the list.
+        # ... alongside the surface the three schemas added
+        map assertTrue(exists by_id{$1}, $1), (
+            "create-index", "create-index-for-model", "configure-index", "delete-index",
+            "create-backup", "create-index-from-backup", "list-restore-jobs", "list-collections",
+            "query-vectors", "upsert-vectors", "delete-vectors", "list-namespaces",
+            "search-records", "search-documents", "start-import",
+            "embed", "rerank", "list-models", "describe-model",
+        );
+        map assertEq(DPAT_API, $1.action_code, $1.action), actions;
 
-        Cost: Pinecone serverless: 1 query — free-tier eligible.
-    */
-    private livePineconeTest() {
-        *string index_name = ENV.PINECONE_INDEX;
-        if (!index_name.val()) {
-            testSkip("PINECONE_INDEX env var must name an existing Pinecone "
-                "index in the account");
-        }
-
-        AbstractConnection conn = get_connection(conn_name);
-        hash<auto> ping = conn.ping(True);
-        assertTrue(ping.ok, sprintf("Pinecone connection ping failed: %s",
-            ping.info ?? "no info"));
-
-        AbstractDataProvider prov = conn.getDataProvider();
-        AbstractDataProvider li = prov.getChildProvider("list-indexes");
-        auto resp = li.doRequest(NOTHING);
-        assertTrue(exists resp.indexes,
-            "Pinecone list-indexes returned an indexes field");
-        # Find the named index in the response — wire-format check
-        bool found = False;
-        foreach hash<auto> idx in (resp.indexes ?? ()) {
-            if (idx.name == index_name) {
-                found = True;
-                break;
+        # every action set exports a disjoint set of IDs, or one would shadow another
+        int total = 0;
+        hash<string, bool> seen;
+        foreach RestSchemaActionSet aset in (PineconeSchema::getActionSets()) {
+            foreach string name in (aset.getActionNames()) {
+                assertFalse(exists seen{name}, sprintf("%y is exported once", name));
+                seen{name} = True;
+                ++total;
             }
         }
-        assertTrue(found, sprintf("PINECONE_INDEX %y was found in the "
-            "account's list-indexes response", index_name));
+        assertEq(52, total);
+    }
+
+    private schemaTest() {
+        hash<string, hash<PineconeSchemaProvenanceInfo>> prov = {
+            "control": PineconeSchema::ControlProvenance,
+            "data": PineconeSchema::DataProvenance,
+            "inference": PineconeSchema::InferenceProvenance,
+        };
+        foreach hash<auto> i in (prov.pairIterator()) {
+            hash<PineconeSchemaProvenanceInfo> p = i.value;
+            assertEq(64, p.source_sha256.size(), sprintf("%s: sha-256", i.key));
+            assertTrue(p.source_url =~ /2026-07\/.*\.oas\.yaml$/, sprintf("%s: source URL", i.key));
+            assertTrue(p.source_size > 0, sprintf("%s: source size", i.key));
+            assertTrue(p.source_operations > 0, sprintf("%s: operation count", i.key));
+            assertTrue(p.source_paths > 0, sprintf("%s: path count", i.key));
+            assertEq(0, p.source_webhooks, sprintf("%s: no webhooks", i.key));
+        }
+        assertEq(24, PineconeSchema::ControlProvenance.source_operations);
+        assertEq(24, PineconeSchema::DataProvenance.source_operations);
+        assertEq(4, PineconeSchema::InferenceProvenance.source_operations);
+
+        map assertTrue(is_file(PineconeSchema::getSchemaPath($1)),
+            sprintf("%y ships with the module", $1)),
+            (PineconeSchema::ControlSchemaFileName, PineconeSchema::DataSchemaFileName,
+                PineconeSchema::InferenceSchemaFileName);
+
+        # if a manifest and its committed schema ever disagree, that must fail here rather than when a
+        # user opens an action
+        assertEq((), RestSchemaDrift::compare(PineconeSchema::getControlActionSet(),
+            PineconeSchema::getControlSchema()), "the control-plane manifest agrees with its schema");
+        assertEq((), RestSchemaDrift::compare(PineconeSchema::getDataActionSet(),
+            PineconeSchema::getDataSchema()), "the data-plane manifest agrees with its schema");
+        assertEq((), RestSchemaDrift::compare(PineconeSchema::getInferenceActionSet(),
+            PineconeSchema::getInferenceSchema()), "the inference manifest agrees with its schema");
+    }
+
+    #! Every action must publish a form a user can fill in, a result they can consume, and a real path
+    private actionShapeTest() {
+        int checked = 0;
+        foreach RestSchemaActionSet aset in (PineconeSchema::getActionSets()) {
+            foreach string name in (aset.getActionNames()) {
+                RestSchemaActionOperation op = aset.getOperationEx(name);
+                ++checked;
+
+                # the declared path resolves against the vendored document, and is the one the
+                # manifest names rather than a normalized variant of it
+                assertTrue(op.getPath() =~ /^\//, sprintf("%s: path %y", name, op.getPath()));
+                assertEq(op.getInfo().path, op.getPath(), sprintf("%s: path as declared", name));
+                assertEq(op.getInfo().method.upr(), op.getMethod().upr(),
+                    sprintf("%s: method", name));
+
+                *AbstractDataProviderType rt = op.getRequestType();
+                *hash<string, AbstractDataField> fields = rt ? rt.getFields() : NOTHING;
+                if (inlist(name, NoOptionActions)) {
+                    # a bare listing whose only declared parameter is the connection's version header
+                    assertFalse(fields.val(), sprintf("%s takes no options", name));
+                } else {
+                    assertTrue(fields.val(), sprintf("%s publishes options", name));
+                }
+                if (inlist(name, NoOutputActions)) {
+                    assertNothing(op.getResponseType(), sprintf("%s answers with no body", name));
+                } else {
+                    assertTrue(exists op.getResponseType(),
+                        sprintf("%s publishes an output type", name));
+                }
+            }
+        }
+        assertEq(52, checked);
+    }
+
+    private actionPresentationTest() {
+        list<hash<DataProviderActionInfo>> actions = select
+            DataProvider::DataProviderActionCatalog::getActions("Pinecone"),
+            $1.action != AbstractDataProvider::GenericApiCallActionName;
+        hash<string, hash<DataProviderActionInfo>> by_id = map {$1.action: $1}, actions;
+
+        # every action needs a name and a description a user can read
+        foreach hash<DataProviderActionInfo> a in (actions) {
+            assertTrue(a.display_name.val(), sprintf("%s has a display name", a.action));
+            assertTrue(a.short_desc.val(), sprintf("%s has a short description", a.action));
+            assertTrue(a.short_desc.size() < 80, sprintf("%s short_desc is short: %d chars",
+                a.action, a.short_desc.size()));
+            assertTrue(a.desc.val(), sprintf("%s has a description", a.action));
+            assertTrue(a.groups.val(), sprintf("%s belongs to a group", a.action));
+        }
+
+        # Pinecone declares no "enum" anywhere: every finite value set is an "x-enum" vendor extension
+        # the parser cannot see, so each of these would be free text without the manifest
+        assertEq(("cosine", "dotproduct", "euclidean"),
+            (map $1.value, by_id."create-index-for-model".options.metric.allowed_values));
+        assertEq(("aws", "gcp", "azure"),
+            (map $1.value, by_id."create-index-for-model".options.cloud.allowed_values));
+        assertEq(("disabled", "enabled"),
+            (map $1.value, by_id."create-index".options.deletion_protection.allowed_values));
+        assertEq(("daily", "weekly", "monthly"),
+            (map $1.value, by_id."update-backup-schedule".options.frequency.allowed_values));
+        assertEq(("embed", "rerank"),
+            (map $1.value, by_id."list-models".options.type.allowed_values));
+        assertEq(("dense", "sparse"),
+            (map $1.value, by_id."list-models".options.vector_type.allowed_values));
+
+        # a value the user picks from a list needs a name, not a raw token
+        map assertTrue($1.display_name.val(), $1.value),
+            by_id."create-index-for-model".options.metric.allowed_values;
+        assertEq(("Cosine", "Dot Product", "Euclidean"),
+            (map $1.display_name, by_id."create-index-for-model".options.metric.allowed_values));
+
+        # "region" is the one value set that does not come from the document: Pinecone declares it as a
+        # bare string and publishes no endpoint that lists regions, so the list is the vendor's own,
+        # every pair in it was verified against the live API, and it is creatable because Pinecone opens
+        # regions over time and a list written today cannot know about one added tomorrow
+        hash<auto> region = by_id."create-index-for-model".options.region;
+        assertEq(("us-east-1", "us-west-2", "eu-west-1", "eu-central-1", "ap-southeast-1",
+            "us-central1", "europe-west4", "eastus2"), (map $1.value, region.allowed_values));
+        assertTrue(region.allowed_values_creatable, "a region Pinecone adds later can still be typed");
+        map assertTrue($1.display_name.val(), $1.value), region.allowed_values;
+        # the display name says which cloud the region belongs to, because the identifier does not and
+        # the pair is what Pinecone validates
+        assertEq("AWS \u00b7 Virginia", region.allowed_values[0].display_name);
+        assertEq("Google Cloud \u00b7 Iowa", region.allowed_values[5].display_name);
+        assertFalse(exists region.ref_data, "no listing exists to back a dropdown");
+
+        # an object naming another object offers a dropdown backed by a listing this app exports
+        assertEq("pinecone-indexes", by_id."describe-index".options.index_name.ref_data);
+        assertEq("pinecone-indexes", by_id."delete-index".options.index_name.ref_data);
+        assertEq("pinecone-backups", by_id."describe-backup".options.backup_id.ref_data);
+        assertEq("pinecone-restore-jobs", by_id."describe-restore-job".options.job_id.ref_data);
+        assertEq("pinecone-collections", by_id."describe-collection".options.collection_name.ref_data);
+        assertEq("pinecone-embed-models", by_id.embed.options.model.ref_data);
+        assertEq("pinecone-rerank-models", by_id.rerank.options.model.ref_data);
+
+        # the embedding configuration is a grouping object, so its properties are published as options
+        # rather than asking a user to build a hash with a required "field_map" inside it
+        map assertTrue(exists by_id."create-index-for-model".options{$1}, $1),
+            ("model", "field_map", "metric", "dimension");
+        assertFalse(exists by_id."create-index-for-model".options.embed,
+            "the embedding configuration is lifted rather than published whole");
+
+        # the same for the search query, which holds the result count and the filter beside the query
+        map assertTrue(exists by_id."search-records".options{$1}, $1),
+            ("inputs", "top_k", "filter", "id");
+        assertFalse(exists by_id."search-records".options.query,
+            "the query grouping is lifted rather than published whole");
+
+        # Pinecone writes every "one of these three" selector as an object plus an anyOf of
+        # constraints; the either/or is expressed to the user as exclusivity and a required group
+        assertEq(("filter", "deleteAll"), by_id."delete-vectors".options.ids.exclusive_with);
+        assertEq(("ids", "deleteAll"), by_id."delete-vectors".options.filter.exclusive_with);
+        assertEq(("ids", "filter"), by_id."delete-vectors".options.deleteAll.exclusive_with);
+        assertEq(("selector",), by_id."delete-vectors".options.ids.required_groups);
+        # ... and the same shape on the documents API, which generated no options at all until the
+        # composition handling was fixed
+        map assertTrue(exists by_id."delete-documents".options{$1}, $1),
+            ("ids", "filter", "delete_all");
+        map assertTrue(exists by_id."update-documents".options{$1}, $1),
+            ("documents", "filter", "set_fields", "remove_fields");
+        map assertTrue(exists by_id."fetch-documents".options{$1}, $1),
+            ("ids", "filter", "include_fields", "limit");
+
+        # a closed set nested inside an option is restored too, or the same value would be a dropdown
+        # on one action and a free-text box on another: the backup frequency is offered by
+        # "update-backup-schedule" at the top level and by "create-backup-schedule" inside its schedule
+        RestSchemaActionSet ctl = PineconeSchema::getControlActionSet();
+        RestSchemaActionSet dat = PineconeSchema::getDataActionSet();
+        hash<string, AbstractDataField> sched =
+            ctl.getOperationEx("create-backup-schedule").getRequestType().getFields(){"schedule"}
+                .getType().getFields();
+        assertEq(("daily", "weekly", "monthly"),
+            (map $1.value, sched{"frequency"}.getAllowedValues() ?? ()));
+        assertEq(("time-based",), (map $1.value, sched{"type"}.getAllowedValues() ?? ()));
+
+        # the required-terms strategy and the read-capacity mode are closed sets as well - the mode's
+        # values come from the discriminator's own mapping rather than from an "x-enum"
+        assertEq(("all",), (map $1.value,
+            dat.getOperationEx("search-records").getRequestType().getFields(){"match_terms"}
+                .getType().getFields(){"strategy"}.getAllowedValues() ?? ()));
+
+        # "score_by" is declared as an array of scoring clauses whose "oneOf" only constrains it; read
+        # as a union it generated as "any", and the clause type could not be offered at all
+        AbstractDataField score_by =
+            dat.getOperationEx("search-documents").getRequestType().getFields(){"score_by"};
+        assertEq("softlist<DocumentScoringMethod>", score_by.getType().getName());
+        assertEq(("dense_vector", "sparse_vector", "text", "query_string"),
+            (map $1.value, score_by.getType().getElementType().getFields(){"type"}.getAllowedValues()
+                ?? ()));
+
+        # embed and rerank declare an optional body while marking its properties required, so the
+        # overlay narrows the ones the API actually needs back to required
+        assertTrue(by_id.embed.options.model.required, "embed requires a model");
+        assertTrue(by_id.embed.options.inputs.required, "embed requires inputs");
+        assertTrue(by_id.rerank.options.query.required, "rerank requires a query");
+        assertTrue(by_id.rerank.options.documents.required, "rerank requires documents");
+    }
+
+    #! Every option a user sees needs a name, a summary and an explanation
+    /** The manifest supplies only what the vendor document does not, so an option can reach a user
+        with nothing to read whenever the document's schema declares no description of its own - which
+        is how @c "search-records" published a "Query Vector" option that explained nothing.  Walking
+        the generated surface is the only thing that finds it.
+    */
+    private optionPresentationTest() {
+        int checked = 0;
+        foreach RestSchemaActionSet aset in (PineconeSchema::getActionSets()) {
+            foreach string action in (aset.getActionNames()) {
+                *AbstractDataProviderType t = aset.getOperationEx(action).getRequestType();
+                if (!t) {
+                    assertTrue(inlist(action, NoOptionActions), sprintf("%s takes no options", action));
+                    continue;
+                }
+                foreach string name in (keys t.getFields()) {
+                    AbstractDataField f = t.getFields(){name};
+                    string what = sprintf("%s.%s", action, name);
+                    ++checked;
+                    assertTrue(f.getDisplayName().val(), sprintf("%s has a display name", what));
+                    assertFalse(f.getDisplayName() =~ /_/, sprintf("%s display name is not an "
+                        "identifier: %y", what, f.getDisplayName()));
+                    *string short_desc = f.getShortDescription();
+                    assertTrue(short_desc.val(), sprintf("%s has a short description", what));
+                    assertTrue(short_desc.size() < 80, sprintf("%s short_desc is short: %d chars",
+                        what, short_desc.size()));
+                    assertFalse(short_desc =~ /[`*]/, sprintf("%s short_desc is plain text: %y",
+                        what, short_desc));
+                    assertTrue(f.getDescription().val(), sprintf("%s has a description", what));
+
+                    # an option naming another object offers a dropdown, or says why it cannot
+                    if (name =~ /(_id$|_name$|^model$|^namespace$|^index$)/
+                            && !inlist(name, NoDropdownOptions)) {
+                        assertTrue(f.getAttributes().ref_data.val()
+                            || f.getType().getAllowedValues(),
+                            sprintf("%s offers a dropdown", what));
+                    }
+                }
+            }
+        }
+        # a floor, so that a sweep that silently stopped finding options fails instead of passing
+        assertGt(150, checked, "the sweep covered the whole option surface");
+    }
+
+    #! The index is the host: the option is synthesized, presented first, and never sent
+    private hostRoutingTest() {
+        RestSchemaActionSet control = PineconeSchema::getControlActionSet();
+        hash<string, hash<RestSchemaHostSourceInfo>> hs = control.getHostSourceDecls();
+        assertEq(("index_host",), keys hs);
+        assertEq("describe-index", hs.index_host.action);
+        assertEq("index", hs.index_host.key_option);
+        assertEq("index_name", hs.index_host.lookup_option);
+        assertEq(("host",), hs.index_host.host_field);
+        assertEq("https", hs.index_host.scheme, "the scheme comes from the declaration");
+        assertEq(("pinecone.io",), hs.index_host.allowed_host_suffixes,
+            "following a host out of a response is bounded");
+
+        # the lookup action must not itself need a host resolved, or it could never be made
+        assertNothing(control.getOperationEx("describe-index").getHostSource());
+
+        list<hash<DataProviderActionInfo>> actions = select
+            DataProvider::DataProviderActionCatalog::getActions("Pinecone"),
+            $1.action != AbstractDataProvider::GenericApiCallActionName;
+        hash<string, hash<DataProviderActionInfo>> by_id = map {$1.action: $1}, actions;
+
+        int routed = 0;
+        foreach RestSchemaActionSet aset in (PineconeSchema::getActionSets()) {
+            foreach string name in (aset.getActionNames()) {
+                RestSchemaActionOperation op = aset.getOperationEx(name);
+                bool is_data = inlist(name, DataPlaneActions);
+                if (is_data) {
+                    ++routed;
+                    assertEq("index_host", op.getInfo().host_from, sprintf("%s is routed", name));
+                    assertEq("index", op.getHostKeyOption(), sprintf("%s has the key option", name));
+                    # the option is synthesized by the framework, so it is not in the schema at all
+                    assertTrue(exists by_id{name}.options.index,
+                        sprintf("%s publishes the index option", name));
+                    assertEq("pinecone-indexes", by_id{name}.options.index.ref_data,
+                        sprintf("%s offers the index dropdown", name));
+                    assertTrue(by_id{name}.options.index.required,
+                        sprintf("%s requires an index", name));
+                } else {
+                    assertNothing(op.getInfo().host_from, sprintf("%s goes to the connection", name));
+                    assertNothing(op.getHostKeyOption(), sprintf("%s has no host key", name));
+                }
+            }
+        }
+        assertEq(DataPlaneActions.size(), routed, "every data-plane action is routed");
+        assertEq(24, routed);
+
+        # the namespace dropdown is scoped by the index, because a namespace belongs to one index and
+        # the listing that reads it is itself routed to that index's host
+        hash<string, hash<RestSchemaReferenceDataInfo>> rd =
+            PineconeSchema::getDataActionSet().getReferenceDataDecls();
+        assertEq("list-namespaces", rd."pinecone-namespaces".action);
+        assertEq({"index": "index"}, rd."pinecone-namespaces".options_from);
+        assertEq(("index",), by_id."query-vectors".options."namespace".depends_on);
+    }
+
+    #! The dated API version is the connection's, and no action asks for it
+    private apiVersionTest() {
+        # the client sends the version the vendored descriptions describe; an action generated from one
+        # version and sent against another makes a request the description does not describe
+        assertEq("2026-07", PineconeRestClientBase::ApiVersion);
+        map assertTrue(PineconeSchema::getSchemaPath($1) =~ /pinecone-/, $1),
+            (PineconeSchema::ControlSchemaFileName,);
+
+        hash<auto> opts = PineconeRestClientBase::getOptions({"apikey": "x"});
+        assertEq("2026-07", opts.headers{PineconeRestClientBase::VersionHeader},
+            "the client sends the pinned version on every call");
+        assertEq("x", opts.headers{PineconeRestClientBase::ApiKeyHeader},
+            "the API key travels in Pinecone's own header, not as a bearer token");
+        assertNothing(opts.apikey, "the key is not passed through as a client option as well");
+
+        # a caller that sets the header explicitly keeps its own value
+        assertEq("2025-01", PineconeRestClientBase::getOptions({
+            "apikey": "x",
+            "headers": {PineconeRestClientBase::VersionHeader: "2025-01"},
+        }).headers{PineconeRestClientBase::VersionHeader});
+
+        # all 52 operations declare the header as required; none of them may ask a user for it
+        foreach RestSchemaActionSet aset in (PineconeSchema::getActionSets()) {
+            foreach string name in (aset.getActionNames()) {
+                *AbstractDataProviderType rt = aset.getOperationEx(name).getRequestType();
+                if (rt) {
+                    assertFalse(exists rt.getFields(){PineconeRestClientBase::VersionHeader},
+                        sprintf("%s does not publish the version header", name));
+                }
+            }
+        }
+    }
+
+    #! A data-plane host comes out of a response, so it is checked rather than trusted
+    private hostCheckTest() {
+        # the suffix is matched label by label: a plain string-suffix test accepts "evil-pinecone.io"
+        assertEq("idx-1.svc.aped-1234-a56b.pinecone.io",
+            PineconeVectorStore::checkIndexHost("idx-1.svc.aped-1234-a56b.pinecone.io"));
+        assertEq("pinecone.io", PineconeVectorStore::checkIndexHost("pinecone.io"));
+        # a scheme and a port are accepted and stripped
+        assertEq("idx.svc.pinecone.io", PineconeVectorStore::checkIndexHost("https://idx.svc.pinecone.io"));
+        assertEq("idx.svc.pinecone.io", PineconeVectorStore::checkIndexHost("idx.svc.pinecone.io:443/x"));
+
+        assertThrows("VECTOR-STORE-ERROR", "not .* or a subdomain",
+            \PineconeVectorStore::checkIndexHost(), "evil-pinecone.io");
+        assertThrows("VECTOR-STORE-ERROR", "not .* or a subdomain",
+            \PineconeVectorStore::checkIndexHost(), "pinecone.io.attacker.example");
+        # the scheme comes from the module and never from the response
+        assertThrows("VECTOR-STORE-ERROR", "scheme other than",
+            \PineconeVectorStore::checkIndexHost(), "http://idx.svc.pinecone.io");
+        assertThrows("VECTOR-STORE-ERROR", "carries credentials",
+            \PineconeVectorStore::checkIndexHost(), "user:pw@idx.svc.pinecone.io");
+        assertThrows("VECTOR-STORE-ERROR", "names no host",
+            \PineconeVectorStore::checkIndexHost(), "");
+    }
+
+    #! Verifies that the ping actually authenticates
+    /** This connection declared no ping at all until the application covered more than one action, so
+        every ping returned "OK" without contacting the server - including with an API key Pinecone
+        would reject.  Measured before the fix: an invalid key answered ok in 5356 microseconds.
+    */
+    private livePingTest() {
+        AbstractConnection conn = get_connection(conn_name);
+        hash<auto> ping = conn.ping(True);
+        assertTrue(ping.ok, sprintf("Pinecone connection ping failed: %s", ping.info ?? "no info"));
+        assertEq("Pinecone", conn.getInfo().app, "the connection is associated with its application");
+
+        PineconeRestConnection bad("pinecone-bad-key", "a key the server rejects",
+            PineconeRestConnection::DefaultUrl, {}, {"apikey": "pcsk_not_a_real_key"});
+        hash<PingInfo> bp = bad.ping();
+        assertFalse(bp.ok, "a ping with an invalid API key must fail");
+        assertTrue(bp.info =~ /401|403/, sprintf("the ping reported the rejection: %y", bp.info));
+    }
+
+    #! Reads the control-plane listings and the model catalogue that back the dropdowns
+    private liveReadTest() {
+        AbstractDataProvider prov = get_connection(conn_name).getDataProvider();
+
+        # an empty project is the normal case here; what is being checked is that each listing resolves
+        # and answers the shape its reference-data declaration reads
+        auto idx = prov.getChildProviderEx("list-indexes").doRequest();
+        assertTrue(idx.hasKey("indexes"), "list-indexes answers an \"indexes\" member");
+
+        auto col = prov.getChildProviderEx("list-collections").doRequest();
+        assertTrue(col.hasKey("collections"), "list-collections answers a \"collections\" member");
+
+        foreach string action in (("list-backups", "list-restore-jobs")) {
+            auto l = prov.getChildProviderEx(action).doRequest({"limit": 5});
+            assertTrue(l.hasKey("data"), sprintf("%s answers a \"data\" member", action));
+        }
+
+        # the model catalogue fills the embedding and reranking dropdowns, so the choices offered are
+        # whatever Pinecone currently serves rather than a list fixed when this module was written
+        auto em = prov.getChildProviderEx("list-models").doRequest({"type": "embed"});
+        assertTrue(em.models.size() > 0, "Pinecone hosts at least one embedding model");
+        assertTrue(em.models[0].model.val(), "a model carries the name the dropdown uses");
+        auto rr = prov.getChildProviderEx("list-models").doRequest({"type": "rerank"});
+        assertTrue(rr.models.size() > 0, "Pinecone hosts at least one reranking model");
+
+        auto m = prov.getChildProviderEx("describe-model").doRequest({"model_name": em.models[0].model});
+        assertEq(em.models[0].model, m.model, "the model listing and the single read agree");
+    }
+
+    #! Creates an index, writes to its own host through it, and deletes it again
+    /** The data plane is served from a **different host for every index**, so this is the test that
+        proves the routing: the index is passed as an ordinary option and the request has to arrive at
+        the host the control plane named for it.
+
+        The index is created and dropped by the test, so it depends on nothing already in the project.
+        Creation is asynchronous, so "describe-index" is polled until the index reports itself ready.
+    */
+    private liveIndexTest() {
+        AbstractDataProvider prov = get_connection(conn_name).getDataProvider();
+        string idx = sprintf("qore-test-%d", now_us().durationMicroseconds() % 1000000);
+        string ns = "qore-test-ns";
+
+        hash<auto> created = prov.getChildProviderEx("create-index").doRequest({
+            "name": idx,
+            "schema": {"fields": {"_values": {"type": "dense_vector", "dimension": 8,
+                "metric": "cosine"}}},
+            "deployment": {"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
+        });
+        on_exit {
+            try {
+                prov.getChildProviderEx("delete-index").doRequest({"index_name": idx});
+            } catch (hash<ExceptionInfo> ex) {
+                printf("WARNING: could not delete test index %y: %s: %s\n", idx, ex.err, ex.desc);
+            }
+        }
+        assertEq(idx, created.name);
+        assertTrue(created.host.val(), "the created index carries its data-plane host");
+        assertTrue(created.host =~ /\.pinecone\.io$/, sprintf("the host is under pinecone.io: %y",
+            created.host));
+
+        # creation is asynchronous: the index is returned before it is usable
+        hash<auto> desc;
+        int tries = 0;
+        while (++tries < 60) {
+            desc = prov.getChildProviderEx("describe-index").doRequest({"index_name": idx});
+            if (desc.status.ready) {
+                break;
+            }
+            usleep(2s);
+        }
+        assertTrue(desc.status.ready, sprintf("the index became ready after %d poll(s)", tries));
+        assertEq(created.host, desc.host, "the host is stable");
+
+        # from here every call is data-plane: it names the index as an option and must arrive at the
+        # host above rather than at the connection's own
+        hash<auto> up = prov.getChildProviderEx("upsert-vectors").doRequest({
+            "index": idx,
+            "namespace": ns,
+            "vectors": (
+                {"id": "v1", "values": (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8),
+                    "metadata": {"kind": "a", "year": 2019}},
+                {"id": "v2", "values": (0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1),
+                    "metadata": {"kind": "b", "year": 2021}},
+            ),
+        });
+        assertEq(2, up.upsertedCount, "both records were written");
+
+        hash<auto> q = prov.getChildProviderEx("query-vectors").doRequest({
+            "index": idx,
+            "namespace": ns,
+            "vector": (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8),
+            "topK": 2,
+            "includeMetadata": True,
+        });
+        assertEq(2, q.matches.size(), "the query returned both records");
+        assertEq("v1", q.matches[0].id, "the nearest record is the one the query vector matches");
+        assertEq("a", q.matches[0].metadata.kind, "the metadata came back with it");
+
+        # the metadata filter's operator list is published in the option description, and Pinecone's
+        # own document declares only two of them - so the description is checked against the server
+        # rather than against the vendor's prose.  The match counts prove the semantics, not just that
+        # the operator was accepted
+        hash<auto> filter_cases = {
+            "$eq":     {"filter": {"kind": {"$eq": "a"}},                    "matches": 1},
+            "$ne":     {"filter": {"kind": {"$ne": "a"}},                    "matches": 1},
+            "$gt":     {"filter": {"year": {"$gt": 2019}},                   "matches": 1},
+            "$gte":    {"filter": {"year": {"$gte": 2019}},                  "matches": 2},
+            "$lt":     {"filter": {"year": {"$lt": 2021}},                   "matches": 1},
+            "$lte":    {"filter": {"year": {"$lte": 2021}},                  "matches": 2},
+            "$in":     {"filter": {"kind": {"$in": ("a", "b")}},             "matches": 2},
+            "$nin":    {"filter": {"kind": {"$nin": ("b",)}},                "matches": 1},
+            "$exists": {"filter": {"kind": {"$exists": True}},               "matches": 2},
+            "$and":    {"filter": {"$and": ({"kind": {"$eq": "a"}}, {"year": {"$eq": 2019}})},
+                "matches": 1},
+            "$or":     {"filter": {"$or": ({"kind": {"$eq": "a"}}, {"kind": {"$eq": "b"}})},
+                "matches": 2},
+        };
+        foreach hash<auto> fc in (filter_cases.pairIterator()) {
+            hash<auto> fq = prov.getChildProviderEx("query-vectors").doRequest({
+                "index": idx,
+                "namespace": ns,
+                "vector": (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8),
+                "topK": 5,
+                "filter": fc.value.filter,
+            });
+            assertEq(fc.value.matches, fq.matches.size(), sprintf("filter operator %s selects %d",
+                fc.key, fc.value.matches));
+        }
+        # ... and an operator Pinecone does not have is refused by Pinecone, which is what shows the
+        # list above is the server's and not this test's
+        # the provider has to be held in a variable: a call reference to a method on a temporary keeps
+        # no reference to it, and the object is gone before QUnit makes the call
+        AbstractDataProvider query_prov = prov.getChildProviderEx("query-vectors");
+        assertThrows("REST-RESPONSE-ERROR", \query_prov.doRequest(), (
+            {
+                "index": idx,
+                "namespace": ns,
+                "vector": (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8),
+                "topK": 5,
+                "filter": {"kind": {"$bogus": "a"}},
+            },
+        ));
+
+        # an action whose every body property is optional still has to send a body
+        hash<auto> stats = prov.getChildProviderEx("describe-index-stats").doRequest({"index": idx});
+        assertTrue(exists stats.namespaces{ns}, "the namespace shows in the index statistics");
+
+        hash<auto> nsl = prov.getChildProviderEx("list-namespaces").doRequest({"index": idx});
+        assertTrue(inlist(ns, (map $1.name, nsl.namespaces)), "the namespace is listed");
+
+        hash<auto> fetched = prov.getChildProviderEx("fetch-vectors").doRequest({
+            "index": idx,
+            "namespace": ns,
+            "ids": ("v1",),
+        });
+        assertEq(8, fetched.vectors.v1.values.size(), "the record was read back by ID");
+
+        # Pinecone answers a delete with an empty object, so there is nothing in the response worth
+        # asserting; what proves the delete is that the records can no longer be read
+        prov.getChildProviderEx("delete-vectors").doRequest({
+            "index": idx,
+            "namespace": ns,
+            "ids": ("v1", "v2"),
+        });
+        hash<auto> gone = prov.getChildProviderEx("fetch-vectors").doRequest({
+            "index": idx,
+            "namespace": ns,
+            "ids": ("v1", "v2"),
+        });
+        assertFalse(gone.vectors.v1.val(), "the deleted record can no longer be read");
+        assertFalse(gone.vectors.v2.val(), "neither can the other one");
     }
 }
