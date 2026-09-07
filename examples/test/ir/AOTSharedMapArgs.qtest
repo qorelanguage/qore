@@ -1,0 +1,162 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%no-child-restrictions
+
+# Shared implicit map arguments must survive every use, including calls that
+# normally consume their argument temporaries. Reproduces the Qorus startup UAF.
+string qore_bin = ENV.QORE_BIN ?? ENV.QORE_BINARY ?? QORE_ARGV[0] ?? "qore";
+string libqore_dir = ENV.QORE_LIBDIR ?? dirname(qore_bin);
+string qcc_bin = ENV.QCC ?? ENV.QORE_QCC ?? ENV.QORE_QCC_EXECUTABLE
+    ?? (is_file(libqore_dir + "/qcc") ? libqore_dir + "/qcc" : dirname(qore_bin) + "/qcc");
+if (!is_file(qcc_bin)) {
+    qcc_bin = "qcc";
+}
+
+string code = "%modern
+hashdecl Action {
+    string name;
+    int number;
+}
+
+class Catalog {
+    static hash<Action> make(int n) {
+        return <Action>{\"name\": \"action-\" + n, \"number\": n};
+    }
+    static int first(hash<Action> action) {
+        return check(action);
+    }
+    static int second(hash<Action> action) {
+        return check(action) * 10;
+    }
+    static run() {
+        # The Qorus startup expression: a discarded map of a list of calls,
+        # fed fresh hashes by an inner map over a hash iterator.
+        map (
+            printf(\"%d:\", Catalog::first(\$1)),
+            printf(\"%d;\", Catalog::second(\$1)),
+        ), (map Catalog::make(\$1), {\"a\": 1, \"b\": 2, \"c\": 3}.iterator());
+        printf(\"\\n\");
+    }
+    int method(hash<Action> action) {
+        return check(action);
+    }
+}
+int sub check(hash<Action> action) {
+    if (action.name != \"action-\" + action.number) {
+        throw \"CORRUPT-ACTION\", action;
+    }
+    return action.number;
+}
+int sub pair(hash<Action> a, hash<Action> b) {
+    return check(a) + check(b);
+}
+class Receiver {
+    private {
+        int number;
+    }
+    constructor(hash<Action> action) {
+        number = check(action);
+    }
+    int get() {
+        return number;
+    }
+}
+int sub fail(hash<Action> action) {
+    if (action.number == 2) {
+        throw \"EXPECTED\", \"second item\";
+    }
+    return check(action);
+}
+
+Catalog::run();
+Catalog cat();
+code<int(hash<Action>)> callback = \\check();
+list<int> input = (1, 2, 3);
+list<int> empty = ();
+printf(\"empty: %y\\n\", (map (check(\$1), check(\$1),), (map Catalog::make(\$1), empty)));
+printf(\"single: %y\\n\", (map (check(\$1), check(\$1),), (map Catalog::make(\$1), (0,))));
+printf(\"functions: %y\\n\", (map (check(\$1), check(\$1),), (map Catalog::make(\$1), input)));
+printf(\"methods: %y\\n\", (map (cat.method(\$1), cat.method(\$1),), (map Catalog::make(\$1), input)));
+printf(\"closures: %y\\n\", (map (callback(\$1), callback(\$1),), (map Catalog::make(\$1), input)));
+printf(\"constructors: %y\\n\", (map ((new Receiver(\$1)).get(), (new Receiver(\$1)).get(),),
+    (map Catalog::make(\$1), input)));
+printf(\"duplicate: %y\\n\", (map pair(\$1, \$1), (map Catalog::make(\$1), input)));
+printf(\"branch: %y\\n\", (map (check(\$1) == 2 ? Catalog::first(\$1) : Catalog::second(\$1),
+    check(\$1),), (map Catalog::make(\$1), input)));
+printf(\"passthrough: %y\\n\", (map (check(\$1), \$1.name,), (map Catalog::make(\$1), input)));
+printf(\"select: %y\\n\", (map check(\$1), (select (map Catalog::make(\$1), input), check(\$1) > 1)));
+try {
+    map (check(\$1), fail(\$1), check(\$1),), (map Catalog::make(\$1), input);
+} catch (hash<ExceptionInfo> e) {
+    printf(\"caught: %s\\n\", e.err);
+}
+Catalog::run();
+";
+
+string expected = "1:10;2:20;3:30;
+empty: []
+single: [[0, 0]]
+functions: [[1, 1], [2, 2], [3, 3]]
+methods: [[1, 1], [2, 2], [3, 3]]
+closures: [[1, 1], [2, 2], [3, 3]]
+constructors: [[1, 1], [2, 2], [3, 3]]
+duplicate: [2, 4, 6]
+branch: [[10, 1], [2, 2], [30, 3]]
+passthrough: [[1, \"action-1\"], [2, \"action-2\"], [3, \"action-3\"]]
+select: [2, 3]
+caught: EXPECTED
+1:10;2:20;3:30;
+";
+
+string root = "/tmp/qore-aot-shared-map-args-" + string(getpid());
+string source_path = root + ".qr";
+# File/process access is required to compile and execute the isolated test program.
+on_exit {
+    unlink(source_path);
+    unlink(root);
+}
+File source();
+source.open2(source_path, O_WRONLY | O_CREAT | O_TRUNC);
+source.write(code);
+source.close();
+
+string sub quote(string value) {
+    return "'" + replace(value, "'", "'\"'\"'") + "'";
+}
+
+string sub run(string command) {
+    int rc;
+    string output = backquote(command + " 2>&1", \rc);
+    if (rc) {
+        printf("command failed (status %d): %s\n%s", rc, command, output);
+        exit(2);
+    }
+    return output;
+}
+
+foreach string mode in (("ast", "ir", "tiered", "jit")) {
+    string actual = run(sprintf("LD_LIBRARY_PATH=%s %s -b --exec-mode=%s %s",
+        quote(libqore_dir), quote(qore_bin), mode, quote(source_path)));
+    if (actual != expected) {
+        printf("mismatch in %s\nexpected:\n%sactual:\n%s", mode, expected, actual);
+        exit(2);
+    }
+}
+
+foreach int level in ((0, 3)) {
+    string compile_out = run(sprintf("LD_LIBRARY_PATH=%s %s -O%d -o %s %s",
+        quote(libqore_dir), quote(qcc_bin), level, quote(root), quote(source_path)));
+    if (!is_file(root)) {
+        printf("AOT compile failed (-O%d):\n%s", level, compile_out);
+        exit(2);
+    }
+    string actual = run(sprintf("LD_LIBRARY_PATH=%s %s", quote(libqore_dir), quote(root)));
+    if (actual != expected) {
+        printf("AOT mismatch (-O%d)\nexpected:\n%sactual:\n%s", level, expected, actual);
+        exit(2);
+    }
+    unlink(root);
+}

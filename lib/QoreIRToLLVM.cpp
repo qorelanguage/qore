@@ -4768,8 +4768,14 @@ llvm::Value* QoreIRToLLVM::buildArgCleanupArray(const QoreIRInstruction* inst,
         llvm::Value* cleanup_ptr = null_ptr;
         if (i >= borrowed_prefix) {
             uint32_t value_id = inst->operands[arg_start + i].id;
+            // Virtual implicit arguments can reuse one owned SSA value for
+            // multiple calls (for example, map (f($1), g($1)), (map make($1), xs)).
+            // Only let the callee release its cleanup at the final use; otherwise
+            // the first call frees the value while later operands still refer to it.
+            auto uses_it = operand_remaining_uses.find(value_id);
             auto alloca_it = invoke_alloca_map.find(value_id);
-            if (alloca_it != invoke_alloca_map.end()) {
+            if (alloca_it != invoke_alloca_map.end()
+                    && (uses_it == operand_remaining_uses.end() || uses_it->second <= 1)) {
                 cleanup_ptr = alloca_it->second;
                 if (!cleanup_ptr) {
                     cleanup_ptr = promoteSsaEntryToAlloca(value_id,
