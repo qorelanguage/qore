@@ -1450,6 +1450,8 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
 
     @subsection qore_3_0_0_updated_modules Updated Modules
     - @ref astparserintro "astparser" module
+      - supports brace-delimited regex match, substitution, transliteration and extraction expressions,
+        preserving nested/escaped braces and ordinary hash access through variables named \c m, \c s, \c tr and \c x
       - added a <a href="https://tree-sitter.github.io/tree-sitter/">tree-sitter</a>-based parser backend
         providing a full concrete syntax tree (CST) for accurate formatting and code transformation, covering
         all Qore constructs (parse directives, regex literals, heredocs, implicit arguments)

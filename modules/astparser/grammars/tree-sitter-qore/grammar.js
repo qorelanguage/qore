@@ -1,5 +1,6 @@
 /**
  * @file Qore grammar for tree-sitter
+ * Copyright (C) 2026 Qore Technologies, s.r.o.
  * @author Qore Technologies
  * @license LGPL-2.1
  * @see {@link https://qore.org|Qore Programming Language}
@@ -33,6 +34,13 @@ const PREC = {
 module.exports = grammar({
   name: 'qore',
 
+  externals: $ => [
+    $._brace_regex_match,
+    $._brace_regex_subst,
+    $._brace_regex_trans,
+    $._brace_regex_extract,
+  ],
+
   extras: $ => [
     $.comment,
     $.line_comment,
@@ -48,8 +56,6 @@ module.exports = grammar({
     [$.parenthesized_expression, $.list_literal],
     [$.list_literal, $.paren_hash_literal],
     [$.function_declaration, $.closure_expression],
-    [$.function_declaration, $.simple_type],
-    [$.function_declaration, $.simple_type, $.scoped_identifier],
     [$.function_declaration, $.primary_expression, $.generic_type],
     [$.argument_list, $.parameter_list],
     [$.parameter, $.primary_expression],
@@ -57,14 +63,6 @@ module.exports = grammar({
     [$.module_spec],
     // list_assignment conflicts with expressions starting with '('
     [$.list_assignment, $.primary_expression],
-    // foreach with optional type conflicts with local_variable_declaration
-    [$.foreach_statement, $.local_variable_declaration],
-    // call_expression with any expression as callable
-    [$.call_expression, $.simple_type],
-    // member declaration with constructor args conflicts with method declaration
-    [$.member_declaration, $.method_declaration],
-    // conditional declaration in if/while conflicts with expressions
-    [$.conditional_declaration, $.primary_expression],
     // type keywords as expressions conflict with type usage
     [$._type_keyword, $.complex_type],
     [$._type_keyword, $.simple_type],
@@ -72,7 +70,6 @@ module.exports = grammar({
     [$.simple_type, $.generic_type],
     [$.simple_type, $.scoped_identifier],
     [$.type_parameter, $.simple_type],
-    [$.scoped_identifier],
     [$._type_keyword, $.simple_type, $.complex_type],
     // case < identifier could be comparison value or start of <Type> cast
     [$.primary_expression, $.simple_type],
@@ -88,9 +85,6 @@ module.exports = grammar({
     [$.parameter, $.conditional_declaration],
     // @debug(type var) vs @debug (expression) and list_assignment
     [$.debug_statement, $.list_assignment, $.primary_expression],
-    // typedef ambiguity: `typedef X = type` vs `typedef type name`
-    [$.typedef_declaration, $.simple_type],
-    [$.typedef_declaration, $.simple_type, $.scoped_identifier],
     // map/select optional filter comma vs enclosing comma (hash/list trailing comma)
     [$.map_expression],
     [$.select_expression],
@@ -722,7 +716,8 @@ module.exports = grammar({
       'case',
       field('value', choice(
         $._expression,
-        seq(choice('=~', '!~'), $.regex),  // case =~ /pattern/:
+        alias($._match_regex, $.regex),
+        seq(choice('=~', '!~'), alias($._match_regex, $.regex)),  // case =~ /pattern/:
         $.case_comparison,  // case < 0: case > 0: etc.
       )),
       ':',
@@ -899,7 +894,11 @@ module.exports = grammar({
       prec.left(PREC.BITWISE_XOR, seq($._expression, '^', $._expression)),
       prec.left(PREC.BITWISE_AND, seq($._expression, '&', $._expression)),
       // Equality
-      prec.left(PREC.EQUALITY, seq($._expression, choice('==', '!=', '===', '!==', '=~', '!~'), $._expression)),
+      prec.left(PREC.EQUALITY, seq($._expression, choice('==', '!=', '===', '!=='), $._expression)),
+      // Regex prefixes are reserved only after a regex operator (or case).
+      // In ordinary expressions, m{key}, s{key}, tr{key} and x{key} are hash lookups.
+      prec.left(PREC.EQUALITY, seq($._expression, '=~', $.regex)),
+      prec.left(PREC.EQUALITY, seq($._expression, '!~', alias($._match_regex, $.regex))),
       // Comparison
       prec.left(PREC.COMPARISON, seq($._expression, choice('<', '>', '<=', '>=', '<=>'), $._expression)),
       prec.left(PREC.COMPARISON, seq($._expression, 'instanceof', choice($.type, $._expression))),
@@ -953,7 +952,6 @@ module.exports = grammar({
       $.implicit_argument,
       $.last_element_expression,
       $.context_reference,
-      $.regex,
       // Higher-order functions
       $.map_expression,
       $.select_expression,
@@ -1436,6 +1434,8 @@ module.exports = grammar({
     ),
 
     // ==================== Regex ====================
+    _match_regex: $ => seq($.regex_literal),
+
     regex: $ => choice(
       $.regex_literal,
       $.regex_subst,
@@ -1443,41 +1443,40 @@ module.exports = grammar({
       $.regex_extract,
     ),
 
-    regex_literal: $ => token(prec(-1, seq(
+    regex_literal: $ => choice(token(prec(-1, seq(
       '/',
-      /([^\/\n\\]|\\.)*/,   // pattern
+      /([^\/\n\\]|\\.)*/,
       '/',
-      optional(/[gimxsun]+/),  // flags
-    ))),
+      optional(/[gimxsun]+/),
+    ))), seq('m{', $._brace_regex_match)),
 
-    regex_subst: $ => token(seq(
+    regex_subst: $ => choice(token(seq(
       's/',
-      /([^\/\n\\]|\\.)*/,   // pattern
+      /([^\/\n\\]|\\.)*/,
       '/',
-      /([^\/\n\\]|\\.)*/,   // replacement
+      /([^\/\n\\]|\\.)*/,
       '/',
-      optional(/[gimxsun]+/),  // flags
-    )),
+      optional(/[gimxsun]+/),
+    )), seq('s{', $._brace_regex_subst)),
 
-    regex_trans: $ => token(seq(
+    regex_trans: $ => choice(token(seq(
       'tr/',
-      /([^\/\n\\]|\\.)*/,   // pattern
+      /([^\/\n\\]|\\.)*/,
       '/',
-      /([^\/\n\\]|\\.)*/,   // replacement
+      /([^\/\n\\]|\\.)*/,
       '/',
-    )),
+    )), seq('tr{', $._brace_regex_trans)),
 
-    // Regex extract: x/pattern/flags — returns list of captured groups
-    regex_extract: $ => token(seq(
+    regex_extract: $ => choice(token(seq(
       'x/',
-      /([^\/\n\\]|\\.)*/,   // pattern
+      /([^\/\n\\]|\\.)*/,
       '/',
-      optional(/[gimxsun]+/),  // flags
-    )),
+      optional(/[gimxsun]+/),
+    )), seq('x{', $._brace_regex_extract)),
 
-    // regex_pattern, regex_replacement, regex_flags are inlined into
-    // the regex token() rules above to prevent extras (comments) from
-    // being inserted between the / delimiters.
+    // Each brace prefix is a reserved lexical token. The scanner consumes the
+    // balanced body, remaining parts and modifiers as one token, so comments
+    // and whitespace within the expression cannot become grammar extras.
 
     // Backquote (shell command) expression: `command`
     // Returns the stdout of the command as a string

@@ -1,0 +1,132 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../qlib"
+%requires ../../../qlib/QUnit.qm
+%requires astparser
+%exec-class BraceRegexTest
+
+class BraceRegexTest inherits QUnit::Test {
+    constructor() : QUnit::Test("astparser brace-delimited regex operations", "1.0") {
+        addTestCase("Brace operations match the runtime parser", \operations());
+        addTestCase("Nested braces, escapes and whitespace remain in the expression", \nested());
+        addTestCase("Unterminated operations and inter-part comments are rejected", \invalid());
+        addTestCase("Slash operations and adjacent declarations retain their parse", \compatibility());
+        set_return_value(main());
+    }
+
+    private static *hash<auto> findNode(list<auto> nodes, string type) {
+        foreach hash<auto> node in (nodes) {
+            if (node.type == type) {
+                return node;
+            }
+            if (node.children) {
+                *hash<auto> found = findNode(node.children, type);
+                if (found) {
+                    return found;
+                }
+            }
+        }
+    }
+
+    private check(string expression, auto expected, string value = "abc") {
+        string source = "%modern\nauto sub apply() { string value = " + sprintf("%y", value)
+            + "; auto result = " + expression + "; return result; }\nint sub after() { return 7; }\n";
+        Program runtime();
+        runtime.parse(source, "brace_regex_runtime");
+        assertEq(expected, runtime.callFunction("apply"), expression);
+        AstParser parser();
+        AstTree tree = parser.parseString(source);
+        assertEq(0, parser.getErrorCount(), expression);
+        list<auto> nodes = tree.getNodesInfo();
+        string operation = substr(expression, 9);
+        string type = operation[0] == "s" ? "regex_subst" : operation[0] == "t" ? "regex_trans"
+            : operation[0] == "x" ? "regex_extract" : "regex_literal";
+        *hash<auto> regex = findNode(nodes, type);
+        assertTrue(exists regex, "the expression retains its operation node type: " + type);
+        assertEq(operation, regex.text, "the operation node retains the complete source text");
+        *hash<auto> name;
+        foreach hash<auto> child in (nodes[-1].children) {
+            if (child.field == "name") {
+                name = child;
+                break;
+            }
+        }
+        assertEq("after", name.text, "the AST retains the following function declaration");
+        assertEq(7, runtime.callFunction("after"), "the token ends before the following function");
+    }
+
+    operations() {
+        check("value =~ m{^abc$}", True);
+        check("value !~ m{^xyz$}", True);
+        check("value =~ m{^ABC$}i", True);
+        check("value =~ m{^abc$}imsxuU", True);
+        check("value =~ x{(a)}g", ("a", "a"), "aa");
+        check("value =~ s{abc}{xyz}", "xyz");
+        check("value =~ s{a}{}g", "bc");
+        check("value =~ tr{abc}{xyz}", "xyz");
+        check("value =~ x{(a)(bc)}", ("a", "bc"));
+        check("value =~ s{/+$}{}", "abc", "abc///");
+    }
+
+    nested() {
+        check("value =~ m{^a{3}$}", True, "aaa");
+        check("value =~ m{\\{abc\\}}", True, "{abc}");
+        check("value =~ s{a{3}}{{result}}", "{result}", "aaa");
+        check("value =~ s{abc}{a\\}b}", "a}b");
+        check("value =~ s{abc}{\\{new\\}}", "{new}");
+        check("value =~ s{abc} \n\t {new}", "new");
+        check("value =~ tr{abc} \r\n\t {xyz}", "xyz");
+        check("value =~ tr{\\{\\}}{[]}", "[abc]", "{abc}");
+        check("value =~ x{(a{3})}", ("aaa",), "aaa");
+        check("value =~ m{ abc}", True, " abc");
+        check("value =~ m{//abc}", True, "//abc");
+        check("value =~ s{a/b}{// # /* text */}", "// # /* text */", "a/b");
+        check("value =~ s{a\nb}{x\ny}", "x\ny", "a\nb");
+        check("value =~ m{}", True);
+        check("value =~ s{abc}{}", "");
+        string braces = sprintf("%1024s", "");
+        string replacement = replace(braces, " ", "{") + sprintf("%65536s", "x") + replace(braces, " ", "}");
+        check("value =~ s{abc}{" + replacement + "}", replacement);
+    }
+
+    invalid() {
+        AstParser parser();
+        foreach string expression in ("value =~ s{abc}{", "value =~ s{abc}", "value =~ m{abc",
+                "value =~ x{(abc)", "value =~ tr{abc}{", "value =~ s{a{3}{x}",
+                "value =~ s{abc} /* comment */ {new}", "value =~ m{abc}g",
+                "value =~ tr{abc}{xyz}g", "value =~ s{abc}{xyz}q",
+                "value =~ s{abc}\f{new}", "value =~ tr{abc}\v{xyz}",
+                "value =~ s{abc} # comment\n{new}", "value =~ tr{abc} // comment\n{xyz}",
+                "value !~ s{abc}{xyz}", "value !~ tr{abc}{xyz}", "value !~ x{abc}") {
+            parser.parseString("%modern\nsub apply() { string value = \"abc\"; " + expression + "; }\n");
+            assertTrue(parser.getErrorCount() > 0, expression);
+        }
+        foreach string expression in ("m{", "s{abc}{", "x{abc\\", "tr{abc}{xyz\\", "m{{abc}") {
+            parser.parseString("value =~ " + expression);
+            assertTrue(parser.getErrorCount() > 0, "end of input: " + expression);
+        }
+        parser.parseString("%modern\nsub apply() { string value = \"abc\"; value =~ s{abc}{new}; }\n");
+        assertEq(0, parser.getErrorCount(), "a failed parse does not corrupt the next parse");
+    }
+
+    compatibility() {
+        check("value =~ /abc/", True);
+        check("value =~ s/abc/new/", "new");
+        check("value =~ tr/abc/xyz/", "xyz");
+        check("value =~ x/(a)(bc)/", ("a", "bc"));
+        foreach string name in ("m", "s", "tr", "x") {
+            string source = "%modern\nint sub lookup() { hash<string, int> " + name
+                + " = (\"abc\": 7,); return " + name + "{\"abc\"}; }\n";
+            Program runtime();
+            runtime.parse(source, "brace_regex_hash_lookup");
+            assertEq(7, runtime.callFunction("lookup"), "hash lookup for " + name);
+            AstParser parser();
+            AstTree tree = parser.parseString(source);
+            assertEq(0, parser.getErrorCount(), "regex prefixes remain valid hash variable names: " + name);
+            assertTrue(exists findNode(tree.getNodesInfo(), "index_expression"),
+                "hash lookup retains its index expression: " + name);
+        }
+    }
+}
