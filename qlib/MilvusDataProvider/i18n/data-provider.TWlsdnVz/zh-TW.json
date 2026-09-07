@@ -340,8 +340,8 @@
           "message": "向 Milvus 發出自訂 API 呼叫"
         },
         "app.TWlsdnVz.desc": {
-          "source": "Provides access to [Milvus](https://milvus.io) and [Zilliz Cloud](https://zilliz.com) (managed Milvus) — an open-source vector database supporting billion-scale similarity search.\n\nUse the @ref QoreRagUtils::MilvusVectorStore \"MilvusVectorStore\" backend in @ref qorerragutilsintro \"QoreRagUtils\" for the supported ingest/retrieve path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
-          "message": "提供對 [Milvus](https://milvus.io) 和 [Zilliz Cloud](https://zilliz.com) (託管版 Milvus) 的存取 — 一種支援十億級相似度搜尋的開源向量資料庫。\n\n透過 @ref QoreRagUtils::RagPipeline \"RagPipeline\" 支援的擷取/檢索路徑，請使用 @ref qorerragutilsintro \"QoreRagUtils\" 中的 @ref QoreRagUtils::MilvusVectorStore \"MilvusVectorStore\" 後端。"
+          "source": "Provides access to [Milvus](https://milvus.io) and [Zilliz Cloud](https://zilliz.com) (managed Milvus) — an open-source vector database supporting billion-scale similarity search.\n\nUse the @ref QoreRagUtils::MilvusVectorStore \"MilvusVectorStore\" backend in @ref qoreragutilsintro \"QoreRagUtils\" for the supported ingest/retrieve path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
+          "message": "提供對 [Milvus](https://milvus.io) 和 [Zilliz Cloud](https://zilliz.com) (託管版 Milvus) 的存取 — 一種支援十億級相似度搜尋的開源向量資料庫。\n\n透過 @ref QoreRagUtils::RagPipeline \"RagPipeline\" 支援的擷取/檢索路徑，請使用 @ref qoreragutilsintro \"QoreRagUtils\" 中的 @ref QoreRagUtils::MilvusVectorStore \"MilvusVectorStore\" 後端。"
         },
         "app.TWlsdnVz.display_name": {
           "source": "Milvus",

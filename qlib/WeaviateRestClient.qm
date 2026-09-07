@@ -54,7 +54,7 @@ module WeaviateRestClient {
     The %WeaviateRestClient module provides a REST client for
     [Weaviate](https://weaviate.io) — an open-source vector database —
     and registers `weaviate` as a vector-store backend in
-    @ref qorerragutilsintro "QoreRagUtils".
+    @ref qoreragutilsintro "QoreRagUtils".
 
     @par REST vs GraphQL
 

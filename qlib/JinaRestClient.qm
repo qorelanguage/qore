@@ -63,7 +63,7 @@ module JinaRestClient {
       `jina-colbert-v2` for late-interaction reranking)
 
     The module registers both an embedder and a reranker into the
-    @ref qorerragutilsintro "QoreRagUtils" registry so existing
+    @ref qoreragutilsintro "QoreRagUtils" registry so existing
     @ref QoreRagUtils::RagPipeline "RagPipeline" consumers can target
     Jina by setting backend strings \c "jina".
 

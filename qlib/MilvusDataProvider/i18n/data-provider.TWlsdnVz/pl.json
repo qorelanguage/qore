@@ -340,8 +340,8 @@
           "message": "Wykonaj niestandardowe wywołanie API do Milvus"
         },
         "app.TWlsdnVz.desc": {
-          "source": "Provides access to [Milvus](https://milvus.io) and [Zilliz Cloud](https://zilliz.com) (managed Milvus) — an open-source vector database supporting billion-scale similarity search.\n\nUse the @ref QoreRagUtils::MilvusVectorStore \"MilvusVectorStore\" backend in @ref qorerragutilsintro \"QoreRagUtils\" for the supported ingest/retrieve path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
-          "message": "Zapewnia dostęp do [Milvus](https://milvus.io) oraz [Zilliz Cloud](https://zilliz.com) (zarządzany Milvus) — wektorowej bazy danych open source obsługującej wyszukiwanie podobieństwa na miliardową skalę.\n\nUżyj backendu @ref QoreRagUtils::MilvusVectorStore \"MilvusVectorStore\" w @ref qorerragutilsintro \"QoreRagUtils\" do obsługiwanej ścieżki wprowadzania/pobierania danych za pośrednictwem @ref QoreRagUtils::RagPipeline \"RagPipeline\"."
+          "source": "Provides access to [Milvus](https://milvus.io) and [Zilliz Cloud](https://zilliz.com) (managed Milvus) — an open-source vector database supporting billion-scale similarity search.\n\nUse the @ref QoreRagUtils::MilvusVectorStore \"MilvusVectorStore\" backend in @ref qoreragutilsintro \"QoreRagUtils\" for the supported ingest/retrieve path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
+          "message": "Zapewnia dostęp do [Milvus](https://milvus.io) oraz [Zilliz Cloud](https://zilliz.com) (zarządzany Milvus) — wektorowej bazy danych open source obsługującej wyszukiwanie podobieństwa na miliardową skalę.\n\nUżyj backendu @ref QoreRagUtils::MilvusVectorStore \"MilvusVectorStore\" w @ref qoreragutilsintro \"QoreRagUtils\" do obsługiwanej ścieżki wprowadzania/pobierania danych za pośrednictwem @ref QoreRagUtils::RagPipeline \"RagPipeline\"."
         },
         "app.TWlsdnVz.display_name": {
           "source": "Milvus",

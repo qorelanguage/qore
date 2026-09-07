@@ -340,8 +340,8 @@
           "message": "WeaviateへのカスタムAPI呼び出しを実行"
         },
         "app.V2VhdmlhdGU.desc": {
-          "source": "Provides access to [Weaviate](https://weaviate.io) — an open-source vector database supporting hybrid search (vector + keyword), multi-tenancy, and a wide range of vectorizer modules.\n\nUse the @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" backend in @ref qorerragutilsintro \"QoreRagUtils\" for the supported ingest/retrieve path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
-          "message": "[Weaviate](https://weaviate.io) へのアクセスを提供します。これはハイブリッド検索（ベクトル + キーワード）、マルチテナンシー、幅広いベクトライザーモジュールをサポートするオープンソースのベクトルデータベースです。\n\n@ref QoreRagUtils::RagPipeline \"RagPipeline\" を介したサポート対象の取り込み/取得パスには、@ref qorerragutilsintro \"QoreRagUtils\" 内の @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" バックエンドを使用してください。"
+          "source": "Provides access to [Weaviate](https://weaviate.io) — an open-source vector database supporting hybrid search (vector + keyword), multi-tenancy, and a wide range of vectorizer modules.\n\nUse the @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" backend in @ref qoreragutilsintro \"QoreRagUtils\" for the supported ingest/retrieve path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
+          "message": "[Weaviate](https://weaviate.io) へのアクセスを提供します。これはハイブリッド検索（ベクトル + キーワード）、マルチテナンシー、幅広いベクトライザーモジュールをサポートするオープンソースのベクトルデータベースです。\n\n@ref QoreRagUtils::RagPipeline \"RagPipeline\" を介したサポート対象の取り込み/取得パスには、@ref qoreragutilsintro \"QoreRagUtils\" 内の @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" バックエンドを使用してください。"
         },
         "app.V2VhdmlhdGU.display_name": {
           "source": "Weaviate",

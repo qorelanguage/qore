@@ -102,7 +102,7 @@ module ChromaDataProvider {
 
     For full upsert / delete operations, use the
     @ref QoreRagUtils::ChromaVectorStore "ChromaVectorStore" backend
-    in @ref qorerragutilsintro "QoreRagUtils" via the standard
+    in @ref qoreragutilsintro "QoreRagUtils" via the standard
     @ref QoreRagUtils::RagPipeline "RagPipeline" — that's the supported
     ingest/retrieve path.
 

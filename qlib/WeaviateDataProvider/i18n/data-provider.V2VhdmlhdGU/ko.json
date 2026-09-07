@@ -340,8 +340,8 @@
           "message": "Weaviate로 사용자 지정 API 호출 수행"
         },
         "app.V2VhdmlhdGU.desc": {
-          "source": "Provides access to [Weaviate](https://weaviate.io) — an open-source vector database supporting hybrid search (vector + keyword), multi-tenancy, and a wide range of vectorizer modules.\n\nUse the @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" backend in @ref qorerragutilsintro \"QoreRagUtils\" for the supported ingest/retrieve path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
-          "message": "하이브리드 검색(벡터 + 키워드), 멀티테넌시 및 광범위한 벡터라이저 모듈을 지원하는 오픈 소스 벡터 데이터베이스인 [Weaviate](https://weaviate.io)에 대한 액세스를 제공합니다.\n\n@ref QoreRagUtils::RagPipeline \"RagPipeline\"을 통한 지원되는 수집/검색 경로에는 @ref qorerragutilsintro \"QoreRagUtils\"의 @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" 백엔드를 사용하세요."
+          "source": "Provides access to [Weaviate](https://weaviate.io) — an open-source vector database supporting hybrid search (vector + keyword), multi-tenancy, and a wide range of vectorizer modules.\n\nUse the @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" backend in @ref qoreragutilsintro \"QoreRagUtils\" for the supported ingest/retrieve path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
+          "message": "하이브리드 검색(벡터 + 키워드), 멀티테넌시 및 광범위한 벡터라이저 모듈을 지원하는 오픈 소스 벡터 데이터베이스인 [Weaviate](https://weaviate.io)에 대한 액세스를 제공합니다.\n\n@ref QoreRagUtils::RagPipeline \"RagPipeline\"을 통한 지원되는 수집/검색 경로에는 @ref qoreragutilsintro \"QoreRagUtils\"의 @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" 백엔드를 사용하세요."
         },
         "app.V2VhdmlhdGU.display_name": {
           "source": "Weaviate",

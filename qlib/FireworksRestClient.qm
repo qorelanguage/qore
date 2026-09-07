@@ -72,7 +72,7 @@ module FireworksRestClient {
     - @ref FireworksRestClient::FireworksLlmProvider "FireworksLlmProvider":
       @ref qorellmutilsintro "QoreLlmUtils" provider for mode \c fireworks
     - @ref QoreRagUtils::FireworksEmbedder "FireworksEmbedder":
-      @ref qorerragutilsintro "QoreRagUtils" embedder for backend \c fireworks
+      @ref qoreragutilsintro "QoreRagUtils" embedder for backend \c fireworks
 
     @par Example:
     @code{.py}

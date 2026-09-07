@@ -48,7 +48,7 @@ module MilvusDataProvider {
                 "open-source vector database supporting billion-scale similarity "
                 "search.\n\n"
                 "Use the @ref QoreRagUtils::MilvusVectorStore \"MilvusVectorStore\" "
-                "backend in @ref qorerragutilsintro \"QoreRagUtils\" for the supported "
+                "backend in @ref qoreragutilsintro \"QoreRagUtils\" for the supported "
                 "ingest/retrieve path through @ref QoreRagUtils::RagPipeline "
                 "\"RagPipeline\".",
             "scheme": "milvus",

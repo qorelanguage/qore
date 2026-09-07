@@ -47,7 +47,7 @@ module WeaviateDataProvider {
                 "vector database supporting hybrid search (vector + keyword), "
                 "multi-tenancy, and a wide range of vectorizer modules.\n\n"
                 "Use the @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" "
-                "backend in @ref qorerragutilsintro \"QoreRagUtils\" for the supported "
+                "backend in @ref qoreragutilsintro \"QoreRagUtils\" for the supported "
                 "ingest/retrieve path through @ref QoreRagUtils::RagPipeline "
                 "\"RagPipeline\".",
             "scheme": "weaviate",

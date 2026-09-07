@@ -340,8 +340,8 @@
           "message": "Vykonať vlastné volanie API do Weaviate"
         },
         "app.V2VhdmlhdGU.desc": {
-          "source": "Provides access to [Weaviate](https://weaviate.io) — an open-source vector database supporting hybrid search (vector + keyword), multi-tenancy, and a wide range of vectorizer modules.\n\nUse the @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" backend in @ref qorerragutilsintro \"QoreRagUtils\" for the supported ingest/retrieve path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
-          "message": "Poskytuje prístup k [Weaviate](https://weaviate.io) — open-source vektorovej databáze podporujúcej hybridné vyhľadávanie (vektorové + kľúčové slová), multi-tenancy a širokú škálu modulov vectorizer.\n\nPoužite backend @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" v @ref qorerragutilsintro \"QoreRagUtils\" pre podporovanú cestu ingest/retrieve prostredníctvom @ref QoreRagUtils::RagPipeline \"RagPipeline\"."
+          "source": "Provides access to [Weaviate](https://weaviate.io) — an open-source vector database supporting hybrid search (vector + keyword), multi-tenancy, and a wide range of vectorizer modules.\n\nUse the @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" backend in @ref qoreragutilsintro \"QoreRagUtils\" for the supported ingest/retrieve path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
+          "message": "Poskytuje prístup k [Weaviate](https://weaviate.io) — open-source vektorovej databáze podporujúcej hybridné vyhľadávanie (vektorové + kľúčové slová), multi-tenancy a širokú škálu modulov vectorizer.\n\nPoužite backend @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" v @ref qoreragutilsintro \"QoreRagUtils\" pre podporovanú cestu ingest/retrieve prostredníctvom @ref QoreRagUtils::RagPipeline \"RagPipeline\"."
         },
         "app.V2VhdmlhdGU.display_name": {
           "source": "Weaviate",

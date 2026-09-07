@@ -340,8 +340,8 @@
           "message": "Esegui una chiamata API personalizzata a Weaviate"
         },
         "app.V2VhdmlhdGU.desc": {
-          "source": "Provides access to [Weaviate](https://weaviate.io) — an open-source vector database supporting hybrid search (vector + keyword), multi-tenancy, and a wide range of vectorizer modules.\n\nUse the @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" backend in @ref qorerragutilsintro \"QoreRagUtils\" for the supported ingest/retrieve path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
-          "message": "Fornisce l'accesso a [Weaviate](https://weaviate.io), un database vettoriale open source che supporta la ricerca ibrida (vettore + parole chiave), il multi-tenancy e un'ampia gamma di moduli di vettorizzazione.\n\nUtilizza il backend @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" in @ref qorerragutilsintro \"QoreRagUtils\" per il percorso di inserimento/recupero supportato tramite @ref QoreRagUtils::RagPipeline \"RagPipeline\"."
+          "source": "Provides access to [Weaviate](https://weaviate.io) — an open-source vector database supporting hybrid search (vector + keyword), multi-tenancy, and a wide range of vectorizer modules.\n\nUse the @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" backend in @ref qoreragutilsintro \"QoreRagUtils\" for the supported ingest/retrieve path through @ref QoreRagUtils::RagPipeline \"RagPipeline\".",
+          "message": "Fornisce l'accesso a [Weaviate](https://weaviate.io), un database vettoriale open source che supporta la ricerca ibrida (vettore + parole chiave), il multi-tenancy e un'ampia gamma di moduli di vettorizzazione.\n\nUtilizza il backend @ref QoreRagUtils::WeaviateVectorStore \"WeaviateVectorStore\" in @ref qoreragutilsintro \"QoreRagUtils\" per il percorso di inserimento/recupero supportato tramite @ref QoreRagUtils::RagPipeline \"RagPipeline\"."
         },
         "app.V2VhdmlhdGU.display_name": {
           "source": "Weaviate",

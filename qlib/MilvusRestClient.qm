@@ -54,7 +54,7 @@ module MilvusRestClient {
     The %MilvusRestClient module provides a REST client for
     [Milvus](https://milvus.io) and [Zilliz Cloud](https://zilliz.com)
     (managed Milvus) — and registers `milvus` as a vector-store backend
-    in @ref qorerragutilsintro "QoreRagUtils".
+    in @ref qoreragutilsintro "QoreRagUtils".
 
     Targets Milvus REST v2 only — gRPC is intentionally NOT used.
 

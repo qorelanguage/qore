@@ -72,7 +72,7 @@ module TogetherRestClient {
     - @ref TogetherRestClient::TogetherLlmProvider "TogetherLlmProvider":
       @ref qorellmutilsintro "QoreLlmUtils" provider for mode \c together
     - @ref QoreRagUtils::TogetherEmbedder "TogetherEmbedder":
-      @ref qorerragutilsintro "QoreRagUtils" embedder for backend \c together
+      @ref qoreragutilsintro "QoreRagUtils" embedder for backend \c together
 
     @par Example:
     @code{.py}

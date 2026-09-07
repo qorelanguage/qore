@@ -66,7 +66,7 @@ module CohereRestClient {
     - `/v2/rerank` — reranker models (rerank-v3.5, multilingual variants)
 
     This module closes the cloud-reranker gap in
-    @ref qorerragutilsintro "QoreRagUtils" alongside Voyage and Jina,
+    @ref qoreragutilsintro "QoreRagUtils" alongside Voyage and Jina,
     and provides a full chat LLM provider for Cohere's Command series.
 
     @section CohereRestClientRelnotes Release Notes

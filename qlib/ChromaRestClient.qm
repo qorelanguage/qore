@@ -54,7 +54,7 @@ module ChromaRestClient {
     The %ChromaRestClient module provides a REST client for
     [Chroma](https://www.trychroma.com) — a lightweight, local-first
     vector database — and registers `chroma` as a vector-store backend
-    in @ref qorerragutilsintro "QoreRagUtils".
+    in @ref qoreragutilsintro "QoreRagUtils".
 
     @par Configuration
 
