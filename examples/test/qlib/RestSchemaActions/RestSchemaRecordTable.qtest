@@ -1013,10 +1013,13 @@ public class RestSchemaRecordTableTest inherits QUnit::Test {
             }
             return {"data": itemPage(1, 1, 1)[0]};
         });
-        # the unmapped column is dropped by the narrowing and the write carries nothing.  Here the schema
-        # requires a body and the request fails; where an action wraps its body in an envelope the drop is
-        # silent instead and the update reports success having changed no value at all
-        assertThrows("UPDATE-RECORDS-ERROR", "expected type", sub () {
+        # without the mapping every value the caller supplied is dropped by the narrowing, and the write
+        # would carry nothing at all.  The record layer refuses that rather than leaving it to the schema,
+        # because whether the schema catches it is an accident of the operation: a body the vendor
+        # declares required rejects the request, and an optional one - or a required one whose properties
+        # are all optional, which a bare {} satisfies - is accepted, and the update then reports success
+        # having changed no value at all
+        assertThrows("UPDATE-RECORDS-ERROR", "would carry no value at all", sub () {
             plain.updateRecords({"status": "closed"}, eq("id", "i_0"));
         });
 

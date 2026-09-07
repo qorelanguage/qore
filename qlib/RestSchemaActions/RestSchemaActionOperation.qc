@@ -95,6 +95,18 @@ public class RestSchemaActionOperation {
         #! The fixed values that envelope carries beside the lifted body
         list<hash<RestSchemaRequestWrapValueInfo>> request_wrap_fixed = ();
 
+        #! The operation declares a **required** object body whose properties were flattened into options
+        /** An operation can declare a required body every property of which is optional, and then the
+            minimal valid request carries an empty object rather than no body at all: Pinecone's index
+            statistics take an optional metadata filter and nothing else, so the ordinary call - "how
+            many records are in this index" - supplies no option and must still send \c {}.
+
+            Sending nothing there fails the schema's own request validation before the request is made,
+            which reads as the action being broken.  An **optional** body is unaffected and still sends
+            nothing when nothing is supplied.
+        */
+        bool body_required_object = False;
+
         #! Values assembled from options published in their place
         /** @see @ref RestSchemaActions::RestSchemaFieldOverlayInfo::lift "lift"
         */
@@ -316,6 +328,13 @@ public class RestSchemaActionOperation {
             }
             placeRequestValue(\req, \path_vars, fi.loc, fi.wire_name, fi.wire_path, value);
         }
+        # an operation declaring a required object body must send one even when no property of it was
+        # supplied: the minimal valid request is an empty object, and sending no body at all fails the
+        # schema's own request validation before the request is made
+        if (body_required_object && !exists req.body) {
+            req.body = {};
+        }
+
         # the values the envelope fixes are added once some part of the body has been supplied; an action
         # whose body is entirely optional and left unset sends no body at all
         if (request_wrap_fixed && exists req.body) {
@@ -854,6 +873,10 @@ public class RestSchemaActionOperation {
             };
             return;
         }
+        # a required object body still has to be sent when every property of it is optional and none was
+        # supplied; see body_required_object
+        body_required_object = body_required;
+
         # a body wrapped in a fixed envelope is lifted from inside it rather than from its top level; see
         # RestSchemaActionInfo::request_unwrap
         auto landing_schema = body.schema;

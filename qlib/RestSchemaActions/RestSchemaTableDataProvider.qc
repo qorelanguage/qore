@@ -722,7 +722,23 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
                 rv{i.value} = value;
             }
         }
-        return rv{keys action_set.getOperationEx(action).getFlatMap()};
+        hash<auto> body = rv{keys action_set.getOperationEx(action).getFlatMap()};
+        # a write that supplied values and carries none of them after the narrowing has had every one of
+        # them dropped, which is the defect write_field_map exists to prevent: the columns are named one
+        # way on the record and another way on the action, and nothing else would say so.
+        #
+        # This is caught here rather than left to the schema, because whether the schema catches it is an
+        # accident of the operation: a body the vendor declares required rejects the request, and one it
+        # declares optional - or one whose properties are all optional, which is a valid empty object -
+        # is accepted, and the update then reports success having changed no value at all.
+        if (rv && !body) {
+            throw "REST-SCHEMA-RECORD-ERROR", sprintf("the write to table %y supplied %y, and the %y "
+                "action declares none of them, so the request would carry no value at all; the action's "
+                "options are %y - declare the pairs in \"write_field_map\" if the table's columns are "
+                "spelled differently from them", table.name, (keys rv), action,
+                sort(keys action_set.getOperationEx(action).getFlatMap()));
+        }
+        return body;
     }
 
     #! Returns the options identifying the collection the operation works in
