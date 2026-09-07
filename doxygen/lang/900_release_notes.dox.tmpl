@@ -1649,6 +1649,9 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         @ref Qore::Reflection::Class::getClassHierarchy() "Class::getClassHierarchy()"
 
     - @ref restclientintro "RestClient" module
+      - OAuth consent URLs encode optional authorization arguments and state, preserving scope lists and
+        reserved characters without introducing extra query parameters
+        (<a href="https://github.com/qoretechnologies/qore/issues/5443">issue 5443</a>)
       - new @ref RestClient::RestClientPool "RestClientPool" class providing thread-safe connection pooling
         for @ref RestClient::RestClient "RestClient" instances, built on
         @ref Qore::Thread::AbstractConnectionPool "AbstractConnectionPool"
