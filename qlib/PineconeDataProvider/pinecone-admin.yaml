@@ -1,0 +1,3897 @@
+openapi: "3.0.3"
+info:
+  title: "Pinecone Admin API"
+  description: "Provides an API for managing a Pinecone organization and its resources, including projects, API keys, organization users and invites, service accounts, and role bindings.\n"
+  contact:
+    name: "Pinecone Support"
+    url: "https://support.pinecone.io"
+    email: "support@pinecone.io"
+  license:
+    name: "Apache 2.0"
+    url: "https://www.apache.org/licenses/LICENSE-2.0"
+  version: "2026-07"
+servers:
+- url: "https://api.pinecone.io"
+  description: "Production API endpoints"
+paths:
+  /admin/projects:
+    get:
+      tags:
+      - "Projects"
+      summary: "List projects"
+      description: "List all projects in an organization."
+      operationId: "list_projects"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      responses:
+        200:
+          description: "A list of projects."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectList"
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    post:
+      tags:
+      - "Projects"
+      summary: "Create a new project"
+      description: "Create a new project."
+      operationId: "create_project"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      requestBody:
+        description: "The details of the new project."
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectRequest"
+        required: true
+      responses:
+        200:
+          description: "The project was successfully created."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                index-metric-validation-error:
+                  summary: "Validation error"
+                  value:
+                    error:
+                      code: "INVALID_ARGUMENT"
+                      message: "Bad request. The request body included invalid request parameters."
+                    status: 400
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/organizations:
+    get:
+      tags:
+      - "Organizations"
+      summary: "List organizations"
+      description: "List all organizations associated with an account."
+      operationId: "list_organizations"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      responses:
+        200:
+          description: "A list of organizations."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationList"
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/projects/{project_id}:
+    get:
+      tags:
+      - "Projects"
+      summary: "Get project details"
+      description: "Get a project's details."
+      operationId: "fetch_project"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "project_id"
+        description: "Project ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        200:
+          description: "The details of a project."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    delete:
+      tags:
+      - "Projects"
+      summary: "Delete a project"
+      description: "Delete a project and all its configuration; delete its indexes, assistants, backups, and collections first.\n"
+      operationId: "delete_project"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "project_id"
+        description: "Project ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        202:
+          description: "Project deletion request accepted. Other project resources, such as API keys, are deleted automatically."
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    patch:
+      tags:
+      - "Projects"
+      summary: "Update a project"
+      description: "Update a project's name, maximum number of Pods, or customer-managed encryption key (CMEK).\n"
+      operationId: "update_project"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "project_id"
+        description: "Project ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      requestBody:
+        description: "Project details to be updated. Fields that are omitted will not be updated.\n"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProjectRequest"
+        required: true
+      responses:
+        200:
+          description: "The project was successfully updated."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                index-metric-validation-error:
+                  summary: "Validation error"
+                  value:
+                    error:
+                      code: "INVALID_ARGUMENT"
+                      message: "Bad request. The request body included invalid request parameters."
+                    status: 400
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/organizations/{organization_id}:
+    get:
+      tags:
+      - "Organizations"
+      summary: "Get organization details"
+      description: "Get an organization's details."
+      operationId: "fetch_organization"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "organization_id"
+        description: "Organization ID"
+        required: true
+        schema:
+          type: "string"
+        style: "simple"
+      responses:
+        200:
+          description: "The details of an organization."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    delete:
+      tags:
+      - "Organizations"
+      summary: "Delete an organization"
+      description: "Delete an organization and all its configuration; delete all its projects first.\n"
+      operationId: "delete_organization"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "organization_id"
+        description: "Organization ID"
+        required: true
+        schema:
+          type: "string"
+        style: "simple"
+      responses:
+        202:
+          description: "Organization deletion request accepted."
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    patch:
+      tags:
+      - "Organizations"
+      summary: "Update an organization"
+      description: "Update an organization's name.\n"
+      operationId: "update_organization"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "organization_id"
+        description: "Organization ID"
+        required: true
+        schema:
+          type: "string"
+        style: "simple"
+      requestBody:
+        description: "Organization details to be updated.\n"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrganizationRequest"
+        required: true
+      responses:
+        200:
+          description: "The organization was successfully updated."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                index-metric-validation-error:
+                  summary: "Validation error"
+                  value:
+                    error:
+                      code: "INVALID_ARGUMENT"
+                      message: "Bad request. The request body included invalid request parameters."
+                    status: 400
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/projects/{project_id}/api-keys:
+    get:
+      tags:
+      - "API Keys"
+      summary: "List API keys"
+      description: "List all API keys in a project."
+      operationId: "list_project_api_keys"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "project_id"
+        description: "Project ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        200:
+          description: "A list of API keys."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListApiKeysResponse"
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    post:
+      tags:
+      - "API Keys"
+      summary: "Create an API key"
+      description: "Create an API key for a project to authenticate Data Plane and Control Plane requests.\n"
+      operationId: "create_api_key"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "project_id"
+        description: "Project ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      requestBody:
+        description: "The details of the new API key."
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAPIKeyRequest"
+        required: true
+      responses:
+        201:
+          description: "API key created successfully."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIKeyWithSecret"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                index-metric-validation-error:
+                  summary: "Validation error"
+                  value:
+                    error:
+                      code: "INVALID_ARGUMENT"
+                      message: "Bad request. The request body included invalid request parameters."
+                    status: 400
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Not enough available quota to complete this operation."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/api-keys/{api_key_id}:
+    get:
+      tags:
+      - "API Keys"
+      summary: "Get API key details"
+      description: "Get an API key's details, excluding its secret."
+      operationId: "fetch_api_key"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "api_key_id"
+        description: "API key ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        200:
+          description: "The details of the API key, excluding the API key secret."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIKey"
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    delete:
+      tags:
+      - "API Keys"
+      summary: "Delete an API key"
+      description: "Delete an API key from a project."
+      operationId: "delete_api_key"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "api_key_id"
+        description: "API key ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        202:
+          description: "API key deletion request accepted."
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    patch:
+      tags:
+      - "API Keys"
+      summary: "Update an API key"
+      description: "Update an API key's name and roles."
+      operationId: "update_api_key"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "api_key_id"
+        description: "API key ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      requestBody:
+        description: "Updated name and roles for the API key."
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAPIKeyRequest"
+        required: true
+      responses:
+        200:
+          description: "API key updated successfully."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIKey"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                index-metric-validation-error:
+                  summary: "Validation error"
+                  value:
+                    error:
+                      code: "INVALID_ARGUMENT"
+                      message: "Bad request. The request body included invalid request parameters."
+                    status: 400
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/users:
+    get:
+      tags:
+      - "Users"
+      summary: "List users in the organization"
+      description: "List users in the caller's organization, optionally filtered by email address.\n"
+      operationId: "list_users"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "query"
+        name: "email"
+        description: "Case-insensitive filter on the user's email address. Malformed email returns `400 INVALID_ARGUMENT`."
+        schema:
+          type: "string"
+          format: "email"
+          maxLength: 254
+        style: "form"
+      - in: "query"
+        name: "limit"
+        description: "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`."
+        schema:
+          default: 100
+          type: "integer"
+          minimum: 1
+          maximum: 100
+        style: "form"
+      - in: "query"
+        name: "paginationToken"
+        description: "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`)."
+        schema:
+          type: "string"
+        style: "form"
+      responses:
+        200:
+          description: "A paginated list of users. Role bindings are not included; use `GET /admin/role-bindings` to list them."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserList"
+              examples:
+                paginated-users:
+                  summary: "A page of users"
+                  value:
+                    data:
+                    - email: "alice@example.com"
+                      id: "e2e92523-85dc-4142-b8c2-e681be8b78df"
+                      name: "Alice Example"
+                    pagination:
+                      next: "eyJsYXN0X2lkIjoiZTJlOTI1MjMifQ=="
+                email-filter-match:
+                  summary: "Case-insensitive email filter, found"
+                  value:
+                    data:
+                    - email: "alice@example.com"
+                      id: "e2e92523-85dc-4142-b8c2-e681be8b78df"
+                      name: "Alice Example"
+                    pagination: null
+                email-filter-empty:
+                  summary: "Case-insensitive email filter, no match"
+                  value:
+                    data: []
+                    pagination: null
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                index-metric-validation-error:
+                  summary: "Validation error"
+                  value:
+                    error:
+                      code: "INVALID_ARGUMENT"
+                      message: "Bad request. The request body included invalid request parameters."
+                    status: 400
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/users/{user_id}:
+    get:
+      tags:
+      - "Users"
+      summary: "Get user details"
+      description: "Get a user in the caller's organization by ID."
+      operationId: "fetch_user"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "user_id"
+        description: "User ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        200:
+          description: "The user's details. Role bindings are not included; use `GET /admin/role-bindings` to list the user's roles."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    delete:
+      tags:
+      - "Users"
+      summary: "Remove a user from the organization"
+      description: "Remove a user from the organization and revoke their role bindings; their Pinecone account is not deleted.\n"
+      operationId: "delete_user"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "user_id"
+        description: "User ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        202:
+          description: "User removal request accepted. The user's role bindings are revoked immediately; the user then returns 404, and repeating the request returns 404 as well."
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        409:
+          description: "Conflict. The request conflicts with the persisted state of the resource. Common causes include invariant violations (e.g., removing the last `OrgOwner`), lifecycle-state mismatches (e.g., resending an invite that is not pending), and constraint violations checked against persisted data."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                last-org-owner:
+                  summary: "Cannot delete the last OrgOwner"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last OrgOwner role binding for this organization."
+                    status: 409
+                invite-not-pending:
+                  summary: "Resend rejected: invite is not pending"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "Invite has already been accepted and cannot be resent."
+                    status: 409
+                invite-already-pending:
+                  summary: "Invite rejected: pending invite already exists for this email"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "A pending invite already exists for this email; its ID is 9c8e3528-b9c0-4358-84ce-84c28e91b566."
+                    status: 409
+                already-member:
+                  summary: "Invite rejected: email already belongs to an org member"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "This email already belongs to a member of the organization."
+                    status: 409
+                duplicate-role-binding:
+                  summary: "Role binding rejected: identical binding already exists"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "A role binding with these attributes already exists."
+                    status: 409
+                binding-to-processed-invite:
+                  summary: "Role binding rejected: invite already accepted"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "The invite has already been accepted; manage role bindings on the resulting user instead."
+                    status: 409
+                last-org-membership-binding:
+                  summary: "Cannot remove the last organization-membership binding for a user"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last organization-membership role binding for this user."
+                    status: 409
+                invite-membership-binding:
+                  summary: "Cannot remove the last organization-membership binding for a pending invite"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last organization-membership role binding for a pending invite; delete the invite instead."
+                    status: 409
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/invites:
+    get:
+      tags:
+      - "Invites"
+      summary: "List invites"
+      description: "List pending and expired invites in the caller's organization."
+      operationId: "list_invites"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "query"
+        name: "limit"
+        description: "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`."
+        schema:
+          default: 100
+          type: "integer"
+          minimum: 1
+          maximum: 100
+        style: "form"
+      - in: "query"
+        name: "paginationToken"
+        description: "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`)."
+        schema:
+          type: "string"
+        style: "form"
+      responses:
+        200:
+          description: "A paginated list of pending and expired invites; processed and deleted invites are excluded. To view an invite's role bindings, call `GET /admin/role-bindings` with `principal_type=invite` as a filter."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InviteList"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                index-metric-validation-error:
+                  summary: "Validation error"
+                  value:
+                    error:
+                      code: "INVALID_ARGUMENT"
+                      message: "Bad request. The request body included invalid request parameters."
+                    status: 400
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    post:
+      tags:
+      - "Invites"
+      summary: "Invite a user to the organization"
+      description: "Invite a user to the organization by email and grant their initial role bindings.\n"
+      operationId: "create_invite"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      requestBody:
+        description: "The invite to create."
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInviteRequest"
+            examples:
+              invite-org-member:
+                summary: "Invite as OrgMember"
+                value:
+                  email: "newhire@acme.com"
+                  role_bindings:
+                  - resource_type: "organization"
+                    role: "OrgMember"
+              invite-org-and-project:
+                summary: "Invite with org and project roles"
+                value:
+                  email: "newhire@acme.com"
+                  role_bindings:
+                  - resource_type: "organization"
+                    role: "OrgMember"
+                  - resource_id: "a2f7dddb-1597-4eff-9f71-535fde243f58"
+                    resource_type: "project"
+                    role: "ProjectMember"
+        required: true
+      responses:
+        200:
+          description: "Invite created and email sent. The invite's role bindings are first-class; view or change them through the role-binding endpoints."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invite"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                index-metric-validation-error:
+                  summary: "Validation error"
+                  value:
+                    error:
+                      code: "INVALID_ARGUMENT"
+                      message: "Bad request. The request body included invalid request parameters."
+                    status: 400
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        409:
+          description: "Conflict. The request conflicts with the persisted state of the resource. Common causes include invariant violations (e.g., removing the last `OrgOwner`), lifecycle-state mismatches (e.g., resending an invite that is not pending), and constraint violations checked against persisted data."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                last-org-owner:
+                  summary: "Cannot delete the last OrgOwner"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last OrgOwner role binding for this organization."
+                    status: 409
+                invite-not-pending:
+                  summary: "Resend rejected: invite is not pending"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "Invite has already been accepted and cannot be resent."
+                    status: 409
+                invite-already-pending:
+                  summary: "Invite rejected: pending invite already exists for this email"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "A pending invite already exists for this email; its ID is 9c8e3528-b9c0-4358-84ce-84c28e91b566."
+                    status: 409
+                already-member:
+                  summary: "Invite rejected: email already belongs to an org member"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "This email already belongs to a member of the organization."
+                    status: 409
+                duplicate-role-binding:
+                  summary: "Role binding rejected: identical binding already exists"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "A role binding with these attributes already exists."
+                    status: 409
+                binding-to-processed-invite:
+                  summary: "Role binding rejected: invite already accepted"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "The invite has already been accepted; manage role bindings on the resulting user instead."
+                    status: 409
+                last-org-membership-binding:
+                  summary: "Cannot remove the last organization-membership binding for a user"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last organization-membership role binding for this user."
+                    status: 409
+                invite-membership-binding:
+                  summary: "Cannot remove the last organization-membership binding for a pending invite"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last organization-membership role binding for a pending invite; delete the invite instead."
+                    status: 409
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/invites/{invite_id}:
+    get:
+      tags:
+      - "Invites"
+      summary: "Get invite details"
+      description: "Get an invite in the caller's organization by ID."
+      operationId: "fetch_invite"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "invite_id"
+        description: "Invite ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        200:
+          description: "The invite details. To view this invite's role bindings, call `GET /admin/role-bindings` with `principal_type=invite` as a filter."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invite"
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    delete:
+      tags:
+      - "Invites"
+      summary: "Delete an invite"
+      description: "Delete a pending or expired invite and its role bindings; to remove an accepted user, delete the user instead.\n"
+      operationId: "delete_invite"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "invite_id"
+        description: "Invite ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        202:
+          description: "Invite deletion request accepted. The invite and its role bindings are removed immediately; the invite then returns 404, and repeating the request returns 404 as well."
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        409:
+          description: "Conflict. The request conflicts with the persisted state of the resource. Common causes include invariant violations (e.g., removing the last `OrgOwner`), lifecycle-state mismatches (e.g., resending an invite that is not pending), and constraint violations checked against persisted data."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                last-org-owner:
+                  summary: "Cannot delete the last OrgOwner"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last OrgOwner role binding for this organization."
+                    status: 409
+                invite-not-pending:
+                  summary: "Resend rejected: invite is not pending"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "Invite has already been accepted and cannot be resent."
+                    status: 409
+                invite-already-pending:
+                  summary: "Invite rejected: pending invite already exists for this email"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "A pending invite already exists for this email; its ID is 9c8e3528-b9c0-4358-84ce-84c28e91b566."
+                    status: 409
+                already-member:
+                  summary: "Invite rejected: email already belongs to an org member"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "This email already belongs to a member of the organization."
+                    status: 409
+                duplicate-role-binding:
+                  summary: "Role binding rejected: identical binding already exists"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "A role binding with these attributes already exists."
+                    status: 409
+                binding-to-processed-invite:
+                  summary: "Role binding rejected: invite already accepted"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "The invite has already been accepted; manage role bindings on the resulting user instead."
+                    status: 409
+                last-org-membership-binding:
+                  summary: "Cannot remove the last organization-membership binding for a user"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last organization-membership role binding for this user."
+                    status: 409
+                invite-membership-binding:
+                  summary: "Cannot remove the last organization-membership binding for a pending invite"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last organization-membership role binding for a pending invite; delete the invite instead."
+                    status: 409
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/invites/{invite_id}/resend:
+    post:
+      tags:
+      - "Invites"
+      summary: "Resend an invite email"
+      description: "Resend the invite email and extend its expiration to 7 days from now; limited to 100 emails per hour per organization.\n"
+      operationId: "resend_invite"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "invite_id"
+        description: "Invite ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        200:
+          description: "Invite resent successfully. The invite returns to a pending status and its expiration is extended to 7 days from now."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invite"
+              examples:
+                resent:
+                  summary: "Resend succeeded"
+                  value:
+                    created_at: 2026-05-14 22:14:00 +02:00
+                    email: "newhire@acme.com"
+                    expires_at: 2026-05-28 22:14:00 +02:00
+                    id: "9c8e3528-b9c0-4358-84ce-84c28e91b566"
+                    processed_at: null
+                    status: "pending"
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        409:
+          description: "Conflict. The request conflicts with the persisted state of the resource. Common causes include invariant violations (e.g., removing the last `OrgOwner`), lifecycle-state mismatches (e.g., resending an invite that is not pending), and constraint violations checked against persisted data."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                last-org-owner:
+                  summary: "Cannot delete the last OrgOwner"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last OrgOwner role binding for this organization."
+                    status: 409
+                invite-not-pending:
+                  summary: "Resend rejected: invite is not pending"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "Invite has already been accepted and cannot be resent."
+                    status: 409
+                invite-already-pending:
+                  summary: "Invite rejected: pending invite already exists for this email"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "A pending invite already exists for this email; its ID is 9c8e3528-b9c0-4358-84ce-84c28e91b566."
+                    status: 409
+                already-member:
+                  summary: "Invite rejected: email already belongs to an org member"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "This email already belongs to a member of the organization."
+                    status: 409
+                duplicate-role-binding:
+                  summary: "Role binding rejected: identical binding already exists"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "A role binding with these attributes already exists."
+                    status: 409
+                binding-to-processed-invite:
+                  summary: "Role binding rejected: invite already accepted"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "The invite has already been accepted; manage role bindings on the resulting user instead."
+                    status: 409
+                last-org-membership-binding:
+                  summary: "Cannot remove the last organization-membership binding for a user"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last organization-membership role binding for this user."
+                    status: 409
+                invite-membership-binding:
+                  summary: "Cannot remove the last organization-membership binding for a pending invite"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last organization-membership role binding for a pending invite; delete the invite instead."
+                    status: 409
+        429:
+          description: "Rate limit exceeded. The org has sent the maximum number of invite emails for the current hour."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/service-accounts:
+    get:
+      tags:
+      - "Service Accounts"
+      summary: "List service accounts"
+      description: "List service accounts in the caller's organization."
+      operationId: "list_service_accounts"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "query"
+        name: "limit"
+        description: "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`."
+        schema:
+          default: 100
+          type: "integer"
+          minimum: 1
+          maximum: 100
+        style: "form"
+      - in: "query"
+        name: "paginationToken"
+        description: "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`)."
+        schema:
+          type: "string"
+        style: "form"
+      responses:
+        200:
+          description: "A paginated list of service accounts. Role bindings are not included; use `GET /admin/role-bindings` to list them."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceAccountList"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                index-metric-validation-error:
+                  summary: "Validation error"
+                  value:
+                    error:
+                      code: "INVALID_ARGUMENT"
+                      message: "Bad request. The request body included invalid request parameters."
+                    status: 400
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    post:
+      tags:
+      - "Service Accounts"
+      summary: "Create a service account"
+      description: "Create a service account with optional initial role bindings; the client secret is returned only once.\n"
+      operationId: "create_service_account"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      requestBody:
+        description: "The service account to create. Repeating this request may create duplicate service accounts."
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateServiceAccountRequest"
+            examples:
+              ci-service-account:
+                summary: "Service account with project bindings"
+                value:
+                  name: "ci-prod"
+                  role_bindings:
+                  - resource_id: "a2f7dddb-1597-4eff-9f71-535fde243f58"
+                    resource_type: "project"
+                    role: "DataPlaneEditor"
+              org-service-account:
+                summary: "Service account with an organization binding"
+                value:
+                  name: "org-automation"
+                  role_bindings:
+                  - resource_type: "organization"
+                    role: "OrgManager"
+        required: true
+      responses:
+        201:
+          description: "Service account created. Role bindings are not returned here; use `GET /admin/role-bindings` to list them."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceAccountWithSecret"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                index-metric-validation-error:
+                  summary: "Validation error"
+                  value:
+                    error:
+                      code: "INVALID_ARGUMENT"
+                      message: "Bad request. The request body included invalid request parameters."
+                    status: 400
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/service-accounts/{service_account_id}:
+    get:
+      tags:
+      - "Service Accounts"
+      summary: "Get service account details"
+      description: "Get a service account by ID; the client secret is returned only from create and rotate-secret requests.\n"
+      operationId: "fetch_service_account"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "service_account_id"
+        description: "The unique identifier of the service account."
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        200:
+          description: "The service account details (without the client secret). Role bindings are not included; use `GET /admin/role-bindings` to list them."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceAccount"
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    delete:
+      tags:
+      - "Service Accounts"
+      summary: "Delete a service account"
+      description: "Delete a service account and its role bindings; tokens it minted are revoked within a few seconds.\n"
+      operationId: "delete_service_account"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "service_account_id"
+        description: "The unique identifier of the service account."
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        202:
+          description: "Service account deletion request accepted. The service account and its role bindings are removed immediately; it then returns 404, and repeating the request returns 404 as well."
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    patch:
+      tags:
+      - "Service Accounts"
+      summary: "Update a service account"
+      description: "Update a service account's name; role bindings are managed through the role-binding endpoints.\n"
+      operationId: "update_service_account"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "service_account_id"
+        description: "The unique identifier of the service account."
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      requestBody:
+        description: "Updated metadata for the service account."
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateServiceAccountRequest"
+        required: true
+      responses:
+        200:
+          description: "Service account updated successfully."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceAccount"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                index-metric-validation-error:
+                  summary: "Validation error"
+                  value:
+                    error:
+                      code: "INVALID_ARGUMENT"
+                      message: "Bad request. The request body included invalid request parameters."
+                    status: 400
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/service-accounts/{service_account_id}/rotate-secret:
+    post:
+      tags:
+      - "Service Accounts"
+      summary: "Rotate a service account's OAuth client secret"
+      description: "Rotate a service account's OAuth client secret; the previous secret and its tokens are revoked within seconds and the new secret is returned only once.\n"
+      operationId: "rotate_service_account_secret"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "service_account_id"
+        description: "The unique identifier of the service account."
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        200:
+          description: "Secret rotated successfully. The new `client_secret` is in the response body and is returned exactly once. Repeating the request rotates again and invalidates the previously returned secret."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceAccountWithSecret"
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/role-bindings:
+    get:
+      tags:
+      - "Role Bindings"
+      summary: "List role bindings"
+      description: "List role bindings in the caller's organization, optionally filtered by principal, resource, and role.\n"
+      operationId: "list_role_bindings"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "query"
+        name: "principal_type"
+        description: "Filter by principal type. Required when `principal_id` is set."
+        schema:
+          example: "service_account"
+          description: "The kind of principal that receives permissions from a role binding.\nPossible values: `user`, `service_account`, `api_key`, `invite`."
+          x-enum:
+          - "user"
+          - "service_account"
+          - "api_key"
+          - "invite"
+          type: "string"
+        style: "form"
+      - in: "query"
+        name: "principal_id"
+        description: "Filter by principal ID. Requires `principal_type`. The ID is a UUID for all principal types (user, service account, or invite)."
+        schema:
+          type: "string"
+        style: "form"
+      - in: "query"
+        name: "resource_type"
+        description: "Filter by resource type. Required when `resource_id` is set."
+        schema:
+          example: "project"
+          description: "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`."
+          x-enum:
+          - "organization"
+          - "project"
+          type: "string"
+        style: "form"
+      - in: "query"
+        name: "resource_id"
+        description: "Filter by resource ID. Requires `resource_type`."
+        schema:
+          type: "string"
+        style: "form"
+      - in: "query"
+        name: "role"
+        description: "Filter by role."
+        schema:
+          example: "ProjectOwner"
+          description: "A role assigned to a principal at a resource scope."
+          x-enum:
+          - "OrgOwner"
+          - "OrgManager"
+          - "OrgMember"
+          - "OrgBillingAdmin"
+          - "ProjectOwner"
+          - "ProjectManager"
+          - "ProjectMember"
+          - "ProjectEditor"
+          - "ProjectViewer"
+          - "ControlPlaneEditor"
+          - "ControlPlaneViewer"
+          - "DataPlaneEditor"
+          - "DataPlaneViewer"
+          type: "string"
+        style: "form"
+      - in: "query"
+        name: "limit"
+        description: "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`."
+        schema:
+          default: 100
+          type: "integer"
+          minimum: 1
+          maximum: 100
+        style: "form"
+      - in: "query"
+        name: "paginationToken"
+        description: "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`)."
+        schema:
+          type: "string"
+        style: "form"
+      responses:
+        200:
+          description: "A paginated list of role bindings. When multiple filters are supplied, they are combined with AND."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleBindingList"
+              examples:
+                org-scope-bindings:
+                  summary: "Org-scoped bindings"
+                  value:
+                    data:
+                    - created_at: 2026-04-10 17:23:00 +02:00
+                      id: "5a86ed21-daf1-448d-a9ca-f92a0fd839d3"
+                      principal_id: "e2e92523-85dc-4142-b8c2-e681be8b78df"
+                      principal_type: "user"
+                      resource_id: "-ExampleOrgId0000000"
+                      resource_type: "organization"
+                      role: "OrgMember"
+                    pagination:
+                      next: "eyJsYXN0X2lkIjoiNWE4NmVkMjEifQ=="
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                index-metric-validation-error:
+                  summary: "Validation error"
+                  value:
+                    error:
+                      code: "INVALID_ARGUMENT"
+                      message: "Bad request. The request body included invalid request parameters."
+                    status: 400
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    post:
+      tags:
+      - "Role Bindings"
+      summary: "Create a role binding"
+      description: "Grant a role to a principal at an organization or project scope.\n"
+      operationId: "create_role_binding"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      requestBody:
+        description: "Principal, resource scope, and role to bind."
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRoleBindingRequest"
+            examples:
+              bind-org-member:
+                summary: "Bind OrgMember to a user (organization scope)"
+                value:
+                  principal_id: "e2e92523-85dc-4142-b8c2-e681be8b78df"
+                  principal_type: "user"
+                  resource_type: "organization"
+                  role: "OrgMember"
+              bind-org-member-to-invite:
+                summary: "Bind OrgMember to an invite (organization scope)"
+                value:
+                  principal_id: "9c8e3528-b9c0-4358-84ce-84c28e91b566"
+                  principal_type: "invite"
+                  resource_type: "organization"
+                  role: "OrgMember"
+              bind-data-plane-editor:
+                summary: "Bind DataPlaneEditor to a service account (project scope)"
+                value:
+                  principal_id: "f8a3b2c1-4d5e-6f7a-8b9c-0d1e2f3a4b5c"
+                  principal_type: "service_account"
+                  resource_id: "a2f7dddb-1597-4eff-9f71-535fde243f58"
+                  resource_type: "project"
+                  role: "DataPlaneEditor"
+        required: true
+      responses:
+        200:
+          description: "Role binding created."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleBinding"
+        400:
+          description: "Bad request. The request body included invalid request parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                index-metric-validation-error:
+                  summary: "Validation error"
+                  value:
+                    error:
+                      code: "INVALID_ARGUMENT"
+                      message: "Bad request. The request body included invalid request parameters."
+                    status: 400
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        409:
+          description: "Conflict. The request conflicts with the persisted state of the resource. Common causes include invariant violations (e.g., removing the last `OrgOwner`), lifecycle-state mismatches (e.g., resending an invite that is not pending), and constraint violations checked against persisted data."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                last-org-owner:
+                  summary: "Cannot delete the last OrgOwner"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last OrgOwner role binding for this organization."
+                    status: 409
+                invite-not-pending:
+                  summary: "Resend rejected: invite is not pending"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "Invite has already been accepted and cannot be resent."
+                    status: 409
+                invite-already-pending:
+                  summary: "Invite rejected: pending invite already exists for this email"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "A pending invite already exists for this email; its ID is 9c8e3528-b9c0-4358-84ce-84c28e91b566."
+                    status: 409
+                already-member:
+                  summary: "Invite rejected: email already belongs to an org member"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "This email already belongs to a member of the organization."
+                    status: 409
+                duplicate-role-binding:
+                  summary: "Role binding rejected: identical binding already exists"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "A role binding with these attributes already exists."
+                    status: 409
+                binding-to-processed-invite:
+                  summary: "Role binding rejected: invite already accepted"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "The invite has already been accepted; manage role bindings on the resulting user instead."
+                    status: 409
+                last-org-membership-binding:
+                  summary: "Cannot remove the last organization-membership binding for a user"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last organization-membership role binding for this user."
+                    status: 409
+                invite-membership-binding:
+                  summary: "Cannot remove the last organization-membership binding for a pending invite"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last organization-membership role binding for a pending invite; delete the invite instead."
+                    status: 409
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+  /admin/role-bindings/{role_binding_id}:
+    get:
+      tags:
+      - "Role Bindings"
+      summary: "Get role binding details"
+      description: "Get a role binding in the caller's organization by ID.\n"
+      operationId: "fetch_role_binding"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "role_binding_id"
+        description: "Role binding ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        200:
+          description: "The role binding."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleBinding"
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+    delete:
+      tags:
+      - "Role Bindings"
+      summary: "Delete a role binding"
+      description: "Delete a role binding; permissions are revoked when the deletion completes.\n"
+      operationId: "delete_role_binding"
+      parameters:
+      - in: "header"
+        name: "X-Pinecone-Api-Version"
+        description: "Required date-based version header"
+        required: true
+        schema:
+          default: "2026-07"
+          type: "string"
+        style: "simple"
+      - in: "path"
+        name: "role_binding_id"
+        description: "Role binding ID"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        style: "simple"
+      responses:
+        202:
+          description: "Role binding deletion accepted. The binding is removed immediately; it then returns 404, and repeating the request returns 404 as well."
+        401:
+          description: "Unauthorized. Possible causes: Invalid API key."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unauthorized:
+                  summary: "Unauthorized"
+                  value:
+                    error:
+                      code: "UNAUTHENTICATED"
+                      message: "Invalid API key."
+                    status: 401
+        403:
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        409:
+          description: "Conflict. The request conflicts with the persisted state of the resource. Common causes include invariant violations (e.g., removing the last `OrgOwner`), lifecycle-state mismatches (e.g., resending an invite that is not pending), and constraint violations checked against persisted data."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                last-org-owner:
+                  summary: "Cannot delete the last OrgOwner"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last OrgOwner role binding for this organization."
+                    status: 409
+                invite-not-pending:
+                  summary: "Resend rejected: invite is not pending"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "Invite has already been accepted and cannot be resent."
+                    status: 409
+                invite-already-pending:
+                  summary: "Invite rejected: pending invite already exists for this email"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "A pending invite already exists for this email; its ID is 9c8e3528-b9c0-4358-84ce-84c28e91b566."
+                    status: 409
+                already-member:
+                  summary: "Invite rejected: email already belongs to an org member"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "This email already belongs to a member of the organization."
+                    status: 409
+                duplicate-role-binding:
+                  summary: "Role binding rejected: identical binding already exists"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "A role binding with these attributes already exists."
+                    status: 409
+                binding-to-processed-invite:
+                  summary: "Role binding rejected: invite already accepted"
+                  value:
+                    error:
+                      code: "ALREADY_EXISTS"
+                      message: "The invite has already been accepted; manage role bindings on the resulting user instead."
+                    status: 409
+                last-org-membership-binding:
+                  summary: "Cannot remove the last organization-membership binding for a user"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last organization-membership role binding for this user."
+                    status: 409
+                invite-membership-binding:
+                  summary: "Cannot remove the last organization-membership binding for a pending invite"
+                  value:
+                    error:
+                      code: "ABORTED"
+                      message: "Cannot delete the last organization-membership role binding for a pending invite; delete the invite instead."
+                    status: 409
+        4XX:
+          description: "Unexpected error on request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internal-server-error:
+                  summary: "Internal server error"
+                  value:
+                    error:
+                      code: "UNKNOWN"
+                      message: "Internal server error"
+                    status: 500
+components:
+  schemas:
+    APIKey:
+      description: "The details of an API key, without the secret."
+      type: "object"
+      properties:
+        id:
+          description: "The unique ID of the API key."
+          type: "string"
+          format: "uuid"
+        name:
+          description: "The name of the API key."
+          type: "string"
+        project_id:
+          description: "The ID of the project containing the API key."
+          type: "string"
+          format: "uuid"
+        roles:
+          description: "The roles assigned to the API key."
+          type: "array"
+          items:
+            example: "ProjectEditor"
+            description: "A role that can be assigned to an API key.\nPossible values: `ProjectEditor`, `ProjectViewer`, `ControlPlaneEditor`, `ControlPlaneViewer`, `DataPlaneEditor`, or `DataPlaneViewer`."
+            x-enum:
+            - "ProjectEditor"
+            - "ProjectViewer"
+            - "ControlPlaneEditor"
+            - "ControlPlaneViewer"
+            - "DataPlaneEditor"
+            - "DataPlaneViewer"
+            type: "string"
+      required:
+      - "id"
+      - "name"
+      - "project_id"
+      - "roles"
+    APIKeyWithSecret:
+      description: "The details of an API key, including the secret. Only returned on API key creation.\n"
+      type: "object"
+      properties:
+        key:
+          $ref: "#/components/schemas/APIKey"
+        value:
+          description: "The value to use as an API key. New keys will have the format `\"pckey_<public-label>_<unique-key>\"`. The entire string should be used when authenticating.\n"
+          type: "string"
+      required:
+      - "key"
+      - "value"
+    CreateAPIKeyRequest:
+      type: "object"
+      properties:
+        name:
+          example: "devkey"
+          description: "The name of the API key. The name must be 1-80 characters long.\n"
+          type: "string"
+          minLength: 1
+          maxLength: 80
+        roles:
+          description: "The roles to create the API key with. Default is `[\"ProjectEditor\"]`.\n"
+          type: "array"
+          items:
+            example: "ProjectEditor"
+            description: "A role that can be assigned to an API key.\nPossible values: `ProjectEditor`, `ProjectViewer`, `ControlPlaneEditor`, `ControlPlaneViewer`, `DataPlaneEditor`, or `DataPlaneViewer`."
+            x-enum:
+            - "ProjectEditor"
+            - "ProjectViewer"
+            - "ControlPlaneEditor"
+            - "ControlPlaneViewer"
+            - "DataPlaneEditor"
+            - "DataPlaneViewer"
+            type: "string"
+      required:
+      - "name"
+    CreateInviteRequest:
+      type: "object"
+      properties:
+        email:
+          example: "newhire@acme.com"
+          description: "The email address to invite."
+          type: "string"
+          format: "email"
+          maxLength: 254
+        role_bindings:
+          description: "Role bindings for the invitee. Must include at least one `organization`-scoped binding that grants organization membership (`OrgOwner`, `OrgManager`, `OrgBillingAdmin`, or `OrgMember`); `project`-scoped bindings are optional. Not returned in the response."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/RoleBindingInput"
+          minItems: 1
+          maxItems: 100
+      required:
+      - "email"
+      - "role_bindings"
+    CreateProjectRequest:
+      type: "object"
+      properties:
+        name:
+          example: "chatbot-prod"
+          description: "The name of the new project."
+          type: "string"
+          minLength: 1
+          maxLength: 512
+        max_pods:
+          description: "The maximum number of Pods that can be created in the project. Default is `0` (serverless only).\n"
+          type: "integer"
+        force_encryption_with_cmek:
+          description: "Whether to force encryption with a customer-managed encryption key (CMEK). Default is `false`.\n"
+          type: "boolean"
+      required:
+      - "name"
+    CreateRoleBindingRequest:
+      type: "object"
+      properties:
+        principal_type:
+          example: "service_account"
+          description: "The kind of principal that receives permissions from a role binding.\nPossible values: `user`, `service_account`, `api_key`, `invite`."
+          x-enum:
+          - "user"
+          - "service_account"
+          - "api_key"
+          - "invite"
+          type: "string"
+        principal_id:
+          example: "e2e92523-85dc-4142-b8c2-e681be8b78df"
+          description: "Principal ID. Format depends on `principal_type`."
+          type: "string"
+        resource_type:
+          example: "project"
+          description: "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`."
+          x-enum:
+          - "organization"
+          - "project"
+          type: "string"
+        resource_id:
+          example: "a2f7dddb-1597-4eff-9f71-535fde243f58"
+          description: "Project UUID. Required when `resource_type` is `project`; omit for `organization` scope."
+          type: "string"
+        role:
+          example: "ProjectOwner"
+          description: "A role assigned to a principal at a resource scope."
+          x-enum:
+          - "OrgOwner"
+          - "OrgManager"
+          - "OrgMember"
+          - "OrgBillingAdmin"
+          - "ProjectOwner"
+          - "ProjectManager"
+          - "ProjectMember"
+          - "ProjectEditor"
+          - "ProjectViewer"
+          - "ControlPlaneEditor"
+          - "ControlPlaneViewer"
+          - "DataPlaneEditor"
+          - "DataPlaneViewer"
+          type: "string"
+      required:
+      - "principal_type"
+      - "principal_id"
+      - "resource_type"
+      - "role"
+    CreateServiceAccountRequest:
+      type: "object"
+      properties:
+        name:
+          example: "ci-prod"
+          description: "The human-readable name of the service account."
+          type: "string"
+          minLength: 1
+          maxLength: 80
+        role_bindings:
+          description: "Optional initial role bindings. Omitting the field or passing an empty array creates the service account with no role bindings; roles can be added later via the role binding endpoints. A service account may be granted any organization- or project-scoped role. Not returned in the response."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/RoleBindingInput"
+          minItems: 0
+          maxItems: 100
+      required:
+      - "name"
+    ErrorResponse:
+      example:
+        error:
+          code: "QUOTA_EXCEEDED"
+          message: "The index exceeds the project quota of 5 pods by 2 pods. Upgrade your account or change the project settings to increase the quota."
+        status: 429
+      description: "The response shape used for all error responses."
+      type: "object"
+      properties:
+        status:
+          example: 500
+          description: "The HTTP status code of the error."
+          type: "integer"
+        error:
+          example:
+            code: "INVALID_ARGUMENT"
+            message: "Index name must contain only lowercase alphanumeric characters or hyphens, and must not begin or end with a hyphen."
+          description: "Detailed information about the error that occurred."
+          type: "object"
+          properties:
+            code:
+              description: "The error code.\nPossible values: `OK`, `UNKNOWN`, `INVALID_ARGUMENT`, `DEADLINE_EXCEEDED`, `QUOTA_EXCEEDED`, `NOT_FOUND`, `ALREADY_EXISTS`, `PERMISSION_DENIED`, `UNAUTHENTICATED`, `RESOURCE_EXHAUSTED`, `FAILED_PRECONDITION`, `ABORTED`, `OUT_OF_RANGE`, `UNIMPLEMENTED`, `INTERNAL`, `UNAVAILABLE`, `DATA_LOSS`, `FORBIDDEN`, or `UNPROCESSABLE_ENTITY`.        "
+              x-enum:
+              - "OK"
+              - "UNKNOWN"
+              - "INVALID_ARGUMENT"
+              - "DEADLINE_EXCEEDED"
+              - "QUOTA_EXCEEDED"
+              - "NOT_FOUND"
+              - "ALREADY_EXISTS"
+              - "PERMISSION_DENIED"
+              - "UNAUTHENTICATED"
+              - "RESOURCE_EXHAUSTED"
+              - "FAILED_PRECONDITION"
+              - "ABORTED"
+              - "OUT_OF_RANGE"
+              - "UNIMPLEMENTED"
+              - "INTERNAL"
+              - "UNAVAILABLE"
+              - "DATA_LOSS"
+              - "FORBIDDEN"
+              - "UNPROCESSABLE_ENTITY"
+              type: "string"
+            message:
+              example: "Index name must contain only lowercase alphanumeric characters or hyphens, and must not begin or end with a hyphen."
+              type: "string"
+            details:
+              description: "Additional information about the error. This field is not guaranteed to be present."
+              type: "object"
+          required:
+          - "code"
+          - "message"
+      required:
+      - "status"
+      - "error"
+    Invite:
+      example:
+        created_at: 2026-04-14 22:00:00 +02:00
+        email: "newhire@acme.com"
+        expires_at: 2026-05-21 05:00:00 +02:00
+        id: "9c8e3528-b9c0-4358-84ce-84c28e91b566"
+        processed_at: null
+        status: "pending"
+      description: "An invitation to join the organization."
+      type: "object"
+      properties:
+        id:
+          description: "The unique ID of the invite."
+          type: "string"
+          format: "uuid"
+        email:
+          description: "The email address the invite was sent to."
+          type: "string"
+          format: "email"
+        status:
+          example: "pending"
+          description: "The lifecycle status of an invite.\nPossible values: `pending`, `expired`, `processed`. List endpoints return only `pending` and `expired` invites; `processed` is returned only when fetching a single invite by ID."
+          x-enum:
+          - "pending"
+          - "expired"
+          - "processed"
+          type: "string"
+        expires_at:
+          nullable: true
+          description: "When the invite expires if not accepted. Default TTL is 7 days. Resending the invite extends this to now plus 7 days. `null` if the invite does not expire."
+          type: "string"
+          format: "date-time"
+        processed_at:
+          nullable: true
+          description: "The date and time the invite was accepted. `null` or omitted while the invite is still pending or expired."
+          type: "string"
+          format: "date-time"
+        created_at:
+          description: "The date and time the invite was created."
+          type: "string"
+          format: "date-time"
+      required:
+      - "id"
+      - "email"
+      - "status"
+      - "created_at"
+    InviteList:
+      example:
+        data:
+        - created_at: 2026-04-14 22:00:00 +02:00
+          email: "newhire@acme.com"
+          expires_at: 2026-05-21 05:00:00 +02:00
+          id: "9c8e3528-b9c0-4358-84ce-84c28e91b566"
+          processed_at: null
+          status: "pending"
+        pagination:
+          next: "eyJsYXN0X2lkIjoiOWM4ZTM1MjgifQ=="
+      description: "A paginated list of invites in the organization."
+      type: "object"
+      properties:
+        data:
+          description: "The page of invites."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Invite"
+        pagination:
+          nullable: true
+          description: "Cursor envelope for the next page. `null` (or absent) on the final page of results."
+          type: "object"
+          allOf:
+          - example:
+              next: "eyJsYXN0X2lkIjogImluZGV4LTQifQ=="
+            description: "Pagination metadata for list responses. When `next` is present, pass it as `paginationToken` on the following request."
+            x-component-name: "PaginationResponse"
+            type: "object"
+            properties:
+              next:
+                example: "eyJsYXN0X2lkIjogImluZGV4LTQifQ=="
+                description: "Opaque cursor for the next page. Do not parse or construct. Invalid or expired tokens return `400`."
+                type: "string"
+      required:
+      - "data"
+    ListApiKeysResponse:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/APIKey"
+      required:
+      - "data"
+    Organization:
+      description: "The details of an organization."
+      type: "object"
+      properties:
+        id:
+          description: "The unique ID of the organization."
+          type: "string"
+        name:
+          description: "The name of the organization."
+          type: "string"
+          minLength: 1
+          maxLength: 512
+        plan:
+          description: "The current plan the organization is on."
+          x-enum:
+          - "Free"
+          - "Standard"
+          - "Enterprise"
+          - "Dedicated"
+          type: "string"
+        payment_status:
+          description: "The current payment status of the organization."
+          x-enum:
+          - "Active"
+          - "PaymentPending"
+          - "PastDue"
+          - "Restricted"
+          - "Suspended"
+          - "Deactivated"
+          type: "string"
+        created_at:
+          description: "The date and time when the organization was created."
+          type: "string"
+          format: "date-time"
+        support_tier:
+          description: "The support tier of the organization."
+          x-enum:
+          - "Free"
+          - "Developer"
+          - "Pro"
+          - "Enterprise"
+          type: "string"
+      required:
+      - "id"
+      - "name"
+      - "plan"
+      - "payment_status"
+      - "created_at"
+      - "support_tier"
+    OrganizationList:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Organization"
+      required:
+      - "data"
+    Project:
+      description: "The details of a project."
+      type: "object"
+      properties:
+        id:
+          description: "The unique ID of the project."
+          type: "string"
+          format: "uuid"
+        name:
+          description: "The name of the project."
+          type: "string"
+          minLength: 1
+          maxLength: 512
+        max_pods:
+          description: "The maximum number of Pods that can be created in the project."
+          type: "integer"
+        force_encryption_with_cmek:
+          description: "Whether to force encryption with a customer-managed encryption key (CMEK)."
+          type: "boolean"
+        organization_id:
+          description: "The unique ID of the organization that the project belongs to."
+          type: "string"
+        created_at:
+          description: "The date and time when the project was created."
+          type: "string"
+          format: "date-time"
+      required:
+      - "id"
+      - "name"
+      - "max_pods"
+      - "force_encryption_with_cmek"
+      - "organization_id"
+    ProjectList:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Project"
+      required:
+      - "data"
+    RoleBinding:
+      example:
+        created_at: 2026-04-10 17:23:00 +02:00
+        id: "9a8e3528-b9c0-4358-84ce-84c28e91b566"
+        principal_id: "f8a3b2c1-4d5e-6f7a-8b9c-0d1e2f3a4b5c"
+        principal_type: "service_account"
+        resource_id: "a2f7dddb-1597-4eff-9f71-535fde243f58"
+        resource_type: "project"
+        role: "DataPlaneEditor"
+      description: "Grants a `role` to a `principal` at a `resource` scope."
+      type: "object"
+      properties:
+        id:
+          description: "The unique ID of the role binding."
+          type: "string"
+          format: "uuid"
+        principal_type:
+          example: "service_account"
+          description: "The kind of principal that receives permissions from a role binding.\nPossible values: `user`, `service_account`, `api_key`, `invite`."
+          x-enum:
+          - "user"
+          - "service_account"
+          - "api_key"
+          - "invite"
+          type: "string"
+        principal_id:
+          example: "e2e92523-85dc-4142-b8c2-e681be8b78df"
+          description: "The principal's ID. A UUID for all principal types (`user`, `service_account`, `api_key`, `invite`)."
+          type: "string"
+        resource_type:
+          example: "project"
+          description: "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`."
+          x-enum:
+          - "organization"
+          - "project"
+          type: "string"
+        resource_id:
+          description: "The organization or project that the binding is scoped to."
+          type: "string"
+        role:
+          example: "ProjectOwner"
+          description: "A role assigned to a principal at a resource scope."
+          x-enum:
+          - "OrgOwner"
+          - "OrgManager"
+          - "OrgMember"
+          - "OrgBillingAdmin"
+          - "ProjectOwner"
+          - "ProjectManager"
+          - "ProjectMember"
+          - "ProjectEditor"
+          - "ProjectViewer"
+          - "ControlPlaneEditor"
+          - "ControlPlaneViewer"
+          - "DataPlaneEditor"
+          - "DataPlaneViewer"
+          type: "string"
+        created_at:
+          description: "When the role binding was created."
+          type: "string"
+          format: "date-time"
+      required:
+      - "id"
+      - "principal_type"
+      - "principal_id"
+      - "resource_type"
+      - "resource_id"
+      - "role"
+      - "created_at"
+    RoleBindingInput:
+      description: "A role to grant to the principal being created. `resource_type` selects the binding scope and acts as the tag for the entry.\nFor `organization` scope, omit `resource_id`; the binding applies to the principal's organization (inferred from the request context). For `project` scope, `resource_id` is required and must be the project UUID."
+      type: "object"
+      properties:
+        resource_type:
+          example: "project"
+          description: "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`."
+          x-enum:
+          - "organization"
+          - "project"
+          type: "string"
+        resource_id:
+          description: "Project UUID. Required when `resource_type` is `project`; omit for `organization` scope."
+          type: "string"
+        role:
+          example: "ProjectOwner"
+          description: "A role assigned to a principal at a resource scope."
+          x-enum:
+          - "OrgOwner"
+          - "OrgManager"
+          - "OrgMember"
+          - "OrgBillingAdmin"
+          - "ProjectOwner"
+          - "ProjectManager"
+          - "ProjectMember"
+          - "ProjectEditor"
+          - "ProjectViewer"
+          - "ControlPlaneEditor"
+          - "ControlPlaneViewer"
+          - "DataPlaneEditor"
+          - "DataPlaneViewer"
+          type: "string"
+      required:
+      - "resource_type"
+      - "role"
+    RoleBindingList:
+      example:
+        data:
+        - created_at: 2026-04-10 17:23:00 +02:00
+          id: "9a8e3528-b9c0-4358-84ce-84c28e91b566"
+          principal_id: "f8a3b2c1-4d5e-6f7a-8b9c-0d1e2f3a4b5c"
+          principal_type: "service_account"
+          resource_id: "a2f7dddb-1597-4eff-9f71-535fde243f58"
+          resource_type: "project"
+          role: "DataPlaneEditor"
+        pagination:
+          next: "eyJsYXN0X2lkIjoiOWE4ZTM1MjgifQ=="
+      description: "A paginated list of role bindings."
+      type: "object"
+      properties:
+        data:
+          description: "The page of role bindings."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/RoleBinding"
+        pagination:
+          nullable: true
+          description: "Cursor envelope for the next page. `null` (or absent) on the final page of results."
+          type: "object"
+          allOf:
+          - example:
+              next: "eyJsYXN0X2lkIjogImluZGV4LTQifQ=="
+            description: "Pagination metadata for list responses. When `next` is present, pass it as `paginationToken` on the following request."
+            x-component-name: "PaginationResponse"
+            type: "object"
+            properties:
+              next:
+                example: "eyJsYXN0X2lkIjogImluZGV4LTQifQ=="
+                description: "Opaque cursor for the next page. Do not parse or construct. Invalid or expired tokens return `400`."
+                type: "string"
+      required:
+      - "data"
+    ServiceAccount:
+      example:
+        client_id: "l3Ow0CmFyc4jOONcwiKUCRqQKN0tiCAn"
+        created_at: 2026-04-10 17:23:00 +02:00
+        id: "f8a3b2c1-4d5e-6f7a-8b9c-0d1e2f3a4b5c"
+        name: "My Service Account"
+        updated_at: 2026-04-12 11:11:00 +02:00
+      description: "A service account. The OAuth `client_secret` is not included."
+      type: "object"
+      properties:
+        id:
+          description: "The unique identifier for the service account. Use this as the path parameter on `/admin/service-accounts/{service_account_id}` endpoints and as the `principal_id` when querying or creating role bindings."
+          type: "string"
+          format: "uuid"
+        name:
+          description: "A short human-readable label, set by the caller at creation time."
+          type: "string"
+          minLength: 1
+          maxLength: 80
+        client_id:
+          description: "The OAuth client ID used by the service account to obtain access tokens. Used only for OAuth token exchange."
+          type: "string"
+        created_at:
+          description: "The date and time the service account was created."
+          type: "string"
+          format: "date-time"
+        updated_at:
+          description: "The date and time of the service account's most recent metadata update."
+          type: "string"
+          format: "date-time"
+      required:
+      - "id"
+      - "name"
+      - "client_id"
+      - "created_at"
+      - "updated_at"
+    ServiceAccountList:
+      example:
+        data:
+        - client_id: "l3Ow0CmFyc4jOONcwiKUCRqQKN0tiCAn"
+          created_at: 2026-04-10 17:23:00 +02:00
+          id: "f8a3b2c1-4d5e-6f7a-8b9c-0d1e2f3a4b5c"
+          name: "My Service Account"
+          updated_at: 2026-04-12 11:11:00 +02:00
+        pagination:
+          next: "eyJsYXN0X2lkIjoiZDI0MTc3YTAifQ=="
+      description: "A paginated list of service accounts in the organization."
+      type: "object"
+      properties:
+        data:
+          description: "The page of service accounts."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ServiceAccount"
+        pagination:
+          nullable: true
+          description: "Cursor envelope for the next page. `null` (or absent) on the final page of results."
+          type: "object"
+          allOf:
+          - example:
+              next: "eyJsYXN0X2lkIjogImluZGV4LTQifQ=="
+            description: "Pagination metadata for list responses. When `next` is present, pass it as `paginationToken` on the following request."
+            x-component-name: "PaginationResponse"
+            type: "object"
+            properties:
+              next:
+                example: "eyJsYXN0X2lkIjogImluZGV4LTQifQ=="
+                description: "Opaque cursor for the next page. Do not parse or construct. Invalid or expired tokens return `400`."
+                type: "string"
+      required:
+      - "data"
+    ServiceAccountWithSecret:
+      example:
+        client_secret: "8p-kkC23XOWvkCosKq-BOn3G74qp__rBcDMxc82iB4gfzRvuhSCRBKM7C5Q7TAzj"
+        service_account:
+          client_id: "l3Ow0CmFyc4jOONcwiKUCRqQKN0tiCAn"
+          created_at: 2026-04-10 17:23:00 +02:00
+          id: "f8a3b2c1-4d5e-6f7a-8b9c-0d1e2f3a4b5c"
+          name: "My Service Account"
+          updated_at: 2026-04-10 17:23:00 +02:00
+      description: "A service account with a newly issued OAuth `client_secret`. The secret is returned only once and cannot be retrieved later."
+      type: "object"
+      properties:
+        service_account:
+          $ref: "#/components/schemas/ServiceAccount"
+        client_secret:
+          description: "The OAuth client secret. Returned exactly once. Treat this value as a credential — store it securely and never log it."
+          type: "string"
+      required:
+      - "service_account"
+      - "client_secret"
+    UpdateAPIKeyRequest:
+      type: "object"
+      properties:
+        name:
+          example: "devkey"
+          description: "A new name for the API key. The name must be 1-80 characters long. If omitted, the name will not be updated.\n"
+          type: "string"
+          minLength: 1
+          maxLength: 80
+        roles:
+          description: "A new set of roles for the API key. Existing roles will be removed if not included.\nIf this field is omitted, the roles will not be updated.\n"
+          type: "array"
+          items:
+            example: "ProjectEditor"
+            description: "A role that can be assigned to an API key.\nPossible values: `ProjectEditor`, `ProjectViewer`, `ControlPlaneEditor`, `ControlPlaneViewer`, `DataPlaneEditor`, or `DataPlaneViewer`."
+            x-enum:
+            - "ProjectEditor"
+            - "ProjectViewer"
+            - "ControlPlaneEditor"
+            - "ControlPlaneViewer"
+            - "DataPlaneEditor"
+            - "DataPlaneViewer"
+            type: "string"
+    UpdateOrganizationRequest:
+      type: "object"
+      properties:
+        name:
+          example: "organization-name"
+          description: "The new name for the organization."
+          type: "string"
+          minLength: 1
+          maxLength: 512
+    UpdateProjectRequest:
+      type: "object"
+      properties:
+        name:
+          example: "chatbot-prod"
+          description: "The name of the new project."
+          type: "string"
+          minLength: 1
+          maxLength: 512
+        max_pods:
+          description: "The maximum number of Pods that can be created in the project.\n"
+          type: "integer"
+        force_encryption_with_cmek:
+          description: "Whether to force encryption with a customer-managed encryption key (CMEK). Once enabled, CMEK encryption cannot be disabled.\n"
+          type: "boolean"
+    UpdateServiceAccountRequest:
+      type: "object"
+      properties:
+        name:
+          example: "ci-prod-renamed"
+          description: "A new name for the service account. If omitted, the name is unchanged."
+          type: "string"
+          minLength: 1
+          maxLength: 80
+    User:
+      example:
+        email: "alice@example.com"
+        id: "e2e92523-85dc-4142-b8c2-e681be8b78df"
+        name: "Alice Example"
+      description: "A user who is a member of the organization."
+      type: "object"
+      properties:
+        id:
+          description: "The unique ID of the user."
+          type: "string"
+          format: "uuid"
+        email:
+          description: "The user's email address."
+          type: "string"
+          format: "email"
+        name:
+          description: "The user's display name. Omitted from the response if the user has not set one."
+          type: "string"
+      required:
+      - "id"
+      - "email"
+    UserList:
+      example:
+        data:
+        - email: "alice@example.com"
+          id: "e2e92523-85dc-4142-b8c2-e681be8b78df"
+          name: "Alice Example"
+        pagination:
+          next: "eyJsYXN0X2lkIjoiZTJlOTI1MjMifQ=="
+      description: "A paginated list of users in the organization."
+      type: "object"
+      properties:
+        data:
+          description: "The page of users."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/User"
+        pagination:
+          nullable: true
+          description: "Cursor envelope for the next page. `null` (or absent) on the final page of results."
+          type: "object"
+          allOf:
+          - example:
+              next: "eyJsYXN0X2lkIjogImluZGV4LTQifQ=="
+            description: "Pagination metadata for list responses. When `next` is present, pass it as `paginationToken` on the following request."
+            x-component-name: "PaginationResponse"
+            type: "object"
+            properties:
+              next:
+                example: "eyJsYXN0X2lkIjogImluZGV4LTQifQ=="
+                description: "Opaque cursor for the next page. Do not parse or construct. Invalid or expired tokens return `400`."
+                type: "string"
+      required:
+      - "data"
+  securitySchemes:
+    BearerAuth:
+      type: "http"
+      scheme: "bearer"
+      description: "An [access token](https://docs.pinecone.io/guides/organizations/manage-service-accounts#retrieve-an-access-token) must be provided in the `Authorization` header using the `Bearer` scheme.\n"
+security:
+- BearerAuth: []
+tags:
+- name: "API Keys"
+  description: "Actions that manage API Keys."
+- name: "Organizations"
+  description: "Actions that manage organizations."
+- name: "Projects"
+  description: "Actions that manage projects."
+- name: "Users"
+  description: "Actions that manage users. Role bindings are not included in user responses; use the Role Bindings endpoints to view them."
+- name: "Invites"
+  description: "Actions that manage invites. An invite's role bindings are first-class and appear in the Role Bindings endpoints with `principal_type=invite`."
+- name: "Service Accounts"
+  description: "Actions that manage service accounts. Role bindings are not included in service account responses; use the Role Bindings endpoints to view them."
+- name: "Role Bindings"
+  description: "Actions that manage role bindings."

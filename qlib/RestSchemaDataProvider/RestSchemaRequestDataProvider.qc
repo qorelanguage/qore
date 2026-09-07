@@ -402,9 +402,8 @@ public class RestSchemaRequestDataProvider inherits RestSchemaDataProviderBase {
         if (req.query) {
             uri_path += "?" +
                 (foldl $1 + "&" + $2,
-                    (map sprintf("%s=%s", encode_url($1.key, True), getUriArgValue($1.value)),
+                    (map getUriQueryArg($1.key, $1.value),
                         req.query.pairIterator()));
-            remove req.query;
         }
 
         # setup headers
@@ -417,6 +416,12 @@ public class RestSchemaRequestDataProvider inherits RestSchemaDataProviderBase {
         # perform validation
         hash<string, bool> mime_types;
         hash<UriQueryInfo> uri_info = parse_uri_query(uri_path);
+        # Validate the original typed values. Re-parsing a serialized array loses the distinction
+        # between a separator and an encoded comma belonging to an individual ID.
+        if (req.query) {
+            uri_info.params = (uri_info.params ?? {}) + req.query;
+            remove req.query;
+        }
         auto req_body = req.body ?? req.formData;
 
         # validate the request using abstract types
@@ -466,6 +471,41 @@ public class RestSchemaRequestDataProvider inherits RestSchemaDataProviderBase {
             # preserve it and fall back to "info" only when there is no original arg
             rethrow ex.err, ex.desc, ex.arg ?? info;
         }
+    }
+
+    #! Serializes a query parameter using the array format declared by its schema
+    private string getUriQueryArg(string name, auto value) {
+        string encoded_name = encode_url(name, True);
+        if (value.typeCode() != NT_LIST) {
+            return encoded_name + "=" + getUriArgValue(value);
+        }
+        *AbstractParameterObject parameter = op.getParameters(){name} ?? pio.getParameters(){name};
+        bool repeated = False;
+        string delimiter = ",";
+        if (parameter instanceof OpenApi3::ParameterBase) {
+            OpenApi3::ParameterBase p = cast<OpenApi3::ParameterBase>(parameter);
+            repeated = p.style == "form" && p.explode;
+            if (p.style == "spaceDelimited") {
+                delimiter = "%20";
+            } else if (p.style == "pipeDelimited") {
+                delimiter = "%7C";
+            }
+        } else if (parameter instanceof Swagger::TypedParameter) {
+            Swagger::TypedParameter p = cast<Swagger::TypedParameter>(parameter);
+            repeated = p.collectionFormat == "multi";
+            if (p.collectionFormat == "ssv") {
+                delimiter = "%20";
+            } else if (p.collectionFormat == "tsv") {
+                delimiter = "%09";
+            } else if (p.collectionFormat == "pipes") {
+                delimiter = "%7C";
+            }
+        }
+        list<string> parts = map getUriArgValue($1), value;
+        if (repeated) {
+            return join("&", map encoded_name + "=" + $1, parts);
+        }
+        return encoded_name + "=" + join(delimiter, parts);
     }
 
     #! Returns the URI-encoded value for the given query argument

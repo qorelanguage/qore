@@ -256,6 +256,7 @@ public class DataProvider {
             "paddle": "PaddleDataProvider",
 
             "pinecone": "PineconeDataProvider",
+            "pinecone-admin": "PineconeDataProvider",
             "weaviate": "WeaviateDataProvider",
             "milvus": "MilvusDataProvider",
             "tavily": "TavilyDataProvider",

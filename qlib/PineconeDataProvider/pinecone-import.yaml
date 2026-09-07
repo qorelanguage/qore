@@ -7,24 +7,22 @@
 # selection and what the application exports cannot drift apart.
 #
 # Pinecone publishes one description per API rather than one per product, and this application uses
-# three of them.  Each becomes its own action set, because a request's URI prefix comes from the base
-# path of the schema its action was generated from -- and here the three do not even share a host: the
+# four of them.  Each becomes its own action set, because a request's URI prefix comes from the base
+# path of the schema its action was generated from -- and the database APIs do not share a host: the
 # control plane and inference are served from api.pinecone.io, while the data plane is served from a
 # per-index host that the control plane resolves at run time.
 #
-# All of Pinecone's APIs carry the same dated version, so the three move together: re-import all three
+# All of Pinecone's APIs carry the same dated version, so the four move together: re-import all four
 # when the version changes, and update
 # PineconeRestClient::PineconeRestClientBase::ApiVersion in the same commit -- the client sends that
 # version on every call and the module's tests assert the two agree.
 #
 # Not exported, and why:
-#   admin        - a different authentication scheme (OAuth2 client credentials), not the API key this
-#                  connection holds; it manages projects and API keys rather than data
 #   assistant_*  - the Assistant product: a separate surface with its own file store and chat model,
 #                  which is an application in its own right rather than part of the vector database
 #   db_metrics   - Prometheus-format metrics scraping, not a data-integration surface
 #   nexus_*      - not generally available
-#   oauth        - token issuance for the admin API above
+#   oauth        - token issuance handled by PineconeAdminRestClient; not an application action
 documents:
   - name: Pinecone Database Control Plane
     source: https://raw.githubusercontent.com/pinecone-io/pinecone-api/main/2026-07/db_control_2026-07.oas.yaml
@@ -46,3 +44,10 @@ documents:
     manifest: PineconeDataProvider:PineconeManifest::InferenceManifest
     provenance: PineconeSchema.qc
     const: InferenceProvenance
+
+  - name: Pinecone Admin
+    source: https://raw.githubusercontent.com/pinecone-io/pinecone-api/main/2026-07/admin_2026-07.oas.yaml
+    output: pinecone-admin.yaml
+    manifest: PineconeDataProvider:PineconeAdminManifest::Manifest
+    provenance: PineconeSchema.qc
+    const: AdminProvenance

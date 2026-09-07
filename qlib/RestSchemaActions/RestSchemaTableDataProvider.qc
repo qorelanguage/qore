@@ -97,6 +97,9 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
         #! The REST client used for API calls
         *AbstractRestClient rest;
 
+        #! Shared, synchronized host router for all requests under this root
+        *RestSchemaHostRouter router;
+
         #! The predicate splitter
         RestSchemaRecordFilter filter;
 
@@ -111,15 +114,17 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
     /** @param action_set the action set the table's actions belong to
         @param table the table declaration
         @param rest the REST client to use for API calls
+        @param router the host router shared with the application root
 
         @throw REST-SCHEMA-RECORD-ERROR the table names an action the manifest does not export, an option an
         action does not declare, or a projection without the conversions it needs
     */
     constructor(RestSchemaActionSet action_set, hash<RestSchemaRecordTableInfo> table,
-            *AbstractRestClient rest) {
+            *AbstractRestClient rest, *RestSchemaHostRouter router) {
         self.action_set = action_set;
         self.table = table;
         self.rest = rest;
+        self.router = router ?? (rest ? new RestSchemaHostRouter(rest) : NOTHING);
         filter = new RestSchemaRecordFilter(table);
         RestSchemaTableDataProvider::check(action_set, table);
     }
@@ -137,6 +142,20 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
     */
     static check(RestSchemaActionSet action_set, hash<RestSchemaRecordTableInfo> table) {
         on_error rethrow $1.err, sprintf("%s (while checking record table %y)", $1.desc, table.name);
+        if (table.query_listing) {
+            if (!table.query) {
+                throw "REST-SCHEMA-RECORD-ERROR", "query_listing requires a query declaration";
+            }
+            hash<RestSchemaRecordTableInfo> alternate = cast<hash<RestSchemaRecordTableInfo>>(
+                (table - "query_listing") + table.query_listing);
+            RestSchemaTableDataProvider::check(action_set, alternate);
+            # The query option belongs to the alternate listing, not the unfiltered ID listing.
+            table -= "query";
+        }
+        if (table.hydrate_list && (!table.get_action.val()
+                || !inlist(table.get_action, table.id_list_actions))) {
+            throw "REST-SCHEMA-RECORD-ERROR", "hydrate_list requires a get action accepting a list of IDs";
+        }
         hash<string, hash<RestSchemaFlatFieldInfo>> list_flat =
             action_set.getOperationEx(table.list_action).getFlatMap();
         foreach hash<auto> i in (("get_action": table.get_action, "create_action": table.create_action,
@@ -144,6 +163,42 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
             if (i.value.val()) {
                 action_set.getOperationEx(i.value);
             }
+        }
+        if (table.create_scope_options) {
+            if (!table.create_action.val()) {
+                throw "REST-SCHEMA-RECORD-ERROR", "create_scope_options requires a create action";
+            }
+            hash<string, hash<RestSchemaFlatFieldInfo>> flat =
+                action_set.getOperationEx(table.create_action).getFlatMap();
+            foreach string name in (table.create_scope_options) {
+                if (!flat.hasKey(name)) {
+                    throw "REST-SCHEMA-RECORD-ERROR", sprintf("create scope %y is not an option of %y",
+                        name, table.create_action);
+                }
+            }
+        }
+        foreach hash<auto> entry in (table.action_id_options.pairIterator()) {
+            if (!inlist(entry.key, (table.get_action, table.update_action, table.delete_action))
+                    || !action_set.getOperationEx(entry.key).getFlatMap().hasKey(entry.value)) {
+                throw "REST-SCHEMA-RECORD-ERROR", sprintf("invalid identity option %y for action %y",
+                    entry.value, entry.key);
+            }
+        }
+        foreach string action in (table.id_list_actions) {
+            if (!inlist(action, (table.get_action, table.update_action, table.delete_action))
+                    || RestSchemaTableDataProvider::getIdParts(table).size() != 1) {
+                throw "REST-SCHEMA-RECORD-ERROR", "list identities require a single identity and a record action";
+            }
+        }
+        foreach hash<auto> entry in (table.write_list_options.pairIterator()) {
+            if (!inlist(entry.key, (table.create_action, table.update_action))
+                    || !action_set.getOperationEx(entry.key).getFlatMap().hasKey(entry.value)) {
+                throw "REST-SCHEMA-RECORD-ERROR", sprintf("invalid write list option %y for action %y",
+                    entry.value, entry.key);
+            }
+        }
+        if (table.check_write_identity && !table.get_action.val()) {
+            throw "REST-SCHEMA-RECORD-ERROR", "check_write_identity requires a get action";
         }
         # every option the table sends to the listing has to be one the listing declares, or it would be
         # dropped silently and the search would answer with the unfiltered collection
@@ -265,6 +320,10 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
         @throw REST-SCHEMA-RECORD-ERROR a declared path does not resolve against the response it reads
     */
     static checkRecordPaths(RestSchemaActionSet action_set, hash<RestSchemaRecordTableInfo> table) {
+        if (table.query_listing) {
+            RestSchemaTableDataProvider::checkRecordPaths(action_set,
+                cast<hash<RestSchemaRecordTableInfo>>((table - "query_listing") + table.query_listing));
+        }
         list<string> bad = ();
         RestSchemaTableDataProvider::checkPath(action_set, table.list_action, table.records_path,
             "records_path", \bad);
@@ -384,6 +443,52 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
         return record_type;
     }
 
+    #! Returns the record fields accepted by the create action
+    private *hash<string, AbstractDataField> getCreateRecordTypeImpl(*hash<auto> create_options) {
+        return getWriteRecordType(table.create_action, False);
+    }
+
+    #! Returns the fields accepted by a partial update, in the table's own spelling
+    private *hash<string, AbstractDataField> getUpdateRecordTypeImpl(*hash<auto> search_options) {
+        return getWriteRecordType(table.update_action, True);
+    }
+
+    #! Derives write fields from the request rather than publishing server-assigned response fields
+    private *hash<string, AbstractDataField> getWriteRecordType(*string action, bool update) {
+        if (!action.val()) {
+            return;
+        }
+        *hash<string, AbstractDataField> fields;
+        if (table.to_wire) {
+            fields = getRecordTypeImpl(NOTHING);
+        } else {
+            fields = action_set.getOperationEx(action).getRequestFields();
+            if (*string wrapper = getWriteListOption(action)) {
+                fields = RestSchemaTableDataProvider::getTypeFields(fields{wrapper}.getType());
+            } else {
+                fields -= table.scope_options;
+                fields -= table.create_scope_options;
+                foreach hash<auto> mapping in (table.write_field_map.pairIterator()) {
+                    if (fields{mapping.value}) {
+                        AbstractDataField field = fields{mapping.value};
+                        fields -= mapping.value;
+                        fields{mapping.key} = field.getRenamedField(mapping.key);
+                    }
+                }
+                if (update) {
+                    fields -= keys RestSchemaTableDataProvider::getIdParts(table);
+                    fields -= table.action_id_options{action};
+                }
+            }
+        }
+        fields -= table.read_only_fields;
+        if (update) {
+            fields -= table.id_field;
+            fields = map {$1.key: $1.value.getOrNothingType()}, fields.pairIterator();
+        }
+        return fields;
+    }
+
     #! Adds the columns the table declares on top of the ones the schema describes
     /** @see @ref RestSchemaActions::RestSchemaRecordTableInfo::extra_columns "extra_columns"
 
@@ -470,8 +575,18 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
             return new DefaultRecordIterator<hash<auto>>(new ListHashIterator(rec ? (rec,) : ()),
                 split.client, search_options, getRecordTypeImpl(search_options));
         }
-        RestSchemaRecordPageIterator pages = new RestSchemaRecordPageIterator(getLister(table.list_action),
-            table, getScope(search_options, "search") + extra + split.options);
+        hash<RestSchemaRecordTableInfo> listing = table;
+        if (table.query_listing && exists split.options{table.query.option}) {
+            listing = cast<hash<RestSchemaRecordTableInfo>>(table + table.query_listing);
+        }
+        *code<list<hash<auto>>(list<hash<auto>>)> hydrate;
+        if (listing.hydrate_list) {
+            hydrate = list<hash<auto>> sub (list<hash<auto>> ids) {
+                return hydrateRecords(ids, search_options);
+            };
+        }
+        RestSchemaRecordPageIterator pages = new RestSchemaRecordPageIterator(getLister(listing.list_action),
+            listing, getScope(search_options, "search", listing.list_action) + extra + split.options, hydrate);
         return new DefaultRecordIterator<hash<auto>>(pages, split.client, search_options,
             getRecordTypeImpl(search_options));
     }
@@ -482,9 +597,9 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
             throw "REST-SCHEMA-RECORD-ERROR", sprintf("table %y cannot create records; the application "
                 "exports no create action for it", table.name);
         }
-        auto resp = getLister(table.create_action).doRequest(getScope(create_options, "create")
+        auto resp = getLister(table.create_action).doRequest(getScope(create_options, "create", table.create_action)
             + getWriteBody(table.create_action, rec));
-        return readWriteResponse(resp);
+        return table.write_returns_record ? readWriteResponse(resp) : rec;
     }
 
     #! Updates the records matching the search criteria and returns how many were updated
@@ -509,8 +624,7 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
         if (!ids) {
             return False;
         }
-        updateOne(ids[0], set, search_options);
-        return True;
+        return updateOne(ids[0], set, search_options);
     }
 
     #! Deletes the records matching the search criteria and returns how many were deleted
@@ -525,7 +639,8 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
             # a predicate naming an identity is written straight through without reading first, so a
             # record that is not there is discovered here; it matched nothing and is not counted
             try {
-                getLister(table.delete_action).doRequest(getScope(search_options, "delete") + id);
+                getLister(table.delete_action).doRequest(getScope(search_options, "delete", table.delete_action)
+                    + getActionId(table.delete_action, id));
             } catch (hash<ExceptionInfo> ex) {
                 if (ex.arg.status_code == 404) {
                     continue;
@@ -558,6 +673,9 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
         }
         hash<RestSchemaRecordFilterSplit> split = filter.split(where_cond);
         if (exists split.id) {
+            if (table.check_write_identity && !readOne(split.id, search_options)) {
+                return ();
+            }
             return (split.id,);
         }
         list<hash<auto>> rv = ();
@@ -584,15 +702,15 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
         # a predicate naming an identity is written straight through without reading first, so a record
         # that is not there is discovered here; it matched nothing, and saying so is the honest answer
         try {
-            if (table.write_list_option.val()) {
+            if (getWriteListOption(table.update_action).val()) {
                 # a service whose writes take a list of whole documents identifies the one being changed
                 # inside the document, not beside it: there is no path variable to put it in, and the write
                 # is the same operation as a create with the identity present
-                getLister(table.update_action).doRequest(getScope(search_options, "update")
+                getLister(table.update_action).doRequest(getScope(search_options, "update", table.update_action)
                     + getWriteBody(table.update_action, set + {table.id_field: id.firstValue()}));
             } else {
-                getLister(table.update_action).doRequest(getScope(search_options, "update") + id
-                    + getWriteBody(table.update_action, set));
+                getLister(table.update_action).doRequest(getScope(search_options, "update", table.update_action)
+                    + getWriteBody(table.update_action, set) + getActionId(table.update_action, id));
             }
         } catch (hash<ExceptionInfo> ex) {
             if (ex.arg.status_code == 404) {
@@ -619,7 +737,8 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
     private *hash<auto> readOne(hash<auto> id, *hash<auto> search_options) {
         auto resp;
         try {
-            resp = getLister(table.get_action).doRequest(getScope(search_options, "search") + id);
+            resp = getLister(table.get_action).doRequest(getScope(search_options, "search", table.get_action)
+                + getActionId(table.get_action, id));
         } catch (hash<ExceptionInfo> ex) {
             if (ex.arg.status_code == 404) {
                 return;
@@ -627,6 +746,20 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
             rethrow;
         }
         auto rec = RestSchemaRecordPageIterator::followPath(resp, table.record_path);
+        if (table.record_is_map) {
+            if (!exists rec) {
+                return;
+            }
+            if (rec.typeCode() != NT_HASH) {
+                throw "REST-SCHEMA-RECORD-ERROR", sprintf("table %y expected an identity map, got %y",
+                    table.name, rec.type());
+            }
+            rec = rec{id.firstValue().toString()};
+            if (exists rec && rec.typeCode() != NT_HASH) {
+                throw "REST-SCHEMA-RECORD-ERROR", sprintf("table %y expected a record in its identity map, got %y",
+                    table.name, rec.type());
+            }
+        }
         if (rec.typeCode() == NT_LIST) {
             rec = rec[0];
         }
@@ -708,10 +841,11 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
         # reject the rest
         hash<auto!> rv = {};
         map rv{$1.key} = $1.value, wire.pairIterator(), exists $1.value;
-        if (table.write_list_option.val()) {
+        *string list_option = getWriteListOption(action);
+        if (list_option.val()) {
             # the whole record travels as one value, so its columns are not action options and cannot be
             # checked against them
-            return {table.write_list_option: (rv,)};
+            return {list_option: (rv,)};
         }
         # a column whose option is spelled differently from the record field would be dropped by the
         # narrowing below, and the write would report success having changed nothing
@@ -744,21 +878,64 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
     #! Returns the options identifying the collection the operation works in
     /** @param options the search, create or write options
         @param what the operation name, for the error message
+        @param action the target action; scopes it does not accept are omitted
 
         @throw REST-SCHEMA-RECORD-ERROR an option identifying the collection is missing
     */
-    private hash<auto> getScope(*hash<auto> options, string what) {
-        # "auto!" because a scope is a mix of identifiers and names of different types
+    private hash<auto> getScope(*hash<auto> options, string what, string action) {
         hash<auto!> rv = {};
-        foreach string name in (table.scope_options) {
-            auto value = options{name};
-            if (!exists value || (value.typeCode() == NT_STRING && !value.val())) {
+        *softlist<string> names = what == "create"
+            ? (table.create_scope_options ?? table.scope_options) : table.scope_options;
+        hash<string, AbstractDataField> fields = action_set.getOperationEx(action).getRequestFields();
+        hash<string, hash<DataProviderOptionInfo>> declared = getListingOptions(names, True,
+            what == "create" ? table.create_action : NOTHING);
+        foreach string name in (names) {
+            if (!fields.hasKey(name)) {
+                continue;
+            }
+            bool required = declared{name}.required || fields{name}.getType().isMandatory()
+                || (fields{name}.getAttributes().required ?? False);
+            auto value = options{name} ?? declared{name}.default_value;
+            if (!exists value || (value.typeCode() == NT_STRING && !value.val() && required)) {
+                if (!required) {
+                    continue;
+                }
                 throw "REST-SCHEMA-RECORD-ERROR", sprintf("table %y needs the %y %s option, which identifies "
                     "the collection to work in", table.name, name, what);
             }
             rv{name} = value;
         }
         return rv;
+    }
+
+    #! Returns the identity options an action accepts
+    private hash<auto> getActionId(string action, hash<auto> id) {
+        if (table.action_id_options{action}.val() || inlist(action, table.id_list_actions)) {
+            string option = table.action_id_options{action} ?? table.id_option ?? table.id_field;
+            auto value = id.firstValue();
+            return {option: inlist(action, table.id_list_actions) ? (value,) : value};
+        }
+        return id;
+    }
+
+    #! Returns the list wrapper used by this write action
+    private *string getWriteListOption(string action) {
+        return table.write_list_options{action} ?? table.write_list_option;
+    }
+
+    #! Fetches a listing page's full records in listing order, skipping concurrently removed IDs
+    private list<hash<auto>> hydrateRecords(list<hash<auto>> ids, *hash<auto> search_options) {
+        string option = table.action_id_options{table.get_action} ?? table.id_option ?? table.id_field;
+        list<auto> values = map getRecordId($1, "fetch").firstValue(), ids;
+        auto resp = getLister(table.get_action).doRequest(
+            getScope(search_options, "search", table.get_action) + {option: values});
+        list<hash<auto>> records = RestSchemaRecordPageIterator::extractRecordValues(resp, table.record_path,
+            table.record_is_map, table.name);
+        hash<string, hash<auto>> by_id = {};
+        foreach hash<auto> rec in (records) {
+            by_id{getRecordId(rec, "fetch").firstValue().toString()} = rec;
+        }
+        return (map by_id{$1.toString()}, values, by_id.hasKey($1.toString())) ?? ();
     }
 
     #! Returns the further listing options a search passes through
@@ -806,7 +983,7 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
 
     #! Returns a provider executing one of the table's actions
     private RestSchemaActionDataProvider getLister(string action) {
-        return new RestSchemaActionDataProvider(action_set, action_set.getOperationEx(action), rest);
+        return new RestSchemaActionDataProvider(action_set, action_set.getOperationEx(action), rest, router);
     }
 
     #! Returns the search options the table accepts
@@ -818,7 +995,8 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
 
     #! Returns the create options the table accepts
     private *hash<string, hash<DataProviderOptionInfo>> getCreateOptions() {
-        return getListingOptions(table.scope_options, True) ?: NOTHING;
+        return getListingOptions(table.create_scope_options ?? table.scope_options, True,
+            table.create_action) ?: NOTHING;
     }
 
     #! Returns table options taken from the listing action's own declarations
@@ -827,15 +1005,16 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
 
         @param names the listing options to publish
         @param required whether to narrow them to required
+        @param action the action supplying the options; defaults to the listing
     */
     private hash<string, hash<DataProviderOptionInfo>> getListingOptions(*softlist<string> names,
-            bool required) {
+            bool required, *string action) {
         hash<string, hash<DataProviderOptionInfo>> rv = {};
         if (!names) {
             return rv;
         }
         *hash<string, AbstractDataField> fields =
-            action_set.getOperationEx(table.list_action).getRequestFields();
+            action_set.getOperationEx(action ?? table.list_action).getRequestFields();
         foreach string name in (names) {
             *AbstractDataField field = fields{name};
             if (!field) {
@@ -844,6 +1023,9 @@ public class RestSchemaTableDataProvider inherits DataProvider::AbstractDataProv
             hash<DataProviderOptionInfo> opt = RestSchemaTableDataProvider::fieldToOption(field, required);
             if (*hash<auto> ovl = table.search_option_overrides{name}) {
                 opt = cast<hash<DataProviderOptionInfo>>(opt + ovl);
+            }
+            if (action.val() && (field.getType().isMandatory() || (field.getAttributes().required ?? False))) {
+                opt.required = True;
             }
             rv{name} = opt;
         }

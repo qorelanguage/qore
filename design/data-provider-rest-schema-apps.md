@@ -1166,3 +1166,41 @@ would duplicate it, drift from it, and grow this directory by one file per port.
 `design/` carries what spans applications. If a decision in a new port is genuinely general - a lesson
 the next application would otherwise repeat - add it to the section above instead of starting a new
 document.
+
+
+## Pinecone record collections and Admin authentication
+
+Pinecone exposes ten tables through the same router used by its API actions. `RestSchemaTablesDataProvider`
+and each table accept an optional shared `RestSchemaHostRouter`; caches remain scoped to the connection.
+Data-plane table requests use the normal action execution path, including host-suffix validation and
+client cloning. Table declarations name existing operations and never repeat their paths.
+
+`RestSchemaRecordListingInfo` describes the listing portion of a table. An optional `query_listing`
+selects a different complete listing when a supported native query is present. Pinecone uses ID listings
+plus batch hydration for unfiltered vectors/documents, and paginated metadata fetches for filtered scans.
+`records_are_map` and `record_is_map` describe ID-keyed collections; `hydrate_list` orders fetched records
+by the original ID page and skips concurrently removed IDs. Pagination advances on the original listing,
+even if hydration returns no records. Cursor tokens take precedence over page length and repeated tokens
+are rejected. Ranked `top_k` search is never used to represent a complete record collection.
+
+Per-action identity options and list wrappers support APIs whose read/delete operation takes `ids` while
+update takes `id`, and whose upsert takes a one-element `vectors` list. `create_scope_options` allows
+project-wide backup listing and index-scoped creation. Scope fields absent from an operation are omitted;
+backup schedules therefore list/create under an index and get/update/delete by global ID. Write forms
+derive from request schemas, while read records derive from response schemas and explicit projections.
+
+The shared REST request provider respects OpenAPI array `style`/`explode` and Swagger `collectionFormat`.
+Pinecone's exploded `ids` query uses repeated keys. Each element is escaped independently, including
+commas that belong to an ID. Validation uses the original typed query values so deserializing a comma
+cannot split a single ID. This applies to raw actions and record hydration alike.
+
+Pinecone Admin is an independent action set, app, factory, and connection scheme in the existing modules.
+All four vendor schemas are imported by one spec at the same dated API version. Admin requires OAuth2
+client credentials with its fixed audience; project API keys stay on the database connection. Both REST
+clients recognize expiring client-credentials tokens as renewable even when the issuer supplies no
+refresh token. The existing acquisition and locking paths perform renewal.
+
+Reference declarations can use `options_reference` with `reference_option` to enumerate partitions from
+another reference. API-key choices enumerate projects before reading their keys. Declaration validation
+rejects missing targets, missing options, conflicting partition mechanisms, and cycles before any request.
+Reference lists retain the framework's first-page behavior and custom-ID entry for paginated collections.

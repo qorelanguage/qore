@@ -1648,6 +1648,8 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         @ref Qore::Reflection::Class::getClassHierarchy() "Class::getClassHierarchy()"
 
     - @ref restclientintro "RestClient" module
+      - renews expiring client-credentials tokens without requiring a refresh token, in both synchronous
+        and asynchronous REST clients
       - new @ref RestClient::RestClientPool "RestClientPool" class providing thread-safe connection pooling
         for @ref RestClient::RestClient "RestClient" instances, built on
         @ref Qore::Thread::AbstractConnectionPool "AbstractConnectionPool"
@@ -2535,9 +2537,13 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing a REST client for <a href="https://pdf.co/">PDF.co</a>'s document processing API
 
     - @ref pineconedataproviderintro "PineconeDataProvider" module
+      - exposes ten record tables with paginated, hydrated reads and CRUD operations, plus a separate
+        Pinecone Admin application with 32 organization-management actions (issues 5440 and 5442)
       - new module providing a data provider API for <a href="https://www.pinecone.io">Pinecone</a> vector databases, covering indexes, vectors, documents, namespaces, backups, bulk imports and inference, with data-plane requests routed to each index's own host
 
     - @ref pineconerestclientintro "PineconeRestClient" module
+      - adds the \c pinecone-admin connection with service-account OAuth2, fixed audience, automatic token
+        renewal and an authenticated project-list ping
       - new module providing a REST client and connection for <a href="https://www.pinecone.io">Pinecone</a> vector-database servers, pinning the dated API version and registering a \c pinecone vector-store backend
 
     - @ref qdrantdataproviderintro "QdrantDataProvider" module
@@ -2630,10 +2636,15 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing a REST client API over multiplexed HTTP/2 and HTTP/3 connections
 
     - @ref restschemaactionsintro "RestSchemaActions" module
+      - record tables support shared host routing, ID-map responses, batch hydration, alternate filtered
+        listings, per-action identities and scope, and request-derived create/update record types
+      - reference-data lookups can enumerate partitions from another reference-data declaration
       - new module providing the reusable machinery for registering data provider application actions from an
         explicitly selected set of REST schema operations, including schema normalization and pruning
 
     - @ref restschemadataproviderintro "RestSchemaDataProvider" module
+      - honors OpenAPI array \c style / \c explode and Swagger \c collectionFormat in query arguments,
+        preserving reserved characters inside individual values
       - new module providing a unified data provider API for both Swagger 2.0 and OpenAPI 3.0 / 3.1 REST schemas
 
     - @ref searchindexdataproviderintro "SearchIndexDataProvider" module

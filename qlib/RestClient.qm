@@ -145,6 +145,7 @@ printf("%Y\n", ans.body);
     @section restclientrelnotes Release Notes
 
     @subsection restclientv2_7 RestClient v2.7
+    - renews expiring client-credentials tokens by acquiring another token when no refresh token is issued
     - fixed a connection using an OAuth2 grant with no authorization step reporting that it has nothing to
       do with OAuth2; the only OAuth2 features published were the two interactive flows and the general
       \c oauth2-auth flag, so a fully configured \c client_credentials connection was indistinguishable
@@ -2180,7 +2181,8 @@ hash<auto> ans = rest.del("/orders/1");
     /** @since %RestClient 2.2
     */
     bool requiresRefresh() {
-        return token.val() && (refresh_token.val() || custom_token_auth) && oauth2_token_expiry
+        return token.val() && (refresh_token.val() || custom_token_auth
+            || oauth2_grant_type == "client_credentials") && oauth2_token_expiry
             && ((now_us() + Oauth2TokenRefreshWindow) > oauth2_token_expiry);
     }
 

@@ -51,6 +51,7 @@ public class PineconeDataProvider inherits DataProvider::AbstractDataProvider {
             "supports_children": True,
             "constructor_options": ConstructorOptions,
             "children_can_support_apis": True,
+            "children_can_support_records": True,
         };
 
         const ConstructorOptions = {
@@ -126,11 +127,15 @@ public class PineconeDataProvider inherits DataProvider::AbstractDataProvider {
 
     #! Returns the action IDs of every set
     private *list<string> getChildProviderNamesImpl() {
-        return keys action_owner;
+        return ("tables",) + keys action_owner;
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
     private *AbstractDataProvider getChildProviderImpl(string name) {
+        if (name == "tables") {
+            return new RestSchemaActions::RestSchemaTablesDataProvider("tables", action_sets,
+                PineconeRecordTables::Tables, rest, router);
+        }
         *RestSchemaActions::RestSchemaActionSet aset = action_owner{name};
         if (!aset) {
             return;
@@ -196,6 +201,7 @@ public class PineconeDataProviderFactory inherits AbstractDataProviderFactory {
             "name": "pinecone",
             "desc": "Pinecone vector database data provider factory",
             "children_can_support_apis": True,
+            "children_can_support_records": True,
         };
     }
 

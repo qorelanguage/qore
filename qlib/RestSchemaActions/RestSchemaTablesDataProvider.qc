@@ -67,6 +67,9 @@ public class RestSchemaTablesDataProvider inherits DataProvider::AbstractDataPro
 
         #! The REST client used for API calls
         *AbstractRestClient rest;
+
+        #! Shared, synchronized host router for all requests under this root
+        *RestSchemaHostRouter router;
     }
 
     #! Creates the object from the arguments
@@ -79,14 +82,16 @@ public class RestSchemaTablesDataProvider inherits DataProvider::AbstractDataPro
 
         @param tables the table declarations, in presentation order
         @param rest the REST client to use for API calls
+        @param router the host router shared with the application root
 
         @throw REST-SCHEMA-RECORD-ERROR a table is declared twice, or no set exports its listing action
     */
     constructor(string name, softlist<RestSchemaActionSet> action_sets,
-            list<hash<RestSchemaRecordTableInfo>> tables, *AbstractRestClient rest) {
+            list<hash<RestSchemaRecordTableInfo>> tables, *AbstractRestClient rest, *RestSchemaHostRouter router) {
         self.name = name;
         self.action_sets = action_sets;
         self.rest = rest;
+        self.router = router ?? (rest ? new RestSchemaHostRouter(rest) : NOTHING);
         foreach hash<RestSchemaRecordTableInfo> t in (tables) {
             if (exists self.tables{t.name}) {
                 throw "REST-SCHEMA-RECORD-ERROR", sprintf("table %y is declared more than once", t.name);
@@ -145,7 +150,7 @@ public class RestSchemaTablesDataProvider inherits DataProvider::AbstractDataPro
             RestSchemaTableDataProvider::checkRecordPaths(action_set, t);
             # asking for the record type is what proves the table has one; a collection whose element is a
             # union has none to derive, and a table with no columns is worse than a table that failed here
-            RestSchemaTableDataProvider tp(action_set, t, rest);
+            RestSchemaTableDataProvider tp(action_set, t, rest, router);
             on_error rethrow $1.err, sprintf("%s (while checking record table %y)", $1.desc, t.name);
             RestSchemaTablesDataProvider::checkTableFields(t, tp.getRecordType());
         }
@@ -210,7 +215,7 @@ public class RestSchemaTablesDataProvider inherits DataProvider::AbstractDataPro
             return;
         }
         return new RestSchemaTableDataProvider(RestSchemaTablesDataProvider::getTableSet(action_sets, t), t,
-            rest);
+            rest, router);
     }
 
     #! Returns data provider static info

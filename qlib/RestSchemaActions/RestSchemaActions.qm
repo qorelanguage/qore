@@ -343,7 +343,7 @@ module RestSchemaActions {
 
     @subsection restschemaactions_records_paths The Paths a Record Is Read Through
 
-    @ref RestSchemaActions::RestSchemaRecordTableInfo::records_path "records_path",
+    @ref RestSchemaActions::RestSchemaRecordListingInfo::records_path "records_path",
     @ref RestSchemaActions::RestSchemaRecordTableInfo::record_path "record_path" and
     @ref RestSchemaActions::RestSchemaRecordTableInfo::write_record_path "write_record_path" say where in a
     response the records are, and a path that does not resolve fails **silently**: a single read whose record

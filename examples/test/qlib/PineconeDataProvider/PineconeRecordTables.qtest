@@ -1,0 +1,336 @@
+#!/usr/bin/env qore
+/*  PineconeRecordTables.qtest Copyright (C) 2026 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/RestSchemaActions
+%requires ../../../../qlib/RestClientIo.qm
+%requires json
+%requires ../../../../qlib/PineconeDataProvider
+%exec-class PineconeTablesTest
+
+class PineconeTableLog {
+    public {
+        list<hash<auto>> requests = ();
+        list<hash<auto>> responses = ();
+    }
+}
+class PineconeTableClient inherits PineconeRestClientIo {
+    public {
+        static PineconeTableLog log = new PineconeTableLog();
+    }
+    constructor(hash<auto> opts, *HttpClientIo::HttpClientConnectionManager mgr) : PineconeRestClientIo(opts, mgr) {
+    }
+    hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body,
+            *hash<auto> headers) {
+        PineconeTableClient::log.requests += {"url": getUrl().toString(), "path": path, "method": method,
+            "body": body ? parse_json(body) : NOTHING, "headers": getDefaultHeaders()};
+        if (!PineconeTableClient::log.responses) {
+            throw "TEST-ERROR", sprintf("unexpected request %s %s", method, path);
+        }
+        return <RestClient::RestResponseInfo>{"status_code": 200,
+            "body": shift PineconeTableClient::log.responses, "headers": {}};
+    }
+}
+
+class PineconeTablesTest inherits QUnit::Test {
+    constructor() : Test("Pinecone record tables", "1.0") {
+        addTestCase("all ten tables, types, capabilities and actions", \declarationTest());
+        addTestCase("host routing through table and action siblings", \routingTest());
+        addTestCase("complete vector scans, native filters and residual limits", \vectorTest());
+        addTestCase("document projection, full-record fetches and writes", \documentTest());
+        addTestCase("scope and identity-specific control-plane writes", \scopeTest());
+        addTestCase("dynamic metadata filter language", \filterTest());
+        if (ENV.PINECONE_TABLE_PHASE && ENV.PINECONE_APIKEY) {
+            addTestCase("live: indexes, namespaces, vectors and documents", \liveTest());
+        }
+        set_return_value(main());
+    }
+    private PineconeDataProvider root(list<hash<auto>> responses) {
+        PineconeTableClient::log.requests = ();
+        PineconeTableClient::log.responses = responses;
+        return new PineconeDataProvider(new PineconeTableClient({"apikey": "test-key"}));
+    }
+    private declarationTest() {
+        PineconeDataProvider p = root(());
+        RestSchemaTablesDataProvider tables = cast<RestSchemaTablesDataProvider>(p.getChildProviderEx("tables"));
+        tables.checkTables();
+        assertEq(10, tables.getChildProviderNames().size());
+        foreach hash<RestSchemaRecordTableInfo> d in (PineconeRecordTables::Tables) {
+            AbstractDataProvider t = tables.getChildProviderEx(d.name);
+            hash<DataProviderInfo> info = t.getInfo();
+            assertTrue(info.has_record && info.supports_read, d.name);
+            assertTrue(t.getRecordType().hasKey(d.id_field), d.name);
+            assertEq(d.create_action.val().toBool(), info.supports_create, d.name);
+            assertEq(d.update_action.val().toBool(), info.supports_update, d.name);
+            assertEq(d.delete_action.val().toBool(), info.supports_delete, d.name);
+            assertEq(inlist(d.name, ("vectors", "documents")), info.supports_native_search, d.name);
+        }
+        assertFalse(tables.getChildProviderEx("indexes").getCreateRecordType().hasKey("host"));
+        assertTrue(tables.getChildProviderEx("indexes").getCreateRecordType().hasKey("schema"));
+        assertTrue(tables.getChildProviderEx("vectors").getUpdateRecordType().hasKey("metadata"));
+        assertFalse(tables.getChildProviderEx("vectors").getUpdateRecordType().hasKey("setMetadata"));
+        foreach string name in (("indexes", "collections")) {
+            hash<DataProviderInfo> info = tables.getChildProviderEx(name).getInfo();
+            foreach hash<DataProviderExpressionInfo> exp in (info.expressions.iterator()) {
+                assertFalse(exp.supports_pushdown, name);
+            }
+        }
+        list<hash<DataProviderActionInfo>> actions = select DataProviderActionCatalog::getActions("Pinecone"),
+            $1.action_code != DPAT_API;
+        assertEq(5, actions.size());
+        foreach hash<DataProviderActionInfo> a in (actions) {
+            assertEq("/tables/{table}", a.path);
+            assertNothing(a.cls);
+            assertTrue(a.data_dependent_options);
+        }
+    }
+    private routingTest() {
+        PineconeDataProvider p = root((
+            {"name": "first", "host": "first.svc.pinecone.io"}, {"namespaces": ({"name": "n"},)},
+            {"name": "n"}, {"name": "n"}, {},
+            {"name": "second", "host": "second.svc.pinecone.io"}, {"namespaces": ()},
+        ));
+        AbstractDataProvider t = p.getChildProviderPath("tables/namespaces");
+        assertEq("n", (map $1, t.searchRecords(NOTHING, {"index": "first"}))[0].name);
+        assertEq("n", t.searchSingleRecord({"name": "n"}, {"index": "first"}).name);
+        assertEq("n", t.createRecord({"name": "n"}, {"index": "first"}).name);
+        assertEq(1, t.deleteRecords({"name": "n"}, {"index": "first"}));
+        p.getChildProviderEx("list-namespaces").doRequest({"index": "second"});
+        assertEq(2, p.getHostRouter().getCachedCount());
+        assertEq(7, PineconeTableClient::log.requests.size());
+        assertTrue(PineconeTableClient::log.requests[1].url =~ /first\.svc\.pinecone\.io/);
+        assertTrue(PineconeTableClient::log.requests[6].url =~ /second\.svc\.pinecone\.io/);
+        assertEq("test-key", PineconeTableClient::log.requests[6].headers."Api-Key");
+        assertEq(PineconeRestClientBase::ApiVersion,
+            PineconeTableClient::log.requests[6].headers."X-Pinecone-Api-Version");
+    }
+    private vectorTest() {
+        PineconeDataProvider p = root((
+            {"name": "test", "host": "test.svc.pinecone.io"},
+            {"vectors": ({"id": "v1"},), "pagination": {"next": "page2"}},
+            {"vectors": {"v1": {"id": "v1", "values": (1.0, 0.0), "metadata": {"kind": "no"}}}},
+            {"vectors": ({"id": "v2"},)},
+            {"vectors": {"v2": {"id": "v2", "values": (0.0, 1.0), "metadata": {"kind": "yes"}}}},
+            {"vectors": {"v2": {"id": "v2", "values": (0.0, 1.0), "metadata": {"year": 2026}}}},
+            {"vectors": {"v2": {"id": "v2", "values": (0.0, 1.0)}}}, {}, {"upsertedCount": 1},
+        ));
+        AbstractDataProvider t = p.getChildProviderPath("tables/vectors");
+        hash<DataProviderExpression> residual = <DataProviderExpression>{"exp": DP_OP_STARTS_WITH,
+            "args": (<DataProviderFieldReference>{"field": "metadata.kind"}, "ye")};
+        list<hash<auto>> rows = map $1, t.searchRecords(residual, {"index": "test", "limit": 1});
+        assertEq("v2", rows[0].id);
+        assertEq((0.0, 1.0), rows[0].values);
+        assertEq(5, PineconeTableClient::log.requests.size());
+        assertTrue(PineconeTableClient::log.requests[3].path =~ /paginationToken=page2/);
+        rows = map $1, t.searchRecords({"metadata.year": 2026}, {"index": "test"});
+        assertEq(2026, rows[0].metadata.year);
+        assertEq("/vectors/fetch_by_metadata", PineconeTableClient::log.requests[5].path);
+        assertEq({"year": {"$eq": 2026}}, PineconeTableClient::log.requests[5].body.filter);
+        assertEq(1, t.updateRecords({"metadata": {"kind": "updated"}}, {"id": "v2"}, {"index": "test"}));
+        assertEq("v2", PineconeTableClient::log.requests[7].body.id);
+        assertEq({"kind": "updated"}, PineconeTableClient::log.requests[7].body.setMetadata);
+        t.createRecord({"id": "v3", "values": (1.0, 0.0), "metadata": {"kind": "created"}}, {"index": "test"});
+        assertEq("created", PineconeTableClient::log.requests[8].body.vectors[0].metadata.kind);
+        assertNothing(PineconeTableClient::log.requests[8].body.vectors[0].setMetadata);
+    }
+    private documentTest() {
+        hash<auto> record = {"_id": "d1", "title": "Report", "category": "finance"};
+        PineconeDataProvider p = root((
+            {"name": "docs", "host": "docs.svc.pinecone.io"}, {"documents": ({"_id": "d1"},)},
+            {"documents": {"d1": record}}, {"documents": {"d1": record}},
+            {"documents": {"d1": record}}, {}, {"upserted_count": 1},
+            {"documents": {"d1": record}}, {},
+        ));
+        AbstractDataProvider t = p.getChildProviderPath("tables/documents");
+        hash<auto> scope = {"index": "docs", "namespace": "finance/2026"};
+        list<hash<auto>> rows = map $1, t.searchRecords(NOTHING, scope);
+        assertEq(({"_id": "d1", "fields": {"title": "Report", "category": "finance"}},), rows);
+        assertTrue(PineconeTableClient::log.requests[1].path =~ /finance%2F2026/);
+        rows = map $1, t.searchRecords({"fields.category": "finance"}, scope);
+        assertEq("Report", rows[0].fields.title);
+        assertEq({"category": {"$eq": "finance"}}, PineconeTableClient::log.requests[3].body.filter);
+        assertEq(1, t.updateRecords({"fields": {"title": "Revised"}}, {"_id": "d1"}, scope));
+        assertEq(({"_id": "d1", "title": "Revised"},), PineconeTableClient::log.requests[5].body.documents);
+        assertEq("d2", t.createRecord({"_id": "d2", "fields": {"title": "New"}}, scope)._id);
+        assertEq(({"_id": "d2", "title": "New"},), PineconeTableClient::log.requests[6].body.documents);
+        assertEq(1, t.deleteRecords({"_id": "d1"}, scope));
+        assertEq(("d1",), PineconeTableClient::log.requests[8].body.ids);
+        assertThrows("REST-SCHEMA-RECORD-ERROR", \PineconeRecordTables::documentWire(),
+            ({"_id": "a", "fields": {"_id": "b"}},));
+    }
+    private scopeTest() {
+        PineconeDataProvider p = root(({"data": ()}, {"backup_id": "b1"}, {}));
+        AbstractDataProvider b = p.getChildProviderPath("tables/backups");
+        assertEq((), (map $1, b.searchRecords()));
+        assertEq("b1", b.createRecord({"name": "nightly"}, {"index_name": "orders"}).backup_id);
+        assertEq("/indexes/orders/backups", PineconeTableClient::log.requests[1].path);
+        assertEq(1, b.deleteRecords({"backup_id": "b1"}));
+        assertEq("/backups/b1", PineconeTableClient::log.requests[2].path);
+        p = root(({"schedule_id": "s1"}, {},));
+        AbstractDataProvider sched = p.getChildProviderPath("tables/backup-schedules");
+        assertEq("s1", sched.searchSingleRecord({"schedule_id": "s1"}).schedule_id);
+        assertEq(1, sched.updateRecords({"enabled": False}, {"schedule_id": "s1"}));
+        assertEq("/backup-schedules/s1", PineconeTableClient::log.requests[1].path);
+        assertEq({"enabled": False}, PineconeTableClient::log.requests[1].body);
+        assertTrue(sched.getInfo().create_options.index_name.required);
+        assertThrows("REST-SCHEMA-RECORD-ERROR", sub () { map $1, sched.searchRecords(); });
+        assertEq(2, PineconeTableClient::log.requests.size());
+    }
+    private filterTest() {
+        RestSchemaRecordFilter f(PineconeRecordTables::Vectors);
+        foreach hash<auto> op in (PineconeRecordTables::Operators.pairIterator()) {
+            list<auto!> args = (<DataProviderFieldReference>{"field": "metadata.year"},);
+            if (!inlist(op.key, (DP_OP_IS_NULL, DP_OP_IS_NOT_NULL))) {
+                args += inlist(op.key, (DP_SEARCH_OP_IN, DP_OP_NOT_IN)) ? ((2025, 2026),) : (2026,);
+            }
+            hash<DataProviderExpression> exp = <DataProviderExpression>{"exp": op.key, "args": args};
+            assertTrue(f.canRender(exp), op.key);
+            assertTrue(PineconeRecordTables::renderQuery(exp).year.hasKey(op.value), op.key);
+            assertTrue(f.getExpressionInfo(){op.key}.supports_pushdown, op.key);
+        }
+        hash<DataProviderExpression> eq = <DataProviderExpression>{"exp": DP_SEARCH_OP_EQ,
+            "args": (<DataProviderFieldReference>{"field": "metadata.category"}, "a")};
+        foreach string op in ((DP_OP_AND, DP_OP_OR)) {
+            hash<DataProviderExpression> exp = <DataProviderExpression>{"exp": op, "args": (eq, eq)};
+            assertTrue(f.canRender(exp));
+            assertEq(2, PineconeRecordTables::renderQuery(exp).firstValue().size());
+        }
+        assertFalse(f.canRender(<DataProviderExpression>{"exp": DP_SEARCH_OP_NOT, "args": (eq,)}));
+        assertFalse(f.getExpressionInfo(){DP_SEARCH_OP_NOT}.supports_pushdown);
+        foreach string name in (("id", "values", "metadata", "metadata.", "metadata.a.b")) {
+            assertFalse(f.canRender(<DataProviderExpression>{"exp": DP_SEARCH_OP_EQ,
+                "args": (<DataProviderFieldReference>{"field": name}, "a")}), name);
+        }
+        assertFalse(f.canRender(<DataProviderExpression>{"exp": DP_SEARCH_OP_GT,
+            "args": (<DataProviderFieldReference>{"field": "metadata.year"}, "2026")}));
+        foreach auto value in ((NOTHING, {"nested": "value"}, ("array",))) {
+            assertFalse(f.canRender(<DataProviderExpression>{"exp": DP_SEARCH_OP_EQ,
+                "args": (<DataProviderFieldReference>{"field": "metadata.kind"}, value)}));
+        }
+        foreach list<auto> values in (((), (True,), ("a", 1))) {
+            assertFalse(f.canRender(<DataProviderExpression>{"exp": DP_SEARCH_OP_IN,
+                "args": (<DataProviderFieldReference>{"field": "metadata.kind"}, values)}));
+        }
+        assertTrue(f.canRender(<DataProviderExpression>{"exp": DP_SEARCH_OP_EQ,
+            "args": (<DataProviderFieldReference>{"field": "metadata.active"}, False)}));
+        hash<DataProviderExpression> escaped = <DataProviderExpression>{"exp": DP_SEARCH_OP_EQ,
+            "args": (<DataProviderFieldReference>{"field": "metadata.release\\.year"}, 2026)};
+        assertTrue(f.canRender(escaped));
+        assertEq({"release.year": {"$eq": 2026}}, PineconeRecordTables::renderQuery(escaped));
+    }
+    # Pinecone is eventually consistent. Run prepare, read, updated, and deleted as separate
+    # integration stages once the preceding writes have become visible. Each stage makes one
+    # observation, with no sleeps or retries. PINECONE_TABLE_STATE names the fixture JSON file;
+    # it contains only owned index names, never credentials. The cleanup stage is also explicit.
+    private liveTest() {
+        string phase = ENV.PINECONE_TABLE_PHASE;
+        assertTrue(inlist(phase, ("prepare", "read", "updated", "deleted", "cleaned", "cleanup")));
+        assertTrue(ENV.PINECONE_TABLE_STATE.val());
+        PineconeDataProvider p(new PineconeRestClientIo({"apikey": ENV.PINECONE_APIKEY}));
+        AbstractDataProvider indexes = p.getChildProviderPath("tables/indexes");
+        hash<auto!> state = phase == "prepare" ? {} : parse_json(File::readTextFile(ENV.PINECONE_TABLE_STATE));
+        list<string> created = state.created ?? ();
+        code<nothing()> cleanup = sub () {
+            foreach string name in (created) {
+                assertTrue(name.startsWith("qore-table-"));
+                indexes.deleteRecords({"name": name});
+            }
+        };
+        on_error cleanup();
+        if (phase == "cleaned") {
+            foreach string name in (created) {
+                assertNothing(indexes.searchSingleRecord({"name": name}));
+            }
+            return;
+        }
+        if (phase == "cleanup") {
+            cleanup();
+            return;
+        }
+        if (phase == "prepare") {
+            PineconeRestConnection conn("pinecone-record-test", "live table test",
+                PineconeRestConnection::DefaultUrl, {}, {"apikey": ENV.PINECONE_APIKEY});
+            assertTrue(conn.ping(True).ok);
+            PineconeRestConnection bad("pinecone-bad-key", "negative ping",
+                PineconeRestConnection::DefaultUrl, {}, {"apikey": "pcsk_invalid_qore_test"});
+            assertFalse(bad.ping().ok);
+            string suffix = sprintf("%d", now_us().getEpochMicroseconds());
+            state = {"vec": "qore-table-v-" + suffix, "doc": "qore-table-d-" + suffix};
+            foreach hash<auto> definition in ((
+                {"name": state.vec, "schema": {"fields": {"_values": {"type": "dense_vector", "dimension": 2,
+                    "metric": "cosine"}}}},
+                {"name": state.doc, "schema": {"fields": {"content": {"type": "string",
+                    "full_text_search": {"language": "en"}}}}},
+            )) {
+                hash<auto> result = indexes.createRecord(definition + {
+                    "deployment": {"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"}});
+                push created, definition.name;
+                assertEq(definition.name, result.name);
+            }
+            state.created = created;
+            File output();
+            output.open2(ENV.PINECONE_TABLE_STATE, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+            output.write(make_json(state));
+            output.close();
+        }
+        AbstractDataProvider vectors = p.getChildProviderPath("tables/vectors");
+        AbstractDataProvider documents = p.getChildProviderPath("tables/documents");
+        hash<auto> scope = {"index": state.vec, "namespace": "qore-records"};
+        hash<auto> ds = {"index": state.doc, "namespace": "__default__"};
+        if (phase == "prepare") {
+            AbstractDataProvider namespaces = p.getChildProviderPath("tables/namespaces");
+            assertEq("qore-records", namespaces.createRecord({"name": "qore-records"}, {"index": state.vec}).name);
+            assertEq("v1", vectors.createRecord({"id": "v1", "values": (1.0, 0.0),
+                "metadata": {"year": 2025, "kind": "a"}}, scope).id);
+            assertEq("v2", vectors.createRecord({"id": "v2", "values": (0.0, 1.0),
+                "metadata": {"year": 2026, "kind": "b"}}, scope).id);
+            assertEq("v,3", vectors.createRecord({"id": "v,3", "values": (0.5, 0.5),
+                "metadata": {"year": 2024, "kind": "comma"}}, scope).id);
+            assertEq("d1", documents.createRecord({"_id": "d1", "fields": {
+                "content": "Quarterly financial report", "year": 2026}}, ds)._id);
+        } else if (phase == "read") {
+            AbstractDataProvider models = p.getChildProviderPath("tables/models");
+            assertTrue((map $1, models.searchRecords(NOTHING, {"type": "embed"})).size() > 0);
+            assertTrue((map $1, indexes.searchRecords()).size() >= 2);
+            assertEq(3, (map $1, vectors.searchRecords(NOTHING, scope)).size());
+            assertEq("comma", vectors.searchSingleRecord({"id": "v,3"}, scope).metadata.kind);
+            assertEq("v2", vectors.searchSingleRecord({"metadata.year": 2026}, scope).id);
+            assertEq("a", vectors.searchSingleRecord({"id": "v1"}, scope).metadata.kind);
+            assertEq("d1", documents.searchSingleRecord({"fields.year": 2026}, ds)._id);
+            assertEq(1, (map $1, documents.searchRecords(NOTHING, ds)).size());
+            assertEq("Quarterly financial report", documents.searchSingleRecord({"_id": "d1"}, ds).fields.content);
+            assertEq(1, vectors.updateRecords({"metadata": {"kind": "updated"}}, {"id": "v1"}, scope));
+            assertEq(1, documents.updateRecords({"fields": {"content": "Revised report"}}, {"_id": "d1"}, ds));
+        } else if (phase == "updated") {
+            assertEq("updated", vectors.searchSingleRecord({"id": "v1"}, scope).metadata.kind);
+            assertEq("Revised report", documents.searchSingleRecord({"_id": "d1"}, ds).fields.content);
+            assertEq(1, vectors.deleteRecords({"id": "v1"}, scope));
+            assertEq(1, documents.deleteRecords({"_id": "d1"}, ds));
+        } else if (phase == "deleted") {
+            assertNothing(vectors.searchSingleRecord({"id": "v1"}, scope));
+            assertNothing(documents.searchSingleRecord({"_id": "d1"}, ds));
+            assertEq(("v,3", "v2"), sort(map $1.id, vectors.searchRecords(NOTHING, scope)));
+            cleanup();
+        }
+    }
+}

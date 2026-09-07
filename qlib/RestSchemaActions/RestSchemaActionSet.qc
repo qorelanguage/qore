@@ -94,6 +94,15 @@ public hashdecl RestSchemaReferenceDataInfo {
     */
     *list<hash<auto>> option_sets;
 
+    #! A reference-data listing whose values supply the partitions to enumerate
+    /** For project-scoped API keys addressed globally by ID: enumerate projects, then list keys once
+        per project. Set reference_option as well. Mutually exclusive with option_sets.
+    */
+    *string options_reference;
+
+    #! The listing option receiving each value from options_reference
+    *string reference_option;
+
     #! A description of the reference data
     *string desc;
 }
@@ -510,6 +519,28 @@ public class RestSchemaActionSet {
             if (!exists opmap{rd.action}) {
                 throw "REST-SCHEMA-ACTION-ERROR", sprintf("reference data %y is produced by action %y, which "
                     "the manifest does not export; exported actions: %y", i.key, rd.action, keys opmap);
+            }
+            if (rd.options_reference.val().toBool() != rd.reference_option.val().toBool()) {
+                throw "REST-SCHEMA-ACTION-ERROR", "options_reference and reference_option must be set together";
+            }
+            if (rd.options_reference.val()) {
+                if (rd.option_sets || !opmap{rd.action}.getFlatMap().hasKey(rd.reference_option)
+                        || rd.options.hasKey(rd.reference_option) || rd.options_from.hasKey(rd.reference_option)) {
+                    throw "REST-SCHEMA-ACTION-ERROR", sprintf("invalid reference partition option for %y", i.key);
+                }
+                hash<string, bool> seen = {i.key: True};
+                *string next = rd.options_reference;
+                while (next.val()) {
+                    if (seen{next}) {
+                        throw "REST-SCHEMA-ACTION-ERROR", sprintf("cyclic reference-data partitions at %y", next);
+                    }
+                    seen{next} = True;
+                    *hash<RestSchemaReferenceDataInfo> source = getReferenceDataDecl(next);
+                    if (!source) {
+                        throw "REST-SCHEMA-ACTION-ERROR", sprintf("unknown reference-data partition %y", next);
+                    }
+                    next = source.options_reference;
+                }
             }
             # a fixed option that the listing action does not accept would fail only when a user opened a
             # dropdown, so check it now

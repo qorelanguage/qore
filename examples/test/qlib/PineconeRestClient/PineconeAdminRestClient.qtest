@@ -1,0 +1,171 @@
+#!/usr/bin/env qore
+/** PineconeAdminRestClient.qtest Copyright 2026 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/PineconeRestClient.qm
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/Logger
+%requires json
+%exec-class PineconeAdminConnectionTest
+
+#! Deterministic OAuth2 and resource endpoints, recording each completed request under a mutex
+class PineconeAdminHandler inherits AbstractHttpRequestHandler {
+    private {
+        Mutex lck();
+        list<hash<auto>> calls = ();
+        int tokens = 0;
+        bool reject = False;
+    }
+    hash<auto> handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
+        AutoLock al(lck);
+        *hash<auto> data;
+        if (body) {
+            data = hdr."content-type" =~ /json/ ? parse_json(body) : parse_uri_query("?" + body).params;
+        }
+        string path = hdr.path.startsWith("/") ? hdr.path : "/" + hdr.path;
+        calls += {"path": path, "method": hdr.method, "headers": hdr, "body": data};
+        if (path == "/oauth/token") {
+            if (data.client_id != "test-client" || data.client_secret != "test-secret"
+                    || data.grant_type != "client_credentials"
+                    || data.audience != PineconeAdminRestClientBase::Audience) {
+                return makeResponse(401, make_json({"error": "invalid_client"}), {"Content-Type": MimeTypeJson});
+            }
+            ++tokens;
+            reject = False;
+            return makeResponse(200, make_json({"access_token": sprintf("admin-token-%d", tokens),
+                "token_type": "Bearer", "expires_in": 3600}), {"Content-Type": MimeTypeJson});
+        }
+        if (reject || hdr.authorization != sprintf("Bearer admin-token-%d", tokens)) {
+            return makeResponse(401, make_json({"error": "invalid_token"}), {"Content-Type": MimeTypeJson});
+        }
+        return makeResponse(200, make_json({"data": (), "ok": True}), {"Content-Type": MimeTypeJson});
+    }
+    list<hash<auto>> getCalls() {
+        AutoLock al(lck);
+        return calls;
+    }
+    invalidate() {
+        AutoLock al(lck);
+        reject = True;
+    }
+}
+class PineconeAdminConnectionTest inherits QUnit::Test {
+    private {
+        *HttpServer server;
+        PineconeAdminHandler handler;
+        string url;
+    }
+    constructor() : Test("Pinecone Admin connection", "1.0") {
+        addTestCase("connection discovery, sensitive options and OAuth2 capabilities", \metadataTest());
+        addTestCase("synchronous OAuth2 token acquisition and renewal", \syncTest());
+        addTestCase("asynchronous OAuth2 token acquisition and renewal", \asyncTest());
+        addTestCase("connection ping accepts and rejects credentials", \pingTest());
+        addTestCase("fixed audience and incompatible authentication", \optionsTest());
+        set_return_value(main());
+    }
+    setUp() {
+        server = new HttpServer(<HttpServerOptionInfo>{"logger": new Logger("pinecone-admin-test", LoggerLevel::getLevelError()), "debug": True});
+        handler = new PineconeAdminHandler();
+        server.setDefaultHandler("admin", handler);
+        int port = server.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        url = sprintf("http://127.0.0.1:%d", port);
+    }
+    tearDown() {
+        delete server;
+    }
+    private hash<auto> options() {
+        return {"url": url, "oauth2_token_url": url + "/oauth/token",
+            "oauth2_client_id": "test-client", "oauth2_client_secret": "test-secret"};
+    }
+    private metadataTest() {
+        hash<ConnectionSchemeInfo> scheme = ConnectionSchemeCache::getScheme("pinecone-admin");
+        assertTrue(scheme.options.oauth2_client_id.sensitive);
+        assertTrue(scheme.options.oauth2_client_secret.sensitive);
+        assertEq("client_credentials", scheme.options.oauth2_grant_type.default_value);
+        assertEq(PineconeAdminRestClientBase::TokenUrl, scheme.options.oauth2_token_url.default_value);
+        assertEq("/admin/projects", scheme.options.ping_path.default_value);
+        PineconeAdminRestConnection c("admin", "test", PineconeAdminRestConnection::DefaultUrl, {}, {
+            "oauth2_client_id": "test-client", "oauth2_client_secret": "test-secret"});
+        hash<auto> info = c.getExtendedInfo();
+        assertTrue(info.oauth2);
+        assertTrue(info.oauth2_client_credentials);
+        assertFalse(info.oauth2_auth);
+        assertEq("client_credentials", info.oauth2_grant_type);
+        assertEq("PineconeAdmin", c.getInfo().app);
+        assertEq(0, handler.getCalls().size());
+    }
+    private checkCalls() {
+        list<hash<auto>> calls = handler.getCalls();
+        list<hash<auto>> token_calls = select calls, $1.path == "/oauth/token";
+        assertEq(2, token_calls.size());
+        foreach hash<auto> c in (token_calls) {
+            assertEq("POST", c.method);
+            assertEq("client_credentials", c.body.grant_type);
+            assertEq("test-client", c.body.client_id);
+            assertEq("test-secret", c.body.client_secret);
+            assertEq(PineconeAdminRestClientBase::Audience, c.body.audience);
+            assertFalse(c.body.hasKey("refresh_token"));
+        }
+        assertEq("Bearer admin-token-2", calls.last().headers.authorization);
+        assertEq(PineconeRestClientBase::ApiVersion, calls.last().headers."x-pinecone-api-version");
+        assertNothing(calls.last().headers."api-key");
+    }
+    private syncTest() {
+        PineconeAdminRestClient c(options());
+        assertTrue(c.restGet("/admin/projects").body.ok);
+        handler.invalidate();
+        c.setToken("Bearer", "expired-token", NOTHING, now_us() - 15m);
+        assertTrue(c.restGet("/admin/projects").body.ok);
+        checkCalls();
+    }
+    private asyncTest() {
+        PineconeAdminRestClientIo c(options());
+        assertTrue(c.restGet("/admin/projects").body.ok);
+        handler.invalidate();
+        c.setToken("Bearer", "expired-token", NOTHING, now_us() - 15m);
+        assertTrue(c.restGet("/admin/projects").body.ok);
+        checkCalls();
+    }
+    private pingTest() {
+        PineconeAdminRestConnection good("admin", "test", url, {}, options() - "url");
+        assertTrue(good.ping(True).ok);
+        assertEq("/admin/projects", handler.getCalls().last().path);
+        PineconeAdminRestConnection bad("admin-bad", "test", url, {},
+            (options() - "url") + {"oauth2_client_secret": "wrong-secret"});
+        hash<PingInfo> result = bad.ping();
+        assertFalse(result.ok);
+        assertTrue(result.info =~ /401|invalid_client/);
+        assertEq("/oauth/token", handler.getCalls().last().path);
+    }
+    private optionsTest() {
+        hash<auto> o = PineconeAdminRestClientBase::getOptions({
+            "oauth2_token_args": {"audience": "wrong", "custom": "kept"}});
+        assertEq(PineconeAdminRestClientBase::Audience, o.oauth2_token_args.audience);
+        assertEq("kept", o.oauth2_token_args.custom);
+        assertThrows("PINECONE-ADMIN-OPTION-ERROR", \PineconeAdminRestClientBase::getOptions(), ({"apikey": "key"},));
+        assertThrows("PINECONE-ADMIN-OPTION-ERROR", \PineconeAdminRestClientBase::getOptions(),
+            ({"oauth2_grant_type": "authorization_code"},));
+        assertEq("key", PineconeRestClientBase::getOptions({"apikey": "key"}).headers."Api-Key");
+    }
+}

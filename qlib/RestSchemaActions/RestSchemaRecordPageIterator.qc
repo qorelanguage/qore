@@ -68,18 +68,23 @@ public class RestSchemaRecordPageIterator inherits Qore::AbstractIterator {
 
         #! Set once the first page has been requested
         bool started = False;
+
+        #! Fetches full records for one ID page
+        *code<list<hash<auto>>(list<hash<auto>>)> hydrate;
     }
 
     #! Creates the object from the arguments
     /** @param lister the provider executing the listing action
         @param table the table being read
         @param options the options sent with every page, excluding paging
+        @param hydrate optional batch fetch for ID-only listings
     */
     constructor(RestSchemaActionDataProvider lister, hash<RestSchemaRecordTableInfo> table,
-            *hash<auto> options) {
+            *hash<auto> options, *code<list<hash<auto>>(list<hash<auto>>)> hydrate) {
         self.lister = lister;
         self.table = table;
         self.options = options ?? {};
+        self.hydrate = hydrate;
         next_page = table.paging.first_page;
     }
 
@@ -131,15 +136,19 @@ public class RestSchemaRecordPageIterator inherits Qore::AbstractIterator {
         # the records are put into the table's shape before the next page is worked out, because with
         # @ref RSRP_AFTER_ID the cursor is the last record's identity and that is a **table** field: a table
         # publishing a projection names it in its own terms, which need not be the service's
-        list<hash<auto>> records = map formatRecord($1), extractRecords(resp);
-        advance(resp, records);
-        if (!records) {
-            # an empty page ends the walk whatever the API says about there being more, because reading
-            # further would repeat the same request forever
-            exhausted = True;
-            return False;
+        list<hash<auto>> records = RestSchemaRecordPageIterator::extractRecordValues(resp,
+            table.records_path, table.records_are_map, table.name);
+        # Pagination follows the ID listing, even when every fetched record was concurrently deleted.
+        if (hydrate) {
+            advance(resp, records);
+            if (records) {
+                records = hydrate(records);
+            }
+            page = (map formatRecord($1), records) ?? ();
+        } else {
+            page = (map formatRecord($1), records) ?? ();
+            advance(resp, page);
         }
-        page = records;
         return True;
     }
 
@@ -180,6 +189,10 @@ public class RestSchemaRecordPageIterator inherits Qore::AbstractIterator {
         hash<RestSchemaRecordPagingInfo> p = table.paging;
         ++next_page;
         next_offset += records.size();
+        if (!records && p.mode != RSRP_CURSOR) {
+            exhausted = True;
+            return;
+        }
         switch (p.mode) {
             case RSRP_NONE:
                 exhausted = True;
@@ -189,6 +202,14 @@ public class RestSchemaRecordPageIterator inherits Qore::AbstractIterator {
                 next_cursor = p.next_cursor ? p.next_cursor(value) : (exists value ? value.toString() : NOTHING);
                 if (!next_cursor.val()) {
                     exhausted = True;
+                    return;
+                }
+                if (next_cursor == options{p.page_option}) {
+                    throw "REST-SCHEMA-RECORD-ERROR", "a listing repeated its pagination cursor";
+                }
+                options{p.page_option} = next_cursor;
+                # A continuation token is authoritative, even for a short or empty page.
+                if (!exists p.has_more_path) {
                     return;
                 }
                 break;
@@ -214,27 +235,35 @@ public class RestSchemaRecordPageIterator inherits Qore::AbstractIterator {
             }
             return;
         }
-        if (exists p.max_size && records.size() < p.max_size) {
+        if (!records || (exists p.max_size && records.size() < p.max_size)) {
             exhausted = True;
         }
     }
 
-    #! Returns the records in a listing response
-    private list<hash<auto>> extractRecords(auto resp) {
-        auto node = RestSchemaRecordPageIterator::followPath(resp, table.records_path);
+    #! Extracts an array or identity map of records from an action response
+    /** @param resp the response
+        @param path the path to the collection
+        @param is_map whether the collection is an identity map
+        @param table_name the table name for errors
+        @return records in response order
+        @throw REST-SCHEMA-RECORD-ERROR the collection or an element has the wrong type
+    */
+    static list<hash<auto>> extractRecordValues(auto resp, *softlist<string> path, bool is_map,
+            string table_name) {
+        auto node = RestSchemaRecordPageIterator::followPath(resp, path);
         if (!exists node) {
             return ();
         }
-        if (node.typeCode() != NT_LIST) {
+        if (node.typeCode() != (is_map ? NT_HASH : NT_LIST)) {
             throw "REST-SCHEMA-RECORD-ERROR", sprintf("the listing behind table %y returned type %y where a "
-                "list of records was expected (records path: %y)", table.name, node.type(),
-                table.records_path);
+                "%s of records was expected (records path: %y)", table_name, node.type(),
+                is_map ? "map" : "list", path);
         }
         list<hash<auto>> rv = ();
-        foreach auto rec in (node) {
+        foreach auto rec in (is_map ? node.iterator() : node) {
             if (rec.typeCode() != NT_HASH) {
                 throw "REST-SCHEMA-RECORD-ERROR", sprintf("the listing behind table %y returned type %y as "
-                    "record %d where a hash was expected", table.name, rec.type(), $#);
+                    "record %d where a hash was expected", table_name, rec.type(), $#);
             }
             rv += rec;
         }

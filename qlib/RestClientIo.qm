@@ -142,6 +142,7 @@ resp = rc.restGet("/api/data");
     @section restclientio_relnotes Release Notes
 
     @subsection restclientio_v1_0 Version 1.0
+    - Renews expiring client-credentials tokens without requiring a refresh token
     - Fixed @ref RestClientIo::RestClientIo::copyWithUrl() "copyWithUrl()" children losing their
       shared connection manager when the originating client was destroyed; internally created
       managers now remain active until the last related client is destroyed
@@ -3598,7 +3599,8 @@ rest.restSseStream("GET", "/events", sub (hash<SseMessageInfo> evt) {
         #! Returns True if the token needs to be refreshed
         private bool requiresRefresh() {
             AutoReadLock al(config_lock);
-            return token_val.val() && refresh_token.val() && oauth2_token_expiry.val()
+            return token_val.val() && (refresh_token.val() || oauth2_grant_type == "client_credentials")
+                && oauth2_token_expiry.val()
                 && ((now_us() + RestClient::RestClient::Oauth2TokenRefreshWindow) > oauth2_token_expiry);
         }
 
