@@ -1214,8 +1214,9 @@ void qore_string_private::terminate(size_t size) {
 }
 
 int qore_string_private::substr_simple(QoreString* ns, qore_offset_t offset, qore_offset_t length) const {
+    const char* data = effective_buf();
     printd(5, "qore_string_private::substr_simple(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p len="
-        QSD ")\n", offset, length, buf, this, len);
+        QSD ")\n", offset, length, data, this, len);
 
     size_t n_offset;
     if (offset < 0)
@@ -1237,13 +1238,14 @@ int qore_string_private::substr_simple(QoreString* ns, qore_offset_t offset, qor
     else
         n_length = length;
 
-    ns->concat(buf + n_offset, n_length);
+    ns->concat(data + n_offset, n_length);
     return 0;
 }
 
 int qore_string_private::substr_simple(QoreString* ns, qore_offset_t offset) const {
+    const char* data = effective_buf();
     printd(5, "qore_string_private::substr_simple(offset=" QSD ") string=\"%s\" (this=%p len=" QSD ")\n",
-            offset, buf, this, len);
+            offset, data, this, len);
 
     size_t n_offset;
     if (offset < 0)
@@ -1254,20 +1256,21 @@ int qore_string_private::substr_simple(QoreString* ns, qore_offset_t offset) con
         return -1;
 
     // add length to ensure that the entire string is copied even if it has embedded nulls
-    ns->concat(buf + n_offset, len - n_offset);
+    ns->concat(data + n_offset, len - n_offset);
     return 0;
 }
 
 int qore_string_private::substr_complex(QoreString* ns, qore_offset_t offset, qore_offset_t length,
         ExceptionSink* xsink) const {
+    const char* data = effective_buf();
     assert(xsink);
     QORE_TRACE("qore_string_private::substr_complex(offset, length)");
     printd(5, "qore_string_private::substr_complex(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p len="
-        QSD ")\n", offset, length, buf, this, len);
+        QSD ")\n", offset, length, data, this, len);
 
-    char* pend = buf + len;
+    const char* pend = data + len;
     if (offset < 0) {
-        int clength = getEncoding()->getLength(buf, pend, xsink);
+        int clength = getEncoding()->getLength(data, pend, xsink);
         if (*xsink)
             return -1;
 
@@ -1277,7 +1280,7 @@ int qore_string_private::substr_complex(QoreString* ns, qore_offset_t offset, qo
             return -1;
     }
 
-    size_t start = getEncoding()->getByteLen(buf, pend, offset, xsink);
+    size_t start = getEncoding()->getByteLen(data, pend, offset, xsink);
     if (*xsink)
         return -1;
 
@@ -1285,50 +1288,51 @@ int qore_string_private::substr_complex(QoreString* ns, qore_offset_t offset, qo
         return -1;
 
     if (length < 0) {
-        length = getEncoding()->getLength(buf + start, pend, xsink) + length;
+        length = getEncoding()->getLength(data + start, pend, xsink) + length;
         if (*xsink)
             return -1;
 
         if (length < 0)
             length = 0;
     }
-    size_t end = getEncoding()->getByteLen(buf + start, pend, length, xsink);
+    size_t end = getEncoding()->getByteLen(data + start, pend, length, xsink);
     if (*xsink)
         return -1;
 
-    ns->concat(buf + start, end);
+    ns->concat(data + start, end);
     return 0;
 }
 
 int qore_string_private::substr_complex(QoreString* ns, qore_offset_t offset, ExceptionSink* xsink) const {
+    const char* data = effective_buf();
     assert(xsink);
-    //printd(5, "qore_string_private::substr_complex(offset=" QSD ") string=\"%s\" (this=%p len=" QSD ")\n", offset, buf, this, len);
-    char* pend = buf + len;
+    //printd(5, "qore_string_private::substr_complex(offset=" QSD ") string=\"%s\" (this=%p len=" QSD ")\n", offset, data, this, len);
+    const char* pend = data + len;
     if (offset < 0) {
-        size_t clength = getEncoding()->getLength(buf, pend, xsink);
+        size_t clength = getEncoding()->getLength(data, pend, xsink);
         if (*xsink)
             return -1;
 
         offset = clength + offset;
 
         if ((offset < 0) || ((size_t)offset >= clength)) {  // if offset outside of string, return nothing
-            //printd(5, "this=%p, len=" QSD ", offset=" QSD ", clength=" QSD ", buf=%s\n", this, len, offset, clength, buf);
+            //printd(5, "this=%p, len=" QSD ", offset=" QSD ", clength=" QSD ", data=%s\n", this, len, offset, clength, data);
             return -1;
         }
     }
 
-    size_t start = getEncoding()->getByteLen(buf, pend, offset, xsink);
+    size_t start = getEncoding()->getByteLen(data, pend, offset, xsink);
     if (*xsink)
         return -1;
 
     //printd(5, "offset=" QSD ", start=" QSD "\n", offset, start);
     if (start == len) {
-        //printd(5, "this=%p, len=" QSD ", offset=" QSD ", buf=%p, start=" QSD ", %s\n", this, len, offset, buf, start, buf);
+        //printd(5, "this=%p, len=" QSD ", offset=" QSD ", data=%p, start=" QSD ", %s\n", this, len, offset, data, start, data);
         return -1;
     }
 
     // calculate byte offset
-    ns->concat(buf + start, len - start);
+    ns->concat(data + start, len - start);
     return 0;
 }
 

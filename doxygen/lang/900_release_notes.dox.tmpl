@@ -38,6 +38,7 @@
     - copy-on-write @ref string_views "string view" layer makes
       @ref <string>::substr() "<string>::substr()" and
       @ref string_slicing "[] slice operations" allocation-free for read-only consumers
+      - fixed character indexing and C++ substring extraction from string views to read the parent buffer
     - regex matching skips per-call UTF-8 re-validation in PCRE2 inner loops
     - passing a @ref lvalue_references "reference" to a variable holding objects no longer costs time
       proportional to the size of the object graph reachable from that variable; binding the argument applies
