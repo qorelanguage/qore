@@ -1,0 +1,98 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+/*
+    Copyright (C) 2026 Qore Technologies, s.r.o., all rights reserved
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+%modern
+%enable-all-warnings
+
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/SqlUtil
+%requires ../../../../qlib/DbDataProvider
+
+%exec-class DbForeignConstraintTypeTest
+
+#! Tests the foreign constraint data types; no database connection is required
+public class DbForeignConstraintTypeTest inherits QUnit::Test {
+    constructor() : Test("DbForeignConstraintTypeTest", "1.0") {
+        addTestCase("target_columns is optional", \targetColumnsOptionalTest());
+        addTestCase("required keys are enforced", \requiredKeysTest());
+        addTestCase("constraint hashes are accepted by name", \constraintsTypeTest());
+        set_return_value(main());
+    }
+
+    #! \c target_columns is only needed when the foreign columns are named differently
+    private targetColumnsOptionalTest() {
+        DbForeignConstraintDataType t();
+        *AbstractDataField f = t.getFields().target_columns;
+        assertTrue(exists f, "target_columns field is present");
+        assertFalse(f.isMandatory(), "target_columns is optional");
+
+        # a constraint without "target_columns" must be accepted unchanged
+        hash<auto> v = t.acceptsValue({
+            "columns": "id",
+            "table": "other_table",
+        });
+        assertEq(("id",), v.columns);
+        assertEq("other_table", v.table);
+        assertFalse(v.hasKey("target_columns") && exists v.target_columns,
+            "no target_columns value is generated");
+
+        # an explicit value is still accepted and converted to a list
+        v = t.acceptsValue({
+            "columns": ("id", "tenant_id"),
+            "table": "other_table",
+            "target_columns": ("other_id", "other_tenant_id"),
+        });
+        assertEq(("other_id", "other_tenant_id"), v.target_columns);
+    }
+
+    #! the other two keys are required and must be reported when absent
+    private requiredKeysTest() {
+        DbForeignConstraintDataType t();
+        assertTrue(t.getFields().columns.isMandatory(), "columns is mandatory");
+        assertTrue(t.getFields().table.isMandatory(), "table is mandatory");
+
+        assertThrows("MISSING-VALUE-ERROR", "required field \"table\" is absent", \t.acceptsValue(), {
+            "columns": "id",
+        });
+        assertThrows("MISSING-VALUE-ERROR", "required field \"columns\" is absent", \t.acceptsValue(), {
+            "table": "other_table",
+        });
+    }
+
+    #! the containing type keys constraints by name
+    private constraintsTypeTest() {
+        DbForeignConstraintsDataType t();
+        hash<auto> v = t.acceptsValue({
+            "fk_test": {
+                "columns": "id",
+                "table": "other_table",
+            },
+        });
+        assertEq(("id",), v.fk_test.columns);
+        assertEq("other_table", v.fk_test.table);
+    }
+}

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore DbForeignConstraintDataType class definition
 
-/** DbForeignConstraintDataType.qc Copyright 2019 - 2024 Qore Technologies, s.r.o.
+/** DbForeignConstraintDataType.qc Copyright 2019 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,10 +32,11 @@ public class DbForeignConstraintDataType inherits HashDataType {
         addField(new QoreDataField("columns", "the list of columns making up the foreign constraint",
             new Type("softlist<string>")));
         addField(new QoreDataField("table", "if the table the constraint depends on", StringType));
+        # this field is optional; when it is not present, the target columns are taken from the "columns" field
         addField(new QoreDataField("target_columns", "this value is only necessary if the columns in the foreign "
             "table have different names than in the current table; if so, it must be assigned to a single column "
             "name or a list of column names in the foreign table; if this key is present then the same number of "
-            "columns must appear in this option and in the columns option", new Type("softlist<string>")));
+            "columns must appear in this option and in the columns option", new Type("*softlist<string>")));
     }
 }
 }
