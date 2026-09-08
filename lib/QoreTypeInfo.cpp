@@ -5944,9 +5944,10 @@ bool QoreTypeInfo::matchCommonType(const QoreTypeInfo*& ctype, const QoreTypeInf
 
     // ctype |* NOTHING -> *type
     // only call get_or_nothing_type() if ctype doesn't already accept NOTHING
-    if (!QoreTypeInfo::parseAcceptsReturns(ctype, NT_NOTHING) && QoreTypeInfo::isType(ntype, NT_NOTHING)) {
-        const QoreTypeInfo* ti = get_or_nothing_type(ctype);
-        ctype = ti;
+    if (QoreTypeInfo::isType(ntype, NT_NOTHING)) {
+        if (!QoreTypeInfo::parseAcceptsReturns(ctype, NT_NOTHING)) {
+            ctype = get_or_nothing_type(ctype);
+        }
         return ctype != autoTypeInfo ? true : false;
     }
 
@@ -5960,6 +5961,12 @@ bool QoreTypeInfo::matchCommonType(const QoreTypeInfo*& ctype, const QoreTypeInf
     // if the new type is a superset of the existing common type, then use the new type
     if (ntype->superSetOf(ctype)) {
         ctype = ntype;
+        return true;
+    }
+    // The existing common type can already contain the new type, for example
+    // *hash<Info> followed by hash<Info>. Preserve it before rejecting types
+    // with multiple return alternatives; folding must work in either order.
+    if (ctype->superSetOf(ntype)) {
         return true;
     }
 

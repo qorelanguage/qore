@@ -1045,6 +1045,14 @@ uint64_t qore_rt_select_hash_key_positive_int(uint64_t list_val, const char* key
 uint64_t qore_rt_select_hash_key_positive_int_prehashed(uint64_t list_val,
         const char* key, uint64_t hash64, uint32_t hash32, ExceptionSink* xsink);
 
+//! Map a hash member while retaining the common runtime element type.
+/** @param list_val borrowed NaN-boxed input list
+    @param key hash member name
+    @param xsink receives invalid-member or cancellation errors
+    @return an owned NaN-boxed result list, or NOTHING for non-list input or errors
+*/
+uint64_t qore_rt_map_hash_key_value(uint64_t list_val, const char* key, ExceptionSink* xsink);
+
 //! Map `hash-key + integer` over a typed hash list while preserving dynamic addition semantics.
 uint64_t qore_rt_map_hash_key_offset_any(uint64_t list_val, const char* key,
         int64_t offset, ExceptionSink* xsink);

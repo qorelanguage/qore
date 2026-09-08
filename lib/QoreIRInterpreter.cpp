@@ -3,6 +3,8 @@
     QoreIRInterpreter.cpp
 
     Qore Programming Language
+
+    Copyright (C) 2026 Qore Technologies, s.r.o.
 */
 
 #include "qore/intern/QoreJITIncludes.h"
@@ -9204,42 +9206,19 @@ load_local_done:
             case QoreIROpcode::MapHashKeyValue: {
                 const auto* mhk = static_cast<const QoreIRMapHashKeyInstruction*>(inst);
                 QoreValue list_val = getIRValue(values, mhk->operands[0]);
-                QoreValue out;
-                if (list_val.getType() == NT_LIST) {
-                    const QoreListNode* l = list_val.get<const QoreListNode>();
-                    size_t sz = l->size();
-                    ReferenceHolder<QoreListNode> result(new QoreListNode(autoTypeInfo), xsink);
-                    bool routed_to_handler = false;
-                    for (size_t i = 0; i < sz; ++i) {
-                        QoreValue elem = l->retrieveEntry(i);
-                        if (elem.getType() == NT_HASH) {
-                            // note: the checking accessor is used here so that accessing an
-                            // unknown member of a hashdecl-typed hash raises INVALID-MEMBER, as
-                            // with the reference (AST) implementation
-                            QoreValue val = elem.get<const QoreHashNode>()->getKeyValue(
-                                mhk->key1.c_str(), xsink);
-                            if (*xsink) {
-                                if (inst->exception_target) {
-                                    prev_block = block;
-                                    block = inst->exception_target;
-                                    ip = 0;
-                                    routed_to_handler = true;
-                                    break;
-                                }
-                                cleanupValues(values, cleanup, xsink, true, cleanup_log);
-                                cleanupLocalCaches();
-                                return false;
-                            }
-                            result->push(val.refSelf(), xsink);
-                        } else {
-                            result->push(QoreValue(), xsink);
-                        }
-                    }
-                    // the partially built result is discarded by the ReferenceHolder
-                    if (routed_to_handler) {
+                QoreValue out = fromBits(qore_rt_map_hash_key_value(
+                    toBits(list_val), mhk->key1.c_str(), xsink));
+                if (*xsink) {
+                    out.discard(xsink);
+                    if (inst->exception_target) {
+                        prev_block = block;
+                        block = inst->exception_target;
+                        ip = 0;
                         break;
                     }
-                    out = result.release();
+                    cleanupValues(values, cleanup, xsink, true, cleanup_log);
+                    cleanupLocalCaches();
+                    return false;
                 }
                 setValueSlot(values, mhk->result.id, out, xsink);
                 if (out.hasNode()) {

@@ -1,0 +1,121 @@
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+
+hashdecl Identity {
+    string family;
+}
+hashdecl OtherIdentity {
+    int count;
+}
+hashdecl Item {
+    *hash<Identity> identity;
+    *int ordinal;
+    *list<int> indices;
+}
+
+sub check(bool condition, string description) {
+    if (!condition) {
+        throw "TEST-ERROR", description;
+    }
+}
+
+class Probe {
+    static string hashValues(list<*hash<Identity>> values) {
+        return (map exists $1 ? $1.family : "missing", values).join(",");
+    }
+    static string intValues(list<*int> values) {
+        return (map exists $1 ? string($1) : "missing", values).join(",");
+    }
+    static string listValues(list<*list<int>> values) {
+        return (map exists $1 ? string($1.size()) : "missing", values).join(",");
+    }
+    static string typed(list<hash<Item>> items) {
+        return hashValues(map $1.identity, items) + "/" + intValues(map $1.ordinal, items)
+            + "/" + listValues(map $1.indices, items);
+    }
+    static string iterator(list<hash<Item>> items) {
+        return hashValues(map $1.identity, items.iterator());
+    }
+    static string filtered(list<hash<Item>> items) {
+        return hashValues(map $1.identity, items, exists $1.ordinal);
+    }
+    static auto optionalHashes(list<*hash<Identity>> values) {
+        return map $1, values;
+    }
+    static auto rejectUnrelated(auto value) {
+        return hashValues(value);
+    }
+    static auto missingMember(list<hash<auto>> values) {
+        return map $1.identity, values;
+    }
+}
+
+hash<Item> one = <Item>{"identity": <Identity>{"family": "decimal"}, "ordinal": 1, "indices": (1,)};
+hash<Item> two = <Item>{"identity": <Identity>{"family": "boolean"}, "ordinal": 2, "indices": (1, 2)};
+hash<Item> missing = <Item>{};
+check(Probe::typed((one, two)) == "decimal,boolean/1,2/1,2", "typed map preserves optional element types");
+check(Probe::typed((one, missing, two)) == "decimal,missing,boolean/1,missing,2/1,missing,2",
+    "NOTHING in the middle does not erase the optional type");
+check(Probe::typed((missing, one)) == "missing,decimal/missing,1/missing,1", "leading NOTHING");
+check(Probe::typed((one, missing)) == "decimal,missing/1,missing/1,missing", "trailing NOTHING");
+check(Probe::typed((one, missing, missing)) == "decimal,missing,missing/1,missing,missing/1,missing,missing",
+    "repeated trailing NOTHING retains the common optional type");
+check(Probe::typed((missing,)) == "missing/missing/missing", "only NOTHING");
+check(Probe::typed(()) == "//", "empty typed map");
+check(Probe::iterator((one, missing, two)) == "decimal,missing,boolean", "iterator map");
+check(Probe::filtered((one, missing, two)) == "decimal,boolean", "map-select retains optional hash type");
+check(Probe::hashValues(Probe::optionalHashes((one.identity, NOTHING, two.identity))) == "decimal,missing,boolean",
+    "optional hash input and output");
+
+# A common optional type still rejects an unrelated declaration through typed dispatch.
+try {
+    Probe::rejectUnrelated((<OtherIdentity>{"count": 1},));
+    throw "TEST-ERROR", "unrelated hash declaration was accepted";
+} catch (hash<ExceptionInfo> ex) {
+    if (ex.err != "RUNTIME-OVERLOAD-ERROR" && ex.err != "RUNTIME-TYPE-ERROR") {
+        rethrow;
+    }
+}
+
+# Folding is order-independent when an optional expression is followed by its
+# exact non-optional type; heterogeneous values must still widen safely.
+*hash<Identity> optional = one.identity;
+auto left = (optional, two.identity);
+auto right = (two.identity, optional);
+check(Probe::hashValues(left) == "decimal,boolean", "optional type first");
+check(Probe::hashValues(right) == "boolean,decimal", "optional type second");
+auto mixed = (NOTHING, one.identity, 3, two.identity);
+check(mixed[2] === 3 && mixed[3].family == "boolean", "heterogeneous values are retained");
+auto repeated_missing = (1, NOTHING, NOTHING);
+auto both_ends_missing = (NOTHING, 1, NOTHING);
+check(repeated_missing.fullType() == "list<*int>" && both_ends_missing.fullType() == "list<*int>",
+    "additional NOTHING values retain an already optional common type");
+
+# These top-level maps exercise synchronous JIT compilation as well as the
+# function-body IR paths, including partial-result cleanup on a bad hash member.
+list<hash<auto>> records = (one, missing, two);
+auto projected = map $1.identity, records;
+check(Probe::hashValues(projected) == "decimal,missing,boolean", "top-level specialized map type");
+list<hash<auto>> heterogeneous = ({"value": one.identity}, {"value": 3}, {"value": two.identity});
+auto mixed_map = map $1.value, heterogeneous;
+check(mixed_map.fullType() == "list<auto>" && mixed_map[1] === 3
+    && mixed_map[2].family == "boolean", "a heterogeneous map must not narrow after a later hash");
+try {
+    Probe::missingMember((one, <OtherIdentity>{"count": 1}));
+    throw "TEST-ERROR", "unknown hash member accepted after a valid item";
+} catch (hash<ExceptionInfo> ex) {
+    if (ex.err != "INVALID-MEMBER") {
+        rethrow;
+    }
+}
+check(Probe::hashValues(Probe::missingMember(records)) == "decimal,missing,boolean",
+    "a failed map does not corrupt the next result");
+list<hash<auto>> many = (one,);
+for (int i = 1; i < 205; ++i) {
+    push many, one;
+}
+auto many_values = Probe::missingMember(many);
+check(many_values.size() == 205 && many_values[204].family == "decimal",
+    "longer maps retain every value across cancellation checkpoints");
+
+printf("optional-map-type-folding: ok\n");

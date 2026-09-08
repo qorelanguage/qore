@@ -7000,20 +7000,36 @@ extern "C" DLLEXPORT uint64_t qore_rt_map_hash_key_value(uint64_t list_val, cons
     size_t sz = l->size();
     ReferenceHolder<QoreListNode> result(new QoreListNode(autoTypeInfo), xsink);
     qore_list_private* result_priv = qore_rt_prepare_map_result(**result, sz);
+    const QoreTypeInfo* value_type = nullptr;
+    bool common_type = false;
     for (size_t i = 0; i < sz; ++i) {
+        if (i && !(i % 100) && qore_check_cancel(xsink, "hash-key map")) {
+            return toBits(QoreValue());
+        }
         QoreValue elem = l->retrieveEntry(i);
+        QoreValue val;
         if (elem.getType() == NT_HASH) {
-            QoreValue val = elem.get<const QoreHashNode>()->getKeyValue(key, xsink);
+            val = elem.get<const QoreHashNode>()->getKeyValue(key, xsink);
             if (*xsink) {
                 return toBits(QoreValue());
             }
-            qore_rt_append_map_result(result_priv, **result, val.refSelf(), xsink);
-        } else {
-            qore_rt_append_map_result(result_priv, **result, QoreValue(), xsink);
         }
+        // Match the AST map's runtime result type, including optional and
+        // hashdecl values. Keep the builder unconstrained until every value
+        // has been collected so a later NOTHING or unrelated value is valid.
+        if (!i) {
+            value_type = val.getTypeInfo();
+            common_type = true;
+        } else if (common_type && !QoreTypeInfo::matchCommonType(value_type, val.getTypeInfo())) {
+            common_type = false;
+        }
+        qore_rt_append_map_result(result_priv, **result, val.refSelf(), xsink);
         if (!result_priv && *xsink) {
             return toBits(QoreValue());
         }
+    }
+    if (common_type && QoreTypeInfo::hasType(value_type)) {
+        qore_list_private::get(**result)->complexTypeInfo = qore_get_complex_list_type(value_type);
     }
     return toBits(result.release());
 }
