@@ -1,0 +1,86 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../../qlib"
+%requires ../../../../../qlib/QUnit.qm
+%exec-class RegexNulTest
+
+class RegexNulTest inherits QUnit::Test {
+    constructor() : Test("Length-aware regex substitution", "1.0") {
+        addTestCase("Unmatched text and subject boundaries", \subjects());
+        addTestCase("Complete runtime patterns", \patterns());
+        addTestCase("Replacement templates and captures", \templates());
+        addTestCase("Callback output and unmatched tails", \callbacks());
+        addTestCase("Case conversion and empty captures", \caseConversion());
+        addTestCase("Replacement boundaries and invalid escapes", \boundaries());
+        set_return_value(main());
+    }
+
+    private same(string expected, string actual) {
+        assertEq(binary(expected), binary(actual), "all bytes, including text following NUL");
+        assertEq(expected.size(), actual.size());
+    }
+
+    subjects() {
+        RegexSubst no_match("missing", "replacement", RE_Global);
+        foreach string source in ("\x00", "\x00leading", "trailing\x00", "a\x00b\x00c", "é\x00中") {
+            same(source, no_match.subst(source));
+            same(source, regex_subst(source, "missing", "replacement", RE_Global));
+            string changed = source;
+            changed =~ s/missing/replacement/g;
+            same(source, changed);
+        }
+        same("Y\x00x", regex_subst("x\x00x", "x", "Y"));
+        same("Y\x00Y", regex_subst("x\x00x", "x", "Y", RE_Global));
+        same("\x00Y", regex_subst("\x00x", "x", "Y"));
+        same("Y\x00", regex_subst("x\x00", "x", "Y"));
+    }
+
+    patterns() {
+        RegexSubst r("a\x00b", "X", RE_Global);
+        same("a a\x00c X", r.subst("a a\x00c a\x00b"));
+        same("X", regex_subst("a\x00b", "a\x00b", "X"));
+        same("a\x00c", regex_subst("a\x00c", "a\x00b", "X"));
+        assertThrows("REGEX-COMPILATION-ERROR", RegexSubst sub () { return new RegexSubst("a\x00[", "X"); });
+    }
+
+    templates() {
+        string replacement = "L\x00$1\x00R";
+        RegexSubst r("(x)", replacement);
+        same("L\x00x\x00Rtail", r.subst("xtail"));
+        same("Q\x00Ztail", r.subst("xtail", "Q\x00Z"));
+        same("L\x00x\x00Rtail", regex_subst("xtail", "(x)", replacement));
+        same("[a\x00b]", regex_subst("a\x00b", "(.*)", "[$1]"));
+        same("\x00tail", regex_subst("x", "x", "\\000tail"));
+    }
+
+    callbacks() {
+        RegexSubst r("(x)", "unused", RE_Global);
+        code<string(hash<RegexMatchInfo>)> replace = string sub (hash<RegexMatchInfo> info) {
+            return "[" + info.match + "\x00]";
+        };
+        same("[x\x00]\x00tail[x\x00]\x00", r.subst("x\x00tailx\x00", replace));
+        same("no\x00match", r.subst("no\x00match", replace));
+        assertThrows("EXPECTED-CALLBACK-ERROR", \r.subst(), ("x\x00x",
+            string sub (hash<RegexMatchInfo> info) { throw "EXPECTED-CALLBACK-ERROR", "cleanup"; }));
+        same("[x\x00]", r.subst("x", replace));
+    }
+
+    caseConversion() {
+        same("A\x00B", regex_subst("a\x00b", "(.*)", "\\U$1\\E"));
+        same("a\x00b", regex_subst("A\x00B", "(.*)", "\\L$1\\E"));
+        same("\x00a", regex_subst("\x00a", "(.*)", "\\u$1"));
+        same("X", regex_subst("a", "()a", "\\u$1x"));
+        same("\x00TAIL", regex_subst("x", "x", "\\U\\000tail\\E"));
+    }
+
+    boundaries() {
+        foreach string replacement in ("", "\\", "$", "\\1", "\\12", "end\x00") {
+            same(replacement, regex_subst("x", "x", replacement));
+        }
+        same("tail", regex_subst("x", "(x)", "$999999999999999999999999999999999999999999tail"));
+        assertThrows("REGEX-OCTAL-ERROR", \regex_subst(), ("x", "x", "\\777"));
+        same("safe", regex_subst("x", "x", "safe"));
+    }
+}

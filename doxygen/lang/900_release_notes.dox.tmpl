@@ -187,6 +187,8 @@
       connection racing (RFC 8305) for all TCP and QUIC connections
     - new builtin classes for pre-compiled regular expressions: @ref Qore::Regex "Regex",
       @ref Qore::RegexSubst "RegexSubst", @ref Qore::RegexExtract "RegexExtract"
+    - regex substitution preserves embedded NUL characters in patterns, subjects, replacement templates,
+      captures and callback results; integer validation cannot be bypassed by truncating an unmatched suffix
 
     <i>Fast text processing:</i> see @ref fast_text_processing for the full overview
     - @ref Qore::Scanner "Scanner" cursor-based byte/codepoint reader for tokenisers and parsers

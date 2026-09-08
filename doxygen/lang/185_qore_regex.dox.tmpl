@@ -40,6 +40,18 @@
     *list l = (str =~ x/(?:(\w+):(\w+):)(\w+)/);
     @endcode
 
+    @section qore_regex_nul Embedded NUL Characters in Substitution
+
+    Substitution processes the full byte length of patterns, subjects and replacements, including embedded NUL
+    characters. Unmatched text, captures and callback results retain all their bytes. A substitution that makes
+    no replacements returns the complete input string. For example, this retains the NUL and the trailing field:
+
+    @code{.py}
+    string record = "old\x00field";
+    record =~ s/old/new/;
+    @assert(binary(record) == <6e6577006669656c64>);
+    @endcode
+
     @section qore_regex_limits Qore Regular Expression Resource Limits
 
     Patterns are compiled with PCRE2's just-in-time compiler where the platform supports it, so matching cost is

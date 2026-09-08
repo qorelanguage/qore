@@ -65,6 +65,12 @@ then rebuild and run `examples/test/qore/vars/string.qtest` and
 
 ## Transformation algorithm
 
+Regex substitution retains explicit byte lengths around case mapping, including
+embedded NUL characters in captures and replacement templates. Empty captures do
+not consume a pending single-character case conversion. The regression is
+`examples/test/qore/classes/RegexSubst/embedded-nul.qtest`; it also covers pattern
+compilation, unmatched tails, callback replacement and malformed template bounds.
+
 `lib/unicode-charmaps.cpp` holds the engine:
 
 - `apply_case_map()` walks the source string; bytes below 0x80 take an

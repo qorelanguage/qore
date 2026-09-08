@@ -86,17 +86,21 @@ int QoreRegexSubst::parseRT(const QoreString* pstr, ExceptionSink* xsink) {
     if (*xsink) {
         return -1;
     }
-    return parseRT(t->c_str(), xsink);
+    return parseRT(t->c_str(), t->size(), xsink);
 }
 
 // returns 0 for OK, -1 if parse error raised
 int QoreRegexSubst::parseRT(const char* pstr, ExceptionSink* xsink) {
+    return parseRT(pstr, strlen(pstr), xsink);
+}
+
+int QoreRegexSubst::parseRT(const char* pstr, size_t len, ExceptionSink* xsink) {
     int errorcode;
     PCRE2_SIZE eo;
 
     //printd(5, "QoreRegexSubst::parseRT(%s) this: %p\n", t->c_str(), this);
 
-    p = pcre2_compile(reinterpret_cast<PCRE2_SPTR8>(pstr), PCRE2_ZERO_TERMINATED, options, &errorcode, &eo, nullptr);
+    p = pcre2_compile(reinterpret_cast<PCRE2_SPTR8>(pstr), len, options, &errorcode, &eo, nullptr);
     if (!p) {
         PCRE2_UCHAR buffer[qore_pcre2_errorbuf_size];
         pcre2_get_error_message(errorcode, buffer, sizeof(buffer));
@@ -132,6 +136,9 @@ enum CaseMode { CM_NONE, CM_UPPER, CM_LOWER };
 // helper: apply case conversion to a string and concatenate to output
 static void concat_case(ExceptionSink& xsink, QoreString* cstr, const char* text, size_t len,
         CaseMode case_mode, bool& next_upper, bool& next_lower) {
+    if (!len) {
+        return;
+    }
     if (case_mode == CM_NONE && !next_upper && !next_lower) {
         cstr->concat(text, len);
         return;
@@ -153,7 +160,7 @@ static void concat_case(ExceptionSink& xsink, QoreString* cstr, const char* text
             do_tolower(tmp, first_char, &xsink);
         }
         if (!xsink) {
-            cstr->concat(tmp.c_str());
+            cstr->concat(tmp.c_str(), tmp.size());
         }
         next_upper = false;
         next_lower = false;
@@ -173,7 +180,7 @@ static void concat_case(ExceptionSink& xsink, QoreString* cstr, const char* text
         do_tolower(tmp, src, &xsink);
     }
     if (!xsink) {
-        cstr->concat(tmp.c_str());
+        cstr->concat(tmp.c_str(), tmp.size());
     }
 }
 
@@ -185,22 +192,27 @@ static void concat_case_char(ExceptionSink& xsink, QoreString* cstr, char ch,
 
 // static function
 int QoreRegexSubst::concat(ExceptionSink& xsink, QoreString* cstr, PCRE2_SIZE* ovector, int olen, const char* ptr,
-        const char* target, int rc) {
+        size_t len, const char* target, int rc) {
     CaseMode case_mode = CM_NONE;
     bool next_upper = false;
     bool next_lower = false;
 
-    while (*ptr) {
+    const char* end = ptr + len;
+    unsigned iterations = 0;
+    while (ptr < end) {
+        if (!(iterations++ % 100) && qore_check_cancel(&xsink, "regular expression replacement")) {
+            return -1;
+        }
         if (*ptr == '\\') {
             ++ptr;
-            if (isoctaldigit(*ptr) && isoctaldigit(*(ptr + 1)) && isoctaldigit(*(ptr + 2))) {
+            if (end - ptr >= 3 && isoctaldigit(*ptr) && isoctaldigit(*(ptr + 1)) && isoctaldigit(*(ptr + 2))) {
                 int val = (*ptr - 48) * 64 + (*(ptr + 1) - 48) * 8 + (*(ptr + 2) - 48);
                 if (val > 255) {
                     xsink.raiseException("REGEX-OCTAL-ERROR", "octal constant \\%c%c%c is too large "
                         "(decimal %d; must be < 256)", *ptr, *(ptr + 1), *(ptr + 2), val);
                     return -1;
                 }
-                concat_case_char(xsink, cstr, (char)val, case_mode, next_upper, next_lower);
+                concat_case_char(xsink, cstr, static_cast<char>(val), case_mode, next_upper, next_lower);
                 ptr += 3;
             } else if (*(ptr) == '\\' || *(ptr) == '$') {
                 concat_case_char(xsink, cstr, *(ptr++), case_mode, next_upper, next_lower);
@@ -253,13 +265,19 @@ int QoreRegexSubst::concat(ExceptionSink& xsink, QoreString* cstr, PCRE2_SIZE* o
             } else {
                 cstr->concat('\\');
             }
-        } else if (*ptr == '$' && isdigit(ptr[1])) {
-            QoreString n;
+        } else if (*ptr == '$' && ptr + 1 < end && isdigit(static_cast<unsigned char>(ptr[1]))) {
+            int num = 0;
             ++ptr;
             do {
-                n.concat(*(ptr++));
-            } while (isdigit(*ptr));
-            int num = atoi(n.c_str());
+                if (!(iterations++ % 100) && qore_check_cancel(&xsink, "regular expression replacement")) {
+                    return -1;
+                }
+                // Stop accumulating once the reference cannot fit the capture vector.
+                if (num < olen) {
+                    num = num * 10 + (*ptr - '0');
+                }
+                ++ptr;
+            } while (ptr < end && isdigit(static_cast<unsigned char>(*ptr)));
             int pos = num * 2;
             if (pos >= 0 && pos < olen && num < rc && ovector[pos] != -1) {
                 concat_case(xsink, cstr, target + ovector[pos], ovector[pos + 1] - ovector[pos],
@@ -288,7 +306,7 @@ QoreStringNode* QoreRegexSubst::exec(const QoreString* target, const QoreString*
 
     const char* ptr = t->c_str();
     // detect infinite recursion (empty pattern matches)
-    int last_match = -1;
+    PCRE2_SIZE last_match = PCRE2_UNSET;
 
     pcre2_match_data* md = pcre2_match_data_create_from_pattern(p, nullptr);
     ON_BLOCK_EXIT(pcre2_match_data_free, md);
@@ -304,7 +322,7 @@ QoreStringNode* QoreRegexSubst::exec(const QoreString* target, const QoreString*
         }
 
         PCRE2_SIZE offset = ptr - t->c_str();
-        if ((unsigned)offset >= t->size()) {
+        if (offset >= t->size()) {
             break;
         }
         int rc = qore_pcre2_match(p, reinterpret_cast<PCRE2_SPTR8>(t->c_str()), t->size(), offset,
@@ -338,7 +356,8 @@ QoreStringNode* QoreRegexSubst::exec(const QoreString* target, const QoreString*
             tstr->concat(ptr, ovector[0] - offset);
         }
 
-        if (concat(*xsink, *tstr, ovector, SUBST_LASTELEM, nstr ? nstr->c_str() : "", t->c_str(), rc)) {
+        if (concat(*xsink, *tstr, ovector, SUBST_LASTELEM, nstr ? nstr->c_str() : "", nstr ? nstr->size() : 0,
+                t->c_str(), rc)) {
             assert(*xsink);
             return nullptr;
         }
@@ -356,9 +375,7 @@ QoreStringNode* QoreRegexSubst::exec(const QoreString* target, const QoreString*
     }
 
     //printd(5, "QoreRegexSubst::exec() *ptr=%d ('%s') tstr='%s'\n", *ptr, ptr, tstr->c_str());
-    if (*ptr) {
-        tstr->concat(ptr);
-    }
+    tstr->concat(ptr, t->size() - static_cast<size_t>(ptr - t->c_str()));
 
     //printd(5, "QoreRegexSubst::exec() this=%p: returning '%s'\n", this, tstr->c_str());
     return tstr.release();
@@ -490,7 +507,7 @@ QoreStringNode* QoreRegexSubst::execWithCallback(const QoreString* target,
 
         // use the callback's return value as the replacement
         QoreStringValueHelper replacement(*rv);
-        tstr->concat(replacement->c_str());
+        tstr->concat(replacement->c_str(), replacement->size());
 
         ptr = t->c_str() + ovector[1];
         match_options = PCRE2_NO_UTF_CHECK;
@@ -500,9 +517,7 @@ QoreStringNode* QoreRegexSubst::execWithCallback(const QoreString* target,
         }
     }
 
-    if (*ptr) {
-        tstr->concat(ptr);
-    }
+    tstr->concat(ptr, t->size() - static_cast<size_t>(ptr - t->c_str()));
 
     return tstr.release();
 }
