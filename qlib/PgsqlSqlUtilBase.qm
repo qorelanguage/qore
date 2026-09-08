@@ -161,6 +161,8 @@ $function$
     @section pgsql_relnotes Release Notes
 
     @subsection pgsqlsqlutilbasev110 PgsqlSqlUtilBase v1.10
+    - foreign-key creation now preserves quoted local and referenced column names, including reserved
+      words such as \c user and \c order
     - added temporary-table support (\c "create temporary table ... on commit drop"); see
       @ref SqlUtil::AbstractDatabase::createTempTable() "AbstractDatabase::createTempTable()"
     - \c date, \c timestamp, and \c timestamptz partition bounds are now parsed from the catalog as Qore dates,
@@ -605,10 +607,21 @@ public class PgsqlForeignConstraint inherits SqlUtil::AbstractForeignConstraint 
         return l;
     }
 
-    #! returns a string that can be used to create the constraint in the database
+    #! Returns foreign-key DDL with the recorded SQL names of all participating columns
+    /** @param name constraint name
+        @param table_name SQL name of the referencing table
+        @param opt optional SQL generation options
+        @return an ALTER TABLE statement preserving column quoting, order, and deferrability
+
+        @par Example
+        @code{.sql}
+alter table draft_guard add constraint fk_draft foreign key (draft_user) references drafts ("user")
+        @endcode
+    */
     string getCreateSql(string name, string table_name, *hash<auto> opt) {
         return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)%s", table_name, name,
-            (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()),
+            (foldl $1 + ", " + $2, getSqlColumnNameIterator()), target.table,
+            (foldl $1 + ", " + $2, target.columns.getSqlColumnNameIterator()),
             getDeferrabilitySql());
     }
 }
