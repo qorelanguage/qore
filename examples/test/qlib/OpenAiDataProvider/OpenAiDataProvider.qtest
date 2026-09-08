@@ -478,6 +478,12 @@ public class OpenAiDataProviderTest inherits QUnit::Test {
 
         hash<auto!> missing_schema_req = {
             "model": "gpt-4o-mini",
+            # "input" is required, so it must be present for the "text.format" check below to be reached
+            "input": (
+                {
+                    "text": "hi",
+                },
+            ),
             "text": {
                 "format": {
                     "type": "json_schema",

@@ -483,7 +483,7 @@ public class StripeDataProviderTest inherits QUnit::Test {
         # a missing path variable is reported rather than sent as a literal placeholder; the request type
         # is validated before the request is built, so a required path variable is caught there first
         AbstractDataProvider gc = root.getChildProviderEx("get-customer");
-        assertThrows("INVALID-REQUEST", "mandatory string field \"customer\"", \gc.doRequest(),
+        assertThrows("INVALID-REQUEST", "required field \"customer\" is absent", \gc.doRequest(),
             {"expand": ("sources",)});
 
         # an error response reaches the caller with its context

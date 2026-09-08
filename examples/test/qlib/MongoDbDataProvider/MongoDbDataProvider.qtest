@@ -617,8 +617,9 @@ sub typed_mongodb_provider(MongoDbDataProvider::MongoDbCollectionDataProvider pr
             .getChildProvider(test_coll)
             .getChildProvider("aggregate");
 
-        # Test aggregate without pipeline
-        assertThrows("MONGODB-AGGREGATE-ERROR", sub() {
+        # Test aggregate without pipeline; "pipeline" is a required request field, so the request type
+        # rejects the call before the provider's own guard is reached
+        assertThrows("INVALID-REQUEST", "required field \"pipeline\" is absent", sub() {
             aggProv.doRequest({});
         });
 
