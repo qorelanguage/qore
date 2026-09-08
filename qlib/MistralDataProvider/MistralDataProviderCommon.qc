@@ -30,18 +30,17 @@ public class MistralDataProviderCommon inherits DataProvider::AbstractDataProvid
 
         const ConstructorOptions = {
             "apikey": <DataProviderOptionInfo>{
-                "display_name": "Mistral AI API Key",
-                "short_desc": "Mistral AI API key for Bearer authentication",
+                "display_name": "Mistral API Key",
+                "short_desc": "Mistral API key for Bearer authentication",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The Mistral AI API key.",
-                "required": True,
+                "desc": "The Mistral API key.",
                 "sensitive": True,
             },
             "url": <DataProviderOptionInfo>{
                 "display_name": "Server URL",
-                "short_desc": "The URL of the Mistral AI REST API",
+                "short_desc": "The URL of the Mistral REST API",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The URL of the Mistral AI REST API.",
+                "desc": "The URL of the Mistral REST API.",
                 "default_value": DefaultMistralUrl,
             },
             "restclient": <DataProviderOptionInfo>{
@@ -65,16 +64,22 @@ public class MistralDataProviderCommon inherits DataProvider::AbstractDataProvid
                 "display_name": "API Version",
                 "short_desc": "Mistral API version segment",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The API version segment used for `/v1/*` routing.",
+                "desc": "Retained for compatibility; each action selects its documented API version.",
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": "v2", "display_name": "V2"},
+                    <AllowedValueInfo>{"value": "v1", "display_name": "V1"},
+                ),
                 "default_value": DefaultMistralApiVersion,
             },
         };
 
+        #! Legacy retry errors retained for source compatibility
         const RetrySet = {
             "SOCKET-SSL-ERROR": True,
             "SOCKET-CLOSED": True,
         };
 
+        #! Legacy retry limit retained for source compatibility
         const MaxIoRetries = 5;
     }
 
@@ -82,19 +87,26 @@ public class MistralDataProviderCommon inherits DataProvider::AbstractDataProvid
         *RestClientIo::RestClientIo rest;
     }
 
+    #! Uses a copy of a REST client with each action's explicit API path
+    /** @param rest the authenticated transport to copy */
     constructor(RestClientIo::RestClientIo rest) {
-        self.rest = rest;
+        self.rest = cast<RestClientIo::RestClientIo>(rest.copyWithUrl(rest.getUrl().toString()));
+        self.rest.clearConnectionPath();
     }
 
+    #! Creates a provider from an API key or supplied REST client
+    /** @param options the ConstructorOptions values
+        @throw CONSTRUCTOR-ERROR required authentication is missing or an option is invalid
+    */
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         if (copts.restclient) {
-            rest = copts.restclient;
+            rest = cast<RestClientIo::RestClientIo>(copts.restclient.copyWithUrl(copts.restclient.getUrl().toString()));
         }
         if (!rest) {
             if (!copts.apikey.val()) {
                 throw "CONSTRUCTOR-ERROR",
-                    "missing required 'apikey' argument for Mistral AI API communication";
+                    "missing required 'apikey' argument for Mistral API communication";
             }
             hash<auto> opts = (copts.restclient_options ?? {}) + {
                 "url": copts.url,
@@ -103,43 +115,29 @@ public class MistralDataProviderCommon inherits DataProvider::AbstractDataProvid
             };
             rest = new MistralRestClient::MistralRestClientIo(opts);
         }
+        rest.clearConnectionPath();
     }
 
-    private hash<auto> doRestCommand(string method, string path, auto body, *hash<auto> hdr) {
-        int retries = 0;
-        while (True) {
-            try {
-                debug("REST %y %y body: %y", method, path, body);
-                switch (method.upr()) {
-                    case "GET":
-                        return rest.restGet(path, hdr);
-                    case "POST":
-                        return rest.restPost(path, body, hdr);
-                    case "DELETE":
-                        return rest.restDel(path, body, hdr);
-                    default:
-                        return rest.restDoRequest(method, path, body, hdr);
-                }
-            } catch (hash<ExceptionInfo> ex) {
-                if (retry(ex, \retries)) {
-                    continue;
-                }
-                rethrow ex.err, sprintf("%s (request path: %y)", ex.desc,
-                    ex.arg.request_path ?? path), ex.arg;
-            }
-        }
+    #! Returns a provider bound to a schema-derived action
+    /** @param action the stable action ID
+        @return the corresponding provider using this connection's transport
+    */
+    private RestSchemaActionDataProvider getSchemaProvider(string action) {
+        RestSchemaActionSet actions = MistralSchema::getActionSet();
+        return new RestSchemaActionDataProvider(actions, actions.getOperationEx(action), rest);
     }
 
-    private bool retry(hash<ExceptionInfo> ex, reference<int> retries) {
-        if (RetrySet{ex.err}) {
-            if (++retries == MaxIoRetries) {
-                LoggerWrapper::error(sprintf("Maximum retries exceeded (%d)", retries));
-                return False;
-            }
-            warn("Technical error making REST call: %s: %s; retrying", ex.err, ex.desc);
-            return True;
+    #! Returns the reference data supported by all Mistral action providers
+    /** @return names of available dropdowns */
+    *hash<string, bool> getSupportedReferenceData() {
+        if ((MistralSchema::getActionSet()).getOperation(getName())) {
+            return getSchemaProvider(getName()).getSupportedReferenceData();
         }
-        return False;
+        return;
+    }
+
+    private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type, *hash<auto> opts) {
+        return getSchemaProvider(getName()).getReferenceData(type, opts);
     }
 }
 }

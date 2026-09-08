@@ -22,14 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# assume local scope for variables, do not use "$" signs
-%modern
-# require type definitions everywhere
-#! strict argument handling
-# enable all warnings
-# allow weak references
-%allow-weak-references
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 /** @defgroup pipeline_status_codes Pipeline Status Codes
@@ -1121,7 +1113,7 @@ public class PipelineMetricsCollector {
         #! Monotonic collection start in microseconds — used for all elapsed-time arithmetic
         /** Required because the realtime clock can step backward (NTP slewing, VM time
             synchronization), producing negative @c duration_secs / @c interval_ms when
-            two @ref now_us() captures straddle the step.  The monotonic clock is
+            two @ref Qore::now_us() captures straddle the step.  The monotonic clock is
             guaranteed non-decreasing so elapsed values are always >= 0.
         */
         int collection_start_mono_us;

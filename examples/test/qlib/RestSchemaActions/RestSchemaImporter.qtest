@@ -135,6 +135,7 @@ public class TestSchema {
         addTestCase("import", \importTest());
         addTestCase("checked required-property repairs", \requiredRepairTest());
         addTestCase("normalization", \normalizationTest());
+        addTestCase("checked documentation path repairs", \pathRepairTest());
         addTestCase("replacing a parameter the vendor declares wrongly",
             \replaceParameterTest());
         addTestCase("importAll", \importAllTest());
@@ -193,6 +194,61 @@ public class TestSchema {
             assertEq(("id",), RestSchemaPruner::resolveRef(result, pointer).required);
             assertEq(("old_id",), RestSchemaPruner::resolveRef(source, pointer).required);
         }
+    }
+
+    private pathRepairTest() {
+        hash<auto> source = Schema;
+        source.paths."/contacts/{contact_id}#details" = source.paths."/contacts/{contact_id}";
+        remove source.paths."/contacts/{contact_id}";
+        hash<RestSchemaNormalizationInfo> norm = <RestSchemaNormalizationInfo>{
+            "reason": "The vendor uses a documentation fragment to distinguish reference pages",
+            "rename_paths": {"/contacts/{contact_id}#details": "/contacts/{contact_id}"},
+        };
+        int count;
+        hash<auto> result = RestSchemaImporter::normalize(source, (norm,), \count);
+        assertEq(source.paths."/contacts/{contact_id}#details", result.paths."/contacts/{contact_id}");
+        assertFalse(exists result.paths."/contacts/{contact_id}#details");
+        assertTrue(exists source.paths."/contacts/{contact_id}#details");
+        assertEq(1, count);
+        assertThrows("REST-SCHEMA-IMPORT-ERROR", sub () {
+            RestSchemaImporter::normalize(result, (norm,), \count);
+        });
+        foreach string destination in ("/boards/", "/contacts/{a}/{a}", "relative", "/contacts/{contact_id}?q=1",
+                "/contacts/{contact_id}#details") {
+            norm.rename_paths = {"/contacts/{contact_id}#details": destination};
+            assertThrows("REST-SCHEMA-IMPORT-ERROR", sub () {
+                RestSchemaImporter::normalize(source, (norm,), \count);
+            });
+        }
+        norm.rename_paths = {"/contacts/{contact_id}#details": "/contacts/{id}"};
+        result = RestSchemaImporter::normalize(source, (norm,), \count);
+        assertEq("id", result.paths."/contacts/{id}".parameters[0].name);
+        assertEq("contact_id", source.paths."/contacts/{contact_id}#details".parameters[0].name);
+        source.paths."/contacts/{id}" = {"parameters": result.paths."/contacts/{id}".parameters,
+            "patch": {"responses": {"204": {"description": "Updated"}}}};
+        result = RestSchemaImporter::normalize(source, (norm,), \count);
+        assertTrue(exists result.paths."/contacts/{id}".get);
+        assertTrue(exists result.paths."/contacts/{id}".patch);
+        OpenApi3::OpenApi3Schema schema("path repair test", result);
+        assertEq("3.0.0", schema.openapi3Spec);
+        source.paths."/contacts/{id}".get = source.paths."/contacts/{contact_id}#details".get;
+        assertThrows("REST-SCHEMA-IMPORT-ERROR", "conflicting", sub () {
+            RestSchemaImporter::normalize(source, (norm,), \count);
+        });
+        # Shared parameter declarations are resolved only for the renamed path.
+        source = Schema;
+        source.components.parameters.SharedId = source.paths."/contacts/{contact_id}".parameters[0];
+        source.paths."/contacts/{contact_id}".parameters = ({"$ref": "#/components/parameters/SharedId"},);
+        norm.rename_paths = {"/contacts/{contact_id}": "/contacts/{id}"};
+        result = RestSchemaImporter::normalize(source, (norm,), \count);
+        assertEq("id", result.paths."/contacts/{id}".parameters[0].name);
+        assertEq("contact_id", result.components.parameters.SharedId.name);
+        assertEq("#/components/parameters/SharedId", source.paths."/contacts/{contact_id}".parameters[0].'$ref');
+        source.paths."/contacts/{first}/{second}" = source.paths."/contacts/{contact_id}";
+        norm.rename_paths = {"/contacts/{first}/{second}": "/contacts/{same}/{same}"};
+        assertThrows("REST-SCHEMA-IMPORT-ERROR", "unique", sub () {
+            RestSchemaImporter::normalize(source, (norm,), \count);
+        });
     }
 
     private normalizePathTest() {

@@ -10,14 +10,14 @@
 %endtry
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires Mime
-%requires QUnit
-%requires HttpServerUtil
-%requires RestSchemaValidator
-%requires OpenApi3
-%requires ConnectionProvider
-%requires RestClient
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/RestSchemaValidator.qm
+%requires ../../../../qlib/OpenApi3.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/RestClient.qm
 
 %exec-class OpenApi3Test
 
@@ -4141,10 +4141,12 @@ public class OpenApi3Test inherits QUnit::Test {
 
             hash<string, AbstractDataField> fields = obj.getDataType().getFields();
             assertEq(fields.listForm.getType().getName(), fields.anyOfForm.getType().getName());
-            assertEq("softstring", fields.anyOfForm.getType().getName());
-            assertTrue(fields.anyOfForm.isMandatory());
-            assertEq("softint", fields.oneOfForm.getType().getName());
-            assertTrue(fields.oneOfForm.isMandatory());
+            assertEq("*softstring", fields.anyOfForm.getType().getName());
+            assertTrue(fields.anyOfForm.getAttributes().required);
+            assertNothing(fields.anyOfForm.acceptsValue(NOTHING));
+            assertEq("*softint", fields.oneOfForm.getType().getName());
+            assertTrue(fields.oneOfForm.getAttributes().required);
+            assertNothing(fields.oneOfForm.acceptsValue(NOTHING));
             # an optional nullable field is an "or nothing" type
             assertEq("*softstring", fields.optionalAnyOfForm.getType().getName());
             assertFalse(fields.optionalAnyOfForm.isMandatory());

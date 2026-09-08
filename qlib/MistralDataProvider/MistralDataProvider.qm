@@ -28,9 +28,11 @@
 %requires(reexport) DataProvider
 %requires(reexport) MistralRestClient
 %requires RestClientIo
+%requires RestSchemaActions
+%requires OpenApi3
 
 module MistralDataProvider {
-    version = "1.0";
+    version = "1.1";
     desc = "user module providing a data provider API for Mistral AI services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -42,100 +44,22 @@ module MistralDataProvider {
             "name": MistralDataProvider::AppName,
             "presentation_source_locale": "en",
             "display_name": "Mistral AI",
-            "short_desc": "Mistral AI chat, embeddings, and document OCR",
-            "desc": "Provides access to [Mistral AI](https://mistral.ai) — frontier and "
-                "open-weight chat models, embeddings, and best-in-class document OCR.\n\n"
-                "**Common use cases**:\n"
-                "- **Frontier chat** with mistral-large-latest, mistral-small-latest\n"
-                "- **Code-tuned chat** with codestral-latest\n"
-                "- **RAG embeddings** with mistral-embed\n"
-                "- **Document OCR** — extract structured markdown from PDFs and images "
-                "using `mistral-ocr-latest`",
+            "short_desc": "Chat, documents, audio, assistants, batch inference and AI operations",
+            "desc": "Use [Mistral AI](https://mistral.ai) to automate work with business content.\n\n"
+                "- Generate answers, structured output, code and embeddings\n"
+                "- Extract documents, transcribe recordings and generate speech\n"
+                "- Manage files, models, batch jobs, assistants and conversations\n"
+                "- Ground answers in document libraries and connect external tools\n"
+                "- Evaluate AI responses and manage workflow executions\n\n"
+                "Preview APIs depend on account permissions. Inference calls consume your Mistral quota.",
             "scheme": "mistral",
-            "logo": MistralLogo,
+            "logo": Priv::MistralLogo,
             "logo_file_name": "mistral-ai-logo.svg",
             "logo_mime_type": MimeTypeSvg,
             "groups": (DataProvider::AppGroup::AiLlm, DataProvider::AppGroup::Documents,),
         });
 
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": MistralDataProvider::AppName,
-            "path": "/chat-completion",
-            "action": "chat-completion",
-            "display_name": "Chat Completion",
-            "short_desc": "Generate a chat completion from a Mistral AI model",
-            "desc": "Sends a list of chat messages to a Mistral AI model via "
-                "the OpenAI-compatible `/v1/chat/completions` endpoint.",
-            "action_code": DPAT_API,
-            "groups": ("Chat",),
-            "options": DataProviderActionCatalog::getActionOptionFromFields(
-                MistralChatCompletionRequestDataType::Fields{"messages", "model",}, {
-                    "preselected": True, "required": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                MistralChatCompletionRequestDataType::Fields{"temperature", "max_tokens",}, {
-                    "preselected": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                MistralChatCompletionRequestDataType::Fields - (
-                    "messages", "model", "temperature", "max_tokens",
-                )
-            ),
-            "output_type": MistralChatCompletionDataProvider::ResponseType,
-        });
-
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": MistralDataProvider::AppName,
-            "path": "/create-embeddings",
-            "action": "create-embeddings",
-            "display_name": "Create Embeddings",
-            "short_desc": "Generate embedding vectors from a Mistral AI embedding model",
-            "desc": "Converts text inputs into embedding vectors via the OpenAI-compatible "
-                "`/v1/embeddings` endpoint using `mistral-embed`.",
-            "action_code": DPAT_API,
-            "groups": ("Embeddings",),
-            "options": DataProviderActionCatalog::getActionOptionFromFields(
-                MistralEmbeddingRequestDataType::Fields{"input", "model",}, {
-                    "preselected": True, "required": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                MistralEmbeddingRequestDataType::Fields - ("input", "model")
-            ),
-            "output_type": MistralEmbeddingDataProvider::ResponseType,
-        });
-
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": MistralDataProvider::AppName,
-            "path": "/ocr",
-            "action": "ocr",
-            "display_name": "Document OCR",
-            "short_desc": "Extract structured markdown from PDF or image documents",
-            "desc": "Converts a PDF or image document into structured markdown using "
-                "Mistral's `mistral-ocr-latest` model via `/v1/ocr`.  Returns per-page "
-                "markdown, layout-preserved tables, and inline image references.\n\n"
-                "Supply a document URL via `document.document_url` (preferred for large "
-                "PDFs) or inline base64-encoded bytes via `document.image_url` (data: URI) "
-                "for small inputs.\n\n"
-                "**Note**: integration with the @ref qoreocrutilsintro \"QoreOcrUtils\" "
-                "engine abstraction is planned for a follow-up release; this action is the "
-                "direct REST surface in the meantime.",
-            "action_code": DPAT_API,
-            "groups": ("OCR",),
-            "options": DataProviderActionCatalog::getActionOptionFromFields(
-                MistralOcrRequestDataType::Fields{"document", "model",}, {
-                    "preselected": True, "required": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                MistralOcrRequestDataType::Fields{"pages", "include_image_base64",}, {
-                    "preselected": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                MistralOcrRequestDataType::Fields - (
-                    "document", "model", "pages", "include_image_base64",
-                )
-            ),
-            "output_type": MistralOcrDataProvider::ResponseType,
-        });
+        (MistralSchema::getActionSet()).registerActions(MistralDataProvider::AppName);
     };
 }
 
@@ -145,9 +69,51 @@ module MistralDataProvider {
 
     @section mistraldataproviderintro MistralDataProvider Introduction
 
-    The %MistralDataProvider module provides a data provider API for
-    [Mistral AI](https://mistral.ai) chat, embedding, and document-OCR
-    services.
+    The %MistralDataProvider module exposes 161 completed-response actions from the pinned official
+    [Mistral AI](https://mistral.ai) OpenAPI description. Request options, validation, and response types
+    come from that description; the reviewed manifest adds presentation, finite choices and resource
+    dropdowns. The schema is installed with the module and is never downloaded during an action call.
+
+    - Generate chat responses, code, embeddings, moderation and classification results
+    - Extract document content, transcribe audio and generate speech
+    - Manage files, custom models, batch jobs, agents, conversations and document libraries
+    - Manage connectors, evaluation datasets, judges, campaigns and workflow executions
+
+    Preview operations require the corresponding account access. An authenticated connection ping
+    verifies the API key with a model listing; individual models and batch inference can require billing.
+    Dropdowns return one page and allow custom identifiers. Document and agent-version dropdowns are
+    scoped by the selected library or agent. The original three action IDs and public provider classes
+    remain available, and the legacy chat response still converts \c created to a date.
+
+    @par Example: retrieve available models and summarize an invoice
+    @code{.py}
+%modern
+%requires MistralDataProvider
+
+MistralDataProvider::MistralDataProvider root({"apikey": ENV.MISTRALAI_APIKEY});
+auto models = root.getChildProvider("list-models").doRequest({});
+auto answer = root.getChildProvider("chat-completion").doRequest({
+    "model": "mistral-small-latest",
+    "messages": ({"role": "user", "content": "Summarize: Invoice 42 has been paid."},),
+    "max_tokens": 128,
+});
+printf("%Y\n", answer.choices[0].message.content);
+    @endcode
+
+    @par Example: transcribe a named audio upload
+    @code{.py}
+auto transcript = root.getChildProvider("transcribe-audio").doRequest({
+    "file": {"name": "meeting.wav", "mime_type": "audio/wav",
+        "content": File::readBinaryFile("meeting.wav")},
+    "language": "en",
+});
+    @endcode
+
+    @note Actions send each request once. A failed write or inference request can already have been
+    processed by the service, so callers must decide whether it is safe to retry. Streaming-only and
+    deprecated operations are excluded from this action set. Use the Mistral LLM provider for streaming
+    chat. Public legacy request \c Fields constants describe the original subset; use \c getFields()
+    on the request types or the action catalog for the complete current contract.
 
     The following data providers are exposed:
     - @ref MistralDataProvider::MistralDataProvider "MistralDataProvider" — root
@@ -156,6 +122,12 @@ module MistralDataProvider {
     - @ref MistralDataProvider::MistralOcrDataProvider "MistralOcrDataProvider" — document OCR
 
     @section MistralDataProviderRelnotes Release Notes
+
+    @subsection MistralDataProviderv1_1 MistralDataProvider v1.1
+    - expose 161 typed actions from a pinned official OpenAPI description
+    - add model and resource dropdowns, including dependent document and agent-version choices
+    - preserve the original chat, embedding and OCR action IDs and public provider classes
+    - send each request once; callers decide whether a failed operation can safely be retried
 
     @subsection MistralDataProviderv1_0 MistralDataProvider v1.0
     - the initial version of the %MistralDataProvider module
@@ -167,5 +139,9 @@ public namespace MistralDataProvider {
 public const AppName = "MistralAi";
 }
 
-#! App logo loaded from file
-public const MistralLogo = File::readTextFile(get_script_dir() + "/mistral-ai-logo.svg");
+namespace Priv {
+#! Trusted module resource loaded once for application presentation
+const MistralLogo = File::readTextFile(get_script_dir() + "/mistral-ai-logo.svg");
+}
+#! Application logo retained for source compatibility
+public const MistralLogo = Priv::MistralLogo;

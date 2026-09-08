@@ -1,0 +1,34 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
+%exec-class NullableFieldsTest
+
+class NullableFieldsTest inherits QUnit::Test {
+    constructor() : Test("Required nullable fields", "1.0", \ARGV) {
+        addTestCase("optional copies clear presence requirements without modifying the source", \copyTest());
+        addTestCase("required nullable fields distinguish absence and explicit null", \presenceTest());
+        set_return_value(main());
+    }
+    private copyTest() {
+        QoreDataField required({"name": "value", "desc": "An optional filter value",
+            "type": AbstractDataProviderTypeMap."*string", "attr": {"required": True}});
+        AbstractDataField optional = required.getOrNothingType();
+        assertFalse(optional.getAttributes().required ?? False);
+        assertTrue(required.getAttributes().required);
+        assertNothing(optional.acceptsValue(NOTHING));
+        assertEq("filter", optional.acceptsValue("filter"));
+    }
+    private presenceTest() {
+        HashDataType type();
+        type.addField(new QoreDataField({"name": "value", "desc": "An explicitly supplied filter",
+            "type": AbstractDataProviderTypeMap."*string", "attr": {"required": True}}));
+        assertEq({"value": NOTHING}, type.acceptsValue({"value": NOTHING}));
+        assertEq({"value": "filter"}, type.acceptsValue({"value": "filter"}));
+        assertThrows("MISSING-VALUE-ERROR", sub () { type.acceptsValue({}); });
+        type.getFields().value.setDefaultValue("default");
+        assertEq({"value": "default"}, type.acceptsValue({}));
+    }
+}

@@ -250,9 +250,9 @@ class RestSchemaImport {
             if (!n.reason.val()) {
                 error("every entry of \"normalize\" in %y needs a \"reason\"", path);
             }
-            if (!n.operations && !n.relax_oneof && !n.replace_required) {
+            if (!n.operations && !n.relax_oneof && !n.replace_required && !n.rename_paths) {
                 error("the repair %y in %y does nothing: it names no operations, compositions, or "
-                    "required-property repairs", n.reason, path);
+                    "required-property or path repairs", n.reason, path);
             }
             list<hash<auto>> params = ();
             foreach auto p in (n.add_parameters ?? ()) {
@@ -281,6 +281,7 @@ class RestSchemaImport {
                 "replace_parameters": replace,
                 "relax_oneof": relax,
                 "replace_required": n.replace_required,
+                "rename_paths": n.rename_paths,
             };
         }
         return rv;

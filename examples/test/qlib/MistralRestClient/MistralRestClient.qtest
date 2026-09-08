@@ -1,19 +1,57 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires QoreLlmTypes
-%requires QoreLlmUtils
-%requires QoreRagTypes
-%requires QoreRagUtils
-%requires OpenAiRestClient
-%requires MistralRestClient
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/QoreLlmTypes.qm
+%requires ../../../../qlib/QoreLlmUtils
+%requires ../../../../qlib/QoreRagTypes.qm
+%requires ../../../../qlib/QoreRagUtils
+%requires ../../../../qlib/OpenAiRestClient.qm
+%requires ../../../../qlib/MistralRestClient.qm
+
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires json
 
 %exec-class MistralRestClientTest
+
+#! Local authenticated endpoint for deterministic transport and ping tests
+class MistralPingHandler inherits AbstractHttpRequestHandler {
+    private {
+        Mutex m();
+        hash<auto> request;
+    }
+
+    hash<auto> getRequest() {
+        AutoLock al(m);
+        return request;
+    }
+
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        AutoLock al(m);
+        request = hdr;
+        bool valid = hdr.authorization == "Bearer test-key";
+        return makeResponse(valid ? 200 : 401,
+            make_json(valid ? {"object": "list", "data": ()} : {"message": "Unauthorized"}),
+            {"Content-Type": MimeTypeJson});
+    }
+}
+
+#! Exercises the synchronous connection ping fallback
+class SyncMistralConnection inherits MistralRestClient::MistralRestConnection {
+    constructor(string url, hash<auto> options)
+            : MistralRestConnection("sync", "test", url, {}, options) {
+    }
+
+    private object getAsyncImpl(bool connect = True, *hash<auto> rtopts) {
+        throw "CONNECTION-ASYNC-UNSUPPORTED", "exercise synchronous ping";
+    }
+}
 
 public class MistralRestClientTest inherits QUnit::Test {
     constructor() : Test("MistralRestClient Test", "1.0") {
@@ -25,6 +63,12 @@ public class MistralRestClientTest inherits QUnit::Test {
         addTestCase("REST client options apply Bearer mapping",
             \restOptionsTest());
         addTestCase("embedder requires api_key",          \embedderConfigTest());
+        addTestCase("connection fixes auto URL and publishes app metadata", \connectionConfigTest());
+        addTestCase("connection validates required and finite options", \connectionValidationTest());
+        addTestCase("sync and async pings authenticate with the versioned models endpoint", \pingTest());
+        if (ENV.MISTRALAI_APIKEY) {
+            addTestCase("live: valid and invalid API keys", \livePingTest());
+        }
         set_return_value(main());
     }
 
@@ -94,4 +138,73 @@ public class MistralRestClientTest inherits QUnit::Test {
         });
         assertEq("mistral-embed", e.getModel());
     }
+    private connectionConfigTest() {
+        foreach string url in ("mistral://localhost", "mistral://api.mistral.ai") {
+            MistralRestClient::MistralRestConnection conn({
+                "name": "test", "desc": "test", "url": url, "opts": {"apikey": "test-key"},
+            });
+            assertEq("https://api.mistral.ai", conn.getConnectionOptions().url);
+            assertEq("MistralAi", conn.getAppName());
+            assertEq("MistralAi", conn.getInfo().app);
+        }
+        MistralRestClient::MistralRestConnection saved("saved", "test", "mistral://localhost", {},
+            {"apikey": "test-key"});
+        *hash<auto> updated;
+        saved.setUpdateOptionsCode(sub (hash<auto> options) { updated = options; });
+        assertEq({"url": "mistral://api.mistral.ai"}, updated);
+        saved.setUpdateOptionsCode(NOTHING);
+    }
+
+    private connectionValidationTest() {
+        assertTrue(MistralRestClient::MistralRestConnection::ConnectionScheme.options.apikey.sensitive);
+        assertThrows("CONNECTION-OPTION-ERROR", sub () {
+            new MistralRestClient::MistralRestConnection("missing", "test");
+        });
+        assertThrows("CONNECTION-OPTION-ERROR", sub () {
+            new MistralRestClient::MistralRestConnection("invalid", "test",
+                MistralRestClient::MistralRestConnection::DefaultUrl, {},
+                {"apikey": "test-key", "api": "v99"});
+        });
+    }
+
+    private pingTest() {
+        Logger logger("mistral-test", LoggerLevel::getLevelWarn());
+        HttpServer server(<HttpServerOptionInfo>{"logger": logger});
+        on_exit delete server;
+        int port = server.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        MistralPingHandler handler();
+        server.setHandler("models", "/v1/models", NOTHING, handler);
+        string url = sprintf("http://127.0.0.1:%d", port);
+        foreach string api in ("v1", "v2") {
+            foreach bool sync in (False, True) {
+                hash<auto> opts = {"apikey": "test-key", "api": api, "http_version": "1.1"};
+                AbstractConnection conn = sync
+                    ? new SyncMistralConnection(url, opts)
+                    : new MistralRestClient::MistralRestConnection("async", "test", url, {}, opts);
+                assertTrue(conn.ping(True).ok);
+                assertEq("GET", handler.getRequest().method);
+                assertEq("v1/models", handler.getRequest().path);
+                assertEq("Bearer test-key", handler.getRequest().authorization);
+                opts.apikey = "invalid-key";
+                AbstractConnection invalid = sync
+                    ? new SyncMistralConnection(url, opts)
+                    : new MistralRestClient::MistralRestConnection("invalid", "test", url, {}, opts);
+                assertThrows(sync ? "HTTP-CLIENT-RECEIVE-ERROR" : "REST-RESPONSE-ERROR",
+                    sub () { invalid.ping(True); });
+            }
+        }
+    }
+
+    private livePingTest() {
+        MistralRestClient::MistralRestConnection conn("live-mistral", "test",
+            MistralRestClient::MistralRestConnection::DefaultUrl, {}, {"apikey": ENV.MISTRALAI_APIKEY});
+        assertTrue(conn.ping(True).ok);
+        hash<auto> response = conn.get().get("models").body;
+        assertTrue(response.data.lsize() > 0);
+        assertTrue(response.data[0].id.val());
+        MistralRestClient::MistralRestConnection invalid("invalid-mistral", "test",
+            MistralRestClient::MistralRestConnection::DefaultUrl, {}, {"apikey": "invalid-qore-test-key"});
+        assertThrows("REST-RESPONSE-ERROR", sub () { invalid.ping(True); });
+    }
+
 }

@@ -396,7 +396,7 @@ public class RestSchemaRequestDataProvider inherits RestSchemaDataProviderBase {
         # a path variable is one path segment, so every reserved character in it has to be escaped: a
         # branch called "release/1.0" or a file called "a b.txt" would otherwise change the path it
         # addresses, or produce a request line the server cannot parse at all
-        map uri_path = replace(uri_path, "{" + $1.key + "}", encode_url($1.value.toString(), True)),
+        map uri_path = replace(uri_path, "{" + $1.key + "}", getUriPathArg($1.key, $1.value)),
             options.path_vars.pairIterator();
         if (req.query) {
             uri_path += "?" +
@@ -472,13 +472,31 @@ public class RestSchemaRequestDataProvider inherits RestSchemaDataProviderBase {
         }
     }
 
-    #! Serializes a query parameter using the array format declared by its schema
+    #! Serializes a path parameter as one URI segment
+    private string getUriPathArg(string name, auto value) {
+        *AbstractParameterObject parameter = op.getParameters(){name} ?? pio.getParameters(){name};
+        if (parameter instanceof OpenApi3::ParameterBase) {
+            OpenApi3::ParameterBase p = cast<OpenApi3::ParameterBase>(parameter);
+            if (p.content) {
+                return encode_url(p.serializeContent(value), True);
+            }
+        }
+        return encode_url(value.toString(), True);
+    }
+
+    #! Serializes a query parameter using the content or array format declared by its schema
     private string getUriQueryArg(string name, auto value) {
         string encoded_name = encode_url(name, True);
+        *AbstractParameterObject parameter = op.getParameters(){name} ?? pio.getParameters(){name};
+        if (parameter instanceof OpenApi3::ParameterBase) {
+            OpenApi3::ParameterBase p = cast<OpenApi3::ParameterBase>(parameter);
+            if (p.content) {
+                return encoded_name + "=" + encode_url(p.serializeContent(value), True);
+            }
+        }
         if (value.typeCode() != NT_LIST) {
             return encoded_name + "=" + getUriArgValue(value);
         }
-        *AbstractParameterObject parameter = op.getParameters(){name} ?? pio.getParameters(){name};
         bool repeated = False;
         string delimiter = ",";
         if (parameter instanceof OpenApi3::ParameterBase) {

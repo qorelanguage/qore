@@ -19,7 +19,7 @@ class MultipartFilesTest inherits QUnit::Test {
                         "enabled": {"type": "boolean"},
                         "temperature": {"type": "number"},
                         "comment": {"type": "string"},
-                        "extra": {"type": "string", "format": "binary"},
+                        "extra": {"anyOf": ({"type": "string", "format": "binary"}, {"type": "null"})},
                     },
                 }}}},
                 "responses": {"200": {"description": "Stored file", "content": {

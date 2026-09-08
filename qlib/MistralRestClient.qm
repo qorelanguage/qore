@@ -34,7 +34,7 @@
 %requires QoreRagTypes
 
 module MistralRestClient {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for calling Mistral AI REST services";
     author = "Qore Technologies <info@qoretechnologies.com>";
     url = "https://qore.org";
@@ -79,12 +79,13 @@ printf("%Y\n", ans.body);
     @endcode
 
     @note The OCR endpoint is exposed via the
-    @ref mistraldataproviderintro "MistralDataProvider"'s `ocr` action.
-    Integration with @ref qoreocrutilsintro "QoreOcrUtils"'s engine
-    abstraction is planned for a follow-up release once
-    \c QoreOcrUtils gains a pluggable backend registry.
+    [MistralDataProvider](../../MistralDataProvider/html/index.html) `ocr` action.
 
     @section MistralRestClientRelnotes Release Notes
+
+    @subsection MistralRestClientv1_1 MistralRestClient v1.1
+    - associate connections with the Mistral AI app and correct automatically generated URLs
+    - expose the supported API versions and verify authentication with the model listing
 
     @subsection MistralRestClientv1_0 MistralRestClient v1.0
     - the initial version of the %MistralRestClient module
@@ -174,9 +175,14 @@ public class MistralRestConnection inherits RestClient::RestConnection {
                 "api": <ConnectionOptionInfo>{
                     "display_name": "API Version",
                     "short_desc": "The API version to use",
-                    "desc": "The API version to use.",
+                    "desc": "The default API version for direct REST calls. App actions select their "
+                        "documented version; connection pings always use `v1`.",
                     "type": "string",
                     "default_value": MistralRestClientBase::DefaultApiVersion,
+                    "allowed_values": (
+                        <AllowedValueInfo>{"value": "v1", "display_name": "V1"},
+                        <AllowedValueInfo>{"value": "v2", "display_name": "V2"},
+                    ),
                 },
                 "chat-model": <ConnectionOptionInfo>{
                     "display_name": "Chat Model",
@@ -204,7 +210,7 @@ public class MistralRestConnection inherits RestClient::RestConnection {
 
         const DefaultPingMethod = "GET";
         const DefaultPingHeaders = {"Accept": MimeTypeJson};
-        const DefaultPingPath = "models";
+        const DefaultPingPath = "/v1/models";
     }
 
     constructor(string name, string description, string url = DefaultUrl,
@@ -213,7 +219,28 @@ public class MistralRestConnection inherits RestClient::RestConnection {
     }
 
     constructor(hash<auto> config, *hash<auto> attr)
-            : RestConnection(config + (exists config.url ? {} : {"url": DefaultUrl}), attr) {
+            : RestConnection(MistralRestConnection::getConfig(config), attr) {
+    }
+
+    #! Resolves the fixed API endpoint even when auto-URL supplies a localhost placeholder
+    private static hash<auto> getConfig(hash<auto> config) {
+        config.url = DefaultUrl;
+        return config;
+    }
+
+    #! Keeps saved automatic connections at the canonical Mistral endpoint
+    /** @param update_options the platform's connection update callback */
+    setUpdateOptionsCode(*code update_options) {
+        UpdateOptionsInterface::setUpdateOptionsCode(update_options);
+        if (update_options && url != DefaultUrl && url != MistralRestClientBase::DefaultUrl) {
+            doUpdateOptions(self, {"url": DefaultUrl});
+        }
+    }
+
+    #! Associates the connection with the Mistral AI app
+    /** @return the application name registered by MistralDataProvider */
+    *string getAppName() {
+        return "MistralAi";
     }
 
     string getType() {

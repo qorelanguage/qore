@@ -406,6 +406,9 @@ module RestSchemaActions {
     @section restschemaactionsrelnotes Release Notes
 
     @subsection restschemaactionsv1_0 RestSchemaActions v1.0
+    - preserve schema nullability independently of required-property presence when applying overlays
+    - schema imports support checked path repairs, positional parameter renaming and merging of
+      disjoint operations; conflicting members and stale repairs are rejected
     - generated multipart actions expose named files alongside raw binary inputs, preserving upload metadata
     - the initial version of the %RestSchemaActions module
     - omit schema `readOnly` properties from flattened request options, including unwrapped bodies

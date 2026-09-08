@@ -286,6 +286,7 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
         addTestCase("parameterless operation", \parameterlessTest());
         addTestCase("path and query flattening", \pathQueryTest());
         addTestCase("body flattening", \bodyFlatteningTest());
+        addTestCase("nullable required values survive overlays and wire serialization", \nullableRequiredTest());
         addTestCase("read-only fields stay out of request options", \readOnlyTest());
         addTestCase("required alternatives and exclusive options", \optionGroupsTest());
         addTestCase("body root", \bodyRootTest());
@@ -370,6 +371,45 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
     #! Returns a single operation built from one manifest entry
     private RestSchemaActionOperation makeOp(hash<RestSchemaActionInfo> info) {
         return new RestSchemaActionOperation(schema, info);
+    }
+
+    private nullableRequiredTest() {
+        hash<auto> document = {
+            "openapi": "3.1.0", "info": {"title": "Nullable filters", "version": "1"},
+            "paths": {"/search": {"post": {
+                "requestBody": {"required": True, "content": {MimeTypeJson: {"schema": {
+                    "type": "object", "properties": {
+                        "name": {"type": "string"},
+                        "filters": {"anyOf": ({"type": "object"},
+                            {"type": "array", "items": {"type": "string"}}, {"type": "null"})},
+                        "limit": {"anyOf": ({"type": "integer"}, {"type": "null"})},
+                    }, "required": ("name", "filters"),
+                }}}}, "responses": {"204": {"description": "Accepted"}},
+            }}},
+        };
+        OpenApi3::OpenApi3Schema schema("nullable", document);
+        RestSchemaActionSet actions(schema, (<RestSchemaActionInfo>{"action": "search", "path": "/search",
+            "method": "POST", "display_name": "Search", "short_desc": "Search with optional filters",
+            "desc": "Find matching records.", "fields": {"filters": <RestSchemaFieldOverlayInfo>{
+                "display_name": "Filters", "desc": "Supply `null` to include every record.",
+            }},
+        },));
+        FakeRestClient client();
+        RestSchemaActionDataProvider provider(actions, actions.getOperationEx("search"), client);
+        auto fields = actions.getOperationEx("search").getRequestFields();
+        assertTrue(fields.filters.getAttributes().required);
+        assertFalse(fields.limit.getAttributes().required ?? False);
+        provider.doRequest({"name": "Invoices", "filters": NOTHING});
+        assertEq({"name": "Invoices", "filters": NOTHING}, parse_json(client.last().body));
+        provider.doRequest({"name": "Invoices", "filters": (), "limit": NOTHING});
+        assertEq({"name": "Invoices", "filters": (), "limit": NOTHING}, parse_json(client.last().body));
+        provider.doRequest({"name": "Invoices", "filters": <RestSchemaRawValue>{"value": NOTHING}});
+        assertEq({"name": "Invoices", "filters": NOTHING}, parse_json(client.last().body));
+        assertThrows("INVALID-REQUEST", sub () {
+            provider.doRequest({"filters": <RestSchemaRawValue>{"value": NOTHING}});
+        });
+        assertThrows("INVALID-REQUEST", sub () { provider.doRequest({"name": "Invoices"}); });
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { provider.doRequest({"name": "Invoices", "filters": False}); });
     }
 
     parameterlessTest() {

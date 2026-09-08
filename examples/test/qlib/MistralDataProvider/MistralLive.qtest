@@ -1,0 +1,214 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/MistralDataProvider
+%requires json
+%exec-class MistralLiveTest
+
+class MistralLiveTest inherits QUnit::Test {
+    private {
+        *MistralDataProvider::MistralDataProvider root;
+    }
+    constructor() : Test("Mistral live API", "1.0", \ARGV) {
+        if (!ENV.MISTRALAI_APIKEY) {
+            addTestCase("live API credentials", sub () { testSkip("set MISTRALAI_APIKEY for live tests"); });
+        } else {
+            root = new MistralDataProvider::MistralDataProvider({"apikey": ENV.MISTRALAI_APIKEY});
+            addTestCase("models and chat", \inferenceTest());
+            addTestCase("code completion", \codeTest());
+            addTestCase("embeddings", \embeddingTest());
+            foreach string action in ("moderate-text", "moderate-chat") {
+                string name = action;
+                addTestCase(name, sub () { moderationTest(name); });
+            }
+            addTestCase("file upload, metadata, download and deletion", \fileTest());
+            addTestCase("agent creation, update, versions, aliases and deletion", \agentTest());
+            addTestCase("library creation, update, documents and deletion", \libraryTest());
+            addTestCase("batch creation, retrieval and cancellation", \batchTest());
+            addTestCase("document OCR and audio transcription", \mediaTest());
+            addTestCase("speech generation", \speechTest());
+            foreach string action in ("list-conversations", "list-connectors", "list-judges", "list-campaigns",
+                    "list-datasets", "list-workflow-runs", "list-workflow-schedules", "list-workflow-deployments",
+                    "list-workflow-registrations") {
+                string name = action;
+                addTestCase("preview: " + name, sub () { previewTest(name); });
+            }
+        }
+        set_return_value(main());
+    }
+    private auto call(string action, hash<auto> options = {}) {
+        try {
+            return root.getChildProvider(action).doRequest(options);
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.arg.status_code == 402 || (ex.arg.status_code == 429
+                    && ex.arg.headers."x-ratelimit-limit-req-minute" == "0")) {
+                testSkip(sprintf("%s requires account billing or model access (HTTP %d)", action,
+                    ex.arg.status_code));
+            }
+            rethrow;
+        }
+    }
+    private inferenceTest() {
+        auto models = call("list-models");
+        assertTrue(models.data.size() > 0);
+        auto model = call("get-model", {"model_id": "mistral-small-latest"});
+        assertEq("mistral-small-latest", model.id);
+        auto chat = call("chat-completion", {"model": ENV.MISTRAL_TEST_CHAT_MODEL ?? "open-mistral-nemo",
+            "messages": ({"role": "user", "content": "Say hello in one word."},), "max_tokens": 16});
+        assertTrue(chat.choices[0].message.content.val());
+        assertEq(NT_DATE, chat.created.typeCode());
+    }
+    private codeTest() {
+        auto code = call("complete-code", {"model": "codestral-latest", "prompt": "def add(a, b):\n    return",
+            "max_tokens": 16});
+        assertTrue(code.choices.size() > 0);
+    }
+    private embeddingTest() {
+        auto embedding = call("create-embeddings", {"input": ("Invoice 42 has been paid.",)});
+        assertTrue(embedding.data[0].embedding.size() > 0);
+    }
+    private moderationTest(string action) {
+        auto input = action == "moderate-text" ? "Invoice paid" : ({"role": "user", "content": "Invoice paid"},);
+        auto result = call(action, {"model": "mistral-moderation-2603", "input": input});
+        assertTrue(result.results.size() > 0, action);
+    }
+    private fileTest() {
+        binary content = binary("{\"custom_id\":\"test\",\"body\":{\"messages\":[{\"role\":\"user\",\"content\":\"Hi\"}],\"max_tokens\":1}}\n");
+        auto file = call("upload-file", {"purpose": "batch", "file": {"name": "qore-5431.jsonl", "content": content}});
+        string id = file.id;
+        bool deleted = False;
+        on_exit {
+            if (!deleted) {
+                call("delete-file", {"file_id": id});
+            }
+        }
+        assertTrue(id.val());
+        assertEq("qore-5431.jsonl", file.filename);
+        assertEq(id, call("get-file", {"file_id": id}).id);
+        auto downloaded = call("download-file", {"file_id": id});
+        # Batch uploads are normalized by Mistral, adding IDs and model defaults.
+        hash<auto> row = parse_json(downloaded.toString());
+        assertEq("test", row.custom_id);
+        assertEq("Hi", row.body.messages[0].content);
+        assertEq(1, row.body.max_tokens);
+        assertTrue(call("list-files", {"page_size": 2}).data.size() > 0);
+        call("delete-file", {"file_id": id});
+        deleted = True;
+        assertGone("get-file", {"file_id": id});
+    }
+    private agentTest() {
+        string name = "qore-5431-" + getpid().toString();
+        auto agent = call("create-agent", {"name": name, "model": "mistral-small-latest",
+            "instructions": "Answer invoice questions briefly.", "metadata": {"qore_test": "5431"}});
+        string id = agent.id;
+        bool deleted = False;
+        on_exit {
+            if (!deleted) {
+                call("delete-agent", {"agent_id": id});
+            }
+        }
+        assertEq(name, agent.name);
+        assertEq(id, call("get-agent", {"agent_id": id}).id);
+        assertEq(name + " updated", call("update-agent", {"agent_id": id, "name": name + " updated"}).name);
+        assertEq(name + " updated", call("get-agent", {"agent_id": id}).name);
+        auto agents = call("list-agents", {"metadata": {"qore_test": "5431"}, "page_size": 2});
+        assertTrue(agents.size() > 0);
+        auto versions = call("list-agent-versions", {"agent_id": id});
+        assertTrue(versions.size() > 0);
+        call("set-agent-alias", {"agent_id": id, "alias": "qore-test", "version": versions[0].version});
+        auto aliases = call("list-agent-aliases", {"agent_id": id});
+        assertTrue(aliases.size() > 0);
+        call("delete-agent-alias", {"agent_id": id, "alias": "qore-test"});
+        call("delete-agent", {"agent_id": id});
+        deleted = True;
+        assertGone("get-agent", {"agent_id": id});
+    }
+    private libraryTest() {
+        string name = "qore-5431-" + getpid().toString();
+        auto library = call("create-library", {"name": name, "description": "Temporary Qore integration test"});
+        string id = library.id;
+        bool deleted = False;
+        on_exit {
+            if (!deleted) {
+                call("delete-library", {"library_id": id});
+            }
+        }
+        assertEq(name, library.name);
+        assertEq(id, call("get-library", {"library_id": id}).id);
+        assertEq(name + " updated", call("update-library", {"library_id": id, "name": name + " updated"}).name);
+        assertEq(name + " updated", call("get-library", {"library_id": id}).name);
+        assertTrue(call("list-libraries").data.size() > 0);
+        auto documents = call("list-library-documents", {"library_id": id});
+        assertEq(0, documents.data.size());
+        if (ENV.MISTRAL_TEST_PDF) {
+            auto document = call("upload-library-document", {"library_id": id,
+                "file": {"name": "invoice.pdf", "mime_type": "application/pdf",
+                    "content": File::readBinaryFile(ENV.MISTRAL_TEST_PDF)}});
+            assertTrue(document.id.val());
+            assertEq(document.id, call("get-library-document", {"library_id": id, "document_id": document.id}).id);
+            call("delete-library-document", {"library_id": id, "document_id": document.id});
+            assertGone("get-library-document", {"library_id": id, "document_id": document.id});
+        }
+        call("delete-library", {"library_id": id});
+        deleted = True;
+        assertGone("get-library", {"library_id": id});
+    }
+    private assertGone(string action, hash<auto> options) {
+        *hash<ExceptionInfo> error;
+        try {
+            call(action, options);
+        } catch (hash<ExceptionInfo> ex) {
+            error = ex;
+        }
+        assertTrue(exists error, action + " must no longer find the deleted resource");
+        # A deleted library is no longer accessible; Mistral reports that as forbidden.
+        assertEq(action == "get-library" ? 403 : 404, error.arg.status_code, action);
+    }
+    private batchTest() {
+        auto job = call("create-batch-job", {"endpoint": "/v1/chat/completions", "model": "mistral-small-latest",
+            "requests": ({"custom_id": "qore-5431", "body": {"messages": ({"role": "user", "content": "Hi"},),
+                "max_tokens": 1}},)});
+        string id = job.id;
+        on_exit {
+            auto current = call("get-batch-job", {"job_id": id});
+            if (current.status !~ /^(SUCCESS|FAILED|CANCELLED|TIMEOUT_EXCEEDED)$/) {
+                call("cancel-batch-job", {"job_id": id});
+            }
+        }
+        assertEq(id, call("get-batch-job", {"job_id": id}).id);
+        assertTrue(call("list-batch-jobs", {"page_size": 2}).data.size() > 0);
+    }
+    private mediaTest() {
+        if (!ENV.MISTRAL_TEST_PDF || !ENV.MISTRAL_TEST_AUDIO) {
+            testSkip("set MISTRAL_TEST_PDF and MISTRAL_TEST_AUDIO for OCR and transcription");
+        }
+        auto ocr = call("ocr", {"document": {"type": "document_url", "document_url": "data:application/pdf;base64,"
+            + make_base64_string(File::readBinaryFile(ENV.MISTRAL_TEST_PDF))}});
+        assertTrue(ocr.pages.size() > 0);
+        assertTrue(ocr.pages[0].markdown.val());
+        auto text = call("transcribe-audio", {"file": {"name": "invoice.wav", "mime_type": "audio/wav",
+            "content": File::readBinaryFile(ENV.MISTRAL_TEST_AUDIO)}, "language": "en"});
+        assertTrue(text.text.val());
+    }
+    private speechTest() {
+        auto voices = call("list-voices");
+        assertTrue(voices.items.size() > 0);
+        auto speech = call("generate-speech", {"input": "Invoice paid.", "model": "voxtral-mini-tts-latest",
+            "voice_id": voices.items[0].id});
+        assertTrue(parse_base64_string(speech.audio_data).size() > 0);
+    }
+    private previewTest(string action) {
+        auto result;
+        try {
+            result = call(action);
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.arg.status_code == 403 || ex.arg.status_code == 404) {
+                testSkip(sprintf("%s unavailable to this account (HTTP %d)", action, ex.arg.status_code));
+            }
+            rethrow;
+        }
+        assertTrue(exists result, action);
+    }
+}

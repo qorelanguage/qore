@@ -743,7 +743,7 @@ public class DataProviderActionCatalog {
         const string GenericApiCallBuilderModule = "RestClientDataProvider";
 
         #! Late-bound scheme lookup hook — set by @c ConnectionProvider at init time
-        /** Signature: <tt>*hash<auto> sub (string scheme)</tt>. Returns the
+        /** Signature: <tt>*hash&lt;auto&gt; sub (string scheme)</tt>. Returns the
             @c ConnectionSchemeInfo hash (with @c cls) for the given scheme, or @ref NOTHING /
             throws if the scheme is unknown. Used by @ref isRestScheme() to walk the connection
             class hierarchy without forming a hard dependency on @c ConnectionProvider (which
@@ -1046,7 +1046,7 @@ public class DataProviderActionCatalog {
         the framework's @c make-api-call action.  The predicate walks the connection class hierarchy by
         name, so this module does not need to import @c RestClient.
 
-        The @ref ConnectionSchemeCache lookup is late-bound via @c call_static_method_args() to avoid
+        The [ConnectionSchemeCache](../../ConnectionProvider/html/index.html) lookup is late-bound via @c call_static_method_args() to avoid
         a hard dependency on @c ConnectionProvider — which already declares
         @c "%requires(reexport) DataProvider", so a hard import here would form a cycle.
 
@@ -1252,7 +1252,7 @@ public class DataProviderActionCatalog {
         currently queued in the pending make-api-call backlog are re-evaluated against the now-
         available scheme lookup; non-REST apps drop out of the queue silently.
 
-        @param cb a closure with signature <tt>*hash<auto> sub (string scheme)</tt> that returns
+        @param cb a closure with signature <tt>*hash&lt;auto&gt; sub (string scheme)</tt> that returns
         the @c ConnectionSchemeInfo hash for the given scheme name. @c cls on the returned hash
         must be the @c Class object for the scheme's connection class (used by
         @ref isRestScheme() to walk the inheritance chain).

@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires reflection
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type
@@ -179,7 +177,7 @@ public class AbstractDataField inherits Qore::Serializable {
         );
 
         #! Capitalization convention that capitalizes every word but a function word in the middle
-        /** Value returned by @ref Qore::I18n::get_capitalization_style() for languages using title case
+        /** Value returned by [I18n::get_capitalization_style()](../../i18n/html/index.html) for languages using title case
 
             @since DataProvider 3.8
         */

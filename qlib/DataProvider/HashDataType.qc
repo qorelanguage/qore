@@ -228,6 +228,7 @@ auto v = t.getDefaultValue();
         @return the value to be assigned; can be converted by the type
 
         @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
+        @throw MISSING-VALUE-ERROR a required field is absent and has no default
     */
     auto acceptsValue(auto input_value) {
         # specific check to provide a better error message in case of a missing argument
@@ -257,8 +258,12 @@ auto v = t.getDefaultValue();
                     value{key} = dv;
                     continue;
                 }
-                if (!field.isMandatory()) {
+                if (!field.isMandatory() && !field.getAttributes().required) {
                     continue;
+                }
+                if (!value.hasKey(key)) {
+                    throw "MISSING-VALUE-ERROR", sprintf("Error in type %y: required field %y is absent",
+                        getName(), key);
                 }
             }
             try {

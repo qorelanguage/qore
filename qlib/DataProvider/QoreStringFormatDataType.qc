@@ -44,7 +44,7 @@ public class QoreStringFormatDataType inherits QoreStringDataTypeBase {
     }
 
     #! Creates the type
-    /** @param base_type the base string type (@ref StringType or @ref StringOrNothingType)
+    /** @param base_type the base string type (\c StringType or \c StringOrNothingType)
         @param type_name the semantic type name (also used as the \c qore.external_name tag)
         @param display_name the type's display name
         @param short_desc the type's short description

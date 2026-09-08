@@ -49,7 +49,7 @@ public class MistralEmbeddingDataProvider inherits MistralDataProviderCommon {
     private hash<DataProviderInfo> getStaticInfoImpl() { return ProviderInfo; }
 
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return doRestCommand("POST", "embeddings", req).body;
+        return getSchemaProvider("create-embeddings").doRequest(req, request_options);
     }
 }
 }

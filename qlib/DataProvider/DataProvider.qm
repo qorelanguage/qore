@@ -26,6 +26,8 @@
 %requires qore >= 2.0
 # assume local scope for variables, do not use "$" signs
 %modern
+# Pipelines retain weak references to their components.
+%allow-weak-references
 # require type definitions everywhere
 # strict argument handling
 # enable all warnings
@@ -1253,10 +1255,10 @@ fetch
     @ref DataProvider::AbstractWatchDataProviderBase::getSourceOrdering() "getSourceOrdering()":
 
     |!Classification|!Meaning
-    |@ref WSO_ASCENDING|the upstream API returns items in ascending source order
-    |@ref WSO_DESCENDING|the upstream API returns items newest-first; the provider reverses them
-    |@ref WSO_UNORDERED|the feed has no comparable source order, so no ordering can be guaranteed
-    |@ref WSO_UNKNOWN|the upstream ordering has not been established; the provider orders items \
+    |@ref DataProvider::WSO_ASCENDING|the upstream API returns items in ascending source order
+    |@ref DataProvider::WSO_DESCENDING|the upstream API returns items newest-first; the provider reverses them
+    |@ref DataProvider::WSO_UNORDERED|the feed has no comparable source order, so no ordering can be guaranteed
+    |@ref DataProvider::WSO_UNKNOWN|the upstream ordering has not been established; the provider orders items \
         itself before delivery, but makes no claim about the API
 
     @ref DataProvider::AbstractWatchDataProviderBase::hasAscendingDispatch() "hasAscendingDispatch()"
@@ -1352,11 +1354,13 @@ fetch
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v3_8 DataProvider v3.8
+    - distinguish absent required fields from explicitly supplied null values, and clear requiredness
+      when making an already nullable field optional
     - fixed short descriptions containing quoted parameter names or numbers to preserve ordinary words
       and literal braces while ignoring sentence punctuation inside quoted spans
     - fixed @ref DataProvider::QoreStringDataTypeBase "QoreStringDataTypeBase" to honor the value conversion
-      implemented by a wrapped user-defined @ref Qore::Reflection::Type "Type" subclass; the generic string
-      conversion silently replaced the type's own @ref Qore::Reflection::Type::acceptsValue() "acceptsValue()"
+      implemented by a wrapped user-defined [Type](../../reflection/html/classQore_1_1Reflection_1_1Type.html) subclass; the generic string
+      conversion silently replaced the type's own [acceptsValue()](../../reflection/html/classQore_1_1Reflection_1_1Type.html)
       override, so a type that renders a boolean as the string \c "true" or \c "false" for a REST query
       argument produced \c "1" or \c "0" instead
     - @ref DataProvider::AbstractDataField::getDisplayName() "AbstractDataField::getDisplayName()" now renders
@@ -1554,7 +1558,7 @@ fetch
     - added framework-level auto-injection of a generic "Make an API call" action for every
       REST-capable @ref DataProvider::DataProviderActionCatalog "data provider app":
       - apps that declare a connection \c scheme automatically receive an auto-registered
-        @ref DPAT_API "DPAT_API" action with action name
+        @ref DataProvider::DPAT_API "DPAT_API" action with action name
         @ref DataProvider::AbstractDataProvider::GenericApiCallActionName "make-api-call",
         accepting per-call \c method, \c path, \c query_args, \c body, and \c hdr inputs
       - the action is backed by an auto-injected virtual child provider named

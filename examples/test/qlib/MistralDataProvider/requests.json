@@ -1,0 +1,631 @@
+{
+  "list-models": {},
+  "get-model": {
+    "model_id": "test-value"
+  },
+  "delete-model": {
+    "model_id": "test-value"
+  },
+  "create-conversation": {
+    "inputs": "test-value"
+  },
+  "list-conversations": {},
+  "get-conversation": {
+    "conversation_id": "test-value"
+  },
+  "delete-conversation": {
+    "conversation_id": "test-value"
+  },
+  "append-conversation": {
+    "conversation_id": "test-value"
+  },
+  "get-conversation-history": {
+    "conversation_id": "test-value"
+  },
+  "get-conversation-messages": {
+    "conversation_id": "test-value"
+  },
+  "restart-conversation": {
+    "conversation_id": "test-value",
+    "from_entry_id": "test-value"
+  },
+  "create-agent": {
+    "model": "test-value",
+    "name": "test-value"
+  },
+  "list-agents": {
+    "metadata": {
+      "team": "sales&support"
+    },
+    "page_size": 2
+  },
+  "get-agent": {
+    "agent_id": "test-value"
+  },
+  "update-agent": {
+    "agent_id": "test-value"
+  },
+  "delete-agent": {
+    "agent_id": "test-value"
+  },
+  "list-agent-pages": {},
+  "update-agent-version": {
+    "agent_id": "test-value",
+    "version": 1
+  },
+  "list-agent-versions": {
+    "agent_id": "test-value"
+  },
+  "get-agent-version": {
+    "agent_id": "test-value",
+    "version": "test-value"
+  },
+  "set-agent-alias": {
+    "agent_id": "test-value",
+    "alias": "test-value",
+    "version": 1
+  },
+  "list-agent-aliases": {
+    "agent_id": "test-value"
+  },
+  "delete-agent-alias": {
+    "agent_id": "test-value",
+    "alias": "test-value"
+  },
+  "upload-file": {
+    "file": "__test_binary__"
+  },
+  "list-files": {},
+  "get-file": {
+    "file_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "delete-file": {
+    "file_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "download-file": {
+    "file_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-file-url": {
+    "file_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "update-fine-tuned-model": {
+    "model_id": "test-value"
+  },
+  "archive-fine-tuned-model": {
+    "model_id": "test-value"
+  },
+  "unarchive-fine-tuned-model": {
+    "model_id": "test-value"
+  },
+  "list-batch-jobs": {},
+  "create-batch-job": {
+    "endpoint": "/v1/chat/completions"
+  },
+  "get-batch-job": {
+    "job_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "cancel-batch-job": {
+    "job_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "chat-completion": {
+    "model": "mistral-large-latest",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Summarize the invoice."
+      }
+    ],
+    "max_tokens": 16
+  },
+  "complete-code": {
+    "model": "codestral-2404",
+    "prompt": "test-value"
+  },
+  "create-embeddings": {
+    "model": "mistral-embed",
+    "input": [
+      "Invoice paid"
+    ]
+  },
+  "moderate-text": {
+    "model": "test-value",
+    "input": "test-value"
+  },
+  "moderate-chat": {
+    "input": [
+      {
+        "role": "user",
+        "content": "Invoice paid"
+      }
+    ],
+    "model": "test-value"
+  },
+  "ocr": {
+    "document": {
+      "type": "document_url",
+      "document_url": "https://example.org/invoice.pdf"
+    }
+  },
+  "classify-text": {
+    "model": "test-value",
+    "input": "test-value"
+  },
+  "classify-chat": {
+    "model": "test-value",
+    "input": {
+      "messages": [
+        {
+          "role": "user",
+          "content": "Invoice paid"
+        }
+      ]
+    }
+  },
+  "transcribe-audio": {
+    "file": {
+      "name": "meeting.wav",
+      "content": "__test_binary__",
+      "mime_type": "audio/wav"
+    }
+  },
+  "generate-speech": {
+    "input": "test-value"
+  },
+  "list-voices": {},
+  "create-voice": {
+    "name": "test-value",
+    "sample_audio": "test-value"
+  },
+  "get-voice": {
+    "voice_id": "test-value"
+  },
+  "update-voice": {
+    "voice_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "delete-voice": {
+    "voice_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-voice-sample": {
+    "voice_id": "test-value"
+  },
+  "list-libraries": {},
+  "create-library": {
+    "name": "test-value"
+  },
+  "get-library": {
+    "library_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "delete-library": {
+    "library_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "update-library": {
+    "library_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "list-library-documents": {
+    "library_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "upload-library-document": {
+    "library_id": "00000000-0000-4000-8000-000000000001",
+    "file": "__test_binary__"
+  },
+  "get-library-document": {
+    "library_id": "00000000-0000-4000-8000-000000000001",
+    "document_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "update-library-document": {
+    "library_id": "00000000-0000-4000-8000-000000000001",
+    "document_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "delete-library-document": {
+    "library_id": "00000000-0000-4000-8000-000000000001",
+    "document_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-library-document-text": {
+    "library_id": "00000000-0000-4000-8000-000000000001",
+    "document_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-library-document-status": {
+    "library_id": "00000000-0000-4000-8000-000000000001",
+    "document_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-library-document-url": {
+    "library_id": "00000000-0000-4000-8000-000000000001",
+    "document_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-library-document-text-url": {
+    "library_id": "00000000-0000-4000-8000-000000000001",
+    "document_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "reprocess-library-document": {
+    "library_id": "00000000-0000-4000-8000-000000000001",
+    "document_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "list-library-access": {
+    "library_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "set-library-access": {
+    "library_id": "00000000-0000-4000-8000-000000000001",
+    "level": "Viewer",
+    "share_with_uuid": "00000000-0000-4000-8000-000000000001",
+    "share_with_type": "User"
+  },
+  "delete-library-access": {
+    "library_id": "00000000-0000-4000-8000-000000000001",
+    "share_with_uuid": "00000000-0000-4000-8000-000000000001",
+    "share_with_type": "User"
+  },
+  "search-chat-events": {
+    "search_params": {
+      "filters": {}
+    }
+  },
+  "search-chat-event-ids": {
+    "search_params": {
+      "filters": {}
+    }
+  },
+  "get-chat-completion-event": {
+    "event_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-similar-chat-completion-events": {
+    "event_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-chat-completion-fields": {},
+  "get-chat-completion-field-options": {
+    "field_name": "test-value",
+    "operator": "lt"
+  },
+  "get-chat-completion-field-options-counts": {
+    "field_name": "test-value"
+  },
+  "judge-chat-event": {
+    "event_id": "00000000-0000-4000-8000-000000000001",
+    "judge_definition": {
+      "name": "test-value",
+      "description": "test-value",
+      "model_name": "test-value",
+      "output": {
+        "options": [
+          {
+            "value": "test-value",
+            "description": "test-value"
+          }
+        ]
+      },
+      "instructions": "test-value",
+      "tools": [
+        "test-value"
+      ]
+    }
+  },
+  "create-judge": {
+    "name": "test-value",
+    "description": "test-value",
+    "model_name": "test-value",
+    "output": {
+      "options": [
+        {
+          "value": "test-value",
+          "description": "test-value"
+        }
+      ]
+    },
+    "instructions": "test-value",
+    "tools": [
+      "test-value"
+    ]
+  },
+  "list-judges": {},
+  "get-judge": {
+    "judge_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "delete-judge": {
+    "judge_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "update-judge": {
+    "judge_id": "00000000-0000-4000-8000-000000000001",
+    "name": "test-value",
+    "description": "test-value",
+    "model_name": "test-value",
+    "output": {
+      "options": [
+        {
+          "value": "test-value",
+          "description": "test-value"
+        }
+      ]
+    },
+    "instructions": "test-value",
+    "tools": [
+      "test-value"
+    ]
+  },
+  "run-judge": {
+    "judge_id": "00000000-0000-4000-8000-000000000001",
+    "messages": [
+      {}
+    ]
+  },
+  "create-campaign": {
+    "search_params": {
+      "filters": {}
+    },
+    "judge_id": "00000000-0000-4000-8000-000000000001",
+    "name": "test-value",
+    "description": "test-value",
+    "max_nb_events": 1
+  },
+  "list-campaigns": {},
+  "get-campaign": {
+    "campaign_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "delete-campaign": {
+    "campaign_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-campaign-status": {
+    "campaign_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-campaign-events": {
+    "campaign_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "create-dataset": {
+    "name": "test-value",
+    "description": "test-value"
+  },
+  "list-datasets": {},
+  "get-dataset": {
+    "dataset_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "delete-dataset": {
+    "dataset_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "update-dataset": {
+    "dataset_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "list-dataset-records": {
+    "dataset_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "add-dataset-record": {
+    "dataset_id": "00000000-0000-4000-8000-000000000001",
+    "payload": {
+      "messages": [
+        {}
+      ]
+    },
+    "properties": {}
+  },
+  "import-dataset-from-campaign": {
+    "dataset_id": "00000000-0000-4000-8000-000000000001",
+    "campaign_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "import-dataset-from-explorer": {
+    "dataset_id": "00000000-0000-4000-8000-000000000001",
+    "completion_event_ids": [
+      "test-value"
+    ]
+  },
+  "import-dataset-from-file": {
+    "dataset_id": "00000000-0000-4000-8000-000000000001",
+    "file_id": "test-value"
+  },
+  "import-dataset-from-playground": {
+    "dataset_id": "00000000-0000-4000-8000-000000000001",
+    "conversation_ids": [
+      "test-value"
+    ]
+  },
+  "import-dataset-from-dataset": {
+    "dataset_id": "00000000-0000-4000-8000-000000000001",
+    "dataset_record_ids": [
+      "00000000-0000-4000-8000-000000000001"
+    ]
+  },
+  "export-dataset-jsonl": {
+    "dataset_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-dataset-task": {
+    "dataset_id": "00000000-0000-4000-8000-000000000001",
+    "task_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "list-dataset-tasks": {
+    "dataset_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-dataset-record": {
+    "dataset_record_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "delete-dataset-record": {
+    "dataset_record_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "delete-dataset-records": {
+    "dataset_record_ids": [
+      "00000000-0000-4000-8000-000000000001"
+    ]
+  },
+  "judge-dataset-record": {
+    "dataset_record_id": "00000000-0000-4000-8000-000000000001",
+    "judge_definition": {
+      "name": "test-value",
+      "description": "test-value",
+      "model_name": "test-value",
+      "output": {
+        "options": [
+          {
+            "value": "test-value",
+            "description": "test-value"
+          }
+        ]
+      },
+      "instructions": "test-value",
+      "tools": [
+        "test-value"
+      ]
+    }
+  },
+  "update-dataset-record-payload": {
+    "dataset_record_id": "00000000-0000-4000-8000-000000000001",
+    "payload": {
+      "messages": [
+        {}
+      ]
+    }
+  },
+  "update-dataset-record-properties": {
+    "dataset_record_id": "00000000-0000-4000-8000-000000000001",
+    "properties": {}
+  },
+  "get-workflow-execution": {
+    "execution_id": "test-value"
+  },
+  "get-workflow-execution-history": {
+    "execution_id": "test-value"
+  },
+  "signal-workflow-execution": {
+    "execution_id": "test-value",
+    "name": "test-value"
+  },
+  "query-workflow-execution": {
+    "execution_id": "test-value",
+    "name": "test-value"
+  },
+  "terminate-workflow-execution": {
+    "execution_id": "test-value"
+  },
+  "batch-terminate-workflow-executions": {
+    "execution_ids": [
+      "test-value"
+    ]
+  },
+  "cancel-workflow-execution": {
+    "execution_id": "test-value"
+  },
+  "batch-cancel-workflow-executions": {
+    "execution_ids": [
+      "test-value"
+    ]
+  },
+  "reset-workflow": {
+    "execution_id": "test-value",
+    "event_id": 1
+  },
+  "update-workflow-execution": {
+    "execution_id": "test-value",
+    "name": "test-value"
+  },
+  "get-workflow-execution-trace-otel": {
+    "execution_id": "test-value"
+  },
+  "get-workflow-execution-trace-summary": {
+    "execution_id": "test-value"
+  },
+  "get-workflow-execution-trace-events": {
+    "execution_id": "test-value"
+  },
+  "get-workflow-metrics": {
+    "workflow_name": "test-value"
+  },
+  "list-workflow-runs": {},
+  "get-workflow-run": {
+    "run_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-workflow-run-history": {
+    "run_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "list-workflow-schedules": {},
+  "schedule-workflow": {
+    "schedule": {
+      "input": "test-value"
+    }
+  },
+  "unschedule-workflow": {
+    "schedule_id": "test-value"
+  },
+  "get-workflow-worker": {},
+  "get-workflow-events": {},
+  "list-workflow-deployments": {},
+  "get-workflow-deployment": {
+    "name": "test-value"
+  },
+  "list-workflow-registrations": {},
+  "execute-workflow": {
+    "workflow_identifier": "test-value"
+  },
+  "execute-workflow-registration": {
+    "workflow_registration_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "get-workflow": {
+    "workflow_identifier": "test-value"
+  },
+  "update-workflow": {
+    "workflow_identifier": "test-value"
+  },
+  "get-workflow-registration": {
+    "workflow_registration_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "archive-workflow": {
+    "workflow_identifier": "test-value"
+  },
+  "unarchive-workflow": {
+    "workflow_identifier": "test-value"
+  },
+  "create-connector": {
+    "name": "test-value",
+    "description": "test-value",
+    "server": "https://example.org/document.pdf"
+  },
+  "list-connectors": {},
+  "get-connector-auth-url": {
+    "connector_id_or_name": "test-value"
+  },
+  "call-connector-tool": {
+    "tool_name": "test-value",
+    "connector_id_or_name": "test-value"
+  },
+  "list-connector-tools": {
+    "connector_id_or_name": "test-value"
+  },
+  "get-connector-authentication-methods": {
+    "connector_id_or_name": "test-value"
+  },
+  "list-organization-credentials-for-a-connector": {
+    "connector_id_or_name": "test-value"
+  },
+  "create-or-update-organization-credentials-for-a-connector": {
+    "connector_id_or_name": "test-value",
+    "name": "test-value"
+  },
+  "list-workspace-credentials-for-a-connector": {
+    "connector_id_or_name": "test-value"
+  },
+  "create-or-update-workspace-credentials-for-a-connector": {
+    "connector_id_or_name": "test-value",
+    "name": "test-value"
+  },
+  "list-user-credentials-for-a-connector": {
+    "connector_id_or_name": "test-value"
+  },
+  "create-or-update-user-credentials-for-a-connector": {
+    "connector_id_or_name": "test-value",
+    "name": "test-value"
+  },
+  "delete-organization-credentials-for-a-connector": {
+    "credentials_name": "test-value",
+    "connector_id_or_name": "test-value"
+  },
+  "delete-workspace-credentials-for-a-connector": {
+    "credentials_name": "test-value",
+    "connector_id_or_name": "test-value"
+  },
+  "delete-user-credentials-for-a-connector": {
+    "credentials_name": "test-value",
+    "connector_id_or_name": "test-value"
+  },
+  "get-connector": {
+    "connector_id_or_name": "test-value"
+  },
+  "update-connector": {
+    "connector_id_or_name": "00000000-0000-4000-8000-000000000001"
+  },
+  "delete-connector": {
+    "connector_id_or_name": "00000000-0000-4000-8000-000000000001"
+  }
+}

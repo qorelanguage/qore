@@ -78,6 +78,7 @@ module RestSchemaValidator {
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
 
     @subsection restschemavalidator_2_5 RestSchemaValidator v2.5
+    - retain nullable value types and independent presence requirements across cached field uses
     - extracted shared base classes for schema validation across Swagger, OpenApi3, and AsyncApi modules:
       - @ref RestSchemaValidator::AbstractObjectBase "AbstractObjectBase": vendor extensions support
       - @ref RestSchemaValidator::AbstractSchemaBaseValidator "AbstractSchemaBaseValidator": shared validation methods
@@ -1497,12 +1498,19 @@ public namespace RestSchemaValidator {
         }
 
         #! Returns a field object from the given cache
-        private static *AbstractDataField getCacheField(reference<hash<string, AbstractDataField>> h, string key) {
+        private *AbstractDataField getCacheField(reference<hash<string, AbstractDataField>> h, string key) {
             if (h) {
                 if ((key == "N") && !h.N) {
                     return h.N = h.Y.getOrNothingType();
                 }
                 if ((key == "Y") && !h.Y) {
+                    if (nullable) {
+                        # A required nullable use has the same value type as an optional use;
+                        # only property presence changes. Never mutate the shared cached field.
+                        AbstractDataField field = h.N.copy();
+                        field.setAttributes({"required": True, "preselected": True});
+                        return h.Y = field;
+                    }
                     return h.Y = h.N.getMandatoryType();
                 }
                 return h{key};

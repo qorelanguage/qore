@@ -1,0 +1,27 @@
+# Copyright 2026 Qore Technologies, s.r.o.
+documents:
+- name: Mistral API
+  source: https://raw.githubusercontent.com/mistralai/platform-docs-public/2e094f7bbe1395de4a738a3483def3573143d973/openapi.yaml
+  output: mistral-openapi.json
+  manifest: MistralDataProvider:MistralManifest::Manifest
+  provenance: MistralSchema.qc
+  json: true
+  normalize:
+  - reason: 'SharingDelete requires an absent level property. The official Python SDK SharingDelete model requires
+      only share_with_uuid and share_with_type: https://github.com/mistralai/client-python/blob/main/src/mistralai/client/models/sharingdelete.py'
+    replace_required:
+    - pointer: '#/components/schemas/SharingDelete'
+      expected:
+      - share_with_uuid
+      - share_with_type
+      - level
+      replacement:
+      - share_with_uuid
+      - share_with_type
+  - reason: 'The upstream schema and SDK append documentation fragments #idOrName and #id to equivalent connector
+      paths. URI fragments are separated before an HTTP request (RFC 3986 section 3.5). Remove the fragments and
+      use a common positional parameter name, merging the disjoint GET, PATCH and DELETE operations. Sources: https://github.com/mistralai/client-python/blob/main/src/mistralai/client/connectors.py
+      and https://www.rfc-editor.org/rfc/rfc3986#section-3.5'
+    rename_paths:
+      /v1/connectors/{connector_id_or_name}#idOrName: /v1/connectors/{connector_id_or_name}
+      /v1/connectors/{connector_id}#id: /v1/connectors/{connector_id_or_name}

@@ -159,7 +159,10 @@ public class MistralChatCompletionRequestDataType inherits HashDataType {
             },
         };
     }
-    constructor() { addQoreFields(Fields); }
+    constructor() {
+        map addField($1), (MistralSchema::getActionSet()).getOperationEx("chat-completion")
+            .getRequestType().getFields().iterator();
+    }
 }
 
 public class MistralChatChoiceDataType inherits HashDataType {
@@ -245,7 +248,10 @@ public class MistralChatCompletionResponseDataType inherits HashDataType {
             },
         };
     }
-    constructor() { addQoreFields(Fields); }
+    constructor() {
+        map addField($1), (MistralSchema::getActionSet()).getOperationEx("chat-completion")
+            .getResponseType().getFields().iterator();
+    }
 }
 
 public class MistralEmbeddingRequestDataType inherits HashDataType {
@@ -275,7 +281,10 @@ public class MistralEmbeddingRequestDataType inherits HashDataType {
             },
         };
     }
-    constructor() { addQoreFields(Fields); }
+    constructor() {
+        map addField($1), (MistralSchema::getActionSet()).getOperationEx("create-embeddings")
+            .getRequestType().getFields().iterator();
+    }
 }
 
 public class MistralEmbeddingItemDataType inherits HashDataType {
@@ -332,7 +341,10 @@ public class MistralEmbeddingResponseDataType inherits HashDataType {
             },
         };
     }
-    constructor() { addQoreFields(Fields); }
+    constructor() {
+        map addField($1), (MistralSchema::getActionSet()).getOperationEx("create-embeddings")
+            .getResponseType().getFields().iterator();
+    }
 }
 
 public class MistralOcrRequestDataType inherits HashDataType {
@@ -385,7 +397,10 @@ public class MistralOcrRequestDataType inherits HashDataType {
             },
         };
     }
-    constructor() { addQoreFields(Fields); }
+    constructor() {
+        map addField($1), (MistralSchema::getActionSet()).getOperationEx("ocr")
+            .getRequestType().getFields().iterator();
+    }
 }
 
 public class MistralOcrPageDataType inherits HashDataType {
@@ -438,6 +453,9 @@ public class MistralOcrResponseDataType inherits HashDataType {
             },
         };
     }
-    constructor() { addQoreFields(Fields); }
+    constructor() {
+        map addField($1), (MistralSchema::getActionSet()).getOperationEx("ocr")
+            .getResponseType().getFields().iterator();
+    }
 }
 }

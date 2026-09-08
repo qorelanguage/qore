@@ -6968,7 +6968,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper, Qore::Serializ
         1. **Direct REST client member** (the qore qlib convention): walks the class hierarchy of
            @c self for a member named @ref GenericApiCallRestMemberName "\"rest\"" whose value is an
            object responding to @c restDoRequest() (the abstract REST API on
-           @ref RestClient::AbstractRestClient "AbstractRestClient"). Returns that value directly.
+           [AbstractRestClient](../../RestClient/html/index.html)). Returns that value directly.
 
         2. **Connection member** (the module-v8 convention): if no direct @c rest member is found,
            walks for a member named @ref GenericApiCallConnectionMemberName "\"conn\"" that exposes

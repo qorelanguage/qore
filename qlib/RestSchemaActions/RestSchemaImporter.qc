@@ -160,6 +160,16 @@ public hashdecl RestSchemaNormalizationInfo {
         but requires the obsolete names token and logprob in its LogprobItem response type.
     */
     *list<hash<RestSchemaRequiredFieldsRepairInfo>> replace_required;
+
+    #! Replaces documentation-only path spellings with their actual HTTP paths
+    /** Keys name existing paths and values name destination paths with the same number of parameters.
+        Parameter names are changed positionally, including their declarations. An existing destination
+        may be merged only if all common path-item members agree; duplicate HTTP methods are rejected.
+        Mistral's documentation appends fragment labels such as \c "#idOrName" to distinguish
+        reference pages; fragments are not part of an HTTP request target. Every rename is checked,
+        so a corrected upstream path makes the repair fail instead of silently persisting.
+    */
+    *hash<string, string> rename_paths;
 }
 
 #! Describes one document to import
@@ -357,6 +367,8 @@ public class RestSchemaImporter {
                     "add_parameters": (map $1.name, n.add_parameters ?? ()),
                     "replace_parameters": (map $1.name, n.replace_parameters ?? ()),
                     "relax_oneof": n.relax_oneof ?? (),
+                    "replace_required": n.replace_required ?? (),
+                    "rename_paths": n.rename_paths ?? {},
                 };
             }
             out_schema{NormalizationMarker} = applied;
@@ -549,8 +561,74 @@ public class RestSchemaImporter {
                 rv = RestSchemaImporter::replaceRequired(rv, repair, n.reason);
                 ++operations_normalized;
             }
+            foreach hash<auto> rename in (n.rename_paths.pairIterator()) {
+                if (!exists rv.paths{rename.key} || rename.key == rename.value) {
+                    throw "REST-SCHEMA-IMPORT-ERROR", sprintf("the path repair %y requires existing source %y "
+                        "and a different destination %y", n.reason, rename.key, rename.value);
+                }
+                list<string> old_names = (rename.key =~ x/\{([^}]+)\}/g) ?? ();
+                list<string> new_names = (rename.value =~ x/\{([^}]+)\}/g) ?? ();
+                if (!rename.value.startsWith("/") || rename.value =~ /[?#]/
+                        || old_names.size() != new_names.size()) {
+                    throw "REST-SCHEMA-IMPORT-ERROR", sprintf("the path repair %y must retain path parameter count "
+                        "and produce an absolute HTTP path without a query or fragment", n.reason);
+                }
+                hash<string, string> names;
+                hash<string, bool> seen;
+                for (int i = 0; i < old_names.size(); ++i) {
+                    if (exists names{old_names[i]} || seen{new_names[i]}) {
+                        throw "REST-SCHEMA-IMPORT-ERROR", "path repair parameter names must be unique";
+                    }
+                    names{old_names[i]} = new_names[i];
+                    seen{new_names[i]} = True;
+                }
+                hash<auto> item = RestSchemaImporter::renamePathParameters(rv.paths{rename.key}, names, rv);
+                hash<auto> target = rv.paths{rename.value} ?? {};
+                foreach string key in (keys item) {
+                    if (exists target{key} && (key =~ /^(get|post|put|patch|delete|head|options|trace)$/
+                            || target{key} != item{key})) {
+                        throw "REST-SCHEMA-IMPORT-ERROR", sprintf("the path repair %y cannot merge conflicting "
+                            "member %y into %y", n.reason, key, rename.value);
+                    }
+                    target{key} = item{key};
+                }
+                rv.paths{rename.value} = target;
+                remove rv.paths{rename.key};
+                ++operations_normalized;
+            }
         }
         return rv;
+    }
+
+    #! Renames path-item and operation parameter declarations, resolving shared references without editing them
+    private static hash<auto> renamePathParameters(hash<auto> item, hash<string, string> names, hash<auto> schema) {
+        foreach string key in ("parameters", "get", "post", "put", "patch", "delete", "head", "options", "trace") {
+            list<auto> params = key == "parameters" ? item.parameters ?? () : item{key}.parameters ?? ();
+            if (!params) {
+                continue;
+            }
+            # Build a fresh heterogeneous parameter list: a list containing only $ref objects
+            # can have the narrower runtime type list<hash<string>> and cannot hold an inline schema.
+            list<hash<auto>> renamed = ();
+            foreach hash<auto> original in (params) {
+                hash<auto> param = original;
+                if (param.'$ref') {
+                    param = RestSchemaPruner::resolveRef(schema, param.'$ref');
+                }
+                if (param.'in' == "path" && exists names{param.name}) {
+                    param.name = names{param.name};
+                    renamed += param;
+                } else {
+                    renamed += original;
+                }
+            }
+            if (key == "parameters") {
+                item.parameters = renamed;
+            } else {
+                item{key}.parameters = renamed;
+            }
+        }
+        return item;
     }
 
     #! Corrects a reviewed required list without changing any declared property

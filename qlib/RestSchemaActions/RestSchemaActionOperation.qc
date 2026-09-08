@@ -1017,7 +1017,7 @@ public class RestSchemaActionOperation {
             @assert(types.size() > 0);
             AbstractDataProviderType field_type = (types.size() == 1 || same_type)
                 ? first.getType() : new QoreUnionDataType(types);
-            cfg.type = required ? field_type.getMandatoryType() : field_type.getOrNothingType();
+            cfg.type = required ? field_type : field_type.getOrNothingType();
             cfg.attr.required = required;
             cfg.default_value = same_default ? first.getDefaultValue() : NOTHING;
             cfg.allowed_values = finite ? allowed : NOTHING;
@@ -1442,7 +1442,10 @@ public class RestSchemaActionOperation {
                 node.merge = nested.merge;
             }
         }
-        rv.updateFieldType(required ? type.getMandatoryType() : type.getOrNothingType());
+        # Presence and nullability are separate schema constraints. Preserve a schema-derived
+        # nullable type on a required property; only a deliberate narrowing or replacement changes it.
+        rv.updateFieldType(!required ? type.getOrNothingType()
+            : (type_replaced || (ov.required && !fieldIsRequired(field))) ? type.getMandatoryType() : type);
 
         # attributes are what DataProviderActionCatalog::getActionOptionFromFields() reads, so requiredness
         # derived from the type has to be published there as well

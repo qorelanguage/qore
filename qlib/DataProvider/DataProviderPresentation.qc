@@ -395,7 +395,7 @@ public class DataProviderPresentation {
 
         @param domain native catalog domain
         @param discovery_opts options accepted by
-            @ref I18n::get_catalog_search_path()
+            [I18n::get_catalog_search_path()](../../i18n/html/index.html)
         @return canonical locale tags in stable order, with @c root first when
             it is present
 
@@ -478,7 +478,7 @@ public class DataProviderPresentation {
         @param domain native catalog domain
         @param root_messages generated root-catalog message map
         @param discovery_opts options accepted by
-            @ref I18n::get_catalog_search_path()
+            [I18n::get_catalog_search_path()](../../i18n/html/index.html)
         @return a hash with \c translation_count, an \c issues list, and
             \c translation_message_ids_by_locale; each issue contains
             \c path, \c locale, \c message_id (empty for a file-level issue),
@@ -810,7 +810,7 @@ public class DataProviderPresentationCatalog {
         This check keeps catalog search-path and filename order from selecting
         user-facing provider presentation.
 
-        Malformed native catalogs are left to @ref I18n::MessageCatalog, which
+        Malformed native catalogs are left to [I18n::MessageCatalog](../../i18n/html/index.html), which
         remains the schema and placeholder-validation authority.
 
         @param files discovered catalog file paths in load order
@@ -861,7 +861,7 @@ public class DataProviderPresentationCatalog {
     #! Creates a projection catalog
     /** @param domain native i18n catalog domain
         @param requested_locale requested BCP 47 locale or \c root for producer-source presentation
-        @param discovery_opts options passed to @ref I18n::discover_catalog_files()
+        @param discovery_opts options passed to [I18n::discover_catalog_files()](../../i18n/html/index.html)
         @param discovery_index optional discovery index reused by every catalog
             built for one operation; catalog discovery for many domains and
             locales otherwise re-reads the same catalog directories for each

@@ -49,11 +49,7 @@ public class MistralChatCompletionDataProvider inherits MistralDataProviderCommo
     private hash<DataProviderInfo> getStaticInfoImpl() { return ProviderInfo; }
 
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        hash<auto> body = doRestCommand("POST", "chat/completions", req).body;
-        if (body.created.typeCode() == NT_INT) {
-            body.created = 1970-01-01Z + seconds(body.created);
-        }
-        return body;
+        return getSchemaProvider("chat-completion").doRequest(req, request_options);
     }
 }
 }

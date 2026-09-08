@@ -22,14 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# assume local scope for variables, do not use "$" signs
-%modern
-# require type definitions everywhere
-#! strict argument handling
-# enable all warnings
-
-%requires reflection
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on a hashdecl
@@ -207,7 +199,7 @@ public class QoreDataField inherits AbstractDataField {
     */
     AbstractDataField getOrNothingType() {
         AbstractDataProviderType new_type = type.getOrNothingType();
-        if (new_type == type) {
+        if (new_type == type && !attr.required) {
             return self;
         }
         QoreDataField rv = copy();

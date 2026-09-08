@@ -159,6 +159,10 @@ public class RestSchemaActionDataProvider inherits AbstractDataProvider {
         auto checked = opts - (keys raw);
         *AbstractDataProviderType request_type = getRequestTypeWithData(checked);
         if (request_type) {
+            # The raw fields are present and will be validated in wire form. Exclude their curated
+            # types from this check, while retaining validation of every other required field.
+            @assert(request_type instanceof HashDataType);
+            request_type = cast<HashDataType>(request_type).copyWithFields(request_type.getFields() - keys raw);
             try {
                 checked = request_type.acceptsValue(checked);
             } catch (hash<ExceptionInfo> ex) {

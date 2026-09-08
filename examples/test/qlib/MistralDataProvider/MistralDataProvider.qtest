@@ -1,16 +1,22 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
+# Copyright 2026 Qore Technologies, s.r.o.
+
 %modern
 %allow-injection
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Logger
-%requires ConnectionProvider
-%requires DataProvider
-%requires MistralDataProvider
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/MistralDataProvider
+%requires ../../../../qlib/RestSchemaActions
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires json
 
 %exec-class MistralDataProviderTest
 
@@ -19,10 +25,35 @@ class FakeMistralRestClientIo inherits RestClientIo::RestClientIo {
         *hash<auto> last_request;
         string last_method;
         string last_path;
-        hash<auto> response_body;
+        auto response_body = {};
+        list<auto> responses = ();
+        *data last_raw;
+        *hash<auto> last_headers;
+        int requests = 0;
+        *string failure;
     }
 
     constructor() : RestClientIo({"url": "https://api.mistral.ai", "token": "x"}) {
+    }
+
+    RestClient::AbstractRestClient copyWithUrl(string new_url) {
+        return self;
+    }
+
+    hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body,
+            *hash<auto> hdr) {
+        last_method = method;
+        last_path = path;
+        last_raw = body;
+        last_headers = hdr;
+        ++requests;
+        if (failure) {
+            throw failure, "injected transport failure";
+        }
+        last_request = body.val() && (hdr."Content-Type" ?? hdr."content-type" ?? "") !~ /^multipart\//
+            ? parse_json(body.toString()) : NOTHING;
+        return <RestClient::RestResponseInfo>{"status_code": 200,
+            "body": responses ? shift responses : response_body};
     }
 
     hash<RestClient::RestResponseInfo> restDoRequest(string method, string path,
@@ -52,6 +83,28 @@ class FakeMistralRestClientIo inherits RestClientIo::RestClientIo {
     }
 }
 
+class MistralWireHandler inherits AbstractHttpRequestHandler {
+    private {
+        Mutex lock();
+        hash<auto> request;
+        *data payload;
+    }
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        AutoLock al(lock);
+        request = hdr;
+        payload = body;
+        return makeResponse(200, "{}", {"Content-Type": "application/json"});
+    }
+    hash<auto> getRequest() {
+        AutoLock al(lock);
+        return request;
+    }
+    *data getBody() {
+        AutoLock al(lock);
+        return payload;
+    }
+}
+
 public class MistralDataProviderTest inherits QUnit::Test {
     public {
         const MyOpts = Opts + {
@@ -68,8 +121,8 @@ public class MistralDataProviderTest inherits QUnit::Test {
     constructor() : Test("MistralDataProvider Test", "1.0", \ARGV, MyOpts) {
         conn_name = m_options.conn ?? ENV.MISTRAL_CONNECTION;
 
-        addTestCase("factory + app + 3 actions registered", \registrationTest());
-        addTestCase("root provider lists 3 children",       \rootProviderTest());
+        addTestCase("factory + app + 161 actions registered", \registrationTest());
+        addTestCase("root provider lists 161 children",       \rootProviderTest());
         addTestCase("chat-completion converts created date", \chatRequestTest());
         addTestCase("create-embeddings forwards body unchanged",
             \embeddingRequestTest());
@@ -80,6 +133,17 @@ public class MistralDataProviderTest inherits QUnit::Test {
         if (conn_name) {
             addTestCase("live: ping + chat-completion (open-mistral-nemo)",
                 \liveMistralTest());
+        }
+        addTestCase("complete action contracts", \contractTest());
+        addTestCase("pinned provenance and schema drift", \schemaTest());
+        addTestCase("resource dropdowns", \referenceTest());
+        addTestCase("HTTP authentication, paths and named multipart files", \wireTest());
+        addTestCase("invalid requests and transport failures", \negativeTest());
+        hash<auto> fixtures = parse_json(File::readTextFile(get_script_dir() + "/requests.json"));
+        foreach hash<RestSchemaActionInfo> info in (MistralManifest::Manifest) {
+            hash<RestSchemaActionInfo> entry = info;
+            hash<auto> request = fixtures{info.action};
+            addTestCase("request: " + info.action, sub () { operationTest(entry, request); });
         }
         set_return_value(main());
     }
@@ -109,9 +173,9 @@ public class MistralDataProviderTest inherits QUnit::Test {
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("MistralAi"),
             $1.action != AbstractDataProvider::GenericApiCallActionName;
-        assertEq(3, actions.size());
+        assertEq(161, actions.size());
         list<string> action_names = sort(map $1.action, actions);
-        assertEq(("chat-completion", "create-embeddings", "ocr"), action_names);
+        assertEq(sort(map $1.action, MistralManifest::Manifest), action_names);
     }
 
     private rootProviderTest() {
@@ -121,7 +185,14 @@ public class MistralDataProviderTest inherits QUnit::Test {
         # GenericApiCallAutoInjection.qtest in RestClientDataProvider)
         list<string> children = sort(select prov.getChildProviderNames(),
             $1 != AbstractDataProvider::GenericApiCallChildName);
-        assertEq(("chat-completion", "create-embeddings", "ocr"), children);
+        assertEq(sort(map $1.action, MistralManifest::Manifest), children);
+        foreach string name in (children) {
+            assertTrue(prov.getChildProvider(name).supportsRequest(), name);
+        }
+        assertThrows("MISTRAL-CHILD-ERROR", sub () {
+            MistralDataProvider::MistralDataProvider::registerChild("list-models",
+                Class::forName("MistralDataProvider::MistralChatCompletionDataProvider"));
+        });
     }
 
     private chatRequestTest() {
@@ -144,7 +215,7 @@ public class MistralDataProviderTest inherits QUnit::Test {
         });
 
         assertEq("POST", fake.last_method);
-        assertEq("chat/completions", fake.last_path);
+        assertEq("/v1/chat/completions", fake.last_path);
         assertEq("Hi", resp.choices[0].message.content);
         assertEq(NT_DATE, resp.created.typeCode());
         assertEq(1700000000, int(resp.created - 1970-01-01Z));
@@ -170,7 +241,7 @@ public class MistralDataProviderTest inherits QUnit::Test {
         });
 
         assertEq("POST", fake.last_method);
-        assertEq("embeddings", fake.last_path);
+        assertEq("/v1/embeddings", fake.last_path);
         assertEq(3, resp.data[0].embedding.size());
     }
 
@@ -194,10 +265,189 @@ public class MistralDataProviderTest inherits QUnit::Test {
         });
 
         assertEq("POST", fake.last_method);
-        assertEq("ocr", fake.last_path);
+        assertEq("/v1/ocr", fake.last_path);
         assertEq("document_url", fake.last_request.document."type");
         assertEq("# Hello\n\nWorld.", resp.pages[0].markdown);
         assertEq(1, resp.usage_info.pages_processed);
+    }
+
+    private contractTest() {
+        RestSchemaActionSet actions = MistralSchema::getActionSet();
+        foreach hash<DataProviderActionInfo> action in (DataProviderActionCatalog::getActions("MistralAi")) {
+            if (action.action == AbstractDataProvider::GenericApiCallActionName) {
+                continue;
+            }
+            assertTrue(action.display_name.val(), action.action);
+            assertTrue(action.short_desc.val() && action.short_desc.size() < 80, action.action);
+            assertTrue(action.desc.val(), action.action);
+            assertFalse(exists action.cls, action.action);
+            RestSchemaActionOperation op = actions.getOperationEx(action.action);
+            assertEq(exists op.getResponseType(), exists action.output_type, action.action);
+            if (op.getRequestType()) {
+                assertEq(sort(keys op.getRequestType().getFields()), sort(keys action.options), action.action);
+            }
+        }
+        hash<string, AbstractDataField> chat = new MistralChatCompletionRequestDataType().getFields();
+        foreach string field in ("tools", "tool_choice", "response_format", "random_seed", "safe_prompt") {
+            assertTrue(exists chat{field}, field);
+        }
+        assertFalse(exists chat.stream);
+        assertEq("models", chat.model.getAttributes().ref_data);
+        assertTrue(chat.tool_choice.getAllowedValues().size() > 1);
+        hash<string, AbstractDataField> connector = actions.getOperationEx("create-connector").getRequestFields();
+        assertTrue(connector.headers.getAttributes().sensitive);
+        assertTrue(connector.auth_data.getAttributes().sensitive);
+        assertTrue(actions.getOperationEx("update-connector").getRequestFields()
+            .connection_secrets.getAttributes().sensitive);
+        hash<string, AbstractDataField> batch = actions.getOperationEx("create-batch-job").getRequestFields();
+        assertEq("files", batch.input_files.getAttributes().element_ref_data);
+        assertEq("conversations", actions.getOperationEx("import-dataset-from-playground").getRequestFields()
+            .conversation_ids.getAttributes().element_ref_data);
+        assertEq("workflow-runs", actions.getOperationEx("batch-cancel-workflow-executions").getRequestFields()
+            .execution_ids.getAttributes().element_ref_data);
+    }
+
+    private operationTest(hash<RestSchemaActionInfo> info, hash<auto> request) {
+        FakeMistralRestClientIo fake();
+        MistralDataProvider::MistralDataProvider root(fake);
+        foreach string key in (keys request) {
+            if (request{key} == "__test_binary__") {
+                request{key} = binary("test payload");
+            } else if (request{key}.typeCode() == NT_HASH && request{key}.content == "__test_binary__") {
+                request{key}.content = binary("test payload");
+            }
+        }
+        root.getChildProvider(info.action).doRequest(request);
+        assertEq(1, fake.requests);
+        assertEq(info.method, fake.last_method);
+        string path = info.path;
+        foreach string key in ((info.path =~ x/\{([^}]+)\}/g) ?? ()) {
+            path = replace(path, "{" + key + "}", encode_url(request{key}.toString()));
+        }
+        assertEq(path, fake.last_path.split("?")[0]);
+    }
+
+    private referenceTest() {
+        FakeMistralRestClientIo fake();
+        MistralDataProvider::MistralDataProvider root(fake);
+        fake.response_body = {"data": ({"id": "model-1"},)};
+        auto values = root.getChildProvider("chat-completion").getReferenceData("models");
+        assertEq("model-1", values[0].value);
+        assertEq("/v1/models", fake.last_path);
+        fake.response_body = {"data": ()};
+        assertNothing(root.getChildProvider("chat-completion").getReferenceData("models"));
+        hash<string, AbstractDataProvider> providers;
+        foreach hash<RestSchemaActionInfo> info in (MistralManifest::Manifest) {
+            AbstractDataProvider provider = root.getChildProvider(info.action);
+            foreach string name in (keys provider.getSupportedReferenceData()) {
+                providers{name} = provider;
+            }
+        }
+        foreach hash<RestSchemaReferenceDataInfo> decl in (MistralManifest::ReferenceData.iterator()) {
+            assertTrue(exists providers{decl.name}, decl.name + " is used by an action option");
+            AbstractDataProviderType records = (MistralSchema::getActionSet()).getOperationEx(decl.action)
+                .getResponseType();
+            foreach string path in (decl.records_path) {
+                records = records.getFields(){path}.getType();
+            }
+            assertEq(NT_LIST, records.getBaseTypeCode(), decl.name + " reaches an API response list");
+            hash<auto> row = {decl.value_field: decl.name == "agent-versions" ? 7
+                : "00000000-0000-4000-8000-000000000001"};
+            if (decl.value_field != decl.display_field) {
+                row{decl.display_field} = "Invoices";
+            }
+            auto response = (row,);
+            for (int i = decl.records_path.size() - 1; i >= 0; --i) {
+                response = {decl.records_path[i]: response};
+            }
+            fake.response_body = response;
+            if (decl.options_reference) {
+                fake.responses = ({"datasets": {"results": ({"id": "00000000-0000-4000-8000-000000000002"},)}},
+                    response);
+            }
+            hash<auto> scope;
+            foreach string key in (decl.options_from.iterator()) {
+                scope{key} = "00000000-0000-4000-8000-000000000002";
+            }
+            int before = fake.requests;
+            if (scope) {
+                assertNothing(providers{decl.name}.getReferenceData(decl.name));
+                assertEq(before, fake.requests, "scoped dropdowns make no request without their parent");
+            }
+            auto choices = providers{decl.name}.getReferenceData(decl.name, scope);
+            assertEq(row{decl.value_field}, choices[0].value, decl.name);
+            assertEq(row{decl.display_field}.toString(), choices[0].display_name, decl.name);
+            assertEq(decl.name == "chat-events" ? "POST" : "GET", fake.last_method);
+            assertEq(before + (decl.options_reference ? 2 : 1), fake.requests);
+        }
+
+    }
+
+    private schemaTest() {
+        assertTrue(MistralSchema::Provenance.source_sha256 =~ /^[a-f0-9]{64}$/);
+        assertTrue(MistralSchema::Provenance.source_url =~ /platform-docs-public\/[a-f0-9]{40}\/openapi.yaml$/);
+        assertTrue(MistralSchema::Provenance.source_size > 0);
+        assertEq(173, MistralSchema::Provenance.source_operations);
+        assertEq((), RestSchemaDrift::compare(MistralSchema::getActionSet(), MistralSchema::getSchema()),
+            "the manifest and pinned operation contracts agree");
+    }
+
+    private wireTest() {
+        Logger logger("mistral-wire", LoggerLevel::getLevelWarn());
+        HttpServer server(<HttpServerOptionInfo>{"logger": logger});
+        on_exit delete server;
+        MistralWireHandler handler();
+        server.setDefaultHandler("mistral", handler);
+        int port = server.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        MistralRestClient::MistralRestClientIo client({"url": sprintf("http://127.0.0.1:%d", port),
+            "apikey": "wire-key", "api": "v2", "http_version": "1.1"});
+        MistralDataProvider::MistralDataProvider root(client);
+        root.getChildProvider("list-models").doRequest({});
+        assertEq("v1/models", handler.getRequest().path);
+        assertEq("Bearer wire-key", handler.getRequest().authorization);
+        client.restGet("models");
+        assertEq("v2/models", handler.getRequest().path, "the caller's client retains its prefix");
+        root.getChildProvider("list-agents").doRequest({"metadata": {"team": "sales&support"}});
+        hash<UriQueryInfo> query = parse_uri_query(handler.getRequest().path);
+        # HttpServer separates the query from the route in its request metadata.
+        assertEq("v1/agents", query.method);
+        root.getChildProvider("transcribe-audio").doRequest({"file": {"name": "invoice.wav",
+            "content": <00017fff52494646>, "mime_type": "audio/wav"}, "language": "en"});
+        hash<string, hash<FormDataMessageInfo>> parts = MultiPartFormDataMessage::parseMessage(
+            handler.getRequest()."content-type", handler.getBody().toString());
+        assertEq("invoice.wav", parts.file.filename);
+        assertEq("audio/wav", parts.file.hdr."content-type");
+        assertEq(<00017fff52494646>, parts.file.body);
+        assertEq("en", parts.language.body);
+        assertEq("voxtral-mini-latest", parts.model.body);
+        assertEq(NOTHING, parts.model.filename);
+    }
+
+    private negativeTest() {
+        assertThrows("CONSTRUCTOR-ERROR", sub () { new MistralDataProvider::MistralDataProvider({}); });
+        FakeMistralRestClientIo fake();
+        MistralDataProvider::MistralDataProvider root({"restclient": fake});
+        foreach hash<auto> test in (
+                {"action": "chat-completion", "request": {}},
+                {"action": "create-embeddings", "request": {}},
+                {"action": "ocr", "request": {}},
+                {"action": "transcribe-audio", "request": {}},
+                {"action": "get-model", "request": {}},
+                {"action": "chat-completion", "request": {"messages": ({"role": "invalid", "content": "Hello"},)}},
+                {"action": "chat-completion", "request": {"messages": ({"role": "user", "content": "Hello"},), "temperature": -1}}) {
+            *hash<ExceptionInfo> error;
+            try {
+                root.getChildProvider(test.action).doRequest(test.request);
+            } catch (hash<ExceptionInfo> ex) {
+                error = ex;
+            }
+            assertTrue(exists error, test.action);
+        }
+        assertEq(0, fake.requests);
+        fake.failure = "SOCKET-CLOSED";
+        assertThrows("SOCKET-CLOSED", sub () { root.getChildProvider("list-models").doRequest({}); });
+        assertEq(1, fake.requests, "failed operations are never retried automatically");
+        assertNothing(root.getChildProvider("nonexistent"));
     }
 
     #! Exercises Mistral AI's live chat-completion endpoint

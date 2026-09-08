@@ -2512,10 +2512,13 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing a REST client for <a href="https://milvus.io">Milvus</a> / Zilliz Cloud vector-database servers
 
     - @ref mistraldataproviderintro "MistralDataProvider" module
+      - exposes 161 schema-derived actions with complete request and response types, finite choices,
+        named uploads, and account- or parent-scoped resource dropdowns
       - new module providing a data provider API for <a href="https://mistral.ai">Mistral AI</a> chat, embeddings, and document OCR
 
     - @ref mistralrestclientintro "MistralRestClient" module
       - new module providing a REST client for <a href="https://mistral.ai">Mistral AI</a>'s OpenAI-compatible API
+      - correct automatic connection URLs and app association; verify valid and invalid API keys with authenticated pings
 
     - @ref mllputilintro "MllpUtil" module
       - new module for sending and receiving MLLP-framed HL7 v2 messages
@@ -2551,6 +2554,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         for use with the @ref httpserverintro "HttpServer" module
 
     - @ref openapi3intro "OpenApi3" module
+      - supports JSON parameter content and nullable multipart binary fields
       - matches literal prefixes and suffixes in parameterized paths and extracts multiple path parameters
       - new module supporting OpenAPI 3.* schemas for REST API integration
 
@@ -2687,6 +2691,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing a REST client API over multiplexed HTTP/2 and HTTP/3 connections
 
     - @ref restschemaactionsintro "RestSchemaActions" module
+      - imports can repair documentation paths and merge disjoint operations with checked parameter renaming
       - excludes read-only request options, enforces required alternatives and exclusions, and supports
         checked repairs to upstream required-property lists
       - record tables support shared host routing, ID-map responses, batch hydration, alternate filtered
@@ -2696,6 +2701,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         explicitly selected set of REST schema operations, including schema normalization and pruning
 
     - @ref restschemadataproviderintro "RestSchemaDataProvider" module
+      - serializes JSON parameter content before URI escaping
       - preserves empty collections, zero, and false response bodies
       - honors OpenAPI array \c style / \c explode and Swagger \c collectionFormat in query arguments,
         preserving reserved characters inside individual values

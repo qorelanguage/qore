@@ -51,7 +51,7 @@ public class MistralOcrDataProvider inherits MistralDataProviderCommon {
     private hash<DataProviderInfo> getStaticInfoImpl() { return ProviderInfo; }
 
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return doRestCommand("POST", "ocr", req).body;
+        return getSchemaProvider("ocr").doRequest(req, request_options);
     }
 }
 }

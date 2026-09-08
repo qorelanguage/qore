@@ -302,6 +302,10 @@ excluded from the union and make it @ref RestSchemaValidator::AbstractSchemaObje
     @section openapi3_relnotes OpenApi3 Module Release Notes
 
     @subsection openapi3_1_0 OpenApi3 v1.0
+    - retain explicit null alternatives when generating nullable composition data types
+    - parse parameter \c content schemas and serialize JSON query, path and header parameters
+      without losing their types or confusing object properties with other query arguments
+    - preserve binary values accepted by nullable compositions, including named multipart uploads
     - validate JSON Schema `const` values, including model discriminators in composed request bodies,
       and expose scalar constants as finite field choices
     - enforce scalar and array composition constraints, including bounds in nullable scalar alternatives
@@ -753,7 +757,7 @@ public class ParameterGroup inherits Qore::Serializable {
         not declare is reported as unknown rather than folded into one of them.
     */
     addParameter(string key, ParameterObject p) {
-        if (p.inLoc == "query" && p.schema && p.schema.type == "object") {
+        if (p.inLoc == "query" && !p.content && p.schema && p.schema.type == "object") {
             query_objs{key} = True;
             query_obj = query_objs.size() == 1 ? key : NOTHING;
         }
@@ -1977,6 +1981,14 @@ public class OpenApi3Schema inherits ObjectBase, AbstractRestSchemaValidator {
         OperationObject op = pio.getOperation(method, h.method);
 
         # perform validation
+        # The URI already contains wire values; content parameters must be decoded before validating
+        # their schema. Data providers supply native values directly and do not take this path.
+        foreach string name in (keys h.params) {
+            *ParameterObject param = op.parameters{name} ?? pio.parameters{name};
+            if (param.content) {
+                h.params{name} = param.deserializeContent(h.params{name});
+            }
+        }
         hash<string, bool> mime_types;
         op.validateRequest(True, pio, \h, \body, \headers, \mime_types);
 
@@ -1995,6 +2007,12 @@ public class OpenApi3Schema inherits ObjectBase, AbstractRestSchemaValidator {
 
         # rebuild URI query after processing
         if (h.params) {
+            foreach string name in (keys h.params) {
+                *ParameterObject param = op.parameters{name} ?? pio.parameters{name};
+                if (param.content) {
+                    h.params{name} = param.serializeContent(h.params{name});
+                }
+            }
             string query_arg_separator = (path =~ x/([;&])/)[0] ?? ";";
             rv.uri_path = make_uri_query(cast<hash<UriQueryInfo>>(h), query_arg_separator);
         }
@@ -3012,7 +3030,10 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         hash<string, bool> fields = {};
         if (consumes{MimeTypeMultipartFormData}) {
             foreach hash<auto> entry in (param.schema.properties.pairIterator()) {
-                if (entry.value.type == "string" && entry.value.format == "binary") {
+                # Inspect the resolved data type so nullable and referenced binary schemas also
+                # accept named files. A union with a non-binary alternative remains unchanged.
+                AbstractDataField field = entry.value.getField(entry.key, NOTHING, False);
+                if (field.getType().getBaseTypeCode() == NT_BINARY) {
                     fields{entry.key} = True;
                 }
             }
@@ -3364,18 +3385,22 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
             auto val = path_values[$#];
 
             # convert string to actual type
-            switch (po.schema.type) {
-                case "integer":
-                    val = val.toInt();
-                    break;
+            if (po.content) {
+                val = decode_url(val);
+            } else {
+                switch (po.schema.type) {
+                    case "integer":
+                        val = val.toInt();
+                        break;
 
-                case "number":
-                    val = val.toNumber();
-                    break;
+                    case "number":
+                        val = val.toNumber();
+                        break;
 
-                case "boolean":
-                    val = parse_boolean(val);
-                    break;
+                    case "boolean":
+                        val = parse_boolean(val);
+                        break;
+                }
             }
 
             po.check(False, True, path, method, param, \val);
@@ -3766,9 +3791,6 @@ public class ParameterBase inherits ObjectBase, RestSchemaValidator::AbstractPar
         #! Content media type, if present
         *string content;
 
-        #! Media type object for 'content'
-        #MediaType media;
-
         #! The schema defining the type used for the parameter
         SchemaObject schema;
 
@@ -3865,17 +3887,51 @@ public class ParameterBase inherits ObjectBase, RestSchemaValidator::AbstractPar
 
         hash<auto> content;
         if (optional_field(obj_type, oh, "content", NT_HASH, \content)) {
+            if (exists oh.schema) {
+                throw "INVALID-PARAMETER", "a parameter must declare either 'schema' or 'content', not both";
+            }
             if (content.size() != 1) {
                 throw "INVALID-CONTENT", sprintf("%s has %d 'content' entries; must have only 1", obj_type,
                     content.size());
             }
             self.content = content.firstKey();
-            # TODO FIXME: add content media type processing
-            #media = new MediaTypeObject(content.firstValue());
+            hash<auto> media;
+            required_field(obj_type, content, self.content, NT_HASH, \media);
+            hash<auto> content_schema;
+            optional_field(obj_type, media, "schema", NT_HASH, \content_schema);
+            schema = SchemaObject::newSchemaObject(name, content_schema ?? {}, openapi3, True);
         }
-        if (!schemaObj && !content) {
+        if (!exists oh.schema && !content) {
             throw "INVALID-PARAMETER", sprintf("%s parameter is missing both \"schema\" and \"content\"; at least "
                 "one is required", name);
+        }
+    }
+
+    #! Encodes a content parameter before URI escaping or placement in a header
+    /** @param value the native parameter value
+        @return the serialized parameter
+        @throw SERIALIZATION-ERROR no serializer is registered for the declared media type
+    */
+    string serializeContent(auto value) {
+        if (!MimeDataTypes{content}.serialize) {
+            throw "SERIALIZATION-ERROR", sprintf("parameter %y has unsupported content type %y", name, content);
+        }
+        return MimeDataTypes{content}.serialize(value).toString();
+    }
+
+    #! Decodes a content parameter received in a URI or header
+    /** @param value the serialized parameter
+        @return the native value to validate against the parameter schema
+        @throw DESERIALIZATION-ERROR the content type is unsupported or the value is malformed
+    */
+    auto deserializeContent(auto value) {
+        if (!MimeDataTypes{content}.deserialize) {
+            throw "DESERIALIZATION-ERROR", sprintf("parameter %y has unsupported content type %y", name, content);
+        }
+        try {
+            return MimeDataTypes{content}.deserialize(value);
+        } catch (hash<ExceptionInfo> ex) {
+            throw "DESERIALIZATION-ERROR", sprintf("parameter %y is not valid %s content", name, content);
         }
     }
 }
@@ -3969,7 +4025,11 @@ public class ParameterObject inherits ParameterBase {
         on_error rethrow $1.err, sprintf("%s (while checking %s parameter)", $1.desc, self.name);
 
         # issue #2388 ensure that query parameters are converted to their target type first
-        if (inLoc == "query") {
+        if (content) {
+            if (!serialize) {
+                value = deserializeContent(value);
+            }
+        } else if (inLoc == "query") {
             value = RestSchemaValidator::AbstractParameterObject::convertQueryArg(schema.type, schema.format,
                 schema.items, path, method, name, value);
         } else if (inLoc == "path" && !value && path) {
@@ -3980,6 +4040,9 @@ public class ParameterObject inherits ParameterBase {
         if (!exists value && !allowEmptyValue) {
             throw "SCHEMA-VALIDATION-ERROR", sprintf("%s Parameter %y for path %y and method %y has empty value",
                 self.name, name, path, method);
+        }
+        if (content && serialize && inLoc == "header") {
+            value = serializeContent(value);
         }
     }
 
@@ -5211,7 +5274,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
     /** Checks for oneOf, anyOf, not, or properties with readOnly/writeOnly attributes
     */
     bool hasSchemaCompositionFeatures() {
-        if (oneOf || anyOf || notSchema) {
+        if (nullable || oneOf || anyOf || notSchema) {
             return True;
         }
         # Check for readOnly/writeOnly properties
@@ -5322,6 +5385,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
 
     #! Returns the data type for the schema
     AbstractDataProviderType getDataType(bool required = True, *object rest) {
+        required = required && !nullable;
         if (isAllOfWrapper()) {
             # a one-member "allOf" that adds nothing of its own IS its member; delegating gives the member's
             # type even when it is a composition, which a scalar type name cannot express
@@ -5552,6 +5616,9 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         \c {type: ["string", "null"]}.
     */
     private AbstractDataProviderType getCompositionDataType(bool required, *object rest) {
+        # Null members are represented by the resulting type's nullability. A required property
+        # still permits an explicit null when its schema includes that alternative.
+        required = required && !nullable;
         list<SchemaObject> all_schemas = oneOf ? oneOf : anyOf;
         list<SchemaObject> schemas();
         foreach SchemaObject member in (all_schemas) {
@@ -5676,7 +5743,14 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
             }
         }
 
-        SchemaBase::check(serialize, request, type, format, items, path, method, name, \value);
+        # A composition can accept a binary wire value through a formatted branch while its
+        # wrapper declares no format (for example anyOf: [binary, null]). Preserve that branch's
+        # representation when checking the wrapper's own constraints.
+        *string wire_format = format;
+        if (!wire_format && value.typeCode() == NT_BINARY && (allOf || oneOf || anyOf)) {
+            wire_format = "binary";
+        }
+        SchemaBase::check(serialize, request, type, wire_format, items, path, method, name, \value);
     }
 
     #! Selects a composition branch before the ordinary single-type validator can coerce its input
@@ -5889,7 +5963,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
                             "(value: %y); valid properties: %y",  key, name, value, keys properties);
                     }
                 }
-                if (exists value{key} || (required{key} && !nullable_properties{key})) {
+                if (exists value{key} || required{key} || prop.nullable) {
                     nv{key} += value{key};
                     prop.check(serialize, request, path, method, key, \nv{key});
                 }

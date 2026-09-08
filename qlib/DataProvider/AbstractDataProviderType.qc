@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires reflection
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! maps type codes to type names
@@ -155,7 +153,7 @@ public const hash<auto> DataTypeMap = {
     construction (e.g. in field-type definitions): @ref AbstractDataProviderTypeMap merges in this map, so any
     such read closes a constant-initialization cycle (@ref AbstractDataProviderTypeMap -> this map -> the type ->
     @ref AbstractDataProviderTypeMap) that Qore rejects nondeterministically depending on constant commit order.
-    Reference the leaf Qore reflection @ref Qore::Type "Type" constants (e.g. @ref StringType) directly instead.
+    Reference the leaf Qore reflection @ref Qore::Type "Type" constants (e.g. \c StringType) directly instead.
 
     @since %DataProvider 3.6
 */

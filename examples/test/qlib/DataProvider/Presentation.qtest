@@ -22,12 +22,13 @@
 # DEALINGS IN THE SOFTWARE.
 
 %modern
-%enable-all-warnings
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires QUnit
-%requires FsUtil
-%requires DataProvider
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/DataProvider
+%requires i18n
+%requires json
 
 %exec-class DataProviderPresentationTest
 
