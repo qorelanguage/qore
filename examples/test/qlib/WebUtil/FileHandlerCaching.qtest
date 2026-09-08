@@ -1,0 +1,372 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%enable-debug
+%requires ../../../../qlib/WebUtil.qm
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/HttpServerAsyncIo/HttpServerAsyncIo.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class FileHandlerCachingTest
+
+class CachePolicyFileHandler inherits FileHandler {
+    public {
+        hash<auto> extra_headers;
+        *date mtime_override;
+    }
+
+    constructor(string root) : FileHandler(root, "ide", {
+        "default_target": "index.html",
+        "default_cache_control": "private, no-cache",
+        "cache_control_by_ext": {"js": "private, max-age=31536000, immutable"},
+    }) {
+    }
+
+    private *hash<StatInfo> statPath(hash<auto> cx, hash<auto> hdr, reference<string> path) {
+        *hash<StatInfo> result = FileHandler::statPath(cx, hdr, \path);
+        if (result && mtime_override) {
+            result.mtime = mtime_override;
+        }
+        return result;
+    }
+
+    private hash<auto> getResponseHeadersForFile(string path, hash<auto> cx, hash<auto> hdr) {
+        return FileHandler::getResponseHeadersForFile(path, cx, hdr) + extra_headers;
+    }
+}
+
+class FileHandlerCachingTest inherits QUnit::Test {
+    private {
+        string root;
+        CachePolicyFileHandler handler;
+        HttpServer server;
+        HTTPClient client;
+        int port;
+        const Mutable = "private, no-cache";
+        const Immutable = "private, max-age=31536000, immutable";
+        const Payload = strmul("/* a compressible static asset */\n", 200);
+    }
+
+    constructor() : Test("FileHandlerCachingTest", "1.0", \ARGV) {
+        addTestCase("directory, HTML, and SPA conditional cache policy", \htmlPolicy());
+        addTestCase("extension and subclass policy survives 304", \conditionalPolicy());
+        addTestCase("Vary merge, case-insensitive token, and wildcard", \varyMerge());
+        addTestCase("identity and compressed validators are distinct", \representationValidators());
+        addTestCase("weak validators, wildcard, and date precedence", \conditionalValidators());
+        addTestCase("buffered and streamed compression boundaries", \compressionBoundaries());
+        addTestCase("production 10 MiB compression boundary", \productionBoundary());
+        addTestCase("streaming supported encodings and identity negotiation", \streamEncodings());
+        addTestCase("weighted, wildcard, and excluded content encodings", \encodingPreferences());
+        addTestCase("precompressed representation and stale sidecar", \precompressed());
+        addTestCase("ranges preserve bytes and precondition precedence", \ranges());
+        addTestCase("HEAD and interrupted compressed transfer", \headAndDisconnect());
+        addTestCase("HTTP/2 and HTTP/3 compressed static streams", \multiplexedCompression());
+        addTestCase("empty file, missing file, and invalid options", \negativeCases());
+        set_return_value(main());
+    }
+
+    globalSetUp() {
+        root = tmp_location() + DirSep + "webutil-cache-" + getpid();
+        mkdir(root);
+        write("index.html", "<html>first deployment</html>");
+        write("asset.js", Payload);
+        write("empty.html", "");
+        write("disconnect.js", get_random_bytes(8 * 1024 * 1024));
+        Logger logger("file-cache-test", LoggerLevel::getLevelInfo());
+        if (m_options.verbose > 2) {
+            logger.addAppender(new StdoutAppender());
+        }
+        server = new HttpServer(<HttpServerOptionInfo>{"logger": logger, "debug": True});
+        handler = new CachePolicyFileHandler(root);
+        server.setHandler("files", "ide", "text/html", handler);
+        server.setDefaultHandler("files", handler);
+        port = server.addListener(<HttpListenerOptionInfo>{"node": "127.0.0.1", "service": 0}).port;
+        client = new HTTPClient({"url": "http://127.0.0.1:" + port, "error_passthru": True, "timeout": 10s});
+    }
+
+    globalTearDown() {
+        if (client) {
+            client.disconnect();
+        }
+        if (server) {
+            delete server;
+        }
+        if (root) {
+            FsUtil::remove_tree(root);
+        }
+    }
+
+    setUp() {
+        handler.extra_headers = {};
+        handler.mtime_override = NOTHING;
+        handler.max_compress_size = 10 * 1024 * 1024;
+        handler.serve_precompressed = True;
+        handler.enable_etag = True;
+        handler.enable_last_modified = True;
+        handler.enable_range = True;
+        handler.default_target = "index.html";
+        client.setEncodingPassthru(False);
+    }
+
+    private write(string name, data content) {
+        File f();
+        f.open2(root + DirSep + name, O_CREAT | O_WRONLY | O_TRUNC);
+        f.write(content);
+    }
+
+    private hash<auto> request(string path, *hash<auto> headers, string method = "GET") {
+        hash<auto> info;
+        hash<auto> rv = client.send(NOTHING, method, path,
+            {"Accept-Encoding": "identity"} + headers, NOTHING, \info);
+        return {"body": rv.body, "hdr": info."response-headers", "code": info."response-headers".status_code};
+    }
+
+    htmlPolicy() {
+        foreach string path in (("/ide", "/ide/", "/ide/index.html", "/ide/deep/link", "/ide/missing-AbCd1234.js")) {
+            hash<auto> first = request(path);
+            assertEq(200, first.code);
+            assertEq(Mutable, first.hdr."cache-control", path);
+            hash<auto> second = request(path, {"If-None-Match": first.hdr.etag});
+            assertEq(304, second.code, path);
+            assertEq(Mutable, second.hdr."cache-control", path);
+            assertFalse(second.body.val(), "304 has no body");
+        }
+        hash<auto> before = request("/ide");
+        write("index.html", "<html>second deployment with a changed bundle reference</html>");
+        hash<auto> after = request("/ide", {"If-None-Match": before.hdr.etag});
+        assertEq(200, after.code, "a changed deployment invalidates the old validator");
+        assertNeq(before.hdr.etag, after.hdr.etag);
+        assertTrue(after.body =~ /second deployment/);
+    }
+
+    conditionalPolicy() {
+        foreach string encoding in (("identity", "gzip")) {
+            foreach bool custom in ((False, True)) {
+                handler.extra_headers = custom ? {"Cache-Control": "private, max-age=42", "Expires": "Wed, 01 Jan 2031 00:00:00 GMT"} : {};
+                hash<auto> first = request("/ide/asset.js", {"Accept-Encoding": encoding});
+                hash<auto> second = request("/ide/asset.js", {"Accept-Encoding": encoding, "If-None-Match": first.hdr.etag});
+                assertEq(200, first.code);
+                assertEq(custom ? "private, max-age=42" : Immutable, first.hdr."cache-control");
+                assertEq(304, second.code);
+                foreach string name in (("cache-control", "vary", "etag", "expires")) {
+                    assertEq(first.hdr{name}, second.hdr{name}, name);
+                }
+                assertFalse(second.hdr."content-encoding".val());
+            }
+        }
+    }
+
+    varyMerge() {
+        foreach string vary in (("Origin", "Origin, accept-encoding", "*")) {
+            handler.extra_headers = {"vary": vary};
+            hash<auto> first = request("/ide/asset.js", {"Accept-Encoding": "gzip"});
+            string expected = vary == "Origin" ? "Origin, Accept-Encoding" : vary;
+            assertEq(expected, first.hdr.vary);
+            hash<auto> second = request("/ide/asset.js", {"Accept-Encoding": "gzip", "If-None-Match": first.hdr.etag});
+            assertEq(expected, second.hdr.vary);
+        }
+        handler.extra_headers = {"Vary": "Origin, ACCEPT-ENCODING", "vary": "origin, accept-encoding"};
+        assertEq("Origin, ACCEPT-ENCODING", request("/ide/asset.js").hdr.vary);
+        handler.extra_headers = {"Vary": "Origin, *", "vary": "Accept-Encoding"};
+        assertEq("*", request("/ide/asset.js").hdr.vary);
+    }
+
+    representationValidators() {
+        hash<auto> identity = request("/ide/asset.js");
+        hash<auto> compressed = request("/ide/asset.js", {"Accept-Encoding": "gzip", "If-None-Match": identity.hdr.etag});
+        assertEq(200, compressed.code);
+        assertNeq(identity.hdr.etag, compressed.hdr.etag);
+        assertEq("Accept-Encoding", identity.hdr.vary);
+        assertEq(200, request("/ide/asset.js", {"If-None-Match": compressed.hdr.etag}).code);
+        assertEq(304, request("/ide/asset.js", {"Accept-Encoding": "gzip", "If-None-Match": compressed.hdr.etag}).code);
+    }
+
+    conditionalValidators() {
+        hash<auto> first = request("/ide/asset.js");
+        assertEq(304, request("/ide/asset.js", {"If-None-Match": "W/" + first.hdr.etag}).code);
+        assertEq(304, request("/ide/asset.js", {"If-None-Match": "\"other\", W/" + first.hdr.etag}).code);
+        assertEq(200, request("/ide/asset.js", {"If-None-Match": "\"other\"", "If-Modified-Since": first.hdr."last-modified"}).code);
+        assertEq(304, request("/ide/asset.js", {"If-Modified-Since": first.hdr."last-modified"}).code);
+        assertEq(200, request("/ide/asset.js", {"If-Modified-Since": "invalid date"}).code);
+        handler.enable_etag = False;
+        assertEq(304, request("/ide/asset.js", {"If-None-Match": "*"}).code);
+    }
+
+    compressionBoundaries() {
+        handler.serve_precompressed = False;
+        handler.max_compress_size = 4096;
+        foreach int size in ((1024, 1025, 4095, 4096, 4097)) {
+            string content = strmul("a", size);
+            write("boundary.js", content);
+            hash<auto> resp = request("/ide/boundary.js", {"Accept-Encoding": "gzip"});
+            assertEq(200, resp.code);
+            assertEq(content, resp.body);
+            assertEq(size > 1024 ? "gzip" : NOTHING, resp.hdr."content-encoding");
+            if (size > 4096) {
+                assertFalse(resp.hdr."content-length".val(), "stream does not advertise original length");
+                assertEq("chunked", resp.hdr."transfer-encoding");
+            }
+        }
+        handler.max_compress_size = 0;
+        assertEq("chunked", request("/ide/asset.js", {"Accept-Encoding": "gzip"}).hdr."transfer-encoding");
+    }
+
+    productionBoundary() {
+        string content = strmul("a", 10 * 1024 * 1024 + 1);
+        write("large.js", content);
+        client.setEncodingPassthru(True);
+        hash<auto> resp = request("/ide/large.js", {"Accept-Encoding": "gzip"});
+        assertEq(200, resp.code);
+        assertEq("gzip", resp.hdr."content-encoding");
+        assertLt(content.size() / 10, resp.body.size(), "bytes transferred are compressed");
+        assertEq(content, gunzip_to_string(resp.body));
+        assertFalse(resp.hdr."content-length".val());
+    }
+
+    streamEncodings() {
+        handler.max_compress_size = 0;
+        foreach string encoding in (("gzip", "br", "zstd", "deflate", "bzip2")) {
+            hash<auto> resp = request("/ide/asset.js", {"Accept-Encoding": encoding});
+            assertEq(200, resp.code, encoding);
+            assertEq(encoding, resp.hdr."content-encoding", encoding);
+            assertEq(Payload, resp.body, encoding);
+        }
+        foreach string encoding in (("identity", "", "gzip;q=0", "unknown")) {
+            hash<auto> resp = request("/ide/asset.js", {"Accept-Encoding": encoding});
+            assertFalse(resp.hdr."content-encoding".val(), encoding);
+            assertEq(Payload, resp.body);
+        }
+    }
+
+    encodingPreferences() {
+        handler.max_compress_size = 0;
+        foreach hash<string, string> entry in ((
+                {"accept": "gzip;q=1, br;q=0.5", "encoding": "gzip"},
+                {"accept": "GZIP", "encoding": "gzip"},
+                {"accept": "x-gzip", "encoding": "gzip"},
+                {"accept": "gzip;q=0, *;q=0.5", "encoding": "br"},
+                {"accept": "gzip;q=0.001", "encoding": "gzip"})) {
+            hash<auto> resp = request("/ide/asset.js", {"Accept-Encoding": entry.accept});
+            assertEq(200, resp.code);
+            assertEq(entry.encoding, resp.hdr."content-encoding", entry.accept);
+            assertEq(Payload, resp.body);
+        }
+        assertFalse(request("/ide/asset.js", {"Accept-Encoding": "identity;q=1, gzip;q=0.5"}).hdr."content-encoding".val());
+        assertEq(406, request("/ide/asset.js", {"Accept-Encoding": "*;q=0"}).code);
+        assertEq(406, request("/ide/asset.js", {"Accept-Encoding": "identity;q=0, gzip;q=0"}).code);
+        handler.serve_precompressed = False;
+        assertEq("Accept-Encoding", request("/ide/index.html").hdr.vary);
+        hash<auto> tiny = request("/ide/index.html", {"Accept-Encoding": "identity;q=0, gzip"});
+        assertEq(200, tiny.code);
+        assertEq("gzip", tiny.hdr."content-encoding", "identity exclusion overrides minimum compression size");
+        assertEq("Accept-Encoding", tiny.hdr.vary);
+        hash<auto> range = request("/ide/asset.js", {"Accept-Encoding": "identity;q=0, gzip", "Range": "bytes=0-1"});
+        assertEq(200, range.code, "ignore range when identity bytes are unacceptable");
+        assertEq(Payload, range.body);
+    }
+
+    precompressed() {
+        write("packed.js", Payload);
+        write("packed.js.gz", gzip(Payload));
+        hash<auto> identity = request("/ide/packed.js");
+        hash<auto> compressed = request("/ide/packed.js", {"Accept-Encoding": "gzip", "If-None-Match": identity.hdr.etag});
+        assertEq(200, compressed.code);
+        assertEq(Payload, compressed.body);
+        assertEq("gzip", compressed.hdr."content-encoding");
+        assertTrue(compressed.hdr."content-length".val());
+        hash<auto> second = request("/ide/packed.js", {"Accept-Encoding": "gzip", "If-None-Match": compressed.hdr.etag});
+        assertEq(304, second.code);
+        assertEq(Immutable, second.hdr."cache-control");
+        assertEq("Accept-Encoding", second.hdr.vary);
+        assertEq(200, request("/ide/packed.js", {"If-None-Match": compressed.hdr.etag}).code);
+        handler.enable_etag = False;
+        second = request("/ide/packed.js", {"Accept-Encoding": "gzip", "If-Modified-Since": compressed.hdr."last-modified"});
+        assertEq(304, second.code);
+        assertEq("Accept-Encoding", second.hdr.vary);
+        # Inject a later original-file stat time; no wall-clock delay or external touch utility.
+        handler.mtime_override = now_us() + 1D;
+        handler.enable_etag = True;
+        hash<auto> stale = request("/ide/packed.js", {"Accept-Encoding": "gzip"});
+        assertEq(Payload, stale.body);
+        assertTrue(stale.hdr.etag =~ /dynamic-gzip/, "stale sidecar is not served");
+    }
+
+    ranges() {
+        hash<auto> full = request("/ide/asset.js");
+        hash<auto> partial = request("/ide/asset.js", {"Accept-Encoding": "gzip", "Range": "bytes=0-2047"});
+        assertEq(206, partial.code);
+        assertEq(Payload.substr(0, 2048), partial.body);
+        assertFalse(partial.hdr."content-encoding".val());
+        assertEq("2048", partial.hdr."content-length");
+        assertEq(304, request("/ide/asset.js", {"Range": "bytes=0-2047", "If-None-Match": full.hdr.etag}).code);
+        assertEq(206, request("/ide/asset.js", {"Range": "bytes=0-2047", "If-Range": full.hdr."last-modified"}).code);
+        foreach string validator in (("W/" + full.hdr.etag, "invalid", "\"mismatch\"")) {
+            hash<auto> resp = request("/ide/asset.js", {"Range": "bytes=0-2047", "If-Range": validator, "Accept-Encoding": "gzip"});
+            assertEq(200, resp.code);
+            assertEq("gzip", resp.hdr."content-encoding");
+            assertEq(Payload, resp.body);
+        }
+        assertEq(416, request("/ide/asset.js", {"Range": "bytes=999999-"}).code);
+    }
+
+    headAndDisconnect() {
+        handler.max_compress_size = 0;
+        hash<auto> head = request("/ide/asset.js", {"Accept-Encoding": "gzip"}, "HEAD");
+        assertEq(200, head.code);
+        assertFalse(head.body.val());
+        assertEq("gzip", head.hdr."content-encoding");
+        Socket socket();
+        on_exit socket.close();
+        socket.connect("127.0.0.1:" + port, 10s);
+        socket.send("GET /ide/disconnect.js HTTP/1.1\r\nHost: localhost\r\nAccept-Encoding: gzip\r\n\r\n");
+        socket.readHTTPHeader(10s);
+        socket.close();
+        hash<auto> healthy = request("/ide/asset.js", {"Accept-Encoding": "gzip"});
+        assertEq(200, healthy.code);
+        assertEq(Payload, healthy.body, "server serves another stream after client disconnect");
+    }
+
+    multiplexedCompression() {
+        handler.max_compress_size = 0;
+        string fixtures = get_script_dir() + "/../ConnectionProvider/";
+        int tls_port = server.addListener(<HttpListenerOptionInfo>{
+            "node": "127.0.0.1", "service": 0,
+            "cert": new SSLCertificate(ReadOnlyFile::readTextFile(fixtures + "mycert.pem")),
+            "key": new SSLPrivateKey(ReadOnlyFile::readTextFile(fixtures + "mykey.pem"), "password"),
+            "enable_h3": True,
+        }).port;
+        foreach string version in (("2.0", "3.0")) {
+            HTTPClient tls({"url": "https://127.0.0.1:" + tls_port, "http_version": version,
+                "ssl_verify_cert": False, "error_passthru": True, "timeout": 10s});
+            on_exit tls.disconnect();
+            foreach string encoding in (("gzip", "zstd")) {
+                hash<auto> info;
+                hash<auto> result = tls.send(NOTHING, "GET", "/ide/asset.js", {"Accept-Encoding": encoding}, NOTHING, \info);
+                assertEq(version == "2.0" ? "HTTP/2" : "HTTP/3", tls.getHttpVersion(), "negotiated HTTP version");
+                assertEq(200, info."response-headers".status_code);
+                assertEq(Payload, result.body, version + " " + encoding);
+                assertEq(encoding, info."response-headers"."content-encoding");
+                assertFalse(info."response-headers"."transfer-encoding".val());
+                assertFalse(info."response-headers"."content-length".val());
+                string etag = info."response-headers".etag;
+                tls.send(NOTHING, "GET", "/ide/asset.js", {"Accept-Encoding": encoding, "If-None-Match": etag}, NOTHING, \info);
+                assertEq(304, info."response-headers".status_code);
+                assertEq(Immutable, info."response-headers"."cache-control");
+                assertEq("Accept-Encoding", info."response-headers".vary);
+            }
+        }
+    }
+
+    negativeCases() {
+        hash<auto> empty = request("/ide/empty.html");
+        assertEq(204, empty.code);
+        assertEq(Mutable, empty.hdr."cache-control");
+        assertEq(304, request("/ide/empty.html", {"If-None-Match": empty.hdr.etag}).code);
+        handler.default_target = NOTHING;
+        assertEq(404, request("/ide/does-not-exist").code);
+        assertThrows("FILE-HANDLER-OPTION-ERROR", sub() { FileHandler invalid(root, "/", {"max_compress_size": -1}); });
+    }
+}

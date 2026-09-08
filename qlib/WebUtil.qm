@@ -33,7 +33,7 @@
 %modern
 
 module WebUtil {
-    version = "1.8";
+    version = "1.8.1";
     desc = "user module supporting web server operations";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -72,6 +72,13 @@ module WebUtil {
       files found; supports automatic compilation of and rendering from template files
 
     @section webutil_relnotes Release Notes
+
+    @subsection webutil_v1_8_1 WebUtil v1.8.1
+    - Large static files are compressed while streaming, with bounded memory use. The
+      \c max_compress_size option now controls the buffering limit, not compression eligibility.
+    - Conditional responses preserve the selected file's cache policy and encoding variation.
+    - Compressed and identity representations have distinct validators; byte ranges remain uncompressed.
+    - Stale pre-compressed sidecars are ignored when the original file is newer.
 
     @subsection webutil_v1_8 WebUtil v1.8
     - @ref WebUtil::FileHandler "FileHandler" file-serving performance and functionality improvements:
@@ -874,13 +881,16 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
         */
         bool enable_range = True;
 
-        #! maximum file size in bytes for on-the-fly compression
+        #! maximum file size in bytes to buffer for on-the-fly compression
         /** Files smaller than or equal to this size that don't have pre-compressed variants on disk
             will be read into memory and returned as binary data, allowing the HTTP server transport
             layer to apply automatic compression.
 
-            Files larger than this threshold are streamed via @ref FileInputStream without
-            compression.
+            Larger files are compressed through @ref TransformInputStream with bounded buffers.
+            Set to zero to stream all files eligible for compression. This option does not disable
+            compression; clients can request the identity representation with \c Accept-Encoding.
+
+            @since WebUtil 1.8.1: large files are compressed while streaming.
 
             Default: 10MB
 
@@ -1015,7 +1025,7 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
         - \c cache_control_by_ext: hash of file extension to Cache-Control header value
         - \c serve_precompressed: enable serving pre-compressed file variants (default: @ref True)
         - \c enable_range: enable HTTP Range request support (default: @ref True)
-        - \c max_compress_size: maximum file size for on-the-fly compression in bytes (default: 10MB)
+        - \c max_compress_size: maximum buffered file size for on-the-fly compression in bytes (default: 10MB)
         - \c stat_cache_ttl: file stat cache TTL; if set, stat results are cached for this duration
 
         @since
@@ -1055,7 +1065,10 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
         if (opt.hasKey("enable_range")) {
             enable_range = opt.enable_range;
         }
-        if (opt.max_compress_size) {
+        if (opt.hasKey("max_compress_size")) {
+            if (opt.max_compress_size < 0) {
+                throw "FILE-HANDLER-OPTION-ERROR", "max_compress_size must be nonnegative";
+            }
             max_compress_size = opt.max_compress_size;
         }
         if (opt.hasKey("stat_cache_ttl")) {
@@ -1148,7 +1161,7 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
             *hash<HttpResponseInfo> h = handleRequestImpl(\cx, hdr, body);
             if (!h) {
                 h = tryServeRequest(listener, s, cx, hdr, body);
-                if (!h) {
+                if (!h && default_target) {
                     cx.resource_path = default_target;
                     h = tryServeRequest(listener, s, cx, hdr, body);
                 }
@@ -1290,11 +1303,6 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
     */
     private *hash<HttpResponseInfo> sendFilePath(HttpServer::HttpListenerInterface listener, Qore::Socket s,
             hash<auto> cx, hash<auto> hdr, *data body, string path, hash<StatInfo> stat_hash) {
-        # send an empty response for an empty file
-        if (!stat_hash.size) {
-            return makeResponse(204, "");
-        }
-
         # get response headers from subclass-overridable method; may return NOTHING from subclasses
         *hash<auto> respHdr = getResponseHeadersForFile(path, cx, hdr);
         # add the content type if it's missing for backwards compatibility
@@ -1324,71 +1332,86 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
             }
         }
 
-        # handle conditional requests (304 Not Modified)
-        # skip conditional check when Range is present (RFC 7233 Section 3.1)
-        if (!hdr.range) {
-            *hash<HttpResponseInfo> not_modified = checkConditionalRequest(hdr, stat_hash, etag);
+        if (cx.hasKey("identity-acceptable") && !cx."identity-acceptable" && !cx.encoding) {
+            return <HttpResponseInfo>{
+                "code": 406,
+                "body": "No acceptable content encoding",
+                "hdr": {"Content-Type": "text/plain", "Vary": "Accept-Encoding", "Cache-Control": "no-store"},
+                "no_content_encoding": True,
+            };
+        }
+
+        # Both identity and encoded responses vary on Accept-Encoding. Merge rather than replace
+        # a subclass's Vary fields (for example Origin), including the wildcard form.
+        addAcceptEncodingVary(\respHdr);
+
+        if (cx.hasKey("identity-acceptable") && !cx."identity-acceptable") {
+            remove hdr.range;
+        }
+
+        # Range requests use the identity representation. Evaluate preconditions before Range,
+        # and ignore Range when If-Range does not strongly match that representation.
+        if (hdr.range && enable_range && hdr."if-range") {
+            string if_range = hdr."if-range";
+            bool matches = False;
+            if (if_range =~ /^"/) {
+                matches = etag && if_range == etag;
+            } else if (if_range !~ /^W\//) {
+                *date if_range_date = parseHttpDate(if_range);
+                matches = if_range_date && gmtime(stat_hash.mtime).getEpochSeconds()
+                    <= gmtime(if_range_date).getEpochSeconds();
+            }
+            if (!matches) {
+                remove hdr.range;
+            }
+        }
+        if (hdr.range && enable_range) {
+            *hash<HttpResponseInfo> not_modified = checkConditionalRequest(hdr, stat_hash, etag, respHdr);
             if (not_modified) {
                 return not_modified;
             }
+            *hash<auto> range = parseRangeHeader(hdr.range, stat_hash.size);
+            if (range) {
+                return serveRangeRequest(path, stat_hash, range, respHdr);
+            }
+            return <HttpResponseInfo>{
+                "code": 416,
+                "body": "Range Not Satisfiable",
+                "hdr": {"Content-Range": sprintf("bytes */%d", stat_hash.size), "Content-Type": "text/plain"},
+                "no_content_encoding": True,
+            };
         }
 
-        # handle range requests (206 Partial Content)
-        if (hdr.range && enable_range) {
-            # If-Range: serve range only if ETag/date matches, otherwise serve full file
-            if (hdr."if-range") {
-                # If-Range can be an ETag or an HTTP-date
-                string if_range = hdr."if-range";
-                if (if_range =~ /^"/) {
-                    # ETag comparison
-                    if (etag && if_range != etag) {
-                        # ETag doesn't match; ignore Range header, serve full file
-                        hdr -= "range";
-                    }
-                } else {
-                    # HTTP-date comparison
-                    *date if_range_date = parseHttpDate(if_range);
-                    if (if_range_date && stat_hash.mtime > if_range_date) {
-                        hdr -= "range";
-                    }
-                }
-            }
-
-            if (hdr.range) {
-                *hash<auto> range = parseRangeHeader(hdr.range, stat_hash.size);
-                if (range) {
-                    return serveRangeRequest(path, stat_hash, range, respHdr);
-                }
-                # unsatisfiable range
-                return <HttpResponseInfo>{
-                    "code": 416,
-                    "body": "Range Not Satisfiable",
-                    "hdr": {
-                        "Content-Range": sprintf("bytes */%d", stat_hash.size),
-                        "Content-Type": "text/plain",
-                    },
-                };
-            }
-        }
-
-        # signal range request support
         if (enable_range) {
             respHdr."Accept-Ranges" = "bytes";
         }
 
-        # try serving a pre-compressed variant from the filesystem
-        if (serve_precompressed && cx."header-info"."accept-encoding") {
-            *hash<HttpResponseInfo> precompressed = tryServePrecompressed(path, stat_hash, cx,
-                hdr, respHdr);
+        # Select the actual representation before checking its validator.
+        if (serve_precompressed && !respHdr."Content-Encoding" && cx."header-info"."accept-encoding") {
+            *hash<HttpResponseInfo> precompressed = tryServePrecompressed(path, stat_hash, cx, hdr, respHdr);
             if (precompressed) {
                 return precompressed;
             }
         }
 
+        *string encoding = !respHdr."Content-Encoding" && (stat_hash.size > CompressionThreshold
+            || (cx.hasKey("identity-acceptable") && !cx."identity-acceptable")) ? cx.encoding : NOTHING;
+        if (encoding && enable_etag) {
+            # Buffering and streaming can produce different compressed bytes for the same content.
+            etag = "W/" + generateETag(stat_hash, "dynamic-" + encoding);
+            respHdr.ETag = etag;
+        }
+        *hash<HttpResponseInfo> not_modified = checkConditionalRequest(hdr, stat_hash, etag, respHdr);
+        if (not_modified) {
+            return not_modified;
+        }
+        if (!stat_hash.size) {
+            return <HttpResponseInfo>{"code": 204, "hdr": respHdr, "no_content_encoding": True};
+        }
+
         # on-the-fly compression for small/medium files:
         # read into memory as binary so HttpServer can auto-compress
-        if (cx.encoding && stat_hash.size > CompressionThreshold
-                && stat_hash.size <= max_compress_size) {
+        if (encoding && stat_hash.size > CompressionThreshold && stat_hash.size <= max_compress_size) {
             binary file_data;
             try {
                 ReadOnlyFile f(path);
@@ -1409,7 +1432,7 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
         }
 
         # default: stream via FileInputStream
-        FileInputStream stream;
+        InputStream stream;
         try {
             stream = new FileInputStream(path, DefaultFileReadTimeout);
         } catch (hash<ExceptionInfo> ex) {
@@ -1419,15 +1442,47 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
             rethrow;
         }
 
-        # Return FileInputStream with Content-Length; the transport layer (HTTP/1.x,
-        # HTTP/2, HTTP/3) handles async streaming I/O natively
+        if (encoding) {
+            stream = new TransformInputStream(stream, get_compressor(encoding == "deflate" ? "zlib" : encoding));
+            respHdr."Content-Encoding" = encoding;
+            remove respHdr."Content-Length";
+        } else {
+            respHdr."Content-Length" = string(stat_hash.size);
+        }
+        # The transport owns the stream after return, including worker dispatch, cancellation,
+        # HTTP/1.1 chunk framing, and HTTP/2 or HTTP/3 DATA frames.
         stream.unassignThread();
-        respHdr."Content-Length" = string(stat_hash.size);
         return <HttpResponseInfo>{
             "code": 200,
             "body": stream,
             "hdr": respHdr,
+            "no_content_encoding": True,
         };
+    }
+
+    #! preserves existing Vary fields while adding Accept-Encoding exactly once
+    private addAcceptEncodingVary(reference<hash<auto>> hdr) {
+        list<string> fields;
+        hash<string, bool> seen;
+        bool wildcard = False;
+        foreach string key in (keys hdr) {
+            if (key.lwr() != "vary") {
+                continue;
+            }
+            foreach string field in (string(remove hdr{key}).split(",")) {
+                field = trim(field);
+                if (field == "*") {
+                    wildcard = True;
+                } else if (field && !seen{field.lwr()}) {
+                    fields += field;
+                    seen{field.lwr()} = True;
+                }
+            }
+        }
+        if (!seen{"accept-encoding"}) {
+            fields += "Accept-Encoding";
+        }
+        hdr.Vary = wildcard ? "*" : fields.join(", ");
     }
 
     #! generates an ETag string from file stat information
@@ -1482,27 +1537,25 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
         @param hdr the request headers
         @param stat_hash the file's stat information
         @param etag the generated ETag string (or @ref nothing if ETags are disabled)
+        @param response_hdr headers for the selected representation
 
         @return a 304 Not Modified response, or @ref nothing if the resource has been modified
 
         @since WebUtil 1.8
     */
     private *hash<HttpResponseInfo> checkConditionalRequest(hash<auto> hdr, hash<StatInfo> stat_hash,
-            *string etag) {
+            *string etag, *hash<auto> response_hdr) {
         # If-None-Match takes precedence (RFC 7232 Section 6)
         if (hdr."if-none-match") {
+            string inm = trim(hdr."if-none-match");
+            if (inm == "*") {
+                return make304Response(etag, stat_hash.mtime, response_hdr);
+            }
             if (etag) {
-                # check if any of the client's ETags match
-                string inm = hdr."if-none-match";
-                if (inm == "*" || inm == etag) {
-                    return make304Response(etag, stat_hash.mtime);
-                }
-                # check comma-separated list of ETags
-                if (inm =~ /,/) {
-                    foreach string candidate in (inm.split(",")) {
-                        if (trim(candidate) == etag) {
-                            return make304Response(etag, stat_hash.mtime);
-                        }
+                string comparison = regex_subst(etag, "^W/", "");
+                foreach string candidate in (inm.split(",")) {
+                    if (regex_subst(trim(candidate), "^W/", "") == comparison) {
+                        return make304Response(etag, stat_hash.mtime, response_hdr);
                     }
                 }
             }
@@ -1516,7 +1569,7 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
                 # compare at second resolution (HTTP dates don't have sub-second precision)
                 if (gmtime(stat_hash.mtime).getEpochSeconds()
                         <= gmtime(ims).getEpochSeconds()) {
-                    return make304Response(etag, stat_hash.mtime);
+                    return make304Response(etag, stat_hash.mtime, response_hdr);
                 }
             }
         }
@@ -1525,20 +1578,26 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
     #! creates a 304 Not Modified response with appropriate headers
     /** @param etag the ETag to include in the response (or @ref nothing if ETags are disabled)
         @param mtime the file modification time for the Last-Modified header
+        @param response_hdr headers for the selected representation, including its cache policy and Vary
 
         @return a 304 Not Modified response with caching headers
 
         @since WebUtil 1.8
     */
-    private hash<HttpResponseInfo> make304Response(*string etag, date mtime) {
-        hash<auto> hdr;
+    private hash<HttpResponseInfo> make304Response(*string etag, date mtime, *hash<auto> response_hdr) {
+        hash<auto> hdr = response_hdr ?? {};
+        foreach string key in (keys hdr) {
+            if (key.lwr() =~ /^(content-type|content-length|content-encoding|content-range|transfer-encoding|accept-ranges)$/) {
+                remove hdr{key};
+            }
+        }
         if (etag) {
             hdr.ETag = etag;
         }
         if (enable_last_modified) {
             hdr."Last-Modified" = formatHttpDate(mtime);
         }
-        if (default_cache_control) {
+        if (!hdr."Cache-Control" && default_cache_control) {
             hdr."Cache-Control" = default_cache_control;
         }
         return <HttpResponseInfo>{
@@ -1565,26 +1624,25 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
     private *hash<HttpResponseInfo> tryServePrecompressed(string path, hash<StatInfo> orig_stat,
             hash<auto> cx, hash<auto> hdr, hash<auto> respHdr) {
         hash<auto> accept = cx."header-info"."accept-encoding";
-        foreach string encoding in (PrecompressedOrder) {
-            if (!accept{encoding}) {
+        foreach string encoding in (keys accept) {
+            if (!accept{encoding} || !PrecompressedExtensions{encoding}) {
                 continue;
             }
             string comp_path = path + PrecompressedExtensions{encoding};
             *hash<StatInfo> comp_stat = hstat(comp_path);
-            if (!comp_stat || comp_stat.type != "REGULAR") {
+            if (!comp_stat || comp_stat.type != "REGULAR" || comp_stat.mtime < orig_stat.mtime) {
                 continue;
             }
 
-            # generate encoding-specific ETag based on original file's identity
+            hash<auto> comp_hdr = respHdr + {"Content-Encoding": encoding};
             *string comp_etag;
             if (enable_etag) {
-                comp_etag = generateETag(orig_stat, encoding);
-                # check conditional request for the compressed variant
-                *hash<HttpResponseInfo> not_modified = checkConditionalRequest(hdr, orig_stat,
-                    comp_etag);
-                if (not_modified) {
-                    return not_modified;
-                }
+                comp_etag = generateETag(comp_stat, encoding);
+                comp_hdr.ETag = comp_etag;
+            }
+            *hash<HttpResponseInfo> not_modified = checkConditionalRequest(hdr, orig_stat, comp_etag, comp_hdr);
+            if (not_modified) {
+                return not_modified;
             }
 
             # serve the pre-compressed file
@@ -1599,14 +1657,7 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
             }
             stream.unassignThread();
 
-            hash<auto> comp_hdr = respHdr + {
-                "Content-Encoding": encoding,
-                "Content-Length": string(comp_stat.size),
-                "Vary": "Accept-Encoding",
-            };
-            if (comp_etag) {
-                comp_hdr.ETag = comp_etag;
-            }
+            comp_hdr."Content-Length" = string(comp_stat.size);
 
             logDebug("serving pre-compressed %y (%s) in place of %y", comp_path, encoding, path);
             return <HttpResponseInfo>{
@@ -1720,6 +1771,7 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
             "code": 206,
             "body": range_data,
             "hdr": respHdr,
+            "no_content_encoding": True,
         };
     }
 

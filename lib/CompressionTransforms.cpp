@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2016 - 2024 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -517,6 +517,12 @@ public:
             xsink->raiseException("ZSTD-ERROR", "invalid Zstd compression stream state");
             return std::make_pair(0, 0);
         }
+        if (finished) {
+            if (src) {
+                xsink->raiseException("ZSTD-ERROR", "cannot write to a finished Zstd compression stream");
+            }
+            return std::make_pair(0, 0);
+        }
 
         ZSTD_inBuffer input = { src, static_cast<size_t>(src ? srcLen : 0), 0 };
         ZSTD_outBuffer output = { dst, static_cast<size_t>(dstLen), 0 };
@@ -534,11 +540,18 @@ public:
             return std::make_pair(0, 0);
         }
 
+        // A successful endStream() also resets the native stream for another frame. Remember
+        // completion so the caller's next EOF read does not start an endless series of empty frames.
+        if (!src && !result) {
+            finished = true;
+        }
+
         return std::make_pair(input.pos, output.pos);
     }
 
 private:
     ZSTD_CStream* cstream;
+    bool finished = false;
 };
 
 class ZstdDecompressTransform : public Transform {

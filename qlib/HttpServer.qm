@@ -179,6 +179,8 @@ log("started listener on %s", lh.desc);
     @section http_relnotes HttpServer Module Release Notes
 
     @subsection http1_7 HttpServer 1.7
+    - response compression honors Accept-Encoding quality values, exclusions, aliases, wildcard preferences,
+      and explicit identity preferences consistently across HTTP/1, HTTP/2, and HTTP/3
     - @ref HttpServer::HttpServer::waitStop() "waitStop()" accepts an optional timeout and returns whether all
       listeners stopped, so a server shutdown can be bounded instead of blocking indefinitely on a request
       handler that never returns; the no-argument call is unchanged
@@ -2382,6 +2384,52 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         self.maskfunc = maskfunc;
     }
 
+    #! Returns supported encodings in decreasing quality order, preserving server preference on ties
+    private static hash<string, float> getContentEncodingPreferences(*string header) {
+        hash<string, float> weights;
+        foreach string item in ((header ?? "").split(",")) {
+            list<string> parts = item.lwr().split(";");
+            string name = trim(parts[0]);
+            if (!name) {
+                continue;
+            }
+            float quality = 1.0;
+            if (parts.size() > 1) {
+                *list<*string> match = (trim(parts[1]) =~ x/^q\s*=\s*(0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)$/);
+                if (!match || parts.size() != 2) {
+                    quality = 0.0;
+                } else {
+                    quality = match[0].toFloat();
+                }
+            }
+            name = ContentEncodings{name} ?? name;
+            weights{name} = weights.hasKey(name) ? min(weights{name}, quality) : quality;
+        }
+        hash<string, float> candidates;
+        foreach string encoding in (keys ContentEncodings) {
+            if (encoding != ContentEncodings{encoding}) {
+                continue;
+            }
+            candidates{encoding} = weights{encoding} ?? weights."*" ?? 0.0;
+        }
+        # Unspecified identity is a fallback, not a preference above explicitly accepted encodings.
+        candidates.identity = weights.identity ?? (weights.hasKey("*") && weights."*" == 0.0 ? 0.0 : 0.001);
+        hash<string, int> preference_order;
+        int position = 0;
+        foreach string encoding in (keys candidates) {
+            preference_order{encoding} = position++;
+        }
+        list<string> encodings = sort(keys candidates, int sub(string left, string right) {
+            return (candidates{right} <=> candidates{left})
+                ?: (preference_order{left} <=> preference_order{right});
+        });
+        hash<string, float> result;
+        foreach string encoding in (encodings) {
+            result{encoding} = candidates{encoding};
+        }
+        return result;
+    }
+
     #! returns a complete URL from a bind address
     /** @param bind the bind address; if for any reason there is a path in the bind address, it will be ignored
         @param host the hostname to use in case the bind string is only a port number; if none is passed or the value passed is equal to the return value of @ref Qore::gethostname(), then \c "localhost" is used
@@ -3099,17 +3147,24 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             return;
         }
 
-        # get first supported encoding for response
-        foreach string enc in (cx."header-info"."accept-encoding") {
-            *string e = ContentEncodings{enc};
-            if (!e)
+        # Protocol header parsers expose encoding names but discard their q-values. Select
+        # once from the original header so HTTP/1, HTTP/2, and HTTP/3 all honor exclusions.
+        hash<string, float> preferences = getContentEncodingPreferences(hdr."accept-encoding");
+        cx."identity-acceptable" = (preferences.identity ?? 1.0) > 0.0;
+        hash<string, bool> acceptable;
+        foreach string encoding in (keys preferences) {
+            if (preferences{encoding} <= 0.0) {
                 continue;
-            cx.encoding = e;
-            break;
+            }
+            if (encoding == "identity") {
+                break;
+            }
+            if (!cx.encoding) {
+                cx.encoding = encoding;
+            }
+            acceptable{encoding} = True;
         }
-
-        # convert "accept-encoding" to a hash
-        cx."header-info"."accept-encoding" = map {$1: True}, cx."header-info"."accept-encoding";
+        cx."header-info"."accept-encoding" = acceptable;
 
         # erase the encoding string on exit
         on_exit remove cx.encoding;

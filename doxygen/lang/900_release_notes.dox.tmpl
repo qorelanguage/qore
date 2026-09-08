@@ -2900,6 +2900,11 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing a REST client for <a href="https://www.zoho.com/invoice/">Zoho Invoice</a>'s invoicing API
 
     @subsection qore_3_0_0_bug_fixes Bug Fixes in Qore
+
+    - Fixed static-file cache revalidation and large-file compression in WebUtil 1.8.1. Conditional
+      responses preserve the selected cache policy, and large files are compressed with bounded memory.
+      Content encoding negotiation honors client preferences and exclusions across HTTP/1, HTTP/2, and HTTP/3.
+    - Fixed Zstandard compression streams producing an endless sequence of empty frames after end of input.
     - Build
       - fixed \c QORE_CATALOG_DIR being empty in a from-scratch build; it was defined after the two places that
         consume it, so the first \c cmake run of a build tree compiled the \c i18n module with no default catalog

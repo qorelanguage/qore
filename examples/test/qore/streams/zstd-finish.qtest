@@ -1,0 +1,79 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%enable-debug
+%requires ../../../../qlib/QUnit.qm
+%exec-class ZstdFinishTest
+
+class FailingZstdInput inherits InputStream {
+    *binary read(int limit) {
+        throw "TEST-READ-ERROR", "input failed";
+    }
+    int peek() {
+        throw "TEST-READ-ERROR", "input failed";
+    }
+}
+
+class ZstdFinishTest inherits QUnit::Test {
+    constructor() : Test("ZstdFinishTest", "1.0", \ARGV) {
+        addTestCase("input compression terminates and round-trips", \inputRoundTrips());
+        addTestCase("output compression close terminates", \outputRoundTrips());
+        addTestCase("finished transform rejects new input", \finishedInput());
+        addTestCase("compression failures propagate", \failures());
+        set_return_value(main());
+    }
+
+    private binary readBounded(InputStream stream, int max_reads, int read_size) {
+        binary result;
+        bool eof = False;
+        for (int i = 0; i < max_reads; ++i) {
+            *binary chunk = stream.read(read_size);
+            if (!chunk) {
+                eof = True;
+                break;
+            }
+            result += chunk;
+        }
+        assertTrue(eof, "compressor reaches EOF instead of producing additional empty frames");
+        assertNothing(stream.read(read_size), "repeated EOF read remains empty");
+        assertEq(-1, stream.peek(), "peek remains at EOF");
+        return result;
+    }
+
+    inputRoundTrips() {
+        foreach binary content in ((binary(), binary("abc"), binary(strmul("a zstd stream\n", 40000)))) {
+            foreach int read_size in ((17, 65536)) {
+                TransformInputStream stream(new BinaryInputStream(content), get_compressor("zstd"));
+                binary compressed = readBounded(stream, (content.size() + 1024) / read_size + 10, read_size);
+                assertEq(content, unzstd_to_binary(compressed));
+            }
+        }
+    }
+
+    outputRoundTrips() {
+        foreach binary content in ((binary(), binary("abc"), binary(strmul("output\n", 10000)))) {
+            BinaryOutputStream sink();
+            TransformOutputStream stream(sink, get_compressor("zstd"));
+            if (content.size()) {
+                stream.write(content);
+            }
+            stream.close();
+            assertEq(content, unzstd_to_binary(sink.getData()));
+        }
+    }
+
+    finishedInput() {
+        Transform compressor = get_compressor("zstd");
+        TransformInputStream first(new BinaryInputStream(binary("first")), compressor);
+        readBounded(first, 10, 65536);
+        TransformInputStream second(new BinaryInputStream(binary("second")), compressor);
+        assertThrows("ZSTD-ERROR", "finished", sub() { second.read(65536); });
+    }
+
+    failures() {
+        assertThrows("ZSTD-LEVEL-ERROR", sub() { get_compressor("zstd", 10000); });
+        TransformInputStream stream(new FailingZstdInput(), get_compressor("zstd"));
+        assertThrows("TEST-READ-ERROR", sub() { stream.read(65536); });
+    }
+}
