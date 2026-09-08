@@ -1233,8 +1233,8 @@ public class DataProviderTest inherits QUnit::Test {
         string str = DataProvider::renderExpression(exp, DataProviderGenericExpressions + {
             "calculate": fexp,
         });
-        assertEq("({status} == \"active\") && ({email} =~ /\"@example\\\\.com$\"/) && (({age} between 18 and 30) || "
-            "({role} in ([\"admin\", \"editor\", \"moderator\"])) || calculate({score}, 1000, 2000))", str);
+        assertEq("{status} == \"active\" && {email} =~ /\"@example\\\\.com$\"/ && ({age} between 18 and 30 || "
+            "{role} in ([\"admin\", \"editor\", \"moderator\"]) || calculate({score}, 1000, 2000))", str);
 
         hash<DataProviderExpressionInfo> opexp = <DataProviderExpressionInfo>{
             "type": DET_Operator,

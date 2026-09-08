@@ -671,21 +671,28 @@ public class PipelineMemoryTest inherits QUnit::Test {
             warmup.waitDone();
         }
 
-        # Short pipeline benchmarks are sensitive to scheduler noise on shared runners. Measure three paired
-        # samples and compare their median rather than allowing one transient scheduling delay to fail the suite.
+        # Short pipeline benchmarks are sensitive to scheduler noise on shared runners. Measure five paired
+        # samples, alternate their execution order, and compare the median rather than allowing transient
+        # scheduling delay or a consistent first-run advantage to fail the suite.
         list<float> throughput_overheads;
-        for (int sample = 1; sample <= 3; ++sample) {
-            # run without metrics
-            hash<auto> baseline = runPipelineAndMeasure(
-                sprintf("baseline-no-metrics-%d", sample), record_count);
+        for (int sample = 1; sample <= 5; ++sample) {
+            LightweightMetricsCollector lw_collector(1000);
+            hash<auto> baseline;
+            hash<auto> with_metrics;
+            if (sample % 2) {
+                baseline = runPipelineAndMeasure(sprintf("baseline-no-metrics-%d", sample), record_count);
+                with_metrics = runPipelineAndMeasure(
+                    sprintf("with-lightweight-metrics-%d", sample), record_count, lw_collector);
+            } else {
+                with_metrics = runPipelineAndMeasure(
+                    sprintf("with-lightweight-metrics-%d", sample), record_count, lw_collector);
+                baseline = runPipelineAndMeasure(sprintf("baseline-no-metrics-%d", sample), record_count);
+            }
+
             logVerbose("sample %d baseline (no metrics): RSS growth %s, %.1f rec/s", sample,
                 fmtMem(baseline.rss_growth), baseline.recs_per_sec);
             assertEq(record_count, baseline.record_count);
 
-            # run with lightweight metrics collector (every 1000 records)
-            LightweightMetricsCollector lw_collector(1000);
-            hash<auto> with_metrics = runPipelineAndMeasure(
-                sprintf("with-lightweight-metrics-%d", sample), record_count, lw_collector);
             logVerbose("sample %d with metrics (interval=1000): RSS growth %s, %.1f rec/s, %d callbacks", sample,
                 fmtMem(with_metrics.rss_growth), with_metrics.recs_per_sec, lw_collector.callback_count);
             assertEq(record_count, with_metrics.record_count);
