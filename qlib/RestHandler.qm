@@ -399,6 +399,8 @@ Content-Length: 16
     @section resthandler_relnotes RestHandler Release Notes
 
     @subsection rh_1_6_7 RestHandler v1.6.7
+    - REST resource names preserve percent-encoded separators such as slashes and question marks;
+      URI path segments are decoded individually after routing boundaries and query arguments are parsed
     - removed the \c Socket::setHttp2ActiveStream(stream_id) /
       \c setHttp2ActiveStream(-1) pair previously wrapped around
       @ref RestHandler::AbstractRestClass::handleRequest()
@@ -1428,7 +1430,7 @@ public namespace RestHandler {
             if (ah.method) {
                 # combine continuous "/" chars into a single one
                 ah.method =~ s/\/\/+/\//g;
-                cl = ah.method.split("/");
+                cl = map decode_url($1), ah.method.split("/");
             }
 
             # get initial class
@@ -1513,8 +1515,14 @@ public namespace RestHandler {
                 body = NOTHING;
             }
 
-            # get rest class name
-            string path = cx.url.path ?? "";
+            # Preserve URI component boundaries until after query parsing and path splitting.
+            # HttpServer's decoded display path can turn an encoded slash into a routing
+            # separator or an encoded question mark into a query delimiter.
+            bool encoded_path = exists cx.raw_path;
+            string path = cx.raw_path ?? cx.url.path ?? "";
+            if (encoded_path && path.startsWith("/")) {
+                splice path, 0, 1;
+            }
 
             removeRootPath(\path);
 
@@ -1625,6 +1633,9 @@ public namespace RestHandler {
                 # combine continuous "/" chars into a single one
                 ah.method =~ s/\/\/+/\//g;
                 cl = ah.method.split("/");
+                if (encoded_path) {
+                    cl = map decode_url($1), cl;
+                }
             }
 
             # make a hash of "accept" values

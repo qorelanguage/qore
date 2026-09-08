@@ -1,0 +1,76 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2003 - 2026 Qore Technologies, s.r.o., all rights reserved
+
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/RestHandler.qm
+%requires ../../../../qlib/RestClient.qm
+%exec-class RestPathEncodingTest
+
+class EncodedResource inherits AbstractRestClass {
+    private { string id; }
+    constructor(string id) { self.id = id; }
+    string name() { return id; }
+    hash<HttpHandlerResponseInfo> get(hash<auto> cx, *hash<auto> args) {
+        return RestHandler::makeResponse(200, {"id": id, "args": args ?? {}});
+    }
+}
+class EncodedPathHandler inherits RestHandler {
+    removeRootPath(reference<string> path) {
+        path =~ s/^api\///;
+    }
+    *AbstractRestClass subClassImpl(string name, hash<auto> cx, *hash<auto> args) {
+        return new EncodedResource(name);
+    }
+}
+class RestPathEncodingTest inherits QUnit::Test {
+    private {
+        HttpServer server;
+        RestClient client;
+        EncodedPathHandler handler();
+    }
+    constructor() : Test("RestPathEncodingTest", "1.0", \ARGV) {
+        addTestCase("encoded separators remain inside resource names", \separators());
+        addTestCase("query values are decoded exactly once", \queryValues());
+        addTestCase("internal REST dispatch decodes individual segments", \internal());
+        addTestCase("routing boundaries and error categories are preserved", \boundaries());
+        set_return_value(main());
+    }
+    globalSetUp() {
+        server = new HttpServer();
+        server.setDefaultHandler("encoded-resources", handler);
+        int port = server.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        client = new RestClient({"url": "http://127.0.0.1:" + port, "data": "json", "pre_encoded_urls": True,
+            "connect_timeout": 5000, "timeout": 5000});
+    }
+    globalTearDown() {
+        if (server) {
+            server.stop();
+        }
+    }
+    private separators() {
+        foreach string id in (("plain", "folder/customer API", "příprava-objednávky", "literal%?#id",
+                "literal%2F", "a+b;c=d", "leading/slash/", "repeat//slash")) {
+            assertEq({"id": id, "args": {}}, client.restGet("api/" + encode_url(id, True)).body, id);
+        }
+    }
+    private queryValues() {
+        assertEq({"id": "key?with#delimiters", "args": {"label": "a&b=c?d", "literal": "%26"}},
+            client.restGet("api/key%3Fwith%23delimiters?label=a%26b%3Dc%3Fd&literal=%2526").body);
+    }
+    private internal() {
+        assertEq({"id": "folder/customer API", "args": {"label": "a&b"}},
+            handler.handleExternalRequest("GET", "folder%2Fcustomer%20API?label=a%26b"));
+        assertEq({"id": "literal%2F?", "args": {}},
+            handler.handleExternalRequest("GET", "/literal%252F%3f"));
+    }
+    private boundaries() {
+        assertEq({"id": "a+b", "args": {}}, client.restGet("api/a+b").body);
+        assertEq({"id": "/", "args": {}}, client.restGet("api/%2f").body);
+        assertThrows("REST-RESPONSE-ERROR", "404", \client.restGet(), "api/parent/child");
+        assertThrows("UNKNOWN-REST-METHOD", \handler.handleExternalRequest(), ("INVALID", "folder%2Fcustomer"));
+    }
+}
