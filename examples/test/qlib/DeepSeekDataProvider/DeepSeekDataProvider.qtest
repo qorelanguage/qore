@@ -1,22 +1,53 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
 
 %modern
 %allow-injection
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Logger
-%requires ConnectionProvider
-%requires DataProvider
-%requires DeepSeekDataProvider
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/DeepSeekDataProvider
+
+%requires ../../../../qlib/HttpServer.qm
+%requires json
 
 %exec-class DeepSeekDataProviderTest
 
+class DeepSeekWireHandler inherits AbstractHttpRequestHandler {
+    private {
+        Mutex lock();
+        hash<auto> request;
+        *data body;
+    }
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        AutoLock al(lock);
+        request = hdr;
+        self.body = body;
+        if (hdr.authorization != "Bearer wire-key") {
+            return makeResponse(401, "{}", {"Content-Type": MimeTypeJson});
+        }
+        return makeResponse(200, make_json({"id": "wire", "object": "file", "choices": (),
+            "created": 0, "created_at": 0, "bytes": 1, "filename": "a.png", "purpose": "user_data"}),
+            {"Content-Type": MimeTypeJson});
+    }
+    hash<auto> getRequest() {
+        AutoLock al(lock);
+        return {"hdr": request, "body": body};
+    }
+}
+
 class FakeDeepSeekRestClientIo inherits RestClientIo::RestClientIo {
     public {
-        *hash<auto> last_request;
+        auto last_request;
+        *hash<auto> last_headers;
+        *list<hash<auto>> pages;
+        int calls = 0;
+        *hash<ExceptionInfo> failure;
         string last_method;
         string last_path;
         hash<auto> response_body;
@@ -25,13 +56,27 @@ class FakeDeepSeekRestClientIo inherits RestClientIo::RestClientIo {
     constructor() : RestClientIo({"url": "https://api.deepseek.com", "token": "x"}) {
     }
 
+    RestClient::AbstractRestClient copyWithUrl(string url) {
+        return self;
+    }
+
+    hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body,
+            *hash<auto> hdr, *hash<auto> info) {
+        return restDoRequest(method, path, body, hdr);
+    }
+
     hash<RestClient::RestResponseInfo> restDoRequest(string method, string path,
             auto body, *hash<auto> hdr) {
+        ++calls;
+        if (failure) {
+            throw failure.err, failure.desc, failure.arg;
+        }
+        last_headers = hdr;
         last_method = method;
         last_path = path;
         last_request = body;
         return <RestClient::RestResponseInfo>{
-            "body": response_body,
+            "body": pages ? shift pages : response_body,
         };
     }
 
@@ -84,6 +129,23 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
             addTestCase("live: ping + chat-completion (deepseek-chat)",
                 \liveDeepSeekTest());
         }
+        addTestCase("all actions have usable metadata and paths", \actionMetadataTest());
+        addTestCase("model and paginated file dropdowns", \referenceDataTest());
+        addTestCase("all API routes and timestamp conversion", \apiRoutesTest());
+        addTestCase("beta prefix and strict tool routing", \betaTest());
+        addTestCase("image multipart upload and expiration", \multipartTest());
+        addTestCase("invalid generation inputs fail before transport", \negativeGenerationTest());
+        addTestCase("invalid file inputs and pagination fail", \negativeFilesTest());
+        addTestCase("constructor injection and client isolation", \constructorTest());
+        addTestCase("API failures are not replayed", \errorTest());
+        addTestCase("HTTP JSON and multipart wire contracts", \wireTest());
+        if (ENV.DEEPSEEK_APIKEY) {
+            addTestCase("live model and balance lookup", \liveAccountTest());
+        }
+        if (ENV.DEEPSEEK_INFERENCE) {
+            addTestCase("live chat, Responses, FIM, and image file lifecycle", \liveApiTest());
+            addTestCase("live JSON, reasoning, and strict tools", \liveAdvancedTest());
+        }
         set_return_value(main());
     }
 
@@ -118,7 +180,7 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("DeepSeek"),
             $1.action != AbstractDataProvider::GenericApiCallActionName;
-        assertEq(1, actions.size());
+        assertEq(9, actions.size());
         assertEq("chat-completion", actions[0].action);
         assertEq("/chat-completion", actions[0].path);
         assertEq(DPAT_API, actions[0].action_code);
@@ -141,7 +203,7 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
         # GenericApiCallAutoInjection.qtest in RestClientDataProvider)
         list<string> children = select prov.getChildProviderNames(),
             $1 != AbstractDataProvider::GenericApiCallChildName;
-        assertEq(("chat-completion",), children);
+        assertEq(sort(("chat-completion",) + (keys DeepSeekActions::Operations)), sort(children));
         AbstractDataProvider chat = prov.getChildProvider("chat-completion");
         assertTrue(chat instanceof
             DeepSeekDataProvider::DeepSeekChatCompletionDataProvider);
@@ -166,7 +228,7 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
             "id": "test-id",
             "object": "chat.completion",
             "created": 1700000000,
-            "model": "deepseek-chat",
+            "model": "deepseek-v4-flash",
             "choices": (
                 {
                     "index": 0,
@@ -186,7 +248,7 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
 
         DeepSeekDataProvider::DeepSeekChatCompletionDataProvider prov(fake);
         hash<auto> req = {
-            "model": "deepseek-chat",
+            "model": "deepseek-v4-flash",
             "messages": (
                 {"role": "user", "content": "Hi"},
             ),
@@ -196,9 +258,9 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
 
         # OpenAI-compatible POST path
         assertEq("POST", fake.last_method);
-        assertEq("chat/completions", fake.last_path);
+        assertEq("/v1/chat/completions", fake.last_path);
         # Request body forwarded unchanged
-        assertEq("deepseek-chat", fake.last_request.model);
+        assertEq("deepseek-v4-flash", fake.last_request.model);
         assertEq(0.7, fake.last_request.temperature);
         assertEq(1, fake.last_request.messages.size());
         # Response shape and converted `created`
@@ -234,13 +296,399 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
         AbstractDataProvider prov = conn.getDataProvider();
         AbstractDataProvider chat = prov.getChildProvider("chat-completion");
         auto resp = chat.doRequest({
-            "model": "deepseek-chat",
+            "model": "deepseek-v4-flash",
             "messages": ({"role": "user", "content": "Say hi in one word."},),
-            "max_tokens": 16,
+            "max_tokens": 32,
+            "thinking": {"type": "disabled"},
         });
         assertTrue(resp.choices[0].message.content.val(),
             "DeepSeek returned non-empty assistant content");
         assertTrue(resp.usage.total_tokens > 0,
             "DeepSeek reported positive total_tokens");
     }
+    private actionMetadataTest() {
+        FakeDeepSeekRestClientIo fake();
+        DeepSeekDataProvider::DeepSeekDataProvider root(fake);
+        foreach hash<DataProviderActionInfo> action in (DataProviderActionCatalog::getActions("DeepSeek")) {
+            if (action.action == AbstractDataProvider::GenericApiCallActionName) {
+                continue;
+            }
+            assertTrue(action.display_name.val());
+            assertTrue(action.short_desc.val() && action.short_desc.size() < 80);
+            assertTrue(action.desc.val());
+            assertTrue(exists action.output_type);
+            assertNothing(action.cls);
+            AbstractDataProvider child = root.getChildProvider(action.path.substr(1));
+            assertTrue(child.getInfo().supports_request);
+            assertTrue(exists child.getResponseType());
+            if (exists child.getRequestType()) {
+                foreach string key in (keys child.getRequestType().getFields()) {
+                    if (key != "stream") {
+                        assertTrue(exists action.options{key}, action.action + ": " + key);
+                    }
+                }
+            }
+            if (exists action.options.model) {
+                assertTrue(action.options.model.ref_data.val());
+                assertTrue(action.options.model.allowed_values_creatable);
+            }
+            assertEq(action.action == "upload-file" || action.action == "delete-file",
+                DataProviderActionCatalog::actionMutatesState(action));
+        }
+        assertEq(9, root.getChildProviderSummaryInfo().size());
+    }
+
+    private referenceDataTest() {
+        FakeDeepSeekRestClientIo fake();
+        DeepSeekDataProvider::DeepSeekDataProvider root(fake);
+        fake.response_body = {"data": ({"id": "deepseek-v4-flash"}, {"id": "deepseek-v4-pro"}, {})};
+        assertEq(("deepseek-v4-flash", "deepseek-v4-pro"),
+            map $1.value, root.getReferenceData("models"));
+        assertEq(("deepseek-v4-pro",), map $1.value, root.getReferenceData("fim-models"));
+        assertEq("/v1/models", fake.last_path);
+        fake.pages = (
+            {"data": ({"id": "file-a", "filename": "a.png"},), "last_id": "file-a", "has_more": True},
+            {"data": ({"id": "file-b", "filename": "b.png"},), "last_id": "file-b", "has_more": False},
+        );
+        list<hash<AllowedValueInfo>> files = root.getReferenceData("files");
+        assertEq(("file-a", "file-b"), map $1.value, files);
+        assertEq("a.png (file-a)", files[0].display_name);
+        assertEq("/v1/files?limit=1000&after=file-a", fake.last_path);
+        fake.response_body = {"data": (), "has_more": False};
+        assertEq((), root.getReferenceData("files"));
+    }
+
+    private hash<auto> fileResponse() {
+        return {"id": "file-a", "object": "file", "bytes": 1, "created_at": 0,
+            "filename": "a.png", "purpose": "user_data", "expires_at": 3600};
+    }
+
+    private hash<auto> chatRequest() {
+        list<hash<auto>> messages = ({"role": "user", "content": "Hello"},);
+        return {"model": "deepseek-v4-flash", "messages": messages};
+    }
+
+    private apiRoutesTest() {
+        FakeDeepSeekRestClientIo fake();
+        DeepSeekDataProvider::DeepSeekDataProvider root(fake);
+        fake.response_body = {"object": "list", "data": ({"id": "m", "object": "model", "owned_by": "deepseek"},)};
+        assertEq("m", root.getChildProvider("list-models").doRequest().data[0].id);
+        assertEq("GET", fake.last_method);
+        assertEq("/v1/models", fake.last_path);
+        assertNothing(fake.last_request);
+        fake.response_body = {"is_available": False, "balance_infos": ({"currency": "USD", "total_balance": "0.00",
+            "granted_balance": "0.00", "topped_up_balance": "0.00"},)};
+        assertFalse(root.getChildProvider("get-balance").doRequest().is_available);
+        assertEq("/v1/user/balance", fake.last_path);
+        fake.response_body = fileResponse();
+        hash<auto> file = root.getChildProvider("get-file").doRequest({"file_id": "file/a?b"});
+        assertEq("/v1/files/file%2Fa%3Fb", fake.last_path);
+        assertEq(1970-01-01Z, file.created_at);
+        assertEq(1970-01-01Z + 1h, file.expires_at);
+        fake.response_body = {"object": "list", "data": (fileResponse(),), "has_more": False};
+        auto page = root.getChildProvider("list-files").doRequest({"after": "file/a", "limit": 1, "order": "desc"});
+        assertEq("/v1/files?after=file%2Fa&limit=1&order=desc", fake.last_path);
+        assertNothing(fake.last_request);
+        assertEq(1970-01-01Z, page.data[0].created_at);
+        fake.response_body = {"id": "file-a", "object": "file", "deleted": True};
+        assertTrue(root.getChildProvider("delete-file").doRequest({"file_id": "file-a"}).deleted);
+        assertEq("DELETE", fake.last_method);
+        assertNothing(fake.last_request);
+        fake.response_body = {"id": "fim", "object": "text_completion", "created": 0,
+            "model": "deepseek-v4-pro", "choices": ({"index": 0, "text": "42", "finish_reason": "stop"},)};
+        auto fim = root.getChildProvider("fim-completion").doRequest({"model": "deepseek-v4-pro", "prompt": "x = ",
+            "suffix": "\n", "echo": True, "logprobs": 20, "stop": "END"});
+        assertEq("/beta/completions", fake.last_path);
+        assertEq("END", fake.last_request.stop);
+        assertEq("42", fim.choices[0].text);
+        assertEq(1970-01-01Z, fim.created);
+        root.getChildProvider("fim-completion").doRequest({"model": "deepseek-v4-pro", "prompt": "", "suffix": "end"});
+        assertEq("", fake.last_request.prompt);
+        assertEq("end", fake.last_request.suffix);
+        fake.response_body = {"id": "resp", "object": "response", "created_at": 0, "status": "completed",
+            "model": "deepseek-v4-flash", "output": ()};
+        auto resp = root.getChildProvider("create-response").doRequest({"model": "deepseek-v4-flash",
+            "input": "", "instructions": "Say hello", "reasoning": {"effort": "none"},
+            "text": {"format": {"type": "json_schema", "name": "reply", "schema": {"type": "object"}}}});
+        assertEq("/v1/responses", fake.last_path);
+        assertEq("json_schema", fake.last_request.text.format.type);
+        assertEq(1970-01-01Z, resp.created_at);
+        root.getChildProvider("create-response").doRequest({"model": "m", "tools": ({"type": "custom", "name": "apply_patch"},),
+            "input": ({"type": "custom_tool_call", "call_id": "call-a", "name": "apply_patch", "input": "patch"},
+                {"type": "custom_tool_call_output", "call_id": "call-a", "output": "done"},
+                {"type": "web_search_call", "id": "ws-a", "status": "completed", "action": {"type": "search"}},
+                {"type": "reasoning", "content": ({"type": "reasoning_text", "text": "step"},), "summary": ()})});
+        assertEq("apply_patch", fake.last_request.tools[0].name);
+        assertEq("patch", fake.last_request.input[0].input);
+        assertEq("search", fake.last_request.input[2].action.type);
+    }
+
+    private betaTest() {
+        FakeDeepSeekRestClientIo fake();
+        DeepSeekChatCompletionDataProvider chat(fake);
+        fake.response_body = {"choices": ()};
+        hash<auto> req = chatRequest();
+        push req.messages, {"role": "assistant", "content": "Answer:", "prefix": True,
+            "reasoning_content": "A previous step"};
+        chat.doRequest(req);
+        assertEq("/beta/chat/completions", fake.last_path);
+        assertEq("A previous step", fake.last_request.messages[1].reasoning_content);
+        req = chatRequest() + {"tools": ({"type": "function", "function": {"name": "lookup_order", "strict": True}},),
+            "tool_choice": {"type": "function", "function": {"name": "lookup_order"}}};
+        chat.doRequest(req);
+        assertEq("/beta/chat/completions", fake.last_path);
+        assertEq("lookup_order", fake.last_request.tool_choice.function.name);
+        chat.doRequest(chatRequest() + {"thinking": {"type": "disabled"}, "logprobs": True, "top_logprobs": 20});
+        assertEq("/v1/chat/completions", fake.last_path);
+        assertEq("disabled", fake.last_request.thinking.type);
+    }
+
+    private multipartTest() {
+        FakeDeepSeekRestClientIo fake();
+        DeepSeekApiDataProvider upload(fake, "upload-file");
+        fake.response_body = fileResponse();
+        hash<auto> req = {"file": {"name": "a.png", "content": binary("image\0bytes")},
+            "purpose": "user_data", "expires_after_seconds": 3600};
+        auto file = upload.doRequest(req);
+        assertEq(1970-01-01Z, file.created_at);
+        assertEq("POST", fake.last_method);
+        assertEq("/v1/files", fake.last_path);
+        assertTrue(fake.last_headers."Content-Type".startsWith("multipart/form-data"));
+        string wire = fake.last_request.toString();
+        assertTrue(index(wire, "image\0bytes") >= 0);
+        assertTrue(index(wire, 'name="expires_after[anchor]"') >= 0);
+        assertTrue(index(wire, "created_at") >= 0);
+        assertTrue(index(wire, 'name="expires_after[seconds]"') >= 0);
+        assertTrue(index(wire, "3600") >= 0);
+        req.file.content = make_base64_string(binary("base64-image"));
+        remove req.expires_after_seconds;
+        upload.doRequest(req);
+        assertTrue(index(fake.last_request.toString(), "base64-image") >= 0);
+        assertTrue(index(fake.last_request.toString(), "expires_after") < 0);
+    }
+
+    private negativeGenerationTest() {
+        FakeDeepSeekRestClientIo fake();
+        DeepSeekChatCompletionDataProvider chat(fake);
+        foreach hash<auto> invalid in (
+            {"model": " "}, {"messages": ()}, {"temperature": -0.1}, {"temperature": 2.1}, {"top_p": 1.1},
+            {"max_tokens": 0}, {"top_logprobs": 1}, {"logprobs": True, "top_logprobs": 21},
+            {"stop": ("",)}, {"tool_choice": "bogus"}, {"user_id": "personal@example.com"}, {"tool_choice": "required"},
+            {"messages": ({"role": "tool", "content": "result"},)},
+            {"messages": ({"role": "user", "content": "x", "prefix": True},)},
+            {"tools": ({"type": "function", "function": {"name": "bad name"}},)},
+            {"tools": ({"type": "function", "function": {"name": "lookup"}},),
+                "tool_choice": {"type": "function", "function": {"name": "missing"}}}
+        ) {
+            assertThrows("DEEPSEEK-REQUEST-ERROR", sub () { chat.doRequest(chatRequest() + invalid); });
+        }
+        foreach hash<auto> invalid in ({"stream": True}, {"thinking": {"type": "bogus"}}, {"seed": 42},
+            {"user": "obsolete"}, {"frequency_penalty": 1}, {"response_format": {"type": "json_schema"}},
+            {"messages": ({"role": "invalid", "content": "x"},)}, {"messages": "text"}) {
+            assertThrows("RUNTIME-TYPE-ERROR", sub () { chat.doRequest(chatRequest() + invalid); });
+        }
+        foreach hash<auto> part in ({"type": "text"}, {"type": "image_url"},
+            {"type": "file"}, {"type": "file", "file_id": "file-a", "file_data": "data:image/png;base64,abc"}) {
+            assertThrows("DEEPSEEK-REQUEST-ERROR", sub () {
+                chat.doRequest({"model": "m", "messages": ({"role": "user", "content": (part,)},)});
+            });
+        }
+        DeepSeekApiDataProvider response(fake, "create-response");
+        foreach hash<auto> invalid in ({}, {"input": " "}, {"input": "hi", "max_output_tokens": 0},
+            {"input": "hi", "text": {"format": {"type": "json_schema"}}}) {
+            assertThrows("DEEPSEEK-REQUEST-ERROR", sub () {
+                response.doRequest({"model": "deepseek-v4-flash"} + invalid);
+            });
+        }
+        DeepSeekApiDataProvider fim(fake, "fim-completion");
+        assertThrows("INVALID-REQUEST", sub () {
+            fim.doRequest({"model": "deepseek-v4-pro"});
+        });
+        assertThrows("DEEPSEEK-REQUEST-ERROR", sub () {
+            response.doRequest({"model": "m", "input": "hi", "tools": ({"type": "custom", "name": "unsupported"},)});
+        });
+        assertEq(0, fake.calls);
+    }
+
+    private negativeFilesTest() {
+        FakeDeepSeekRestClientIo fake();
+        DeepSeekDataProvider::DeepSeekDataProvider root(fake);
+        foreach string id in ("", ".", "..") {
+            assertThrows("DEEPSEEK-REQUEST-ERROR", sub () { root.getChildProvider("get-file").doRequest({"file_id": id}); });
+        }
+        foreach int limit in (0, 1001) {
+            assertThrows("DEEPSEEK-REQUEST-ERROR", sub () { root.getChildProvider("list-files").doRequest({"limit": limit}); });
+        }
+        foreach hash<auto> file in ({"name": "a.png", "content": binary()}, {"name": "a\r\n.png", "content": binary("x")},
+            {"name": "a.png", "content": binary("x"), "mime_type": "image/png\r\nx: y"}) {
+            assertThrows("DEEPSEEK-REQUEST-ERROR", sub () {
+                root.getChildProvider("upload-file").doRequest({"file": file, "purpose": "user_data"});
+            });
+        }
+        assertThrows("DEEPSEEK-REQUEST-ERROR", sub () {
+            root.getChildProvider("upload-file").doRequest({"file": {"name": "a.png", "content": binary("x")},
+                "purpose": "user_data", "expires_after_seconds": 3599});
+        });
+        assertEq(0, fake.calls);
+        fake.response_body = {"data": (), "has_more": True, "last_id": "stuck"};
+        assertThrows("REFERENCE-DATA-ERROR", sub () { root.getReferenceData("files"); });
+        assertEq(2, fake.calls);
+    }
+
+    private constructorTest() {
+        DeepSeekRestClientIo client({"apikey": "test-key", "api": "beta"});
+        DeepSeekChatCompletionDataProvider chat(client);
+        assertEq("/beta", client.getConnectionPath());
+        DeepSeekDataProvider::DeepSeekDataProvider root({"restclient": client});
+        root.getChildProvider("list-models");
+        assertEq("/beta", client.getConnectionPath());
+        assertThrows("CONSTRUCTOR-ERROR", sub () { new DeepSeekDataProvider::DeepSeekDataProvider({}); });
+        assertThrows("DEEPSEEK-ACTION-ERROR", sub () { new DeepSeekApiDataProvider(client, "missing"); });
+        assertThrows("DEEPSEEK-CHILD-ERROR", sub () {
+            DeepSeekDataProvider::DeepSeekDataProvider::registerChild("list-models",
+                Class::forName("DeepSeekChatCompletionDataProvider"));
+        });
+    }
+
+    private errorTest() {
+        FakeDeepSeekRestClientIo fake();
+        DeepSeekChatCompletionDataProvider chat(fake);
+        foreach string error in ("REST-RESPONSE-ERROR", "SOCKET-CLOSED", "PROGRAM-INTERRUPTED") {
+            fake.failure = <ExceptionInfo>{"err": error, "desc": "test failure", "arg": {"status_code": 429}};
+            assertThrows(error, sub () { chat.doRequest(chatRequest()); });
+        }
+        assertEq(3, fake.calls);
+    }
+
+    private liveAccountTest() {
+        DeepSeekRestConnection conn("live", "Live account verification", DeepSeekRestConnection::DefaultUrl, {},
+            {"apikey": ENV.DEEPSEEK_APIKEY});
+        assertTrue(conn.ping(True).ok);
+        AbstractDataProvider root = conn.getDataProvider();
+        auto models = root.getChildProvider("list-models").doRequest();
+        assertTrue(models.data.size() > 0);
+        assertEq(models, root.getChildProvider("list-models").getResponseType().acceptsValue(models));
+        assertEq((map $1.id, models.data), (map $1.value, root.getReferenceData("models")));
+        auto balance = root.getChildProvider("get-balance").doRequest();
+        assertEq(NT_BOOLEAN, balance.is_available.typeCode());
+        assertTrue(balance.balance_infos.size() > 0);
+        assertEq(balance, root.getChildProvider("get-balance").getResponseType().acceptsValue(balance));
+        assertEq(NT_STRING, balance.balance_infos[0].total_balance.typeCode());
+    }
+
+    private liveApiTest() {
+        DeepSeekDataProvider::DeepSeekDataProvider root({"apikey": ENV.DEEPSEEK_APIKEY});
+        auto chat = root.getChildProvider("chat-completion").doRequest(chatRequest() + {
+            "thinking": {"type": "disabled"}, "max_tokens": 32});
+        assertTrue(chat.choices[0].message.content.val());
+        assertEq(chat, root.getChildProvider("chat-completion").getResponseType().acceptsValue(chat));
+        auto resp = root.getChildProvider("create-response").doRequest({"model": "deepseek-v4-flash", "input": "Say hello.",
+            "reasoning": {"effort": "none"}, "max_output_tokens": 32});
+        assertEq("completed", resp.status);
+        assertEq(resp, root.getChildProvider("create-response").getResponseType().acceptsValue(resp));
+        assertTrue(resp.output.size() > 0);
+        auto fim = root.getChildProvider("fim-completion").doRequest({"model": "deepseek-v4-pro", "prompt": "x = ",
+            "suffix": "\nprint(x)", "max_tokens": 32});
+        assertTrue(fim.choices[0].text.val());
+        assertEq(fim, root.getChildProvider("fim-completion").getResponseType().acceptsValue(fim));
+        # A solid red 64-pixel square; no private image or user content is uploaded.
+        auto file = root.getChildProvider("upload-file").doRequest({"purpose": "user_data", "expires_after_seconds": 3600,
+            "file": {"name": "qore-deepseek-test.png", "content":
+                "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAb0lEQVR4nO3PAQkAAAyEwO9feoshgnABdLep8QUNyPEFDcjxBQ3I8QUNyPEFDcjxBQ3I8QUNyPEFDcjxBQ3I8QUNyPEFDcjxBQ3I8QUNyPEFDcjxBQ3I8QUNyPEFDcjxBQ3I8QUNyPEFDcjxBQ3IPanc8OLDQitxAAAAAElFTkSuQmCC"}});
+        bool deleted = False;
+        on_exit {
+            if (!deleted) {
+                root.getChildProvider("delete-file").doRequest({"file_id": file.id});
+            }
+        }
+        assertEq(file.id, root.getChildProvider("get-file").doRequest({"file_id": file.id}).id);
+        assertEq(NT_DATE, file.created_at.typeCode());
+        assertEq("qore-deepseek-test.png", file.filename);
+        assertEq(file, root.getChildProvider("get-file").getResponseType().acceptsValue(file));
+        assertEq("user_data", file.purpose);
+        assertEq(3600, int(file.expires_at - file.created_at));
+        auto vision = root.getChildProvider("chat-completion").doRequest({"model": "deepseek-v4-flash-vision-exp",
+            "messages": ({"role": "user", "content": (
+                {"type": "text", "text": "Name the dominant color in one word."},
+                {"type": "file", "file_id": file.id},
+            )},), "thinking": {"type": "disabled"}, "max_tokens": 32});
+        assertRegex("(?i)red", vision.choices[0].message.content);
+        assertTrue(root.getChildProvider("list-files").doRequest({"limit": 1, "order": "desc"}).data.size() > 0);
+        assertTrue((select root.getReferenceData("files"), $1.value == file.id).size() > 0);
+        auto removed = root.getChildProvider("delete-file").doRequest({"file_id": file.id});
+        deleted = True;
+        assertEq(file.id, removed.id);
+        assertTrue(removed.deleted);
+        assertThrows("REST-RESPONSE-ERROR", "HTTP 400.*", {"status_code": 400}, sub () {
+            root.getChildProvider("get-file").doRequest({"file_id": file.id});
+        });
+    }
+
+    private wireTest() {
+        HttpServer http(<HttpServerOptionInfo>{"logger": new Logger("test", LoggerLevel::getLevelWarn())});
+        on_exit delete http;
+        int port = http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        DeepSeekWireHandler handler();
+        http.setDefaultHandler("wire", handler);
+        DeepSeekRestClientIo client({"url": sprintf("http://127.0.0.1:%d", port),
+            "apikey": "wire-key", "api": "beta", "http_version": "1.1"});
+        DeepSeekDataProvider::DeepSeekDataProvider root(client);
+        root.getChildProvider("chat-completion").doRequest(chatRequest() + {"max_tokens": 8});
+        hash<auto> wire = handler.getRequest();
+        assertEq("beta/chat/completions", wire.hdr.path);
+        assertEq("POST", wire.hdr.method);
+        assertEq("Bearer wire-key", wire.hdr.authorization);
+        assertTrue(wire.hdr."content-type".startsWith("application/json"));
+        assertEq(8, parse_json(wire.body.toString()).max_tokens);
+        assertEq("/beta", client.getConnectionPath());
+        root.getChildProvider("upload-file").doRequest({"purpose": "user_data", "file": {
+            "name": "a.png", "content": binary("image\0payload")}});
+        wire = handler.getRequest();
+        assertEq("v1/files", wire.hdr.path);
+        assertTrue(wire.hdr."content-type".startsWith("multipart/form-data;"));
+        assertTrue(index(wire.body.toString(), "image\0payload") >= 0);
+        assertEq("Bearer wire-key", wire.hdr.authorization);
+        root.getChildProvider("get-file").doRequest({"file_id": "file-a"});
+        wire = handler.getRequest();
+        assertEq("GET", wire.hdr.method);
+        assertEq("v1/files/file-a", wire.hdr.path);
+        assertNothing(wire.body);
+    }
+
+    private liveAdvancedTest() {
+        DeepSeekDataProvider::DeepSeekDataProvider root({"apikey": ENV.DEEPSEEK_APIKEY});
+        AbstractDataProvider chat = root.getChildProvider("chat-completion");
+        auto json_reply = chat.doRequest({"model": "deepseek-v4-flash", "messages": (
+            {"role": "user", "content": "Return JSON with exactly one key, total, set to 42."},),
+            "thinking": {"type": "disabled"}, "response_format": {"type": "json_object"}, "max_tokens": 64});
+        assertEq(42, parse_json(json_reply.choices[0].message.content).total);
+        auto tool_reply = chat.doRequest({"model": "deepseek-v4-flash", "messages": (
+            {"role": "user", "content": "Look up order 123."},), "thinking": {"type": "disabled"},
+            "tools": ({"type": "function", "function": {"name": "lookup_order", "strict": True,
+                "parameters": {"type": "object", "properties": {"order_id": {"type": "string"}},
+                    "required": ("order_id",), "additionalProperties": False}}},),
+            "tool_choice": {"type": "function", "function": {"name": "lookup_order"}}, "max_tokens": 128});
+        assertEq("tool_calls", tool_reply.choices[0].finish_reason);
+        assertEq("lookup_order", tool_reply.choices[0].message.tool_calls[0].function.name);
+        assertEq("123", parse_json(tool_reply.choices[0].message.tool_calls[0].function.arguments).order_id);
+        auto structured = root.getChildProvider("create-response").doRequest({"model": "deepseek-v4-flash",
+            "input": "Extract the total from: invoice total 42.", "reasoning": {"effort": "none"},
+            "text": {"format": {"type": "json_schema", "name": "invoice", "schema": {
+                "type": "object", "properties": {"total": {"type": "number"}}, "required": ("total",),
+                "additionalProperties": False}}}, "max_output_tokens": 128});
+        list<hash<auto>> messages = select structured.output, $1.type == "message";
+        assertEq(42, parse_json(messages[0].content[0].text).total);
+        list<hash<auto>> history = ({"role": "user", "content": "The invoice total is 42."},);
+        history += structured.output;
+        push history, {"role": "user", "content": "What was the total? Reply with the number only."};
+        auto continued = root.getChildProvider("create-response").doRequest({"model": "deepseek-v4-flash",
+            "input": history, "reasoning": {"effort": "none"}, "max_output_tokens": 32});
+        messages = select continued.output, $1.type == "message";
+        assertRegex("42", messages[0].content[0].text);
+        auto thinking = chat.doRequest(chatRequest() + {"thinking": {"type": "enabled"},
+            "reasoning_effort": "low", "max_tokens": 128});
+        assertTrue(thinking.choices[0].message.reasoning_content.val());
+        assertTrue(thinking.usage.completion_tokens_details.reasoning_tokens > 0);
+    }
+
 }

@@ -35,7 +35,7 @@
 %requires QoreLlmTypes
 
 module DeepSeekRestClient {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for calling DeepSeek REST API services";
     author = "Qore Technologies <info@qoretechnologies.com>";
     url = "https://qore.org";
@@ -73,7 +73,7 @@ module DeepSeekRestClient {
     - @ref DeepSeekRestClient::DeepSeekRestConnection "DeepSeekRestConnection":
       a REST connection object to DeepSeek
     - @ref DeepSeekRestClient::DeepSeekLlmProvider "DeepSeekLlmProvider":
-      @ref qorellmutilsintro "QoreLlmUtils" provider for mode \c deepseek
+      @ref QoreLlmUtils::AbstractLlmProvider "language model provider" for mode \c deepseek
 
     @par Example:
     @code{.py}
@@ -85,7 +85,7 @@ module DeepSeekRestClient {
 
 DeepSeekRestClient rest({"apikey": api_key});
 hash<auto> ans = rest.post("/v1/chat/completions", {
-    "model": "deepseek-chat",
+    "model": "deepseek-v4-flash",
     "messages": (
         {"role": "user", "content": "Hello!"},
     ),
@@ -95,7 +95,7 @@ printf("%Y\n", ans.body);
 
     @par Reasoner Models
 
-    DeepSeek's reasoner models (e.g. \c deepseek-reasoner) emit a
+    DeepSeek's reasoner models (e.g. \c deepseek-v4-pro) emit a
     \c reasoning_content field alongside the regular \c content on the
     assistant message and on each streaming delta.  The OpenAI-compatible
     response shape preserves this field; downstream consumers can read it
@@ -103,6 +103,11 @@ printf("%Y\n", ans.body);
     @ref QoreLlmUtils::ChatStreamEvent.
 
     @section DeepSeekRestClientRelnotes Release Notes
+
+    @subsection DeepSeekRestClientv1_1 DeepSeekRestClient v1.1
+    - Fixed automatic connection URLs, associated connections with the DeepSeek app, and enabled explicit JSON encoding.
+    - Updated the default chat model and API/model selections; verified valid and invalid API-key pings.
+    - Honored immediate versus deferred connection construction for the synchronous client.
 
     @subsection DeepSeekRestClientv1_0 DeepSeekRestClient v1.0
     - the initial version of the %DeepSeekRestClient module
@@ -122,11 +127,12 @@ public class DeepSeekRestClientBase {
         const DefaultApiVersion = "v1";
 
         #! Default DeepSeek chat model
-        const DefaultChatModel = "deepseek-chat";
+        const DefaultChatModel = "deepseek-v4-flash";
 
         #! Default constructor options
         const DefaultOptions = {
             "url": DefaultUrl,
+            "data": "json",
             "api": DefaultApiVersion,
             "default_path": "/" + DefaultApiVersion,
         };
@@ -134,9 +140,14 @@ public class DeepSeekRestClientBase {
 
     #! Returns options for the DeepSeekRestClient constructors
     /** Maps the \c apikey option to \c token for Bearer authentication
+        @param opts caller-supplied options
+        @return normalized options with JSON serialization
     */
     static hash<auto> getOptions(hash<auto> opts) {
         hash<auto> rv = DefaultOptions + opts;
+        if (!rv.data || rv.data == "auto") {
+            rv.data = "json";
+        }
         if (opts.api) {
             rv.default_path = "/" + opts.api;
         }
@@ -156,11 +167,6 @@ public class DeepSeekRestClientBase {
     The API key is sent as the \c Authorization: \c Bearer header.
 */
 public class DeepSeekRestClient inherits RestClient::RestClient, DeepSeekRestClientBase {
-    private {
-        #! The API version in use
-        string api;
-    }
-
     #! Creates the object with the given options
     /** @par Example:
         @code{.py}
@@ -175,11 +181,15 @@ DeepSeekRestClient rest(opts);
 
         @throw RESTCLIENT-ERROR invalid option passed to constructor,
         unsupported data serialization, etc
+        @throw SOCKET-CONNECT-ERROR the server cannot be reached when immediate connection is requested
     */
     constructor(hash<auto> opts, *softbool do_not_connect)
             : RestClient(DeepSeekRestClientBase::getOptions(opts), True) {
         if (validator instanceof NullRestSchemaValidator) {
             setConnectionPath(getString(opts, "api") ?? DefaultApiVersion);
+        }
+        if (!do_not_connect) {
+            connect();
         }
     }
 }
@@ -237,18 +247,26 @@ public class DeepSeekRestConnection inherits RestClient::RestConnection {
                 "api": <ConnectionOptionInfo>{
                     "display_name": "API Version",
                     "short_desc": "The API version to use",
-                    "desc": "The API version to use.",
+                    "desc": "Select the stable API or the beta API for prefix completion and strict tools.",
+                    "allowed_values": (
+                        <AllowedValueInfo>{"value": "v1", "display_name": "Stable API"},
+                        <AllowedValueInfo>{"value": "beta", "display_name": "Beta API"},
+                    ),
                     "type": "string",
                     "default_value": DeepSeekRestClientBase::DefaultApiVersion,
                 },
                 "chat-model": <ConnectionOptionInfo>{
                     "display_name": "Chat Model",
                     "short_desc": "DeepSeek chat model name",
-                    "desc": "The DeepSeek chat model used by LLM clients when this connection is "
-                        "selected for chat.\n\n"
-                        "Chat models are a separate family from embedding models and cannot "
-                        "be used interchangeably."
-                        "\n\nExample values: `deepseek-chat` (the default), `deepseek-reasoner`",
+                    "desc": "Model ID for chat through this connection. Use the app's `List Models` "
+                        "action to inspect available models. Custom model IDs are accepted.",
+                    "allowed_values": (
+                        <AllowedValueInfo>{"value": "deepseek-v4-flash", "display_name": "DeepSeek V4 Flash"},
+                        <AllowedValueInfo>{"value": "deepseek-v4-pro", "display_name": "DeepSeek V4 Pro"},
+                        <AllowedValueInfo>{"value": "deepseek-v4-flash-vision-exp",
+                            "display_name": "DeepSeek V4 Flash Vision Experimental"},
+                    ),
+                    "allowed_values_creatable": True,
                     "type": "string",
                     "default_value": DeepSeekRestClientBase::DefaultChatModel,
                 },
@@ -296,7 +314,18 @@ public class DeepSeekRestConnection inherits RestClient::RestConnection {
 
     #! Creates the DeepSeekRestConnection object from a configuration hash
     constructor(hash<auto> config, *hash<auto> attr)
-            : RestConnection(config + (exists config.url ? {} : {"url": DefaultUrl}), attr) {
+            : RestConnection(DeepSeekRestConnection::getConfig(config), attr) {
+    }
+
+    #! Uses the canonical endpoint for automatic connections
+    private static hash<auto> getConfig(hash<auto> config) {
+        return config + {"url": DefaultUrl};
+    }
+
+    #! Returns the associated application
+    /** @return the DeepSeek application name */
+    *string getAppName() {
+        return "DeepSeek";
     }
 
     #! Returns \c "deepseek"
@@ -372,8 +401,8 @@ public class DeepSeekRestConnection inherits RestClient::RestConnection {
 
     - \c url (optional): override the default \c https://api.deepseek.com
     - \c api_key (required): DeepSeek API key
-    - \c model (required): DeepSeek model name, e.g. \c "deepseek-chat" or
-      \c "deepseek-reasoner"
+    - \c model (required): DeepSeek model name, e.g. \c "deepseek-v4-flash" or
+      \c "deepseek-v4-pro"
 
     @par Reasoning channel
 
@@ -436,7 +465,7 @@ public class DeepSeekLlmProviderFactory inherits QoreLlmUtils::AbstractLlmProvid
             "supports_streaming": True,
             "supports_tools": True,
             "supports_structured_output": True,
-            "supports_multimodal": False,
+            "supports_multimodal": True,
         };
     }
 }

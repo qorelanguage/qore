@@ -30,7 +30,7 @@
 %requires RestClientIo
 
 module DeepSeekDataProvider {
-    version = "1.0";
+    version = "1.1";
     desc = "user module providing a data provider API for DeepSeek AI services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -45,19 +45,12 @@ module DeepSeekDataProvider {
             "presentation_source_locale": "en",
             "display_name": "DeepSeek",
             "short_desc": "DeepSeek frontier and reasoning LLMs via an OpenAI-compatible API",
-            "desc": "Provides access to [DeepSeek](https://platform.deepseek.com) — a "
-                "frontier-class LLM provider offering budget-friendly chat and reasoning models.\n\n"
-                "DeepSeek exposes an OpenAI-compatible chat-completions API, so DeepSeek "
-                "models drop into existing OpenAI-shape consumers (chat, tool calling, "
-                "structured-output JSON schema, streaming) with only a base-URL change.\n\n"
-                "**Common use cases**:\n"
-                "- **Cost-sensitive chat assistants** using `deepseek-chat` — competitive "
-                "quality at a fraction of frontier-model pricing\n"
-                "- **Multi-step reasoning** using `deepseek-reasoner` — emits "
-                "`reasoning_content` alongside the final answer for explainable outputs\n"
-                "- **Tool-calling agents** — OpenAI-shape `tools` and `tool_choice` work "
-                "unchanged\n"
-                "- **Structured extraction** via JSON-schema `response_format`",
+            "desc": "Use [DeepSeek](https://platform.deepseek.com) to automate language and image tasks.\n\n"
+                "- Generate chat and reasoning responses\n"
+                "- Extract structured data and call tools\n"
+                "- Complete code between a prompt and suffix\n"
+                "- Upload images for reuse in vision requests\n"
+                "- Inspect available models and account credit",
             "scheme": "deepseek",
             "logo": DeepSeekLogo,
             "logo_file_name": "deepseek-logo.svg",
@@ -72,15 +65,10 @@ module DeepSeekDataProvider {
             "action": "chat-completion",
             "display_name": "Chat Completion",
             "short_desc": "Generate a chat completion from a DeepSeek model",
-            "desc": "Sends a list of chat messages to a DeepSeek model using the "
-                "OpenAI-compatible `/v1/chat/completions` endpoint and returns the "
-                "generated response.\n\n"
-                "**Example use cases**:\n"
-                "- General-purpose chat with `deepseek-chat`\n"
-                "- Multi-step reasoning with `deepseek-reasoner` — the response carries a "
-                "`reasoning_content` field alongside the final `content`\n"
-                "- Tool-calling agents (pass `tools` and `tool_choice` in the request)\n"
-                "- Structured extraction (pass `response_format` with a JSON schema)",
+            "desc": "Generate answers, analyze images, or call functions from a conversation history.\n\n"
+                "Use `thinking` to control reasoning and `response_format` for JSON output. "
+                "For JSON mode, also instruct the model to produce JSON. "
+                "Prefix messages and strict tools automatically use the beta endpoint.",
             "action_code": DPAT_API,
             "mutates_state": False,
             "groups": ("Chat",),
@@ -97,11 +85,12 @@ module DeepSeekDataProvider {
                 }
             ) + DataProviderActionCatalog::getActionOptionFromFields(
                 DeepSeekChatCompletionRequestDataType::Fields - (
-                    "messages", "model", "temperature", "max_tokens",
+                    "messages", "model", "temperature", "max_tokens", "stream",
                 )
             ),
             "output_type": DeepSeekChatCompletionDataProvider::ResponseType,
         });
+        DeepSeekActions::registerActions();
     };
 }
 
@@ -129,7 +118,7 @@ DeepSeekDataProvider::DeepSeekDataProvider prov(rc.getAsync());
 
 AbstractDataProvider chat = prov.getChildProvider("chat-completion");
 hash<auto> result = chat.doRequest({
-    "model": "deepseek-chat",
+    "model": "deepseek-v4-flash",
     "messages": (
         {"role": "user", "content": "Hello!"},
     ),
@@ -137,7 +126,56 @@ hash<auto> result = chat.doRequest({
 printf("Response: %s\n", result.choices[0].message.content);
     @endcode
 
+    @section deepseekdataprovidercoverage API Coverage
+
+    Contracts follow the [DeepSeek API reference](https://api-docs.deepseek.com/api/create-chat-completion)
+    verified in September 2026. Available models are queried at runtime.
+
+    |!Action|!Endpoint|!Purpose
+    |Chat Completion|POST /v1/chat/completions|Chat, reasoning, vision, JSON output, function calls
+    |Fill in the Middle|POST /beta/completions|Insert text between a prompt and suffix
+    |Create Response|POST /v1/responses|Stateless responses, JSON Schema output, web search, functions, vision
+    |List Models|GET /v1/models|Available models and model dropdowns
+    |Get Balance|GET /v1/user/balance|Credit availability and balances
+    |Upload Image File|POST /v1/files|JPEG, PNG, GIF, or WebP images with optional expiration
+    |List Image Files|GET /v1/files|Paginated file listing
+    |Get Image File|GET /v1/files/{file_id}|File metadata and expiration
+    |Delete Image File|DELETE /v1/files/{file_id}|Remove an uploaded image
+
+    @note
+    - Generation actions return completed responses. For streaming chat, use
+      @ref DeepSeekRestClient::DeepSeekLlmProvider "DeepSeekLlmProvider".
+    - Prefix messages and strict function tools use `/beta/chat/completions` automatically.
+    - Chat JSON output supports `text` or `json_object`; JSON Schema output is available through Create Response.
+    - Responses are stateless: send the entire conversation on every call. There are no stored-response actions.
+    - File content downloads are not documented by DeepSeek; images are referenced by their uploaded IDs.
+    - Deprecated `frequency_penalty` and `presence_penalty`, and unsupported `seed` and `user` chat options
+      are no longer advertised. Use `user_id` for chat isolation; Responses uses `user`.
+    - API failures propagate without replaying requests that may already have generated billable tokens.
+
+    @par Example: Structured invoice extraction
+    @code{.py}
+AbstractDataProvider response = prov.getChildProvider("create-response");
+hash<auto> invoice = response.doRequest({
+    "model": "deepseek-v4-flash",
+    "input": "Extract the total from: Invoice total USD 42.50",
+    "reasoning": {"effort": "none"},
+    "text": {"format": {
+        "type": "json_schema", "name": "invoice",
+        "schema": {"type": "object", "properties": {"total": {"type": "number"}}, "required": ("total",)},
+    }},
+    "max_output_tokens": 128,
+});
+    @endcode
+
     @section DeepSeekDataProviderRelnotes Release Notes
+
+    @subsection DeepSeekDataProviderv1_1 DeepSeekDataProvider v1.1
+    - Completed the documented API actions with typed inputs and outputs, model and file dropdowns,
+      reasoning and vision support, multipart image uploads, and local validation.
+    - Corrected chat option contracts and beta routing; added regression and opt-in live tests.
+    - Updated the presentation catalog and all twelve existing translation locales.
+
 
     @subsection DeepSeekDataProviderv1_0 DeepSeekDataProvider v1.0
     - the initial version of the %DeepSeekDataProvider module
@@ -150,4 +188,6 @@ public const AppName = "DeepSeek";
 }
 
 #! App logo loaded from file
-public const DeepSeekLogo = File::readTextFile(get_script_dir() + "/deepseek-logo.svg");
+namespace Priv {
+const DeepSeekLogo = File::readTextFile(get_script_dir() + "/deepseek-logo.svg");
+}

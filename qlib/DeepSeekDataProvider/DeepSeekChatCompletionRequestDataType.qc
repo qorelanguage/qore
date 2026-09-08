@@ -22,245 +22,536 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the DeepSeekDataProvider module
+#! Public DeepSeek request contracts
 public namespace DeepSeekDataProvider {
-#! Data type for a single tool call produced by a DeepSeek assistant message
+
+#! ChatFunction data contract
+public class DeepSeekChatFunctionDataType inherits HashDataType {
+    public {
+        #! Field definitions
+        const Fields = {
+            "name": {
+                "display_name": "Function Name",
+                "short_desc": "Function Name",
+                "desc": "The function to invoke in your application.",
+                "type": AbstractDataProviderTypeMap."string",
+                "required": True,
+                "example_value": "lookup_order",
+            },
+            "arguments": {
+                "display_name": "Arguments",
+                "short_desc": "Arguments",
+                "desc": "JSON-encoded function arguments.",
+                "type": AbstractDataProviderTypeMap."string",
+                "example_value": "{\"order_id\":\"123\"}",
+            },
+        };
+    }
+
+    #! Creates the typed fields
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
+        addQoreFields(Fields);
+    }
+}
+
+#! Shared DeepSeekChatFunctionDataType instance
+public const DeepSeekChatFunctionDataType = new DeepSeekChatFunctionDataType();
+
+#! ChatToolCall data contract
 public class DeepSeekChatToolCallDataType inherits HashDataType {
     public {
         #! Field definitions
         const Fields = {
             "id": {
                 "display_name": "Tool Call ID",
-                "short_desc": "Unique identifier for the tool call",
-                "desc": "Unique identifier for this tool call.  The same `id` must be echoed back in "
-                    "the corresponding `tool` role message that returns the tool's result.",
+                "short_desc": "Tool Call ID",
+                "desc": "Pair this identifier with the corresponding `tool_call_id`.",
                 "type": AbstractDataProviderTypeMap."string",
+                "example_value": "call_123",
             },
             "type": {
                 "display_name": "Tool Type",
-                "short_desc": "Type of tool invoked",
-                "desc": "Type of tool invoked.  `function` is the only supported type for "
-                    "OpenAI-compatible tool calling.",
+                "short_desc": "Tool Type",
+                "desc": "Tool Type.",
                 "type": AbstractDataProviderTypeMap."string",
-                "example_value": "function",
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": "function", "display_name": "Function"},
+                ),
             },
             "function": {
                 "display_name": "Function Call",
-                "short_desc": "Function name and JSON-encoded arguments",
-                "desc": "Hash with `name` (string) and `arguments` (JSON-encoded string) describing "
-                    "the function the model wants to invoke.",
-                "type": AbstractDataProviderTypeMap."hash",
+                "short_desc": "Function Call",
+                "desc": "Function Call.",
+                "type": new DeepSeekChatFunctionDataType(),
             },
         };
     }
 
-    #! Creates the object
-    constructor() {
+    #! Creates the typed fields
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
         addQoreFields(Fields);
     }
 }
 
-#! Data type for a single chat message (system, user, assistant, or tool role)
+#! Shared DeepSeekChatToolCallDataType instance
+public const DeepSeekChatToolCallDataType = new DeepSeekChatToolCallDataType();
+
+#! ImageUrl data contract
+public class DeepSeekImageUrlDataType inherits HashDataType {
+    public {
+        #! Field definitions
+        const Fields = {
+            "url": {
+                "display_name": "Image URL",
+                "short_desc": "Image URL",
+                "desc": "Public image URL or a base64 data URL. Supported formats: JPEG, PNG, GIF, WebP.",
+                "type": AbstractDataProviderTypeMap."string",
+                "required": True,
+                "example_value": "https://example.com/product.png",
+            },
+            "detail": {
+                "display_name": "Image Detail",
+                "short_desc": "Image Detail",
+                "desc": "Choose image processing quality.",
+                "type": AbstractDataProviderTypeMap."*string",
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": "low", "display_name": "Low"},
+                    <AllowedValueInfo>{"value": "high", "display_name": "High"},
+                    <AllowedValueInfo>{"value": "original", "display_name": "Original"},
+                    <AllowedValueInfo>{"value": "auto", "display_name": "Automatic"},
+                ),
+            },
+        };
+    }
+
+    #! Creates the typed fields
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
+        addQoreFields(Fields);
+    }
+}
+
+#! Shared DeepSeekImageUrlDataType instance
+public const DeepSeekImageUrlDataType = new DeepSeekImageUrlDataType();
+
+#! ChatContent data contract
+public class DeepSeekChatContentDataType inherits HashDataType {
+    public {
+        #! Field definitions
+        const Fields = {
+            "type": {
+                "display_name": "Content Type",
+                "short_desc": "Content Type",
+                "desc": "Content Type.",
+                "type": AbstractDataProviderTypeMap."string",
+                "required": True,
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": "text", "display_name": "Text"},
+                    <AllowedValueInfo>{"value": "image_url", "display_name": "Image URL"},
+                    <AllowedValueInfo>{"value": "file", "display_name": "File"},
+                ),
+            },
+            "text": {
+                "display_name": "Text",
+                "short_desc": "Text",
+                "desc": "Text for a `text` content part.",
+                "type": AbstractDataProviderTypeMap."*string",
+                "example_value": "Describe this product.",
+            },
+            "image_url": {
+                "display_name": "Image",
+                "short_desc": "Image",
+                "desc": "Image.",
+                "type": new DeepSeekImageUrlDataType(True),
+            },
+            "file_id": {
+                "display_name": "File ID",
+                "short_desc": "File ID",
+                "desc": "Uploaded image identifier; mutually exclusive with `file_data`.",
+                "type": AbstractDataProviderTypeMap."*string",
+                "ref_data": "files",
+                "allowed_values_creatable": True,
+            },
+            "file_data": {
+                "display_name": "File Data",
+                "short_desc": "File Data",
+                "desc": "Base64 image data URL; mutually exclusive with `file_id`.",
+                "type": AbstractDataProviderTypeMap."*string",
+            },
+            "filename": {
+                "display_name": "Filename",
+                "short_desc": "Filename",
+                "desc": "Optional image filename, used only with `file_data`.",
+                "type": AbstractDataProviderTypeMap."*string",
+                "example_value": "product.png",
+            },
+        };
+    }
+
+    #! Creates the typed fields
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
+        addQoreFields(Fields);
+    }
+}
+
+#! Shared DeepSeekChatContentDataType instance
+public const DeepSeekChatContentDataType = new DeepSeekChatContentDataType();
+
+#! ChatMessage data contract
 public class DeepSeekChatMessageDataType inherits HashDataType {
     public {
         #! Field definitions
         const Fields = {
             "role": {
                 "display_name": "Role",
-                "short_desc": "The role of the message author",
-                "desc": "The role of the author of this message.  Determines how the message is "
-                    "interpreted by the model.\n\n"
-                    "- `system` — high-level instructions and persona for the assistant\n"
-                    "- `user` — input from the end user\n"
-                    "- `assistant` — previous model output (used for multi-turn conversations)\n"
-                    "- `tool` — result returned by a tool invocation (paired with a `tool_call_id`)",
+                "short_desc": "Role",
+                "desc": "The message author role.",
                 "type": AbstractDataProviderTypeMap."string",
+                "required": True,
                 "example_value": "user",
                 "allowed_values": (
-                    <AllowedValueInfo>{"value": "system",
-                        "display_name": "System - instructions and persona"},
-                    <AllowedValueInfo>{"value": "user",
-                        "display_name": "User - end-user input"},
-                    <AllowedValueInfo>{"value": "assistant",
-                        "display_name": "Assistant - previous model output"},
-                    <AllowedValueInfo>{"value": "tool",
-                        "display_name": "Tool - tool invocation result"},
+                    <AllowedValueInfo>{"value": "system", "display_name": "System"},
+                    <AllowedValueInfo>{"value": "user", "display_name": "User"},
+                    <AllowedValueInfo>{"value": "assistant", "display_name": "Assistant"},
+                    <AllowedValueInfo>{"value": "tool", "display_name": "Tool"},
                 ),
             },
             "content": {
                 "display_name": "Content",
-                "short_desc": "The text content of the message",
-                "desc": "The text content of the message.  May be NOTHING on assistant messages "
-                    "that only contain `tool_calls`.",
-                "type": AbstractDataProviderTypeMap."*string",
+                "short_desc": "Content",
+                "desc": "Text or image content parts. Assistant tool calls may omit text.",
+                "type": new QoreUnionDataType((AbstractDataProviderTypeMap."*string", new ListDataType("DeepSeekChatContentDataTypeList", new DeepSeekChatContentDataType(), False),)),
+                "example_value": "Summarize this order.",
             },
             "name": {
                 "display_name": "Author Name",
-                "short_desc": "Optional name of the author",
-                "desc": "Optional name identifying the specific author of the message.  May be used "
-                    "with `user` or `tool` roles to distinguish multiple participants.",
+                "short_desc": "Author Name",
+                "desc": "Optional participant name.",
                 "type": AbstractDataProviderTypeMap."*string",
+                "example_value": "customer",
             },
             "tool_call_id": {
                 "display_name": "Tool Call ID",
-                "short_desc": "ID of the tool call this message responds to",
-                "desc": "Required when `role` is `tool` — identifies which of the preceding assistant "
-                    "message's `tool_calls` this message is returning the result for.",
+                "short_desc": "Tool Call ID",
+                "desc": "Required for a `tool` message; copy the preceding assistant tool call ID.",
                 "type": AbstractDataProviderTypeMap."*string",
+                "example_value": "call_123",
             },
             "tool_calls": {
                 "display_name": "Tool Calls",
-                "short_desc": "Tool invocations emitted by the assistant",
-                "desc": "List of tool calls emitted by the assistant.  Present only on assistant "
-                    "messages that chose to invoke a tool.",
-                "type": new ListDataType("DeepSeekChatToolCallList",
-                    new DeepSeekChatToolCallDataType(), True),
+                "short_desc": "Tool Calls",
+                "desc": "Tool calls from a previous assistant turn.",
+                "type": new ListDataType("DeepSeekChatToolCallDataTypeList", new DeepSeekChatToolCallDataType(), True),
+            },
+            "prefix": {
+                "display_name": "Prefix Completion",
+                "short_desc": "Prefix Completion",
+                "desc": "Continue the final assistant message. Routes this request to `/beta/chat/completions`.",
+                "type": AbstractDataProviderTypeMap."*bool",
+            },
+            "reasoning_content": {
+                "display_name": "Reasoning Content",
+                "short_desc": "Reasoning Content",
+                "desc": "Preserve reasoning from a previous assistant tool call or supply reasoning for a beta prefix.",
+                "type": AbstractDataProviderTypeMap."*string",
             },
         };
     }
 
-    #! Creates the object
-    constructor() {
+    #! Creates the typed fields
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
         addQoreFields(Fields);
     }
 }
 
-#! Data type for DeepSeek chat completion requests (OpenAI-compatible)
+#! Shared DeepSeekChatMessageDataType instance
+public const DeepSeekChatMessageDataType = new DeepSeekChatMessageDataType();
+
+#! FunctionDefinition data contract
+public class DeepSeekFunctionDefinitionDataType inherits HashDataType {
+    public {
+        #! Field definitions
+        const Fields = {
+            "name": {
+                "display_name": "Function Name",
+                "short_desc": "Function Name",
+                "desc": "Function identifier, at most 64 characters: letters, digits, underscores, or dashes.",
+                "type": AbstractDataProviderTypeMap."string",
+                "required": True,
+                "example_value": "lookup_order",
+            },
+            "description": {
+                "display_name": "Description",
+                "short_desc": "Description",
+                "desc": "Explain when to call this function.",
+                "type": AbstractDataProviderTypeMap."*string",
+                "example_value": "Look up delivery status for an order.",
+            },
+            "parameters": {
+                "display_name": "Parameters",
+                "short_desc": "Parameters",
+                "desc": "JSON Schema describing function arguments.",
+                "type": AbstractDataProviderTypeMap."*hash",
+                "example_value": {
+                    "type": "object",
+                    "properties": {
+                        "order_id": {
+                            "type": "string",
+                        },
+                    },
+                    "required": ("order_id",),
+                },
+            },
+            "strict": {
+                "display_name": "Strict Arguments",
+                "short_desc": "Strict Arguments",
+                "desc": "Require arguments to match the schema. Routes this request to the beta API.",
+                "type": AbstractDataProviderTypeMap."*bool",
+            },
+        };
+    }
+
+    #! Creates the typed fields
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
+        addQoreFields(Fields);
+    }
+}
+
+#! Shared DeepSeekFunctionDefinitionDataType instance
+public const DeepSeekFunctionDefinitionDataType = new DeepSeekFunctionDefinitionDataType();
+
+#! ToolDefinition data contract
+public class DeepSeekToolDefinitionDataType inherits HashDataType {
+    public {
+        #! Field definitions
+        const Fields = {
+            "type": {
+                "display_name": "Tool Type",
+                "short_desc": "Tool Type",
+                "desc": "Tool Type.",
+                "type": AbstractDataProviderTypeMap."string",
+                "required": True,
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": "function", "display_name": "Function"},
+                ),
+            },
+            "function": {
+                "display_name": "Function",
+                "short_desc": "Function",
+                "desc": "Function.",
+                "type": new DeepSeekFunctionDefinitionDataType(),
+                "required": True,
+            },
+        };
+    }
+
+    #! Creates the typed fields
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
+        addQoreFields(Fields);
+    }
+}
+
+#! Shared DeepSeekToolDefinitionDataType instance
+public const DeepSeekToolDefinitionDataType = new DeepSeekToolDefinitionDataType();
+
+#! Thinking data contract
+public class DeepSeekThinkingDataType inherits HashDataType {
+    public {
+        #! Field definitions
+        const Fields = {
+            "type": {
+                "display_name": "Thinking Mode",
+                "short_desc": "Thinking Mode",
+                "desc": "Enable reasoning or generate an immediate answer.",
+                "type": AbstractDataProviderTypeMap."string",
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": "enabled", "display_name": "Enabled"},
+                    <AllowedValueInfo>{"value": "disabled", "display_name": "Disabled"},
+                ),
+            },
+        };
+    }
+
+    #! Creates the typed fields
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
+        addQoreFields(Fields);
+    }
+}
+
+#! Shared DeepSeekThinkingDataType instance
+public const DeepSeekThinkingDataType = new DeepSeekThinkingDataType();
+
+#! ResponseFormat data contract
+public class DeepSeekResponseFormatDataType inherits HashDataType {
+    public {
+        #! Field definitions
+        const Fields = {
+            "type": {
+                "display_name": "Output Format",
+                "short_desc": "Output Format",
+                "desc": "For JSON output, also instruct the model to produce JSON in a message.",
+                "type": AbstractDataProviderTypeMap."string",
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": "text", "display_name": "Text"},
+                    <AllowedValueInfo>{"value": "json_object", "display_name": "JSON Object"},
+                ),
+            },
+        };
+    }
+
+    #! Creates the typed fields
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
+        addQoreFields(Fields);
+    }
+}
+
+#! Shared DeepSeekResponseFormatDataType instance
+public const DeepSeekResponseFormatDataType = new DeepSeekResponseFormatDataType();
+
+#! ChatCompletionRequest data contract
 public class DeepSeekChatCompletionRequestDataType inherits HashDataType {
     public {
         #! Field definitions
         const Fields = {
             "model": {
                 "display_name": "Model",
-                "short_desc": "The DeepSeek model to use",
-                "desc": "Name of the DeepSeek model to use for this request.  Common values:\n\n"
-                    "- `deepseek-chat` — general-purpose chat model\n"
-                    "- `deepseek-reasoner` — multi-step reasoning model (emits "
-                    "`reasoning_content` alongside the final answer)",
+                "short_desc": "Model",
+                "desc": "Select an available model for this request.",
                 "type": AbstractDataProviderTypeMap."string",
                 "required": True,
-                "example_value": "deepseek-chat",
+                "ref_data": "models",
+                "allowed_values_creatable": True,
             },
             "messages": {
                 "display_name": "Messages",
-                "short_desc": "List of chat messages forming the conversation",
-                "desc": "The conversation history as a list of message objects.  Each message has a "
-                    "`role` (`system`, `user`, `assistant`, or `tool`) and `content` (text).",
-                "type": new ListDataType("DeepSeekChatMessageList",
-                    new DeepSeekChatMessageDataType(), False),
+                "short_desc": "Messages",
+                "desc": "Conversation history in chronological order.",
+                "type": new ListDataType("DeepSeekChatMessageDataTypeList", new DeepSeekChatMessageDataType(), False),
                 "required": True,
-                "example_value": (
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": "Hello!"},
-                ),
-            },
-            "temperature": {
-                "display_name": "Temperature",
-                "short_desc": "Sampling temperature (0-2); higher values give more varied output",
-                "desc": "Controls randomness of the output.  Range `0.0` to `2.0`.  Defaults to "
-                    "`1.0` on DeepSeek.\n\n"
-                    "DeepSeek recommends `0.0` for coding/math, `1.3` for general chat, and "
-                    "`1.5` for creative writing.",
-                "type": AbstractDataProviderTypeMap."*softfloat",
-                "example_value": 1.0,
+                "example_value": ({
+                    "role": "user",
+                    "content": "Summarize the benefits of automated invoicing.",
+                },),
             },
             "max_tokens": {
                 "display_name": "Max Tokens",
-                "short_desc": "Maximum tokens to emit in the completion",
-                "desc": "Maximum number of tokens to generate.  Hard cap is 8192 on most DeepSeek "
-                    "models; consult the platform docs for per-model limits.",
+                "short_desc": "Max Tokens",
+                "desc": "Maximum generated tokens, including reasoning. Check the selected model limits.",
                 "type": AbstractDataProviderTypeMap."*softint",
                 "example_value": 2048,
+                "preselected": True,
+            },
+            "temperature": {
+                "display_name": "Temperature",
+                "short_desc": "Temperature",
+                "desc": "Sampling temperature from `0` to `2`. Has no effect in thinking mode.",
+                "type": AbstractDataProviderTypeMap."*softfloat",
+                "example_value": 1.0,
+            },
+            "thinking": {
+                "display_name": "Thinking",
+                "short_desc": "Thinking",
+                "desc": "Enable or disable reasoning for this request.",
+                "type": new DeepSeekThinkingDataType(True),
+            },
+            "reasoning_effort": {
+                "display_name": "Reasoning Effort",
+                "short_desc": "Reasoning Effort",
+                "desc": "Amount of reasoning to apply when thinking is enabled.",
+                "type": AbstractDataProviderTypeMap."*string",
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": "low", "display_name": "Low"},
+                    <AllowedValueInfo>{"value": "high", "display_name": "High"},
+                    <AllowedValueInfo>{"value": "max", "display_name": "Maximum"},
+                ),
             },
             "top_p": {
                 "display_name": "Top-P",
-                "short_desc": "Nucleus sampling cutoff (0-1)",
-                "desc": "Nucleus sampling cutoff.  Range `0.0` to `1.0`.  Usually left at `1.0`.",
-                "type": AbstractDataProviderTypeMap."*softfloat",
-            },
-            "frequency_penalty": {
-                "display_name": "Frequency Penalty",
-                "short_desc": "Penalize repeated tokens proportional to their frequency",
-                "desc": "Penalizes tokens based on how often they have already appeared in the "
-                    "output.  Range `-2.0` to `2.0`.  Positive values reduce verbatim repetition.",
-                "type": AbstractDataProviderTypeMap."*softfloat",
-            },
-            "presence_penalty": {
-                "display_name": "Presence Penalty",
-                "short_desc": "Penalize any token that has already appeared",
-                "desc": "Penalizes tokens that have already appeared in the output, regardless of "
-                    "frequency.  Range `-2.0` to `2.0`.  Positive values encourage topic diversity.",
+                "short_desc": "Top-P",
+                "desc": "Nucleus sampling cutoff from `0` to `1`. Has no effect in thinking mode.",
                 "type": AbstractDataProviderTypeMap."*softfloat",
             },
             "stop": {
                 "display_name": "Stop Sequences",
-                "short_desc": "String or list of strings; generation halts when emitted",
-                "desc": "One or more stop sequences.  Generation halts as soon as the model emits "
-                    "any of them.  Can be a single string or a list of strings.",
-                "type": AbstractDataProviderTypeMap."*softlist",
-            },
-            "stream": {
-                "display_name": "Stream",
-                "short_desc": "Stream partial completions as Server-Sent Events",
-                "desc": "When `True`, the server streams partial completions as Server-Sent Events "
-                    "(SSE) instead of returning a single response.  Most data provider flows expect "
-                    "non-streaming (`False` / omitted); enable only when wiring into a streaming "
-                    "consumer.",
-                "type": AbstractDataProviderTypeMap."*softbool",
+                "short_desc": "Stop Sequences",
+                "desc": "Up to 16 strings that stop generation before the matching sequence.",
+                "type": new QoreUnionDataType((AbstractDataProviderTypeMap."*string", new ListDataType("DeepSeekStopList", StringType),)),
+                "example_value": ("END",),
             },
             "tools": {
                 "display_name": "Tools",
-                "short_desc": "OpenAI-style tool definitions the model may call",
-                "desc": "List of tool definitions the model may invoke.  Each entry is a hash with "
-                    "a `type` field (`function`) and a `function` hash containing `name`, "
-                    "`description`, and a JSON-schema `parameters` object.",
-                "type": AbstractDataProviderTypeMap."*softlist",
+                "short_desc": "Tools",
+                "desc": "Functions available to the assistant; at most 128.",
+                "type": new ListDataType("DeepSeekToolDefinitionDataTypeList", new DeepSeekToolDefinitionDataType(), True),
             },
             "tool_choice": {
                 "display_name": "Tool Choice",
-                "short_desc": "Whether and which tool the model must invoke",
-                "desc": "Controls tool invocation.\n\n"
-                    "- `none` — never call a tool (text-only reply)\n"
-                    "- `auto` — model decides (default when `tools` is set)\n"
-                    "- `required` — model must call at least one tool",
-                "type": AbstractDataProviderTypeMap."*softstring",
+                "short_desc": "Tool Choice",
+                "desc": "Choose a tool policy or provide a named function object to force a specific tool.",
+                "type": new QoreUnionDataType((AbstractDataProviderTypeMap."*string", AbstractDataProviderTypeMap."hash",)),
                 "allowed_values": (
-                    <AllowedValueInfo>{"value": "none",
-                        "display_name": "None - never call a tool"},
-                    <AllowedValueInfo>{"value": "auto",
-                        "display_name": "Auto - model decides"},
-                    <AllowedValueInfo>{"value": "required",
-                        "display_name": "Required - must call a tool"},
+                    <AllowedValueInfo>{"value": "none", "display_name": "None"},
+                    <AllowedValueInfo>{"value": "auto", "display_name": "Automatic"},
+                    <AllowedValueInfo>{"value": "required", "display_name": "Required"},
                 ),
+                "allowed_values_creatable": True,
+                "example_value": "auto",
             },
             "response_format": {
                 "display_name": "Response Format",
-                "short_desc": "Force structured output (e.g. JSON)",
-                "desc": "Hash that forces a structured response shape.  The most common use is JSON "
-                    "mode: `{type: \"json_object\"}`.",
-                "type": AbstractDataProviderTypeMap."*hash",
-                "example_value": {"type": "json_object"},
+                "short_desc": "Response Format",
+                "desc": "Choose plain text or JSON output. JSON mode requires a JSON instruction.",
+                "type": new DeepSeekResponseFormatDataType(True),
+                "example_value": {
+                    "type": "json_object",
+                },
             },
-            "seed": {
-                "display_name": "Seed",
-                "short_desc": "Deterministic sampling seed",
-                "desc": "Integer seed for deterministic sampling.  With a fixed `seed`, "
-                    "`temperature`, and prompt, the same request returns the same output.",
+            "logprobs": {
+                "display_name": "Log Probabilities",
+                "short_desc": "Log Probabilities",
+                "desc": "Include token log probabilities in the response.",
+                "type": AbstractDataProviderTypeMap."*bool",
+            },
+            "top_logprobs": {
+                "display_name": "Top Log Probabilities",
+                "short_desc": "Top Log Probabilities",
+                "desc": "Number of token alternatives from `0` to `20`; requires `logprobs` set to `True`.",
                 "type": AbstractDataProviderTypeMap."*softint",
             },
-            "user": {
+            "user_id": {
                 "display_name": "User ID",
-                "short_desc": "Opaque end-user identifier for abuse tracking",
-                "desc": "Opaque identifier representing the end user.  Logged server-side for abuse "
-                    "tracking and usage attribution; does not affect generation.",
-                "type": AbstractDataProviderTypeMap."*softstring",
+                "short_desc": "User ID",
+                "desc": "Pseudonymous identifier for cache and scheduling isolation. Use letters, digits, underscores, or dashes; at most 512 characters. Exclude personal information.",
+                "type": AbstractDataProviderTypeMap."*string",
+                "example_value": "customer-123",
+            },
+            "stream": {
+                "display_name": "Stream",
+                "short_desc": "Stream",
+                "desc": "Completed-response actions accept `False`. Use `DeepSeekLlmProvider` for streaming chat.",
+                "type": AbstractDataProviderTypeMap."*bool",
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": False, "display_name": "Complete Response"},
+                ),
             },
         };
     }
 
-    #! Creates the object
-    constructor() {
+    #! Creates the typed fields
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
         addQoreFields(Fields);
     }
 }
+
+#! Shared DeepSeekChatCompletionRequestDataType instance
+public const DeepSeekChatCompletionRequestDataType = new DeepSeekChatCompletionRequestDataType();
 }

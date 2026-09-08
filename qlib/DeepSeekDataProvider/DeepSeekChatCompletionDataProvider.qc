@@ -79,11 +79,53 @@ public class DeepSeekChatCompletionDataProvider inherits DeepSeekDataProviderCom
         a Qore date to match the typed `*date` field in the response schema.
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        hash<auto> body = doRestCommand("POST", "chat/completions", req).body;
-        if (body.created.typeCode() == NT_INT) {
-            body.created = 1970-01-01Z + seconds(body.created);
+        DeepSeekApiDataProvider::validateGeneration(req);
+        DeepSeekApiDataProvider::validateTools(req);
+        if (!req.messages) {
+            throw "DEEPSEEK-REQUEST-ERROR", "messages must not be empty";
         }
-        return body;
+        if (exists req.top_logprobs && !req.logprobs) {
+            throw "DEEPSEEK-REQUEST-ERROR", "top_logprobs requires logprobs";
+        }
+        bool beta = False;
+        int message_index = 0;
+        foreach hash<auto> message in (req.messages) {
+            if (message.role == "tool" && !message.tool_call_id) {
+                throw "DEEPSEEK-REQUEST-ERROR", "tool messages require tool_call_id";
+            }
+            if (!exists message.content && !(message.role == "assistant" && message.tool_calls)) {
+                throw "DEEPSEEK-REQUEST-ERROR", "messages require content or assistant tool calls";
+            }
+            if (message.content.typeCode() == NT_LIST) {
+                if (message.role != "user" || !message.content) {
+                    throw "DEEPSEEK-REQUEST-ERROR", "only user messages accept non-empty content part lists";
+                }
+                foreach hash<auto> part in (message.content) {
+                    if ((part.type == "text" && !exists part.text)
+                        || (part.type == "image_url" && !part.image_url.url)) {
+                        throw "DEEPSEEK-REQUEST-ERROR", "content part is missing its text or image URL";
+                    }
+                    if (part.type == "file" && ((!part.file_id) == (!part.file_data)
+                        || (part.filename && !part.file_data))) {
+                        throw "DEEPSEEK-REQUEST-ERROR", "file parts require exactly one of file_id or file_data";
+                    }
+                }
+            }
+            if (message.prefix) {
+                if (message.role != "assistant" || message_index != req.messages.size() - 1) {
+                    throw "DEEPSEEK-REQUEST-ERROR", "prefix must be on the final assistant message";
+                }
+                beta = True;
+            }
+            ++message_index;
+        }
+        foreach hash<auto> tool in (req.tools) {
+            if (tool.function.strict) {
+                beta = True;
+            }
+        }
+        return DeepSeekApiDataProvider::convertDates(
+            doRestCommand("POST", beta ? "/beta/chat/completions" : chat_path, req).body);
     }
 }
 }

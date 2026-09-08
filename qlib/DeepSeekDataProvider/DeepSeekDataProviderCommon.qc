@@ -43,7 +43,6 @@ public class DeepSeekDataProviderCommon inherits DataProvider::AbstractDataProvi
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The DeepSeek API key used for Bearer authentication.  Get your API key "
                     "from the [DeepSeek Platform](https://platform.deepseek.com/api_keys).",
-                "required": True,
                 "sensitive": True,
             },
             "url": <DataProviderOptionInfo>{
@@ -75,38 +74,40 @@ public class DeepSeekDataProviderCommon inherits DataProvider::AbstractDataProvi
                 "display_name": "API Version",
                 "short_desc": "DeepSeek API version segment",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The API version segment used for `/v1/*` routing.",
+                "desc": "The default API path for chat requests; beta features select their endpoint automatically.",
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": "v1", "display_name": "Stable API"},
+                    <AllowedValueInfo>{"value": "beta", "display_name": "Beta API"},
+                ),
                 "default_value": DefaultDeepSeekApiVersion,
             },
         };
 
-        #! IO errors for REST retries
-        const RetrySet = {
-            "SOCKET-SSL-ERROR": True,
-            "SOCKET-CLOSED": True,
-        };
-
-        #! Max retries
-        const MaxIoRetries = 5;
     }
 
     private {
         #! The REST client object for API calls (async-capable)
-        *RestClientIo::RestClientIo rest;
+        RestClientIo::RestClientIo rest;
+
+        #! Immutable chat endpoint selected at construction
+        string chat_path;
     }
 
     #! Creates the object from a RestClientIo client
     constructor(RestClientIo::RestClientIo rest) {
-        self.rest = rest;
+        self.rest = cast<RestClientIo::RestClientIo>(rest.copyWithUrl(rest.getUrl().toString()));
+        chat_path = (self.rest.getConnectionPath() ?? "/v1") + "/chat/completions";
+        self.rest.clearConnectionPath();
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         if (copts.restclient) {
-            rest = copts.restclient;
+            rest = cast<RestClientIo::RestClientIo>(
+                copts.restclient.copyWithUrl(copts.restclient.getUrl().toString()));
         }
-        if (!rest) {
+        if (!copts.restclient) {
             if (!copts.apikey.val()) {
                 throw "CONSTRUCTOR-ERROR",
                     "missing required 'apikey' argument for DeepSeek API communication";
@@ -118,57 +119,85 @@ public class DeepSeekDataProviderCommon inherits DataProvider::AbstractDataProvi
             };
             rest = new DeepSeekRestClient::DeepSeekRestClientIo(opts);
         }
+        chat_path = (self.rest.getConnectionPath() ?? "/v1") + "/chat/completions";
+        rest.clearConnectionPath();
     }
 
-    #! Makes a REST call and returns the response; handles rate limit and I/O errors
-    private hash<auto> doRestCommand(string method, string path, auto body, *hash<auto> hdr) {
-        int retries = 0;
+    #! Returns supported dropdown names
+    /** @return model and uploaded-file reference data names */
+    *hash<string, bool> getSupportedReferenceData() {
+        return {"models": True, "fim-models": True, "files": True};
+    }
+
+    private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type, *hash<auto> action_opts) {
+        list<hash<AllowedValueInfo>> rv = ();
+        if (type == "models" || type == "fim-models") {
+            foreach hash<auto> model in (doRestCommand("GET", "/v1/models").body.data) {
+                if (model.id && (type != "fim-models" || model.id == "deepseek-v4-pro")) {
+                    push rv, <AllowedValueInfo>{"value": model.id, "display_name": model.id};
+                }
+            }
+            return rv;
+        }
+        if (type != "files") {
+            return;
+        }
+        string path = "/v1/files?limit=1000";
+        hash<string, bool> cursors;
         while (True) {
-            try {
-                debug("REST %y %y body: %y", method, path, body);
-                switch (method.upr()) {
-                    case "GET":
-                        return rest.restGet(path, hdr);
-                    case "POST":
-                        return rest.restPost(path, body, hdr);
-                    case "DELETE":
-                        return rest.restDel(path, body, hdr);
-                    default:
-                        return rest.restDoRequest(method, path, body, hdr);
+            hash<auto> page = doRestCommand("GET", path).body;
+            foreach hash<auto> file in (page.data) {
+                if (file.id) {
+                    push rv, <AllowedValueInfo>{"value": file.id,
+                        "display_name": (file.filename ?? file.id) + " (" + file.id + ")"};
                 }
-            } catch (hash<ExceptionInfo> ex) {
-                if (retry(ex, \retries)) {
-                    continue;
-                }
-                rethrow ex.err, sprintf("%s (request path: %y)", ex.desc,
-                    ex.arg.request_path ?? path), ex.arg;
             }
+            if (!page.has_more) {
+                return rv;
+            }
+            if (!page.last_id || cursors{page.last_id}) {
+                throw "DEEPSEEK-RESPONSE-ERROR", "file pagination did not advance";
+            }
+            cursors{page.last_id} = True;
+            path = "/v1/files?limit=1000&after=" + encode_url(page.last_id, True);
         }
     }
 
-    #! Returns True if the error indicates that the operation should be retried
-    private bool retry(hash<ExceptionInfo> ex, reference<int> retries) {
-        if (RetrySet{ex.err}) {
-            if (++retries == MaxIoRetries) {
-                LoggerWrapper::error(sprintf("Maximum retries exceeded (%d)", retries));
-                return False;
-            }
-            warn("Technical error making REST call: %s: %s; retrying", ex.err, ex.desc);
-            return True;
+    #! Makes one API request; errors propagate without replaying billable requests
+    private hash<RestResponseInfo> doRestCommand(string method, string path, auto body, *hash<auto> hdr) {
+        return rest.restDoRequest(method, path, body, hdr);
+    }
+
+    #! Uploads a named image using the API multipart contract
+    private hash<auto> uploadFile(hash<auto> req) {
+        hash<auto> file = req.file;
+        if (!trim(file.name) || file.name =~ /[\r\n]/) {
+            throw "DEEPSEEK-REQUEST-ERROR", "file name must be non-empty without line breaks";
         }
-        if (ex.err == "REST-RESPONSE-ERROR" && ex.arg.status_code == 429) {
-            if (++retries == MaxIoRetries) {
-                LoggerWrapper::error(sprintf("Maximum retries exceeded (%d)", retries));
-                return False;
-            }
-            *string retry_after = ex.arg.headers."retry-after";
-            int wait_secs = retry_after.val() ? retry_after.toInt() : (1 << retries);
-            warn("Rate limited (429); waiting %d second(s) before retry %d",
-                wait_secs, retries);
-            sleep(wait_secs);
-            return True;
+        binary content = file.content.typeCode() == NT_BINARY
+            ? file.content : parse_base64_string(file.content);
+        if (!content.size() || content.size() > 67108864) {
+            throw "DEEPSEEK-REQUEST-ERROR", "image content must be between 1 byte and 64 MiB";
         }
-        return False;
+        *string mime = file.mime_type;
+        if (!mime || mime == "auto") {
+            mime = get_mime_type_from_ext(file.name) ?? "application/octet-stream";
+        }
+        if (mime =~ /[\r\n]/) {
+            throw "DEEPSEEK-REQUEST-ERROR", "file MIME type must not contain line breaks";
+        }
+        Mime::MultiPartFormDataMessage msg();
+        msg.addPart(content, "file", file.name, mime);
+        msg.addPart(req.purpose, "purpose");
+        if (exists req.expires_after_seconds) {
+            if (req.expires_after_seconds < 3600 || req.expires_after_seconds > 2592000) {
+                throw "DEEPSEEK-REQUEST-ERROR", "file lifetime must be between 3600 and 2592000 seconds";
+            }
+            msg.addPart("created_at", "expires_after[anchor]");
+            msg.addPart(req.expires_after_seconds.toString(), "expires_after[seconds]");
+        }
+        hash<MessageInfo> info = msg.getMsgAndHeaders();
+        return rest.restDoRawRequest("POST", "/v1/files", info.body, info.hdr).body;
     }
 }
 }

@@ -2176,10 +2176,13 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing a REST client for <a href="https://deepgram.com">Deepgram</a> speech services
 
     - @ref deepseekdataproviderintro "DeepSeekDataProvider" module
-      - new module providing a data provider API for <a href="https://platform.deepseek.com">DeepSeek</a> chat models
+      - added complete DeepSeek action coverage: chat, Responses, Fill-in-the-Middle, models, balance, and image files;
+        typed options, live dropdowns, input validation, and all twelve presentation translations
+        (<a href="https://github.com/qoretechnologies/qore/issues/5427">issue 5427</a>)
 
     - @ref deepseekrestclientintro "DeepSeekRestClient" module
-      - new module providing a REST client for <a href="https://platform.deepseek.com">DeepSeek</a>'s OpenAI-compatible API
+      - corrected automatic URLs, app association, JSON encoding, default models, and synchronous connection behavior;
+        verified authentication with positive and negative ping tests
 
     - @ref dropboxdataproviderintro "DropboxDataProvider" module
       - new module providing a data provider API for <a href="https://www.dropbox.com">Dropbox</a> cloud file

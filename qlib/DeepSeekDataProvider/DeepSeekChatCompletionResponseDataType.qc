@@ -32,11 +32,14 @@ public class DeepSeekChatResponseMessageDataType inherits HashDataType {
             "role": {
                 "display_name": "Role",
                 "desc": "Always `assistant` for response messages.",
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": "assistant", "display_name": "Assistant"},
+                ),
                 "type": AbstractDataProviderTypeMap."*string",
             },
             "content": {
                 "display_name": "Content",
-                "desc": "The text content of the assistant's reply.  May be NOTHING if the response "
+                "desc": "The text content of the assistant's reply.  May be `NOTHING` if the response "
                     "is a tool call only.",
                 "type": AbstractDataProviderTypeMap."*string",
             },
@@ -56,7 +59,8 @@ public class DeepSeekChatResponseMessageDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() {
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
         addQoreFields(Fields);
     }
 }
@@ -82,6 +86,13 @@ public class DeepSeekChatChoiceDataType inherits HashDataType {
                     "stop sequence), `length` (hit `max_tokens`), `tool_calls` (model invoked a "
                     "tool), `content_filter` (output was blocked).",
                 "type": AbstractDataProviderTypeMap."*string",
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": "stop", "display_name": "Stop"},
+                    <AllowedValueInfo>{"value": "length", "display_name": "Length"},
+                    <AllowedValueInfo>{"value": "content_filter", "display_name": "Content Filter"},
+                    <AllowedValueInfo>{"value": "tool_calls", "display_name": "Tool Calls"},
+                    <AllowedValueInfo>{"value": "insufficient_system_resource", "display_name": "Insufficient System Resource"},
+                ),
             },
             "logprobs": {
                 "display_name": "Log Probabilities",
@@ -92,7 +103,8 @@ public class DeepSeekChatChoiceDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() {
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
         addQoreFields(Fields);
     }
 }
@@ -102,6 +114,16 @@ public class DeepSeekUsageDataType inherits HashDataType {
     private {
         #! Field definitions
         const Fields = {
+            "prompt_tokens_details": {
+                "display_name": "Prompt Token Details",
+                "desc": "Prompt token breakdown including `cached_tokens`.",
+                "type": AbstractDataProviderTypeMap."*hash",
+            },
+            "completion_tokens_details": {
+                "display_name": "Completion Token Details",
+                "desc": "Token breakdown including `reasoning_tokens`.",
+                "type": AbstractDataProviderTypeMap."*hash",
+            },
             "prompt_tokens": {
                 "display_name": "Prompt Tokens",
                 "desc": "Number of tokens consumed by the prompt.",
@@ -132,7 +154,8 @@ public class DeepSeekUsageDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() {
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
         addQoreFields(Fields);
     }
 }
@@ -149,7 +172,7 @@ public class DeepSeekChatCompletionResponseDataType inherits HashDataType {
             },
             "object": {
                 "display_name": "Object Type",
-                "desc": "Object type discriminator (typically 'chat.completion').",
+                "desc": "Object type discriminator (`chat.completion`).",
                 "type": AbstractDataProviderTypeMap."*string",
             },
             "created": {
@@ -171,8 +194,7 @@ public class DeepSeekChatCompletionResponseDataType inherits HashDataType {
             },
             "choices": {
                 "display_name": "Choices",
-                "desc": "List of completion choices.  Normally contains exactly one entry unless "
-                    "the request asked for multiple completions.",
+                "desc": "List of completion choices.  Contains exactly one completion choice.",
                 "type": new ListDataType("DeepSeekChatChoiceList",
                     new DeepSeekChatChoiceDataType(), True),
             },
@@ -186,8 +208,21 @@ public class DeepSeekChatCompletionResponseDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() {
+    /** @param optional whether the object can be absent */
+    constructor(bool optional = False) : HashDataType(optional ? AutoHashOrNothingType : AutoHashType) {
         addQoreFields(Fields);
     }
 }
+#! Shared DeepSeekChatResponseMessageDataType instance
+public const DeepSeekChatResponseMessageDataType = new DeepSeekChatResponseMessageDataType();
+
+#! Shared DeepSeekChatChoiceDataType instance
+public const DeepSeekChatChoiceDataType = new DeepSeekChatChoiceDataType();
+
+#! Shared DeepSeekUsageDataType instance
+public const DeepSeekUsageDataType = new DeepSeekUsageDataType();
+
+#! Shared DeepSeekChatCompletionResponseDataType instance
+public const DeepSeekChatCompletionResponseDataType = new DeepSeekChatCompletionResponseDataType();
+
 }

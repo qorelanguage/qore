@@ -4,196 +4,640 @@
     "sk": {
       "messages": {
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.desc": {
-          "source": "Sends a list of chat messages to a DeepSeek model using the OpenAI-compatible `/v1/chat/completions` endpoint and returns the generated response.\n\n**Example use cases**:\n- General-purpose chat with `deepseek-chat`\n- Multi-step reasoning with `deepseek-reasoner` — the response carries a `reasoning_content` field alongside the final `content`\n- Tool-calling agents (pass `tools` and `tool_choice` in the request)\n- Structured extraction (pass `response_format` with a JSON schema)",
-          "message": "Odošle zoznam správ chatu do modelu DeepSeek pomocou koncového bodu `/v1/chat/completions` kompatibilného s OpenAI a vráti vygenerovanú odpoveď.\n\n**Príklady použitia**:\n- Všeobecný chat pomocou `deepseek-chat`\n- Viackrokové uvažovanie pomocou `deepseek-reasoner` – odpoveď nesie pole `reasoning_content` spolu s finálnou `content`\n- Agenty volajúce nástroje (v požiadavke odovzdajte `tools` a `tool_choice`)\n- Štruktúrovaná extrakcia (odovzdajte `response_format` so schémou JSON)"
+          "source": "Generate answers, analyze images, or call functions from a conversation history.\n\nUse `thinking` to control reasoning and `response_format` for JSON output. For JSON mode, also instruct the model to produce JSON. Prefix messages and strict tools automatically use the beta endpoint.",
+          "message": "Generujte odpovede, analyzujte obrázky alebo volajte funkcie z histórie konverzácie.\n\nPoužite `thinking` na riadenie uvažovania a `response_format` pre JSON výstup. Pre JSON režim tiež inštruujte model, aby generoval JSON. Prefixové správy a prísne nástroje automaticky používajú beta endpoint."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.display_name": {
           "source": "Chat Completion",
           "message": "Dopĺňanie chatu"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.desc": {
-          "source": "Penalizes tokens based on how often they have already appeared in the output.  Range `-2.0` to `2.0`.  Positive values reduce verbatim repetition.",
-          "message": "Penalizuje tokeny na základe toho, ako často sa už objavili vo výstupe. Rozsah `-2.0` až `2.0`. Kladné hodnoty znižujú doslovné opakovanie."
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bG9ncHJvYnM.desc": {
+          "source": "Include token log probabilities in the response.",
+          "message": "Zahrnúť logaritmické pravdepodobnosti tokenov do odpovede."
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.display_name": {
-          "source": "Frequency Penalty",
-          "message": "Penalizácia frekvencie"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bG9ncHJvYnM.display_name": {
+          "source": "Log Probabilities",
+          "message": "Logaritmické pravdepodobnosti"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.short_desc": {
-          "source": "Penalize repeated tokens proportional to their frequency",
-          "message": "Penalizovať opakované tokeny úmerne k ich frekvencii"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bG9ncHJvYnM.short_desc": {
+          "source": "Log Probabilities",
+          "message": "Logaritmické pravdepodobnosti"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.desc": {
-          "source": "Name of the DeepSeek model to use for this request.  Common values:\n\n- `deepseek-chat` — general-purpose chat model\n- `deepseek-reasoner` — multi-step reasoning model (emits `reasoning_content` alongside the final answer)",
-          "message": "Názov modelu DeepSeek, ktorý sa má použiť pre túto požiadavku. Bežné hodnoty:\n\n- `deepseek-chat` – všeobecný chatovací model\n- `deepseek-reasoner` – viackrokový uvažovací model (vracia `reasoning_content` spolu s finálnou odpoveďou)"
+          "source": "Select an available model for this request.",
+          "message": "Vyberte dostupný model pre túto požiadavku."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.display_name": {
           "source": "Model",
           "message": "Model"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.short_desc": {
-          "source": "The DeepSeek model to use",
-          "message": "Model DeepSeek, ktorý sa má použiť"
+          "source": "Model",
+          "message": "Model"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.desc": {
-          "source": "Maximum number of tokens to generate.  Hard cap is 8192 on most DeepSeek models; consult the platform docs for per-model limits.",
-          "message": "Maximálny počet tokenov na vygenerovanie. Pevný limit je 8192 na väčšine modelov DeepSeek; limity pre jednotlivé modely nájdete v dokumentácii platformy."
+          "source": "Maximum generated tokens, including reasoning. Check the selected model limits.",
+          "message": "Maximálny počet generovaných tokenov vrátane uvažovania. Skontrolujte limity vybraného modelu."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.display_name": {
           "source": "Max Tokens",
           "message": "Maximálny počet tokenov"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.short_desc": {
-          "source": "Maximum tokens to emit in the completion",
-          "message": "Maximálny počet tokenov na vygenerovanie v dokončení"
+          "source": "Max Tokens",
+          "message": "Maximálny počet tokenov"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.desc": {
-          "source": "The conversation history as a list of message objects.  Each message has a `role` (`system`, `user`, `assistant`, or `tool`) and `content` (text).",
-          "message": "História konverzácie ako zoznam objektov správ. Každá správa má `role` (`system`, `user`, `assistant` alebo `tool`) a `content` (text)."
+          "source": "Conversation history in chronological order.",
+          "message": "História konverzácie v chronologickom poradí."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.display_name": {
           "source": "Messages",
           "message": "Správy"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.short_desc": {
-          "source": "List of chat messages forming the conversation",
-          "message": "Zoznam správ chatu tvoriacich konverzáciu"
-        },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.desc": {
-          "source": "Integer seed for deterministic sampling.  With a fixed `seed`, `temperature`, and prompt, the same request returns the same output.",
-          "message": "Celočíselný seed pre deterministické vzorkovanie. S pevne stanoveným `seed`, `temperature` a promptom vráti rovnaká požiadavka rovnaký výstup."
-        },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.display_name": {
-          "source": "Seed",
-          "message": "Seed"
-        },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.short_desc": {
-          "source": "Deterministic sampling seed",
-          "message": "Seed pre deterministické vzorkovanie"
+          "source": "Messages",
+          "message": "Správy"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c3RvcA.desc": {
-          "source": "One or more stop sequences.  Generation halts as soon as the model emits any of them.  Can be a single string or a list of strings.",
-          "message": "Jedna alebo viacero sekvencií zastavenia. Generovanie sa zastaví, hneď ako model vygeneruje ktorúkoľvek z nich. Môže to byť jeden reťazec alebo zoznam reťazcov."
+          "source": "Up to 16 strings that stop generation before the matching sequence.",
+          "message": "Až 16 reťazcov, ktoré zastavia generovanie pred zodpovedajúcou sekvenciou."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c3RvcA.display_name": {
           "source": "Stop Sequences",
           "message": "Sekvencie zastavenia"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c3RvcA.short_desc": {
-          "source": "String or list of strings; generation halts when emitted",
-          "message": "Reťazec alebo zoznam reťazcov; generovanie sa zastaví pri ich vygenerovaní"
+          "source": "Stop Sequences",
+          "message": "Sekvencie zastavenia"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.desc": {
-          "source": "When `True`, the server streams partial completions as Server-Sent Events (SSE) instead of returning a single response.  Most data provider flows expect non-streaming (`False` / omitted); enable only when wiring into a streaming consumer.",
-          "message": "Keď je `True`, server streamuje čiastočné dokončenia ako Server-Sent Events (SSE) namiesto vrátenia jednej odpovede. Väčšina tokov poskytovateľov údajov očakáva nestreamovanú prevádzku (`False` / vynechané); povoľte iba pri pripájaní k streamovaciemu spotrebiteľovi."
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOm1heA.display_name": {
+          "source": "Maximum",
+          "message": "Maximálna"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.display_name": {
-          "source": "Stream",
-          "message": "Stream"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "High",
+          "message": "Vysoká"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.short_desc": {
-          "source": "Stream partial completions as Server-Sent Events",
-          "message": "Streamovať čiastočné dokončenia ako Server-Sent Events"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "Low",
+          "message": "Nízka"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.desc": {
-          "source": "Penalizes tokens that have already appeared in the output, regardless of frequency.  Range `-2.0` to `2.0`.  Positive values encourage topic diversity.",
-          "message": "Penalizuje tokeny, ktoré sa už objavili vo výstupe, bez ohľadu na frekvenciu. Rozsah `-2.0` až `2.0`. Kladné hodnoty podporujú tematickú rozmanitosť."
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.desc": {
+          "source": "Amount of reasoning to apply when thinking is enabled.",
+          "message": "Množstvo uvažovania, ktoré sa použije, keď je myslenie povolené."
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.display_name": {
-          "source": "Presence Penalty",
-          "message": "Penalizácia prítomnosti"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.display_name": {
+          "source": "Reasoning Effort",
+          "message": "Úsilie uvažovania"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.short_desc": {
-          "source": "Penalize any token that has already appeared",
-          "message": "Penalizovať akýkoľvek token, ktorý sa už objavil"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.short_desc": {
+          "source": "Reasoning Effort",
+          "message": "Úsilie uvažovania"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.desc": {
-          "source": "Hash that forces a structured response shape.  The most common use is JSON mode: `{type: \"json_object\"}`.",
-          "message": "Hash, ktorý vynucuje štruktúrovaný formát odpovede. Najbežnejším použitím je režim JSON: `{type: \"json_object\"}`."
+          "source": "Choose plain text or JSON output. JSON mode requires a JSON instruction.",
+          "message": "Vyberte obyčajný text alebo JSON výstup. JSON režim vyžaduje inštrukciu pre JSON."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.display_name": {
           "source": "Response Format",
           "message": "Formát odpovede"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.short_desc": {
-          "source": "Force structured output (e.g. JSON)",
-          "message": "Vynútiť štruktúrovaný výstup (napr. JSON)"
+          "source": "Response Format",
+          "message": "Formát odpovede"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOm5vbmU.display_name": {
-          "source": "None - never call a tool",
-          "message": "Žiadne – nikdy nevolať nástroj"
+          "source": "None",
+          "message": "Žiadne"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOmF1dG8.display_name": {
-          "source": "Auto - model decides",
-          "message": "Auto – rozhoduje model"
+          "source": "Automatic",
+          "message": "Automatické"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOnJlcXVpcmVk.display_name": {
-          "source": "Required - must call a tool",
-          "message": "Povinné – musí zavolať nástroj"
+          "source": "Required",
+          "message": "Povinné"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.desc": {
-          "source": "Controls tool invocation.\n\n- `none` — never call a tool (text-only reply)\n- `auto` — model decides (default when `tools` is set)\n- `required` — model must call at least one tool",
-          "message": "Riadi volanie nástrojov.\n\n- `none` – nikdy nevolať nástroj (iba textová odpoveď)\n- `auto` – rozhodne model (predvolené, keď je nastavené `tools`)\n- `required` – model musí zavolať aspoň jeden nástroj"
+          "source": "Choose a tool policy or provide a named function object to force a specific tool.",
+          "message": "Vyberte politiku nástrojov alebo poskytnite objekt s názvom funkcie na vynútenie konkrétneho nástroja."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.display_name": {
           "source": "Tool Choice",
           "message": "Výber nástroja"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.short_desc": {
-          "source": "Whether and which tool the model must invoke",
-          "message": "Či a aký nástroj musí model zavolať"
+          "source": "Tool Choice",
+          "message": "Výber nástroja"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.desc": {
-          "source": "List of tool definitions the model may invoke.  Each entry is a hash with a `type` field (`function`) and a `function` hash containing `name`, `description`, and a JSON-schema `parameters` object.",
-          "message": "Zoznam definícií nástrojov, ktoré môže model vyvolať. Každá položka je hash s poľom `type` (`function`) a hash `function` obsahujúci `name`, `description` a objekt `parameters` schémy JSON."
+          "source": "Functions available to the assistant; at most 128.",
+          "message": "Funkcie dostupné asistentovi; maximálne 128."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.display_name": {
           "source": "Tools",
           "message": "Nástroje"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.short_desc": {
-          "source": "OpenAI-style tool definitions the model may call",
-          "message": "Definície nástrojov v štýle OpenAI, ktoré model môže volať"
+          "source": "Tools",
+          "message": "Nástroje"
+        },
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX2xvZ3Byb2Jz.desc": {
+          "source": "Number of token alternatives from `0` to `20`; requires `logprobs` set to `True`.",
+          "message": "Počet alternatív tokenov od `0` do `20`; vyžaduje `logprobs` nastavené na `True`."
+        },
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX2xvZ3Byb2Jz.display_name": {
+          "source": "Top Log Probabilities",
+          "message": "Najvyššie logaritmické pravdepodobnosti"
+        },
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX2xvZ3Byb2Jz.short_desc": {
+          "source": "Top Log Probabilities",
+          "message": "Najvyššie logaritmické pravdepodobnosti"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX3A.desc": {
-          "source": "Nucleus sampling cutoff.  Range `0.0` to `1.0`.  Usually left at `1.0`.",
-          "message": "Hranica vzorkovania nucleus. Rozsah `0.0` až `1.0`. Zvyčajne sa ponecháva na `1.0`."
+          "source": "Nucleus sampling cutoff from `0` to `1`. Has no effect in thinking mode.",
+          "message": "Hranica nukleového vzorkovania od `0` do `1`. Nemá vplyv v režime uvažovania."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX3A.display_name": {
           "source": "Top-P",
           "message": "Top-P"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX3A.short_desc": {
-          "source": "Nucleus sampling cutoff (0-1)",
-          "message": "Hranica vzorkovania nucleus (0-1)"
+          "source": "Top-P",
+          "message": "Top-P"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dGVtcGVyYXR1cmU.desc": {
-          "source": "Controls randomness of the output.  Range `0.0` to `2.0`.  Defaults to `1.0` on DeepSeek.\n\nDeepSeek recommends `0.0` for coding/math, `1.3` for general chat, and `1.5` for creative writing.",
-          "message": "Riadi náhodnosť výstupu. Rozsah `0.0` až `2.0`. V DeepSeek je predvolená hodnota `1.0`.\n\nDeepSeek odporúča `0.0` pre kódovanie/matematiku, `1.3` pre bežný chat a `1.5` pre kreatívne písanie."
+          "source": "Sampling temperature from `0` to `2`. Has no effect in thinking mode.",
+          "message": "Vzorkovacia teplota od `0` do `2`. Nemá vplyv v režime uvažovania."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dGVtcGVyYXR1cmU.display_name": {
           "source": "Temperature",
           "message": "Teplota"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dGVtcGVyYXR1cmU.short_desc": {
-          "source": "Sampling temperature (0-2); higher values give more varied output",
-          "message": "Teplota vzorkovania (0 – 2); vyššie hodnoty poskytujú rozmanitejší výstup"
+          "source": "Temperature",
+          "message": "Teplota"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcg.desc": {
-          "source": "Opaque identifier representing the end user.  Logged server-side for abuse tracking and usage attribution; does not affect generation.",
-          "message": "Netransparentný identifikátor reprezentujúci koncového používateľa. Zaznamenáva sa na strane servera na sledovanie zneužitia a priradenie využitia; neovplyvňuje generovanie."
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dGhpbmtpbmc.desc": {
+          "source": "Enable or disable reasoning for this request.",
+          "message": "Povoliť alebo zakázať uvažovanie pre túto požiadavku."
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcg.display_name": {
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dGhpbmtpbmc.display_name": {
+          "source": "Thinking",
+          "message": "Myslenie"
+        },
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dGhpbmtpbmc.short_desc": {
+          "source": "Thinking",
+          "message": "Myslenie"
+        },
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcl9pZA.desc": {
+          "source": "Pseudonymous identifier for cache and scheduling isolation. Use letters, digits, underscores, or dashes; at most 512 characters. Exclude personal information.",
+          "message": "Pseudonymný identifikátor pre izoláciu vyrovnávacej pamäte a plánovania. Použite písmená, číslice, podčiarkovníky alebo pomlčky; maximálne 512 znakov. Vylúčte osobné informácie."
+        },
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcl9pZA.display_name": {
           "source": "User ID",
           "message": "ID používateľa"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcg.short_desc": {
-          "source": "Opaque end-user identifier for abuse tracking",
-          "message": "Netransparentný identifikátor koncového používateľa na sledovanie zneužitia"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcl9pZA.short_desc": {
+          "source": "User ID",
+          "message": "ID používateľa"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.short_desc": {
           "source": "Generate a chat completion from a DeepSeek model",
           "message": "Vygenerovať dokončenie chatu z modelu DeepSeek"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.desc": {
+          "source": "Generate a response with tools, images, or structured output.\n\nSupports function calls, server-side web search, vision, and JSON Schema output. **Stateless:** send the full conversation history in `input` for each turn.",
+          "message": "Generujte odpoveď s nástrojmi, obrázkami alebo štruktúrovaným výstupom.\n\nPodporuje volania funkcií, serverové vyhľadávanie na webe, videnie a výstup podľa JSON schémy. **Bezstavové:** pošlite celú históriu konverzácie v `input` pre každé kolo."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.display_name": {
+          "source": "Create Response",
+          "message": "Vytvoriť odpoveď"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5wdXQ.desc": {
+          "source": "Text or conversation items. Supply `input` or `instructions`. Include the full history for each turn.",
+          "message": "Text alebo položky konverzácie. Poskytnite `input` alebo `instructions`. Zahrňte celú históriu pre každé kolo."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "Vstup"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5wdXQ.short_desc": {
+          "source": "Input",
+          "message": "Vstup"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5zdHJ1Y3Rpb25z.desc": {
+          "source": "System instructions; required when `input` is absent.",
+          "message": "Systémové inštrukcie; povinné, keď `input` chýba."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5zdHJ1Y3Rpb25z.display_name": {
+          "source": "Instructions",
+          "message": "Pokyny"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5zdHJ1Y3Rpb25z.short_desc": {
+          "source": "Instructions",
+          "message": "Pokyny"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.bW9kZWw.desc": {
+          "source": "Select an available model for this request.",
+          "message": "Vyberte dostupný model pre túto požiadavku."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.bW9kZWw.short_desc": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.bWF4X291dHB1dF90b2tlbnM.desc": {
+          "source": "Maximum generated tokens, including reasoning. Check the selected model limits.",
+          "message": "Maximálny počet generovaných tokenov vrátane uvažovania. Skontrolujte limity vybraného modelu."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.bWF4X291dHB1dF90b2tlbnM.display_name": {
+          "source": "Max Output Tokens",
+          "message": "Maximálny počet výstupných tokenov"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.bWF4X291dHB1dF90b2tlbnM.short_desc": {
+          "source": "Max Output Tokens",
+          "message": "Maximálny počet výstupných tokenov"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.desc": {
+          "source": "Reasoning.",
+          "message": "Uvažovanie."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.display_name": {
+          "source": "Reasoning",
+          "message": "Uvažovanie"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.short_desc": {
+          "source": "Reasoning",
+          "message": "Uvažovanie"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOm5vbmU.display_name": {
+          "source": "None",
+          "message": "Žiadne"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Automatic",
+          "message": "Automatické"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOnJlcXVpcmVk.display_name": {
+          "source": "Required",
+          "message": "Povinné"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.desc": {
+          "source": "Choose a tool policy or provide a named function object to force a specific tool.",
+          "message": "Vyberte politiku nástrojov alebo poskytnite objekt s názvom funkcie na vynútenie konkrétneho nástroja."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.display_name": {
+          "source": "Tool Choice",
+          "message": "Výber nástroja"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.short_desc": {
+          "source": "Tool Choice",
+          "message": "Výber nástroja"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.desc": {
+          "source": "Custom functions or server-side web search.",
+          "message": "Vlastné funkcie alebo serverové vyhľadávanie na webe."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.display_name": {
+          "source": "Tools",
+          "message": "Nástroje"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.short_desc": {
+          "source": "Tools",
+          "message": "Nástroje"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX2xvZ3Byb2Jz.desc": {
+          "source": "Number of token alternatives from `0` to `20`.",
+          "message": "Počet alternatív tokenov od `0` do `20`."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX2xvZ3Byb2Jz.display_name": {
+          "source": "Top Log Probabilities",
+          "message": "Najvyššie logaritmické pravdepodobnosti"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX2xvZ3Byb2Jz.short_desc": {
+          "source": "Top Log Probabilities",
+          "message": "Najvyššie logaritmické pravdepodobnosti"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX3A.desc": {
+          "source": "Nucleus sampling cutoff from `0` to `1`. Has no effect in thinking mode.",
+          "message": "Hranica nukleového vzorkovania od `0` do `1`. Nemá vplyv v režime uvažovania."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX3A.display_name": {
+          "source": "Top-P",
+          "message": "Top-P"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX3A.short_desc": {
+          "source": "Top-P",
+          "message": "Top-P"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.desc": {
+          "source": "Choose plain text, JSON, or output matching a JSON Schema.",
+          "message": "Vyberte obyčajný text, JSON alebo výstup zodpovedajúci JSON schéme."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.display_name": {
+          "source": "Text Output",
+          "message": "Textový výstup"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.short_desc": {
+          "source": "Text Output",
+          "message": "Textový výstup"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGVtcGVyYXR1cmU.desc": {
+          "source": "Sampling temperature from `0` to `2`. Has no effect in thinking mode.",
+          "message": "Vzorkovacia teplota od `0` do `2`. Nemá vplyv v režime uvažovania."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "Teplota"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "Temperature",
+          "message": "Teplota"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dXNlcg.desc": {
+          "source": "Pseudonymous identifier for cache and scheduling isolation. Use letters, digits, underscores, or dashes; at most 512 characters. Exclude personal information.",
+          "message": "Pseudonymný identifikátor pre izoláciu vyrovnávacej pamäte a plánovania. Použite písmená, číslice, podčiarkovníky alebo pomlčky; maximálne 512 znakov. Vylúčte osobné informácie."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dXNlcg.display_name": {
+          "source": "User ID",
+          "message": "ID používateľa"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dXNlcg.short_desc": {
+          "source": "User ID",
+          "message": "ID používateľa"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.short_desc": {
+          "source": "Generate a response with tools, images, or structured output",
+          "message": "Generujte odpoveď s nástrojmi, obrázkami alebo štruktúrovaným výstupom"
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWJhbGFuY2U.desc": {
+          "source": "Check available credit before running AI workflows.\n\nReturns credit availability and balances without generating tokens.",
+          "message": "Skontrolujte dostupný kredit pred spustením AI pracovných postupov.\n\nVracia dostupnosť kreditu a zostatky bez generovania tokenov."
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWJhbGFuY2U.display_name": {
+          "source": "Get Balance",
+          "message": "Získať zostatok"
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWJhbGFuY2U.short_desc": {
+          "source": "Check available credit before running AI workflows",
+          "message": "Skontrolujte dostupný kredit pred spustením AI pracovných postupov"
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWZpbGU.desc": {
+          "source": "Inspect an uploaded image and its expiration.",
+          "message": "Skontrolovať nahraný obrázok a jeho expiráciu."
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWZpbGU.display_name": {
+          "source": "Get Image File",
+          "message": "Získať obrazový súbor"
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWZpbGU.option.ZmlsZV9pZA.desc": {
+          "source": "Select an uploaded image file.",
+          "message": "Vybrať nahraný obrazový súbor."
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWZpbGU.option.ZmlsZV9pZA.display_name": {
+          "source": "File ID",
+          "message": "ID súboru"
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWZpbGU.option.ZmlsZV9pZA.short_desc": {
+          "source": "File ID",
+          "message": "ID súboru"
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWZpbGU.short_desc": {
+          "source": "Inspect an uploaded image and its expiration",
+          "message": "Skontrolovať nahraný obrázok a jeho expiráciu"
+        },
+        "app.RGVlcFNlZWs.action.ZGVsZXRlLWZpbGU.desc": {
+          "source": "Remove an uploaded image from your account.\n\n**Permanent:** subsequent model requests cannot use this file.",
+          "message": "Odstrániť nahraný obrázok z vášho účtu.\n\n**Trvalé:** následné požiadavky modelu nebudú môcť použiť tento súbor."
+        },
+        "app.RGVlcFNlZWs.action.ZGVsZXRlLWZpbGU.display_name": {
+          "source": "Delete Image File",
+          "message": "Odstrániť obrazový súbor"
+        },
+        "app.RGVlcFNlZWs.action.ZGVsZXRlLWZpbGU.option.ZmlsZV9pZA.desc": {
+          "source": "Select an uploaded image file.",
+          "message": "Vybrať nahraný obrazový súbor."
+        },
+        "app.RGVlcFNlZWs.action.ZGVsZXRlLWZpbGU.option.ZmlsZV9pZA.display_name": {
+          "source": "File ID",
+          "message": "ID súboru"
+        },
+        "app.RGVlcFNlZWs.action.ZGVsZXRlLWZpbGU.option.ZmlsZV9pZA.short_desc": {
+          "source": "File ID",
+          "message": "ID súboru"
+        },
+        "app.RGVlcFNlZWs.action.ZGVsZXRlLWZpbGU.short_desc": {
+          "source": "Remove an uploaded image from your account",
+          "message": "Odstrániť nahraný obrázok z vášho účtu"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.desc": {
+          "source": "Complete text or code between a prompt and suffix.\n\nUses `/beta/completions`. Select a model that supports Fill-in-the-Middle, currently `deepseek-v4-pro`.",
+          "message": "Dokončite text alebo kód medzi promptom a príponou.\n\nPoužíva `/beta/completions`. Vyberte model, ktorý podporuje doplnenie do stredu, v súčasnosti `deepseek-v4-pro`."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.display_name": {
+          "source": "Fill in the Middle",
+          "message": "Doplnenie do stredu"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.ZWNobw.desc": {
+          "source": "Include the prompt in the returned text.",
+          "message": "Zahrnúť prompt do vráteného textu."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.ZWNobw.display_name": {
+          "source": "Echo Prompt",
+          "message": "Echo Prompt"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.ZWNobw.short_desc": {
+          "source": "Echo Prompt",
+          "message": "Echo Prompt"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bG9ncHJvYnM.desc": {
+          "source": "Number of alternative token probabilities from `0` to `20`.",
+          "message": "Počet alternatívnych pravdepodobností tokenov od `0` do `20`."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bG9ncHJvYnM.display_name": {
+          "source": "Log Probabilities",
+          "message": "Logaritmické pravdepodobnosti"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bG9ncHJvYnM.short_desc": {
+          "source": "Log Probabilities",
+          "message": "Logaritmické pravdepodobnosti"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bW9kZWw.desc": {
+          "source": "Select a model supporting Fill-in-the-Middle completion. Currently `deepseek-v4-pro`.",
+          "message": "Vyberte model podporujúci doplnenie do stredu. V súčasnosti `deepseek-v4-pro`."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bW9kZWw.short_desc": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bWF4X3Rva2Vucw.desc": {
+          "source": "Maximum generated tokens, including reasoning. Check the selected model limits.",
+          "message": "Maximálny počet generovaných tokenov vrátane uvažovania. Skontrolujte limity vybraného modelu."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bWF4X3Rva2Vucw.display_name": {
+          "source": "Max Tokens",
+          "message": "Maximálny počet tokenov"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bWF4X3Rva2Vucw.short_desc": {
+          "source": "Max Tokens",
+          "message": "Maximálny počet tokenov"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.c3RvcA.desc": {
+          "source": "Up to 16 strings that stop generation before the matching sequence.",
+          "message": "Až 16 reťazcov, ktoré zastavia generovanie pred zodpovedajúcou sekvenciou."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.c3RvcA.display_name": {
+          "source": "Stop Sequences",
+          "message": "Sekvencie zastavenia"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.c3RvcA.short_desc": {
+          "source": "Stop Sequences",
+          "message": "Sekvencie zastavenia"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.c3VmZml4.desc": {
+          "source": "Text after the insertion point.",
+          "message": "Text za bodom vloženia."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.c3VmZml4.display_name": {
+          "source": "Suffix",
+          "message": "Prípona"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.c3VmZml4.short_desc": {
+          "source": "Suffix",
+          "message": "Prípona"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.cHJvbXB0.desc": {
+          "source": "Text before the insertion point.",
+          "message": "Text pred bodom vloženia."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.cHJvbXB0.display_name": {
+          "source": "Prompt",
+          "message": "Prompt"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.cHJvbXB0.short_desc": {
+          "source": "Prompt",
+          "message": "Prompt"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dG9wX3A.desc": {
+          "source": "Nucleus sampling cutoff from `0` to `1`. Has no effect in thinking mode.",
+          "message": "Hranica nukleového vzorkovania od `0` do `1`. Nemá vplyv v režime uvažovania."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dG9wX3A.display_name": {
+          "source": "Top-P",
+          "message": "Top-P"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dG9wX3A.short_desc": {
+          "source": "Top-P",
+          "message": "Top-P"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dGVtcGVyYXR1cmU.desc": {
+          "source": "Sampling temperature from `0` to `2`. Has no effect in thinking mode.",
+          "message": "Vzorkovacia teplota od `0` do `2`. Nemá vplyv v režime uvažovania."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "Teplota"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "Temperature",
+          "message": "Teplota"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.short_desc": {
+          "source": "Complete text or code between a prompt and suffix",
+          "message": "Dokončite text alebo kód medzi promptom a príponou"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.desc": {
+          "source": "Browse uploaded images with pagination.\n\nUse `last_id` as the next `after` cursor while `has_more` is `True`.",
+          "message": "Prehliadanie nahraných obrázkov so stránkovaním.\n\nPoužite `last_id` ako ďalší kurzor `after`, kým je `has_more` `True`."
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.display_name": {
+          "source": "List Image Files",
+          "message": "Zoznam obrazových súborov"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.YWZ0ZXI.desc": {
+          "source": "Return files after this cursor.",
+          "message": "Vrátiť súbory po tomto kurzore."
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.YWZ0ZXI.display_name": {
+          "source": "After File",
+          "message": "Po súbore"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.YWZ0ZXI.short_desc": {
+          "source": "After File",
+          "message": "Po súbore"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.b3JkZXI.allowed-value.c3RyaW5nOmFzYw.display_name": {
+          "source": "Oldest First",
+          "message": "Od najstarších"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.b3JkZXI.allowed-value.c3RyaW5nOmRlc2M.display_name": {
+          "source": "Newest First",
+          "message": "Najnovšie ako prvé"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.b3JkZXI.desc": {
+          "source": "Sort files by creation time.",
+          "message": "Zoradiť súbory podľa času vytvorenia."
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.b3JkZXI.display_name": {
+          "source": "Order",
+          "message": "Poradie"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.b3JkZXI.short_desc": {
+          "source": "Order",
+          "message": "Poradie"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.bGltaXQ.desc": {
+          "source": "Maximum files to return, from `1` to `1000`.",
+          "message": "Maximálny počet súborov na vrátenie, od `1` do `1000`."
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.cHVycG9zZQ.allowed-value.c3RyaW5nOnVzZXJfZGF0YQ.display_name": {
+          "source": "User Data",
+          "message": "Používateľské údaje"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.cHVycG9zZQ.desc": {
+          "source": "Purpose.",
+          "message": "Účel."
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.cHVycG9zZQ.display_name": {
+          "source": "Purpose",
+          "message": "Účel"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.cHVycG9zZQ.short_desc": {
+          "source": "Purpose",
+          "message": "Účel"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.short_desc": {
+          "source": "Browse uploaded images with pagination",
+          "message": "Prehliadanie nahraných obrázkov so stránkovaním"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1tb2RlbHM.desc": {
+          "source": "Find available models for your workflows.",
+          "message": "Nájdite dostupné modely pre vaše pracovné postupy."
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1tb2RlbHM.display_name": {
+          "source": "List Models",
+          "message": "Zoznam modelov"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1tb2RlbHM.short_desc": {
+          "source": "Find available models for your workflows",
+          "message": "Nájdite dostupné modely pre vaše pracovné postupy"
         },
         "app.RGVlcFNlZWs.action.bWFrZS1hcGktY2FsbA.desc": {
           "source": "Make a custom HTTP / REST API call to **DeepSeek** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
@@ -519,9 +963,61 @@
           "source": "Make a custom API call to DeepSeek",
           "message": "Vykonať vlastné volanie API do DeepSeek"
         },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.desc": {
+          "source": "Upload an image for reuse in model requests.",
+          "message": "Nahrajte obrázok na opätovné použitie v požiadavkách modelu."
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.display_name": {
+          "source": "Upload Image File",
+          "message": "Nahrať súbor obrázka"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZXhwaXJlc19hZnRlcl9zZWNvbmRz.desc": {
+          "source": "Delete the file automatically after `3600` to `2592000` seconds. Omit to retain it.",
+          "message": "Automaticky odstrániť súbor po `3600` až `2592000` sekundách. Ak vynecháte, súbor sa ponechá."
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZXhwaXJlc19hZnRlcl9zZWNvbmRz.display_name": {
+          "source": "Expires After (Seconds)",
+          "message": "Vyprší po (sekundy)"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZXhwaXJlc19hZnRlcl9zZWNvbmRz.short_desc": {
+          "source": "Expires After (Seconds)",
+          "message": "Vyprší po (sekundy)"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.desc": {
+          "source": "Named image with `name`, binary or base64 `content`, and optional `mime_type`. JPEG, PNG, GIF, or WebP; at most 64 MiB.",
+          "message": "Pomenovaný obrázok s `name`, binárnym alebo base64 `content` a voliteľným `mime_type`. JPEG, PNG, GIF alebo WebP; maximálne 64 MiB."
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.display_name": {
+          "source": "Image File",
+          "message": "Súbor obrázka"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.short_desc": {
+          "source": "Image File",
+          "message": "Súbor obrázka"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.allowed-value.c3RyaW5nOnVzZXJfZGF0YQ.display_name": {
+          "source": "User Data",
+          "message": "Používateľské údaje"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.desc": {
+          "source": "Intended use of this image.",
+          "message": "Zamýšľané použitie tohto obrázka."
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.display_name": {
+          "source": "Purpose",
+          "message": "Účel"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.short_desc": {
+          "source": "Purpose",
+          "message": "Účel"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.short_desc": {
+          "source": "Upload an image for reuse in model requests",
+          "message": "Nahrajte obrázok na opätovné použitie v požiadavkách modelu"
+        },
         "app.RGVlcFNlZWs.desc": {
-          "source": "Provides access to [DeepSeek](https://platform.deepseek.com) — a frontier-class LLM provider offering budget-friendly chat and reasoning models.\n\nDeepSeek exposes an OpenAI-compatible chat-completions API, so DeepSeek models drop into existing OpenAI-shape consumers (chat, tool calling, structured-output JSON schema, streaming) with only a base-URL change.\n\n**Common use cases**:\n- **Cost-sensitive chat assistants** using `deepseek-chat` — competitive quality at a fraction of frontier-model pricing\n- **Multi-step reasoning** using `deepseek-reasoner` — emits `reasoning_content` alongside the final answer for explainable outputs\n- **Tool-calling agents** — OpenAI-shape `tools` and `tool_choice` work unchanged\n- **Structured extraction** via JSON-schema `response_format`",
-          "message": "Poskytuje prístup k službe [DeepSeek](https://platform.deepseek.com) – špičkovému poskytovateľovi modelov LLM, ktorý ponúka cenovo dostupné chatovacie a uvažovacie modely.\n\nDeepSeek sprístupňuje rozhranie API chat-completions kompatibilné s OpenAI, takže modely DeepSeek možno nasadiť do existujúcich systémov prispôsobených pre OpenAI (chat, volanie nástrojov, štruktúrovaný výstup so schémou JSON, streamovanie) iba so zmenou základnej adresy URL.\n\n**Bežné prípady použitia**:\n- **Cenovo efektívni chatovací asistenti** využívajúci `deepseek-chat` – konkurencieschopná kvalita za zlomok ceny špičkových modelov\n- **Viackrokové uvažovanie** pomocou `deepseek-reasoner` – vracia `reasoning_content` spolu s finálnou odpoveďou pre vysvetliteľné výstupy\n- **Agenty volajúce nástroje** – formáty OpenAI `tools` a `tool_choice` fungujú bez zmeny\n- **Štruktúrovaná extrakcia** cez schému JSON `response_format`"
+          "source": "Use [DeepSeek](https://platform.deepseek.com) to automate language and image tasks.\n\n- Generate chat and reasoning responses\n- Extract structured data and call tools\n- Complete code between a prompt and suffix\n- Upload images for reuse in vision requests\n- Inspect available models and account credit",
+          "message": "Použite [DeepSeek](https://platform.deepseek.com) na automatizáciu jazykových a obrazových úloh.\n\n- Generujte odpovede v chate a s uvažovaním\n- Extrahujte štruktúrované dáta a volajte nástroje\n- Dokončite kód medzi promptom a príponou\n- Nahrávajte obrázky na opätovné použitie v požiadavkách s videním\n- Skontrolujte dostupné modely a kredit účtu"
         },
         "app.RGVlcFNlZWs.display_name": {
           "source": "DeepSeek",

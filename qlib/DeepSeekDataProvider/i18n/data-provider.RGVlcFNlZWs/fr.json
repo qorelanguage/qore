@@ -4,196 +4,640 @@
     "fr": {
       "messages": {
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.desc": {
-          "source": "Sends a list of chat messages to a DeepSeek model using the OpenAI-compatible `/v1/chat/completions` endpoint and returns the generated response.\n\n**Example use cases**:\n- General-purpose chat with `deepseek-chat`\n- Multi-step reasoning with `deepseek-reasoner` — the response carries a `reasoning_content` field alongside the final `content`\n- Tool-calling agents (pass `tools` and `tool_choice` in the request)\n- Structured extraction (pass `response_format` with a JSON schema)",
-          "message": "Envoie une liste de messages de discussion à un modèle DeepSeek à l'aide du point de terminaison `/v1/chat/completions` compatible OpenAI et renvoie la réponse générée.\n\n**Exemples de cas d'utilisation** :\n- Discussion polyvalente avec `deepseek-chat`\n- Raisonnement en plusieurs étapes avec `deepseek-reasoner` — la réponse inclut un champ `reasoning_content` aux côtés de la réponse finale `content`\n- Agents avec appel d'outils (passez `tools` et `tool_choice` dans la requête)\n- Extraction structurée (passez `response_format` avec un schéma JSON)"
+          "source": "Generate answers, analyze images, or call functions from a conversation history.\n\nUse `thinking` to control reasoning and `response_format` for JSON output. For JSON mode, also instruct the model to produce JSON. Prefix messages and strict tools automatically use the beta endpoint.",
+          "message": "Générez des réponses, analysez des images ou appelez des fonctions à partir d'un historique de conversation.\n\nUtilisez `thinking` pour contrôler le raisonnement et `response_format` pour la sortie JSON. Pour le mode JSON, demandez également au modèle de produire du JSON. Les messages préfixés et les outils stricts utilisent automatiquement le endpoint bêta."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.display_name": {
           "source": "Chat Completion",
           "message": "Complétion de chat"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.desc": {
-          "source": "Penalizes tokens based on how often they have already appeared in the output.  Range `-2.0` to `2.0`.  Positive values reduce verbatim repetition.",
-          "message": "Pénalise les jetons en fonction de la fréquence à laquelle ils sont déjà apparus dans la sortie. Plage de `-2.0` à `2.0`. Les valeurs positives réduisent les répétitions textuelles."
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bG9ncHJvYnM.desc": {
+          "source": "Include token log probabilities in the response.",
+          "message": "Incluez les probabilités logarithmiques des jetons dans la réponse."
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.display_name": {
-          "source": "Frequency Penalty",
-          "message": "Pénalité de fréquence"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bG9ncHJvYnM.display_name": {
+          "source": "Log Probabilities",
+          "message": "Log-probabilités"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.short_desc": {
-          "source": "Penalize repeated tokens proportional to their frequency",
-          "message": "Pénaliser les jetons répétés proportionnellement à leur fréquence"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bG9ncHJvYnM.short_desc": {
+          "source": "Log Probabilities",
+          "message": "Log-probabilités"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.desc": {
-          "source": "Name of the DeepSeek model to use for this request.  Common values:\n\n- `deepseek-chat` — general-purpose chat model\n- `deepseek-reasoner` — multi-step reasoning model (emits `reasoning_content` alongside the final answer)",
-          "message": "Nom du modèle DeepSeek à utiliser pour cette requête. Valeurs courantes :\n\n- `deepseek-chat` — modèle de discussion polyvalent\n- `deepseek-reasoner` — modèle de raisonnement en plusieurs étapes (émet `reasoning_content` aux côtés de la réponse finale)"
+          "source": "Select an available model for this request.",
+          "message": "Sélectionnez un modèle disponible pour cette requête."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.display_name": {
           "source": "Model",
           "message": "Modèle"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.short_desc": {
-          "source": "The DeepSeek model to use",
-          "message": "Le modèle DeepSeek à utiliser"
+          "source": "Model",
+          "message": "Modèle"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.desc": {
-          "source": "Maximum number of tokens to generate.  Hard cap is 8192 on most DeepSeek models; consult the platform docs for per-model limits.",
-          "message": "Nombre maximal de jetons à générer. La limite stricte est de 8192 sur la plupart des modèles DeepSeek ; consultez la documentation de la plateforme pour les limites par modèle."
+          "source": "Maximum generated tokens, including reasoning. Check the selected model limits.",
+          "message": "Nombre maximal de jetons générés, y compris le raisonnement. Vérifiez les limites du modèle sélectionné."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.display_name": {
           "source": "Max Tokens",
           "message": "Jetons max."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.short_desc": {
-          "source": "Maximum tokens to emit in the completion",
-          "message": "Nombre maximal de jetons à émettre dans la complétion"
+          "source": "Max Tokens",
+          "message": "Jetons max."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.desc": {
-          "source": "The conversation history as a list of message objects.  Each message has a `role` (`system`, `user`, `assistant`, or `tool`) and `content` (text).",
-          "message": "L'historique de la conversation sous forme de liste d'objets de message. Chaque message comporte un `role` (`system`, `user`, `assistant` ou `tool`) et un `content` (texte)."
+          "source": "Conversation history in chronological order.",
+          "message": "Historique de conversation dans l'ordre chronologique."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.display_name": {
           "source": "Messages",
           "message": "Messages"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.short_desc": {
-          "source": "List of chat messages forming the conversation",
-          "message": "Liste des messages de discussion formant la conversation"
-        },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.desc": {
-          "source": "Integer seed for deterministic sampling.  With a fixed `seed`, `temperature`, and prompt, the same request returns the same output.",
-          "message": "Graine entière pour l'échantillonnage déterministe. Avec un `seed`, un `temperature` et une invite fixes, la même requête renvoie la même sortie."
-        },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.display_name": {
-          "source": "Seed",
-          "message": "Graine"
-        },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.short_desc": {
-          "source": "Deterministic sampling seed",
-          "message": "Graine d'échantillonnage déterministe"
+          "source": "Messages",
+          "message": "Messages"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c3RvcA.desc": {
-          "source": "One or more stop sequences.  Generation halts as soon as the model emits any of them.  Can be a single string or a list of strings.",
-          "message": "Une ou plusieurs séquences d'arrêt. La génération s'interrompt dès que le modèle émet l'une d'elles. Peut être une chaîne unique ou une liste de chaînes."
+          "source": "Up to 16 strings that stop generation before the matching sequence.",
+          "message": "Jusqu'à 16 chaînes qui arrêtent la génération avant la séquence correspondante."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c3RvcA.display_name": {
           "source": "Stop Sequences",
           "message": "Séquences d'arrêt"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c3RvcA.short_desc": {
-          "source": "String or list of strings; generation halts when emitted",
-          "message": "Chaîne ou liste de chaînes ; la génération s'arrête lorsqu'elles sont émises"
+          "source": "Stop Sequences",
+          "message": "Séquences d'arrêt"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.desc": {
-          "source": "When `True`, the server streams partial completions as Server-Sent Events (SSE) instead of returning a single response.  Most data provider flows expect non-streaming (`False` / omitted); enable only when wiring into a streaming consumer.",
-          "message": "Lorsque la valeur est `True`, le serveur diffuse les complétions partielles sous forme d'événements envoyés par le serveur (SSE) au lieu de renvoyer une réponse unique. La plupart des flux de fournisseurs de données attendent un mode sans streaming (`False` / omis) ; ne l'activez que lors de la connexion à un consommateur en continu."
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOm1heA.display_name": {
+          "source": "Maximum",
+          "message": "Maximal"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.display_name": {
-          "source": "Stream",
-          "message": "Flux"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "High",
+          "message": "Élevé"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.short_desc": {
-          "source": "Stream partial completions as Server-Sent Events",
-          "message": "Transmet les complétions partielles via Server-Sent Events"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "Low",
+          "message": "Faible"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.desc": {
-          "source": "Penalizes tokens that have already appeared in the output, regardless of frequency.  Range `-2.0` to `2.0`.  Positive values encourage topic diversity.",
-          "message": "Pénalise les jetons qui sont déjà apparus dans la sortie, indépendamment de leur fréquence. Plage de `-2.0` à `2.0`. Les valeurs positives favorisent la diversité des sujets."
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.desc": {
+          "source": "Amount of reasoning to apply when thinking is enabled.",
+          "message": "Quantité de raisonnement à appliquer lorsque la réflexion est activée."
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.display_name": {
-          "source": "Presence Penalty",
-          "message": "Pénalité de présence"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.display_name": {
+          "source": "Reasoning Effort",
+          "message": "Effort de raisonnement"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.short_desc": {
-          "source": "Penalize any token that has already appeared",
-          "message": "Pénaliser tout jeton déjà apparu"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.short_desc": {
+          "source": "Reasoning Effort",
+          "message": "Effort de raisonnement"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.desc": {
-          "source": "Hash that forces a structured response shape.  The most common use is JSON mode: `{type: \"json_object\"}`.",
-          "message": "Hash imposant une forme de réponse structurée. L'utilisation la plus courante est le mode JSON : `{type: \"json_object\"}`."
+          "source": "Choose plain text or JSON output. JSON mode requires a JSON instruction.",
+          "message": "Choisissez la sortie en texte brut ou en JSON. Le mode JSON nécessite une instruction JSON."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.display_name": {
           "source": "Response Format",
           "message": "Format de réponse"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.short_desc": {
-          "source": "Force structured output (e.g. JSON)",
-          "message": "Forcer une sortie structurée (ex. JSON)"
+          "source": "Response Format",
+          "message": "Format de réponse"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOm5vbmU.display_name": {
-          "source": "None - never call a tool",
-          "message": "Aucun - ne jamais appeler d'outil"
+          "source": "None",
+          "message": "Aucun"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOmF1dG8.display_name": {
-          "source": "Auto - model decides",
-          "message": "Auto - le modèle décide"
+          "source": "Automatic",
+          "message": "Automatique"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOnJlcXVpcmVk.display_name": {
-          "source": "Required - must call a tool",
-          "message": "Requis - doit appeler un outil"
+          "source": "Required",
+          "message": "Requis"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.desc": {
-          "source": "Controls tool invocation.\n\n- `none` — never call a tool (text-only reply)\n- `auto` — model decides (default when `tools` is set)\n- `required` — model must call at least one tool",
-          "message": "Contrôle l'appel d'outils.\n\n- `none` — ne jamais appeler d'outil (réponse textuelle uniquement)\n- `auto` — le modèle décide (par défaut lorsque `tools` est défini)\n- `required` — le modèle doit appeler au moins un outil"
+          "source": "Choose a tool policy or provide a named function object to force a specific tool.",
+          "message": "Choisissez une politique d'outil ou fournissez un objet de fonction nommé pour forcer un outil spécifique."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.display_name": {
           "source": "Tool Choice",
           "message": "Choix de l'outil"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.short_desc": {
-          "source": "Whether and which tool the model must invoke",
-          "message": "Si et quel outil le modèle doit appeler"
+          "source": "Tool Choice",
+          "message": "Choix de l'outil"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.desc": {
-          "source": "List of tool definitions the model may invoke.  Each entry is a hash with a `type` field (`function`) and a `function` hash containing `name`, `description`, and a JSON-schema `parameters` object.",
-          "message": "Liste des définitions d'outils que le modèle peut invoquer. Chaque entrée est un hash avec un champ `type` (`function`) et un hash `function` contenant `name`, `description` et un objet de schéma JSON `parameters`."
+          "source": "Functions available to the assistant; at most 128.",
+          "message": "Fonctions disponibles pour l'assistant ; au plus 128."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.display_name": {
           "source": "Tools",
           "message": "Outils"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.short_desc": {
-          "source": "OpenAI-style tool definitions the model may call",
-          "message": "Définitions d'outils au format OpenAI que le modèle peut appeler"
+          "source": "Tools",
+          "message": "Outils"
+        },
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX2xvZ3Byb2Jz.desc": {
+          "source": "Number of token alternatives from `0` to `20`; requires `logprobs` set to `True`.",
+          "message": "Nombre d'alternatives de jetons de `0` à `20` ; nécessite `logprobs` défini sur `True`."
+        },
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX2xvZ3Byb2Jz.display_name": {
+          "source": "Top Log Probabilities",
+          "message": "Top log-probabilités"
+        },
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX2xvZ3Byb2Jz.short_desc": {
+          "source": "Top Log Probabilities",
+          "message": "Top log-probabilités"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX3A.desc": {
-          "source": "Nucleus sampling cutoff.  Range `0.0` to `1.0`.  Usually left at `1.0`.",
-          "message": "Seuil d'échantillonnage de noyau (nucleus sampling). Plage de `0.0` à `1.0`. Généralement laissé à `1.0`."
+          "source": "Nucleus sampling cutoff from `0` to `1`. Has no effect in thinking mode.",
+          "message": "Seuil d'échantillonnage nucléus de `0` à `1`. Sans effet en mode raisonnement."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX3A.display_name": {
           "source": "Top-P",
           "message": "Top-P"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX3A.short_desc": {
-          "source": "Nucleus sampling cutoff (0-1)",
-          "message": "Seuil de coupure d'échantillonnage nucleus (0-1)"
+          "source": "Top-P",
+          "message": "Top-P"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dGVtcGVyYXR1cmU.desc": {
-          "source": "Controls randomness of the output.  Range `0.0` to `2.0`.  Defaults to `1.0` on DeepSeek.\n\nDeepSeek recommends `0.0` for coding/math, `1.3` for general chat, and `1.5` for creative writing.",
-          "message": "Contrôle le caractère aléatoire de la sortie. Plage de `0.0` à `2.0`. Vaut par défaut `1.0` sur DeepSeek.\n\nDeepSeek recommande `0.0` pour le code/les mathématiques, `1.3` pour les discussions générales et `1.5` pour l'écriture créative."
+          "source": "Sampling temperature from `0` to `2`. Has no effect in thinking mode.",
+          "message": "Température d'échantillonnage de `0` à `2`. Sans effet en mode raisonnement."
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dGVtcGVyYXR1cmU.display_name": {
           "source": "Temperature",
           "message": "Température"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dGVtcGVyYXR1cmU.short_desc": {
-          "source": "Sampling temperature (0-2); higher values give more varied output",
-          "message": "Température d'échantillonnage (0-2) ; plus élevée, résultat plus varié"
+          "source": "Temperature",
+          "message": "Température"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcg.desc": {
-          "source": "Opaque identifier representing the end user.  Logged server-side for abuse tracking and usage attribution; does not affect generation.",
-          "message": "Identifiant opaque représentant l'utilisateur final. Consigné côté serveur pour le suivi des abus et l'attribution de l'utilisation ; n'affecte pas la génération."
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dGhpbmtpbmc.desc": {
+          "source": "Enable or disable reasoning for this request.",
+          "message": "Activez ou désactivez le raisonnement pour cette requête."
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcg.display_name": {
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dGhpbmtpbmc.display_name": {
+          "source": "Thinking",
+          "message": "Penser"
+        },
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dGhpbmtpbmc.short_desc": {
+          "source": "Thinking",
+          "message": "Penser"
+        },
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcl9pZA.desc": {
+          "source": "Pseudonymous identifier for cache and scheduling isolation. Use letters, digits, underscores, or dashes; at most 512 characters. Exclude personal information.",
+          "message": "Identifiant pseudonyme pour l'isolation du cache et de la planification. Utilisez des lettres, chiffres, underscores ou tirets ; au plus 512 caractères. Excluez les informations personnelles."
+        },
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcl9pZA.display_name": {
           "source": "User ID",
           "message": "ID de l'utilisateur"
         },
-        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcg.short_desc": {
-          "source": "Opaque end-user identifier for abuse tracking",
-          "message": "Identifiant opaque de l'utilisateur final pour le suivi des abus"
+        "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcl9pZA.short_desc": {
+          "source": "User ID",
+          "message": "ID de l'utilisateur"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.short_desc": {
           "source": "Generate a chat completion from a DeepSeek model",
           "message": "Générer une complétion de discussion à partir d'un modèle DeepSeek"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.desc": {
+          "source": "Generate a response with tools, images, or structured output.\n\nSupports function calls, server-side web search, vision, and JSON Schema output. **Stateless:** send the full conversation history in `input` for each turn.",
+          "message": "Générez une réponse avec des outils, des images ou une sortie structurée.\n\nPrend en charge les appels de fonction, la recherche web côté serveur, la vision et la sortie JSON Schema. **Sans état :** envoyez l'historique complet de la conversation dans `input` pour chaque tour."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.display_name": {
+          "source": "Create Response",
+          "message": "Créer une réponse"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5wdXQ.desc": {
+          "source": "Text or conversation items. Supply `input` or `instructions`. Include the full history for each turn.",
+          "message": "Texte ou éléments de conversation. Fournissez `input` ou `instructions`. Incluez l'historique complet pour chaque tour."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "Entrée"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5wdXQ.short_desc": {
+          "source": "Input",
+          "message": "Entrée"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5zdHJ1Y3Rpb25z.desc": {
+          "source": "System instructions; required when `input` is absent.",
+          "message": "Instructions système ; requises lorsque `input` est absent."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5zdHJ1Y3Rpb25z.display_name": {
+          "source": "Instructions",
+          "message": "Instructions"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5zdHJ1Y3Rpb25z.short_desc": {
+          "source": "Instructions",
+          "message": "Instructions"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.bW9kZWw.desc": {
+          "source": "Select an available model for this request.",
+          "message": "Sélectionnez un modèle disponible pour cette requête."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modèle"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.bW9kZWw.short_desc": {
+          "source": "Model",
+          "message": "Modèle"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.bWF4X291dHB1dF90b2tlbnM.desc": {
+          "source": "Maximum generated tokens, including reasoning. Check the selected model limits.",
+          "message": "Nombre maximal de jetons générés, y compris le raisonnement. Vérifiez les limites du modèle sélectionné."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.bWF4X291dHB1dF90b2tlbnM.display_name": {
+          "source": "Max Output Tokens",
+          "message": "Jetons de sortie max"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.bWF4X291dHB1dF90b2tlbnM.short_desc": {
+          "source": "Max Output Tokens",
+          "message": "Jetons de sortie max"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.desc": {
+          "source": "Reasoning.",
+          "message": "Raisonnement."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.display_name": {
+          "source": "Reasoning",
+          "message": "Raisonnement"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.short_desc": {
+          "source": "Reasoning",
+          "message": "Raisonnement"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOm5vbmU.display_name": {
+          "source": "None",
+          "message": "Aucun"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Automatic",
+          "message": "Automatique"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOnJlcXVpcmVk.display_name": {
+          "source": "Required",
+          "message": "Requis"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.desc": {
+          "source": "Choose a tool policy or provide a named function object to force a specific tool.",
+          "message": "Choisissez une politique d'outil ou fournissez un objet de fonction nommé pour forcer un outil spécifique."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.display_name": {
+          "source": "Tool Choice",
+          "message": "Choix de l'outil"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.short_desc": {
+          "source": "Tool Choice",
+          "message": "Choix de l'outil"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.desc": {
+          "source": "Custom functions or server-side web search.",
+          "message": "Fonctions personnalisées ou recherche web côté serveur."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.display_name": {
+          "source": "Tools",
+          "message": "Outils"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.short_desc": {
+          "source": "Tools",
+          "message": "Outils"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX2xvZ3Byb2Jz.desc": {
+          "source": "Number of token alternatives from `0` to `20`.",
+          "message": "Nombre d'alternatives de jetons de `0` à `20`."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX2xvZ3Byb2Jz.display_name": {
+          "source": "Top Log Probabilities",
+          "message": "Top log-probabilités"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX2xvZ3Byb2Jz.short_desc": {
+          "source": "Top Log Probabilities",
+          "message": "Top log-probabilités"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX3A.desc": {
+          "source": "Nucleus sampling cutoff from `0` to `1`. Has no effect in thinking mode.",
+          "message": "Seuil d'échantillonnage nucléus de `0` à `1`. Sans effet en mode raisonnement."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX3A.display_name": {
+          "source": "Top-P",
+          "message": "Top-P"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX3A.short_desc": {
+          "source": "Top-P",
+          "message": "Top-P"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.desc": {
+          "source": "Choose plain text, JSON, or output matching a JSON Schema.",
+          "message": "Choisissez le texte brut, JSON ou une sortie correspondant à un JSON Schema."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.display_name": {
+          "source": "Text Output",
+          "message": "Sortie texte"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.short_desc": {
+          "source": "Text Output",
+          "message": "Sortie texte"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGVtcGVyYXR1cmU.desc": {
+          "source": "Sampling temperature from `0` to `2`. Has no effect in thinking mode.",
+          "message": "Température d'échantillonnage de `0` à `2`. Sans effet en mode raisonnement."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "Température"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "Temperature",
+          "message": "Température"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dXNlcg.desc": {
+          "source": "Pseudonymous identifier for cache and scheduling isolation. Use letters, digits, underscores, or dashes; at most 512 characters. Exclude personal information.",
+          "message": "Identifiant pseudonyme pour l'isolation du cache et de la planification. Utilisez des lettres, chiffres, underscores ou tirets ; au plus 512 caractères. Excluez les informations personnelles."
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dXNlcg.display_name": {
+          "source": "User ID",
+          "message": "ID de l'utilisateur"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dXNlcg.short_desc": {
+          "source": "User ID",
+          "message": "ID de l'utilisateur"
+        },
+        "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.short_desc": {
+          "source": "Generate a response with tools, images, or structured output",
+          "message": "Générez une réponse avec des outils, des images ou une sortie structurée"
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWJhbGFuY2U.desc": {
+          "source": "Check available credit before running AI workflows.\n\nReturns credit availability and balances without generating tokens.",
+          "message": "Vérifiez le crédit disponible avant d'exécuter des flux de travail IA.\n\nRenvoie la disponibilité du crédit et les soldes sans générer de jetons."
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWJhbGFuY2U.display_name": {
+          "source": "Get Balance",
+          "message": "Obtenir le solde"
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWJhbGFuY2U.short_desc": {
+          "source": "Check available credit before running AI workflows",
+          "message": "Vérifiez le crédit disponible avant d'exécuter des flux de travail IA"
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWZpbGU.desc": {
+          "source": "Inspect an uploaded image and its expiration.",
+          "message": "Inspecter une image téléchargée et son expiration."
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWZpbGU.display_name": {
+          "source": "Get Image File",
+          "message": "Obtenir le fichier image"
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWZpbGU.option.ZmlsZV9pZA.desc": {
+          "source": "Select an uploaded image file.",
+          "message": "Sélectionnez un fichier image téléchargé."
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWZpbGU.option.ZmlsZV9pZA.display_name": {
+          "source": "File ID",
+          "message": "ID du fichier"
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWZpbGU.option.ZmlsZV9pZA.short_desc": {
+          "source": "File ID",
+          "message": "ID du fichier"
+        },
+        "app.RGVlcFNlZWs.action.Z2V0LWZpbGU.short_desc": {
+          "source": "Inspect an uploaded image and its expiration",
+          "message": "Inspecter une image téléchargée et son expiration"
+        },
+        "app.RGVlcFNlZWs.action.ZGVsZXRlLWZpbGU.desc": {
+          "source": "Remove an uploaded image from your account.\n\n**Permanent:** subsequent model requests cannot use this file.",
+          "message": "Supprimez une image téléchargée de votre compte.\n\n**Permanent :** les requêtes ultérieures du modèle ne peuvent pas utiliser ce fichier."
+        },
+        "app.RGVlcFNlZWs.action.ZGVsZXRlLWZpbGU.display_name": {
+          "source": "Delete Image File",
+          "message": "Supprimer le fichier image"
+        },
+        "app.RGVlcFNlZWs.action.ZGVsZXRlLWZpbGU.option.ZmlsZV9pZA.desc": {
+          "source": "Select an uploaded image file.",
+          "message": "Sélectionnez un fichier image téléchargé."
+        },
+        "app.RGVlcFNlZWs.action.ZGVsZXRlLWZpbGU.option.ZmlsZV9pZA.display_name": {
+          "source": "File ID",
+          "message": "ID du fichier"
+        },
+        "app.RGVlcFNlZWs.action.ZGVsZXRlLWZpbGU.option.ZmlsZV9pZA.short_desc": {
+          "source": "File ID",
+          "message": "ID du fichier"
+        },
+        "app.RGVlcFNlZWs.action.ZGVsZXRlLWZpbGU.short_desc": {
+          "source": "Remove an uploaded image from your account",
+          "message": "Supprimer une image téléchargée de votre compte"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.desc": {
+          "source": "Complete text or code between a prompt and suffix.\n\nUses `/beta/completions`. Select a model that supports Fill-in-the-Middle, currently `deepseek-v4-pro`.",
+          "message": "Complétez le texte ou le code entre un prompt et un suffixe.\n\nUtilise `/beta/completions`. Sélectionnez un modèle prenant en charge le remplissage au milieu, actuellement `deepseek-v4-pro`."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.display_name": {
+          "source": "Fill in the Middle",
+          "message": "Remplir au milieu"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.ZWNobw.desc": {
+          "source": "Include the prompt in the returned text.",
+          "message": "Incluez le prompt dans le texte renvoyé."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.ZWNobw.display_name": {
+          "source": "Echo Prompt",
+          "message": "Écho du prompt"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.ZWNobw.short_desc": {
+          "source": "Echo Prompt",
+          "message": "Écho du prompt"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bG9ncHJvYnM.desc": {
+          "source": "Number of alternative token probabilities from `0` to `20`.",
+          "message": "Nombre de probabilités alternatives de jetons de `0` à `20`."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bG9ncHJvYnM.display_name": {
+          "source": "Log Probabilities",
+          "message": "Log-probabilités"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bG9ncHJvYnM.short_desc": {
+          "source": "Log Probabilities",
+          "message": "Log-probabilités"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bW9kZWw.desc": {
+          "source": "Select a model supporting Fill-in-the-Middle completion. Currently `deepseek-v4-pro`.",
+          "message": "Sélectionnez un modèle prenant en charge la complétion de remplissage au milieu. Actuellement `deepseek-v4-pro`."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modèle"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bW9kZWw.short_desc": {
+          "source": "Model",
+          "message": "Modèle"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bWF4X3Rva2Vucw.desc": {
+          "source": "Maximum generated tokens, including reasoning. Check the selected model limits.",
+          "message": "Nombre maximal de jetons générés, y compris le raisonnement. Vérifiez les limites du modèle sélectionné."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bWF4X3Rva2Vucw.display_name": {
+          "source": "Max Tokens",
+          "message": "Jetons max."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bWF4X3Rva2Vucw.short_desc": {
+          "source": "Max Tokens",
+          "message": "Jetons max."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.c3RvcA.desc": {
+          "source": "Up to 16 strings that stop generation before the matching sequence.",
+          "message": "Jusqu'à 16 chaînes qui arrêtent la génération avant la séquence correspondante."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.c3RvcA.display_name": {
+          "source": "Stop Sequences",
+          "message": "Séquences d'arrêt"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.c3RvcA.short_desc": {
+          "source": "Stop Sequences",
+          "message": "Séquences d'arrêt"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.c3VmZml4.desc": {
+          "source": "Text after the insertion point.",
+          "message": "Texte après le point d'insertion."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.c3VmZml4.display_name": {
+          "source": "Suffix",
+          "message": "Suffixe"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.c3VmZml4.short_desc": {
+          "source": "Suffix",
+          "message": "Suffixe"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.cHJvbXB0.desc": {
+          "source": "Text before the insertion point.",
+          "message": "Texte avant le point d'insertion."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.cHJvbXB0.display_name": {
+          "source": "Prompt",
+          "message": "Prompt"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.cHJvbXB0.short_desc": {
+          "source": "Prompt",
+          "message": "Prompt"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dG9wX3A.desc": {
+          "source": "Nucleus sampling cutoff from `0` to `1`. Has no effect in thinking mode.",
+          "message": "Seuil d'échantillonnage nucléus de `0` à `1`. Sans effet en mode raisonnement."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dG9wX3A.display_name": {
+          "source": "Top-P",
+          "message": "Top-P"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dG9wX3A.short_desc": {
+          "source": "Top-P",
+          "message": "Top-P"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dGVtcGVyYXR1cmU.desc": {
+          "source": "Sampling temperature from `0` to `2`. Has no effect in thinking mode.",
+          "message": "Température d'échantillonnage de `0` à `2`. Sans effet en mode raisonnement."
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "Température"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "Temperature",
+          "message": "Température"
+        },
+        "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.short_desc": {
+          "source": "Complete text or code between a prompt and suffix",
+          "message": "Complétez le texte ou le code entre un prompt et un suffixe"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.desc": {
+          "source": "Browse uploaded images with pagination.\n\nUse `last_id` as the next `after` cursor while `has_more` is `True`.",
+          "message": "Parcourir les images téléchargées avec pagination.\n\nUtilisez `last_id` comme curseur `after` suivant tant que `has_more` est `True`."
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.display_name": {
+          "source": "List Image Files",
+          "message": "Lister les fichiers image"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.YWZ0ZXI.desc": {
+          "source": "Return files after this cursor.",
+          "message": "Renvoie les fichiers après ce curseur."
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.YWZ0ZXI.display_name": {
+          "source": "After File",
+          "message": "Après le fichier"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.YWZ0ZXI.short_desc": {
+          "source": "After File",
+          "message": "Après le fichier"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.b3JkZXI.allowed-value.c3RyaW5nOmFzYw.display_name": {
+          "source": "Oldest First",
+          "message": "Plus ancien d'abord"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.b3JkZXI.allowed-value.c3RyaW5nOmRlc2M.display_name": {
+          "source": "Newest First",
+          "message": "Plus récents d'abord"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.b3JkZXI.desc": {
+          "source": "Sort files by creation time.",
+          "message": "Trier les fichiers par date de création."
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.b3JkZXI.display_name": {
+          "source": "Order",
+          "message": "Ordre"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.b3JkZXI.short_desc": {
+          "source": "Order",
+          "message": "Ordre"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.bGltaXQ.desc": {
+          "source": "Maximum files to return, from `1` to `1000`.",
+          "message": "Nombre maximal de fichiers à renvoyer, de `1` à `1000`."
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "Limite"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "Limite"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.cHVycG9zZQ.allowed-value.c3RyaW5nOnVzZXJfZGF0YQ.display_name": {
+          "source": "User Data",
+          "message": "Données utilisateur"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.cHVycG9zZQ.desc": {
+          "source": "Purpose.",
+          "message": "Objectif."
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.cHVycG9zZQ.display_name": {
+          "source": "Purpose",
+          "message": "Objectif"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.option.cHVycG9zZQ.short_desc": {
+          "source": "Purpose",
+          "message": "Objectif"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1maWxlcw.short_desc": {
+          "source": "Browse uploaded images with pagination",
+          "message": "Parcourir les images téléchargées avec pagination"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1tb2RlbHM.desc": {
+          "source": "Find available models for your workflows.",
+          "message": "Trouvez les modèles disponibles pour vos flux de travail."
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1tb2RlbHM.display_name": {
+          "source": "List Models",
+          "message": "Lister les modèles"
+        },
+        "app.RGVlcFNlZWs.action.bGlzdC1tb2RlbHM.short_desc": {
+          "source": "Find available models for your workflows",
+          "message": "Trouvez les modèles disponibles pour vos flux de travail"
         },
         "app.RGVlcFNlZWs.action.bWFrZS1hcGktY2FsbA.desc": {
           "source": "Make a custom HTTP / REST API call to **DeepSeek** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
@@ -519,9 +963,61 @@
           "source": "Make a custom API call to DeepSeek",
           "message": "Effectuer un appel d'API personnalisé vers DeepSeek"
         },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.desc": {
+          "source": "Upload an image for reuse in model requests.",
+          "message": "Téléversez une image pour la réutiliser dans les requêtes de modèle."
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.display_name": {
+          "source": "Upload Image File",
+          "message": "Téléverser un fichier image"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZXhwaXJlc19hZnRlcl9zZWNvbmRz.desc": {
+          "source": "Delete the file automatically after `3600` to `2592000` seconds. Omit to retain it.",
+          "message": "Supprimez automatiquement le fichier après `3600` à `2592000` secondes. Omettez pour le conserver."
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZXhwaXJlc19hZnRlcl9zZWNvbmRz.display_name": {
+          "source": "Expires After (Seconds)",
+          "message": "Expire après (secondes)"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZXhwaXJlc19hZnRlcl9zZWNvbmRz.short_desc": {
+          "source": "Expires After (Seconds)",
+          "message": "Expire après (secondes)"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.desc": {
+          "source": "Named image with `name`, binary or base64 `content`, and optional `mime_type`. JPEG, PNG, GIF, or WebP; at most 64 MiB.",
+          "message": "Image nommée avec `name`, `content` binaire ou base64, et `mime_type` facultatif. JPEG, PNG, GIF ou WebP ; au plus 64 Mio."
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.display_name": {
+          "source": "Image File",
+          "message": "Fichier image"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.short_desc": {
+          "source": "Image File",
+          "message": "Fichier image"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.allowed-value.c3RyaW5nOnVzZXJfZGF0YQ.display_name": {
+          "source": "User Data",
+          "message": "Données utilisateur"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.desc": {
+          "source": "Intended use of this image.",
+          "message": "Utilisation prévue de cette image."
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.display_name": {
+          "source": "Purpose",
+          "message": "Objectif"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.short_desc": {
+          "source": "Purpose",
+          "message": "Objectif"
+        },
+        "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.short_desc": {
+          "source": "Upload an image for reuse in model requests",
+          "message": "Téléversez une image pour la réutiliser dans les requêtes de modèle"
+        },
         "app.RGVlcFNlZWs.desc": {
-          "source": "Provides access to [DeepSeek](https://platform.deepseek.com) — a frontier-class LLM provider offering budget-friendly chat and reasoning models.\n\nDeepSeek exposes an OpenAI-compatible chat-completions API, so DeepSeek models drop into existing OpenAI-shape consumers (chat, tool calling, structured-output JSON schema, streaming) with only a base-URL change.\n\n**Common use cases**:\n- **Cost-sensitive chat assistants** using `deepseek-chat` — competitive quality at a fraction of frontier-model pricing\n- **Multi-step reasoning** using `deepseek-reasoner` — emits `reasoning_content` alongside the final answer for explainable outputs\n- **Tool-calling agents** — OpenAI-shape `tools` and `tool_choice` work unchanged\n- **Structured extraction** via JSON-schema `response_format`",
-          "message": "Fournit un accès à [DeepSeek](https://platform.deepseek.com) — un fournisseur de LLM de pointe proposant des modèles de discussion et de raisonnement économiques.\n\nDeepSeek expose une API de complétion de discussion compatible avec OpenAI, de sorte que les modèles DeepSeek s'intègrent aux consommateurs existants au format OpenAI (discussion, appel d'outils, schéma JSON de sortie structurée, streaming) avec une simple modification de l'URL de base.\n\n**Cas d'utilisation courants** :\n- **Assistants de discussion économiques** utilisant `deepseek-chat` — une qualité compétitive à une fraction du coût des modèles de pointe\n- **Raisonnement en plusieurs étapes** utilisant `deepseek-reasoner` — émet `reasoning_content` aux côtés de la réponse finale pour des résultats explicables\n- **Agents avec appel d'outils** — `tools` et `tool_choice` au format OpenAI fonctionnent sans modification\n- **Extraction structurée** via le schéma JSON `response_format`"
+          "source": "Use [DeepSeek](https://platform.deepseek.com) to automate language and image tasks.\n\n- Generate chat and reasoning responses\n- Extract structured data and call tools\n- Complete code between a prompt and suffix\n- Upload images for reuse in vision requests\n- Inspect available models and account credit",
+          "message": "Utilisez [DeepSeek](https://platform.deepseek.com) pour automatiser des tâches de langage et d'image.\n\n- Générez des réponses de chat et de raisonnement\n- Extrayez des données structurées et appelez des outils\n- Complétez le code entre un prompt et un suffixe\n- Téléchargez des images pour les réutiliser dans les requêtes de vision\n- Inspectez les modèles disponibles et le crédit du compte"
         },
         "app.RGVlcFNlZWs.display_name": {
           "source": "DeepSeek",

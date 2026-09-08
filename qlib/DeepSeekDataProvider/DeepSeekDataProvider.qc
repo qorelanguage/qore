@@ -41,6 +41,9 @@ public class DeepSeekDataProvider inherits DeepSeekDataProviderCommon {
         #! Dynamic child data providers
         static hash<string, Reflection::Class> childMap = DefaultChildMap;
 
+        #! Serializes registration and snapshots of extension providers
+        static RWLock childLock();
+
         #! Default child data providers
         const DefaultChildMap = {
             "chat-completion":
@@ -63,7 +66,8 @@ public class DeepSeekDataProvider inherits DeepSeekDataProviderCommon {
 
     #! Registers a new child data provider
     static registerChild(string pathname, Reflection::Class cls) {
-        if (childMap{pathname}) {
+        AutoWriteLock al(childLock);
+        if (childMap{pathname} || DeepSeekActions::Operations{pathname}) {
             throw "DEEPSEEK-CHILD-ERROR", sprintf("child %y already registered", pathname);
         }
         childMap{pathname} = cls;
@@ -71,17 +75,32 @@ public class DeepSeekDataProvider inherits DeepSeekDataProviderCommon {
 
     #! Returns data provider summary info
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator();
+        AutoReadLock al(childLock);
+        list<hash<DataProviderSummaryInfo>> rv = map
+            $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator();
+        foreach string name in (keys DeepSeekActions::Operations) {
+            push rv, <DataProviderSummaryInfo>{"name": name, "type": "DeepSeekApiDataProvider",
+                "supports_request": True};
+        }
+        return rv;
     }
 
     #! Returns a list of child data provider names, if any
     private *list<string> getChildProviderNamesImpl() {
-        return keys childMap;
+        AutoReadLock al(childLock);
+        return (keys childMap) + (keys DeepSeekActions::Operations);
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
     private *AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = childMap{name};
+        if (DeepSeekActions::Operations{name}) {
+            return new DeepSeekApiDataProvider(rest, name);
+        }
+        *Class cls;
+        {
+            AutoReadLock al(childLock);
+            cls = childMap{name};
+        }
         if (!cls) {
             return;
         }
