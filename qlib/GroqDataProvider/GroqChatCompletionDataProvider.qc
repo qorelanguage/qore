@@ -79,6 +79,22 @@ public class GroqChatCompletionDataProvider inherits GroqDataProviderCommon {
         Qore date to match the typed `*date` field in the response schema.
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        GroqApiDataProvider::validateGeneration(req);
+        if (!req.messages || !trim(req.model)) {
+            throw "GROQ-REQUEST-ERROR", "chat requires a model and at least one message";
+        }
+        if ((exists req.max_tokens && exists req.max_completion_tokens)
+            || (exists req.reasoning_format && exists req.include_reasoning)) {
+            throw "GROQ-REQUEST-ERROR", "conflicting token limits or reasoning controls";
+        }
+        if (req.stop.typeCode() == NT_LIST && req.stop.size() > 4) {
+            throw "GROQ-REQUEST-ERROR", "at most four stop sequences are supported";
+        }
+        foreach hash<auto> tool in (req.tools) {
+            if (tool.type == "function" && !tool.function) {
+                throw "GROQ-REQUEST-ERROR", "function tools require a function definition";
+            }
+        }
         hash<auto> body = doRestCommand("POST", "chat/completions", req).body;
         if (body.created.typeCode() == NT_INT) {
             body.created = 1970-01-01Z + seconds(body.created);

@@ -1,5 +1,6 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
 
 %modern
 %allow-injection
@@ -888,6 +889,7 @@ public class DataProviderTest inherits QUnit::Test {
         addTestCase("expression tests", \expressionTests());
         addTestCase("get display name", \getDisplayNameTest());
         addTestCase("get display name - locale", \getDisplayNameLocaleTest());
+        addTestCase("empty action option fields", \emptyActionOptionFieldsTest());
         addTestCase("action option example determinism", \actionOptionExampleDeterminismTest());
         addTestCase("action option semantic attributes", \actionOptionSemanticAttrTest());
         addTestCase("semantic string format types", \semanticStringFormatTypesTest());
@@ -1757,6 +1759,13 @@ public class DataProviderTest inherits QUnit::Test {
             DataProviderActionCatalog::getActionOptionFromFields(rawfields);
         assertEq("url", ropts.website.ui_type,
             "ui_type propagates from a raw-hash field");
+    }
+
+    emptyActionOptionFieldsTest() {
+        assertEq({}, DataProviderActionCatalog::getActionOptionFromFields({}),
+            "an operation with no fields produces an empty option hash");
+        assertEq({}, DataProviderActionCatalog::getActionOptionFromFields({}, {"preselected": True}),
+            "additional presentation flags do not create options");
     }
 
     actionOptionExampleDeterminismTest() {

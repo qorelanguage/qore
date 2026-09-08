@@ -2367,7 +2367,7 @@ public class DataProviderActionCatalog {
     #! Converts field definitions into option descriptions
     static hash<string, hash<ActionOptionInfo>> getActionOptionFromFields(hash<auto> fields,
             *hash<auto> additional_fields) {
-        hash<string, hash<ActionOptionInfo>> rv;
+        hash<string, hash<ActionOptionInfo>> rv = {};
         hash plain_fields = hash(fields);
         foreach hash<auto> i in (plain_fields.pairIterator()) {
             on_error rethrow $1.err, sprintf("%s (while processing field %y)", $1.desc, i.key);

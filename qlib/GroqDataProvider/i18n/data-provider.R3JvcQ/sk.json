@@ -11,18 +11,6 @@
           "source": "Chat Completion",
           "message": "Dopĺňanie chatu"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.desc": {
-          "source": "Penalizes tokens based on how often they have already appeared in the output.  Range `-2.0` to `2.0`.",
-          "message": "Penalizuje tokeny na základe toho, ako často sa už objavili vo výstupe. Rozsah `-2.0` až `2.0`."
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.display_name": {
-          "source": "Frequency Penalty",
-          "message": "Penalizácia frekvencie"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.short_desc": {
-          "source": "Penalize repeated tokens proportional to their frequency",
-          "message": "Penalizovať opakované tokeny úmerne k ich frekvencii"
-        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.desc": {
           "source": "ID of the Groq-hosted model to use.  See the [Groq models documentation](https://console.groq.com/docs/models) for the currently-available models; the `list-models` action returns the live list served by the API.",
           "message": "ID modelu hostovaného na Groq, ktorý sa má použiť. Aktuálne dostupné modely nájdete v [dokumentácii modelov Groq](https://console.groq.com/docs/models); akcia `list-models` vracia aktuálny zoznam poskytovaný cez API."
@@ -36,8 +24,8 @@
           "message": "Model hostovaný v službe Groq, ktorý sa má použiť"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.desc": {
-          "source": "Maximum number of tokens to generate.  Must fit within the model's context window minus the prompt token count.",
-          "message": "Maximálny počet tokenov na vygenerovanie. Musí sa zmestiť do kontextového okna modelu po odčítaní počtu tokenov promptu."
+          "source": "Legacy output limit. Prefer `max_completion_tokens`; do not supply both.",
+          "message": "Starší limit výstupu. Uprednostnite `max_completion_tokens`; nezadávajte oba limity."
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.display_name": {
           "source": "Max Tokens",
@@ -83,30 +71,6 @@
           "source": "String or list of strings; generation halts when emitted",
           "message": "Reťazec alebo zoznam reťazcov; generovanie sa zastaví pri ich vygenerovaní"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.desc": {
-          "source": "When `True`, the server streams partial completions as Server-Sent Events (SSE) instead of returning a single response.  Most data provider flows expect non-streaming (`False` / omitted).",
-          "message": "Ak je `True`, server streamuje čiastočné dokončenia ako Server-Sent Events (SSE) namiesto vrátenia jednej odpovede. Väčšina tokov poskytovateľa dát očakáva nestreamovanú prevádzku (`False` / vynechané)."
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.display_name": {
-          "source": "Stream",
-          "message": "Stream"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.short_desc": {
-          "source": "Stream partial completions as Server-Sent Events",
-          "message": "Streamovať čiastočné dokončenia ako Server-Sent Events"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.desc": {
-          "source": "Penalizes tokens that have already appeared in the output, regardless of frequency.  Range `-2.0` to `2.0`.",
-          "message": "Penalizuje tokeny, ktoré sa už objavili vo výstupe, bez ohľadu na frekvenciu. Rozsah `-2.0` až `2.0`."
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.display_name": {
-          "source": "Presence Penalty",
-          "message": "Penalizácia prítomnosti"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.short_desc": {
-          "source": "Penalize any token that has already appeared",
-          "message": "Penalizovať akýkoľvek token, ktorý sa už objavil"
-        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.desc": {
           "source": "Hash that forces a structured response shape.  The most common use is JSON mode: `{type: \"json_object\"}`.",
           "message": "Hash, ktorý vynucuje štruktúrovaný formát odpovede. Najbežnejším použitím je režim JSON: `{type: \"json_object\"}`."
@@ -144,8 +108,8 @@
           "message": "Či a aký nástroj musí model zavolať"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.desc": {
-          "source": "List of tool definitions the model may invoke.  Each entry is a hash with a `type` field (`function`) and a `function` hash containing `name`, `description`, and a JSON-schema `parameters` object.",
-          "message": "Zoznam definícií nástrojov, ktoré môže model vyvolať. Každá položka je hash s poľom `type` (`function`) a hash `function` obsahujúci `name`, `description` a objekt `parameters` schémy JSON."
+          "source": "Custom function definitions or supported built-in tools. Use `function` with a `function` definition, or select `browser_search` or `code_interpreter` for a compatible model.",
+          "message": "Definície vlastných funkcií alebo podporované vstavané nástroje. Použite `function` s definíciou `function`, alebo pre kompatibilný model vyberte `browser_search` či `code_interpreter`."
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.display_name": {
           "source": "Tools",
@@ -532,16 +496,16 @@
           "message": "Vykonať vlastné volanie API do služby Groq"
         },
         "app.R3JvcQ.desc": {
-          "source": "Provides access to [Groq](https://groq.com) — LPU-accelerated inference for open-weight LLMs at exceptionally high token-per-second throughput.\n\nGroq exposes an OpenAI-compatible chat-completions API, so existing OpenAI-shape consumers (chat, tools, structured output, streaming) work unchanged.  See the [Groq models documentation](https://console.groq.com/docs/models) for the currently-available models.\n\n**Common use cases**:\n- **Low-latency chat** — Groq's LPU delivers sub-second time-to-first-token\n- **High-throughput tool-calling agents** where total response time matters\n- **Open-weight model deployments** without owning GPU infrastructure",
-          "message": "Poskytuje prístup k službe [Groq](https://groq.com) – inferencii akcelerovanej LPU pre open-weight modely LLM s mimoriadne vysokou priepustnosťou tokenov za sekundu.\n\nGroq poskytuje API na dopĺňanie chatu kompatibilné s OpenAI, takže existujúci konzumenti formátu OpenAI (chat, nástroje, štruktúrovaný výstup, streamovanie) fungujú bez zmien. Aktuálne dostupné modely nájdete v [dokumentácii modelov Groq](https://console.groq.com/docs/models).\n\n**Bežné prípady použitia**:\n- **Chat s nízkou latenciou** – LPU od Groq prináša čas do prvého tokenu pod jednu sekundu\n- **Agenti volajúci nástroje s vysokou priepustnosťou**, kde záleží na celkovom čase odozvy\n- **Nasadenia open-weight modelov** bez nutnosti vlastniť infraštruktúru GPU"
+          "source": "Use [Groq](https://groq.com) to bring fast AI inference into business workflows.\n\n- Generate chat and structured responses with tool calling\n- Transcribe, translate, and synthesize speech\n- Upload files and manage batch inference\n- Host externally trained LoRA adapters with enterprise access\n- Discover available models and inspect their capabilities",
+          "message": "Použite [Groq](https://groq.com) na rýchlu inferenciu AI v podnikových procesoch.\n\n- Generujte chatové a štruktúrované odpovede s volaním nástrojov\n- Prepisujte, prekladajte a syntetizujte reč\n- Nahrávajte súbory a spravujte dávkovú inferenciu\n- Hosťujte externe natrénované adaptéry LoRA s podnikovým prístupom\n- Vyhľadávajte dostupné modely a skúmajte ich možnosti"
         },
         "app.R3JvcQ.display_name": {
           "source": "Groq",
           "message": "Groq"
         },
         "app.R3JvcQ.short_desc": {
-          "source": "Groq LPU inference for open-weight models at very high throughput",
-          "message": "Inferencia Groq LPU pre modely s otvorenou váhou pri veľmi vysokej priepustnosti"
+          "source": "Fast AI responses, speech, batch inference, and LoRA adapter hosting",
+          "message": "Rýchle odpovede AI, reč, dávková inferencia a hosťovanie adaptérov LoRA"
         }
       }
     }

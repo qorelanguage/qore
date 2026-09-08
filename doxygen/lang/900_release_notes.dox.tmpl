@@ -1525,6 +1525,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         <a href="https://github.com/qoretechnologies/module-amqp">amqp</a> module
 
     - @ref dataproviderintro "DataProvider" module
+      - action option generation returns an empty hash for operations without input fields
       - fixed short-description derivation corrupting words and literal braces when help text contains quoted parameter names or numbers
       - added DPQL (Data Provider Query Language) — a human/AI-readable query syntax with a tokenizer,
         parser, serializer, and IDE completion provider, plus \c qdp CLI integration
@@ -2318,10 +2319,13 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing a pure-Qore <a href="https://graphql.org">GraphQL</a> execution engine (lexer, parser, SDL schema model, validation, execution, and introspection) together with HTTP and WebSocket server handlers for exposing GraphQL queries, mutations, and subscriptions through the @ref httpserverintro "HttpServer"
 
     - @ref groqdataproviderintro "GroqDataProvider" module
-      - new module providing a data provider API for <a href="https://groq.com">Groq</a> LPU-accelerated open-weight LLM inference
+      - 20 typed actions for chat, Responses, models, audio, files, batches, and enterprise LoRA adapter hosting
+      - task-specific model and file dropdowns, model-dependent voices, multipart uploads, and binary downloads
+      - validates incompatible generation options and preserves the existing chat and model action IDs
 
     - @ref groqrestclientintro "GroqRestClient" module
-      - new module providing a REST client for <a href="https://groq.com">Groq</a>'s OpenAI-compatible LPU inference API
+      - canonical automatic connection URLs, app association, and explicit JSON request serialization
+      - live authentication checks accept valid keys and reject invalid keys on the model catalog endpoint
 
     - @ref hl7v2utilintro "Hl7v2Util" module
       - new module for structure-agnostic parsing and writing of HL7 v2 delimited healthcare messages

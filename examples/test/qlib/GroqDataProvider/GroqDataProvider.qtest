@@ -1,16 +1,17 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
 
 %modern
 %allow-injection
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Logger
-%requires ConnectionProvider
-%requires DataProvider
-%requires GroqDataProvider
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/GroqDataProvider
 
 %exec-class GroqDataProviderTest
 
@@ -19,10 +20,14 @@ class FakeGroqRestClientIo inherits RestClientIo::RestClientIo {
         *hash<auto> last_request;
         string last_method;
         string last_path;
-        hash<auto> response_body;
+        auto response_body;
     }
 
     constructor() : RestClientIo({"url": "https://api.groq.com/openai", "token": "x"}) {
+    }
+
+    RestClient::AbstractRestClient copyWithUrl(string new_url) {
+        return self;
     }
 
     hash<RestClient::RestResponseInfo> restDoRequest(string method, string path,
@@ -62,8 +67,6 @@ public class GroqDataProviderTest inherits QUnit::Test {
 
         const OptionColumn = 22;
 
-        #! Maximum live models to try before failing the live chat test
-        const MaxLiveChatAttempts = 8;
     }
 
     private {
@@ -124,7 +127,7 @@ public class GroqDataProviderTest inherits QUnit::Test {
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("Groq"),
             $1.action != AbstractDataProvider::GenericApiCallActionName;
-        assertEq(2, actions.size());
+        assertEq(20, actions.size());
         hash<string, hash<DataProviderActionInfo>> amap =
             map {$1.action: $1}, actions;
 
@@ -137,7 +140,7 @@ public class GroqDataProviderTest inherits QUnit::Test {
         assertTrue(chat.options.model.required);
         # the model option offers live values from the models endpoint but
         # accepts any value the user enters
-        assertEq("models", chat.options.model.ref_data);
+        assertEq("chat-models", chat.options.model.ref_data);
         assertTrue(chat.options.model.allowed_values_creatable);
         # no hardcoded model names offered: available models are fetched live
         assertNothing(chat.options.model.allowed_values);
@@ -158,7 +161,9 @@ public class GroqDataProviderTest inherits QUnit::Test {
         # GenericApiCallAutoInjection.qtest in RestClientDataProvider)
         list<string> children = select prov.getChildProviderNames(),
             $1 != AbstractDataProvider::GenericApiCallChildName;
-        assertEq(("chat-completion", "list-models"), children);
+        assertEq(20, children.size());
+        assertTrue((select children, $1 == "chat-completion").size() > 0);
+        assertTrue((select children, $1 == "list-models").size() > 0);
         AbstractDataProvider chat = prov.getChildProvider("chat-completion");
         assertTrue(chat instanceof
             GroqDataProvider::GroqChatCompletionDataProvider);
@@ -219,7 +224,7 @@ public class GroqDataProviderTest inherits QUnit::Test {
 
         # OpenAI-compatible POST path
         assertEq("POST", fake.last_method);
-        assertEq("chat/completions", fake.last_path);
+        assertEq("/openai/v1/chat/completions", fake.last_path);
         # Request body forwarded unchanged
         assertEq("test-model", fake.last_request.model);
         assertEq(0.7, fake.last_request.temperature);
@@ -269,7 +274,7 @@ public class GroqDataProviderTest inherits QUnit::Test {
 
         auto resp = prov.doRequest();
         assertEq("GET", fake.last_method);
-        assertEq("models", fake.last_path);
+        assertEq("/openai/v1/models", fake.last_path);
         assertEq("list", resp.object);
         assertEq(2, resp."data".size());
         assertEq("test-model-a", resp."data"[0].id);
@@ -294,7 +299,7 @@ public class GroqDataProviderTest inherits QUnit::Test {
         assertTrue(prov.getSupportedReferenceData().models);
         *list<hash<AllowedValueInfo>> vals = prov.getReferenceData("models");
         assertEq("GET", fake.last_method);
-        assertEq("models", fake.last_path);
+        assertEq("/openai/v1/models", fake.last_path);
         # inactive models are not offered
         assertEq(("test-model-a", "test-model-b"), map $1.value, vals);
         assertEq("test-model-a", vals[0].display_name);
@@ -312,16 +317,14 @@ public class GroqDataProviderTest inherits QUnit::Test {
         # the model field takes its values from the models endpoint but must
         # also accept values not in the list
         hash<DataFieldInfo> model_info = fields.model.getInfo();
-        assertEq("models", model_info.attr.ref_data);
+        assertEq("chat-models", model_info.attr.ref_data);
         assertTrue(model_info.allowed_values_creatable);
         assertNothing(model_info.allowed_values);
     }
 
     #! Exercises Groq's live model-list and chat-completion endpoints
-    /** Selects a model from the live model list rather than hardcoding one,
-        so the test keeps working as Groq's served model set changes, and
-        verifies the actual wire format with a token-bounded request.
-        Cost: free tier eligible (capped via max_tokens=16).
+    /** Uses GROQ_CHAT_MODEL, defaulting to a documented Responses-capable model.
+        The completion is capped at 128 tokens, including reasoning.
     */
     private liveGroqTest() {
         AbstractConnection conn = get_connection(conn_name);
@@ -345,31 +348,13 @@ public class GroqDataProviderTest inherits QUnit::Test {
         assertTrue(vals.size() > 0,
             "Groq models exposed as reference data");
 
-        # try listed active models until one serves a chat completion; models
-        # that reject chat requests (audio, TTS, guard, etc.) return client
-        # errors and are skipped
-        list<string> candidates = map $1.id, models."data", $1.active ?? True;
-        auto resp;
-        foreach string model in (candidates) {
-            if ($# == MaxLiveChatAttempts) {
-                break;
-            }
-            try {
-                resp = chat.doRequest({
-                    "model": model,
-                    "messages": ({"role": "user", "content": "Say hi in one word."},),
-                    "max_tokens": 16,
-                });
-                break;
-            } catch (hash<ExceptionInfo> ex) {
-                if (ex.arg.status_code >= 400 && ex.arg.status_code < 500) {
-                    continue;
-                }
-                rethrow;
-            }
-        }
-        assertTrue(exists resp,
-            "at least one listed model served a chat completion");
+        string model = ENV.GROQ_CHAT_MODEL ?? "openai/gpt-oss-20b";
+        auto resp = chat.doRequest({
+            "model": model,
+            "messages": ({"role": "user", "content": "Reply with just OK."},),
+            "reasoning_effort": "low",
+            "max_completion_tokens": 128,
+        });
         assertTrue(resp.choices[0].message.content.val(),
             "Groq returned non-empty assistant content");
         assertTrue(resp.usage.total_tokens > 0,

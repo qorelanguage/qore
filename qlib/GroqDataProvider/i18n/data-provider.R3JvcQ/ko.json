@@ -11,18 +11,6 @@
           "source": "Chat Completion",
           "message": "채팅 완성"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.desc": {
-          "source": "Penalizes tokens based on how often they have already appeared in the output.  Range `-2.0` to `2.0`.",
-          "message": "토큰이 출력에 이미 나타난 빈도에 따라 페널티를 부여합니다. 범위는 `-2.0`에서 `2.0`까지입니다."
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.display_name": {
-          "source": "Frequency Penalty",
-          "message": "빈도 페널티"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.short_desc": {
-          "source": "Penalize repeated tokens proportional to their frequency",
-          "message": "반복되는 토큰의 빈도에 비례하여 페널티 부여"
-        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.desc": {
           "source": "ID of the Groq-hosted model to use.  See the [Groq models documentation](https://console.groq.com/docs/models) for the currently-available models; the `list-models` action returns the live list served by the API.",
           "message": "사용할 Groq 호스팅 모델의 ID입니다. 현재 사용 가능한 모델은 [Groq 모델 문서](https://console.groq.com/docs/models)를 참조하세요. `list-models` 작업을 통해 API가 제공하는 실시간 목록을 확인할 수 있습니다."
@@ -36,8 +24,8 @@
           "message": "사용할 Groq 호스팅 모델"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.desc": {
-          "source": "Maximum number of tokens to generate.  Must fit within the model's context window minus the prompt token count.",
-          "message": "생성할 최대 토큰 수입니다. 모델의 컨텍스트 창에서 프롬프트 토큰 수를 뺀 값 이내여야 합니다."
+          "source": "Legacy output limit. Prefer `max_completion_tokens`; do not supply both.",
+          "message": "기존 출력 제한입니다. `max_completion_tokens`를 우선 사용하고 두 제한을 함께 지정하지 마세요."
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.display_name": {
           "source": "Max Tokens",
@@ -83,30 +71,6 @@
           "source": "String or list of strings; generation halts when emitted",
           "message": "문자열 또는 문자열 목록, 출력 시 생성 중단"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.desc": {
-          "source": "When `True`, the server streams partial completions as Server-Sent Events (SSE) instead of returning a single response.  Most data provider flows expect non-streaming (`False` / omitted).",
-          "message": "`True`인 경우 서버는 단일 응답을 반환하는 대신 부분 완료를 Server-Sent Events(SSE)로 스트리밍합니다. 대부분의 데이터 제공자 흐름은 비스트리밍(`False` / 생략됨)을 예상합니다."
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.display_name": {
-          "source": "Stream",
-          "message": "스트림"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.short_desc": {
-          "source": "Stream partial completions as Server-Sent Events",
-          "message": "부분 완료를 Server-Sent Events로 스트리밍"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.desc": {
-          "source": "Penalizes tokens that have already appeared in the output, regardless of frequency.  Range `-2.0` to `2.0`.",
-          "message": "빈도와 관계없이 출력에 이미 나타난 토큰에 페널티를 부여합니다. 범위는 `-2.0`에서 `2.0`까지입니다."
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.display_name": {
-          "source": "Presence Penalty",
-          "message": "존재 페널티"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.short_desc": {
-          "source": "Penalize any token that has already appeared",
-          "message": "이미 나타난 모든 토큰에 페널티 부여"
-        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.desc": {
           "source": "Hash that forces a structured response shape.  The most common use is JSON mode: `{type: \"json_object\"}`.",
           "message": "구조화된 응답 형태를 강제하는 해시입니다. 가장 일반적인 용도는 JSON 모드(`{type: \"json_object\"}`)입니다."
@@ -144,8 +108,8 @@
           "message": "모델이 도구를 호출해야 하는지 여부 및 호출할 도구"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.desc": {
-          "source": "List of tool definitions the model may invoke.  Each entry is a hash with a `type` field (`function`) and a `function` hash containing `name`, `description`, and a JSON-schema `parameters` object.",
-          "message": "모델이 호출할 수 있는 도구 정의 목록입니다. 각 항목은 `type` 필드(`function`)와 `name`, `description` 및 JSON 스키마 `parameters` 객체를 포함하는 `function` 해시로 구성된 해시입니다."
+          "source": "Custom function definitions or supported built-in tools. Use `function` with a `function` definition, or select `browser_search` or `code_interpreter` for a compatible model.",
+          "message": "사용자 정의 함수 또는 지원되는 기본 제공 도구입니다. `function` 정의와 함께 `function`을 사용하거나 호환 모델에서 `browser_search` 또는 `code_interpreter`를 선택하세요."
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.display_name": {
           "source": "Tools",
@@ -532,16 +496,16 @@
           "message": "Groq에 커스텀 API 호출 수행"
         },
         "app.R3JvcQ.desc": {
-          "source": "Provides access to [Groq](https://groq.com) — LPU-accelerated inference for open-weight LLMs at exceptionally high token-per-second throughput.\n\nGroq exposes an OpenAI-compatible chat-completions API, so existing OpenAI-shape consumers (chat, tools, structured output, streaming) work unchanged.  See the [Groq models documentation](https://console.groq.com/docs/models) for the currently-available models.\n\n**Common use cases**:\n- **Low-latency chat** — Groq's LPU delivers sub-second time-to-first-token\n- **High-throughput tool-calling agents** where total response time matters\n- **Open-weight model deployments** without owning GPU infrastructure",
-          "message": "[Groq](https://groq.com)에 대한 접근을 제공합니다. 고속 초당 토큰 처리량으로 오픈 가중치 LLM을 위한 LPU 가속 추론을 지원합니다.\n\nGroq은 OpenAI 호환 chat-completions API를 제공하므로 기존 OpenAI 형식의 기능(채팅, 도구, 구조화된 출력, 스트리밍)을 그대로 사용할 수 있습니다. 현재 사용 가능한 모델은 [Groq 모델 문서](https://console.groq.com/docs/models)를 참조하세요.\n\n**주요 사용 사례**:\n- **낮은 지연 시간의 채팅** — Groq의 LPU는 1초 미만의 첫 토큰 응답 시간을 제공합니다.\n- **처리량이 높은 도구 호출 에이전트** — 전체 응답 시간이 중요한 환경에 적합합니다.\n- **오픈 가중치 모델 배포** — GPU 인프라를 직접 구축하지 않고 배포할 수 있습니다."
+          "source": "Use [Groq](https://groq.com) to bring fast AI inference into business workflows.\n\n- Generate chat and structured responses with tool calling\n- Transcribe, translate, and synthesize speech\n- Upload files and manage batch inference\n- Host externally trained LoRA adapters with enterprise access\n- Discover available models and inspect their capabilities",
+          "message": "[Groq](https://groq.com)를 사용하여 비즈니스 워크플로에 빠른 AI 추론을 도입하세요.\n\n- 도구 호출을 포함한 채팅 및 구조화된 응답 생성\n- 음성 전사, 번역 및 합성\n- 파일 업로드 및 배치 추론 관리\n- 엔터프라이즈 액세스로 외부에서 학습한 LoRA 어댑터 호스팅\n- 사용 가능한 모델 탐색 및 기능 확인"
         },
         "app.R3JvcQ.display_name": {
           "source": "Groq",
           "message": "Groq"
         },
         "app.R3JvcQ.short_desc": {
-          "source": "Groq LPU inference for open-weight models at very high throughput",
-          "message": "매우 높은 처리량의 오픈 가중치 모델을 위한 Groq LPU 추론"
+          "source": "Fast AI responses, speech, batch inference, and LoRA adapter hosting",
+          "message": "빠른 AI 응답, 음성, 배치 추론 및 LoRA 어댑터 호스팅"
         }
       }
     }

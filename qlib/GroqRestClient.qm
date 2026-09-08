@@ -35,7 +35,7 @@
 %requires QoreLlmTypes
 
 module GroqRestClient {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for calling Groq REST API services";
     author = "Qore Technologies <info@qoretechnologies.com>";
     url = "https://qore.org";
@@ -76,7 +76,7 @@ module GroqRestClient {
     - @ref GroqRestClient::GroqRestConnection "GroqRestConnection": a REST
       connection object to Groq
     - @ref GroqRestClient::GroqLlmProvider "GroqLlmProvider":
-      @ref qorellmutilsintro "QoreLlmUtils" provider for mode \c groq
+      <a href="../../QoreLlmUtils/html/index.html#qorellmutilsintro">QoreLlmUtils</a> provider for mode \c groq
 
     @par Example:
     @code{.py}
@@ -91,7 +91,7 @@ GroqRestClient rest({"apikey": api_key});
 # /openai/v1 on the connection
 hash<auto> models = rest.get("models").body;
 hash<auto> ans = rest.post("chat/completions", {
-    "model": models."data"[0].id,
+    "model": "openai/gpt-oss-20b",
     "messages": (
         {"role": "user", "content": "Hello!"},
     ),
@@ -100,10 +100,16 @@ printf("%Y\n", ans.body);
     @endcode
 
     @note The module name \c GroqRestClient is distinct from
-    @ref grokrestclientintro "GrokRestClient" (xAI's Grok product) —
+    <a href="../../GrokRestClient/html/index.html#grokrestclientintro">GrokRestClient</a> (xAI's Grok product) —
     note the spelling: Groq (LPU inference, OSS models) vs. Grok (xAI).
 
     @section GroqRestClientRelnotes Release Notes
+
+    @subsection groqrestclientv1_1 GroqRestClient v1.1
+    - automatic connections use the canonical Groq URL and identify the Groq app
+    - synchronous clients honor deferred connection requests
+    - JSON request serialization is explicit for synchronous and asynchronous clients
+    - API version choices and authentication checks match the live service
 
     @subsection GroqRestClientv1_0 GroqRestClient v1.0
     - the initial version of the %GroqRestClient module
@@ -132,6 +138,7 @@ public class GroqRestClientBase {
         #! Default constructor options
         const DefaultOptions = {
             "url": DefaultUrl,
+            "data": "json",
             "api": DefaultApiVersion,
             "default_path": "/openai/" + DefaultApiVersion,
         };
@@ -139,9 +146,14 @@ public class GroqRestClientBase {
 
     #! Returns options for the GroqRestClient constructors
     /** Maps the \c apikey option to \c token for Bearer authentication
+        @param opts caller-supplied options
+        @return normalized options with explicit JSON serialization
     */
     static hash<auto> getOptions(hash<auto> opts) {
         hash<auto> rv = DefaultOptions + opts;
+        if (!rv.data || rv.data == "auto") {
+            rv.data = "json";
+        }
         if (opts.api) {
             # tolerate legacy api values that already include the "openai/"
             # path prefix (e.g. "openai/v1"), which would otherwise double
@@ -164,11 +176,6 @@ public class GroqRestClientBase {
     The API key is sent as the \c Authorization: \c Bearer header.
 */
 public class GroqRestClient inherits RestClient::RestClient, GroqRestClientBase {
-    private {
-        #! The API version in use
-        string api;
-    }
-
     #! Creates the object with the given options
     /** @par Example:
         @code{.py}
@@ -185,7 +192,7 @@ GroqRestClient rest(opts);
         unsupported data serialization, etc
     */
     constructor(hash<auto> opts, *softbool do_not_connect)
-            : RestClient(GroqRestClientBase::getOptions(opts), True) {
+            : RestClient(GroqRestClientBase::getOptions(opts), do_not_connect) {
         # NOTE: do NOT call setConnectionPath() here — the base URL has no
         # path component, so HTTPClient promotes `default_path`
         # (\c /openai/<api>) into the connection path automatically.
@@ -250,20 +257,20 @@ public class GroqRestConnection inherits RestClient::RestConnection {
                 "api": <ConnectionOptionInfo>{
                     "display_name": "API Version",
                     "short_desc": "The API version to use",
-                    "desc": "The API version to use.",
+                    "desc": "The supported Groq API version.",
+                    "allowed_values": (
+                        <AllowedValueInfo>{"value": "v1", "display_name": "V1"},
+                    ),
                     "type": "string",
                     "default_value": GroqRestClientBase::DefaultApiVersion,
                 },
                 "chat-model": <ConnectionOptionInfo>{
                     "display_name": "Chat Model",
                     "short_desc": "Groq chat model name",
-                    "desc": "The Groq chat model used by LLM clients when this connection is "
-                        "selected for chat.\n\n"
-                        "Chat models are a separate family from embedding models and cannot "
-                        "be used interchangeably."
-                        "\n\nGroq's hosted model catalog changes frequently, so this "
-                        "option has no default; set it to the model your account has "
-                        "access to",
+                    "desc": "Model ID for chat through this connection. Select an active chat model "
+                        "using the app's `List Models` action or the "
+                        "[model catalog](https://console.groq.com/docs/models). "
+                        "Speech models cannot serve chat requests.",
                     "type": "string",
                 },
                 "ping_headers": RestConnection::ConnectionScheme.options.ping_headers + <ConnectionOptionInfo>{
@@ -299,7 +306,18 @@ public class GroqRestConnection inherits RestClient::RestConnection {
 
     #! Creates the GroqRestConnection object from a configuration hash
     constructor(hash<auto> config, *hash<auto> attr)
-            : RestConnection(config + (exists config.url ? {} : {"url": DefaultUrl}), attr) {
+            : RestConnection(GroqRestConnection::getConfig(config), attr) {
+    }
+
+    #! Uses the canonical URL for automatic connection configurations
+    private static hash<auto> getConfig(hash<auto> config) {
+        return config + {"url": DefaultUrl};
+    }
+
+    #! Returns the associated application
+    /** @return the Groq application name */
+    *string getAppName() {
+        return "Groq";
     }
 
     #! Returns \c "groq"

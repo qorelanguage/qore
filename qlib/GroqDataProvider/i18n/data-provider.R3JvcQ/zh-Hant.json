@@ -11,18 +11,6 @@
           "source": "Chat Completion",
           "message": "聊天生成"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.desc": {
-          "source": "Penalizes tokens based on how often they have already appeared in the output.  Range `-2.0` to `2.0`.",
-          "message": "根據 token 已在輸出中出現的頻率對其進行懲罰。範圍為 `-2.0` 至 `2.0`。"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.display_name": {
-          "source": "Frequency Penalty",
-          "message": "頻率懲罰"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.short_desc": {
-          "source": "Penalize repeated tokens proportional to their frequency",
-          "message": "依重複權杖的出現頻率等比例施加懲罰"
-        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.desc": {
           "source": "ID of the Groq-hosted model to use.  See the [Groq models documentation](https://console.groq.com/docs/models) for the currently-available models; the `list-models` action returns the live list served by the API.",
           "message": "要使用的 Groq 託管模型 ID。目前可用的模型請參閱 [Groq 模型說明文件](https://console.groq.com/docs/models)；`list-models` 動作會傳回 API 提供的即時清單。"
@@ -36,8 +24,8 @@
           "message": "要使用的 Groq 託管模型"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.desc": {
-          "source": "Maximum number of tokens to generate.  Must fit within the model's context window minus the prompt token count.",
-          "message": "要產生的最大 token 數。必須符合模型的上下文視窗減去提示 token 數。"
+          "source": "Legacy output limit. Prefer `max_completion_tokens`; do not supply both.",
+          "message": "舊版輸出上限。建議使用 `max_completion_tokens`；請勿同時指定兩個上限。"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.display_name": {
           "source": "Max Tokens",
@@ -83,30 +71,6 @@
           "source": "String or list of strings; generation halts when emitted",
           "message": "字串或字串清單；發出時停止產生"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.desc": {
-          "source": "When `True`, the server streams partial completions as Server-Sent Events (SSE) instead of returning a single response.  Most data provider flows expect non-streaming (`False` / omitted).",
-          "message": "當為 `True` 時，伺服器會將部分完成以 Server-Sent Events (SSE) 串流傳輸，而不是傳回單一回應。大多數資料提供者流程預期非串流（`False` / 省略）。"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.display_name": {
-          "source": "Stream",
-          "message": "串流"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.short_desc": {
-          "source": "Stream partial completions as Server-Sent Events",
-          "message": "以伺服器傳送事件 (SSE) 串流傳輸部分補全"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.desc": {
-          "source": "Penalizes tokens that have already appeared in the output, regardless of frequency.  Range `-2.0` to `2.0`.",
-          "message": "懲罰已在輸出中出現過的 token，無論其頻率為何。範圍為 `-2.0` 至 `2.0`。"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.display_name": {
-          "source": "Presence Penalty",
-          "message": "存在懲罰"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.short_desc": {
-          "source": "Penalize any token that has already appeared",
-          "message": "對任何已出現過的權杖施加懲罰"
-        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.desc": {
           "source": "Hash that forces a structured response shape.  The most common use is JSON mode: `{type: \"json_object\"}`.",
           "message": "強制使用結構化回應格式的 Hash。最常見的用法是 JSON 模式：`{type: \"json_object\"}`。"
@@ -144,8 +108,8 @@
           "message": "模型是否以及必須調用哪個工具"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.desc": {
-          "source": "List of tool definitions the model may invoke.  Each entry is a hash with a `type` field (`function`) and a `function` hash containing `name`, `description`, and a JSON-schema `parameters` object.",
-          "message": "模型可以調用的工具定義清單。每個項目都是包含 `type` 欄位（`function`）以及包含 `name`、`description` 和 JSON-schema `parameters` 物件的 `function` Hash。"
+          "source": "Custom function definitions or supported built-in tools. Use `function` with a `function` definition, or select `browser_search` or `code_interpreter` for a compatible model.",
+          "message": "自訂函式定義或支援的內建工具。使用 `function` 搭配 `function` 定義，或為相容模型選擇 `browser_search` 或 `code_interpreter`。"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.display_name": {
           "source": "Tools",
@@ -532,16 +496,16 @@
           "message": "向 Groq 發出自訂 API 呼叫"
         },
         "app.R3JvcQ.desc": {
-          "source": "Provides access to [Groq](https://groq.com) — LPU-accelerated inference for open-weight LLMs at exceptionally high token-per-second throughput.\n\nGroq exposes an OpenAI-compatible chat-completions API, so existing OpenAI-shape consumers (chat, tools, structured output, streaming) work unchanged.  See the [Groq models documentation](https://console.groq.com/docs/models) for the currently-available models.\n\n**Common use cases**:\n- **Low-latency chat** — Groq's LPU delivers sub-second time-to-first-token\n- **High-throughput tool-calling agents** where total response time matters\n- **Open-weight model deployments** without owning GPU infrastructure",
-          "message": "提供對 [Groq](https://groq.com) 的存取 — 透過 LPU 加速推論，為開放權重大型語言模型 (LLM) 提供極高的每秒權杖 (token) 輸送量。\n\nGroq 提供與 OpenAI 相容的 chat-completions API，因此現有的 OpenAI 格式取用端（對話、工具、結構化輸出、串流）無須修改即可運作。有關目前可用的模型，請參閱 [Groq models documentation](https://console.groq.com/docs/models)。\n\n**常見使用案例**：\n- **低延遲對話** — Groq 的 LPU 提供次秒級的首字權杖生成時間\n- **高輸送量工具呼叫代理** — 適用於重視總回應時間的場景\n- **開放權重模型部署** — 無須自建 GPU 基礎架構"
+          "source": "Use [Groq](https://groq.com) to bring fast AI inference into business workflows.\n\n- Generate chat and structured responses with tool calling\n- Transcribe, translate, and synthesize speech\n- Upload files and manage batch inference\n- Host externally trained LoRA adapters with enterprise access\n- Discover available models and inspect their capabilities",
+          "message": "使用 [Groq](https://groq.com) 將快速 AI 推論整合至業務流程。\n\n- 產生含工具呼叫的聊天回應和結構化回應\n- 轉錄、翻譯和合成語音\n- 上傳檔案並管理批次推論\n- 透過企業存取權託管外部訓練的 LoRA 配接器\n- 探索可用模型並查看其功能"
         },
         "app.R3JvcQ.display_name": {
           "source": "Groq",
           "message": "Groq"
         },
         "app.R3JvcQ.short_desc": {
-          "source": "Groq LPU inference for open-weight models at very high throughput",
-          "message": "以極高輸送量為開放權重模型提供 Groq LPU 推論"
+          "source": "Fast AI responses, speech, batch inference, and LoRA adapter hosting",
+          "message": "快速 AI 回應、語音、批次推論及 LoRA 配接器託管"
         }
       }
     }

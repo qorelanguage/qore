@@ -1,17 +1,50 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires QoreLlmTypes
-%requires QoreLlmUtils
-%requires OpenAiRestClient
-%requires GroqRestClient
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/QoreLlmTypes.qm
+%requires ../../../../qlib/QoreLlmUtils
+%requires ../../../../qlib/OpenAiRestClient.qm
+%requires ../../../../qlib/GroqRestClient.qm
+
+%requires ../../../../qlib/HttpServer.qm
+%requires json
 
 %exec-class GroqRestClientTest
+
+class GroqPingHandler inherits AbstractHttpRequestHandler {
+    private {
+        Mutex lock();
+        hash<auto> request;
+    }
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        AutoLock al(lock);
+        request = hdr;
+        return makeResponse(hdr.authorization == "Bearer test-key" ? 200 : 401,
+            hdr.authorization == "Bearer test-key" ? "[]" : "{\"error\":\"Unauthorized\"}",
+            {"Content-Type": MimeTypeJson});
+    }
+    hash<auto> getRequest() {
+        AutoLock al(lock);
+        return request;
+    }
+}
+
+class SyncGroqConnection inherits GroqRestClient::GroqRestConnection {
+    constructor(string url, hash<auto> options)
+            : GroqRestConnection("sync-test", "test", url, {}, options) {
+    }
+    private object getAsyncImpl(bool connect = True, *hash<auto> rtopts) {
+        throw "CONNECTION-ASYNC-UNSUPPORTED", "exercise synchronous ping";
+    }
+}
+
+
 
 public class GroqRestClientTest inherits QUnit::Test {
     constructor() : Test("GroqRestClient Test", "1.0") {
@@ -29,7 +62,93 @@ public class GroqRestClientTest inherits QUnit::Test {
             \distinctModesTest());
         addTestCase("sync GroqRestClient connection path includes /openai",
             \syncConnectionPathTest());
+        addTestCase("automatic connection URL and app identity", \connectionConfigTest());
+        addTestCase("sync and async pings verify authentication", \pingTest());
+        if (ENV.GROQ_LIVE) {
+            addTestCase("live valid and invalid authentication", \livePingTest());
+        }
         set_return_value(main());
+    }
+
+    private connectionConfigTest() {
+        GroqRestClient::GroqRestConnection conn({
+            "name": "test", "desc": "automatic connection", "url": "groq://localhost",
+            "opts": {"apikey": "test-key"},
+        });
+        assertEq("Groq", conn.getAppName());
+        assertEq("Groq", conn.getInfo().app);
+        assertEq("https://api.groq.com", conn.getConnectionOptions().url);
+        assertEq("json", conn.getConnectionOptions().data);
+        assertTrue(GroqRestClient::GroqRestConnection::ConnectionScheme.options.apikey.sensitive);
+        assertThrows("CONNECTION-OPTION-ERROR", sub () {
+            new GroqRestClient::GroqRestConnection("missing", "missing credentials");
+        });
+        assertEq("v1", GroqRestClient::GroqRestConnection::ConnectionScheme.options.api.allowed_values[0].value);
+        GroqRestClient::GroqRestConnection legacy("legacy", "old automatic URL", "groq://localhost", {},
+            {"apikey": "test-key"});
+        *hash<auto> updated;
+        legacy.setUpdateOptionsCode(sub (hash<auto> options) { updated = options; });
+        assertEq({"url": GroqRestClient::GroqRestConnection::DefaultUrl}, updated);
+        legacy.setUpdateOptionsCode(NOTHING);
+        updated = NOTHING;
+        conn.setUpdateOptionsCode(sub (hash<auto> options) { updated = options; });
+        assertNothing(updated);
+        conn.setUpdateOptionsCode(NOTHING);
+    }
+
+    private pingTest() {
+        HttpServer http(<HttpServerOptionInfo>{"logger": new Logger("test", LoggerLevel::getLevelWarn())});
+        on_exit delete http;
+        int port = http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        GroqPingHandler handler();
+        http.setDefaultHandler("ping", handler);
+        string url = sprintf("http://127.0.0.1:%d", port);
+        foreach bool sync in (False, True) {
+            foreach string key in ("test-key", "invalid-key") {
+                hash<auto> opts = {"apikey": key, "http_version": "1.1"};
+                GroqRestClient::GroqRestConnection conn = sync
+                    ? new SyncGroqConnection(url, opts)
+                    : new GroqRestClient::GroqRestConnection("test", "test", url, {}, opts);
+                if (key == "test-key") {
+                    assertTrue(conn.ping(True).ok);
+                } else {
+                    assertPingFailure(conn);
+                }
+                assertEq("openai/v1/models", handler.getRequest().path);
+                assertEq("GET", handler.getRequest().method);
+                assertEq("Bearer " + key, handler.getRequest().authorization);
+            }
+        }
+        GroqRestClient::GroqRestClient client({"url": url, "apikey": "test-key"});
+        assertTrue(client.isConnected());
+        GroqRestClient::GroqRestClient deferred({"url": url, "apikey": "test-key"}, True);
+        assertFalse(deferred.isConnected());
+        deferred.get("models");
+        assertTrue(deferred.isConnected());
+        client.get("models");
+        assertEq("openai/v1/models", handler.getRequest().path);
+        assertEq("Bearer test-key", handler.getRequest().authorization);
+    }
+
+    private assertPingFailure(GroqRestClient::GroqRestConnection conn) {
+        *hash<ExceptionInfo> error;
+        try {
+            conn.ping(True);
+        } catch (hash<ExceptionInfo> ex) {
+            error = ex;
+        }
+        assertTrue(exists error);
+        assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|HTTP-CLIENT-RECEIVE-ERROR)$", error.err);
+        assertRegex("401", error.desc);
+    }
+
+    private livePingTest() {
+        GroqRestClient::GroqRestConnection conn("live", "live authentication",
+            GroqRestClient::GroqRestConnection::DefaultUrl, {}, {"apikey": ENV.GROQ_APIKEY});
+        assertTrue(conn.ping(True).ok);
+        GroqRestClient::GroqRestConnection invalid("invalid", "negative authentication",
+            GroqRestClient::GroqRestConnection::DefaultUrl, {}, {"apikey": "invalid-qore-audit-key"});
+        assertPingFailure(invalid);
     }
 
     private connectionSchemeTest() {

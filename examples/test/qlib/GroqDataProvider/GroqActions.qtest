@@ -1,0 +1,514 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%allow-injection
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/GroqDataProvider
+%requires ../../../../qlib/HttpServer.qm
+%requires json
+%exec-class GroqActionsTest
+
+class GroqActionMock inherits RestClientIo::RestClientIo {
+    public {
+        auto response = {};
+        hash<auto> request;
+        int calls = 0;
+        *string failure;
+    }
+    constructor() : RestClientIo({"url": "https://api.groq.com", "token": "test-key"}) {
+    }
+    RestClient::AbstractRestClient copyWithUrl(string url) {
+        return self;
+    }
+    hash<RestClient::RestResponseInfo> restDoRequest(string method, string path, auto body, *hash<auto> hdr) {
+        ++calls;
+        request = {"method": method, "path": path, "body": body, "headers": hdr};
+        if (failure) {
+            throw failure, "injected failure";
+        }
+        return <RestClient::RestResponseInfo>{"body": response, "status_code": 200};
+    }
+    hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body, *hash<auto> hdr) {
+        return restDoRequest(method, path, body, hdr);
+    }
+}
+
+class GroqWireHandler inherits AbstractHttpRequestHandler {
+    private {
+        Mutex lock();
+        hash<auto> request;
+        data response = "{}";
+        string content_type = MimeTypeJson;
+    }
+    setResponse(data body, string content_type = MimeTypeJson) {
+        AutoLock al(lock);
+        response = body;
+        self.content_type = content_type;
+    }
+    hash<auto> getRequest() {
+        AutoLock al(lock);
+        return request;
+    }
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        AutoLock al(lock);
+        request = {"headers": hdr, "body": body};
+        return makeResponse(200, response, {"Content-Type": content_type});
+    }
+}
+
+class GroqActionsTest inherits QUnit::Test {
+    constructor() : Test("Groq action coverage", "1.1") {
+        addTestCase("all action contracts are usable", \catalogTest());
+        addTestCase("multimodal chat, named tools, reasoning and structured output", \chatFormsTest());
+        addTestCase("JSON routing, path escaping, typed results", \routingTest());
+        addTestCase("multipart files, URL audio, text and binary responses", \multipartTest());
+        addTestCase("required, finite, conflicting, and boundary options", \validationTest());
+        addTestCase("scoped resource and voice dropdowns", \referenceTest());
+        addTestCase("transport errors are never replayed", \retryTest());
+        addTestCase("real HTTP JSON, multipart, native paths and binary", \wireTest());
+        if (ENV.GROQ_LIVE) {
+            addTestCase("live connection and inference with optional file and audio checks", \liveTest());
+        }
+        set_return_value(main());
+    }
+
+    private catalogTest() {
+        GroqActionMock mock();
+        GroqDataProvider root(mock);
+        list<hash<DataProviderActionInfo>> actions = select DataProviderActionCatalog::getActions("Groq"),
+            $1.action != AbstractDataProvider::GenericApiCallActionName;
+        assertEq(20, actions.size());
+        foreach hash<DataProviderActionInfo> action in (actions) {
+            assertTrue(action.display_name.val());
+            assertTrue(action.short_desc.val() && action.short_desc.size() < 80);
+            assertTrue(action.desc.val());
+            assertTrue(exists action.options);
+            assertTrue(exists action.output_type);
+            assertNothing(action.cls);
+            AbstractDataProvider provider = root.getChildProvider(action.path.substr(1));
+            assertTrue(provider.getInfo().supports_request);
+            assertTrue(exists provider.getResponseType());
+            foreach hash<ActionOptionInfo> option in (action.options.iterator()) {
+                assertTrue(option.display_name.val());
+                assertTrue(option.short_desc.val());
+                if (option.required) {
+                    assertTrue(option.preselected);
+                }
+                if (option.ref_data) {
+                    assertTrue(provider.getSupportedReferenceData(){option.ref_data});
+                }
+                foreach hash<AllowedValueInfo> value in (option.allowed_values) {
+                    assertTrue(exists value.value);
+                    assertTrue(value.display_name.val());
+                }
+            }
+        }
+        assertThrows("GROQ-CHILD-ERROR", sub () {
+            GroqDataProvider::registerChild("get-file", Class::forName("GroqApiDataProvider"));
+        });
+        GroqDataProvider supplied({"restclient": mock});
+        assertEq("groq", supplied.getName());
+        assertThrows("CONSTRUCTOR-ERROR", sub () { new GroqDataProvider({}); });
+    }
+
+    private routingTest() {
+        GroqActionMock mock();
+        GroqDataProvider root(mock);
+        list<hash<auto>> cases = (
+            {"action": "get-model", "method": "GET", "path": "/openai/v1/models/org/model",
+                "req": {"model": "org/model"}, "resp": {"id": "org/model", "created": 1700000000}},
+            {"action": "create-response", "method": "POST", "path": "/openai/v1/responses",
+                "req": {"model": "test", "input": "Hi"},
+                "resp": {"id": "resp-1", "status": "completed", "output": ({"type": "message"},)}},
+            {"action": "list-files", "method": "GET", "path": "/openai/v1/files",
+                "resp": {"data": ({"id": "file-1", "filename": "batch.jsonl"},)}},
+            {"action": "get-file", "method": "GET", "path": "/openai/v1/files/file%3F%23%2F",
+                "req": {"file_id": "file?#/"}, "resp": {"id": "file?#/", "bytes": 42}},
+            {"action": "delete-file", "method": "DELETE", "path": "/openai/v1/files/file-1",
+                "req": {"file_id": "file-1"}, "resp": {"id": "file-1", "deleted": True}},
+            {"action": "create-batch", "method": "POST", "path": "/openai/v1/batches",
+                "req": {"input_file_id": "file-1", "endpoint": "/v1/chat/completions", "completion_window": "36h"},
+                "resp": {"id": "batch-1", "status": "validating"}},
+            {"action": "list-batches", "method": "GET", "path": "/openai/v1/batches",
+                "resp": {"data": ({"id": "batch-1", "status": "completed"},)}},
+            {"action": "get-batch", "method": "GET", "path": "/openai/v1/batches/batch-1",
+                "req": {"batch_id": "batch-1"}, "resp": {"id": "batch-1", "output_file_id": "output-1"}},
+            {"action": "cancel-batch", "method": "POST", "path": "/openai/v1/batches/batch-1/cancel",
+                "req": {"batch_id": "batch-1"}, "resp": {"id": "batch-1", "status": "cancelling"}},
+            {"action": "create-fine-tuning", "method": "POST", "path": "/v1/fine_tunings",
+                "req": {"input_file_id": "adapter-1", "name": "Invoice", "base_model": "test", "type": "lora"},
+                "resp": {"id": "ft-1", "data": {"id": "ft-1", "fine_tuned_model": "ft/model"}}},
+            {"action": "list-fine-tunings", "method": "GET", "path": "/v1/fine_tunings",
+                "resp": {"data": ({"id": "ft-1", "name": "Invoice"},)}},
+            {"action": "get-fine-tuning", "method": "GET", "path": "/v1/fine_tunings/ft-1",
+                "req": {"id": "ft-1"}, "resp": {"id": "ft-1", "data": {"id": "ft-1"}}},
+            {"action": "delete-fine-tuning", "method": "DELETE", "path": "/v1/fine_tunings/ft-1",
+                "req": {"id": "ft-1"}, "resp": {"id": "ft-1", "deleted": True}},
+        );
+        foreach hash<auto> c in (cases) {
+            mock.response = c.resp;
+            auto result = root.getChildProvider(c.action).doRequest(c.req);
+            assertEq(c.method, mock.request.method, c.action);
+            assertEq(c.path, mock.request.path, c.action);
+            if (c.action == "get-model") {
+                assertEq(1700000000, int(result.created - 1970-01-01Z));
+            } else {
+                assertEq(c.resp, result, c.action);
+            }
+            if (c.method != "POST" || c.action == "cancel-batch") {
+                assertNothing(mock.request.body);
+            }
+        }
+    }
+
+    private chatFormsTest() {
+        GroqActionMock mock();
+        GroqDataProvider root(mock);
+        mock.response = {"id": "chat-1", "created": 1700000000, "choices": ({"index": 0,
+            "message": {"role": "assistant", "content": "Invoice summary", "reasoning": "Analysis"}},)};
+        hash<auto> req = {"model": "test", "messages": ({"role": "user", "content": (
+            {"type": "text", "text": "Summarize this invoice"},
+            {"type": "image_url", "image_url": {"url": "https://example.com/invoice.png"}},)},),
+            "tools": ({"type": "function", "function": {"name": "save_invoice", "parameters": {"type": "object"}}},),
+            "tool_choice": {"type": "function", "function": {"name": "save_invoice"}},
+            "response_format": {"type": "json_schema", "json_schema": {"name": "invoice", "schema": {"type": "object"}}},
+            "reasoning_effort": "low", "max_completion_tokens": 64};
+        auto result = root.getChildProvider("chat-completion").doRequest(req);
+        assertEq(req, mock.request.body);
+        assertEq("Analysis", result.choices[0].message.reasoning);
+        hash<auto> text_req = {"model": "test", "messages": ({"role": "user", "content": "Hi"},)};
+        reject(root.getChildProvider("chat-completion"), text_req + {"messages": ({"role": "invalid", "content": "Hi"},)}, mock);
+        reject(root.getChildProvider("chat-completion"), text_req + {"service_tier": "invalid"}, mock);
+        foreach auto input in ("", "   ", ()) {
+            reject(root.getChildProvider("create-response"), {"model": "test", "input": input}, mock);
+        }
+        hash<auto> compound = {"models": {"answering_model": "test"}, "tools": {
+            "enabled_tools": ("web_search", "wolfram_alpha"),
+            "wolfram_settings": {"authorization": "fixture-credential"}}};
+        hash<auto> grounded = text_req + {"compound_custom": compound,
+            "documents": ({"id": "order-123", "source": {"type": "text", "text": "Order shipped"}},
+                {"source": {"type": "json", "data": {"order_id": "123"}}}),
+            "search_settings": {"country": "us", "include_domains": ("qore.org",), "include_images": True}};
+        root.getChildProvider("chat-completion").doRequest(grounded);
+        assertEq(grounded, mock.request.body);
+        assertTrue(GroqWolframSettingsDataType::Fields.authorization.sensitive);
+        assertEq("chat-models", GroqCompoundModelsDataType::Fields.answering_model.attr.ref_data);
+        reject(root.getChildProvider("chat-completion"), text_req + {"compound_custom": {
+            "tools": {"enabled_tools": ("retired-tool",)}}}, mock);
+        reject(root.getChildProvider("chat-completion"), text_req + {"documents": (
+            {"source": {"type": "text"}},)}, mock);
+        reject(root.getChildProvider("chat-completion"), text_req + {"tools": ({"type": "invalid"},)}, mock);
+        reject(root.getChildProvider("chat-completion"), text_req + {"tools": (
+            {"type": "function", "function": {}},)}, mock);
+        root.getChildProvider("chat-completion").doRequest(text_req + {"tools": ({"type": "browser_search"},)});
+        assertEq("browser_search", mock.request.body.tools[0].type);
+        hash<auto> response_req = {"model": "test", "input": "Find my order",
+            "tools": ({"type": "function", "name": "lookup_order", "strict": True,
+                "parameters": {"type": "object"}},),
+            "text": {"format": {"type": "json_schema", "name": "order", "schema": {"type": "object"}}}};
+        mock.response = {"id": "resp-1", "output": ()};
+        foreach string effort in ("none", "low", "medium", "high") {
+            root.getChildProvider("create-response").doRequest(response_req + {"reasoning": {"effort": effort}});
+            assertEq(effort, mock.request.body.reasoning.effort);
+        }
+        reject(root.getChildProvider("create-response"), response_req + {"reasoning": {"effort": "minimal"}}, mock);
+        reject(root.getChildProvider("create-response"), response_req + {"tools": ({"type": "invalid"},)}, mock);
+        foreach hash<auto> tool in ({"type": "browser_search"},
+                {"type": "code_interpreter", "container": {"type": "auto"}},
+                {"type": "mcp", "server_label": "OrderTools", "server_url": "https://example.com/mcp",
+                    "headers": {"Authorization": "fixture-credential"}, "require_approval": "always",
+                    "allowed_tools": ("lookup_order",)}) {
+            root.getChildProvider("create-response").doRequest(response_req + {"tools": (tool,)});
+            assertEq((tool,), mock.request.body.tools);
+        }
+        assertTrue(GroqResponseToolDataType::Fields.headers.sensitive);
+        foreach hash<auto> tool in ({"type": "function"}, {"type": "mcp"},
+                {"type": "mcp", "server_label": "test", "server_url": "http://example.com/mcp"},
+                {"type": "code_interpreter", "container": {"type": "invalid"}}) {
+            reject(root.getChildProvider("create-response"), response_req + {"tools": (tool,)}, mock);
+        }
+        reject(root.getChildProvider("create-response"), response_req + {"truncation": "auto"}, mock);
+        AbstractDataProviderType response_type = root.getChildProvider("create-response").getResponseType();
+        hash<auto> response = {"id": "resp-1", "output": (), "vendor_extension": {"test": 1}};
+        assertEq(response, response_type.acceptsValue(response));
+        hash<auto> adapter = {"id": "ft-1", "created_at": 1700000000.125};
+        assertEq(adapter, GroqFineTuningDataType.acceptsValue(adapter));
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {
+            response_type.acceptsValue(response + {"status": "invalid"});
+        });
+    }
+
+    private multipartTest() {
+        GroqActionMock mock();
+        GroqDataProvider root(mock);
+        mock.response = {"id": "file-1", "filename": "batch.jsonl"};
+        auto file = root.getChildProvider("upload-file").doRequest({
+            "file": {"name": "batch.jsonl", "content": binary("{\"test\":1}\n")}, "purpose": "batch",
+        });
+        assertEq("file-1", file.id);
+        assertEq("/openai/v1/files", mock.request.path);
+        string body = mock.request.body.toString();
+        assertTrue(index(body, "filename=\"batch.jsonl\"") >= 0);
+        assertTrue(index(body, "{\"test\":1}\n") >= 0);
+        assertTrue(index(body, "batch") >= 0);
+        mock.response = {"text": "Hello", "words": ({"word": "Hello", "start": 0.0, "end": 0.5},)};
+        auto transcript = root.getChildProvider("transcribe-audio").doRequest({
+            "model": "whisper-large-v3", "file": {"name": "call.wav", "content": make_base64_string("RIFF-data")},
+            "response_format": "verbose_json", "timestamp_granularities": ("word", "segment"),
+        });
+        assertEq("Hello", transcript.text);
+        body = mock.request.body.toString();
+        assertTrue(index(body, "RIFF-data") >= 0);
+        assertTrue(index(body, "name=\"timestamp_granularities[]\"") >= 0);
+        mock.response = "Translated call";
+        assertEq("Translated call", root.getChildProvider("translate-audio").doRequest({
+            "model": "whisper-large-v3", "url": "https://example.com/call.wav", "response_format": "text",
+        }));
+        assertTrue(index(mock.request.body.toString(), "https://example.com/call.wav") >= 0);
+        mock.response = binary("RIFF\0\xffaudio");
+        assertEq(mock.response, root.getChildProvider("generate-speech").doRequest({
+            "model": "canopylabs/orpheus-v1-english", "input": "Hello", "voice": "troy",
+        }));
+        mock.response = "{\"custom_id\":\"test\"}\n";
+        assertEq(binary(mock.response), root.getChildProvider("download-file").doRequest({"file_id": "file-1"}));
+    }
+
+    private reject(AbstractDataProvider provider, hash<auto> req, GroqActionMock mock) {
+        int calls = mock.calls;
+        *hash<ExceptionInfo> error;
+        try {
+            provider.doRequest(req);
+        } catch (hash<ExceptionInfo> ex) {
+            error = ex;
+        }
+        assertTrue(exists error, "invalid request must fail");
+        assertEq(calls, mock.calls, "invalid request must fail before transport");
+    }
+
+    private validationTest() {
+        GroqActionMock mock();
+        GroqDataProvider root(mock);
+        foreach string action in ("get-file", "get-model", "get-batch", "get-fine-tuning", "create-response",
+                "upload-file", "create-batch", "generate-speech", "transcribe-audio", "translate-audio") {
+            reject(root.getChildProvider(action), {}, mock);
+        }
+        foreach string id in ("", ".", "..") {
+            reject(root.getChildProvider("get-file"), {"file_id": id}, mock);
+        }
+        foreach string model in ("org/../model", "org//model", "/model", "org/.") {
+            reject(root.getChildProvider("get-model"), {"model": model}, mock);
+        }
+        hash<auto> chat = {"model": "test", "messages": ({"role": "user", "content": "Hi"},)};
+        foreach hash<auto> bad in ({"stream": True}, {"messages": ()}, {"temperature": 2.1},
+                {"top_p": -0.1}, {"max_completion_tokens": 0}, {"max_tokens": 1, "max_completion_tokens": 1},
+                {"include_reasoning": True, "reasoning_format": "parsed"}, {"stop": ("a", "b", "c", "d", "e")}) {
+            reject(root.getChildProvider("chat-completion"), chat + bad, mock);
+        }
+        reject(root.getChildProvider("chat-completion"), chat + {"tools": ({"type": "function"},)}, mock);
+        list<hash<auto>> too_many = ();
+        for (int i = 0; i < 129; ++i) {
+            push too_many, {"type": "function", "function": {"name": "tool"}};
+        }
+        reject(root.getChildProvider("chat-completion"), chat + {"tools": too_many}, mock);
+        mock.response = {"choices": ()};
+        root.getChildProvider("chat-completion").doRequest(chat + {"stop": "END OF RESPONSE"});
+        assertEq("END OF RESPONSE", mock.request.body.stop);
+        reject(root.getChildProvider("chat-completion"), chat + {"stop": ({"invalid": True},)}, mock);
+        reject(root.getChildProvider("create-response"), {"model": "test", "input": "Hi", "store": True}, mock);
+        reject(root.getChildProvider("create-response"), {"model": "test", "input": "Hi", "stream": True}, mock);
+        hash<auto> audio = {"model": "whisper-large-v3", "url": "https://example.com/call.wav"};
+        reject(root.getChildProvider("transcribe-audio"), audio + {"timestamp_granularities": ("word",)}, mock);
+        reject(root.getChildProvider("transcribe-audio"), audio + {"response_format": "verbose_json",
+            "timestamp_granularities": ("invalid",)}, mock);
+        reject(root.getChildProvider("transcribe-audio"), audio + {"file": {"name": "x.wav", "content": binary("x")}}, mock);
+        reject(root.getChildProvider("upload-file"), {"purpose": "batch", "file": {"name": "x.jsonl", "content": binary()}}, mock);
+        reject(root.getChildProvider("upload-file"), {"purpose": "other", "file": {"name": "x.jsonl", "content": binary("x")}}, mock);
+        foreach hash<auto> file in ({"name": "bad\r\nname", "content": binary("x")},
+                {"name": "file.wav", "content": binary("x"), "mime_type": "audio/wav\r\nX-Test: yes"}) {
+            reject(root.getChildProvider("upload-file"), {"purpose": "batch", "file": file}, mock);
+        }
+        hash<auto> speech = {"model": "canopylabs/orpheus-v1-english", "input": "Hello", "voice": "troy"};
+        reject(root.getChildProvider("generate-speech"), speech + {"voice": "aisha"}, mock);
+        reject(root.getChildProvider("generate-speech"), speech + {"response_format": "mp3"}, mock);
+        reject(root.getChildProvider("generate-speech"), speech + {"sample_rate": 12345}, mock);
+        hash<auto> batch = {"input_file_id": "file-1", "endpoint": "/v1/chat/completions"};
+        foreach string window in ("0h", "23h", "8d", "garbage") {
+            reject(root.getChildProvider("create-batch"), batch + {"completion_window": window}, mock);
+        }
+        mock.response = {"id": "batch-1"};
+        foreach string window in ("24h", "7d", "168h") {
+            assertEq("batch-1", root.getChildProvider("create-batch").doRequest(batch + {"completion_window": window}).id);
+        }
+    }
+
+    private referenceTest() {
+        GroqActionMock mock();
+        GroqDataProvider root(mock);
+        mock.response = {"data": (
+            {"id": "chat"}, {"id": "whisper-large-v3"}, {"id": "whisper-large-v3-turbo"},
+            {"id": "canopylabs/orpheus-v1-english"}, {"id": "openai/gpt-oss-20b"}, {"id": "qwen/qwen3.8-27b"}, {"id": "gone", "active": False},
+        )};
+        assertEq(("chat", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"), map $1.value, root.getReferenceData("chat-models"));
+        assertEq(("whisper-large-v3",), map $1.value, root.getReferenceData("translation-models"));
+        assertEq(("whisper-large-v3", "whisper-large-v3-turbo"), map $1.value, root.getReferenceData("transcription-models"));
+        assertEq(("canopylabs/orpheus-v1-english",), map $1.value, root.getReferenceData("speech-models"));
+        assertEq(("chat", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"), map $1.value, root.getReferenceData("response-models"));
+        assertNothing(root.getReferenceData("voices"));
+        assertNothing(root.getReferenceData("voices", {"model": "unknown"}));
+        list<hash<AllowedValueInfo>> voices = root.getReferenceData("voices", {"model": "canopylabs/orpheus-v1-english"});
+        assertEq(6, voices.size());
+        assertEq("Troy", voices[-1].display_name);
+        voices = root.getReferenceData("voices", {"model": "canopylabs/orpheus-arabic-saudi"});
+        assertEq("aisha", voices[-1].value);
+        mock.response = {"data": ({"id": "batch", "filename": "batch.jsonl", "purpose": "batch"},
+            {"id": "adapter", "filename": "adapter.zip", "purpose": "fine_tuning"},)};
+        assertEq(("batch",), map $1.value, root.getReferenceData("batch-files"));
+        assertEq(("adapter",), map $1.value, root.getReferenceData("adapter-files"));
+        assertEq("batch.jsonl", root.getReferenceData("files")[0].display_name);
+        mock.response = {"data": ()};
+        assertEq((), root.getReferenceData("models"));
+        assertEq((), root.getReferenceData("batches"));
+        assertEq((), root.getReferenceData("fine-tunings"));
+        assertEq("/v1/fine_tunings", mock.request.path);
+    }
+
+    private retryTest() {
+        GroqActionMock mock();
+        GroqDataProvider root(mock);
+        foreach string failure in ("SOCKET-CLOSED", "SOCKET-SSL-ERROR", "REST-RESPONSE-ERROR") {
+            mock.failure = failure;
+            int calls = mock.calls;
+            assertThrows(failure, sub () {
+                root.getChildProvider("create-response").doRequest({"model": "test", "input": "Hello"});
+            });
+            assertEq(calls + 1, mock.calls);
+        }
+    }
+
+    private wireTest() {
+        HttpServer server(<HttpServerOptionInfo>{"logger": new Logger("test", LoggerLevel::getLevelWarn())});
+        on_exit delete server;
+        int port = server.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        GroqWireHandler handler();
+        server.setDefaultHandler("test", handler);
+        GroqRestClientIo client({"url": sprintf("http://127.0.0.1:%d", port), "apikey": "test-key", "http_version": "1.1"});
+        string original_path = client.getConnectionPath();
+        GroqDataProvider root(client);
+        assertEq(original_path, client.getConnectionPath());
+        handler.setResponse("{\"id\":\"resp-1\",\"output\":[]}");
+        root.getChildProvider("create-response").doRequest({"model": "test", "input": "Hello"});
+        assertEq("openai/v1/responses", handler.getRequest().headers.path);
+        assertEq("Bearer test-key", handler.getRequest().headers.authorization);
+        assertEq("Hello", parse_json(handler.getRequest().body).input);
+        handler.setResponse("{\"id\":\"file-1\"}");
+        root.getChildProvider("upload-file").doRequest({"purpose": "batch",
+            "file": {"name": "batch.jsonl", "content": binary("{\"x\":1}\n")}});
+        assertRegex("multipart/form-data;", handler.getRequest().headers."content-type");
+        assertTrue(index(handler.getRequest().body.toString(), "{\"x\":1}\n") >= 0);
+        handler.setResponse("{\"data\":[]}");
+        root.getChildProvider("list-fine-tunings").doRequest();
+        assertEq("v1/fine_tunings", handler.getRequest().headers.path);
+        handler.setResponse(binary("RIFF\0\xfftest"), "audio/wav");
+        assertEq(binary("RIFF\0\xfftest"), root.getChildProvider("generate-speech").doRequest({
+            "model": "canopylabs/orpheus-v1-english", "input": "Hi", "voice": "troy"}));
+        handler.setResponse("{\"custom_id\":\"test\"}\n", "application/jsonl");
+        assertEq(binary("{\"custom_id\":\"test\"}\n"), root.getChildProvider("download-file").doRequest({"file_id": "file-1"}));
+        string raw_json = "{ \"custom_id\": \"test\" }\n";
+        handler.setResponse(raw_json, MimeTypeJson);
+        assertEq(binary(raw_json), root.getChildProvider("download-file").doRequest({"file_id": "file-1"}),
+            "file downloads preserve JSON whitespace and bytes");
+        handler.setResponse(binary("opaque\0bytes"), "application/x-groq-test");
+        assertEq(binary("opaque\0bytes"), root.getChildProvider("download-file").doRequest({"file_id": "file-1"}));
+        handler.setResponse("Translated text", "text/plain");
+        assertEq("Translated text", root.getChildProvider("translate-audio").doRequest({
+            "model": "whisper-large-v3", "url": "https://example.com/call.wav", "response_format": "text"}));
+    }
+
+    private liveTest() {
+        AbstractConnection conn = ENV.GROQ_CONNECTION ? get_connection(ENV.GROQ_CONNECTION)
+            : new GroqRestConnection("groq-test", "live", GroqRestConnection::DefaultUrl, {}, {"apikey": ENV.GROQ_APIKEY});
+        assertTrue(conn.ping(True).ok);
+        # Use local providers with the saved connection's credentials and transport.
+        GroqDataProvider root(cast<RestClientIo::RestClientIo>(conn.getAsync()));
+        auto models = root.getChildProvider("list-models").doRequest();
+        assertTrue(models."data".size() > 0);
+        string model = ENV.GROQ_CHAT_MODEL ?? "openai/gpt-oss-20b";
+        auto info = root.getChildProvider("get-model").doRequest({"model": model});
+        assertEq(model, info.id);
+        assertTrue(info.context_window > 0);
+        auto chat = root.getChildProvider("chat-completion").doRequest({"model": model,
+            "messages": ({"role": "user", "content": "Reply with just OK."},),
+            "reasoning_effort": "low", "max_completion_tokens": 128});
+        assertTrue(chat.choices[0].message.content.val());
+        assertTrue(chat.usage.total_tokens > 0);
+        auto response = root.getChildProvider("create-response").doRequest({"model": model, "input": "Reply with just OK.",
+            "reasoning": {"effort": "low"}, "max_output_tokens": 128});
+        assertTrue(response.output.size() > 0);
+        assertTrue(response.usage.total_tokens > 0);
+        if (ENV.GROQ_TOOL_TESTS) {
+            auto tool_response = root.getChildProvider("create-response").doRequest({
+                "model": model, "input": "Look up order 123 using the lookup_order function.",
+                "reasoning": {"effort": "low"}, "max_output_tokens": 256,
+                "tool_choice": "required", "tools": ({"type": "function", "name": "lookup_order",
+                    "parameters": {"type": "object", "properties": {"order_id": {"type": "string"}},
+                        "required": ("order_id",), "additionalProperties": False}},)});
+            list<hash<auto>> calls = select tool_response.output, $1.type == "function_call";
+            assertTrue(calls.size() > 0);
+            assertEq("lookup_order", calls[0].name);
+            assertEq("123", parse_json(calls[0].arguments).order_id);
+            auto code_response = root.getChildProvider("create-response").doRequest({
+                "model": model, "input": "Execute this exact Python code with the code tool, then return its output: "
+                    "import hashlib; print(hashlib.sha256(b'qore-groq-audit').hexdigest())",
+                "reasoning": {"effort": "low"}, "max_output_tokens": 512,
+                "tool_choice": {"type": "code_interpreter"}, "tools": ({"type": "code_interpreter",
+                    "container": {"type": "auto"}},)});
+            # Groq reports built-in Python execution as an mcp_call output item.
+            list<hash<auto>> executions = select code_response.output, $1.type == "mcp_call" && $1.name == "python";
+            assertTrue(executions.size() > 0);
+            assertEq("completed", executions[0].status);
+            assertEq("84ed23cd635ab778a70bafac777a24a83119f845a7e34c407bf25a16c67c6403", trim(executions[0].output));
+            assertTrue(code_response.usage.total_tokens > 0);
+        }
+        if (ENV.GROQ_FILE_TESTS) {
+            assertTrue(root.getChildProvider("list-files").doRequest()."data".typeCode() == NT_LIST);
+            assertTrue(root.getChildProvider("list-batches").doRequest()."data".typeCode() == NT_LIST);
+            string jsonl = make_json({"custom_id": "qore-groq-audit", "method": "POST", "url": "/v1/chat/completions",
+                "body": {"model": model, "messages": ({"role": "user", "content": "Hi"},), "max_completion_tokens": 8}}) + "\n";
+            auto file = root.getChildProvider("upload-file").doRequest({"purpose": "batch",
+                "file": {"name": "qore-groq-audit.jsonl", "content": binary(jsonl)}});
+            on_exit {
+                assertTrue(root.getChildProvider("delete-file").doRequest({"file_id": file.id}).deleted);
+            }
+            assertEq("qore-groq-audit.jsonl", root.getChildProvider("get-file").doRequest({"file_id": file.id}).filename);
+            assertEq(binary(jsonl), root.getChildProvider("download-file").doRequest({"file_id": file.id}));
+        }
+        if (ENV.GROQ_RESTRICTED_PLAN_TESTS) {
+            foreach string action in ("list-files", "list-batches", "list-fine-tunings") {
+                *hash<ExceptionInfo> error;
+                try {
+                    root.getChildProvider(action).doRequest();
+                } catch (hash<ExceptionInfo> ex) {
+                    error = ex;
+                }
+                assertTrue(exists error, action + " must report the account restriction");
+                assertEq("REST-RESPONSE-ERROR", error.err);
+                assertEq(403, error.arg.status_code);
+                assertEq("not_available_for_plan", error.arg.body.error.code);
+            }
+        }
+        if (ENV.GROQ_SPEECH_TESTS) {
+            binary audio = root.getChildProvider("generate-speech").doRequest({"model": "canopylabs/orpheus-v1-english",
+                "input": "Your order has shipped.", "voice": "troy", "response_format": "wav"});
+            assertTrue(audio.size() > 44);
+        }
+        if (ENV.GROQ_AUDIO_TESTS) {
+            binary audio = File::readBinaryFile(get_script_dir() + "/order.wav");
+            foreach string action in ("transcribe-audio", "translate-audio") {
+                auto result = root.getChildProvider(action).doRequest({"model": "whisper-large-v3",
+                    "file": {"name": "order.wav", "content": audio, "mime_type": "audio/wav"}, "response_format": "json"});
+                assertTrue(index(result.text.lwr(), "order") >= 0, result.text);
+            }
+        }
+    }
+}

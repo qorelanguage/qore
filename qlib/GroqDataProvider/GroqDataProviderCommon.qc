@@ -30,7 +30,7 @@ public namespace GroqDataProvider {
 public class GroqDataProviderCommon inherits DataProvider::AbstractDataProvider {
     public {
         #! The default Groq REST API URL
-        const DefaultGroqUrl = "https://api.groq.com/openai";
+        const DefaultGroqUrl = GroqRestClientBase::DefaultUrl;
 
         #! The default Groq API version
         const DefaultGroqApiVersion = "v1";
@@ -43,7 +43,6 @@ public class GroqDataProviderCommon inherits DataProvider::AbstractDataProvider 
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The Groq API key used for Bearer authentication.  Get your API key from "
                     "the [Groq Console](https://console.groq.com/keys).",
-                "required": True,
                 "sensitive": True,
             },
             "url": <DataProviderOptionInfo>{
@@ -75,18 +74,19 @@ public class GroqDataProviderCommon inherits DataProvider::AbstractDataProvider 
                 "display_name": "API Version",
                 "short_desc": "Groq API version segment",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The API version segment used for `/v1/*` routing.",
+                "desc": "The supported Groq API version.",
+                "allowed_values": (<AllowedValueInfo>{"value": "v1", "display_name": "V1"},),
                 "default_value": DefaultGroqApiVersion,
             },
         };
 
-        #! IO errors for REST retries
+        #! Legacy retry error names retained for source compatibility
         const RetrySet = {
             "SOCKET-SSL-ERROR": True,
             "SOCKET-CLOSED": True,
         };
 
-        #! Max retries
+        #! Legacy retry limit retained for source compatibility
         const MaxIoRetries = 5;
     }
 
@@ -96,15 +96,21 @@ public class GroqDataProviderCommon inherits DataProvider::AbstractDataProvider 
     }
 
     #! Creates the object from a RestClientIo client
+    /** @param rest authenticated transport to copy without changing the caller's connection path */
     constructor(RestClientIo::RestClientIo rest) {
-        self.rest = rest;
+        self.rest = cast<RestClientIo::RestClientIo>(rest.copyWithUrl(rest.getUrl().toString()));
+        self.rest.clearConnectionPath();
     }
 
     #! Creates the object from constructor options
+    /** @param options an API key and URL, or a supplied REST client
+        @throw CONSTRUCTOR-ERROR credentials are absent or an option is invalid
+    */
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         if (copts.restclient) {
-            rest = copts.restclient;
+            rest = cast<RestClientIo::RestClientIo>(
+                copts.restclient.copyWithUrl(copts.restclient.getUrl().toString()));
         }
         if (!rest) {
             if (!copts.apikey.val()) {
@@ -118,91 +124,155 @@ public class GroqDataProviderCommon inherits DataProvider::AbstractDataProvider 
             };
             rest = new GroqRestClient::GroqRestClientIo(opts);
         }
+        rest.clearConnectionPath();
     }
 
-    #! Returns information on supported reference data
+    #! Returns names of supported resource dropdowns
+    /** @return reference data names; custom resource identifiers are also accepted */
     *hash<string, bool> getSupportedReferenceData() {
         return {
-            "models": True,
+            "models": True, "chat-models": True, "response-models": True,
+            "transcription-models": True, "translation-models": True, "speech-models": True,
+            "voices": True, "files": True, "batch-files": True, "adapter-files": True,
+            "batches": True, "fine-tunings": True,
         };
     }
 
-    #! Returns reference data of the given kind if available
     private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type, *hash<auto> action_opts) {
-        switch (type) {
-            case "models": return getReferenceModels();
+        if (type == "voices") {
+            if (!action_opts.model) {
+                return;
+            }
+            *list<string> voices;
+            switch (action_opts.model) {
+                case "canopylabs/orpheus-v1-english":
+                    voices = ("autumn", "diana", "hannah", "austin", "daniel", "troy");
+                    break;
+                case "canopylabs/orpheus-arabic-saudi":
+                    voices = ("abdullah", "fahad", "sultan", "lulwa", "noura", "aisha");
+                    break;
+                default:
+                    return;
+            }
+            return map <AllowedValueInfo>{"value": $1, "display_name": $1.substr(0, 1).upr() + $1.substr(1)}, voices;
         }
-    }
-
-    #! Returns the currently-available models as allowed values
-    private *list<hash<AllowedValueInfo>> getReferenceModels() {
-        list<hash<AllowedValueInfo>> rv;
-        foreach hash<auto> model in (doRestCommand("GET", "models").body."data") {
-            # skip models flagged as inactive
-            if (exists model.active && !model.active) {
+        string path;
+        switch (type) {
+            case "models": case "chat-models": case "response-models":
+            case "transcription-models": case "translation-models": case "speech-models":
+                path = "models";
+                break;
+            case "files": case "batch-files": case "adapter-files":
+                path = "files";
+                break;
+            case "batches": path = "batches"; break;
+            case "fine-tunings": path = "/v1/fine_tunings"; break;
+            default: return;
+        }
+        list<hash<AllowedValueInfo>> rv = ();
+        foreach hash<auto> record in (doRestCommand("GET", path).body."data") {
+            if (!record.id || (exists record.active && !record.active)) {
                 continue;
             }
-            string id = string(model.id);
-            string desc = sprintf("Groq model: %s", id);
-            rv += <AllowedValueInfo>{
-                "display_name": id,
-                "short_desc": desc,
-                "desc": desc,
+            string id = record.id;
+            if (path == "models") {
+                bool whisper = id.startsWith("whisper-");
+                bool speech = id.startsWith("canopylabs/orpheus-") || id.startsWith("playai-tts");
+                if (((type == "chat-models" || type == "response-models") && (whisper || speech))
+                    || (type == "transcription-models" && !whisper)
+                    || (type == "translation-models" && id != "whisper-large-v3")
+                    || (type == "speech-models" && !speech)) {
+                    continue;
+                }
+            }
+            if ((type == "batch-files" && record.purpose != "batch")
+                || (type == "adapter-files" && record.purpose != "fine_tuning")) {
+                continue;
+            }
+            push rv, <AllowedValueInfo>{
                 "value": id,
+                "display_name": record.filename ?? record.name ?? id,
             };
         }
         return rv;
     }
 
-    #! Makes a REST call and returns the response; handles rate limit and I/O errors
+    #! Sends one REST request without replaying potentially billable operations
+    /** @param method HTTP method
+        @param path relative OpenAI-compatible path or absolute native API path
+        @param body optional JSON request body
+        @param hdr optional HTTP headers
+        @return the parsed REST response
+        @throw REST-RESPONSE-ERROR the service rejected the request
+    */
     private hash<auto> doRestCommand(string method, string path, auto body, *hash<auto> hdr) {
-        int retries = 0;
-        while (True) {
-            try {
-                debug("REST %y %y body: %y", method, path, body);
-                switch (method.upr()) {
-                    case "GET":
-                        return rest.restGet(path, hdr);
-                    case "POST":
-                        return rest.restPost(path, body, hdr);
-                    case "DELETE":
-                        return rest.restDel(path, body, hdr);
-                    default:
-                        return rest.restDoRequest(method, path, body, hdr);
-                }
-            } catch (hash<ExceptionInfo> ex) {
-                if (retry(ex, \retries)) {
-                    continue;
-                }
-                rethrow ex.err, sprintf("%s (request path: %y)", ex.desc,
-                    ex.arg.request_path ?? path), ex.arg;
-            }
-        }
+        return rest.restDoRequest(method, apiPath(path), body, hdr);
     }
 
-    #! Returns True if the error indicates that the operation should be retried
-    private bool retry(hash<ExceptionInfo> ex, reference<int> retries) {
-        if (RetrySet{ex.err}) {
-            if (++retries == MaxIoRetries) {
-                LoggerWrapper::error(sprintf("Maximum retries exceeded (%d)", retries));
-                return False;
+    #! Resolves the two documented Groq API namespaces
+    private static string apiPath(string path) {
+        return path.startsWith("/") ? path : "/openai/v1/" + path;
+    }
+
+    #! Downloads file contents without interpreting their MIME type or JSON content
+    private binary downloadFile(string path) {
+        RestClientIo::RestClientIo client = cast<RestClientIo::RestClientIo>(
+            rest.copyWithUrl(rest.getUrl().toString()));
+        client.setValidator(new GroqFileDownloadValidator());
+        return binary(client.restGet(apiPath(path)).body);
+    }
+
+    #! Sends named files and repeated form fields without JSON encoding the multipart body
+    private hash<auto> doMultipart(string path, hash<auto> req) {
+        Mime::MultiPartFormDataMessage msg();
+        *hash<auto> file = remove req.file;
+        foreach hash<auto> entry in (req.pairIterator()) {
+            auto value = entry.value;
+            if (!exists value) {
+                continue;
             }
-            warn("Technical error making REST call: %s: %s; retrying", ex.err, ex.desc);
-            return True;
-        }
-        if (ex.err == "REST-RESPONSE-ERROR" && ex.arg.status_code == 429) {
-            if (++retries == MaxIoRetries) {
-                LoggerWrapper::error(sprintf("Maximum retries exceeded (%d)", retries));
-                return False;
+            string name = entry.key;
+            if (value.typeCode() == NT_LIST) {
+                foreach auto item in (value) {
+                    msg.addRepeatedPart(item.toString(), name + "[]");
+                }
+            } else {
+                msg.addPart(value.toString(), name);
             }
-            *string retry_after = ex.arg.headers."retry-after";
-            int wait_secs = retry_after.val() ? retry_after.toInt() : (1 << retries);
-            warn("Rate limited (429); waiting %d second(s) before retry %d",
-                wait_secs, retries);
-            sleep(wait_secs);
-            return True;
         }
-        return False;
+        if (file) {
+            if (!file.name || !exists file.content) {
+                throw "GROQ-REQUEST-ERROR", "file requires a non-empty name and content";
+            }
+            data content = file.content.typeCode() == NT_BINARY ? file.content : parse_base64_string(file.content);
+            if (!content.size()) {
+                throw "GROQ-REQUEST-ERROR", "file content must not be empty";
+            }
+            if (file.name =~ /[\r\n]/) {
+                throw "GROQ-REQUEST-ERROR", "file name must not contain line breaks";
+            }
+            *string mime = file.mime_type;
+            if (!mime || mime == "auto") {
+                mime = get_mime_type_from_ext(file.name) ?? "application/octet-stream";
+            }
+            if (mime =~ /[\r\n]/) {
+                throw "GROQ-REQUEST-ERROR", "file MIME type must not contain line breaks";
+            }
+            msg.addPart(content, "file", file.name, mime);
+        }
+        hash<MessageInfo> msg_info = msg.getMsgAndHeaders();
+        return rest.restDoRawRequest("POST", apiPath(path), msg_info.body, msg_info.hdr);
+    }
+}
+
+#! Successful file downloads are opaque bytes; errors retain normal REST decoding
+class GroqFileDownloadValidator inherits RestSchemaValidator::NullRestSchemaValidator {
+    private hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code,
+            *data body, hash<auto> hdr) {
+        if (code >= 200 && code < 300) {
+            return <RestResponseClientInfo>{"code": code, "hdr": hdr, "body": binary(body)};
+        }
+        return NullRestSchemaValidator::parseResponseImpl(method, path, code, body, hdr);
     }
 }
 }

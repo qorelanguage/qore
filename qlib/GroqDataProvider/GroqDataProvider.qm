@@ -30,7 +30,7 @@
 %requires RestClientIo
 
 module GroqDataProvider {
-    version = "1.0";
+    version = "1.1";
     desc = "user module providing a data provider API for Groq LPU inference";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -42,24 +42,21 @@ module GroqDataProvider {
             "name": GroqDataProvider::AppName,
             "presentation_source_locale": "en",
             "display_name": "Groq",
-            "short_desc": "Groq LPU inference for open-weight models at very high throughput",
-            "desc": "Provides access to [Groq](https://groq.com) — LPU-accelerated inference for "
-                "open-weight LLMs at exceptionally high token-per-second throughput.\n\n"
-                "Groq exposes an OpenAI-compatible chat-completions API, so existing "
-                "OpenAI-shape consumers (chat, tools, structured output, streaming) work "
-                "unchanged.  See the "
-                "[Groq models documentation](https://console.groq.com/docs/models) for the "
-                "currently-available models.\n\n"
-                "**Common use cases**:\n"
-                "- **Low-latency chat** — Groq's LPU delivers sub-second time-to-first-token\n"
-                "- **High-throughput tool-calling agents** where total response time matters\n"
-                "- **Open-weight model deployments** without owning GPU infrastructure",
+            "short_desc": "Fast AI responses, speech, batch inference, and LoRA adapter hosting",
+            "desc": "Use [Groq](https://groq.com) to bring fast AI inference into business workflows.\n\n"
+                "- Generate chat and structured responses with tool calling\n"
+                "- Transcribe, translate, and synthesize speech\n"
+                "- Upload files and manage batch inference\n"
+                "- Host externally trained LoRA adapters with enterprise access\n"
+                "- Discover available models and inspect their capabilities",
             "scheme": "groq",
             "logo": GroqLogo,
             "logo_file_name": "groq-logo.svg",
             "logo_mime_type": MimeTypeSvg,
             "groups": (DataProvider::AppGroup::AiLlm,),
         });
+
+        GroqActions::registerActions();
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GroqDataProvider::AppName,
@@ -84,12 +81,13 @@ module GroqDataProvider {
                     "required": True,
                 }
             ) + DataProviderActionCatalog::getActionOptionFromFields(
-                GroqChatCompletionRequestDataType::Fields{"temperature", "max_tokens",}, {
+                GroqChatCompletionRequestDataType::Fields{"temperature", "max_completion_tokens",}, {
                     "preselected": True,
                 }
             ) + DataProviderActionCatalog::getActionOptionFromFields(
                 GroqChatCompletionRequestDataType::Fields - (
-                    "messages", "model", "temperature", "max_tokens",
+                    "messages", "model", "temperature", "max_completion_tokens", "stream",
+                    "frequency_penalty", "presence_penalty",
                 )
             ),
             "output_type": GroqChatCompletionDataProvider::ResponseType,
@@ -108,7 +106,7 @@ module GroqDataProvider {
             "action_code": DPAT_API,
             "mutates_state": False,
             "groups": ("Models",),
-            "options": {},
+            "options": DataProviderActionCatalog::getActionOptionFromFields({}),
             "output_type": GroqListModelsDataProvider::ResponseType,
         });
     };
@@ -145,7 +143,7 @@ hash<auto> models = prov.getChildProvider("list-models").doRequest();
 
 AbstractDataProvider chat = prov.getChildProvider("chat-completion");
 hash<auto> result = chat.doRequest({
-    "model": models."data"[0].id,
+    "model": "openai/gpt-oss-20b",
     "messages": (
         {"role": "user", "content": "Hello!"},
     ),
@@ -154,10 +152,85 @@ printf("Response: %s\n", result.choices[0].message.content);
     @endcode
 
     @note The module name \c GroqDataProvider is distinct from
-    @ref grokdataproviderintro "GrokDataProvider" (xAI's Grok product) —
+    <a href="../../GrokDataProvider/html/index.html#grokdataproviderintro">GrokDataProvider</a> (xAI's Grok product) —
     note the spelling: Groq (LPU inference) vs. Grok (xAI).
 
     @section GroqDataProviderRelnotes Release Notes
+
+    @subsection groqdataproviderv1_1 GroqDataProvider v1.1
+    - 20 typed actions covering every operation in the public Groq API reference
+    - Responses, transcription, translation, speech, model details, files, batches, and LoRA adapters
+    - model and file dropdowns scoped to the task, with model-dependent Orpheus voices
+    - multimodal chat input, named tool selection, reasoning, Compound, and structured output options
+    - authenticated connection pings, canonical automatic connection URLs, and explicit JSON serialization
+    - named multipart uploads, raw binary downloads, and native LoRA endpoint routing
+    - invalid options fail before transport; transport failures do not replay billable requests
+
+    @par API coverage
+    |!Group|!Actions
+    |Chat and Responses|Chat Completion, Create Response
+    |Models|List Models, Get Model
+    |Audio|Transcribe Audio, Translate Audio, Generate Speech
+    |Files|Upload File, List Files, Get File, Download File, Delete File
+    |Batches|Create Batch, List Batches, Get Batch, Cancel Batch
+    |LoRA adapters|Register LoRA Adapter, List LoRA Adapters, Get LoRA Adapter, Delete LoRA Adapter
+
+    Contracts follow the [API reference](https://console.groq.com/docs/api-reference),
+    [Responses guide](https://console.groq.com/docs/responses-api),
+    [batch guide](https://console.groq.com/docs/batch),
+    [Orpheus guide](https://console.groq.com/docs/text-to-speech/orpheus), and
+    [LoRA guide](https://console.groq.com/docs/lora), reviewed on 2026-09-08.
+    The existing hand-written provider architecture and public chat/model classes are retained.
+    The reference page embeds an OpenAPI description, but it lags the feature guides: its speech
+    models omit Orpheus, file purposes omit LoRA uploads, batch endpoints omit audio, and Responses tools omit browser, code, and MCP tools. The
+    contracts therefore follow the current feature guides where they differ from that description.
+    Hidden embeddings, reranking, and model deletion operations are not advertised as public actions.
+
+    @note LoRA actions host externally trained adapters and require enterprise access. They do not
+    train models. Most endpoints use /openai/v1; LoRA metadata uses /v1/fine_tunings.
+
+    @par Audio example
+    @code{.py}
+GroqDataProvider provider({"apikey": ENV.GROQ_APIKEY});
+binary audio = provider.getChildProvider("generate-speech").doRequest({
+    "model": "canopylabs/orpheus-v1-english", "voice": "troy",
+    "input": "Your order has shipped.", "response_format": "wav",
+});
+auto transcript = provider.getChildProvider("transcribe-audio").doRequest({
+    "model": "whisper-large-v3",
+    "file": {"name": "order.wav", "content": audio, "mime_type": "audio/wav"},
+    "response_format": "verbose_json", "timestamp_granularities": ("word", "segment"),
+});
+printf("%s\n", transcript.text);
+    @endcode
+
+    @par Files and batch processing
+    Upload File accepts a FileDataType value with a filename and binary or base64 content. Use
+    purpose batch for JSONL requests, or fine_tuning for an enterprise LoRA adapter ZIP. Create Batch
+    returns immediately; inspect it later with Get Batch and download output_file_id using Download File.
+    The module does not wait for batch completion or automatically retry submissions.
+
+    @par Model and response options
+    Dropdowns filter known model families and accept custom identifiers for new or account-specific models.
+    Groq publishes no voice-list endpoint, so Orpheus voice choices follow its model guide; unknown models
+    accept manually entered voice identifiers. Model-specific reasoning and tool support are enforced by
+    Groq. The chat connection option accepts an explicit model ID; connection options do not have the
+    action framework's reference-data dropdown mechanism.
+    Completed-response actions hide streaming; use GroqLlmProvider for streaming chat. Existing max_tokens
+    remains accepted, while the action preselects max_completion_tokens. Audio text responses are strings;
+    speech and file downloads are binary. Typed responses retain additive service metadata.
+
+    @par Tests
+    Run GroqRestClient.qtest, GroqDataProvider.qtest, and GroqActions.qtest with debugging enabled.
+    Set GROQ_LIVE=1 and GROQ_APIKEY to enable live authentication, model, chat, and Responses
+    checks. GROQ_FILE_TESTS=1 enables the temporary-file round trip for eligible accounts.
+    GROQ_RESTRICTED_PLAN_TESTS=1 verifies explicit permission denials for files, batches, and LoRA.
+    GROQ_CONNECTION selects a saved connection; GROQ_CHAT_MODEL overrides the test model.
+    GROQ_AUDIO_TESTS=1 enables transcription and translation of the bundled synthetic speech fixture.
+    GROQ_SPEECH_TESTS=1 separately enables speech generation after the organization accepts the model's terms.
+    Live generation is limited to 128 tokens per chat/Responses request. Temporary files are deleted on
+    exit. Batch creation/cancellation and enterprise LoRA operations are covered by deterministic local
+    transport tests; live tests do not submit batches or deploy adapters.
 
     @subsection GroqDataProviderv1_0 GroqDataProvider v1.0
     - the initial version of the %GroqDataProvider module
@@ -170,4 +243,8 @@ public const AppName = "Groq";
 }
 
 #! App logo loaded from file
-public const GroqLogo = File::readTextFile(get_script_dir() + "/groq-logo.svg");
+namespace Priv {
+const GroqLogo = File::readTextFile(get_script_dir() + "/groq-logo.svg");
+}
+#! Exported logo retained for compatibility
+public const GroqLogo = Priv::GroqLogo;

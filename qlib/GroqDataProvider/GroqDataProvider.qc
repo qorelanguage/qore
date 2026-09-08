@@ -40,6 +40,7 @@ public class GroqDataProvider inherits GroqDataProviderCommon {
     private {
         #! Dynamic child data providers
         static hash<string, Reflection::Class> childMap = DefaultChildMap;
+        static Mutex child_lock();
 
         #! Default child data providers
         const DefaultChildMap = {
@@ -64,27 +65,45 @@ public class GroqDataProvider inherits GroqDataProviderCommon {
     }
 
     #! Registers a new child data provider
+    /** @param pathname unique child identifier
+        @param cls provider class accepting a REST client
+        @throw GROQ-CHILD-ERROR a built-in or additional child already uses the identifier
+    */
     static registerChild(string pathname, Reflection::Class cls) {
-        if (childMap{pathname}) {
+        AutoLock al(child_lock);
+        if (childMap{pathname} || GroqActions::Operations{pathname}) {
             throw "GROQ-CHILD-ERROR", sprintf("child %y already registered", pathname);
         }
         childMap{pathname} = cls;
     }
 
     #! Returns data provider summary info
+    /** @return summaries for all built-in and additional children */
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator();
+        list<hash<DataProviderSummaryInfo>> rv = ();
+        foreach string name in (getChildProviderNamesImpl()) {
+            push rv, getChildProvider(name).getSummaryInfo();
+        }
+        return rv;
     }
 
     #! Returns a list of child data provider names, if any
     private *list<string> getChildProviderNamesImpl() {
-        return keys childMap;
+        AutoLock al(child_lock);
+        return (keys childMap) + (keys GroqActions::Operations);
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
     private *AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = childMap{name};
+        *Class cls;
+        {
+            AutoLock al(child_lock);
+            cls = childMap{name};
+        }
         if (!cls) {
+            if (GroqActions::Operations{name}) {
+                return new GroqApiDataProvider(rest, name);
+            }
             return;
         }
         return cls.newObject(rest);

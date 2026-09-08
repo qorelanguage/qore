@@ -43,6 +43,7 @@ public class GroqChatToolCallDataType inherits HashDataType {
                     "OpenAI-compatible tool calling.",
                 "type": AbstractDataProviderTypeMap."string",
                 "example_value": "function",
+                "allowed_values": (<AllowedValueInfo>{"value": "function", "display_name": "Function"},),
             },
             "function": {
                 "display_name": "Function Call",
@@ -89,9 +90,11 @@ public class GroqChatMessageDataType inherits HashDataType {
             "content": {
                 "display_name": "Content",
                 "short_desc": "The text content of the message",
-                "desc": "The text content of the message.  May be NOTHING on assistant messages "
+                "desc": "The text content of the message.  May be `NOTHING` on assistant messages "
                     "that only contain `tool_calls`.",
-                "type": AbstractDataProviderTypeMap."*string",
+                "type": new QoreUnionDataType((AbstractDataProviderTypeMap."*string",
+                    new ListDataType("GroqMessageContent", AbstractDataProviderTypeMap."hash", False),)),
+                "example_value": "Summarize this invoice.",
             },
             "name": {
                 "display_name": "Author Name",
@@ -139,7 +142,7 @@ public class GroqChatCompletionRequestDataType inherits HashDataType {
                 "required": True,
                 "allowed_values_creatable": True,
                 "attr": {
-                    "ref_data": "models",
+                    "ref_data": "chat-models",
                 },
             },
             "messages": {
@@ -155,6 +158,128 @@ public class GroqChatCompletionRequestDataType inherits HashDataType {
                     {"role": "user", "content": "Hello!"},
                 ),
             },
+            "max_completion_tokens": {
+                "display_name": "Maximum Completion Tokens",
+                "short_desc": "Maximum Completion Tokens",
+                "desc": "Upper token limit including reasoning and visible output.",
+                "type": AbstractDataProviderTypeMap."*int",
+                "example_value": 1024,
+            },
+            "parallel_tool_calls": {
+                "display_name": "Parallel Tool Calls",
+                "short_desc": "Parallel Tool Calls",
+                "desc": "Allow multiple tool calls in a single response.",
+                "type": AbstractDataProviderTypeMap."*bool",
+            },
+            "disable_tool_validation": {
+                "display_name": "Disable Tool Validation",
+                "short_desc": "Disable Tool Validation",
+                "desc": "Allow tool calls absent from `tools`; useful for external tool dispatch.",
+                "type": AbstractDataProviderTypeMap."*bool",
+            },
+            "include_reasoning": {
+                "display_name": "Include Reasoning",
+                "short_desc": "Include Reasoning",
+                "desc": "Include reasoning in the response; mutually exclusive with `reasoning_format`.",
+                "type": AbstractDataProviderTypeMap."*bool",
+            },
+            "reasoning_effort": {
+                "display_name": "Reasoning Effort",
+                "short_desc": "Reasoning Effort",
+                "desc": "Reasoning effort; supported choices depend on the selected model.",
+                "type": AbstractDataProviderTypeMap."*string",
+                "allowed_values": (<AllowedValueInfo>{
+                        "value": "none",
+                        "display_name": "None",
+                    }, <AllowedValueInfo>{
+                        "value": "default",
+                        "display_name": "Default",
+                    }, <AllowedValueInfo>{
+                        "value": "minimal",
+                        "display_name": "Minimal",
+                    }, <AllowedValueInfo>{
+                        "value": "low",
+                        "display_name": "Low",
+                    }, <AllowedValueInfo>{
+                        "value": "medium",
+                        "display_name": "Medium",
+                    }, <AllowedValueInfo>{
+                        "value": "high",
+                        "display_name": "High",
+                    }, <AllowedValueInfo>{
+                        "value": "xhigh",
+                        "display_name": "Xhigh",
+                    }, <AllowedValueInfo>{
+                        "value": "max",
+                        "display_name": "Max",
+                    },),
+            },
+            "reasoning_format": {
+                "display_name": "Reasoning Format",
+                "short_desc": "Reasoning Format",
+                "desc": "How to expose reasoning; mutually exclusive with `include_reasoning`.",
+                "type": AbstractDataProviderTypeMap."*string",
+                "allowed_values": (<AllowedValueInfo>{
+                        "value": "hidden",
+                        "display_name": "Hidden",
+                    }, <AllowedValueInfo>{
+                        "value": "raw",
+                        "display_name": "Raw",
+                    }, <AllowedValueInfo>{
+                        "value": "parsed",
+                        "display_name": "Parsed",
+                    },),
+            },
+            "service_tier": {
+                "display_name": "Service Tier",
+                "short_desc": "Service Tier",
+                "desc": "Select processing capacity and latency handling.",
+                "type": AbstractDataProviderTypeMap."*string",
+                "allowed_values": (<AllowedValueInfo>{
+                        "value": "auto",
+                        "display_name": "Auto",
+                    }, <AllowedValueInfo>{
+                        "value": "on_demand",
+                        "display_name": "On Demand",
+                    }, <AllowedValueInfo>{
+                        "value": "flex",
+                        "display_name": "Flex",
+                    }, <AllowedValueInfo>{
+                        "value": "performance",
+                        "display_name": "Performance",
+                    },),
+            },
+            "compound_custom": {
+                "display_name": "Compound Configuration",
+                "short_desc": "Compound Configuration",
+                "desc": "Configure Compound models and built-in tools with `models` and `tools`.",
+                "type": new GroqCompoundDataType(True),
+            },
+            "documents": {
+                "display_name": "Documents",
+                "short_desc": "Documents",
+                "desc": "Context documents with a text or JSON `source` and optional citation `id`.",
+                "type": new ListDataType("GroqDocuments", new GroqDocumentDataType(), True),
+            },
+            "search_settings": {
+                "display_name": "Search Settings",
+                "short_desc": "Search Settings",
+                "desc": "Configure web search with `include_domains`, `exclude_domains`, and `country`.",
+                "type": new GroqSearchSettingsDataType(True),
+            },
+            "citation_options": {
+                "display_name": "Citation Options",
+                "short_desc": "Citation Options",
+                "desc": "Include citations for document and search grounding.",
+                "type": AbstractDataProviderTypeMap."*string",
+                "allowed_values": (<AllowedValueInfo>{
+                        "value": "enabled",
+                        "display_name": "Enabled",
+                    }, <AllowedValueInfo>{
+                        "value": "disabled",
+                        "display_name": "Disabled",
+                    },),
+            },
             "temperature": {
                 "display_name": "Temperature",
                 "short_desc": "Sampling temperature (0-2); higher values give more varied output",
@@ -166,8 +291,7 @@ public class GroqChatCompletionRequestDataType inherits HashDataType {
             "max_tokens": {
                 "display_name": "Max Tokens",
                 "short_desc": "Maximum tokens to emit in the completion",
-                "desc": "Maximum number of tokens to generate.  Must fit within the model's "
-                    "context window minus the prompt token count.",
+                "desc": "Legacy output limit. Prefer `max_completion_tokens`; do not supply both.",
                 "type": AbstractDataProviderTypeMap."*softint",
                 "example_value": 1024,
             },
@@ -180,15 +304,13 @@ public class GroqChatCompletionRequestDataType inherits HashDataType {
             "frequency_penalty": {
                 "display_name": "Frequency Penalty",
                 "short_desc": "Penalize repeated tokens proportional to their frequency",
-                "desc": "Penalizes tokens based on how often they have already appeared in the "
-                    "output.  Range `-2.0` to `2.0`.",
+                "desc": "Reserved by Groq; currently unsupported by hosted models.",
                 "type": AbstractDataProviderTypeMap."*softfloat",
             },
             "presence_penalty": {
                 "display_name": "Presence Penalty",
                 "short_desc": "Penalize any token that has already appeared",
-                "desc": "Penalizes tokens that have already appeared in the output, regardless "
-                    "of frequency.  Range `-2.0` to `2.0`.",
+                "desc": "Reserved by Groq; currently unsupported by hosted models.",
                 "type": AbstractDataProviderTypeMap."*softfloat",
             },
             "stop": {
@@ -196,23 +318,22 @@ public class GroqChatCompletionRequestDataType inherits HashDataType {
                 "short_desc": "String or list of strings; generation halts when emitted",
                 "desc": "One or more stop sequences.  Can be a single string or a list (Groq "
                     "supports up to 4 stop sequences).",
-                "type": AbstractDataProviderTypeMap."*softlist",
+                "type": new QoreUnionDataType((AbstractDataProviderTypeMap."*string",
+                    new ListDataType("GroqStopSequences", AbstractDataProviderTypeMap."string", False),)),
             },
             "stream": {
                 "display_name": "Stream",
-                "short_desc": "Stream partial completions as Server-Sent Events",
-                "desc": "When `True`, the server streams partial completions as Server-Sent "
-                    "Events (SSE) instead of returning a single response.  Most data provider "
-                    "flows expect non-streaming (`False` / omitted).",
-                "type": AbstractDataProviderTypeMap."*softbool",
+                "short_desc": "Return a completed response",
+                "desc": "Use `False` or omit this option. Use `GroqLlmProvider` for SSE streaming.",
+                "type": AbstractDataProviderTypeMap."*bool",
+                "allowed_values": (<AllowedValueInfo>{"value": False, "display_name": "Completed Response"},),
             },
             "tools": {
                 "display_name": "Tools",
                 "short_desc": "OpenAI-style tool definitions the model may call",
-                "desc": "List of tool definitions the model may invoke.  Each entry is a hash "
-                    "with a `type` field (`function`) and a `function` hash containing `name`, "
-                    "`description`, and a JSON-schema `parameters` object.",
-                "type": AbstractDataProviderTypeMap."*softlist",
+                "desc": "Custom function definitions or supported built-in tools. Use `function` with a "
+                    "`function` definition, or select `browser_search` or `code_interpreter` for a compatible model.",
+                "type": new ListDataType("GroqToolsList", new GroqChatToolDataType(), True),
             },
             "tool_choice": {
                 "display_name": "Tool Choice",
@@ -221,7 +342,9 @@ public class GroqChatCompletionRequestDataType inherits HashDataType {
                     "- `none` — never call a tool (text-only reply)\n"
                     "- `auto` — model decides (default when `tools` is set)\n"
                     "- `required` — model must call at least one tool",
-                "type": AbstractDataProviderTypeMap."*softstring",
+                "type": new QoreUnionDataType((AbstractDataProviderTypeMap."*string",
+                    AbstractDataProviderTypeMap."hash",)),
+                "allowed_values_creatable": True,
                 "allowed_values": (
                     <AllowedValueInfo>{"value": "none",
                         "display_name": "None - never call a tool"},
@@ -236,7 +359,7 @@ public class GroqChatCompletionRequestDataType inherits HashDataType {
                 "short_desc": "Force structured output (e.g. JSON)",
                 "desc": "Hash that forces a structured response shape.  The most common use is "
                     "JSON mode: `{type: \"json_object\"}`.",
-                "type": AbstractDataProviderTypeMap."*hash",
+                "type": new GroqChatResponseFormatDataType(True),
                 "example_value": {"type": "json_object"},
             },
             "seed": {

@@ -36,9 +36,19 @@ public class GroqChatResponseMessageDataType inherits HashDataType {
             },
             "content": {
                 "display_name": "Content",
-                "desc": "The text content of the assistant's reply.  May be NOTHING if the "
+                "desc": "The text content of the assistant's reply.  May be `NOTHING` if the "
                     "response is a tool call only.",
                 "type": AbstractDataProviderTypeMap."*string",
+            },
+            "reasoning": {
+                "display_name": "Reasoning",
+                "desc": "Reasoning text when the model and request enable it.",
+                "type": AbstractDataProviderTypeMap."*string",
+            },
+            "executed_tools": {
+                "display_name": "Executed Tools",
+                "desc": "Built-in tools executed by Compound models.",
+                "type": new ListDataType("GroqExecutedTools", AbstractDataProviderTypeMap."hash", True),
             },
             "tool_calls": {
                 "display_name": "Tool Calls",
@@ -52,6 +62,7 @@ public class GroqChatResponseMessageDataType inherits HashDataType {
     #! Creates the object
     constructor() {
         addQoreFields(Fields);
+        setDefaultOtherFieldType(AbstractDataProviderTypeMap."auto");
     }
 }
 
@@ -87,6 +98,7 @@ public class GroqChatChoiceDataType inherits HashDataType {
     #! Creates the object
     constructor() {
         addQoreFields(Fields);
+        setDefaultOtherFieldType(AbstractDataProviderTypeMap."auto");
     }
 }
 
@@ -138,6 +150,7 @@ public class GroqUsageDataType inherits HashDataType {
     #! Creates the object
     constructor() {
         addQoreFields(Fields);
+        setDefaultOtherFieldType(AbstractDataProviderTypeMap."auto");
     }
 }
 
@@ -196,6 +209,7 @@ public class GroqChatCompletionResponseDataType inherits HashDataType {
     #! Creates the object
     constructor() {
         addQoreFields(Fields);
+        setDefaultOtherFieldType(AbstractDataProviderTypeMap."auto");
     }
 }
 }

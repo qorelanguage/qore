@@ -76,6 +76,7 @@ public class GroqModelDataType inherits HashDataType {
     #! Creates the object
     constructor() {
         addQoreFields(Fields);
+        setDefaultOtherFieldType(AbstractDataProviderTypeMap."auto");
     }
 }
 
@@ -100,6 +101,7 @@ public class GroqListModelsResponseDataType inherits HashDataType {
     #! Creates the object
     constructor() {
         addQoreFields(Fields);
+        setDefaultOtherFieldType(AbstractDataProviderTypeMap."auto");
     }
 }
 }

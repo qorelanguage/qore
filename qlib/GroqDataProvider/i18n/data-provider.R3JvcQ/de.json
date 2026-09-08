@@ -11,18 +11,6 @@
           "source": "Chat Completion",
           "message": "Chat-Vervollständigung"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.desc": {
-          "source": "Penalizes tokens based on how often they have already appeared in the output.  Range `-2.0` to `2.0`.",
-          "message": "Bestraft Tokens basierend darauf, wie oft sie bereits in der Ausgabe vorgekommen sind. Bereich `-2.0` bis `2.0`."
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.display_name": {
-          "source": "Frequency Penalty",
-          "message": "Frequency Penalty"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZnJlcXVlbmN5X3BlbmFsdHk.short_desc": {
-          "source": "Penalize repeated tokens proportional to their frequency",
-          "message": "Wiederholte Token proportional zu ihrer Häufigkeit bestrafen"
-        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.desc": {
           "source": "ID of the Groq-hosted model to use.  See the [Groq models documentation](https://console.groq.com/docs/models) for the currently-available models; the `list-models` action returns the live list served by the API.",
           "message": "ID des zu verwendenden, von Groq gehosteten Modells. Informationen zu den aktuell verfügbaren Modellen finden Sie in der [Groq-Modell-Dokumentation](https://console.groq.com/docs/models); die Aktion `list-models` gibt die aktuelle Live-Liste der API zurück."
@@ -36,8 +24,8 @@
           "message": "Das zu verwendende von Groq gehostete Modell"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.desc": {
-          "source": "Maximum number of tokens to generate.  Must fit within the model's context window minus the prompt token count.",
-          "message": "Maximale Anzahl der zu generierenden Tokens. Muss in das Kontextfenster des Modells abzüglich der Prompt-Token-Anzahl passen."
+          "source": "Legacy output limit. Prefer `max_completion_tokens`; do not supply both.",
+          "message": "Älteres Ausgabelimit. Verwenden Sie bevorzugt `max_completion_tokens`; geben Sie nicht beide Limits an."
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.display_name": {
           "source": "Max Tokens",
@@ -83,30 +71,6 @@
           "source": "String or list of strings; generation halts when emitted",
           "message": "Zeichenkette oder Liste von Zeichenketten; Generierung stoppt bei Ausgabe"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.desc": {
-          "source": "When `True`, the server streams partial completions as Server-Sent Events (SSE) instead of returning a single response.  Most data provider flows expect non-streaming (`False` / omitted).",
-          "message": "Wenn `True`, streamt der Server Teilvervollständigungen als Server-Sent Events (SSE), anstatt eine einzelne Antwort zurückzugeben. Die meisten Data-Provider-Flows erwarten Non-Streaming (`False` / weggelassen)."
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.display_name": {
-          "source": "Stream",
-          "message": "Stream"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RyZWFt.short_desc": {
-          "source": "Stream partial completions as Server-Sent Events",
-          "message": "Teilvervollständigungen als Server-Sent Events streamen"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.desc": {
-          "source": "Penalizes tokens that have already appeared in the output, regardless of frequency.  Range `-2.0` to `2.0`.",
-          "message": "Bestraft Tokens, die bereits in der Ausgabe vorkommen, unabhängig von der Häufigkeit. Bereich `-2.0` bis `2.0`."
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.display_name": {
-          "source": "Presence Penalty",
-          "message": "Presence Penalty"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cHJlc2VuY2VfcGVuYWx0eQ.short_desc": {
-          "source": "Penalize any token that has already appeared",
-          "message": "Jedes bereits vorgekommene Token bestrafen"
-        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.desc": {
           "source": "Hash that forces a structured response shape.  The most common use is JSON mode: `{type: \"json_object\"}`.",
           "message": "Hash, der eine strukturierte Antwortform erzwingt. Die häufigste Verwendung ist der JSON-Modus: `{type: \"json_object\"}`."
@@ -144,8 +108,8 @@
           "message": "Ob und welches Tool das Modell aufrufen muss"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.desc": {
-          "source": "List of tool definitions the model may invoke.  Each entry is a hash with a `type` field (`function`) and a `function` hash containing `name`, `description`, and a JSON-schema `parameters` object.",
-          "message": "Liste von Tool-Definitionen, die das Modell aufrufen darf. Jeder Eintrag ist ein Hash mit einem `type`-Feld (`function`) und einem `function`-Hash, der `name`, `description` und ein JSON-Schema-`parameters`-Objekt enthält."
+          "source": "Custom function definitions or supported built-in tools. Use `function` with a `function` definition, or select `browser_search` or `code_interpreter` for a compatible model.",
+          "message": "Benutzerdefinierte Funktionen oder unterstützte integrierte Werkzeuge. Verwenden Sie `function` mit einer `function`-Definition oder wählen Sie `browser_search` bzw. `code_interpreter` für ein kompatibles Modell."
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.display_name": {
           "source": "Tools",
@@ -532,16 +496,16 @@
           "message": "Einen benutzerdefinierten API-Aufruf an Groq ausführen"
         },
         "app.R3JvcQ.desc": {
-          "source": "Provides access to [Groq](https://groq.com) — LPU-accelerated inference for open-weight LLMs at exceptionally high token-per-second throughput.\n\nGroq exposes an OpenAI-compatible chat-completions API, so existing OpenAI-shape consumers (chat, tools, structured output, streaming) work unchanged.  See the [Groq models documentation](https://console.groq.com/docs/models) for the currently-available models.\n\n**Common use cases**:\n- **Low-latency chat** — Groq's LPU delivers sub-second time-to-first-token\n- **High-throughput tool-calling agents** where total response time matters\n- **Open-weight model deployments** without owning GPU infrastructure",
-          "message": "Bietet Zugriff auf [Groq](https://groq.com) – LPU-beschleunigte Inferenz für Open-Weight-LLMs mit außergewöhnlich hohem Durchsatz bei Token pro Sekunde.\n\nGroq bietet eine OpenAI-kompatible Chat-Completions-API, sodass bestehende OpenAI-basierte Clients (Chat, Tools, strukturierte Ausgaben, Streaming) unverändert funktionieren. Die derzeit verfügbaren Modelle finden Sie in der [Groq-Modell-Dokumentation](https://console.groq.com/docs/models).\n\n**Typische Anwendungsfälle**:\n- **Chat mit geringer Latenz** – Die LPU von Groq liefert eine Time-to-First-Token im Subsekundenbereich\n- **Agenten mit hohem Tool-Aufruf-Durchsatz**, bei denen die Gesamtreaktionszeit zählt\n- **Bereitstellung von Open-Weight-Modellen** ohne eigene GPU-Infrastruktur"
+          "source": "Use [Groq](https://groq.com) to bring fast AI inference into business workflows.\n\n- Generate chat and structured responses with tool calling\n- Transcribe, translate, and synthesize speech\n- Upload files and manage batch inference\n- Host externally trained LoRA adapters with enterprise access\n- Discover available models and inspect their capabilities",
+          "message": "Nutzen Sie [Groq](https://groq.com) für schnelle KI-Inferenz in Geschäftsabläufen.\n\n- Chat- und strukturierte Antworten mit Werkzeugaufrufen generieren\n- Sprache transkribieren, übersetzen und synthetisieren\n- Dateien hochladen und Batch-Inferenz verwalten\n- Extern trainierte LoRA-Adapter mit Enterprise-Zugang hosten\n- Verfügbare Modelle finden und ihre Fähigkeiten prüfen"
         },
         "app.R3JvcQ.display_name": {
           "source": "Groq",
           "message": "Groq"
         },
         "app.R3JvcQ.short_desc": {
-          "source": "Groq LPU inference for open-weight models at very high throughput",
-          "message": "Groq-LPU-Inferenz für Open-Weight-Modelle bei sehr hohem Durchsatz"
+          "source": "Fast AI responses, speech, batch inference, and LoRA adapter hosting",
+          "message": "Schnelle KI-Antworten, Sprache, Batch-Inferenz und Hosting von LoRA-Adaptern"
         }
       }
     }
