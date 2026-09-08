@@ -49,7 +49,8 @@ static constexpr int QTF_NONE = 0;
 static constexpr int QTF_NO_STACK_GUARD = (1 << 0);
 //! Thread lifecycle managed externally (e.g. ThreadPool) — not counted in thread_counter
 /** Threads with this flag use tp_thread_counter instead, so they don't block
-    QoreProgramHelper shutdown. They are waited on after program data destruction.
+    QoreProgramHelper shutdown. A native cleanup worker joins them before releasing
+    the counter, including native TLS destructors, after program data destruction.
 */
 static constexpr int QTF_EXTERNAL_LIFECYCLE = (1 << 1);
 ///@}

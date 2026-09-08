@@ -299,7 +299,8 @@ int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg, size_t stack_s
 //! starts a new thread with lifecycle flags
 /** Threads started with QTF_EXTERNAL_LIFECYCLE are counted in tp_thread_counter instead of
     thread_counter, so they don't block QoreProgramHelper shutdown. This is used for ThreadPool
-    threads whose lifecycle is managed explicitly.
+    threads whose lifecycle is managed explicitly. The counter is released only after
+    the native thread has been joined, including all native thread-local destructors.
 
     @param xsink any errors starting the new thread will be raised here and cause -1 to be returned
     @param f the function to start in the new thread

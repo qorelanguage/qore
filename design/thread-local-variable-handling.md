@@ -256,3 +256,47 @@ Comprehensive tests are in `examples/test/qore/closures/closure_destruction_orde
 
 - Issue #5168: Original bug report for closure destruction order
 - The ZMQ deadlock scenario that motivated the fix
+
+## Native TLS and external worker shutdown
+
+Threads created with `QTF_EXTERNAL_LIFECYCLE` use `tp_thread_counter`, allowing
+individual programs to finish while shared ThreadPool and async I/O workers
+remain available. Their Qore program data, resources and TID are released in
+`q_run_thread()`. Native TLS destructors run afterwards, when the pthread start
+routine returns; releasing the counter inside that routine would allow runtime
+teardown to overlap those destructors.
+
+`ExternalThreadReaper` in `lib/thread.cpp` therefore owns native joins for these
+threads. It starts lazily before the first external worker is created. A worker
+keeps its native handle joinable from activation and transfers its existing
+`ThreadArg` to an intrusive completion queue after Qore cleanup. Queue insertion
+allocates no memory. One native cleanup worker removes entries, joins each
+pthread outside the queue lock, frees the entry and only then decrements the
+external counter. Completed stacks are reclaimed throughout runtime operation.
+The cleanup worker has no Qore program or TID and never executes Qore code.
+
+`qore_cleanup()` stops the services that own external workers, waits for the
+external counter with a non-interruptible internal wait, and joins the cleanup
+worker before unloading native modules. Cancellation cannot abandon this drain:
+native TLS callbacks may still reference those modules. The public ThreadPool
+stop and task-cancellation protocols retain their existing behavior. Failure to
+create the cleanup worker raises `THREAD-CREATION-FAILURE` before starting an
+external worker. An impossible native join ownership error terminates the process
+instead of continuing unsafe module teardown.
+
+The regression `examples/test/qore/classes/ThreadPool/native_thread_cleanup.cpp`
+blocks native TLS destructors at barriers and checks that their threads remain
+counted. It covers concurrent first creation, both stack-size overloads, repeated
+TLS destructor passes, failed creation followed by successful reuse, and empty
+runtime shutdown. Build/run examples:
+
+```bash
+cmake --build build-debug --target qore-native-thread-cleanup-test -j4
+LD_LIBRARY_PATH=build-debug build-debug/qore-native-thread-cleanup-test
+LD_LIBRARY_PATH=build-debug build-debug/qore-native-thread-cleanup-test --empty
+```
+
+POSIX defines the post-start-routine destructor processing in
+[pthread_exit](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_exit.html)
+and native termination synchronization in
+[pthread_join](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_join.html).

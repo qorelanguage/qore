@@ -386,10 +386,10 @@ void qore_cleanup() {
 
     // wait for ThreadPool threads (QTF_EXTERNAL_LIFECYCLE) to fully exit after
     // being stopped during module cleanup above and controller cleanup
-    {
-        ExceptionSink xsink;
-        tp_thread_counter.waitForZero(&xsink);
-    }
+    // Teardown cannot be interrupted while a native thread may still be using
+    // module TLS callbacks. Use the internal, non-interruptible counter wait.
+    tp_thread_counter.waitForZero();
+    qore_stop_external_thread_reaper();
 
 #ifdef _Q_WINDOWS
     // do windows socket cleanup

@@ -739,6 +739,11 @@ void ThreadEntry::allocate(tid_node* tn, int stat) {
 void ThreadEntry::activate(int tid, pthread_t n_ptid, QoreProgram* p, bool foreign, int flags) {
     assert(status == QTS_NA || status == QTS_RESERVED);
     ptid = n_ptid;
+    // The native reaper owns external-lifecycle threads until pthread_join() completes.
+    // Set this on activation, before the thread can release/reuse its Qore TID.
+    if (flags & QTF_EXTERNAL_LIFECYCLE) {
+        joined = true;
+    }
     assert(!thread_data);
     assert(!::thread_data.get());
     thread_data = new ThreadData(tid, p, foreign, flags);
@@ -3219,6 +3224,9 @@ struct ThreadArg {
     void* arg;
     int tid;
     int flags;
+    // Intrusive completion queue: thread exit must not allocate memory.
+    ThreadArg* next = nullptr;
+    pthread_t native_id{};
 
     DLLLOCAL ThreadArg(q_thread_t n_f, void* a, int n_tid, int n_flags = QTF_NONE)
             : f(n_f), arg(a), tid(n_tid), flags(n_flags) {
@@ -3228,6 +3236,120 @@ struct ThreadArg {
         f(xsink, arg);
     }
 };
+
+// External-lifecycle threads outlive individual Qore programs. Their completion
+// counter must include native TLS destruction, which happens after q_run_thread
+// returns. A single native reaper joins completed threads during normal operation
+// instead of retaining their stacks until process shutdown. It never executes
+// Qore code and is itself joined before module/threading teardown.
+class DLLLOCAL ExternalThreadReaper {
+public:
+    ~ExternalThreadReaper() {
+        assert(!started && !head && !tail);
+    }
+
+    int ensureStarted(ExceptionSink* xsink) {
+        AutoLocker al(mutex);
+        if (started) {
+            return 0;
+        }
+        int rc = pthread_create(&native_id, nullptr, entry, this);
+        if (rc) {
+            xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc,
+                "could not create native thread cleanup worker");
+            return -1;
+        }
+        started = true;
+        return 0;
+    }
+
+    void complete(ThreadArg* arg) {
+        arg->native_id = pthread_self();
+        AutoLocker al(mutex);
+        assert(started && !stopping && !arg->next);
+        if (tail) {
+            tail->next = arg;
+        } else {
+            head = arg;
+        }
+        tail = arg;
+        condition.signal();
+    }
+
+    // Only called by qore_cleanup after the external counter reaches zero.
+    void stop() {
+        {
+            AutoLocker al(mutex);
+            if (!started) {
+                return;
+            }
+            assert(!head);
+            stopping = true;
+            condition.signal();
+        }
+        int rc = pthread_join(native_id, nullptr);
+        if (rc) {
+            // Join failure means an internal ownership invariant was broken;
+            // continuing teardown could unload code still used by a native thread.
+            fprintf(stderr, "qore: cannot join native thread cleanup worker: %s\n", strerror(rc));
+            abort();
+        }
+        AutoLocker al(mutex);
+        started = stopping = false;
+    }
+
+private:
+    QoreThreadLock mutex;
+    QoreCondition condition;
+    ThreadArg* head = nullptr;
+    ThreadArg* tail = nullptr;
+    pthread_t native_id{};
+    bool started = false;
+    bool stopping = false;
+
+    static void* entry(void* arg) {
+        static_cast<ExternalThreadReaper*>(arg)->run();
+        return nullptr;
+    }
+
+    void run() {
+#ifdef QORE_HAVE_THREAD_NAME
+        q_set_thread_name("qore-reaper");
+#endif
+        // Cleanup cannot be cancelled: every accepted thread must be joined before
+        // its completion is published. This native worker has no Qore program/TID.
+        SafeLocker lock(mutex);
+        while (true) {
+            while (!head && !stopping) {
+                condition.wait(mutex);
+            }
+            if (!head) {
+                assert(stopping);
+                return;
+            }
+            std::unique_ptr<ThreadArg> arg(head);
+            head = head->next;
+            if (!head) {
+                tail = nullptr;
+            }
+            lock.unlock();
+            int rc = pthread_join(arg->native_id, nullptr);
+            if (rc) {
+                fprintf(stderr, "qore: cannot join completed native thread: %s\n", strerror(rc));
+                abort();
+            }
+            arg.reset();
+            tp_thread_counter.dec();
+            lock.lock();
+        }
+    }
+};
+
+static ExternalThreadReaper external_thread_reaper;
+
+void qore_stop_external_thread_reaper() {
+    external_thread_reaper.stop();
+}
 
 static void set_tid_thread_name(int tid) {
 #ifdef QORE_HAVE_THREAD_NAME
@@ -3286,7 +3408,9 @@ namespace {
                 thread_list.deleteDataRelease(ta->tid);
 
                 //printd(5, "q_run_thread(): deleting thread params %p\n", ta);
-                delete ta;
+                if (!(ta_flags & QTF_EXTERNAL_LIFECYCLE)) {
+                    delete ta;
+                }
             }
         }
 
@@ -3298,7 +3422,7 @@ namespace {
         // OPENSSL_thread_stop() acquires OpenSSL's global lock and can cause
         // contention with concurrent TLS handshakes (e.g. QUIC/ngtcp2).
         if (ta_flags & QTF_EXTERNAL_LIFECYCLE) {
-            tp_thread_counter.dec();
+            external_thread_reaper.complete(ta);
         } else {
             thread_counter.dec();
         }
@@ -3473,6 +3597,9 @@ int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
 }
 
 int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg, size_t stack_size, int flags) {
+    if ((flags & QTF_EXTERNAL_LIFECYCLE) && external_thread_reaper.ensureStarted(xsink)) {
+        return -1;
+    }
     int tid = get_thread_entry();
 
     if (tid == -1) {
@@ -3516,6 +3643,9 @@ int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg, size_t stack_s
 }
 
 int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg, int flags) {
+    if ((flags & QTF_EXTERNAL_LIFECYCLE) && external_thread_reaper.ensureStarted(xsink)) {
+        return -1;
+    }
     int tid = get_thread_entry();
 
     if (tid == -1) {
