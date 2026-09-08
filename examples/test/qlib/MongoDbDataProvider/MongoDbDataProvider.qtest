@@ -628,8 +628,9 @@ sub typed_mongodb_provider(MongoDbDataProvider::MongoDbCollectionDataProvider pr
             .getChildProvider(test_coll)
             .getChildProvider("bulk");
 
-        # Test bulk without operations
-        assertThrows("MONGODB-BULK-ERROR", sub() {
+        # Test bulk without operations; "operations" is a required request field, so the request type
+        # rejects the call before the provider's own guard is reached
+        assertThrows("INVALID-REQUEST", "required field \"operations\" is absent", sub() {
             bulkProv.doRequest({});
         });
 
