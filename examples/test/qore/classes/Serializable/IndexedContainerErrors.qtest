@@ -1,0 +1,76 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../../qlib"
+%requires ../../../../../qlib/QUnit.qm
+%exec-class IndexedContainerErrorsTest
+
+hashdecl IndexedErrorRecord {
+    bool flag;
+    string label;
+}
+
+class IndexedContainerErrorsTest inherits QUnit::Test {
+    constructor() : Test("Indexed container deserialization error cleanup", "1.0") {
+        addTestCase("Hashdecl member rejection retains the index owner's reference", \hashdeclErrors());
+        addTestCase("Generic hash reference rejection unwinds safely", \hashErrors());
+        addTestCase("List reference rejection unwinds safely", \listErrors());
+        addTestCase("Successful containers preserve shared object identity", \sharedObjects());
+        set_return_value(main());
+    }
+
+    private hashdeclErrors() {
+        hash<IndexedErrorRecord> value = <IndexedErrorRecord>{"flag": False, "label": "active"};
+        hash<SerializationInfo> good = Serializable::serializeToData(value);
+        foreach hash<auto> invalid in ({"flag": "invalid"}, {"unknown": True}) {
+            hash<SerializationInfo> state = good;
+            state._index."0"._members += invalid;
+            assertThrows(invalid.hasKey("flag") ? "RUNTIME-TYPE-ERROR" : "HASHDECL-INIT-ERROR",
+                \Serializable::deserialize(), (state,));
+            assertEq(value, Serializable::deserialize(good));
+        }
+    }
+
+    private hashErrors() {
+        hash<auto> value = {"first": "retained", "last": 42};
+        hash<SerializationInfo> good = Serializable::serializeToData(value);
+        hash<SerializationInfo> state = good;
+        state._index."0"._members.last = {"_index": "missing"};
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), (state,));
+        assertEq(value, Serializable::deserialize(good));
+    }
+
+    private listErrors() {
+        list<auto> value = ("retained", 42);
+        hash<SerializationInfo> good = Serializable::serializeToData(value);
+        hash<SerializationInfo> state = good;
+        state._index."0"._elements[1] = {"_index": "missing"};
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), (state,));
+        assertEq(value, Serializable::deserialize(good));
+        list<int> empty();
+        assertEq(empty, Serializable::deserialize(Serializable::serializeToData(empty)));
+    }
+
+    private sharedObjects() {
+        IndexedContainerObject shared("original");
+        foreach auto value in ((shared, shared), {"left": shared, "right": shared}) {
+            auto result = Serializable::deserialize(Serializable::serializeToData(value));
+            IndexedContainerObject left = result.typeCode() == NT_LIST ? result[0] : result.left;
+            IndexedContainerObject right = result.typeCode() == NT_LIST ? result[1] : result.right;
+            assertTrue(left === right);
+            assertTrue(left !== shared);
+            left.label = "updated";
+            assertEq("updated", right.label);
+            assertEq("original", shared.label);
+        }
+    }
+}
+
+class IndexedContainerObject inherits Serializable {
+    public {
+        string label;
+    }
+    constructor(string label) {
+        self.label = label;
+    }
+}

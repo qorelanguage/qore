@@ -661,7 +661,8 @@ QoreHashNode* typed_hash_decl_private::newHash(const QoreHashNode* init, bool ru
     ReferenceHolder<QoreHashNode> h(xsink);
     if (rv) {
         qore_hash_private::get(*rv)->setHashDecl(thd);
-        h = rv;
+        // An in-place target is borrowed; failed member initialization must not consume its owner's reference.
+        h = rv->hashRefSelf();
     } else {
         h = qore_hash_private::newHashDecl(thd);
     }

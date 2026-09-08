@@ -1482,6 +1482,12 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
     Strings without an explicit zone still use the object's time zone, including its daylight saving rules.
     The C++ API adds a \c DateTimeNode(zone,string,xsink) constructor for the same checked conversion.
 
+    @par Safe Cleanup of Invalid Serialized Containers
+    @ref Qore::Serializable "Serializable" now retains ownership of indexed hashes and lists when
+    deserialization rejects a member or reference. Malformed input raises the original type or
+    deserialization error without freeing a container still owned by the index. Valid shared
+    references and subsequent deserialization calls retain their existing behavior.
+
     @subsection qore_3_0_0_deprecated Deprecated Features
     - <b>Deprecated command-line options</b>: The following command-line options have been deprecated and now
       produce a warning when used, as the underlying parse options were never enforced:

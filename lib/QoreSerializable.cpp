@@ -901,7 +901,7 @@ QoreValue QoreSerializable::deserialize(ExceptionSink* xsink, const QoreHashNode
                 QoreHashNode* val = context.oimap.find(key)->second.get<QoreHashNode>();
                 // deserialize in place
                 QoreStringNodeValueHelper type(v);
-                deserializeHashData(**type, *oh, context, xsink, val);
+                ValueHolder result(deserializeHashData(**type, *oh, context, xsink, val), xsink);
                 if (*xsink) {
                     return QoreValue();
                 }
@@ -910,7 +910,7 @@ QoreValue QoreSerializable::deserialize(ExceptionSink* xsink, const QoreHashNode
                 QoreValue v = oh->getKeyValue("_list");
                 QoreListNode* val = context.oimap.find(key)->second.get<QoreListNode>();
                 // deserialize in place
-                deserializeListData(v, *oh, context, xsink, val);
+                ValueHolder result(deserializeListData(v, *oh, context, xsink, val), xsink);
                 if (*xsink) {
                     return QoreValue();
                 }
@@ -1354,7 +1354,8 @@ QoreValue QoreSerializable::deserializeHashData(const QoreStringNode& type, cons
     // deserialize members first, then return hash
     ReferenceHolder<QoreHashNode> rv(xsink);
     if (rval && (type[0] == '^')) {
-        rv = rval;
+        // The index retains ownership of the in-place target, including on error.
+        rv = rval->hashRefSelf();
     } else {
         rv = new QoreHashNode(autoTypeInfo);
     }
@@ -1428,7 +1429,7 @@ QoreValue QoreSerializable::deserializeListData(QoreValue v, const QoreHashNode&
     }
 
     if (elements.isNothing()) {
-        return rval ? rval : new QoreListNode(vti);
+        return rval ? rval->listRefSelf() : new QoreListNode(vti);
     }
     ValueHolder rv(deserializeListData(*elements.get<const QoreListNode>(), context, xsink, rval), xsink);
     if (*xsink) {
@@ -1441,7 +1442,8 @@ QoreValue QoreSerializable::deserializeListData(QoreValue v, const QoreHashNode&
 
 QoreValue QoreSerializable::deserializeListData(const QoreListNode& l, QoreInternalDeserializationContext& context,
         ExceptionSink* xsink, QoreListNode* rval) {
-    ReferenceHolder<QoreListNode> rv(rval ? rval : new QoreListNode(autoTypeInfo), xsink);
+    // Borrow the index target; the returned value always owns a separate reference.
+    ReferenceHolder<QoreListNode> rv(rval ? rval->listRefSelf() : new QoreListNode(autoTypeInfo), xsink);
 
     ConstListIterator li(l);
     while (li.next()) {
