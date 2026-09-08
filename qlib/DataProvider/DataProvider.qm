@@ -1397,6 +1397,15 @@ fetch
       operator is listed in @ref DataProvider::DpqlAssociativeOperators "DpqlAssociativeOperators"; \c + is
       deliberately not listed, as it concatenates when an operand is a string
       (\c "1 + (2 + \"a\")" is \c "12a" where \c "1 + 2 + \"a\"" is \c "3a")
+    - fixed @ref DataProvider::DataProvider::renderExpression() "DataProvider::renderExpression()" to
+      render a \c value expression as the literal it holds; the expression carries no symbol, so every
+      literal was rendered with a leading space (\c " 0", \c " \"x\"") and an explicit null rendered as a
+      single space and nothing else — which is what an author writing \c null in a DPQL editor produces,
+      so "no value" was the one literal the rendering could not state
+    - fixed @ref DataProvider::DpqlSerializer "DpqlSerializer" to serialize SQL \c NULL as the \c null
+      literal; it fell through to the string branch, where \c string(NULL) is empty, so a NULL serialized
+      to \c "" and parsed back as an empty string — "there is nothing here" became "there is a string here
+      and it is empty"
     - made the DPQL operator precedence levels (@ref DPQL_PREC_PRIMARY etc),
       @ref DataProvider::DpqlOperatorPrecedence "DpqlOperatorPrecedence" and
       @ref DataProvider::DpqlAssociativeOperators "DpqlAssociativeOperators" public, and added

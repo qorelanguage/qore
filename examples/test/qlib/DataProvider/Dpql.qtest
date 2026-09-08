@@ -91,6 +91,7 @@ public class DpqlTest inherits QUnit::Test {
         addTestCase("accessor serializer tests", \accessorSerializerTests());
         addTestCase("round-trip tests", \roundTripTests());
         addTestCase("expression parentheses tests", \expressionParenthesesTests());
+        addTestCase("value literal rendering tests", \valueLiteralRenderingTests());
         addTestCase("accessor round-trip tests", \accessorRoundTripTests());
         addTestCase("accessor operator discoverability tests", \accessorOperatorDiscoverabilityTests());
         addTestCase("accessor serializer edge case tests", \accessorSerializerEdgeCaseTests());
@@ -1339,6 +1340,45 @@ public class DpqlTest inherits QUnit::Test {
             string dpql = DataProvider::serializeDpqlExpression(exp, expmap);
             assertEq("substr(@name, 0, 5)", dpql, "serializer strips () from function symbol");
         }
+    }
+
+    #! A `value` expression renders and serializes as the literal it holds
+    /** It carries no symbol, so the generic operator path rendered every literal with a leading
+        space — `" 0"`, `" \"x\""` — and rendered a null as a single space and nothing else.
+        Typing \c null into the DPQL editor produces exactly this expression, so "no value" was
+        the one literal the description could not state, and the author saw a blank where they
+        had written something.
+
+        SQL NULL had the matching defect on the way out: it fell through to the default branch,
+        where \c string(NULL) is "", so it serialized to \c "" and parsed back as an empty
+        string. "There is nothing here" came back as "there is a string here and it is empty".
+    */
+    valueLiteralRenderingTests() {
+        code value = hash<DataProviderExpression> sub (auto v) {
+            return <DataProviderExpression>{"exp": "value", "args": (v,)};
+        };
+
+        # no leading space on any of them
+        assertEq("0", DataProvider::renderExpression(value(0)));
+        assertEq("false", DataProvider::renderExpression(value(False)));
+        assertEq("\"x\"", DataProvider::renderExpression(value("x")));
+        assertEq("42", DataProvider::renderExpression(value(42)));
+
+        # the literal an author writes as `null`, both ways round and both spellings of it
+        assertEq("null", DataProvider::renderExpression(value(NOTHING)));
+        assertEq("null", DataProvider::renderExpression(value(NULL)));
+        assertEq("null", DataProvider::serializeDpqlExpression(value(NOTHING)));
+        assertEq("null", DataProvider::serializeDpqlExpression(value(NULL)));
+
+        # and it survives the trip through text, which is what the editor does to it
+        hash<DataProviderExpression> parsed = DataProvider::parseDpqlExpression("null");
+        assertEq("value", parsed.exp);
+        assertEq("null", DataProvider::serializeDpqlExpression(parsed));
+        assertEq("null", DataProvider::renderExpression(parsed));
+
+        # an empty string is still an empty string, not a null
+        assertEq("\"\"", DataProvider::serializeDpqlExpression(value("")));
+        assertNeq("null", DataProvider::serializeDpqlExpression(value("")));
     }
 
     #! Parentheses appear where they are needed and nowhere else

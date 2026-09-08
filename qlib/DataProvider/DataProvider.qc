@@ -863,6 +863,19 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{datasourc
         if (!info) {
             throw "INVALID-EXPRESSION", sprintf("Expression %y not found in expression map", exp.exp);
         }
+        /* A `value` expression IS its literal.
+        
+           It carries no symbol, so the generic operator path below rendered every one of them
+           with a leading space (`" 0"`, `" \"x\""`), and rendered an explicit null as a single
+           space and nothing else - a blank where the author had written something. Typing `null`
+           into the text editor produces exactly this expression, so "no value" was the one
+           literal the description could not state. */
+        if (exp.exp == DP_EXPR_VALUE && exp.args.size() == 1) {
+            auto literal = exp.args[0];
+            return (!exists literal || literal.typeCode() == NT_NULL)
+                ? "null"
+                : renderExpressionArg(literal, emap, info.arg_info[0], DPQL_PREC_OR + 1);
+        }
         if (info.type == DET_Function) {
             # a call's arguments are delimited by the call's own parentheses and commas, so nothing
             # inside them can be misread: rendered in the loosest context, which never parenthesises
@@ -880,8 +893,11 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{datasourc
             # did not write: `1 + 2 + 3` came back as `(1 + 2) + 3`, an artefact of the tree being
             # left-nested rather than anything about the expression.
             if (exp.args.size() == 1) {
-                str = sprintf("%s %s", info.symbol, renderExpressionArg(exp.args[0], emap, info.arg_info[0],
-                    DpqlSerializer::getArgumentContext(exp.exp, 0)));
+                string rendered = renderExpressionArg(exp.args[0], emap, info.arg_info[0],
+                    DpqlSerializer::getArgumentContext(exp.exp, 0));
+                # no symbol, no separator: a prefix operator that has nothing to prefix with must
+                # not announce itself with a space
+                str = info.symbol.val() ? sprintf("%s %s", info.symbol, rendered) : rendered;
             } else {
                 list<string> args = ();
                 for (int i = 0; i < exp.args.size(); ++i) {

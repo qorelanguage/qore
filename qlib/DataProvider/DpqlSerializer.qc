@@ -662,6 +662,15 @@ public class DpqlSerializer {
         }
 
         switch (value.typeCode()) {
+            /* SQL NULL is a null literal, not an empty string.
+            
+               It fell through to the default branch, where `string(NULL)` is "" - so an
+               expression holding a NULL serialized to `""` and parsed back as an empty string.
+               A value that says "there is nothing here" came back saying "there is a string here
+               and it is empty", which is a different assertion and a different answer. */
+            case NT_NULL:
+                return "null";
+
             case NT_STRING:
                 return serializeString(value);
 
