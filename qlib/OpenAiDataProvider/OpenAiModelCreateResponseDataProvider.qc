@@ -692,7 +692,9 @@ public class OpenAiModelInputDataType inherits HashDataType {
                 "display_name": "Input Item",
                 "short_desc": "The input item to the model",
                 "desc": "The input item to the model",
-                "type": OpenAiModelInputItemDataType,
+                # this key is one of three mutually-exclusive alternatives, so it must be optional; an input
+                # element carries exactly one of "input_item", "function_call_output" or "text"
+                "type": OpenAiModelInputItemDataType.getOrNothingType(),
             },
             FunctionCallOutputKey: {
                 "display_name": "Function Call Output",
