@@ -260,6 +260,10 @@ The macro must be called **after** `qore_external_binary_module()` and all
 binary-module Doxyfile that the former generates and adds dependencies on the
 `docs-<UserModuleName>` targets that the latter register.
 
+External user-module documentation includes generated headers for `.qm` and `.qc`
+sources. Packaged SVG, YAML, JSON and protocol resources are installed alongside
+the module, but are not Qdx source inputs and do not produce `.dox.h` files.
+
 #### Relative-path gotcha in `TAGFILES`
 
 The binary module's HTML output is at `${CMAKE_BINARY_DIR}/docs/${binary}/html/`

@@ -15,6 +15,47 @@ CMAKE = os.environ.get("CMAKE_EXECUTABLE", "cmake")
 
 
 class UserModuleResourcesTest(unittest.TestCase):
+    def test_external_documentation_inputs(self):
+        for separated in (False, True):
+            with self.subTest(separated=separated), tempfile.TemporaryDirectory(
+                    prefix="qore-module-doc-inputs-") as directory:
+                root = Path(directory)
+                source = root / "source"
+                module = source / ("qlib/Fixture" if separated else "qlib")
+                module.mkdir(parents=True)
+                (module / "Fixture.qm").write_text("%modern\n")
+                sources = ["Fixture.qm"]
+                if separated:
+                    (module / "Part.qc").write_text("# fixture\n")
+                    sources.append("Part.qc")
+                # Resource names containing Qore suffixes must not become inputs.
+                resources = ("logo.svg", "logo.qm.svg", "schema.yaml", "schema.json", "wire.proto")
+                for name in resources:
+                    (module / name).write_text("resource\n")
+                (source / "Doxyfile.in").write_text("INPUT = @_dox_input@\n")
+                registration = "qlib/Fixture" if separated else "qlib/Fixture.qm"
+                (source / "CMakeLists.txt").write_text(f'''cmake_minimum_required(VERSION 3.14...3.31)
+project(ModuleDocInputs NONE)
+include("{ROOT.as_posix()}/cmake/QoreMacros.cmake")
+set(QORE_BUILD_AOT_MODULES OFF)
+set(DOXYGEN_FOUND TRUE)
+set(QORE_USERMODULE_DOXYGEN_TEMPLATE "${{CMAKE_SOURCE_DIR}}/Doxyfile.in")
+set(QORE_QDX_COMMAND "${{CMAKE_COMMAND}}" -E true)
+set(DOXYGEN_EXECUTABLE "${{CMAKE_COMMAND}}" -E true)
+set(QORE_USER_MODULES_DIR share/qore-modules)
+add_custom_target(docs)
+add_custom_target(docs-module)
+qore_external_user_module("{registration}" "")
+''')
+                build = root / "build-debug"
+                result = subprocess.run([CMAKE, "-S", str(source), "-B", str(build)],
+                                        capture_output=True, text=True, timeout=30)
+                self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+                self.assertNotIn("Warning", result.stderr)
+                inputs = (build / "doxygen/Doxyfile.Fixture").read_text().removeprefix("INPUT = ").split()
+                self.assertEqual([str(build / "doxygen/qlib/Fixture" / (name + ".dox.h"))
+                                  for name in sources], inputs)
+
     def test_directory_resources(self):
         for registration in ('qore_user_module("qlib/Fixture")',
                              'qore_external_user_module("qlib/Fixture" "")',

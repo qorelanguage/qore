@@ -3242,7 +3242,12 @@ MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
         set(_dox_input "")
         foreach(fn0 ${_mod_targets})
             get_filename_component(fn1 ${fn0} NAME)
-            set(_dox_input ${_dox_input} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}/${fn1}.dox.h)
+            get_filename_component(fn_ext ${fn0} EXT)
+            # Resources are installed with the module, but qdx only generates
+            # documentation headers for Qore source files.
+            if("${fn_ext}" STREQUAL ".qm" OR "${fn_ext}" STREQUAL ".qc")
+                set(_dox_input ${_dox_input} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}/${fn1}.dox.h)
+            endif()
         endforeach(fn0)
         string(REPLACE ";" " " _dox_input "${_dox_input}")
 

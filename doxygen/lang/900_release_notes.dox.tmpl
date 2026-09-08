@@ -484,6 +484,8 @@ int echoed = child.echo(value);
     @par External Module Documentation
     The two-pass documentation helper preserves literal Doxygen content when copying its configuration
     and works with CMake versions before 3.21.
+    External user-module documentation now includes only generated Qore source headers; packaged
+    SVG, YAML, JSON and protocol resources no longer cause missing documentation input warnings.
 
     @par Autotools Build System Removed
     @parblock
