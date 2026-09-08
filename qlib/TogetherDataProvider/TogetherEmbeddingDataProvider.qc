@@ -55,11 +55,11 @@ public class TogetherEmbeddingDataProvider inherits TogetherDataProviderCommon {
     }
 
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return TogetherSchema::getOperationEx("create-embeddings").getRequestType();
     }
 
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return TogetherSchema::getOperationEx("create-embeddings").getResponseType();
     }
 
     private hash<DataProviderInfo> getStaticInfoImpl() {
@@ -67,7 +67,7 @@ public class TogetherEmbeddingDataProvider inherits TogetherDataProviderCommon {
     }
 
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return doRestCommand("POST", "embeddings", req).body;
+        return getSchemaProvider("create-embeddings").doRequest(req, request_options);
     }
 }
 }

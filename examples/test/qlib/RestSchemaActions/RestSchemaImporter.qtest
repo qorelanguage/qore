@@ -134,6 +134,8 @@ public class TestSchema {
         addTestCase("serialize", \serializeTest());
         addTestCase("import", \importTest());
         addTestCase("checked required-property repairs", \requiredRepairTest());
+        addTestCase("checked schema value repairs", \valueRepairTest());
+        addTestCase("fixed server partitions preserve routing", \serverSelectionTest());
         addTestCase("normalization", \normalizationTest());
         addTestCase("checked documentation path repairs", \pathRepairTest());
         addTestCase("replacing a parameter the vendor declares wrongly",
@@ -142,6 +144,91 @@ public class TestSchema {
         addTestCase("provenance", \provenanceTest());
         addTestCase("report", \reportTest());
         set_return_value(main());
+    }
+
+    private valueRepairTest() {
+        hash<auto> source = Schema;
+        source.components.schemas.Board.properties.score = {"type": "number", "default": "0.9"};
+        hash<RestSchemaValueRepairInfo> repair = <RestSchemaValueRepairInfo>{
+            "pointer": "#/components/schemas/Board/properties/score/default",
+            "expected": "0.9", "replacement": 0.9,
+        };
+        hash<RestSchemaNormalizationInfo> norm = <RestSchemaNormalizationInfo>{
+            "reason": "The documented numeric default was quoted", "operations": (), "replace_values": (repair,),
+        };
+        int count = 0;
+        hash<auto> result = RestSchemaImporter::normalize(source, (norm,), \count);
+        assertEq(1, count);
+        assertEq(NT_FLOAT, result.components.schemas.Board.properties.score.default.typeCode());
+        assertEq("0.9", source.components.schemas.Board.properties.score.default, "input is unchanged");
+        assertThrows("REST-SCHEMA-IMPORT-ERROR", sub () {
+            RestSchemaImporter::normalize(result, (norm,), \count);
+        });
+        repair.replacement = "0.9";
+        norm.replace_values = (repair,);
+        assertThrows("REST-SCHEMA-IMPORT-ERROR", sub () {
+            RestSchemaImporter::normalize(source, (norm,), \count);
+        });
+        repair.pointer = "#/components/schemas/Board/properties/missing/default";
+        repair.replacement = 0.9;
+        norm.replace_values = (repair,);
+        assertThrows("REST-SCHEMA-IMPORT-ERROR", sub () {
+            RestSchemaImporter::normalize(source, (norm,), \count);
+        });
+        repair.expected = NOTHING;
+        norm.replace_values = (repair,);
+        assertThrows("REST-SCHEMA-IMPORT-ERROR", sub () {
+            RestSchemaImporter::normalize(source, (norm,), \count);
+        });
+        source."a/b~c" = ({"default": "1"},);
+        repair.pointer = "#/a~1b~0c/0/default";
+        repair.expected = "1";
+        repair.replacement = 1;
+        norm.replace_values = (repair,);
+        result = RestSchemaImporter::normalize(source, (norm,), \count);
+        assertEq(1, result."a/b~c"[0].default, "escaped pointers and array members are supported");
+    }
+
+    private serverSelectionTest() {
+        hash<auto> source = parse_json(make_json(Schema));
+        string v1 = "https://api.example.com/v1";
+        string v2 = "https://api.example.com/v2";
+        list<hash<SchemaOperationInfo>> ops = RestSchemaImporter::parseOperations(("GET /boards/",));
+        hash<auto> result = RestSchemaImporter::selectServer(source, ops, v1);
+        assertEq(v1, result.servers[0].url);
+        source.paths."/boards/".servers = ({"url": v2},);
+        result = RestSchemaImporter::selectServer(source, ops, v2);
+        assertEq(v2, result.servers[0].url);
+        assertFalse(exists result.paths."/boards/".servers);
+        assertTrue(exists source.paths."/boards/".servers, "source is unchanged");
+        assertThrows("REST-SCHEMA-IMPORT-ERROR", sub () {
+            RestSchemaImporter::selectServer(source, ops, v1);
+        });
+        source.paths."/boards/".get.servers = ({"url": v1},);
+        result = RestSchemaImporter::selectServer(source, ops, v1);
+        assertFalse(exists result.paths."/boards/".get.servers);
+        assertThrows("REST-SCHEMA-IMPORT-ERROR", sub () {
+            RestSchemaImporter::selectServer(source, ops, v2);
+        });
+        foreach string invalid in ("https://other.example/v1", "https://{host}/v1", "", "file:///tmp/schema") {
+            assertThrows("REST-SCHEMA-IMPORT-ERROR", sub () {
+                RestSchemaImporter::selectServer(source, ops, invalid);
+            });
+        }
+        assertThrows("REST-SCHEMA-IMPORT-ERROR", sub () {
+            RestSchemaImporter::selectServer(source, (), v1);
+        });
+        assertThrows("REST-SCHEMA-IMPORT-ERROR", sub () {
+            RestSchemaImporter::selectServer(source,
+                RestSchemaImporter::parseOperations(("GET /missing",)), v1);
+        });
+        # Both operations inherit the same path-level server, even after the first is promoted.
+        source.paths."/contacts/{contact_id}".servers = ({"url": v2},);
+        ops = RestSchemaImporter::parseOperations(("GET /contacts/{contact_id}", "DELETE /contacts/{contact_id}"));
+        result = RestSchemaImporter::selectServer(source, ops, v2);
+        assertFalse(exists result.paths."/contacts/{contact_id}".servers);
+        hash<PruneResultInfo> pruned = RestSchemaPruner::prune(result, ops);
+        assertEq(v2, pruned.schema.servers[0].url, "the partition can be pruned");
     }
 
     private requiredRepairTest() {

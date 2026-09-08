@@ -47,7 +47,7 @@ Rules:
   module may `%requires` a sibling declared later in `CMakeLists.txt` with no
   ordering concern.
 - That single call is all that is required. `qore_user_module()` automatically:
-  - installs every `*.qm`, `*.qc`, `*.yaml`, `*.svg`, and `*.proto` file under
+  - installs every `*.qm`, `*.qc`, `*.yaml`, `*.json`, `*.svg`, and `*.proto` file under
     the module directory into the installed module subdirectory on
     `make install` — this is a glob over the directory and is independent of the
     extra-files arguments, which affect documentation only, and
@@ -58,7 +58,7 @@ Rules:
   this CMake build. The autotools-era `DOX_SRC_SPLIT_MODULES` / `DOX_SPLIT_MODULES`
   lists and `dist_<ModuleName>_modver_DATA = $(wildcard ...)` rules do not exist
   here and must not be added. If a module ships asset types other than
-  `*.qm`/`*.qc`/`*.yaml`/`*.svg`/`*.proto`, extend the install glob in the
+  `*.qm`/`*.qc`/`*.yaml`/`*.json`/`*.svg`/`*.proto`, extend the install glob in the
   `QORE_USER_MODULE` macro in `cmake/QoreMacros.cmake`.
   With `QORE_BUILD_AOT_MODULES=ON` (the default) the same macro also AOT-compiles the
   module to a `.qmod` via `qcc`. Projects that drive `qcc` compilation/linking directly

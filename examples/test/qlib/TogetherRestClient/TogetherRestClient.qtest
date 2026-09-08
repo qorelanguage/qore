@@ -1,19 +1,50 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires QoreLlmTypes
-%requires QoreLlmUtils
-%requires QoreRagTypes
-%requires QoreRagUtils
-%requires OpenAiRestClient
-%requires TogetherRestClient
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/QoreLlmTypes.qm
+%requires ../../../../qlib/QoreLlmUtils
+%requires ../../../../qlib/QoreRagTypes.qm
+%requires ../../../../qlib/QoreRagUtils
+%requires ../../../../qlib/OpenAiRestClient.qm
+%requires ../../../../qlib/TogetherRestClient.qm
+
+%requires ../../../../qlib/HttpServer.qm
+%requires json
 
 %exec-class TogetherRestClientTest
+
+class TogetherPingHandler inherits AbstractHttpRequestHandler {
+    private {
+        Mutex lock();
+        hash<auto> request;
+    }
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        AutoLock al(lock);
+        request = hdr;
+        return makeResponse(hdr.authorization == "Bearer test-key" ? 200 : 401,
+            hdr.authorization == "Bearer test-key" ? "[]" : "{\"error\":\"Unauthorized\"}",
+            {"Content-Type": MimeTypeJson});
+    }
+    hash<auto> getRequest() {
+        AutoLock al(lock);
+        return request;
+    }
+}
+
+class SyncTogetherConnection inherits TogetherRestClient::TogetherRestConnection {
+    constructor(string url, hash<auto> options)
+            : TogetherRestConnection("sync-test", "test", url, {}, options) {
+    }
+    private object getAsyncImpl(bool connect = True, *hash<auto> rtopts) {
+        throw "CONNECTION-ASYNC-UNSUPPORTED", "exercise synchronous ping";
+    }
+}
 
 public class TogetherRestClientTest inherits QUnit::Test {
     constructor() : Test("TogetherRestClient Test", "1.0") {
@@ -26,7 +57,78 @@ public class TogetherRestClientTest inherits QUnit::Test {
         addTestCase("REST client options apply Bearer mapping",
             \restOptionsTest());
         addTestCase("embedder requires api_key",          \embedderConfigTest());
+        addTestCase("automatic URL, app identity, and required credentials", \connectionConfigTest());
+        addTestCase("authenticated ping on synchronous and asynchronous transports", \pingTest());
+        if (ENV.TOGETHERAI_LIVE) {
+            addTestCase("live authentication accepts the key and rejects an invalid key", \livePingTest());
+        }
         set_return_value(main());
+    }
+
+    private connectionConfigTest() {
+        TogetherRestClient::TogetherRestConnection conn({
+            "name": "test", "desc": "automatic connection", "url": "together://localhost",
+            "opts": {"apikey": "test-key"},
+        });
+        assertEq("TogetherAi", conn.getAppName());
+        assertEq("TogetherAi", conn.getInfo().app);
+        assertEq("https://api.together.xyz", conn.getConnectionOptions().url);
+        assertEq("json", conn.getConnectionOptions().data);
+        assertTrue(TogetherRestClient::TogetherRestConnection::ConnectionScheme.options.apikey.sensitive);
+        assertThrows("CONNECTION-OPTION-ERROR", sub () {
+            new TogetherRestClient::TogetherRestConnection("missing", "missing credentials");
+        });
+        assertEq("v1", TogetherRestClient::TogetherRestConnection::ConnectionScheme.options.api.allowed_values[0].value);
+    }
+
+    private pingTest() {
+        HttpServer http(<HttpServerOptionInfo>{"logger": new Logger("test", LoggerLevel::getLevelWarn())});
+        on_exit delete http;
+        int port = http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        TogetherPingHandler handler();
+        http.setDefaultHandler("ping", handler);
+        string url = sprintf("http://127.0.0.1:%d", port);
+        foreach bool sync in (False, True) {
+            foreach string key in ("test-key", "invalid-key") {
+                hash<auto> opts = {"apikey": key, "http_version": "1.1"};
+                TogetherRestClient::TogetherRestConnection conn = sync
+                    ? new SyncTogetherConnection(url, opts)
+                    : new TogetherRestClient::TogetherRestConnection("test", "test", url, {}, opts);
+                if (key == "test-key") {
+                    assertTrue(conn.ping(True).ok);
+                } else {
+                    assertPingFailure(conn);
+                }
+                assertEq("v1/models", handler.getRequest().path);
+                assertEq("GET", handler.getRequest().method);
+                assertEq("Bearer " + key, handler.getRequest().authorization);
+            }
+        }
+        TogetherRestClient::TogetherRestClient client({"url": url, "apikey": "test-key"});
+        client.get("models");
+        assertEq("v1/models", handler.getRequest().path);
+        assertEq("Bearer test-key", handler.getRequest().authorization);
+    }
+
+    private assertPingFailure(TogetherRestClient::TogetherRestConnection conn) {
+        *hash<ExceptionInfo> error;
+        try {
+            conn.ping(True);
+        } catch (hash<ExceptionInfo> ex) {
+            error = ex;
+        }
+        assertTrue(exists error);
+        assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|HTTP-CLIENT-RECEIVE-ERROR)$", error.err);
+        assertRegex("401", error.desc);
+    }
+
+    private livePingTest() {
+        TogetherRestClient::TogetherRestConnection conn("live", "live authentication",
+            TogetherRestClient::TogetherRestConnection::DefaultUrl, {}, {"apikey": ENV.TOGETHERAI_APIKEY});
+        assertTrue(conn.ping(True).ok);
+        TogetherRestClient::TogetherRestConnection invalid("invalid", "negative authentication",
+            TogetherRestClient::TogetherRestConnection::DefaultUrl, {}, {"apikey": "invalid-qore-audit-key"});
+        assertPingFailure(invalid);
     }
 
     private connectionSchemeTest() {

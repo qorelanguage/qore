@@ -2829,7 +2829,7 @@ include(\"${QORE_CMAKE_DIR}/QoreReconcileCatalogInstall.cmake\")
 ENDFUNCTION (QORE_FINALIZE_CATALOG_INSTALL)
 
 # The module will be installed automatically in the 'make install' target.  For directory
-# modules every *.qm, *.qc, *.yaml, *.svg, and *.proto file under the module directory is
+# modules every *.qm, *.qc, *.yaml, *.json, *.svg, and *.proto file under the module directory is
 # installed via a glob. Source-owned JSON catalogs use the conventions handled by
 # QORE_INSTALL_USER_MODULE_CATALOGS(). Installation is independent of the extra-file arguments
 # above, which affect the documentation build only.
@@ -2838,7 +2838,7 @@ MACRO (QORE_USER_MODULE _module_file)
     if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${f})
         file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc"
             "${CMAKE_SOURCE_DIR}/qlib/${f}/*.yaml" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.svg"
-            "${CMAKE_SOURCE_DIR}/qlib/${f}/*.proto")
+            "${CMAKE_SOURCE_DIR}/qlib/${f}/*.proto" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.json")
         set(qm_install_subdir "${f}") # install files into a subdir
         #message(STATUS "_mod_targets ${_mod_targets}")
     else()
@@ -3208,7 +3208,7 @@ MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
     if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${f})
         file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc"
             "${CMAKE_SOURCE_DIR}/qlib/${f}/*.yaml" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.svg"
-            "${CMAKE_SOURCE_DIR}/qlib/${f}/*.proto")
+            "${CMAKE_SOURCE_DIR}/qlib/${f}/*.proto" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.json")
         file(GLOB _mod_jar_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/jar/*.jar")
         set(qm_install_subdir "${f}") # install files into a subdir
         #message(STATUS "_mod_targets ${_mod_targets}")
@@ -3487,8 +3487,8 @@ MACRO (QORE_USER_MODULES _inputs)
                 string(SUBSTRING ${f} 5 ${f_len} new_f)
 
                 file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/${f}/*.qm" "${CMAKE_SOURCE_DIR}/${f}/*.qc"
-                    "${CMAKE_SOURCE_DIR}/${f}/*.yaml" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.svg"
-                    "${CMAKE_SOURCE_DIR}/${f}/*.proto")
+                    "${CMAKE_SOURCE_DIR}/${f}/*.yaml" "${CMAKE_SOURCE_DIR}/${f}/*.svg"
+                    "${CMAKE_SOURCE_DIR}/${f}/*.proto" "${CMAKE_SOURCE_DIR}/${f}/*.json")
                 set(qm_install_subdir "${new_f}") # install files into a subdir
                 #message(STATUS "_mod_targets ${_mod_targets}")
             else()

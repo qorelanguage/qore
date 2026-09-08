@@ -1,16 +1,21 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
 
 %modern
 %allow-injection
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Logger
-%requires ConnectionProvider
-%requires DataProvider
-%requires TogetherDataProvider
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/RestSchemaActions
+%requires ../../../../qlib/TogetherDataProvider
+
+%requires ../../../../qlib/HttpServer.qm
+%requires json
 
 %exec-class TogetherDataProviderTest
 
@@ -19,10 +24,35 @@ class FakeTogetherRestClientIo inherits RestClientIo::RestClientIo {
         *hash<auto> last_request;
         string last_method;
         string last_path;
-        hash<auto> response_body;
+        auto response_body = {};
+        list<auto> responses = ();
+        *data last_raw;
+        *hash<auto> last_headers;
+        int requests = 0;
+        *string failure;
     }
 
-    constructor() : RestClientIo({"url": "https://api.together.xyz", "token": "x"}) {
+    constructor() : RestClientIo({"url": "https://api.together.ai", "token": "x"}) {
+    }
+
+    RestClient::AbstractRestClient copyWithUrl(string new_url) {
+        return self;
+    }
+
+    hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body,
+            *hash<auto> hdr) {
+        last_method = method;
+        last_path = path;
+        last_raw = body;
+        last_headers = hdr;
+        ++requests;
+        if (failure) {
+            throw failure, "injected transport failure";
+        }
+        last_request = body.val() && (hdr."Content-Type" ?? hdr."content-type" ?? "") !~ /^multipart\//
+            ? parse_json(body.toString()) : NOTHING;
+        return <RestClient::RestResponseInfo>{"status_code": 200,
+            "body": responses ? shift responses : response_body};
     }
 
     hash<RestClient::RestResponseInfo> restDoRequest(string method, string path,
@@ -48,7 +78,36 @@ class FakeTogetherRestClientIo inherits RestClientIo::RestClientIo {
     }
 
     string getSafeUrl() {
-        return "https://api.together.xyz";
+        return "https://api.together.ai";
+    }
+}
+
+class TogetherWireHandler inherits AbstractHttpRequestHandler {
+    private {
+        Mutex lock();
+        hash<auto> request;
+        *data payload;
+        data response = "{}";
+        string content_type = "application/json";
+    }
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        AutoLock al(lock);
+        request = hdr;
+        payload = body;
+        return makeResponse(200, response, {"Content-Type": content_type});
+    }
+    setResponse(data response, string content_type) {
+        AutoLock al(lock);
+        self.response = response;
+        self.content_type = content_type;
+    }
+    hash<auto> getRequest() {
+        AutoLock al(lock);
+        return request;
+    }
+    *data getBody() {
+        AutoLock al(lock);
+        return payload;
     }
 }
 
@@ -68,8 +127,8 @@ public class TogetherDataProviderTest inherits QUnit::Test {
     constructor() : Test("TogetherDataProvider Test", "1.0", \ARGV, MyOpts) {
         conn_name = m_options.conn ?? ENV.TOGETHER_CONNECTION;
 
-        addTestCase("factory + app + 3 actions registered", \registrationTest());
-        addTestCase("root provider lists 3 children",       \rootProviderTest());
+        addTestCase("factory + app + 197 actions registered", \registrationTest());
+        addTestCase("root provider lists 197 children",       \rootProviderTest());
         addTestCase("chat-completion converts created date", \chatRequestTest());
         addTestCase("create-embeddings forwards body unchanged",
             \embeddingRequestTest());
@@ -77,11 +136,21 @@ public class TogetherDataProviderTest inherits QUnit::Test {
             \imageRequestTest());
         addTestCase("data types expose correct fields",     \typeSchemaTest());
 
-        # Live test requires a real Together AI connection.
-        # Cost: 1 token-bounded Llama-3.2-3B request (~$0.00006 per run).
-        if (conn_name) {
-            addTestCase("live: ping + chat-completion (Llama-3.2-3B-Instruct-Turbo)",
-                \liveTogetherTest());
+        addTestCase("complete action contracts", \contractTest());
+        addTestCase("schema provenance and drift", \schemaTest());
+        addTestCase("model, voice, and scoped resource dropdowns", \referenceTest());
+        addTestCase("HTTP paths, authentication, binary and multipart bodies", \wireTest());
+        addTestCase("invalid requests and no automatic paid retries", \negativeTest());
+        list<hash<auto>> fixtures = parse_json(File::readTextFile(get_script_dir() + "/requests.json"));
+        foreach hash<auto> item in (fixtures) {
+            hash<auto> fixture = item;
+            addTestCase("request: " + fixture.action, sub () { operationTest(fixture); });
+        }
+        if (ENV.TOGETHERAI_LIVE) {
+            addTestCase("live read-only listings and dropdowns", \liveReadOnlyTest());
+        }
+        if (ENV.TOGETHERAI_PAID_TESTS) {
+            addTestCase("live bounded chat, embedding, and rerank requests", \livePaidTest());
         }
         set_return_value(main());
     }
@@ -112,9 +181,9 @@ public class TogetherDataProviderTest inherits QUnit::Test {
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("TogetherAi"),
             $1.action != AbstractDataProvider::GenericApiCallActionName;
-        assertEq(3, actions.size());
+        assertEq(197, actions.size());
         list<string> action_names = sort(map $1.action, actions);
-        assertEq(("chat-completion", "create-embeddings", "generate-image"),
+        assertEq(sort(map $1.action, TogetherManifest::Manifest + TogetherDedicatedManifest::Manifest),
             action_names);
     }
 
@@ -126,8 +195,10 @@ public class TogetherDataProviderTest inherits QUnit::Test {
         # GenericApiCallAutoInjection.qtest in RestClientDataProvider)
         list<string> children = sort(select prov.getChildProviderNames(),
             $1 != AbstractDataProvider::GenericApiCallChildName);
-        assertEq(("chat-completion", "create-embeddings", "generate-image"),
-            children);
+        assertEq(sort(map $1.action, TogetherManifest::Manifest + TogetherDedicatedManifest::Manifest), children);
+        foreach RestSchemaActionSet set in (TogetherSchema::getActionSets()) {
+            set.validateActionPaths(prov);
+        }
         AbstractDataProvider chat = prov.getChildProvider("chat-completion");
         AbstractDataProvider emb = prov.getChildProvider("create-embeddings");
         AbstractDataProvider img = prov.getChildProvider("generate-image");
@@ -159,10 +230,20 @@ public class TogetherDataProviderTest inherits QUnit::Test {
         });
 
         assertEq("POST", fake.last_method);
-        assertEq("chat/completions", fake.last_path);
+        assertEq("/v1/chat/completions", fake.last_path);
         assertEq("Hi", resp.choices[0].message.content);
         assertEq(NT_DATE, resp.created.typeCode());
         assertEq(1700000000, int(resp.created - 1970-01-01Z));
+        foreach hash<auto> message in (
+            {"role": "system", "content": "You classify invoices"},
+            {"role": "assistant", "content": "Paid"},
+            {"role": "tool", "tool_call_id": "call-a", "content": "Paid"},
+            {"role": "function", "name": "invoice_status", "content": "Paid"},
+            {"role": "user", "content": ({"type": "text", "text": "Summarize this invoice"},)}
+        ) {
+            prov.doRequest({"model": "test", "messages": (message,)});
+            assertEq(message, fake.last_request.messages[0]);
+        }
     }
 
     private embeddingRequestTest() {
@@ -184,7 +265,7 @@ public class TogetherDataProviderTest inherits QUnit::Test {
         });
 
         assertEq("POST", fake.last_method);
-        assertEq("embeddings", fake.last_path);
+        assertEq("/v1/embeddings", fake.last_path);
         assertEq("BAAI/bge-base-en-v1.5", fake.last_request.model);
         # Response body is forwarded unchanged
         assertEq(3, resp.data[0].embedding.size());
@@ -194,7 +275,7 @@ public class TogetherDataProviderTest inherits QUnit::Test {
         FakeTogetherRestClientIo fake();
         fake.response_body = {
             "id": "gen_xyz",
-            "model": "black-forest-labs/FLUX.1-schnell-Free",
+            "model": "black-forest-labs/FLUX.1-schnell",
             "object": "list",
             "created": 1700000100,
             "data": (
@@ -204,7 +285,7 @@ public class TogetherDataProviderTest inherits QUnit::Test {
 
         TogetherDataProvider::TogetherImageGenerationDataProvider prov(fake);
         auto resp = prov.doRequest({
-            "model": "black-forest-labs/FLUX.1-schnell-Free",
+            "model": "black-forest-labs/FLUX.1-schnell",
             "prompt": "a serene lake",
             "width": 1024,
             "height": 1024,
@@ -212,7 +293,7 @@ public class TogetherDataProviderTest inherits QUnit::Test {
         });
 
         assertEq("POST", fake.last_method);
-        assertEq("images/generations", fake.last_path);
+        assertEq("/v1/images/generations", fake.last_path);
         assertEq("a serene lake", fake.last_request.prompt);
         assertEq("https://example.test/img.png", resp.data[0].url);
         assertEq(NT_DATE, resp.created.typeCode());
@@ -229,27 +310,237 @@ public class TogetherDataProviderTest inherits QUnit::Test {
         assertTrue(exists fields.negative_prompt);
     }
 
-    #! Exercises Together AI's live chat-completion endpoint
-    /** Verifies the actual wire format against Together AI's production
-        endpoint with a token-bounded request on Llama-3.2-3B-Instruct-Turbo.
-        Cost: ~$0.00006 per run (capped via max_tokens=16).
-    */
-    private liveTogetherTest() {
-        AbstractConnection conn = get_connection(conn_name);
-        hash<auto> ping = conn.ping(True);
-        assertTrue(ping.ok, sprintf("Together connection ping failed: %s",
-            ping.info ?? "no info"));
+    private contractTest() {
+        foreach hash<DataProviderActionInfo> action in (DataProviderActionCatalog::getActions("TogetherAi")) {
+            if (action.action == AbstractDataProvider::GenericApiCallActionName) {
+                continue;
+            }
+            assertTrue(action.display_name.val(), action.action);
+            assertTrue(action.short_desc.val() && action.short_desc.size() < 80, action.action);
+            assertTrue(action.desc.val(), action.action);
+            assertFalse(exists action.cls, action.action);
+            RestSchemaActionOperation op = TogetherSchema::getOperationEx(action.action);
+            assertTrue(exists action.output_type, action.action);
+            assertTrue(exists action.options, action.action);
+            if (op.getRequestType()) {
+                assertEq(sort(keys op.getRequestType().getFields()), sort(keys action.options), action.action);
+            }
+        }
+        hash<string, AbstractDataField> chat = TogetherSchema::getOperationEx("chat-completion").getRequestFields();
+        foreach string name in ("messages", "model", "tools", "tool_choice", "response_format", "max_tokens") {
+            assertTrue(exists chat{name}, name);
+        }
+        assertFalse(exists chat.stream);
+        assertEq("chat-models", chat.model.getAttributes().ref_data);
+        hash<string, AbstractDataField> image = TogetherSchema::getOperationEx("generate-image").getRequestFields();
+        assertTrue(image.response_format.getAllowedValues().size() > 1);
+        assertEq("image-models", image.model.getAttributes().ref_data);
+    }
 
-        AbstractDataProvider prov = conn.getDataProvider();
-        AbstractDataProvider chat = prov.getChildProvider("chat-completion");
-        auto resp = chat.doRequest({
-            "model": "meta-llama/Llama-3.2-3B-Instruct-Turbo",
-            "messages": ({"role": "user", "content": "Say hi in one word."},),
-            "max_tokens": 16,
+    private schemaTest() {
+        assertRegex("^[a-f0-9]{64}$", TogetherSchema::Provenance.source_sha256);
+        assertEq(199, TogetherSchema::Provenance.source_operations);
+        assertEq(816443, TogetherSchema::Provenance.source_size);
+        list<RestSchemaActionSet> sets = TogetherSchema::getActionSets();
+        for (int i = 0; i < sets.size(); ++i) {
+            assertEq((), RestSchemaDrift::compare(sets[i], TogetherSchema::getSchema(i + 1)));
+        }
+        assertThrows("TOGETHER-SCHEMA-ERROR", sub () { TogetherSchema::getSchema(3); });
+        assertThrows("TOGETHER-ACTION-ERROR", sub () { TogetherSchema::getOperationEx("unknown"); });
+    }
+
+    private operationTest(hash<auto> fixture) {
+        FakeTogetherRestClientIo fake();
+        TogetherDataProvider::TogetherDataProvider root(fake);
+        hash<auto> request = fixture.request;
+        foreach string key in (keys request) {
+            if (request{key}.typeCode() == NT_HASH && request{key}.content == "__test_binary__") {
+                request{key}.content = <00017fff52494646>;
+            }
+        }
+        root.getChildProvider(fixture.action).doRequest(request);
+        assertEq(1, fake.requests);
+        assertEq(fixture.method, fake.last_method);
+        string path = fixture.path;
+        foreach string key in ((path =~ x/\{([^}]+)\}/g) ?? ()) {
+            path = replace(path, "{" + key + "}", encode_url(request{key}.toString()));
+        }
+        assertEq(path, fake.last_path.split("?")[0]);
+    }
+
+    private referenceTest() {
+        FakeTogetherRestClientIo fake();
+        TogetherDataProvider::TogetherDataProvider root(fake);
+        fake.response_body = (
+            {"id": "chat-a", "display_name": "Chat A", "type": "chat"},
+            {"id": "embedding-a", "display_name": "Embedding A", "type": "embedding"},
+        );
+        auto choices = root.getChildProvider("chat-completion").getReferenceData("chat-models");
+        assertEq(("chat-a",), map $1.value, choices);
+        assertEq("Chat A", choices[0].display_name);
+        assertEq("/v1/models", fake.last_path);
+        choices = root.getChildProvider("create-embeddings").getReferenceData("embedding-models");
+        assertEq(("embedding-a",), map $1.value, choices);
+        fake.response_body = ();
+        assertNothing(root.getChildProvider("chat-completion").getReferenceData("chat-models"));
+
+        AbstractDataProvider speech = root.getChildProvider("generate-speech");
+        int before = fake.requests;
+        assertNothing(speech.getReferenceData("voices"));
+        assertEq(before, fake.requests);
+        fake.response_body = {"data": (
+            {"model": "speech-a", "voices": ({"id": "id-a", "name": "Alice"},)},
+            {"model": "speech-b", "voices": ({"id": "id-b", "name": "Bob"},)},
+        )};
+        choices = speech.getReferenceData("voices", {"model": "speech-a"});
+        assertEq(("Alice",), map $1.value, choices, "Together speech takes voice names");
+        assertEq("/v1/voices", fake.last_path);
+        assertNothing(speech.getReferenceData("voices", {"model": "missing"}));
+
+        AbstractDataProvider endpoints = root.getChildProvider("dedicated-list-endpoints");
+        fake.response_body = {"project_id": "project-a", "project_name": "Project A",
+            "organization_id": "org-a", "organization_name": "Organization A"};
+        choices = endpoints.getReferenceData("projects");
+        assertEq("project-a", choices[0].value);
+        assertEq("Project A", choices[0].display_name);
+        assertEq("/v1/whoami", fake.last_path, "v2 actions resolve shared v1 identity references");
+        AbstractDataProvider cluster = root.getChildProvider("create-gpu-cluster");
+        fake.response_body = {"regions": (
+            {"name": "eu-west", "driver_versions": ({"id": "nv-eu", "cuda_version": "12.5",
+                "nvidia_driver_version": "550", "os": "ubuntu-22.04"},)},
+            {"name": "us-east", "driver_versions": ({"id": "nv-us", "cuda_version": "12.6",
+                "nvidia_driver_version": "560", "os": "ubuntu-22.04"},)}
+        )};
+        assertEq("eu-west", cluster.getReferenceData("gpu-regions")[0].value);
+        int driver_requests = fake.requests;
+        assertNothing(cluster.getReferenceData("nvidia-version-id"));
+        assertEq(driver_requests, fake.requests, "driver choices wait for a region without making requests");
+        assertEq("nv-eu", cluster.getReferenceData("nvidia-version-id", {"region": "eu-west"})[0].value);
+        assertEq("12.6", cluster.getReferenceData("cuda-version", {"region": "us-east"})[0].value);
+    }
+
+    private wireTest() {
+        HttpServer server(<HttpServerOptionInfo>{"logger": new Logger("wire", LoggerLevel::getLevelWarn())});
+        on_exit delete server;
+        TogetherWireHandler handler();
+        server.setDefaultHandler("together", handler);
+        int port = server.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        TogetherRestClient::TogetherRestClientIo client({"url": sprintf("http://127.0.0.1:%d", port),
+            "apikey": "wire-key", "http_version": "1.1"});
+        TogetherDataProvider::TogetherDataProvider root(client);
+        root.getChildProvider("list-models").doRequest({});
+        assertEq("v1/models", handler.getRequest().path);
+        assertEq("Bearer wire-key", handler.getRequest().authorization);
+        root.getChildProvider("dedicated-list-endpoints").doRequest({"projectId": "project-a"});
+        assertEq("v2/projects/project-a/endpoints", handler.getRequest().path);
+        client.restGet("models");
+        assertEq("v1/models", handler.getRequest().path, "the supplied client retains its original prefix");
+        root.getChildProvider("upload-file").doRequest({"purpose": "fine-tune", "file_name": "invoices.jsonl",
+            "file": {"name": "invoices.jsonl", "content": <00017fff52494646>, "mime_type": "application/jsonl"}});
+        hash<string, hash<FormDataMessageInfo>> parts = MultiPartFormDataMessage::parseMessage(
+            handler.getRequest()."content-type", handler.getBody().toString());
+        assertEq("v1/files/upload", handler.getRequest().path);
+        assertEq("invoices.jsonl", parts.file.filename);
+        assertEq("application/jsonl", parts.file.hdr."content-type");
+        assertEq(<00017fff52494646>, parts.file.body);
+        assertEq("fine-tune", parts.purpose.body);
+        assertEq("invoices.jsonl", parts.file_name.body);
+        foreach auto input in (<00017fff52494646>, "https://example.test/audio.wav",
+                {"name": "meeting.wav", "content": <00017fff52494646>, "mime_type": "audio/wav"}) {
+            root.getChildProvider("transcribe-audio").doRequest({"file": input});
+            parts = MultiPartFormDataMessage::parseMessage(handler.getRequest()."content-type",
+                handler.getBody().toString());
+            assertEq("v1/audio/transcriptions", handler.getRequest().path);
+            assertEq(input.typeCode() == NT_STRING ? input : <00017fff52494646>, parts.file.body);
+            if (input.typeCode() == NT_HASH) {
+                assertEq("meeting.wav", parts.file.filename);
+                assertEq("audio/wav", parts.file.hdr."content-type");
+            }
+        }
+        handler.setResponse(<00017fff52494646>, "audio/wav");
+        auto audio = root.getChildProvider("generate-speech").doRequest({"model": "test-model",
+            "input": "Invoice paid", "voice": "test-voice", "response_format": "wav"});
+        assertEq("v1/audio/speech", handler.getRequest().path);
+        assertEq(<00017fff52494646>, audio);
+        handler.setResponse("{\"text\":\"Invoice paid\"}\n", "text/plain");
+        assertEq("{\"text\":\"Invoice paid\"}\n",
+            root.getChildProvider("download-file").doRequest({"id": "file-a"}).toString());
+    }
+
+    private negativeTest() {
+        assertThrows("CONSTRUCTOR-ERROR", sub () { new TogetherDataProvider::TogetherDataProvider({}); });
+        FakeTogetherRestClientIo fake();
+        TogetherDataProvider::TogetherDataProvider root({"restclient": fake});
+        foreach hash<auto> item in (
+            {"action": "chat-completion", "request": {}},
+            {"action": "create-embeddings", "request": {}},
+            {"action": "generate-image", "request": {}},
+            {"action": "get-file", "request": {}},
+            {"action": "chat-completion", "request": {"model": "test", "messages": ({"role": "invalid", "content": "Hi"},)}},
+            {"action": "generate-image", "request": {"model": "test", "prompt": "lake", "response_format": "invalid"}}
+        ) {
+            *hash<ExceptionInfo> error;
+            try {
+                root.getChildProvider(item.action).doRequest(item.request);
+            } catch (hash<ExceptionInfo> ex) {
+                error = ex;
+            }
+            assertTrue(exists error, item.action);
+        }
+        assertEq(0, fake.requests);
+        fake.failure = "SOCKET-CLOSED";
+        assertThrows("SOCKET-CLOSED", sub () {
+            root.getChildProvider("chat-completion").doRequest({"model": "test",
+                "messages": ({"role": "user", "content": "Hi"},)});
         });
-        assertTrue(resp.choices[0].message.content.val(),
-            "Together returned non-empty assistant content");
-        assertTrue(resp.usage.total_tokens > 0,
-            "Together reported positive total_tokens");
+        assertEq(1, fake.requests, "ambiguous failures cannot duplicate paid requests");
+        assertNothing(root.getChildProvider("missing"));
+        assertThrows("TOGETHER-CHILD-ERROR", sub () {
+            TogetherDataProvider::TogetherDataProvider::registerChild("list-models",
+                Class::forName("TogetherChatCompletionDataProvider"));
+        });
+    }
+
+    private TogetherDataProvider::TogetherDataProvider liveRoot() {
+        if (conn_name) {
+            return cast<TogetherDataProvider::TogetherDataProvider>(get_connection(conn_name).getDataProvider());
+        }
+        return new TogetherDataProvider::TogetherDataProvider({"apikey": ENV.TOGETHERAI_APIKEY});
+    }
+
+    private liveReadOnlyTest() {
+        TogetherDataProvider::TogetherDataProvider root = liveRoot();
+        auto models = root.getChildProvider("list-models").doRequest({});
+        assertTrue(models.size() > 0);
+        assertTrue(models[0].id.val());
+        auto files = root.getChildProvider("list-files").doRequest({});
+        assertEq(NT_LIST, files.data.typeCode());
+        auto choices = root.getChildProvider("chat-completion").getReferenceData("chat-models");
+        assertTrue(choices.size() > 0);
+    }
+
+    private livePaidTest() {
+        TogetherDataProvider::TogetherDataProvider root = liveRoot();
+        # Models are explicitly chosen after reviewing live availability and pricing.
+        assertTrue(ENV.TOGETHERAI_CHAT_MODEL.val());
+        auto chat = root.getChildProvider("chat-completion").doRequest({
+            "model": ENV.TOGETHERAI_CHAT_MODEL,
+            "messages": ({"role": "user", "content": "Say hi."},), "max_tokens": 8,
+        });
+        assertTrue(chat.choices[0].message.content.val());
+        assertTrue(chat.usage.completion_tokens <= 8);
+        if (ENV.TOGETHERAI_EMBED_MODEL) {
+            auto embedding = root.getChildProvider("create-embeddings").doRequest({
+                "model": ENV.TOGETHERAI_EMBED_MODEL, "input": "Invoice paid",
+            });
+            assertTrue(embedding.data[0].embedding.size() > 0);
+        }
+        if (ENV.TOGETHERAI_RERANK_MODEL) {
+            auto ranked = root.getChildProvider("rerank").doRequest({
+                "model": ENV.TOGETHERAI_RERANK_MODEL, "query": "invoice",
+                "documents": ("Invoice paid", "Sunny day"), "top_n": 1,
+            });
+            assertEq(0, ranked.results[0].index);
+        }
     }
 }

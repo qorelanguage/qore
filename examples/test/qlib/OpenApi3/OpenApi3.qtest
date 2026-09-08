@@ -430,6 +430,10 @@ public class OpenApi3Test inherits QUnit::Test {
         addTestCase("Test per-use field documentation", \testSharedSchemaFieldDocumentation());
         addTestCase("Test a description that contains the other", \testContainedFieldDescription());
 
+        addTestCase("Test multipart file or URL unions", \testMultipartFileOrUrl());
+
+        addTestCase("Test direction-specific required properties", \testDirectionRequired());
+
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
     }
@@ -4869,6 +4873,35 @@ public class OpenApi3Test inherits QUnit::Test {
             assertEq("softstring|softint", so.components.schemas.Outer.getDataType().getName());
         }
 
+        # A wrapped union must also retain its shape when used as an object field. Together's
+        # deployment placement wraps an inline-or-profile union in allOf to add a description.
+        {
+            OpenApi3::OpenApi3Schema so = new OpenApi3::OpenApi3Schema("", ValidOpenApi31Schema + {
+                "components": {"schemas": {
+                    "Placement": {"oneOf": (
+                        {"type": "object", "required": ("inline",),
+                            "properties": {"inline": {"type": "string"}}},
+                        {"type": "object", "required": ("profile",),
+                            "properties": {"profile": {"type": "string"}}},
+                    )},
+                    "Deployment": {"type": "object", "required": ("required_placement",), "properties": {
+                        "placement": {"allOf": ({"$ref": "#/components/schemas/Placement"},),
+                            "description": "Optional placement"},
+                        "required_placement": {"allOf": ({"$ref": "#/components/schemas/Placement"},)},
+                    }},
+                }},
+            });
+            hash<string, AbstractDataField> fields = so.components.schemas.Deployment.getDataType().getFields();
+            foreach string name in ("placement", "required_placement") {
+                assertTrue(fields{name}.getType() instanceof QoreUnionDataType);
+                assertEq({"profile": "regional"}, fields{name}.getType().acceptsValue({"profile": "regional"}));
+                assertEq({"inline": "eu"}, fields{name}.getType().acceptsValue({"inline": "eu"}));
+                assertThrows("RUNTIME-TYPE-ERROR", sub () { fields{name}.getType().acceptsValue("invalid"); });
+            }
+            assertNothing(fields.placement.getType().acceptsValue(NOTHING));
+            assertTrue(fields.required_placement.isMandatory());
+        }
+
         # an "allOf" of unconstrained members stays unconstrained
         {
             OpenApi3::OpenApi3Schema so = new OpenApi3::OpenApi3Schema("", ValidOpenApi31Schema + {
@@ -5792,6 +5825,69 @@ public class OpenApi3Test inherits QUnit::Test {
             assertTrue(exists op.body);
             assertEq("body", op.body.name);
         }
+    }
+
+    testDirectionRequired() {
+        hash<auto> body = {"type": "object", "required": ("id", "name", "secret"), "properties": {
+            "id": {"type": "string", "readOnly": True},
+            "name": {"type": "string"},
+            "secret": {"type": "string", "writeOnly": True}
+        }};
+        OpenApi3Schema schema("", ValidOpenApi31Schema + {"paths": {"/records": {"post": {
+            "requestBody": {"required": True, "content": {"application/json": {"schema": body}}},
+            "responses": {"200": {"description": "Created", "content": {"application/json": {"schema": body}}}}
+        }}}});
+        OpenApi3::PathItemObject path = schema.paths.match("/records");
+        OpenApi3::OperationObject op = path.getOperation("post", "/records");
+        AbstractDataProviderType type = op.getRequestBodyField(path).getType();
+        assertFalse(type.getFields().id.isMandatory());
+        assertTrue(type.getFields().secret.isMandatory());
+        hash<auto> request = {"name": "Invoice archive", "secret": "test-secret"};
+        assertEq(request, type.acceptsValue(request));
+        assertTrue(exists schema.processRequest("POST", "/records", request));
+        assertThrows("SCHEMA-VALIDATION-ERROR", sub () {
+            schema.processRequest("POST", "/records", request + {"id": "server-id"});
+        });
+        assertTrue(exists schema.parseResponse("POST", "/records", 200,
+            "{\"id\":\"server-id\",\"name\":\"Invoice archive\"}", {"content-type": "application/json"}));
+        assertThrows("SCHEMA-VALIDATION-ERROR", sub () {
+            schema.parseResponse("POST", "/records", 200, "{\"name\":\"Invoice archive\"}",
+                {"content-type": "application/json"});
+        });
+    }
+
+    testMultipartFileOrUrl() {
+        hash<auto> spec = ValidOpenApi31Schema + {
+            "paths": {"/transcribe": {"post": {
+                "requestBody": {"required": True, "content": {"multipart/form-data": {"schema": {
+                    "type": "object", "required": ("file",), "properties": {"file": {
+                        "oneOf": ({"type": "string", "format": "binary"},
+                            {"type": "string", "format": "uri"})
+                    }}
+                }}}},
+                "responses": {"200": {"description": "Success"}}
+            }}}
+        };
+        OpenApi3Schema schema("", spec);
+        OpenApi3::PathItemObject path = schema.paths.match("/transcribe");
+        OpenApi3::OperationObject op = path.getOperation("post", "/transcribe");
+        AbstractDataField field = op.getRequestBodyField(path).getType().getFields().file;
+        foreach auto input in (<00017fff>, "https://example.test/audio.wav",
+                {"name": "audio.wav", "content": <00017fff>, "mime_type": "audio/wav"}) {
+            auto accepted = field.acceptsValue(input);
+            assertTrue(exists accepted);
+            hash<RestRequestClientInfo> request = schema.processRequest("POST", "/transcribe", {"file": accepted});
+            assertRegex("^multipart/form-data; boundary=", request.content);
+        }
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { field.acceptsValue({"invalid": "audio"}); });
+        assertThrows("SCHEMA-VALIDATION-ERROR", sub () {
+            schema.processRequest("POST", "/transcribe", {"file": {"name": "", "content": <00>}});
+        });
+        # Binary and text remain distinct when validated directly as an OpenAPI union.
+        auto type = op.body.schema.properties.file.getDataType();
+        assertEq(<00017fff>, type.acceptsValue(<00017fff>));
+        assertEq("https://example.test/audio.wav", type.acceptsValue("https://example.test/audio.wav"));
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { type.acceptsValue(("invalid",)); });
     }
 
     testGeneratorNullableNestedNamedHashBodyParams() {

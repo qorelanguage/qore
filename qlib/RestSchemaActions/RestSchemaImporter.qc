@@ -92,6 +92,16 @@ public hashdecl RestSchemaRequiredFieldsRepairInfo {
     list<string> replacement;
 }
 
+#! A checked replacement of an existing schema value
+public hashdecl RestSchemaValueRepairInfo {
+    #! JSON pointer to the value to replace
+    string pointer;
+    #! Exact reviewed value, including its type
+    auto expected;
+    #! Correct value from the vendor's documented contract
+    auto replacement;
+}
+
 #! One declared repair applied to a source document before it is pruned
 /** A vendor's description is sometimes **incomplete** rather than merely unhelpful: it omits something the
     API accepts and the vendor documents elsewhere.  Bitbucket describes \c page and \c pagelen on a shared
@@ -170,6 +180,9 @@ public hashdecl RestSchemaNormalizationInfo {
         so a corrected upstream path makes the repair fail instead of silently persisting.
     */
     *hash<string, string> rename_paths;
+
+    #! Checked corrections of existing values, such as a numeric default published as a string
+    *list<hash<RestSchemaValueRepairInfo>> replace_values;
 }
 
 #! Describes one document to import
@@ -190,6 +203,13 @@ public hashdecl RestSchemaImportInfo {
     /** @see @ref RestSchemaActions::RestSchemaNormalizationInfo "RestSchemaNormalizationInfo"
     */
     *list<hash<RestSchemaNormalizationInfo>> normalize;
+
+    #! Selects a fixed server explicitly declared by every selected operation
+    /** Operation servers take precedence over path servers, then document servers. The selected server
+        becomes the document server and matching local declarations are removed before pruning. Server
+        templates and undeclared URLs are rejected; this never redirects an operation to a new server.
+    */
+    *string server_url;
 
     #! Write JSON rather than YAML; defaults to the format of the source document
     *bool json;
@@ -352,6 +372,9 @@ public class RestSchemaImporter {
             resolved += <SchemaOperationInfo>{"method": m.method, "path": m.path};
         }
 
+        if (doc.server_url.val()) {
+            source_schema = RestSchemaImporter::selectServer(source_schema, resolved, doc.server_url);
+        }
         hash<PruneResultInfo> pruned = RestSchemaPruner::prune(source_schema, resolved);
 
         # the artifact says how it differs from the document it came from.  This is stamped after pruning
@@ -361,7 +384,7 @@ public class RestSchemaImporter {
         if (doc.normalize) {
             list<auto> applied = ();
             foreach hash<RestSchemaNormalizationInfo> n in (doc.normalize) {
-                applied += {
+                hash<auto> record = {
                     "reason": n.reason,
                     "operations": (map sprintf("%s %s", $1.method.upr(), $1.path), n.operations),
                     "add_parameters": (map $1.name, n.add_parameters ?? ()),
@@ -370,6 +393,10 @@ public class RestSchemaImporter {
                     "replace_required": n.replace_required ?? (),
                     "rename_paths": n.rename_paths ?? {},
                 };
+                if (n.replace_values) {
+                    record.replace_values = n.replace_values;
+                }
+                applied += record;
             }
             out_schema{NormalizationMarker} = applied;
         }
@@ -504,6 +531,22 @@ public class RestSchemaImporter {
                 throw "REST-SCHEMA-IMPORT-ERROR", "a schema repair must say why it is being made; the "
                     "reason is written into the artifact for whoever next diffs it against upstream";
             }
+            foreach hash<RestSchemaValueRepairInfo> repair in (n.replace_values) {
+                auto value = RestSchemaPruner::resolveRef(rv, repair.pointer);
+                if (!exists value || value !== repair.expected || repair.expected === repair.replacement) {
+                    throw "REST-SCHEMA-IMPORT-ERROR", sprintf("the repair %y expects %y at %y; "
+                        "the document has changed or the repair is a no-op and must be reviewed",
+                        n.reason, repair.expected, repair.pointer);
+                }
+                list<string> tokens = ();
+                foreach string raw in (split("/", repair.pointer.substr(2), False, True)) {
+                    raw =~ s/~1/\//g;
+                    raw =~ s/~0/~/g;
+                    push tokens, raw;
+                }
+                rv = RestSchemaImporter::setAtPath(rv, tokens, repair.replacement);
+                ++operations_normalized;
+            }
             foreach hash<SchemaOperationInfo> op in (n.operations) {
                 string method = op.method.lwr();
                 if (!exists rv.paths{op.path}) {
@@ -597,6 +640,45 @@ public class RestSchemaImporter {
                 ++operations_normalized;
             }
         }
+        return rv;
+    }
+
+    #! Partitions selected operations into a document using their declared fixed server
+    /** @param schema the source document; not modified
+        @param operations the resolved operations to keep
+        @param server_url the literal declared server URL, including its API prefix
+        @return a document with matching local servers promoted to the document level
+        @throw REST-SCHEMA-IMPORT-ERROR an operation does not declare the server or the URL is a template
+    */
+    static hash<auto> selectServer(hash<auto> schema, list<hash<SchemaOperationInfo>> operations,
+            string server_url) {
+        if (!operations || server_url !~ /^https?:\/\/[^\s{}]+$/) {
+            throw "REST-SCHEMA-IMPORT-ERROR", "server selection requires operations and a fixed HTTP(S) URL";
+        }
+        hash<auto> rv = schema;
+        foreach hash<SchemaOperationInfo> op in (operations) {
+            string method = op.method.lwr();
+            if (!exists schema.paths{op.path}{method}) {
+                throw "REST-SCHEMA-IMPORT-ERROR", sprintf("server selection names missing operation %s %s",
+                    op.method, op.path);
+            }
+            auto servers = schema.paths{op.path}{method}.servers ?? schema.paths{op.path}.servers
+                ?? schema.servers;
+            bool found = False;
+            foreach auto server in (servers) {
+                if (server.url == server_url) {
+                    found = True;
+                    break;
+                }
+            }
+            if (!found) {
+                throw "REST-SCHEMA-IMPORT-ERROR", sprintf("operation %s %s does not declare server %y",
+                    op.method, op.path, server_url);
+            }
+            remove rv.paths{op.path}{method}.servers;
+            remove rv.paths{op.path}.servers;
+        }
+        rv.servers = ({"url": server_url},);
         return rv;
     }
 
@@ -707,12 +789,18 @@ public class RestSchemaImporter {
             @assert(name =~ /^[0-9]+$/);
             int index = name.toInt();
             @assert(index >= 0 && index < node.size());
-            list<auto> rv = node;
+            list<auto> rv = ();
+            foreach auto entry in (node) {
+                push rv, entry;
+            }
             rv[index] = RestSchemaImporter::setAtPath(node[index], tokens[1..], value);
             return rv;
         }
         @assert(node.typeCode() == NT_HASH);
-        hash<auto> rv = node;
+        hash<auto!> rv = {};
+        foreach hash<auto> entry in (node.pairIterator()) {
+            rv{entry.key} = entry.value;
+        }
         if (tokens.size() == 1) {
             rv{name} = value;
             return rv;

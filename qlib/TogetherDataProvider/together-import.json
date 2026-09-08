@@ -1,0 +1,606 @@
+{
+  "documents": [
+    {
+      "name": "Together V1",
+      "source": "https://docs.together.ai/openapi.yaml",
+      "output": "together-v1-openapi.json",
+      "server_url": "https://api.together.ai/v1",
+      "json": true,
+      "normalize": [
+        {
+          "reason": "Together publishes string defaults for numeric and boolean fields, and contradictory scalar types for the documented boolean-or-auto train_on_inputs union. Preserve the declared numeric values and oneOf alternatives; omit invalid null string defaults. Source: https://docs.together.ai/openapi.yaml",
+          "replace_values": [
+            {
+              "pointer": "#/paths/~1fine-tunes/post/requestBody/content/application~1json/schema/properties/train_on_inputs",
+              "expected": {
+                "oneOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "auto"
+                    ]
+                  }
+                ],
+                "type": "boolean",
+                "default": "auto",
+                "description": "Whether to mask user messages in conversational data or prompts in instruction data.",
+                "deprecated": true
+              },
+              "replacement": {
+                "oneOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "auto"
+                    ]
+                  }
+                ],
+                "default": "auto",
+                "description": "Whether to mask user messages in conversational data or prompts in instruction data.",
+                "deprecated": true
+              }
+            },
+            {
+              "pointer": "#/paths/~1rl~1model-resources/get/parameters/1/schema/default",
+              "expected": "20",
+              "replacement": 20
+            },
+            {
+              "pointer": "#/paths/~1rl~1training-sessions/get/parameters/1/schema/default",
+              "expected": "20",
+              "replacement": 20
+            },
+            {
+              "pointer": "#/components/schemas/RL.SampleBody/properties/num_samples/default",
+              "expected": "1",
+              "replacement": 1
+            },
+            {
+              "pointer": "#/components/schemas/RL.SampleBody/properties/prompt_logprobs/default",
+              "expected": "false",
+              "replacement": false
+            },
+            {
+              "pointer": "#/components/schemas/RL.SampleBody/properties/topk_prompt_logprobs/default",
+              "expected": "0",
+              "replacement": 0
+            },
+            {
+              "pointer": "#/components/schemas/RL.SampleBody/properties/return_routed_experts/default",
+              "expected": "false",
+              "replacement": false
+            },
+            {
+              "pointer": "#/components/schemas/RL.SampleBody/properties/return_routed_experts_object_uri/default",
+              "expected": "false",
+              "replacement": false
+            },
+            {
+              "pointer": "#/components/schemas/RL.SamplingParams/properties/max_tokens/default",
+              "expected": "512",
+              "replacement": 512
+            },
+            {
+              "pointer": "#/components/schemas/RL.SamplingParams/properties/temperature/default",
+              "expected": "1.0",
+              "replacement": 1.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.SamplingParams/properties/top_p/default",
+              "expected": "1.0",
+              "replacement": 1.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.SamplingParams/properties/top_k/default",
+              "expected": "-1",
+              "replacement": -1
+            },
+            {
+              "pointer": "#/components/schemas/RL.ComputeConfigCreateRequest/properties/num_generator_replicas/default",
+              "expected": "1",
+              "replacement": 1
+            },
+            {
+              "pointer": "#/components/schemas/RL.GRPOLossParams/properties/clip_low_threshold/default",
+              "expected": "0.8",
+              "replacement": 0.8
+            },
+            {
+              "pointer": "#/components/schemas/RL.GRPOLossParams/properties/clip_high_threshold/default",
+              "expected": "1.2",
+              "replacement": 1.2
+            },
+            {
+              "pointer": "#/components/schemas/RL.GRPOLossParams/properties/beta/default",
+              "expected": "0.0",
+              "replacement": 0.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.PPOLossParams/properties/clip_low_threshold/default",
+              "expected": "0.8",
+              "replacement": 0.8
+            },
+            {
+              "pointer": "#/components/schemas/RL.PPOLossParams/properties/clip_high_threshold/default",
+              "expected": "1.2",
+              "replacement": 1.2
+            },
+            {
+              "pointer": "#/components/schemas/RL.CISPOLossParams/properties/clip_low_threshold/default",
+              "expected": "0.0",
+              "replacement": 0.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.CISPOLossParams/properties/clip_high_threshold/default",
+              "expected": "4.0",
+              "replacement": 4.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.LoraConfig/properties/rank/default",
+              "expected": "32",
+              "replacement": 32
+            },
+            {
+              "pointer": "#/components/schemas/RL.LoraConfig/properties/alpha/default",
+              "expected": "64",
+              "replacement": 64
+            },
+            {
+              "pointer": "#/components/schemas/RL.LoraConfig/properties/dropout/default",
+              "expected": "0.0",
+              "replacement": 0.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.AdamParams/properties/beta1/default",
+              "expected": "0.9",
+              "replacement": 0.9
+            },
+            {
+              "pointer": "#/components/schemas/RL.AdamParams/properties/beta2/default",
+              "expected": "0.95",
+              "replacement": 0.95
+            },
+            {
+              "pointer": "#/components/schemas/RL.AdamParams/properties/eps/default",
+              "expected": "1e-8",
+              "replacement": 1e-08
+            },
+            {
+              "pointer": "#/components/schemas/RL.AdamParams/properties/weight_decay/default",
+              "expected": "0",
+              "replacement": 0.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.AdamParams/properties/grad_clip_norm/default",
+              "expected": "1.0",
+              "replacement": 1.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.MuonParams/properties/momentum/default",
+              "expected": "0.95",
+              "replacement": 0.95
+            },
+            {
+              "pointer": "#/components/schemas/RL.MuonParams/properties/newton_schulz_steps/default",
+              "expected": "5",
+              "replacement": 5
+            },
+            {
+              "pointer": "#/components/schemas/RL.MuonParams/properties/weight_decay/default",
+              "expected": "0.0",
+              "replacement": 0.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.MuonParams/properties/grad_clip_norm/default",
+              "expected": "1.0",
+              "replacement": 1.0
+            },
+            {
+              "pointer": "#/components/schemas/ErrorData/properties/error/properties/param",
+              "expected": {
+                "type": "string",
+                "nullable": true,
+                "default": null
+              },
+              "replacement": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            {
+              "pointer": "#/components/schemas/ErrorData/properties/error/properties/code",
+              "expected": {
+                "type": "string",
+                "nullable": true,
+                "default": null
+              },
+              "replacement": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            {
+              "pointer": "#/components/schemas/TrainingMethodSFT/properties/train_on_inputs",
+              "expected": {
+                "oneOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "auto"
+                    ]
+                  }
+                ],
+                "type": "boolean",
+                "default": "auto",
+                "description": "Whether to mask user messages in conversational data or prompts in instruction data."
+              },
+              "replacement": {
+                "oneOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "auto"
+                    ]
+                  }
+                ],
+                "default": "auto",
+                "description": "Whether to mask user messages in conversational data or prompts in instruction data."
+              }
+            }
+          ]
+        },
+        {
+          "reason": "Evaluation classify and score parameter objects also satisfy the compare object because it only requires judge and input_data_file_path and permits additional properties. Use anyOf for these overlapping valid shapes; the sibling type field selects the evaluation mode. Source: https://docs.together.ai/openapi.yaml",
+          "replace_values": [
+            {
+              "pointer": "#/components/schemas/EvaluationTypedRequest/properties/parameters",
+              "expected": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/EvaluationClassifyParameters"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EvaluationScoreParameters"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EvaluationCompareParameters"
+                  }
+                ],
+                "description": "Type-specific parameters for the evaluation"
+              },
+              "replacement": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/EvaluationClassifyParameters"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EvaluationScoreParameters"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EvaluationCompareParameters"
+                  }
+                ],
+                "description": "Type-specific parameters for the evaluation"
+              }
+            }
+          ]
+        }
+      ],
+      "manifest": "TogetherDataProvider:TogetherManifest::Manifest",
+      "provenance": "TogetherSchema.qc"
+    },
+    {
+      "name": "Together V2",
+      "source": "https://docs.together.ai/openapi.yaml",
+      "output": "together-v2-openapi.json",
+      "server_url": "https://api.together.ai/v2",
+      "json": true,
+      "normalize": [
+        {
+          "reason": "Together publishes string defaults for numeric and boolean fields, and contradictory scalar types for the documented boolean-or-auto train_on_inputs union. Preserve the declared numeric values and oneOf alternatives; omit invalid null string defaults. Source: https://docs.together.ai/openapi.yaml",
+          "replace_values": [
+            {
+              "pointer": "#/paths/~1fine-tunes/post/requestBody/content/application~1json/schema/properties/train_on_inputs",
+              "expected": {
+                "oneOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "auto"
+                    ]
+                  }
+                ],
+                "type": "boolean",
+                "default": "auto",
+                "description": "Whether to mask user messages in conversational data or prompts in instruction data.",
+                "deprecated": true
+              },
+              "replacement": {
+                "oneOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "auto"
+                    ]
+                  }
+                ],
+                "default": "auto",
+                "description": "Whether to mask user messages in conversational data or prompts in instruction data.",
+                "deprecated": true
+              }
+            },
+            {
+              "pointer": "#/paths/~1rl~1model-resources/get/parameters/1/schema/default",
+              "expected": "20",
+              "replacement": 20
+            },
+            {
+              "pointer": "#/paths/~1rl~1training-sessions/get/parameters/1/schema/default",
+              "expected": "20",
+              "replacement": 20
+            },
+            {
+              "pointer": "#/components/schemas/RL.SampleBody/properties/num_samples/default",
+              "expected": "1",
+              "replacement": 1
+            },
+            {
+              "pointer": "#/components/schemas/RL.SampleBody/properties/prompt_logprobs/default",
+              "expected": "false",
+              "replacement": false
+            },
+            {
+              "pointer": "#/components/schemas/RL.SampleBody/properties/topk_prompt_logprobs/default",
+              "expected": "0",
+              "replacement": 0
+            },
+            {
+              "pointer": "#/components/schemas/RL.SampleBody/properties/return_routed_experts/default",
+              "expected": "false",
+              "replacement": false
+            },
+            {
+              "pointer": "#/components/schemas/RL.SampleBody/properties/return_routed_experts_object_uri/default",
+              "expected": "false",
+              "replacement": false
+            },
+            {
+              "pointer": "#/components/schemas/RL.SamplingParams/properties/max_tokens/default",
+              "expected": "512",
+              "replacement": 512
+            },
+            {
+              "pointer": "#/components/schemas/RL.SamplingParams/properties/temperature/default",
+              "expected": "1.0",
+              "replacement": 1.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.SamplingParams/properties/top_p/default",
+              "expected": "1.0",
+              "replacement": 1.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.SamplingParams/properties/top_k/default",
+              "expected": "-1",
+              "replacement": -1
+            },
+            {
+              "pointer": "#/components/schemas/RL.ComputeConfigCreateRequest/properties/num_generator_replicas/default",
+              "expected": "1",
+              "replacement": 1
+            },
+            {
+              "pointer": "#/components/schemas/RL.GRPOLossParams/properties/clip_low_threshold/default",
+              "expected": "0.8",
+              "replacement": 0.8
+            },
+            {
+              "pointer": "#/components/schemas/RL.GRPOLossParams/properties/clip_high_threshold/default",
+              "expected": "1.2",
+              "replacement": 1.2
+            },
+            {
+              "pointer": "#/components/schemas/RL.GRPOLossParams/properties/beta/default",
+              "expected": "0.0",
+              "replacement": 0.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.PPOLossParams/properties/clip_low_threshold/default",
+              "expected": "0.8",
+              "replacement": 0.8
+            },
+            {
+              "pointer": "#/components/schemas/RL.PPOLossParams/properties/clip_high_threshold/default",
+              "expected": "1.2",
+              "replacement": 1.2
+            },
+            {
+              "pointer": "#/components/schemas/RL.CISPOLossParams/properties/clip_low_threshold/default",
+              "expected": "0.0",
+              "replacement": 0.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.CISPOLossParams/properties/clip_high_threshold/default",
+              "expected": "4.0",
+              "replacement": 4.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.LoraConfig/properties/rank/default",
+              "expected": "32",
+              "replacement": 32
+            },
+            {
+              "pointer": "#/components/schemas/RL.LoraConfig/properties/alpha/default",
+              "expected": "64",
+              "replacement": 64
+            },
+            {
+              "pointer": "#/components/schemas/RL.LoraConfig/properties/dropout/default",
+              "expected": "0.0",
+              "replacement": 0.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.AdamParams/properties/beta1/default",
+              "expected": "0.9",
+              "replacement": 0.9
+            },
+            {
+              "pointer": "#/components/schemas/RL.AdamParams/properties/beta2/default",
+              "expected": "0.95",
+              "replacement": 0.95
+            },
+            {
+              "pointer": "#/components/schemas/RL.AdamParams/properties/eps/default",
+              "expected": "1e-8",
+              "replacement": 1e-08
+            },
+            {
+              "pointer": "#/components/schemas/RL.AdamParams/properties/weight_decay/default",
+              "expected": "0",
+              "replacement": 0.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.AdamParams/properties/grad_clip_norm/default",
+              "expected": "1.0",
+              "replacement": 1.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.MuonParams/properties/momentum/default",
+              "expected": "0.95",
+              "replacement": 0.95
+            },
+            {
+              "pointer": "#/components/schemas/RL.MuonParams/properties/newton_schulz_steps/default",
+              "expected": "5",
+              "replacement": 5
+            },
+            {
+              "pointer": "#/components/schemas/RL.MuonParams/properties/weight_decay/default",
+              "expected": "0.0",
+              "replacement": 0.0
+            },
+            {
+              "pointer": "#/components/schemas/RL.MuonParams/properties/grad_clip_norm/default",
+              "expected": "1.0",
+              "replacement": 1.0
+            },
+            {
+              "pointer": "#/components/schemas/ErrorData/properties/error/properties/param",
+              "expected": {
+                "type": "string",
+                "nullable": true,
+                "default": null
+              },
+              "replacement": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            {
+              "pointer": "#/components/schemas/ErrorData/properties/error/properties/code",
+              "expected": {
+                "type": "string",
+                "nullable": true,
+                "default": null
+              },
+              "replacement": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            {
+              "pointer": "#/components/schemas/TrainingMethodSFT/properties/train_on_inputs",
+              "expected": {
+                "oneOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "auto"
+                    ]
+                  }
+                ],
+                "type": "boolean",
+                "default": "auto",
+                "description": "Whether to mask user messages in conversational data or prompts in instruction data."
+              },
+              "replacement": {
+                "oneOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "auto"
+                    ]
+                  }
+                ],
+                "default": "auto",
+                "description": "Whether to mask user messages in conversational data or prompts in instruction data."
+              }
+            }
+          ]
+        },
+        {
+          "reason": "Evaluation classify and score parameter objects also satisfy the compare object because it only requires judge and input_data_file_path and permits additional properties. Use anyOf for these overlapping valid shapes; the sibling type field selects the evaluation mode. Source: https://docs.together.ai/openapi.yaml",
+          "replace_values": [
+            {
+              "pointer": "#/components/schemas/EvaluationTypedRequest/properties/parameters",
+              "expected": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/EvaluationClassifyParameters"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EvaluationScoreParameters"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EvaluationCompareParameters"
+                  }
+                ],
+                "description": "Type-specific parameters for the evaluation"
+              },
+              "replacement": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/EvaluationClassifyParameters"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EvaluationScoreParameters"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EvaluationCompareParameters"
+                  }
+                ],
+                "description": "Type-specific parameters for the evaluation"
+              }
+            }
+          ]
+        }
+      ],
+      "manifest": "TogetherDataProvider:TogetherDedicatedManifest::Manifest",
+      "provenance": "TogetherSchema.qc"
+    }
+  ]
+}

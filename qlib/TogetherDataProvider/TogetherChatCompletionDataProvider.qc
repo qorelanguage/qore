@@ -55,11 +55,11 @@ public class TogetherChatCompletionDataProvider inherits TogetherDataProviderCom
     }
 
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return TogetherSchema::getOperationEx("chat-completion").getRequestType();
     }
 
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return TogetherSchema::getOperationEx("chat-completion").getResponseType();
     }
 
     private hash<DataProviderInfo> getStaticInfoImpl() {
@@ -67,11 +67,7 @@ public class TogetherChatCompletionDataProvider inherits TogetherDataProviderCom
     }
 
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        hash<auto> body = doRestCommand("POST", "chat/completions", req).body;
-        if (body.created.typeCode() == NT_INT) {
-            body.created = 1970-01-01Z + seconds(body.created);
-        }
-        return body;
+        return getSchemaProvider("chat-completion").doRequest(req, request_options);
     }
 }
 }

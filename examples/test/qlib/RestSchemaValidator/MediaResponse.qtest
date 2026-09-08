@@ -1,0 +1,42 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/RestSchemaValidator.qm
+%exec-class MediaResponseTest
+
+class MediaResponseTest inherits QUnit::Test {
+    constructor() : Test("REST media responses", "1.0") {
+        addTestCase("opaque media preserves bytes on both transports", \mediaTest());
+        addTestCase("structured, missing, and unsupported content types", \validationTest());
+        set_return_value(main());
+    }
+
+    private mediaTest() {
+        NullRestSchemaValidator validator();
+        foreach string mime in ("audio/wav", "audio/mpeg", "audio/ogg", "image/png", "video/mp4") {
+            foreach data body in (<00017fff52494646>, <00017fff52494646>.toString()) {
+                auto response = validator.parseResponse("POST", "/media", 200, body, {"content-type": mime});
+                assertEq(<00017fff52494646>, response.body, mime);
+                assertEq(NT_BINARY, response.body.typeCode());
+                assertEq(mime, response.hdr."content-type");
+            }
+        }
+    }
+
+    private validationTest() {
+        NullRestSchemaValidator validator();
+        assertEq({"text": "Paid"}, validator.parseResponse("POST", "/media", 200,
+            "{\"text\":\"Paid\"}", {"content-type": "application/json"}).body);
+        foreach hash<auto> headers in ({}, {"content-type": "text/unsupported"}) {
+            assertThrows("DESERIALIZATION-ERROR", sub () {
+                validator.parseResponse("POST", "/media", 200, "unrecognized", headers);
+            });
+        }
+        assertThrows("DESERIALIZATION-ERROR", sub () {
+            validator.parseResponse("POST", "/media", 200, "invalid JSON", {"content-type": "application/json"});
+        });
+        assertNothing(validator.parseResponse("POST", "/media", 204, NOTHING, {}).body);
+    }
+}

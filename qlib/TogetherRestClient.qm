@@ -34,7 +34,7 @@
 %requires QoreRagTypes
 
 module TogetherRestClient {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for calling Together AI REST services";
     author = "Qore Technologies <info@qoretechnologies.com>";
     url = "https://qore.org";
@@ -90,6 +90,11 @@ printf("%Y\n", ans.body);
 
     @section TogetherRestClientRelnotes Release Notes
 
+    @subsection togetherrestclientv1_1 TogetherRestClient v1.1
+    - automatic connections always use the service URL and identify the Together AI app
+    - JSON serialization is configured consistently for direct and connection-created clients
+    - the authenticated model catalog ping performs no inference; an invalid API key fails the ping
+
     @subsection TogetherRestClientv1_0 TogetherRestClient v1.0
     - the initial version of the %TogetherRestClient module
 */
@@ -114,6 +119,7 @@ public class TogetherRestClientBase {
         const DefaultOptions = {
             "url": DefaultUrl,
             "api": DefaultApiVersion,
+            "data": "json",
             "default_path": "/" + DefaultApiVersion,
         };
     }
@@ -175,6 +181,9 @@ public class TogetherRestConnection inherits RestClient::RestConnection {
             "schemes": {"together": True},
             "base_scheme_map": {"https": "together"},
             "options": RestConnection::ConnectionScheme.options + {
+                "data": RestConnection::ConnectionScheme.options.data + <ConnectionOptionInfo>{
+                    "default_value": "json",
+                },
                 "apikey": <ConnectionOptionInfo>{
                     "display_name": "API Key",
                     "short_desc": "Together AI API key for authentication",
@@ -191,6 +200,7 @@ public class TogetherRestConnection inherits RestClient::RestConnection {
                     "desc": "The API version to use.",
                     "type": "string",
                     "default_value": TogetherRestClientBase::DefaultApiVersion,
+                    "allowed_values": (<AllowedValueInfo>{"value": "v1", "display_name": "V1"},),
                 },
                 "chat-model": <ConnectionOptionInfo>{
                     "display_name": "Chat Model",
@@ -227,7 +237,19 @@ public class TogetherRestConnection inherits RestClient::RestConnection {
     }
 
     constructor(hash<auto> config, *hash<auto> attr)
-            : RestConnection(config + (exists config.url ? {} : {"url": DefaultUrl}), attr) {
+            : RestConnection(TogetherRestConnection::getConfig(config), attr) {
+    }
+
+    #! Builds the fixed service URL for automatically configured connections
+    private static hash<auto> getConfig(hash<auto> config) {
+        config.url = DefaultUrl;
+        return config;
+    }
+
+    #! Associates the connection with its application
+    /** @return the Together AI application catalog name */
+    *string getAppName() {
+        return "TogetherAi";
     }
 
     string getType() {

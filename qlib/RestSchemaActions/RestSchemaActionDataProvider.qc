@@ -352,6 +352,13 @@ public class RestSchemaActionDataProvider inherits AbstractDataProvider {
             }
             opts{i.key} = val;
         }
+        hash<auto!> record_filter = rd.record_filter ?? {};
+        foreach hash<auto> i in (rd.filter_from.pairIterator()) {
+            if (!exists action_opts{i.value}) {
+                return;
+            }
+            record_filter{i.key} = action_opts{i.value};
+        }
 
         # the listing runs against the schema that declares it, because the request URI takes its prefix
         # from that schema's base path
@@ -382,11 +389,43 @@ public class RestSchemaActionDataProvider inherits AbstractDataProvider {
             if (!exists resp) {
                 continue;
             }
+            if (rd.single_record) {
+                resp = (resp,);
+            }
             if (resp.typeCode() != NT_LIST) {
                 throw "REFERENCE-DATA-ERROR", sprintf("expected a list of records, but got type %y (records "
                     "path: %y)", resp.type(), rd.records_path);
             }
-            records += resp;
+            foreach auto record in (resp) {
+                if (record.typeCode() != NT_HASH) {
+                    throw "REFERENCE-DATA-ERROR", "expected each reference-data record to be a hash";
+                }
+                bool matched = True;
+                foreach hash<auto> f in (record_filter.pairIterator()) {
+                    if (RestSchemaActionDataProvider::getRecordValue(record, f.key) !== f.value) {
+                        matched = False;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    continue;
+                }
+                if (rd.children_path) {
+                    auto children = record;
+                    foreach string name in (rd.children_path) {
+                        if (children.typeCode() != NT_HASH || !exists children{name}) {
+                            throw "REFERENCE-DATA-ERROR", sprintf("missing child collection %y", rd.children_path);
+                        }
+                        children = children{name};
+                    }
+                    if (children.typeCode() != NT_LIST) {
+                        throw "REFERENCE-DATA-ERROR", "expected the child collection to be a list";
+                    }
+                    records += children;
+                } else {
+                    push records, record;
+                }
+            }
         }
         if (!records) {
             return;
@@ -402,6 +441,17 @@ public class RestSchemaActionDataProvider inherits AbstractDataProvider {
                     "type %y", $#, record.type());
             }
             auto value = RestSchemaActionDataProvider::getRecordValue(record, rd.value_field);
+            if (rd.value_template.val()) {
+                string formatted = rd.value_template;
+                foreach string name in ((formatted =~ x/\{([^}]+)\}/g) ?? ()) {
+                    auto part = RestSchemaActionDataProvider::getRecordValue(record, name);
+                    if (part.typeCode() != NT_STRING && part.typeCode() != NT_INT) {
+                        throw "REFERENCE-DATA-ERROR", sprintf("resource name requires scalar record field %y", name);
+                    }
+                    formatted = replace(formatted, "{" + name + "}", part.toString());
+                }
+                value = formatted;
+            }
             if (!exists value) {
                 continue;
             }
@@ -421,7 +471,7 @@ public class RestSchemaActionDataProvider inherits AbstractDataProvider {
             rv += <AllowedValueInfo>{
                 "value": value,
                 "display_name": (display.val() ? display : value).toString(),
-                "desc": rd.desc,
+                "desc": rd.desc ?? "",
             };
         }
         return rv ?: NOTHING;

@@ -58,11 +58,11 @@ public class TogetherImageGenerationDataProvider inherits TogetherDataProviderCo
     }
 
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return TogetherSchema::getOperationEx("generate-image").getRequestType();
     }
 
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return TogetherSchema::getOperationEx("generate-image").getResponseType();
     }
 
     private hash<DataProviderInfo> getStaticInfoImpl() {
@@ -74,7 +74,7 @@ public class TogetherImageGenerationDataProvider inherits TogetherDataProviderCo
         the response to match the typed `*date` field in the response schema.
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        hash<auto> body = doRestCommand("POST", "images/generations", req).body;
+        auto body = getSchemaProvider("generate-image").doRequest(req, request_options);
         if (body.created.typeCode() == NT_INT) {
             body.created = 1970-01-01Z + seconds(body.created);
         }

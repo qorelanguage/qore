@@ -302,6 +302,9 @@ excluded from the union and make it @ref RestSchemaValidator::AbstractSchemaObje
     @section openapi3_relnotes OpenApi3 Module Release Notes
 
     @subsection openapi3_1_0 OpenApi3 v1.0
+    - respect request/response direction for required read-only and write-only properties
+    - support named uploads and URLs in multipart file-or-URL unions
+    - preserve composed allOf types when they are used as required or optional object fields
     - retain explicit null alternatives when generating nullable composition data types
     - parse parameter \c content schemas and serialize JSON query, path and header parameters
       without losing their types or confusing object properties with other query arguments
@@ -3004,18 +3007,25 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         }
         AbstractDataField field = param.schema.getField("body", "REST request body argument",
             param.required ?? False, rest);
-        if (!consumes{MimeTypeMultipartFormData} || !(field.getType().getMandatoryType() instanceof HashDataType)) {
+        if (!(field.getType().getMandatoryType() instanceof HashDataType)) {
             return field;
         }
         HashDataType type = cast<HashDataType>(field.getType().getMandatoryType());
         hash<string, AbstractDataField> fields = type.getFields();
+        foreach string name in (keys fields) {
+            if (param.schema.properties{name}.readOnly) {
+                # A read-only property's requiredness applies to responses. Keep its declaration
+                # for presentation overlays; schema validation still rejects sending a value for it.
+                fields{name} = fields{name}.getOrNothingType();
+            }
+        }
         foreach string name in (keys getMultipartFileProperties(param)) {
             if (!fields{name}) {
                 continue;
             }
             QoreDataField f = cast<QoreDataField>(fields{name}.copy());
             AbstractDataProviderType file_type = new QoreUnionDataType((FileDataType,
-                AbstractDataProviderType::get(SoftBinaryType)));
+                f.getType().getMandatoryType()));
             f.updateFieldType(f.isMandatory() ? file_type : file_type.getOrNothingType());
             fields{name} = f;
         }
@@ -3030,10 +3040,10 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         hash<string, bool> fields = {};
         if (consumes{MimeTypeMultipartFormData}) {
             foreach hash<auto> entry in (param.schema.properties.pairIterator()) {
-                # Inspect the resolved data type so nullable and referenced binary schemas also
-                # accept named files. A union with a non-binary alternative remains unchanged.
+                # Inspect every alternative so file-or-URL fields retain their URL alternative
+                # while gaining the same named upload support as an ordinary binary field.
                 AbstractDataField field = entry.value.getField(entry.key, NOTHING, False);
-                if (field.getType().getBaseTypeCode() == NT_BINARY) {
+                if (OperationObject::hasBinaryAlternative(field.getType())) {
                     fields{entry.key} = True;
                 }
             }
@@ -3041,11 +3051,33 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         return fields;
     }
 
+    #! Returns whether a multipart property accepts binary content, directly or through a union
+    private static bool hasBinaryAlternative(AbstractDataProviderType type) {
+        if (type.getBaseTypeCode() == NT_BINARY) {
+            return True;
+        }
+        if (type instanceof QoreUnionDataType) {
+            foreach AbstractDataProviderType branch in (cast<QoreUnionDataType>(type).getUnionTypes()) {
+                if (OperationObject::hasBinaryAlternative(branch)) {
+                    return True;
+                }
+            }
+        }
+        return False;
+    }
+
     #! Validates file contents against the wire schema without discarding their upload metadata
     private checkBodyParameter(ParameterObject param, bool serialize, reference<auto> value) {
         auto checked = value;
         hash<auto> files;
         if (serialize && checked.typeCode() == NT_HASH) {
+            # A one-field request can carry an inferred hash<hash> type. Use a heterogeneous
+            # copy before replacing a named file with its binary wire value.
+            hash<auto!> fields = {};
+            foreach hash<auto> entry in (checked.pairIterator()) {
+                fields{entry.key} = entry.value;
+            }
+            checked = fields;
             foreach string name in (keys getMultipartFileProperties(param)) {
                 if (checked{name}.typeCode() != NT_HASH) {
                     continue;
@@ -4698,6 +4730,13 @@ public class OpenApi3UnionDataType inherits QoreUnionDataType {
             case "object":
                 return tc == NT_HASH;
             case "string":
+                if (s.format == "binary") {
+                    return tc == NT_BINARY;
+                }
+                if (tc == NT_BINARY) {
+                    return s.format == "byte";
+                }
+                return tc != NT_LIST && tc != NT_HASH;
             case "integer":
             case "number":
             case "boolean":
@@ -5271,10 +5310,10 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
     }
 
     #! Returns True if this schema has composition features that require special type handling
-    /** Checks for oneOf, anyOf, not, or properties with readOnly/writeOnly attributes
+    /** Checks for allOf, oneOf, anyOf, not, or properties with readOnly/writeOnly attributes
     */
     bool hasSchemaCompositionFeatures() {
-        if (nullable || oneOf || anyOf || notSchema) {
+        if (nullable || allOf || oneOf || anyOf || notSchema) {
             return True;
         }
         # Check for readOnly/writeOnly properties
@@ -5758,7 +5797,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         int tc = value.typeCode();
         switch (branch.type) {
             case "boolean": return tc == NT_BOOLEAN;
-            case "string": return tc == NT_STRING || (tc == NT_DATE
+            case "string": return (tc == NT_STRING && branch.format != "binary") || (tc == NT_DATE
                     && (branch.format == "date" || branch.format == "date-time"))
                 || (tc == NT_BINARY && (branch.format == "byte" || branch.format == "binary"));
             case "integer": return tc == NT_INT || ((tc == NT_FLOAT || tc == NT_NUMBER)
@@ -5973,7 +6012,14 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
             }
         }
         # check for missing required properties
-        if (*list<string> missing = keys (required - keys value)) {
+        hash<string, bool> required_here = required ?? {};
+        foreach string key in (keys required_here) {
+            *SchemaObject prop = cast<*SchemaObject>(properties{key});
+            if ((request && prop.readOnly) || (!request && prop.writeOnly)) {
+                remove required_here{key};
+            }
+        }
+        if (*list<string> missing = keys (required_here - keys value)) {
             throw "SCHEMA-VALIDATION-ERROR", sprintf("object %y: missing required properties: %y (have: %y)", name,
                 missing, keys (required - missing));
         }

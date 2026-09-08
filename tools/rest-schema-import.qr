@@ -220,6 +220,7 @@ class RestSchemaImport {
                 "operations": getOperations(d.ops.val() ? resolvePath(dir, d.ops) : NOTHING, d.op,
                     d.manifest),
                 "normalize": getNormalizations(d.normalize, path),
+                "server_url": d.server_url,
                 "json": d.json,
             };
             prov += d.provenance.val()
@@ -250,7 +251,7 @@ class RestSchemaImport {
             if (!n.reason.val()) {
                 error("every entry of \"normalize\" in %y needs a \"reason\"", path);
             }
-            if (!n.operations && !n.relax_oneof && !n.replace_required && !n.rename_paths) {
+            if (!n.operations && !n.relax_oneof && !n.replace_required && !n.rename_paths && !n.replace_values) {
                 error("the repair %y in %y does nothing: it names no operations, compositions, or "
                     "required-property or path repairs", n.reason, path);
             }
@@ -282,6 +283,7 @@ class RestSchemaImport {
                 "relax_oneof": relax,
                 "replace_required": n.replace_required,
                 "rename_paths": n.rename_paths,
+                "replace_values": n.replace_values,
             };
         }
         return rv;

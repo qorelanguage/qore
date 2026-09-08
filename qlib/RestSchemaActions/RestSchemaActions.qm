@@ -406,6 +406,8 @@ module RestSchemaActions {
     @section restschemaactionsrelnotes Release Notes
 
     @subsection restschemaactionsv1_0 RestSchemaActions v1.0
+    - support checked schema value repairs and declared server selection during import
+    - support filtered and grouped reference data, identity records, and resource-name templates
     - preserve schema nullability independently of required-property presence when applying overlays
     - schema imports support checked path repairs, positional parameter renaming and merging of
       disjoint operations; conflicting members and stale repairs are rejected

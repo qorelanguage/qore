@@ -1,0 +1,1814 @@
+[
+  {
+    "action": "list-deployments",
+    "method": "GET",
+    "path": "/v1/deployments",
+    "request": {}
+  },
+  {
+    "action": "create-new-deployment",
+    "method": "POST",
+    "path": "/v1/deployments",
+    "request": {
+      "gpu_type": "h100-80gb",
+      "image": "sample",
+      "name": "sample"
+    }
+  },
+  {
+    "action": "delete-deployment",
+    "method": "DELETE",
+    "path": "/v1/deployments/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "get-deployment-by-id-or-name",
+    "method": "GET",
+    "path": "/v1/deployments/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "update-deployment",
+    "method": "PATCH",
+    "path": "/v1/deployments/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "get-logs-for-deployment",
+    "method": "GET",
+    "path": "/v1/deployments/{id}/logs",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "list-project-secrets",
+    "method": "GET",
+    "path": "/v1/deployments/secrets",
+    "request": {}
+  },
+  {
+    "action": "create-new-secret",
+    "method": "POST",
+    "path": "/v1/deployments/secrets",
+    "request": {
+      "name": "sample",
+      "value": "sample"
+    }
+  },
+  {
+    "action": "delete-secret",
+    "method": "DELETE",
+    "path": "/v1/deployments/secrets/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "get-secret-by-id-or-name",
+    "method": "GET",
+    "path": "/v1/deployments/secrets/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "update-secret",
+    "method": "PATCH",
+    "path": "/v1/deployments/secrets/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "download-storage-file",
+    "method": "GET",
+    "path": "/v1/deployments/storage/{filename}",
+    "request": {
+      "filename": "sample"
+    }
+  },
+  {
+    "action": "get-file-download-url",
+    "method": "GET",
+    "path": "/v1/deployments/storage/{filename}/url",
+    "request": {
+      "filename": "sample"
+    }
+  },
+  {
+    "action": "list-project-volumes",
+    "method": "GET",
+    "path": "/v1/deployments/storage/volumes",
+    "request": {}
+  },
+  {
+    "action": "create-new-volume",
+    "method": "POST",
+    "path": "/v1/deployments/storage/volumes",
+    "request": {
+      "content": {},
+      "name": "sample",
+      "type": "readOnly"
+    }
+  },
+  {
+    "action": "delete-volume",
+    "method": "DELETE",
+    "path": "/v1/deployments/storage/volumes/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "get-volume-by-id-or-name",
+    "method": "GET",
+    "path": "/v1/deployments/storage/volumes/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "update-volume",
+    "method": "PATCH",
+    "path": "/v1/deployments/storage/volumes/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "list-voices",
+    "method": "GET",
+    "path": "/v1/voices",
+    "request": {}
+  },
+  {
+    "action": "chat-completion",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "request": {
+      "messages": [
+        {
+          "content": "Invoice paid",
+          "role": "system"
+        }
+      ],
+      "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+    }
+  },
+  {
+    "action": "text-completion",
+    "method": "POST",
+    "path": "/v1/completions",
+    "request": {
+      "prompt": "<s>[INST] What is the capital of France? [/INST]",
+      "model": "meta-llama/Llama-2-70b-hf"
+    }
+  },
+  {
+    "action": "create-embeddings",
+    "method": "POST",
+    "path": "/v1/embeddings",
+    "request": {
+      "model": "WhereIsAI/UAE-Large-V1",
+      "input": "Our solar system orbits the Milky Way galaxy at about 515,000 mph"
+    }
+  },
+  {
+    "action": "list-models",
+    "method": "GET",
+    "path": "/v1/models",
+    "request": {}
+  },
+  {
+    "action": "upload-model",
+    "method": "POST",
+    "path": "/v1/models",
+    "request": {
+      "model_name": "Qwen2.5-72B-Instruct",
+      "model_source": "unsloth/Qwen2.5-72B-Instruct"
+    }
+  },
+  {
+    "action": "get-model-upload-job",
+    "method": "GET",
+    "path": "/v1/jobs/{jobId}",
+    "request": {
+      "jobId": "job-a15dad11-8d8e-4007-97c5-a211304de284"
+    }
+  },
+  {
+    "action": "list-model-upload-jobs",
+    "method": "GET",
+    "path": "/v1/jobs",
+    "request": {}
+  },
+  {
+    "action": "generate-image",
+    "method": "POST",
+    "path": "/v1/images/generations",
+    "request": {
+      "prompt": "cat floating in space, cinematic",
+      "model": "black-forest-labs/FLUX.1-schnell-Free"
+    }
+  },
+  {
+    "action": "list-files",
+    "method": "GET",
+    "path": "/v1/files",
+    "request": {}
+  },
+  {
+    "action": "get-file",
+    "method": "GET",
+    "path": "/v1/files/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "delete-file",
+    "method": "DELETE",
+    "path": "/v1/files/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "download-file",
+    "method": "GET",
+    "path": "/v1/files/{id}/content",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "upload-file",
+    "method": "POST",
+    "path": "/v1/files/upload",
+    "request": {
+      "purpose": "fine-tune",
+      "file_name": "dataset.csv",
+      "file": {
+        "name": "sample.wav",
+        "content": "__test_binary__",
+        "mime_type": "application/octet-stream"
+      }
+    }
+  },
+  {
+    "action": "create-fine-tune",
+    "method": "POST",
+    "path": "/v1/fine-tunes",
+    "request": {
+      "training_file": "sample",
+      "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+    }
+  },
+  {
+    "action": "list-fine-tunes",
+    "method": "GET",
+    "path": "/v1/fine-tunes",
+    "request": {}
+  },
+  {
+    "action": "estimate-fine-tune-price",
+    "method": "POST",
+    "path": "/v1/fine-tunes/estimate-price",
+    "request": {
+      "training_file": "sample"
+    }
+  },
+  {
+    "action": "preview-fine-tune-data",
+    "method": "POST",
+    "path": "/v1/fine-tunes/preview",
+    "request": {
+      "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+      "training_file": "sample"
+    }
+  },
+  {
+    "action": "get-fine-tune",
+    "method": "GET",
+    "path": "/v1/fine-tunes/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "delete-fine-tune",
+    "method": "DELETE",
+    "path": "/v1/fine-tunes/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "list-fine-tune-events",
+    "method": "GET",
+    "path": "/v1/fine-tunes/{id}/events",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "list-fine-tune-checkpoints",
+    "method": "GET",
+    "path": "/v1/fine-tunes/{id}/checkpoints",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "download-tokenized-dataset",
+    "method": "GET",
+    "path": "/v1/fine-tunes/{id}/download-tokenized-dataset",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "download-model",
+    "method": "GET",
+    "path": "/v1/finetune/download",
+    "request": {
+      "ft_id": "sample"
+    }
+  },
+  {
+    "action": "cancel-fine-tune",
+    "method": "POST",
+    "path": "/v1/fine-tunes/{id}/cancel",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "get-fine-tune-metrics",
+    "method": "GET",
+    "path": "/v1/fine-tunes/{id}/metrics",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "list-fine-tune-models",
+    "method": "GET",
+    "path": "/v1/fine-tunes/models/supported",
+    "request": {}
+  },
+  {
+    "action": "get-fine-tune-model-limits",
+    "method": "GET",
+    "path": "/v1/fine-tunes/models/limits",
+    "request": {
+      "model_name": "sample"
+    }
+  },
+  {
+    "action": "rerank",
+    "method": "POST",
+    "path": "/v1/rerank",
+    "request": {
+      "model": "Salesforce/Llama-Rank-v1",
+      "query": "What animals can I find near Peru?",
+      "documents": [
+        {}
+      ]
+    }
+  },
+  {
+    "action": "generate-speech",
+    "method": "POST",
+    "path": "/v1/audio/speech",
+    "request": {
+      "model": "cartesia/sonic",
+      "input": "Invoice paid",
+      "voice": "sample"
+    }
+  },
+  {
+    "action": "transcribe-audio",
+    "method": "POST",
+    "path": "/v1/audio/transcriptions",
+    "request": {
+      "file": {
+        "name": "sample.wav",
+        "content": "__test_binary__",
+        "mime_type": "application/octet-stream"
+      }
+    }
+  },
+  {
+    "action": "translate-audio",
+    "method": "POST",
+    "path": "/v1/audio/translations",
+    "request": {
+      "file": {
+        "name": "sample.wav",
+        "content": "__test_binary__",
+        "mime_type": "application/octet-stream"
+      }
+    }
+  },
+  {
+    "action": "list-gpu-clusters",
+    "method": "GET",
+    "path": "/v1/compute/clusters",
+    "request": {}
+  },
+  {
+    "action": "create-gpu-cluster",
+    "method": "POST",
+    "path": "/v1/compute/clusters",
+    "request": {
+      "region": "sample",
+      "gpu_type": "H100_SXM",
+      "num_gpus": 1,
+      "cluster_name": "sample",
+      "billing_type": "RESERVED",
+      "nvidia_version_id": "sample"
+    }
+  },
+  {
+    "action": "get-gpu-cluster-by-cluster-id",
+    "method": "GET",
+    "path": "/v1/compute/clusters/{cluster_id}",
+    "request": {
+      "cluster_id": "sample"
+    }
+  },
+  {
+    "action": "update-gpu-cluster",
+    "method": "PUT",
+    "path": "/v1/compute/clusters/{cluster_id}",
+    "request": {
+      "cluster_id": "sample"
+    }
+  },
+  {
+    "action": "delete-gpu-cluster-by-cluster-id",
+    "method": "DELETE",
+    "path": "/v1/compute/clusters/{cluster_id}",
+    "request": {
+      "cluster_id": "sample"
+    }
+  },
+  {
+    "action": "list-regions-and-corresponding-supported-driver-versions",
+    "method": "GET",
+    "path": "/v1/compute/regions",
+    "request": {}
+  },
+  {
+    "action": "list-shared-volumes",
+    "method": "GET",
+    "path": "/v1/compute/clusters/storage/volumes",
+    "request": {}
+  },
+  {
+    "action": "update-shared-volume",
+    "method": "PUT",
+    "path": "/v1/compute/clusters/storage/volumes",
+    "request": {
+      "volume_id": "sample"
+    }
+  },
+  {
+    "action": "create-shared-volume",
+    "method": "POST",
+    "path": "/v1/compute/clusters/storage/volumes",
+    "request": {
+      "volume_name": "sample",
+      "size_tib": 1,
+      "region": "sample"
+    }
+  },
+  {
+    "action": "get-shared-volume-by-id",
+    "method": "GET",
+    "path": "/v1/compute/clusters/storage/volumes/{volume_id}",
+    "request": {
+      "volume_id": "sample"
+    }
+  },
+  {
+    "action": "delete-shared-volume-by-id",
+    "method": "DELETE",
+    "path": "/v1/compute/clusters/storage/volumes/{volume_id}",
+    "request": {
+      "volume_id": "sample"
+    }
+  },
+  {
+    "action": "list-available-availability-zones",
+    "method": "GET",
+    "path": "/v1/clusters/availability-zones",
+    "request": {}
+  },
+  {
+    "action": "list-endpoints",
+    "method": "GET",
+    "path": "/v1/endpoints",
+    "request": {}
+  },
+  {
+    "action": "create-dedicated-endpoint",
+    "method": "POST",
+    "path": "/v1/endpoints",
+    "request": {
+      "model": "deepseek-ai/DeepSeek-R1",
+      "hardware": "1x_nvidia_a100_80gb_sxm",
+      "autoscaling": {
+        "min_replicas": 1,
+        "max_replicas": 1
+      }
+    }
+  },
+  {
+    "action": "get-endpoint",
+    "method": "GET",
+    "path": "/v1/endpoints/{endpointId}",
+    "request": {
+      "endpointId": "endpoint-d23901de-ef8f-44bf-b3e7-de9c1ca8f2d7"
+    }
+  },
+  {
+    "action": "update-endpoint",
+    "method": "PATCH",
+    "path": "/v1/endpoints/{endpointId}",
+    "request": {
+      "endpointId": "endpoint-d23901de-ef8f-44bf-b3e7-de9c1ca8f2d7"
+    }
+  },
+  {
+    "action": "delete-endpoint",
+    "method": "DELETE",
+    "path": "/v1/endpoints/{endpointId}",
+    "request": {
+      "endpointId": "endpoint-d23901de-ef8f-44bf-b3e7-de9c1ca8f2d7"
+    }
+  },
+  {
+    "action": "add-lora-adapter-to-endpoint",
+    "method": "POST",
+    "path": "/v1/endpoints/{endpointId}/adapters",
+    "request": {
+      "model_id": "username/Meta-Llama-3.1-8B-Instruct-def456:username/my-adapter-abc123",
+      "endpointId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "list-adapters-on-endpoint",
+    "method": "GET",
+    "path": "/v1/endpoints/{endpointId}/adapters",
+    "request": {
+      "endpointId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "remove-lora-adapter-from-endpoint",
+    "method": "DELETE",
+    "path": "/v1/endpoints/{endpointId}/adapters",
+    "request": {
+      "model_id": "sample",
+      "endpointId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "list-hardware",
+    "method": "GET",
+    "path": "/v1/hardware",
+    "request": {}
+  },
+  {
+    "action": "execute-code",
+    "method": "POST",
+    "path": "/v1/tci/execute",
+    "request": {
+      "code": "print('Hello, world!')",
+      "language": "python"
+    }
+  },
+  {
+    "action": "list-active-sessions",
+    "method": "GET",
+    "path": "/v1/tci/sessions",
+    "request": {}
+  },
+  {
+    "action": "list-batches",
+    "method": "GET",
+    "path": "/v1/batches",
+    "request": {}
+  },
+  {
+    "action": "create-batch",
+    "method": "POST",
+    "path": "/v1/batches",
+    "request": {
+      "endpoint": "/v1/chat/completions",
+      "input_file_id": "file-abc123def456ghi789"
+    }
+  },
+  {
+    "action": "get-batch",
+    "method": "GET",
+    "path": "/v1/batches/{id}",
+    "request": {
+      "id": "batch_job_abc123def456"
+    }
+  },
+  {
+    "action": "cancel-batch",
+    "method": "POST",
+    "path": "/v1/batches/{id}/cancel",
+    "request": {
+      "id": "batch_job_abc123def456"
+    }
+  },
+  {
+    "action": "create-evaluation",
+    "method": "POST",
+    "path": "/v1/evaluation",
+    "request": {
+      "type": "classify",
+      "parameters": {
+        "judge": {
+          "model": "Qwen/Qwen3.5-9B",
+          "system_template": "Imagine you are a helpful assistant",
+          "model_source": "serverless"
+        },
+        "labels": [
+          "sample",
+          "sample"
+        ],
+        "pass_labels": [
+          "sample"
+        ],
+        "input_data_file_path": "file-1234-aefd"
+      }
+    }
+  },
+  {
+    "action": "list-evaluations",
+    "method": "GET",
+    "path": "/v1/evaluation",
+    "request": {}
+  },
+  {
+    "action": "list-evaluation-models",
+    "method": "GET",
+    "path": "/v1/evaluation/model-list",
+    "request": {}
+  },
+  {
+    "action": "get-evaluation",
+    "method": "GET",
+    "path": "/v1/evaluation/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "get-evaluation-results",
+    "method": "GET",
+    "path": "/v1/evaluation/{id}/status",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "cancel-queued-job",
+    "method": "POST",
+    "path": "/v1/queue/cancel",
+    "request": {
+      "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+      "request_id": "sample"
+    }
+  },
+  {
+    "action": "clear-model-s-pending-jobs",
+    "method": "POST",
+    "path": "/v1/queue/clear",
+    "request": {
+      "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+    }
+  },
+  {
+    "action": "get-queue-metrics",
+    "method": "GET",
+    "path": "/v1/queue/metrics",
+    "request": {
+      "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+    }
+  },
+  {
+    "action": "get-job-status",
+    "method": "GET",
+    "path": "/v1/queue/status",
+    "request": {
+      "request_id": "sample",
+      "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+    }
+  },
+  {
+    "action": "submit-queued-job",
+    "method": "POST",
+    "path": "/v1/queue/submit",
+    "request": {
+      "model": "my-queue-model",
+      "payload": {}
+    }
+  },
+  {
+    "action": "list-model-resources",
+    "method": "GET",
+    "path": "/v1/rl/model-resources",
+    "request": {}
+  },
+  {
+    "action": "create-model-resources",
+    "method": "POST",
+    "path": "/v1/rl/model-resources",
+    "request": {
+      "base_model": "Qwen/Qwen3-0.6B"
+    }
+  },
+  {
+    "action": "estimate-on-demand-model-resource-cost",
+    "method": "POST",
+    "path": "/v1/rl/model-resources/estimate-cost",
+    "request": {
+      "base_model": "Qwen/Qwen3-0.6B"
+    }
+  },
+  {
+    "action": "get-model-resources",
+    "method": "GET",
+    "path": "/v1/rl/model-resources/{model_resources_id}",
+    "request": {
+      "model_resources_id": "sample"
+    }
+  },
+  {
+    "action": "stop-model-resources",
+    "method": "POST",
+    "path": "/v1/rl/model-resources/{model_resources_id}/stop",
+    "request": {
+      "model_resources_id": "sample"
+    }
+  },
+  {
+    "action": "list-training-sessions",
+    "method": "GET",
+    "path": "/v1/rl/training-sessions",
+    "request": {}
+  },
+  {
+    "action": "create-training-session",
+    "method": "POST",
+    "path": "/v1/rl/training-sessions",
+    "request": {
+      "model_resources_id": "123e4567-e89b-12d3-a456-426614174000"
+    }
+  },
+  {
+    "action": "list-supported-models",
+    "method": "GET",
+    "path": "/v1/rl/supported-models",
+    "request": {}
+  },
+  {
+    "action": "get-training-session",
+    "method": "GET",
+    "path": "/v1/rl/training-sessions/{session_id}",
+    "request": {
+      "session_id": "sample"
+    }
+  },
+  {
+    "action": "update-training-session",
+    "method": "PATCH",
+    "path": "/v1/rl/training-sessions/{session_id}",
+    "request": {
+      "session_id": "sample"
+    }
+  },
+  {
+    "action": "stop-training-session",
+    "method": "POST",
+    "path": "/v1/rl/training-sessions/{session_id}/stop",
+    "request": {
+      "session_id": "sample"
+    }
+  },
+  {
+    "action": "get-forward-backward-operation",
+    "method": "GET",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/forward-backward/{operation_id}",
+    "request": {
+      "session_id": "sample",
+      "operation_id": "sample"
+    }
+  },
+  {
+    "action": "get-optim-step-operation",
+    "method": "GET",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/optim-step/{operation_id}",
+    "request": {
+      "session_id": "sample",
+      "operation_id": "sample"
+    }
+  },
+  {
+    "action": "get-weights-sync-operation",
+    "method": "GET",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/weights-sync/{operation_id}",
+    "request": {
+      "session_id": "sample",
+      "operation_id": "sample"
+    }
+  },
+  {
+    "action": "get-sample-operation",
+    "method": "GET",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/sample/{operation_id}",
+    "request": {
+      "session_id": "sample",
+      "operation_id": "sample"
+    }
+  },
+  {
+    "action": "forward-backward-pass",
+    "method": "POST",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/forward-backward",
+    "request": {
+      "samples": [
+        {
+          "model_input": {
+            "chunks": [
+              {
+                "encoded_text": {
+                  "tokens": [
+                    "sample"
+                  ]
+                }
+              }
+            ]
+          },
+          "loss_fn_inputs": {}
+        }
+      ],
+      "loss": {
+        "type": "LOSS_TYPE_UNSPECIFIED"
+      },
+      "session_id": "sample"
+    }
+  },
+  {
+    "action": "custom-forward-backward-pass",
+    "method": "POST",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/custom-forward-backward",
+    "request": {
+      "samples": [
+        {
+          "model_input": {
+            "chunks": [
+              {
+                "encoded_text": {
+                  "tokens": [
+                    "sample"
+                  ]
+                }
+              }
+            ]
+          },
+          "loss_fn_inputs": {}
+        }
+      ],
+      "gradients": [
+        {
+          "data": [
+            1.0
+          ]
+        }
+      ],
+      "session_id": "sample"
+    }
+  },
+  {
+    "action": "get-custom-forward-backward-operation",
+    "method": "GET",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/custom-forward-backward/{operation_id}",
+    "request": {
+      "session_id": "sample",
+      "operation_id": "sample"
+    }
+  },
+  {
+    "action": "forward-pass",
+    "method": "POST",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/forward",
+    "request": {
+      "samples": [
+        {
+          "model_input": {
+            "chunks": [
+              {
+                "encoded_text": {
+                  "tokens": [
+                    "sample"
+                  ]
+                }
+              }
+            ]
+          },
+          "loss_fn_inputs": {}
+        }
+      ],
+      "session_id": "sample"
+    }
+  },
+  {
+    "action": "get-forward-operation",
+    "method": "GET",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/forward/{operation_id}",
+    "request": {
+      "session_id": "sample",
+      "operation_id": "sample"
+    }
+  },
+  {
+    "action": "optimizer-step",
+    "method": "POST",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/optim-step",
+    "request": {
+      "session_id": "sample"
+    }
+  },
+  {
+    "action": "weights-sync",
+    "method": "POST",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/weights-sync",
+    "request": {
+      "weight_sync_type": "WEIGHT_SYNC_TYPE_SYNCHRONOUS",
+      "session_id": "sample"
+    }
+  },
+  {
+    "action": "sample",
+    "method": "POST",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/sample",
+    "request": {
+      "model_inputs": [
+        {
+          "chunks": [
+            {
+              "encoded_text": {
+                "tokens": [
+                  "sample"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "session_id": "sample"
+    }
+  },
+  {
+    "action": "create-inference-checkpoint",
+    "method": "POST",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/inference-checkpoint",
+    "request": {
+      "session_id": "sample"
+    }
+  },
+  {
+    "action": "get-inference-checkpoint-operation",
+    "method": "GET",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/inference-checkpoint/{operation_id}",
+    "request": {
+      "session_id": "sample",
+      "operation_id": "sample"
+    }
+  },
+  {
+    "action": "save-training-checkpoint",
+    "method": "POST",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/training-checkpoint",
+    "request": {
+      "session_id": "sample"
+    }
+  },
+  {
+    "action": "get-save-training-checkpoint-operation",
+    "method": "GET",
+    "path": "/v1/rl/training-sessions/{session_id}/operations/training-checkpoint/{operation_id}",
+    "request": {
+      "session_id": "sample",
+      "operation_id": "sample"
+    }
+  },
+  {
+    "action": "get-checkpoint",
+    "method": "GET",
+    "path": "/v1/rl/checkpoints/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "download-checkpoint",
+    "method": "GET",
+    "path": "/v1/rl/checkpoints/{id}/download",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "variant": "CHECKPOINT_VARIANT_UNSPECIFIED"
+    }
+  },
+  {
+    "action": "list-addons",
+    "method": "GET",
+    "path": "/v1/compute/clusters/{cluster_id}/addons",
+    "request": {
+      "cluster_id": "sample"
+    }
+  },
+  {
+    "action": "create-addon",
+    "method": "POST",
+    "path": "/v1/compute/clusters/{cluster_id}/addons",
+    "request": {
+      "name": "sample",
+      "add_on_type": "sample",
+      "cluster_id": "sample"
+    }
+  },
+  {
+    "action": "get-addon",
+    "method": "GET",
+    "path": "/v1/compute/clusters/{cluster_id}/addons/{addon_id}",
+    "request": {
+      "cluster_id": "sample",
+      "addon_id": "sample"
+    }
+  },
+  {
+    "action": "update-addon",
+    "method": "PUT",
+    "path": "/v1/compute/clusters/{cluster_id}/addons/{addon_id}",
+    "request": {
+      "cluster_id": "sample",
+      "addon_id": "sample"
+    }
+  },
+  {
+    "action": "delete-addon",
+    "method": "DELETE",
+    "path": "/v1/compute/clusters/{cluster_id}/addons/{addon_id}",
+    "request": {
+      "cluster_id": "sample",
+      "addon_id": "sample"
+    }
+  },
+  {
+    "action": "list-remediations",
+    "method": "GET",
+    "path": "/v1/compute/clusters/{cluster_id}/instances/{instance_id}/remediations",
+    "request": {
+      "cluster_id": "sample",
+      "instance_id": "sample"
+    }
+  },
+  {
+    "action": "create-remediation",
+    "method": "POST",
+    "path": "/v1/compute/clusters/{cluster_id}/instances/{instance_id}/remediations",
+    "request": {
+      "mode": "REMEDIATION_MODE_VM_ONLY",
+      "cluster_id": "sample",
+      "instance_id": "sample"
+    }
+  },
+  {
+    "action": "get-remediation",
+    "method": "GET",
+    "path": "/v1/compute/clusters/{cluster_id}/instances/{instance_id}/remediations/{remediation_id}",
+    "request": {
+      "cluster_id": "sample",
+      "instance_id": "sample",
+      "remediation_id": "sample"
+    }
+  },
+  {
+    "action": "approve-remediation",
+    "method": "POST",
+    "path": "/v1/compute/clusters/{cluster_id}/instances/{instance_id}/remediations/{remediation_id}/approve",
+    "request": {
+      "cluster_id": "sample",
+      "instance_id": "sample",
+      "remediation_id": "sample"
+    }
+  },
+  {
+    "action": "cancel-remediation",
+    "method": "POST",
+    "path": "/v1/compute/clusters/{cluster_id}/instances/{instance_id}/remediations/{remediation_id}/cancel",
+    "request": {
+      "cluster_id": "sample",
+      "instance_id": "sample",
+      "remediation_id": "sample"
+    }
+  },
+  {
+    "action": "reject-remediation",
+    "method": "POST",
+    "path": "/v1/compute/clusters/{cluster_id}/instances/{instance_id}/remediations/{remediation_id}/reject",
+    "request": {
+      "cluster_id": "sample",
+      "instance_id": "sample",
+      "remediation_id": "sample"
+    }
+  },
+  {
+    "action": "list-passive-health-check-alerts",
+    "method": "GET",
+    "path": "/v1/compute/passive_health_check_alerts",
+    "request": {}
+  },
+  {
+    "action": "get-api-key-identity",
+    "method": "GET",
+    "path": "/v1/whoami",
+    "request": {}
+  },
+  {
+    "action": "get-billing-usage",
+    "method": "GET",
+    "path": "/v1/billing/usage",
+    "request": {}
+  },
+  {
+    "action": "dedicated-list-organization-endpoints",
+    "method": "GET",
+    "path": "/v2/organizations/{organizationId}/endpoints",
+    "request": {
+      "organizationId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-organization-models",
+    "method": "GET",
+    "path": "/v2/organizations/{organizationId}/models",
+    "request": {
+      "organizationId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-model-configurations",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/configs",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-get-model-configuration",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/configs/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-endpoints",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-create-endpoint",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/endpoints",
+    "request": {
+      "name": "sample",
+      "projectId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-update-endpoint",
+    "method": "PATCH",
+    "path": "/v2/projects/{projectId}/endpoints/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-get-endpoint",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-delete-endpoint",
+    "method": "DELETE",
+    "path": "/v2/projects/{projectId}/endpoints/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-deployments",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/deployments",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-create-deployment",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/deployments",
+    "request": {
+      "name": "sample",
+      "autoscaling": {},
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-update-deployment",
+    "method": "PATCH",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/deployments/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-get-deployment",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/deployments/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-delete-deployment",
+    "method": "DELETE",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/deployments/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-deployment-adapters",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/deployments/{deploymentId}/adapters",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "deploymentId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-add-deployment-adapter",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/deployments/{deploymentId}/adapters",
+    "request": {
+      "adapterModelId": "sample",
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "deploymentId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-get-deployment-adapter",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/deployments/{deploymentId}/adapters/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "deploymentId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-remove-deployment-adapter",
+    "method": "DELETE",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/deployments/{deploymentId}/adapters/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "deploymentId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001",
+      "etag": "sample"
+    }
+  },
+  {
+    "action": "dedicated-update-deployment-adapter",
+    "method": "PATCH",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/deployments/{deploymentId}/adapters/{id}",
+    "request": {
+      "adapterRevisionId": "sample",
+      "etag": "sample",
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "deploymentId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-endpoint-rollouts",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/rollouts",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-create-rollout",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/rollouts",
+    "request": {
+      "sourceDeploymentId": "sample",
+      "targetDeploymentId": "sample",
+      "canary": {},
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-preview-rollout-defaults",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/rollouts/preview-defaults",
+    "request": {
+      "sourceDeploymentId": "sample",
+      "targetDeploymentId": "sample",
+      "canary": {},
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-get-rollout",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/rollouts/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-delete-rollout",
+    "method": "DELETE",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/rollouts/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-start-rollout",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/rollouts/{id}/start",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-pause-rollout",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/rollouts/{id}/pause",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-resume-rollout",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/rollouts/{id}/resume",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-cancel-rollout",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/rollouts/{id}/cancel",
+    "request": {
+      "reason": "sample",
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-promote-rollout",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/rollouts/{id}/promote",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-a-b-experiments",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/abExperiments",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-create-a-b-experiment",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/abExperiments",
+    "request": {
+      "name": "sample",
+      "members": [
+        {
+          "deploymentId": "00000000-0000-4000-8000-000000000001",
+          "role": "AB_EXPERIMENT_MEMBER_ROLE_CONTROL",
+          "percent": 1
+        }
+      ],
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-update-a-b-experiment",
+    "method": "PATCH",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/abExperiments/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-get-a-b-experiment",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/abExperiments/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-delete-a-b-experiment",
+    "method": "DELETE",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/abExperiments/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-shadow-experiments",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/shadowExperiments",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-create-shadow-experiment",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/shadowExperiments",
+    "request": {
+      "name": "sample",
+      "source": {
+        "endpoint": {
+          "sampling": {
+            "uniform": {
+              "rate": 1.0
+            }
+          }
+        }
+      },
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-update-shadow-experiment",
+    "method": "PATCH",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/shadowExperiments/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001",
+      "updateMask": "sample"
+    }
+  },
+  {
+    "action": "dedicated-get-shadow-experiment",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/shadowExperiments/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-delete-shadow-experiment",
+    "method": "DELETE",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/shadowExperiments/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-shadow-experiment-targets",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/shadowExperiments/{experimentId}/targets",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "experimentId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-create-shadow-experiment-target",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/shadowExperiments/{experimentId}/targets",
+    "request": {
+      "name": "sample",
+      "targetDeploymentId": "sample",
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "experimentId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-update-shadow-experiment-target",
+    "method": "PATCH",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/shadowExperiments/{experimentId}/targets/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "experimentId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001",
+      "updateMask": "sample"
+    }
+  },
+  {
+    "action": "dedicated-get-shadow-experiment-target",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/shadowExperiments/{experimentId}/targets/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "experimentId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-delete-shadow-experiment-target",
+    "method": "DELETE",
+    "path": "/v2/projects/{projectId}/endpoints/{endpointId}/shadowExperiments/{experimentId}/targets/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "endpointId": "00000000-0000-4000-8000-000000000001",
+      "experimentId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-get-endpoint-analytics",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{id}/analytics",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-endpoint-events",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/endpoints/{id}/events",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-project-models",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/models",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-create-model",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/models",
+    "request": {
+      "name": "sample",
+      "type": "sample",
+      "baseModelId": "sample",
+      "projectId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-get-model",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/models/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-delete-model",
+    "method": "DELETE",
+    "path": "/v2/projects/{projectId}/models/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-update-model",
+    "method": "PATCH",
+    "path": "/v2/projects/{projectId}/models/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-placement-profiles",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/placement-profiles",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-get-placement-profile",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/placement-profiles/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-model-files",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/models/{id}/files",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-model-revisions",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/models/{id}/revisions",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-get-model-volume-revision",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/models/{id}/revisions/{revisionId}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001",
+      "revisionId": "sample"
+    }
+  },
+  {
+    "action": "dedicated-list-remote-model-uploads",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/models/uploads",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-create-remote-model-upload",
+    "method": "POST",
+    "path": "/v2/projects/{projectId}/models/uploads",
+    "request": {
+      "modelId": "sample",
+      "remoteUrl": "sample",
+      "projectId": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-get-remote-model-upload",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/models/uploads/{id}",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-remote-model-upload-events",
+    "method": "GET",
+    "path": "/v2/projects/{projectId}/models/uploads/{id}/events",
+    "request": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-public-endpoints",
+    "method": "GET",
+    "path": "/v2/public/endpoints",
+    "request": {}
+  },
+  {
+    "action": "dedicated-list-inference-instance-types",
+    "method": "GET",
+    "path": "/v2/public/inference-instance-types",
+    "request": {}
+  },
+  {
+    "action": "dedicated-get-inference-instance-type",
+    "method": "GET",
+    "path": "/v2/public/inference-instance-types/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "dedicated-list-supported-models",
+    "method": "GET",
+    "path": "/v2/supported-models",
+    "request": {}
+  },
+  {
+    "action": "dedicated-get-supported-model",
+    "method": "GET",
+    "path": "/v2/supported-models/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "get-video",
+    "method": "GET",
+    "path": "/v2/videos/{id}",
+    "request": {
+      "id": "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  {
+    "action": "generate-video",
+    "method": "POST",
+    "path": "/v2/videos",
+    "request": {
+      "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+    }
+  }
+]

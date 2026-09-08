@@ -1247,3 +1247,26 @@ selected action's schema. No background batch polling is introduced.
 OpenAPI `const` properties are validated before coercion and published as scalar field choices, so
 model discriminators select the correct request alternative. Nullable scalar compositions validate
 their non-null branch's bounds and enums; a null alternative cannot admit an invalid numeric value.
+
+
+## Together AI server partitions and grouped reference data
+
+Together AI's official document uses operation-level servers to distinguish v1 and v2. An import
+spec can select a declared fixed `server_url` for each document. The importer resolves server precedence
+(operation, path, document), verifies that every selected operation declares that URL, and promotes it
+to the partition's document server before pruning. It rejects templates and undeclared URLs. This keeps
+the normal runtime routing and original-source provenance intact; it does not introduce a host override.
+
+`replace_values` repairs an existing schema value by JSON pointer, with an exact typed `expected` value
+and a `replacement`. Use it for concrete upstream errors such as a number default published as a string.
+Every repair needs a source-backed reason, fails on drift or no-op replacements, and is recorded in the
+artifact. It is not a way to narrow valid API contracts in a presentation overlay.
+
+Reference-data declarations can use `record_filter` for exact local matches and `filter_from` for values
+from action options. Missing dependent options return no choices without making a request. After filtering,
+`children_path` expands a nested collection, as with Together's model-specific voice lists. `single_record`
+wraps an identity response as one choice, so project and organization selectors can use the authenticated
+key's scope. Filters never become undocumented API parameters. The standard `value_field`, `display_field`,
+and deduplication rules apply to the resulting records. `value_template` assembles a resource name from
+scalar record fields, for example `projects/{projectId}/models/{id}`. Missing template fields are errors;
+the displayed label still comes from `display_field`.

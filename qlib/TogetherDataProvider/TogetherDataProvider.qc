@@ -37,6 +37,7 @@ public class TogetherDataProvider inherits TogetherDataProviderCommon {
 
     private {
         static hash<string, Reflection::Class> childMap = DefaultChildMap;
+        static Mutex child_lock();
 
         const DefaultChildMap = {
             "chat-completion":
@@ -58,24 +59,49 @@ public class TogetherDataProvider inherits TogetherDataProviderCommon {
         return ProviderInfo.name;
     }
 
+    #! Registers an additional child provider without replacing a built-in action
+    /** @param pathname the new child identifier
+        @param cls the provider class, accepting a REST client in its constructor
+        @throw TOGETHER-CHILD-ERROR the identifier is already registered
+    */
     static registerChild(string pathname, Reflection::Class cls) {
-        if (childMap{pathname}) {
+        AutoLock al(child_lock);
+        if (childMap{pathname} || TogetherSchema::findActionSet(pathname)) {
             throw "TOGETHER-CHILD-ERROR", sprintf("child %y already registered", pathname);
         }
         childMap{pathname} = cls;
     }
 
+    #! Returns the summaries of the registered child providers
+    /** @return the built-in and additional child summaries */
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator();
+        list<hash<DataProviderSummaryInfo>> rv = ();
+        foreach string name in (getChildProviderNamesImpl()) {
+            push rv, getChildProvider(name).getSummaryInfo();
+        }
+        return rv;
     }
 
     private *list<string> getChildProviderNamesImpl() {
-        return keys childMap;
+        AutoLock al(child_lock);
+        hash<string, bool> names;
+        foreach RestSchemaActionSet set in (TogetherSchema::getActionSets()) {
+            map names{$1} = True, set.getActionNames();
+        }
+        map names{$1} = True, keys childMap;
+        return keys names;
     }
 
     private *AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = childMap{name};
+        *Class cls;
+        {
+            AutoLock al(child_lock);
+            cls = childMap{name};
+        }
         if (!cls) {
+            if (TogetherSchema::findActionSet(name)) {
+                return getSchemaProvider(name);
+            }
             return;
         }
         return cls.newObject(rest);

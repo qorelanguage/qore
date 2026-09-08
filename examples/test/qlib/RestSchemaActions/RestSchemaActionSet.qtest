@@ -307,6 +307,7 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
         addTestCase("reference data", \referenceDataTest());
         addTestCase("scoped reference data", \scopedReferenceDataTest());
         addTestCase("nested reference data fields", \nestedReferenceDataTest());
+        addTestCase("filtered, grouped, and singleton reference data", \filteredReferenceDataTest());
         addTestCase("a value that follows another option", \valueFromTest());
         addTestCase("action registration", \actionRegistrationTest());
         addTestCase("action mutation effects", \actionMutationEffectTest());
@@ -1164,6 +1165,66 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
                 "fields": {"widget_id": <RestSchemaFieldOverlayInfo>{"ref_data": "widget"}},
             }),
         ), ScopedRefData));
+    }
+
+    filteredReferenceDataTest() {
+        list<hash<RestSchemaActionInfo>> manifest = (
+            entry("list-categories", "GET", "/categories"),
+            entry("create-widget", "POST", "/widgets", {
+                "fields": {"category": <RestSchemaFieldOverlayInfo>{"ref_data": "category"}},
+            }),
+        );
+        hash<RestSchemaReferenceDataInfo> rd = <RestSchemaReferenceDataInfo>{
+            "name": "category", "action": "list-categories", "records_path": ("data",),
+            "record_filter": {"enabled": True}, "filter_from": {"group": "name"},
+            "children_path": ("items",), "value_field": "id", "display_field": "name",
+        };
+        RestSchemaActionSet aset = makeSet(manifest, {"category": rd});
+        FakeRestClient rest();
+        RestSchemaActionSetDataProvider root(aset, rest);
+        AbstractDataProvider create = root.getChildProviderEx("create-widget");
+        assertNothing(create.getReferenceData("category", {}), "dependent filter needs its source option");
+        assertEq(0, rest.requests.size(), "missing scope performs no request");
+        rest.push_response({"body": {"data": (
+            {"enabled": True, "group": "tools", "items": ({"id": "a", "name": "Hammer"},)},
+            {"enabled": True, "group": "tools", "items": ({"id": "a", "name": "Duplicate"}, {"id": "b"})},
+            {"enabled": False, "group": "tools", "items": ({"id": "hidden"},)},
+            {"enabled": True, "group": "books", "items": ({"id": "foreign"},)},
+            {"enabled": "true", "group": "tools", "items": ({"id": "wrong-type"},)},
+        )}});
+        *list<hash<AllowedValueInfo>> values = create.getReferenceData("category", {"name": "tools"});
+        assertEq(("a", "b"), map $1.value, values);
+        assertEq(("Hammer", "b"), map $1.display_name, values);
+        assertFalse(rest.last().path =~ /tools/, "local filters are not sent as unsupported API arguments");
+        foreach auto bad in ({"enabled": True, "group": "tools"},
+                {"enabled": True, "group": "tools", "items": "bad"},
+                {"enabled": True, "group": "tools", "items": ("bad",)}, "bad") {
+            rest.push_response({"body": {"data": (bad,)}});
+            assertThrows("REFERENCE-DATA-ERROR", sub () {
+                create.getReferenceData("category", {"name": "tools"});
+            });
+        }
+        rest.push_response({"body": {"data": ()}});
+        assertNothing(create.getReferenceData("category", {"name": "tools"}));
+        rd.filter_from = {"group": "missing"};
+        assertThrows("REST-SCHEMA-ACTION-ERROR", sub () { makeSet(manifest, {"category": rd}); });
+        rd.filter_from = NOTHING;
+        rd.record_filter = NOTHING;
+        rd.children_path = NOTHING;
+        rd.records_path = NOTHING;
+        rd.single_record = True;
+        rd.value_template = "projects/{owner.id}/models/{id}";
+        aset = makeSet(manifest, {"category": rd});
+        RestSchemaActionSetDataProvider identity_root(aset, rest);
+        create = identity_root.getChildProviderEx("create-widget");
+        rest.push_response({"body": {"id": "model-a", "owner": {"id": "project-a"}, "name": "Current Model"}});
+        values = create.getReferenceData("category");
+        assertEq("projects/project-a/models/model-a", values[0].value);
+        assertEq("Current Model", values[0].display_name);
+        rest.push_response({"body": {"id": "missing-owner"}});
+        assertThrows("REFERENCE-DATA-ERROR", sub () { create.getReferenceData("category"); });
+        rest.push_response({"body": "bad"});
+        assertThrows("REFERENCE-DATA-ERROR", sub () { create.getReferenceData("category"); });
     }
 
     nestedReferenceDataTest() {

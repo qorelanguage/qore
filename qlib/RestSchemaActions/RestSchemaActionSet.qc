@@ -66,12 +66,30 @@ public hashdecl RestSchemaReferenceDataInfo {
     */
     *softlist<string> records_path;
 
+    #! Treat the value at records_path as one record, for identity endpoints
+    bool single_record = False;
+
+    #! Exact field values used to filter records locally, such as a model task
+    *hash<auto> record_filter;
+
+    #! Record filters supplied by calling action options, keyed by record field
+    *hash<string, string> filter_from;
+
+    #! A nested collection to expand from each matching record, such as a model's voices
+    *softlist<string> children_path;
+
     #! The record field supplying the value
     /** A \c "." separated path reaches into a nested record: a Bitbucket workspace membership carries the
         identity as \c "user.uuid", not at the top level, and a dropdown that could only read top-level
         fields would have nothing to offer.
     */
     string value_field;
+
+    #! Formats a resource name from record fields using literal {field} placeholders
+    /** When set, replaces the value_field result. All placeholders must name scalar record fields.
+        For example, projects/{projectId}/models/{id} preserves the resource's owning project.
+    */
+    *string value_template;
 
     #! The record field supplying the display name
     /** Falls back to @ref value_field when absent, or when a record does not carry it - many APIs allow the
@@ -583,7 +601,9 @@ public class RestSchemaActionSet {
                     }
                     # a forwarded value has to come from somewhere: an action offering a dropdown scoped by
                     # a value it does not itself have would show an empty list and no reason for it
-                    foreach string from in (rd.options_from.iterator()) {
+                    list<string> sources = map $1, rd.options_from.iterator();
+                    sources += map $1, rd.filter_from.iterator();
+                    foreach string from in (sources) {
                         if (!exists fields{from}) {
                             throw "REST-SCHEMA-ACTION-ERROR", sprintf("action %y option %y declares %s %y, "
                                 "which is scoped by option %y; action %y does not declare that option, so the "
