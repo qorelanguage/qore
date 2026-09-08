@@ -284,6 +284,15 @@ create the cleanup worker raises `THREAD-CREATION-FAILURE` before starting an
 external worker. An impossible native join ownership error terminates the process
 instead of continuing unsafe module teardown.
 
+Explicit `exit()` does not unwind the active Qore program and cannot call full
+`qore_cleanup()`. It uses C `exit()` only from a non-signal thread when at most
+one Qore thread remains and the external completion counter is zero. This path
+stops the JIT worker and joins the idle native reaper before static destruction,
+preserving stdio flushing and `atexit` callbacks. If external workers or their
+native TLS destructors are still active, it uses `_Exit()` immediately, as it
+already does for multiple Qore threads and signal-handler exits. It must not
+wait for those workers: they may depend on the caller or be the caller itself.
+
 The regression `examples/test/qore/classes/ThreadPool/native_thread_cleanup.cpp`
 blocks native TLS destructors at barriers and checks that their threads remain
 counted. It covers concurrent first creation, both stack-size overloads, repeated
@@ -295,6 +304,11 @@ cmake --build build-debug --target qore-native-thread-cleanup-test -j4
 LD_LIBRARY_PATH=build-debug build-debug/qore-native-thread-cleanup-test
 LD_LIBRARY_PATH=build-debug build-debug/qore-native-thread-cleanup-test --empty
 ```
+
+`examples/test/qore/classes/ThreadPool/explicit_exit.py` runs the native helper
+and Qore interpreter in subprocesses with timeouts. It checks idle reaper exit,
+blocked workers and native TLS cleanup, signal handlers, stopped pools, exit
+statuses, and stdio/`atexit` behavior; see the adjacent ThreadPool README.
 
 POSIX defines the post-start-routine destructor processing in
 [pthread_exit](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_exit.html)

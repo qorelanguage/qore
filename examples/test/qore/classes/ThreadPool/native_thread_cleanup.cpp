@@ -11,6 +11,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <mutex>
 #include <array>
@@ -55,6 +56,16 @@ struct NativeCleanup {
     static void worker(ExceptionSink*, void* arg) {
         auto& state = *static_cast<NativeCleanup*>(arg);
         assert(!pthread_setspecific(state.key, &state));
+    }
+
+    static void blockedWorker(ExceptionSink*, void* arg) {
+        auto& state = *static_cast<NativeCleanup*>(arg);
+        std::unique_lock<std::mutex> lock(state.mutex);
+        state.entered = true;
+        state.condition.notify_all();
+        assert(state.condition.wait_for(lock, std::chrono::seconds(30), [&state]() {
+            return state.released;
+        }));
     }
 
     void waitForDestructor() {
@@ -178,8 +189,57 @@ static void checkNativeCreationFailure() {
 }
 #endif
 
+static void checkExplicitExit(const char* mode) {
+    // Both markers stay in stdio's buffer until exit() flushes it. _Exit() must
+    // skip the atexit callback and flushing while native workers are still active.
+    assert(!atexit([]() { fputs("atexit\n", stdout); }));
+    fputs("buffered output\n", stdout);
+
+    NativeCleanup state;
+    ExceptionSink xsink;
+    bool signal = !strncmp(mode, "--exit-signal", 13);
+    bool tls = strstr(mode, "tls");
+    bool active = !strcmp(mode, "--exit-active");
+    if (tls || active) {
+        auto worker = active ? NativeCleanup::blockedWorker : NativeCleanup::worker;
+        int tid = strstr(mode, "custom")
+            ? q_start_thread(&xsink, worker, &state, size_t(1024 * 1024), QTF_EXTERNAL_LIFECYCLE)
+            : q_start_thread(&xsink, worker, &state, QTF_EXTERNAL_LIFECYCLE);
+        assert(tid > 0 && !xsink);
+        state.waitForDestructor();
+        assert(tp_thread_counter.getCount() == 1);
+        // The barrier stays closed: explicit exit must not wait for this worker.
+    } else if (strcmp(mode, "--exit-empty")) {
+        checkNativeCleanup(false);
+        checkNativeCleanup(true);
+        assert(tp_thread_counter.getCount() == 0);
+    }
+
+    QoreProgramHelper pgm(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES, xsink);
+    const char* source = signal
+        ? "set_signal_handler(SIGUSR1, sub(int sig) { if (gettid() != 0) { abort(); } exit(17); });"
+          "kill(getpid(), SIGUSR1); while (True) { usleep(1000); }"
+        : active ? "if (num_threads() != 2) { abort(); } exit(17);"
+        : "if (num_threads() != 1) { abort(); } exit(17);";
+    pgm->parse(source, "explicit-exit", &xsink);
+    if (xsink) {
+        xsink.handleExceptions();
+        abort();
+    }
+    pgm->run(&xsink).discard(&xsink);
+    xsink.handleExceptions();
+    abort(); // exit() must never return or throw
+}
+
 int main(int argc, char** argv) {
-    qore_init(QL_MIT, "UTF-8", true, QLO_DISABLE_SIGNAL_HANDLING);
+    // Force buffering even when the native helper is run directly from a terminal.
+    static char output_buffer[BUFSIZ];
+    assert(!setvbuf(stdout, output_buffer, _IOFBF, sizeof(output_buffer)));
+    bool signal = argc > 1 && !strncmp(argv[1], "--exit-signal", 13);
+    qore_init(QL_MIT, "UTF-8", true, signal ? QLO_NONE : QLO_DISABLE_SIGNAL_HANDLING);
+    if (argc > 1 && !strncmp(argv[1], "--exit-", 7)) {
+        checkExplicitExit(argv[1]);
+    }
 #ifdef __linux__
     if (argc > 1 && !strcmp(argv[1], "--creation-failure")) {
         // First fail reaper startup, then fail a worker after the reaper exists.

@@ -3056,6 +3056,10 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       I/O workers; external-lifecycle threads are now joined before their completion counter is released,
       preventing native TLS allocations and cleanup callbacks from surviving module teardown
 
+    - fixed explicit \c exit() hanging after a stopped ThreadPool by joining the idle native cleanup
+      worker before static destruction; exits with active workers or native TLS cleanup still terminate
+      immediately without running static destructors
+
     - fixed a crash cleaning up a thread that still held a @ref Qore::SQL::Datasource "Datasource" connection when
       the @ref Qore::SQL::Datasource "Datasource" object itself was already destroyed (for example when another
       thread deleted it while this one held the connection).  The datasource is registered as a thread resource
