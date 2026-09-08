@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -211,10 +211,15 @@ date TimeZone::date(date date_value) [flags=CONSTANT,NAMED_ARGS] {
     ISO-8601, RFC 7231 (HTTP dates: IMF-fixdate, RFC 850, asctime), and RFC 2822 (email dates
     with numeric timezone offset) formats
 
+    @return the parsed absolute date; input without an explicit zone uses this object's time zone
+
+    @throw INVALID-DATE the string cannot be parsed as a valid date
+
     @par Example:
     @code{.py}
-date dt = tz.date(date_string: "2012-01-01T13:56:23");
-date dt = tz.date(date_string: "Sun, 06 Nov 1994 08:49:37 GMT");  # RFC 7231 IMF-fixdate
+TimeZone tz(region: "Europe/Prague");
+date local_dt = tz.date(date_string: "2012-01-01T13:56:23");
+date http_dt = tz.date(date_string: "Sun, 06 Nov 1994 08:49:37 GMT");  # RFC 7231 IMF-fixdate
     @endcode
 
     @note RFC 7231 and RFC 2822 dates are always returned as UTC regardless of the TimeZone object's zone
@@ -223,8 +228,12 @@ date dt = tz.date(date_string: "Sun, 06 Nov 1994 08:49:37 GMT");  # RFC 7231 IMF
 
     @since %Qore 3.0.0 RFC 7231 (HTTP) and RFC 2822 (email) date formats are supported
  */
-date TimeZone::date(string date_string) [flags=CONSTANT,NAMED_ARGS] {
-    return new DateTimeNode(z->get(), date_string->getBuffer());
+date TimeZone::date(string date_string) [flags=RET_VALUE_ONLY,NAMED_ARGS] {
+    ReferenceHolder<DateTimeNode> rv(new DateTimeNode(z->get(), date_string->getBuffer(), xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    return rv.release();
 }
 
 //! Returns a @ref date "date/time" value in the current TimeZone corresponding to parsing a string argument according to a @ref date_mask "format mask"

@@ -1477,6 +1477,11 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
     RFC 7231 dates (with \c GMT or \c UTC timezone) are always returned as UTC. RFC 2822 numeric
     offsets (e.g. \c +0530) are converted to UTC.
 
+    @ref Qore::TimeZone::date(string) "TimeZone::date(string)" now propagates \c INVALID-DATE
+    errors from the date parser instead of silently returning a fallback or normalized date for invalid input.
+    Strings without an explicit zone still use the object's time zone, including its daylight saving rules.
+    The C++ API adds a \c DateTimeNode(zone,string,xsink) constructor for the same checked conversion.
+
     @subsection qore_3_0_0_deprecated Deprecated Features
     - <b>Deprecated command-line options</b>: The following command-line options have been deprecated and now
       produce a warning when used, as the underlying parse options were never enforced:

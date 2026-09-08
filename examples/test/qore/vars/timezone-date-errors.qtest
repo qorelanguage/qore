@@ -1,0 +1,68 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%exec-class TimeZoneDateErrorsTest
+
+class TimeZoneDateErrorsTest inherits QUnit::Test {
+    constructor() : QUnit::Test("TimeZone date errors", "1.0") {
+        addTestCase("invalid strings and recovery", \invalidStrings());
+        addTestCase("implicit and explicit zones", \zoneSelection());
+        addTestCase("region daylight saving rules", \regionDates());
+        addTestCase("HTTP and email dates", \internetDates());
+        addTestCase("other overloads", \otherOverloads());
+        set_return_value(main());
+    }
+
+    private invalidStrings() {
+        TimeZone tz(3600);
+        foreach string value in ("", "bad", "2026", "2026-aa-01", "2026-00-01", "2026-13-01",
+                "2026-01-00", "2026-01-32", "2023-02-29", "1900-02-29", "2026-04-31",
+                "2026-01-01T25:00:00", "2026-01-01T00:60:00", "2026-01-01T00:00:60",
+                "2026-01-01T00:00:00.", "2026-01-01T00:00:00+ab:00",
+                "Sun, 32 Nov 1994 08:49:37 GMT", "Sun, 06 Nov 1994 25:49:37 GMT") {
+            assertThrows("INVALID-DATE", \tz.date(), (value,), "reject " + value);
+            assertEq(2026-01-01T11:00:00Z, tz.date("2026-01-01T12:00:00"), "recover after " + value);
+        }
+        assertThrows("INVALID-DATE", sub() { tz.date(date_string: "not a date"); });
+    }
+
+    private zoneSelection() {
+        TimeZone east(19800);
+        TimeZone west(-12600);
+        assertEq(2026-01-01T06:30:00.123456Z, east.date("2026-01-01T12:00:00.123456"));
+        assertEq(2026-01-01T15:30:00Z, west.date(date_string: "2026-01-01T12:00:00"));
+        assertEq(2026-01-01T12:00:00Z, east.date("2026-01-01T12:00:00Z"));
+        assertEq(2026-01-01T08:00:00Z, west.date("2026-01-01T12:00:00+04:00"));
+        assertEq(2000-02-28T18:30:00Z, east.date("2000-02-29"));
+        assertEq(2024-02-28T18:30:00Z, east.date("20240229"));
+    }
+
+    private regionDates() {
+        TimeZone prague("Europe/Prague");
+        assertEq(2026-01-01T11:00:00Z, prague.date("2026-01-01T12:00:00"));
+        assertEq(2026-07-01T10:00:00Z, prague.date("2026-07-01T12:00:00"));
+        assertEq(2026-03-29T00:59:59Z, prague.date("2026-03-29T01:59:59"));
+        assertEq(2026-03-29T01:00:00Z, prague.date("2026-03-29T03:00:00"));
+    }
+
+    private internetDates() {
+        TimeZone east(19800);
+        foreach string value in ("Sun, 06 Nov 1994 08:49:37 GMT", "Sunday, 06-Nov-94 08:49:37 GMT",
+                "Sun Nov  6 08:49:37 1994", "Sun, 06 Nov 1994 14:19:37 +0530") {
+            date parsed = east.date(value);
+            assertEq(1994-11-06T08:49:37Z, parsed);
+            assertEq("+00:00", format_date("Z", parsed));
+        }
+    }
+
+    private otherOverloads() {
+        TimeZone east(3600);
+        assertEq(1970-01-01T00:00:01.123456Z, east.date(seconds: 1, microseconds: 123456));
+        assertEq(2026-01-01T12:00:00Z, east.date(date_value: 2026-01-01T12:00:00Z));
+        assertEq(2026-01-01T11:00:00Z, east.date("01/01/2026 12:00", "DD/MM/YYYY HH:mm"));
+        assertThrows("INVALID-DATE", \east.date(), ("bad", "YYYY-MM-DD"));
+    }
+}

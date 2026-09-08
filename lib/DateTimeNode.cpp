@@ -68,6 +68,11 @@ DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo* zone, const char* date) :
         DateTime(zone, date) {
 }
 
+DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo* zone, const char* date, ExceptionSink* xsink)
+        : SimpleValueQoreNode(NT_DATE), DateTime(false) {
+    priv->setAbsoluteDate(date, zone, xsink);
+}
+
 DateTimeNode::DateTimeNode(struct tm* tms) : SimpleValueQoreNode(NT_DATE), DateTime(tms) {
 }
 

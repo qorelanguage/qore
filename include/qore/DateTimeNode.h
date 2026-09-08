@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -151,6 +151,16 @@ public:
         @param date the string to use to set the date
     */
     DLLEXPORT DateTimeNode(const AbstractQoreZoneInfo* zone, const char* date);
+
+    //! Creates an absolute date from a string, reporting invalid dates through the exception sink
+    /** @param zone assumed time zone for input without a zone; nullptr means UTC
+        @param date the date string to parse; an explicit input zone overrides \a zone
+        @param xsink receives INVALID-DATE if the input cannot be parsed as a valid date
+
+        @note HTTP and email date formats are converted to UTC, as with the other string constructors.
+        @since %Qore 3.0.0
+    */
+    DLLEXPORT DateTimeNode(const AbstractQoreZoneInfo* zone, const char* date, ExceptionSink* xsink);
 
     //! constructor for setting an absolute date based on a "struct tm"
     /**
