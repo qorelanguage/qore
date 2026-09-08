@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -263,6 +263,10 @@ struct qore_number_private : public qore_number_private_intern {
     }
 
     DLLLOCAL void getAsString(QoreString& str, bool round = true, int base = 10) const;
+
+    DLLLOCAL int getRoundTripString(QoreString& str, bool scientific, ExceptionSink* xsink) const;
+
+    DLLLOCAL static int getFloatRoundTripString(QoreString& str, double value, bool scientific, ExceptionSink* xsink);
 
     DLLLOCAL void toString(QoreString& str, int fmt = QORE_NF_DEFAULT) const {
         bool raw = !(fmt & QORE_NF_RAW);

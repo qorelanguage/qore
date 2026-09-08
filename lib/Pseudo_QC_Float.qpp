@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,30 @@
 /**
  */
 qclass <float> [arg=double f = v.getAsFloat();vparent=<value>];
+
+//! Returns a decimal spelling that reconstructs the floating-point value
+/** @param scientific use scientific notation; otherwise return a plain decimal without an exponent
+    @return the shortest decimal significand that rounds back to this float; ties select the nearest decimal,
+    with an even significand on a tie. Signed zero is retained. Special values return \c NaN, \c INF or \c -INF.
+    @throw THREAD-CANCELLED the operation was cancelled
+    @throw PROGRAM-INTERRUPTED the program was interrupted
+    @throw NUMBER-CONVERSION-ERROR decimal conversion failed
+    @note The result is a round-trip spelling, not an exact expansion of the binary fraction. Preserve original
+    decimal text when its exact decimal value is required. The output is independent of the current locale.
+    @par Example
+    @code{.py}
+float amount = 123.45;
+string text = amount.toStringRoundTrip(); // "123.45"
+    @endcode
+    @since Qore 3.0
+*/
+string <float>::toStringRoundTrip(bool scientific = False) [const;flags=RET_VALUE_ONLY,NAMED_ARGS] {
+    ReferenceHolder<QoreStringNode> rv(new QoreStringNode, xsink);
+    if (qore_number_private::getFloatRoundTripString(**rv, f, scientific, xsink)) {
+        return QoreValue();
+    }
+    return rv.release();
+}
 
 //! Returns Qore::NT_FLOAT
 /**

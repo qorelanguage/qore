@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -268,6 +268,29 @@ public:
         @param fmt a bitfield of @ref number_format_flags "number format flags"
     */
     DLLEXPORT void toString(QoreString& str, int fmt = QORE_NF_DEFAULT) const;
+
+    //! appends the shortest decimal significand that reconstructs this number at its original precision
+    /** @param str the destination; unchanged on error
+        @param scientific use scientific notation instead of expanding the decimal exponent
+        @param xsink receives cancellation or conversion errors
+        @return 0 on success, -1 on error
+        @throw THREAD-CANCELLED cancellation was requested (through xsink)
+        @throw PROGRAM-INTERRUPTED the program was interrupted (through xsink)
+        @throw NUMBER-CONVERSION-ERROR decimal conversion failed (through xsink)
+        @note This preserves the source binary value when parsed with round-to-nearest at getPrec() bits.
+        It does not promise equality when the text is parsed at a different precision. Signed zero is preserved;
+        special values are spelled NaN, INF and -INF. Existing display formatting is unchanged.
+        @par Example
+        @code{.cpp}
+        ReferenceHolder<QoreNumberNode> amount(new QoreNumberNode("123.45"), xsink);
+        QoreString wire;
+        if (amount->toStringRoundTrip(wire, false, xsink)) {
+            return;
+        }
+        @endcode
+        @since Qore 3.0
+    */
+    DLLEXPORT int toStringRoundTrip(QoreString& str, bool scientific, ExceptionSink* xsink) const;
 
     //! returns the precision of the number
     DLLEXPORT unsigned getPrec() const;

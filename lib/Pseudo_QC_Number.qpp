@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -209,6 +209,31 @@ string <number>::toString(int format_flags) [const;flags=CONSTANT,NAMED_ARGS] {
    QoreStringNode* rv = new QoreStringNode;
    n->toString(*rv, format_flags);
    return rv;
+}
+
+//! Returns a decimal spelling that reconstructs the number at its original binary precision
+/** @param scientific use scientific notation; otherwise return a plain decimal without an exponent
+    @return the shortest decimal significand that rounds back to this value at its original precision;
+    ties select the nearest decimal, with an even significand on a tie. Signed zero is retained.
+    Special values return \c NaN, \c INF or \c -INF.
+    @throw THREAD-CANCELLED the operation was cancelled
+    @throw PROGRAM-INTERRUPTED the program was interrupted
+    @throw NUMBER-CONVERSION-ERROR decimal conversion failed
+    @note The result can denote a different value when parsed at greater binary precision. Preserve original
+    decimal text when its exact decimal value is required. This method does not apply the display rounding heuristic.
+    @par Example
+    @code{.py}
+number amount = number("1.00000000000000000001");
+string text = amount.toStringRoundTrip(); // "1.00000000000000000001", not "1"
+    @endcode
+    @since Qore 3.0
+*/
+string <number>::toStringRoundTrip(bool scientific = False) [const;flags=RET_VALUE_ONLY,NAMED_ARGS] {
+    ReferenceHolder<QoreStringNode> rv(new QoreStringNode, xsink);
+    if (n->toStringRoundTrip(**rv, scientific, xsink)) {
+        return QoreValue();
+    }
+    return rv.release();
 }
 
 //! Returns a formatted string of the number according to the format argument

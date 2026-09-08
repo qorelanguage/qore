@@ -33,6 +33,197 @@
 #include "qore/intern/qore_string_private.h"
 #include "qore/intern/qore_number_private.h"
 
+#include <algorithm>
+#include <charconv>
+#include <cmath>
+#include <memory>
+#include <string>
+
+// The significand contains a possible leading minus sign and decimal digits only.
+// Work in a local string so a cancellation never appends a partial result to the caller's destination.
+static int qore_format_round_trip_digits(QoreString& str, const std::string& significand, int64 exponent,
+        bool scientific, ExceptionSink* xsink) {
+    if (qore_check_cancel(xsink, "formatting a round-trip number")) {
+        return -1;
+    }
+    assert(!significand.empty());
+    bool negative = significand[0] == '-';
+    size_t start = negative ? 1 : 0;
+    size_t end = significand.size();
+    size_t count = 0;
+    while (end > start + 1 && significand[end - 1] == '0') {
+        if (!(++count % 100) && qore_check_cancel(xsink, "formatting a round-trip number")) {
+            return -1;
+        }
+        --end;
+    }
+    assert(end > start);
+    size_t digits = end - start;
+    QoreString result;
+    if (negative) {
+        result.concat('-');
+    }
+    auto appendZeros = [&](int64 zeros) -> int {
+        assert(zeros >= 0);
+        while (zeros) {
+            if (qore_check_cancel(xsink, "expanding a decimal exponent")) {
+                return -1;
+            }
+            unsigned chunk = static_cast<unsigned>(std::min<int64>(zeros, 65536));
+            result.addch('0', chunk);
+            zeros -= chunk;
+        }
+        return 0;
+    };
+    if (scientific) {
+        result.concat(significand[start]);
+        if (digits > 1) {
+            result.concat('.');
+            result.concat(significand.data() + start + 1, digits - 1);
+        }
+        result.sprintf("e" QLLD, exponent - 1);
+    } else if (exponent <= 0) {
+        result.concat("0.");
+        if (appendZeros(-exponent)) {
+            return -1;
+        }
+        result.concat(significand.data() + start, digits);
+    } else if (static_cast<uint64_t>(exponent) >= digits) {
+        result.concat(significand.data() + start, digits);
+        if (appendZeros(exponent - static_cast<int64>(digits))) {
+            return -1;
+        }
+    } else {
+        size_t point = static_cast<size_t>(exponent);
+        result.concat(significand.data() + start, point);
+        result.concat('.');
+        result.concat(significand.data() + start + point, digits - point);
+    }
+    if (qore_check_cancel(xsink, "formatting a round-trip number")) {
+        return -1;
+    }
+    str.concat(result.c_str(), result.size());
+    return 0;
+}
+
+int qore_number_private::getFloatRoundTripString(QoreString& str, double value, bool scientific,
+        ExceptionSink* xsink) {
+    if (qore_check_cancel(xsink, "formatting a round-trip float")) {
+        return -1;
+    }
+    if (!std::isfinite(value)) {
+        str.concat(std::isnan(value) ? "NaN" : std::signbit(value) ? "-INF" : "INF");
+        return 0;
+    }
+    if (!value) {
+        str.concat(std::signbit(value) ? "-0" : "0");
+        if (scientific) {
+            str.concat("e0");
+        }
+        return 0;
+    }
+    // Scientific to_chars minimizes significant digits. Expanding this result gives the same
+    // decimal value in plain notation; fixed to_chars can instead emit hundreds of integer digits.
+    char buffer[64]; // double: sign, 17 digits, decimal point, e, exponent sign and at most 3 exponent digits
+    auto converted = std::to_chars(buffer, buffer + sizeof(buffer), value, std::chars_format::scientific);
+    if (converted.ec != std::errc()) {
+        xsink->raiseException("NUMBER-CONVERSION-ERROR", "could not format a floating-point value");
+        return -1;
+    }
+    std::string text(buffer, converted.ptr);
+    size_t e = text.find('e');
+    assert(e != std::string::npos);
+    const char* exp_start = text.data() + e + 1;
+    if (*exp_start == '+') {
+        ++exp_start;
+    }
+    int exponent;
+    auto parsed = std::from_chars(exp_start, text.data() + text.size(), exponent);
+    if (parsed.ec != std::errc() || parsed.ptr != text.data() + text.size()) {
+        xsink->raiseException("NUMBER-CONVERSION-ERROR", "could not read a formatted decimal exponent");
+        return -1;
+    }
+    text.resize(e);
+    size_t point = text.find('.');
+    if (point != std::string::npos) {
+        text.erase(point, 1);
+    }
+    return qore_format_round_trip_digits(str, text, exponent + 1, scientific, xsink);
+}
+
+int qore_number_private::getRoundTripString(QoreString& str, bool scientific, ExceptionSink* xsink) const {
+    if (qore_check_cancel(xsink, "formatting a round-trip number")) {
+        return -1;
+    }
+    if (!mpfr_number_p(num)) {
+        str.concat(mpfr_nan_p(num) ? "NaN" : mpfr_signbit(num) ? "-INF" : "INF");
+        return 0;
+    }
+    if (mpfr_zero_p(num)) {
+        str.concat(mpfr_signbit(num) ? "-0" : "0");
+        if (scientific) {
+            str.concat("e0");
+        }
+        return 0;
+    }
+    mpfr_exp_t exponent;
+    using MpfrString = std::unique_ptr<char, decltype(&mpfr_free_str)>;
+    MpfrString raw(mpfr_get_str(nullptr, &exponent, 10, 0, num, QORE_MPFR_RND), &mpfr_free_str);
+    if (!raw) {
+        xsink->raiseException("NUMBER-CONVERSION-ERROR", "could not format a number's significand");
+        return -1;
+    }
+    std::string selected(raw.get());
+    size_t low = 1;
+    size_t high = selected.size() - (selected[0] == '-' ? 1 : 0);
+    // MPFR's automatic digit count is a proven round-trip upper bound at this precision.
+    // Decimal grids nest as precision increases: existence of a valid candidate is monotone.
+    // Test both neighbors, since binary rounding intervals at powers of two are asymmetric.
+    // A nearest-only test can miss the shortest valid decimal on the wider side of the interval.
+    qore_number_private restored(mpfr_get_prec(num));
+    auto selectDigits = [&](size_t digits, std::string& candidate, mpfr_exp_t& candidate_exp) -> bool {
+        for (mpfr_rnd_t rounding : {MPFR_RNDN, MPFR_RNDD, MPFR_RNDU}) {
+            if (qore_check_cancel(xsink, "finding a round-trip decimal significand")) {
+                return false;
+            }
+            MpfrString text(mpfr_get_str(nullptr, &candidate_exp, 10, digits, num, rounding), &mpfr_free_str);
+            if (!text) {
+                xsink->raiseException("NUMBER-CONVERSION-ERROR", "could not format a number's significand");
+                return false;
+            }
+            QoreString input;
+            input.sprintf("%se" QLLD, text.get(), static_cast<int64>(candidate_exp) - static_cast<int64>(digits));
+            int rc = mpfr_set_str(restored.num, input.c_str(), 10, QORE_MPFR_RND);
+            if (rc) {
+                xsink->raiseException("NUMBER-CONVERSION-ERROR", "could not parse a decimal significand");
+                return false;
+            }
+            if (mpfr_equal_p(num, restored.num)) {
+                candidate = text.get();
+                return true;
+            }
+        }
+        return false;
+    };
+    while (low < high) {
+        size_t mid = low + (high - low) / 2;
+        std::string candidate;
+        mpfr_exp_t candidate_exp;
+        bool matches = selectDigits(mid, candidate, candidate_exp);
+        if (*xsink) {
+            return -1;
+        }
+        if (matches) {
+            high = mid;
+            selected = std::move(candidate);
+            exponent = candidate_exp;
+        } else {
+            low = mid + 1;
+        }
+    }
+    return qore_format_round_trip_digits(str, selected, static_cast<int64>(exponent), scientific, xsink);
+}
+
 void qore_number_private::getAsString(QoreString& str, bool round, int base) const {
     // first check for zero
     if (zero()) {
@@ -644,6 +835,10 @@ QoreNumberNode* QoreNumberNode::numberRefSelf() const {
 
 void QoreNumberNode::toString(QoreString& str, int fmt) const {
     priv->toString(str, fmt);
+}
+
+int QoreNumberNode::toStringRoundTrip(QoreString& str, bool scientific, ExceptionSink* xsink) const {
+    return priv->getRoundTripString(str, scientific, xsink);
 }
 
 unsigned QoreNumberNode::getPrec() const {
