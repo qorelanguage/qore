@@ -16087,7 +16087,21 @@
             "type": "string"
           },
           "deleted": {
-            "type": "boolean"
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "true",
+                  "false"
+                ]
+              }
+            ]
+          },
+          "object": {
+            "type": "string"
           }
         }
       },
@@ -20234,6 +20248,56 @@
               }
             ],
             "description": "Type-specific parameters for the evaluation"
+          }
+        }
+      ]
+    },
+    {
+      "reason": "Authenticated DELETE /v1/files/{id} returned an object discriminator and deleted as the string true during the 2026-09-08 live file lifecycle test. The official FileDeleteResponse omits object and declares deleted as boolean. Preserve the documented fields and booleans alongside the observed object field and textual true/false confirmation. Source: https://docs.together.ai/openapi.yaml; verified against https://api.together.xyz/v1/files/{id}.",
+      "operations": [],
+      "add_parameters": [],
+      "replace_parameters": [],
+      "relax_oneof": [],
+      "replace_required": [],
+      "rename_paths": {},
+      "replace_values": [
+        {
+          "pointer": "#/components/schemas/FileDeleteResponse",
+          "expected": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "deleted": {
+                "type": "boolean"
+              }
+            }
+          },
+          "replacement": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "deleted": {
+                "oneOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "true",
+                      "false"
+                    ]
+                  }
+                ]
+              },
+              "object": {
+                "type": "string"
+              }
+            }
           }
         }
       ]

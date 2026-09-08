@@ -138,6 +138,7 @@ public class TogetherDataProviderTest inherits QUnit::Test {
 
         addTestCase("complete action contracts", \contractTest());
         addTestCase("schema provenance and drift", \schemaTest());
+        addTestCase("file deletion accepts boolean and textual confirmation", \fileDeleteResponseTest());
         addTestCase("model, voice, and scoped resource dropdowns", \referenceTest());
         addTestCase("HTTP paths, authentication, binary and multipart bodies", \wireTest());
         addTestCase("invalid requests and no automatic paid retries", \negativeTest());
@@ -152,14 +153,17 @@ public class TogetherDataProviderTest inherits QUnit::Test {
         if (ENV.TOGETHERAI_PAID_TESTS) {
             addTestCase("live bounded chat, embedding, and rerank requests", \livePaidTest());
         }
+        if (ENV.TOGETHERAI_FILE_TESTS) {
+            addTestCase("live temporary file upload, metadata, download, and deletion", \liveFileTest());
+        }
         set_return_value(main());
     }
 
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-c,--connection=ARG",
-            "set the Together AI connection name; without it (and "
-            "without the TOGETHER_CONNECTION env var) the live test is skipped",
+            "use a saved Together AI connection for explicitly enabled live tests; "
+            "otherwise use TOGETHERAI_APIKEY",
             OptionColumn);
     }
 
@@ -349,6 +353,24 @@ public class TogetherDataProviderTest inherits QUnit::Test {
         assertThrows("TOGETHER-ACTION-ERROR", sub () { TogetherSchema::getOperationEx("unknown"); });
     }
 
+    private fileDeleteResponseTest() {
+        auto type = TogetherSchema::getOperationEx("delete-file").getResponseType();
+        FakeTogetherRestClientIo fake();
+        TogetherDataProvider::TogetherDataProvider root(fake);
+        foreach auto deleted in (True, False, "true", "false") {
+            hash<auto> response = {"id": "file-test", "object": "file", "deleted": deleted};
+            assertEq(response, type.acceptsValue(response));
+            fake.response_body = response;
+            assertEq(response, root.getChildProvider("delete-file").doRequest({"id": "file-test"}));
+        }
+        foreach auto deleted in ("yes", "", 1, {}, ()) {
+            assertThrows("RUNTIME-TYPE-ERROR", sub () {
+                type.acceptsValue({"id": "file-test", "deleted": deleted});
+            });
+        }
+        assertEq({"id": "file-test"}, type.acceptsValue({"id": "file-test"}));
+    }
+
     private operationTest(hash<auto> fixture) {
         FakeTogetherRestClientIo fake();
         TogetherDataProvider::TogetherDataProvider root(fake);
@@ -517,6 +539,33 @@ public class TogetherDataProviderTest inherits QUnit::Test {
         assertEq(NT_LIST, files.data.typeCode());
         auto choices = root.getChildProvider("chat-completion").getReferenceData("chat-models");
         assertTrue(choices.size() > 0);
+    }
+
+    private liveFileTest() {
+        TogetherDataProvider::TogetherDataProvider root = liveRoot();
+        # Uploading a batch input does not submit an inference job.
+        string content = make_json({"custom_id": "qore-together-file-test", "method": "POST",
+            "url": "/v1/chat/completions", "body": {"model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+                "messages": ({"role": "user", "content": "Say hi."},), "max_tokens": 8}}) + "\n";
+        string name = "qore-together-live-test.jsonl";
+        auto upload = root.getChildProvider("upload-file").doRequest({"purpose": "batch-api",
+            "file_name": name, "file_type": "jsonl",
+            "file": {"name": name, "content": content, "mime_type": "application/jsonl"}});
+        assertTrue(upload.id.val());
+        on_exit {
+            auto deleted = root.getChildProvider("delete-file").doRequest({"id": upload.id});
+            printf("File deletion response: %s\n", make_json(deleted));
+            assertEq(deleted, TogetherSchema::getOperationEx("delete-file").getResponseType().acceptsValue(deleted));
+            if (deleted.deleted.typeCode() == NT_BOOLEAN) {
+                assertTrue(deleted.deleted);
+            } else {
+                assertEq("true", deleted.deleted);
+            }
+        }
+        auto info = root.getChildProvider("get-file").doRequest({"id": upload.id});
+        assertEq(upload.id, info.id);
+        auto downloaded = root.getChildProvider("download-file").doRequest({"id": upload.id});
+        assertEq(parse_json(content), parse_json(downloaded.toString()));
     }
 
     private livePaidTest() {

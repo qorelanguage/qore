@@ -115,6 +115,7 @@ printf("Image URL: %s\n", result.data[0].url);
     - project, organization, file, training job, and parent-scoped resource references
     - preserves the original three action IDs and provider classes
     - transport failures are propagated without replaying potentially billable requests
+    - file deletion responses accept both documented booleans and the service's textual confirmation
 
     @par File upload example
     @code{.q}
@@ -136,6 +137,10 @@ printf("Image URL: %s\n", result.data[0].url);
     TOGETHERAI_APIKEY for read-only authentication and listing checks. Paid tests additionally require
     TOGETHERAI_PAID_TESTS=1 and TOGETHERAI_CHAT_MODEL; the chat request is limited to eight output tokens.
     Optional TOGETHERAI_EMBED_MODEL and TOGETHERAI_RERANK_MODEL enable one short request each.
+    TOGETHERAI_FILE_TESTS=1 uploads a temporary batch input, verifies metadata and downloaded content,
+    and deletes the file on exit. It does not submit a batch job. Set TOGETHER_CONNECTION to exercise
+    a saved connection instead of the environment key. Select paid models from the active serverless
+    endpoints; the model catalog also includes models that require a dedicated deployment.
     Training and infrastructure provisioning are never started by the test suite.
 
     @par Updating the schema

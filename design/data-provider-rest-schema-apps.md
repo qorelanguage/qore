@@ -1262,6 +1262,13 @@ and a `replacement`. Use it for concrete upstream errors such as a number defaul
 Every repair needs a source-backed reason, fails on drift or no-op replacements, and is recorded in the
 artifact. It is not a way to narrow valid API contracts in a presentation overlay.
 
+Together's file deletion endpoint returns a textual `"true"` confirmation although its published
+`FileDeleteResponse.deleted` type is boolean. A checked import repair represents this as a disjoint union
+of boolean values and the strings `"true"` and `"false"`, and declares the observed `object` discriminator
+that the vendor schema omits. This preserves wire values while keeping the output contract accurate.
+Other confirmation strings and unrelated types remain invalid. The optional live file test verifies
+upload, metadata, content download, and deletion without submitting an inference job.
+
 Reference-data declarations can use `record_filter` for exact local matches and `filter_from` for values
 from action options. Missing dependent options return no choices without making a request. After filtering,
 `children_path` expands a nested collection, as with Together's model-specific voice lists. `single_record`
