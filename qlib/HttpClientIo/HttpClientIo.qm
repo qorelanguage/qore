@@ -149,7 +149,11 @@ auto mgr_h3 = new HttpClientConnectionManager({"protocol": "h3"});
       tear an in-flight race down with no leaked socket or stagger timer.
       When both legs lose and HTTP/2 was refused via ALPN, the endpoint speaks
       neither HTTP/3 nor HTTP/2 and the race falls back to HTTP/1.1 instead of
-      failing; the result is cached per host and re-probed periodically
+      failing; the result is cached per host and re-probed periodically.
+      Alt-Svc advertisements supply the UDP port for future races without
+      overriding the negotiated protocol or draining working connections.
+      Fresh automatic H3 connections and expired fallback entries race both
+      protocols, selecting H3 only after its handshake succeeds
     - HTTP/1.1 serial request/response with keep-alive; the connection manager
       creates multiple connections for concurrent requests
     - Connection pooling with configurable limits, HTTP-proxy support,

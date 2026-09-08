@@ -35,12 +35,12 @@
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Logger
-%requires HttpServerUtil
-%requires HttpServer
-%requires HttpClientIo
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/HttpClientIo
 
 %exec-class HttpClientIoAlpnFallbackTest
 
@@ -48,6 +48,64 @@
 class SimpleGetHandler inherits AbstractHttpRequestHandler {
     hash<HttpResponseInfo> handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
         return makeResponse(200, "OK", {"Content-Type": "text/plain"});
+    }
+}
+
+#! Advertises QUIC on an unavailable UDP port while serving requests over HTTP/2
+class AltSvcGetHandler inherits AbstractHttpRequestHandler {
+    hash<HttpResponseInfo> handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
+        return makeResponse(200, "OK", {"Content-Type": "text/plain", "Alt-Svc": "h3=\":1\""});
+    }
+}
+
+#! Exposes protocol decisions under the same locks used by production callers
+class AltSvcTestManager inherits HttpClientIo::HttpClientConnectionManager {
+    constructor(*hash<HttpClientIo::HttpClientConnectionManagerOptions> opts)
+            : HttpClientIo::HttpClientConnectionManager(opts) {
+    }
+
+    advertise(string url, string header) {
+        checkAltSvc(url, {"headers": {"alt-svc": header}});
+    }
+
+    seed(string url, string protocol, date age) {
+        hash<UrlInfo> info = parse_url(url);
+        string key = sprintf("%s:%d", info.host, info.port ?? 443);
+        AutoWriteLock al(pool_lock);
+        cacheProtocol(key, protocol);
+        h3_probe_times{key} = now_us() - age;
+        if (protocol == "h1") {
+            h1_probe_times{key} = now_us() - age;
+        }
+    }
+
+    string selectProtocol(string url) {
+        hash<UrlInfo> info = parse_url(url);
+        info.port = info.port ?? 443;
+        AutoWriteLock al(pool_lock);
+        return resolveProtocol(info, sprintf("%s:%d", info.host, info.port));
+    }
+
+    *string cached(string url) {
+        hash<UrlInfo> info = parse_url(url);
+        AutoReadLock al(pool_lock);
+        return protocol_cache{sprintf("%s:%d", info.host, info.port ?? 443)};
+    }
+
+    disconnect() {
+        AutoWriteLock al(pool_lock);
+        foreach auto conns in (pool.iterator()) {
+            foreach HttpClientIo::HttpClientConnection conn in (conns) {
+                conn.close();
+            }
+        }
+        pool = {};
+    }
+
+    int probePort(string url) {
+        hash<UrlInfo> info = parse_url(url);
+        info.port = info.port ?? 443;
+        return prepareH3Probe(info, sprintf("%s:%d", info.host, info.port)).port;
     }
 }
 
@@ -200,6 +258,7 @@ class HttpClientIoAlpnFallbackTest inherits QUnit::Test {
         #! HTTP/2-capable reference server (negotiates h2 via ALPN)
         HttpServer mServer;
         string mH2Url;
+        *int mQuicPort;
 
         const CertPem = "-----BEGIN CERTIFICATE-----
 MIIDCTCCAfGgAwIBAgIULwwY9Xmqwn7ZZIYgEu8otC1aRNMwDQYJKoZIhvcNAQEL
@@ -259,6 +318,12 @@ Do+Sl1gfqlpgpszQaOMjR4M=
         addTestCase("only a definitive refusal pins h1", \definitiveRefusalRuleTest());
         addTestCase("h2-capable server keeps using h2", \h2CapableServerKeepsUsingH2Test());
         addTestCase("the h1 fallback is per host", \fallbackIsPerHostTest());
+        addTestCase("Alt-Svc preserves negotiated protocols and cooldowns", \altSvcSelectionTest());
+        addTestCase("Alt-Svc validates and applies alternate UDP ports", \altSvcPortTest());
+        addTestCase("sync responses preserve working h2 connections", \altSvcSyncPoolTest());
+        addTestCase("async responses preserve working h2 connections", \altSvcAsyncPoolTest());
+        addTestCase("sync race uses the advertised QUIC port", \altSvcSyncRaceTest());
+        addTestCase("async race uses the advertised QUIC port", \altSvcAsyncRaceTest());
         set_return_value(main());
     }
 
@@ -276,12 +341,23 @@ Do+Sl1gfqlpgpszQaOMjR4M=
             "debug": True,
         });
         mServer.setHandler("simple", "/simple", NOTHING, new SimpleGetHandler());
+        mServer.setHandler("alt-svc", "/alt-svc", NOTHING, new AltSvcGetHandler());
         int ssl_port = mServer.addListener(<HttpListenerOptionInfo>{
-            "service": 0,
+            "service": 0, "enable_h3": False,
             "cert": new SSLCertificate(CertPem),
             "key": new SSLPrivateKey(KeyPem),
         }).port;
         mH2Url = "https://127.0.0.1:" + ssl_port;
+        try {
+            mQuicPort = mServer.addQuicListener(<HttpListenerOptionInfo>{
+                "cert": new SSLCertificate(CertPem),
+                "key": new SSLPrivateKey(KeyPem),
+            }).port;
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err != "QUIC-NOT-SUPPORTED") {
+                rethrow;
+            }
+        }
         mServer.waitForAsyncIo();
     }
 
@@ -291,16 +367,126 @@ Do+Sl1gfqlpgpszQaOMjR4M=
         }
     }
 
+    altSvcSelectionTest() {
+        AltSvcTestManager mgr();
+        string url = "https://example.com:443";
+        mgr.advertise(url, "h3=\":443\"");
+        assertEq(NOTHING, mgr.cached(url), "advertisements cannot claim a successful handshake");
+        assertEq("happy-eyeballs", mgr.selectProtocol(url));
+        foreach string protocol in (("h1", "h2")) {
+            mgr.seed(url, protocol, 0s);
+            mgr.advertise(url, "h3=\":8443\"");
+            assertEq(protocol, mgr.cached(url), "keep the negotiated result");
+            assertEq(protocol, mgr.selectProtocol(url), "advertisement must not reset the cooldown");
+            mgr.seed(url, protocol, 60m);
+            mgr.advertise(url, "h3=\":8443\"");
+            assertEq("happy-eyeballs", mgr.selectProtocol(url), "expired cache races both protocols");
+        }
+        AltSvcTestManager proxied(<HttpClientIo::HttpClientConnectionManagerOptions>{
+            "proxy_url": "http://localhost:8080",
+        });
+        proxied.advertise(url, "h3=\":8443\"");
+        assertEq("h2", proxied.selectProtocol(url), "proxy connections do not attempt QUIC");
+        assertEq(443, proxied.probePort(url), "proxy ignores alternate UDP ports");
+        mgr.seed(url, "h3", 0s);
+        assertEq("happy-eyeballs", mgr.selectProtocol(url), "new connections recheck QUIC reachability");
+        foreach string protocol in (("h1", "h2", "h3")) {
+            AltSvcTestManager forced(<HttpClientIo::HttpClientConnectionManagerOptions>{"protocol": protocol});
+            forced.advertise(url, "h3=\":8443\"");
+            assertEq(protocol, forced.selectProtocol(url), "explicit selection is respected");
+            assertEq(NOTHING, forced.cached(url));
+        }
+    }
+
+    altSvcPortTest() {
+        string url = "https://example.com:443";
+        AltSvcTestManager mgr();
+        foreach string header in (("h3=\"other.example:8443\"", "h3=\":0\"", "h3=\":65536\"", "garbage")) {
+            mgr.advertise(url, header);
+            assertEq(443, mgr.probePort(url), "invalid or cross-host alternatives are ignored");
+        }
+        mgr.advertise(url, "h2=\":443\", h3=\":8443\"");
+        assertEq(8443, mgr.probePort(url), "QUIC uses the advertised UDP port");
+        mgr.advertise(url, "h3=\"example.com:443\"");
+        assertEq(443, mgr.probePort(url), "same-port advertisement clears stale alternate port");
+        mgr.advertise("https://[::1]:443", "h3=\"[::1]:8443\"");
+        assertEq(8443, mgr.probePort("https://[::1]:443"), "IPv6 same-host alternative");
+        mgr.advertise("http://example.com:80", "h3=\":8443\"");
+        assertEq(80, mgr.probePort("http://example.com:80"), "plain HTTP ignores advertisements");
+    }
+
+    altSvcSyncRaceTest() {
+        altSvcRaceTest(False);
+    }
+
+    altSvcAsyncRaceTest() {
+        altSvcRaceTest(True);
+    }
+
+    private altSvcRaceTest(bool use_async) {
+        if (!mQuicPort) {
+            testSkip("QUIC is not supported by this build");
+        }
+        AltSvcTestManager mgr(<HttpClientIo::HttpClientConnectionManagerOptions>{"accept_all_certs": True, "connect_timeout": 2s, "request_timeout": 5s});
+        mgr.seed(mH2Url, "h2", 60m);
+        mgr.advertise(mH2Url, sprintf("h3=\":%d\"", mQuicPort));
+        connectAndRequest(mgr, use_async);
+        assertEq("h3", mgr.cached(mH2Url), "ready QUIC on the alternate port wins the reprobe");
+        mgr.disconnect();
+        mgr.advertise(mH2Url, "h3=\":1\"");
+        connectAndRequest(mgr, use_async);
+        assertEq("h2", mgr.cached(mH2Url), "a previous H3 win cannot pin an unreachable QUIC endpoint");
+    }
+
+    private connectAndRequest(AltSvcTestManager mgr, bool use_async) {
+        if (use_async) {
+            *HttpClientIo::HttpClientConnection conn;
+            *EventNotifier n = mgr.acquireConnectionAsync(mH2Url, \conn);
+            date deadline = now_us() + 5s;
+            while (n) {
+                assertTrue(now_us() < deadline, "asynchronous race completes within its deadline");
+                mgr.getController().waitForNotifier(n, 5s, 5s);
+                n.acknowledge();
+                delete n;
+                n = mgr.acquireConnectionAsync(mH2Url, \conn);
+            }
+            assertTrue(conn.isReady(), "only a ready connection wins");
+        }
+        assertEq(200, mgr.request(mH2Url, "GET", "/simple").status_code);
+    }
+
+    altSvcSyncPoolTest() {
+        altSvcPoolTest(False);
+    }
+
+    altSvcAsyncPoolTest() {
+        altSvcPoolTest(True);
+    }
+
+    private altSvcPoolTest(bool use_async) {
+        AltSvcTestManager mgr(<HttpClientIo::HttpClientConnectionManagerOptions>{"accept_all_certs": True, "connect_timeout": 2s, "request_timeout": 5s});
+        for (int i = 0; i < 3; ++i) {
+            hash<auto> resp = use_async
+                ? mgr.requestAsync(mH2Url, "GET", "/alt-svc").get(5s)
+                : mgr.request(mH2Url, "GET", "/alt-svc");
+            assertEq(200, resp.status_code);
+            assertEq("h2", mgr.cached(mH2Url), "only the ready H2 winner is cached");
+            hash<auto> stats = mgr.getStats();
+            assertEq(1, stats.total_connections, "reuse the winning connection despite Alt-Svc");
+            assertEq(1, stats.total_usable_connections, "advertisement does not drain the connection");
+        }
+    }
+
     #! Returns a manager with the given protocol option
-    private HttpClientConnectionManager getManager(*string protocol) {
-        hash<HttpClientConnectionManagerOptions> opts = <HttpClientConnectionManagerOptions>{
+    private HttpClientIo::HttpClientConnectionManager getManager(*string protocol) {
+        hash<HttpClientIo::HttpClientConnectionManagerOptions> opts = <HttpClientIo::HttpClientConnectionManagerOptions>{
             "accept_all_certs": True,
             "logger": mLogger,
         };
         if (protocol) {
             opts.protocol = protocol;
         }
-        return new HttpClientConnectionManager(opts);
+        return new HttpClientIo::HttpClientConnectionManager(opts);
     }
 
     #! A server that ignores ALPN must still be reachable over HTTP/1.1
@@ -313,8 +499,8 @@ Do+Sl1gfqlpgpszQaOMjR4M=
         on_exit server.stop();
 
         {
-            HttpClientConnectionManager mgr = getManager();
-            HttpClientStreamHandle stream = mgr.acquireStream(server.getUrl());
+            HttpClientIo::HttpClientConnectionManager mgr = getManager();
+            HttpClientIo::HttpClientStreamHandle stream = mgr.acquireStream(server.getUrl());
             hash<auto> resp = stream.request("GET", "/");
             assertEq(200, resp.status_code, "request to a non-ALPN server succeeds");
             assertEq("OK", resp.body, "response served over HTTP/1.1");
@@ -332,9 +518,9 @@ Do+Sl1gfqlpgpszQaOMjR4M=
         on_exit server.stop();
 
         {
-            HttpClientConnectionManager mgr = getManager();
+            HttpClientIo::HttpClientConnectionManager mgr = getManager();
             for (int i = 0; i < 3; ++i) {
-                HttpClientStreamHandle stream = mgr.acquireStream(server.getUrl());
+                HttpClientIo::HttpClientStreamHandle stream = mgr.acquireStream(server.getUrl());
                 hash<auto> resp = stream.request("GET", "/");
                 assertEq(200, resp.status_code, sprintf("request %d succeeds", i + 1));
             }
@@ -353,10 +539,10 @@ Do+Sl1gfqlpgpszQaOMjR4M=
         on_exit server.stop();
 
         {
-            HttpClientConnectionManager mgr = getManager("h2");
+            HttpClientIo::HttpClientConnectionManager mgr = getManager("h2");
             assertThrows("HTTPCLIENT-CONNECT-ERROR", "HTTP2-ALPN-ERROR",
                 sub () {
-                    HttpClientStreamHandle stream = mgr.acquireStream(server.getUrl());
+                    HttpClientIo::HttpClientStreamHandle stream = mgr.acquireStream(server.getUrl());
                     stream.request("GET", "/");
                 }, NOTHING, "forced h2 against a non-ALPN server fails");
         }
@@ -371,8 +557,8 @@ Do+Sl1gfqlpgpszQaOMjR4M=
         on_exit server.stop();
 
         {
-            HttpClientConnectionManager mgr = getManager("h1");
-            HttpClientStreamHandle stream = mgr.acquireStream(server.getUrl());
+            HttpClientIo::HttpClientConnectionManager mgr = getManager("h1");
+            HttpClientIo::HttpClientStreamHandle stream = mgr.acquireStream(server.getUrl());
             hash<auto> resp = stream.request("GET", "/");
             assertEq(200, resp.status_code, "forced h1 request succeeds");
         }
@@ -389,7 +575,7 @@ Do+Sl1gfqlpgpszQaOMjR4M=
         race that HTTP/3 has just won, which must never pin the host to HTTP/1.1.
     */
     definitiveRefusalRuleTest() {
-        assertTrue(HttpClientConnectionManager::isDefinitiveH2AlpnRefusal({
+        assertTrue(HttpClientIo::HttpClientConnectionManager::isDefinitiveH2AlpnRefusal({
             "err": "HTTP2-ALPN-ERROR",
             "desc": "HTTP/2 not negotiated via ALPN: got null",
         }), "a null ALPN result is definitive");
@@ -404,22 +590,22 @@ Do+Sl1gfqlpgpszQaOMjR4M=
             "SOCKET-CONNECT-ERROR",
         );
         foreach string err in (transient_errors) {
-            assertFalse(HttpClientConnectionManager::isDefinitiveH2AlpnRefusal({"err": err}),
+            assertFalse(HttpClientIo::HttpClientConnectionManager::isDefinitiveH2AlpnRefusal({"err": err}),
                 sprintf("%s must not pin the host to HTTP/1.1", err));
         }
 
-        assertFalse(HttpClientConnectionManager::isDefinitiveH2AlpnRefusal(NOTHING),
+        assertFalse(HttpClientIo::HttpClientConnectionManager::isDefinitiveH2AlpnRefusal(NOTHING),
             "a missing error hash is not a refusal");
-        assertFalse(HttpClientConnectionManager::isDefinitiveH2AlpnRefusal({}),
+        assertFalse(HttpClientIo::HttpClientConnectionManager::isDefinitiveH2AlpnRefusal({}),
             "an empty error hash is not a refusal");
     }
 
     #! A server that does negotiate h2 must keep getting h2 on every request
     h2CapableServerKeepsUsingH2Test() {
-        HttpClientConnectionManager mgr = getManager();
+        HttpClientIo::HttpClientConnectionManager mgr = getManager();
 
         for (int i = 0; i < 3; ++i) {
-            HttpClientStreamHandle stream = mgr.acquireStream(mH2Url);
+            HttpClientIo::HttpClientStreamHandle stream = mgr.acquireStream(mH2Url);
             hash<auto> resp = stream.request("GET", "/simple");
             assertEq(200, resp.status_code, sprintf("h2 request %d succeeds", i + 1));
 
@@ -437,14 +623,14 @@ Do+Sl1gfqlpgpszQaOMjR4M=
         AlpnTestServer server(CertPem, KeyPem);
         on_exit server.stop();
 
-        HttpClientConnectionManager mgr = getManager();
+        HttpClientIo::HttpClientConnectionManager mgr = getManager();
 
         # fall back to HTTP/1.1 for the non-ALPN host
-        HttpClientStreamHandle s1 = mgr.acquireStream(server.getUrl());
+        HttpClientIo::HttpClientStreamHandle s1 = mgr.acquireStream(server.getUrl());
         assertEq(200, s1.request("GET", "/").status_code, "non-ALPN host served over HTTP/1.1");
 
         # the ALPN-capable host on the same manager is unaffected
-        HttpClientStreamHandle s2 = mgr.acquireStream(mH2Url);
+        HttpClientIo::HttpClientStreamHandle s2 = mgr.acquireStream(mH2Url);
         assertEq(200, s2.request("GET", "/simple").status_code, "h2 host still reachable");
 
         list<hash<HttpClientConnectionInfo>> info = mgr.getConnectionInfo(mH2Url);

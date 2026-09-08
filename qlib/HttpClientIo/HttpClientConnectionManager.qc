@@ -244,7 +244,7 @@ public class HttpClientConnectionManager inherits HttpClientConnectionManagerBas
         hash<string, bool> creating;
 
         #! Protocol cache: "host:port" -> "h1", "h2", or "h3"
-        /** \c "h3" is set by @ref checkAltSvc() and by a winning H3 candidate;
+        /** \c "h3" is set only by a ready, winning H3 candidate;
             \c "h2" after an H3 fallback or a winning H2 candidate; \c "h1" only
             when the endpoint gave a definitive negative for HTTP/2 over TLS
             (@ref isDefinitiveH2AlpnRefusal()) <i>and</i> HTTP/3 had already
@@ -255,7 +255,7 @@ public class HttpClientConnectionManager inherits HttpClientConnectionManagerBas
         #! Alt-Svc alt port map: origin "host:port" -> alt_port
         /** Populated by checkAltSvc() when the server advertises an h3
             alternative on a port different from the origin TCP port.
-            createConnection() rewrites Http3ClientConnection's url_info.port
+            prepareH3Probe() rewrites Http3ClientConnection's url_info.port
             to alt_port so the QUIC handshake targets the advertised UDP
             port, not the origin TCP port.  Absent entry means alt_port
             equals origin port (the common case).
@@ -1620,9 +1620,9 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
             return "h1";
         }
 
-        # Check cache — "h3" is set by checkAltSvc() when an Alt-Svc response
-        # header advertises H3 support; "h2" is set after H3 fallback; "h1"
-        # after a definitive ALPN refusal with H3 already failed
+        # The cache records negotiation results, never Alt-Svc advertisements.
+        # A fresh connection still races when H3 previously won: network changes
+        # can make QUIC unreachable even while TCP remains available.
         if (protocol_cache.hasKey(key)) {
             string cached = protocol_cache{key};
             if (cached == "h1") {
@@ -1644,15 +1644,15 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
                 if (proxy_info) {
                     return "h2";
                 }
-                return "h3";
+                return "happy-eyeballs";
             }
-            # Cached as "h2" (after an H3 fallback) — re-probe H3 after
-            # H3_REPROBE_INTERVAL if this host previously confirmed H3 support
+            # Cached as "h2" after a race or H3 fallback — re-probe both protocols
+            # after H3_REPROBE_INTERVAL without delaying TCP behind a QUIC timeout
             if (!proxy_info && h3_probe_times.hasKey(key)) {
                 date elapsed = now_us() - h3_probe_times{key};
                 if (elapsed >= H3_REPROBE_INTERVAL) {
-                    log(LoggerLevel::DEBUG, "re-probing HTTP/3 for %s after %y elapsed", key, elapsed);
-                    return "h3";
+                    log(LoggerLevel::DEBUG, "re-probing HTTP/3 + HTTP/2 for %s after %y elapsed", key, elapsed);
+                    return "happy-eyeballs";
                 }
             }
             return "h2";
@@ -1921,8 +1921,24 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
         }
     }
 
-    #! Internal: creates a connection with protocol fallback
-    /** In auto mode, tries H3 first; on failure, falls back to H2 and caches.
+    #! Internal: records an H3 probe and applies the advertised UDP port
+    /** The origin URL remains unchanged for the H2 candidate and pool key.
+        @param url_info parsed origin URL
+        @param key the origin host:port pool key
+        @return the URL info for the H3 candidate
+    */
+    private hash<auto> prepareH3Probe(hash<auto> url_info, string key) {
+        AutoWriteLock al(pool_lock);
+        h3_probe_times{key} = now_us();
+        if (alt_svc_port_map.hasKey(key)) {
+            url_info.port = alt_svc_port_map{key};
+        }
+        return url_info;
+    }
+
+    #! Internal: creates a connection for an explicitly selected or cached protocol
+    /** Automatic H3 connections use the happy-eyeballs race. Constructing an
+        H3 poll operation alone does not prove that QUIC can complete a handshake.
     */
     private HttpClientConnection createConnection(hash<auto> url_info, string key, string protocol) {
         if (protocol == "h1") {
@@ -1936,38 +1952,10 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
         }
 
         if (protocol == "h3") {
-            # Record probe time
-            h3_probe_times{key} = now_us();
-
-            # Apply Alt-Svc port rewrite: when the server advertised h3 on a
-            # port different from the origin TCP port, connect QUIC to the
-            # advertised alt port instead of the origin port.
-            hash<auto> h3_url_info = url_info;
-            if (alt_svc_port_map.hasKey(key)) {
-                int alt_port = alt_svc_port_map{key};
-                h3_url_info.port = alt_port;
-                log(LoggerLevel::DEBUG,
-                    "Alt-Svc: using h3 alt-port %d for origin %s", alt_port, key);
-            }
-            try {
-                log(LoggerLevel::DEBUG, "creating new HTTP/3 connection to %s:%d",
-                    h3_url_info.host, h3_url_info.port);
-                Http3ClientConnection conn(h3_url_info, opts.connect_timeout, logger,
-                    opts.max_streams_per_connection, opts.ssl_verify_mode, opts.accept_all_certs,
-                    opts.client_cert, opts.client_pk);
-                # H3 uses UDP/QUIC — TCP_USER_TIMEOUT does not apply.
-                cacheProtocol(key, "h3");
-                return conn;
-            } catch (hash<ExceptionInfo> ex) {
-                if (opts.protocol == "h3") {
-                    # Forced H3 mode — don't fall back
-                    rethrow;
-                }
-                # Auto mode — fall back to H2
-                log(LoggerLevel::DEBUG, "HTTP/3 connection to %s failed (%s: %s), falling back to HTTP/2",
-                    key, ex.err, ex.desc);
-                cacheProtocol(key, "h2");
-            }
+            hash<auto> h3_url_info = prepareH3Probe(url_info, key);
+            return new Http3ClientConnection(h3_url_info, opts.connect_timeout, logger,
+                opts.max_streams_per_connection, opts.ssl_verify_mode, opts.accept_all_certs,
+                opts.client_cert, opts.client_pk);
         }
 
         # Create H2 connection
@@ -2277,13 +2265,12 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
 
         log(LoggerLevel::DEBUG, "happy eyeballs: starting H3 + H2 race for %s", key);
 
-        # Record H3 probe time
-        h3_probe_times{key} = now_us();
+        hash<auto> h3_url_info = prepareH3Probe(url_info, key);
 
         # Create H3 connection (non-blocking — constructor sets up QUIC poll op)
         *Http3ClientConnection h3conn;
         try {
-            h3conn = new Http3ClientConnection(url_info, opts.connect_timeout, logger,
+            h3conn = new Http3ClientConnection(h3_url_info, opts.connect_timeout, logger,
                 opts.max_streams_per_connection, opts.ssl_verify_mode, opts.accept_all_certs,
                 opts.client_cert, opts.client_pk);
             h3conn.setControllerRef(controller);
@@ -2632,11 +2619,11 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
     private *EventNotifier startAsyncHE(hash<auto> url_info, string key,
             reference<*HttpClientConnection> conn_out) {
         log(LoggerLevel::DEBUG, "happy eyeballs (async): starting H3 + H2 race for %s", key);
-        h3_probe_times{key} = now_us();
+        hash<auto> h3_url_info = prepareH3Probe(url_info, key);
 
         *Http3ClientConnection h3conn;
         try {
-            h3conn = new Http3ClientConnection(url_info, opts.connect_timeout, logger,
+            h3conn = new Http3ClientConnection(h3_url_info, opts.connect_timeout, logger,
                 opts.max_streams_per_connection, opts.ssl_verify_mode, opts.accept_all_certs,
                 opts.client_cert, opts.client_pk);
             h3conn.setControllerRef(controller);
@@ -3371,8 +3358,9 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
 
     #! Internal: checks the @c Alt-Svc response header for HTTP/3 advertisement
     /** When a server response includes an @c alt-svc header with an @c h3= entry,
-        this method caches "h3" for the advertised host:port so subsequent connections
-        to that endpoint use HTTP/3 (per RFC 7838).
+        this method records the advertised UDP port for the next eligible
+        happy-eyeballs race. Only a ready race winner can select HTTP/3; an
+        advertisement cannot replace a negotiated protocol or drain connections.
 
         The advertised host defaults to the origin host when empty; the advertised
         port is parsed from the header value (e.g. @c h3=\":443\").
@@ -3447,6 +3435,9 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
                 }
             }
             int alt_port = int(m[1]);
+            if (alt_port < 1 || alt_port > 65535) {
+                continue;
+            }
             # Only honour same-origin Alt-Svc (host match or empty host)
             if (alt_host != origin_host) {
                 log(LoggerLevel::DEBUG,
@@ -3459,13 +3450,12 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
             # (url_info.host, url_info.port) = origin port; a cache keyed by
             # alt_port would never match a subsequent request to the origin.
             # When alt_port != origin_port we also record alt_port separately
-            # so createConnection() can rewrite the H3 target.
+            # so both happy-eyeballs paths can rewrite the H3 target.
             string key = sprintf("%s:%d", origin_host, url_info.port);
             log(LoggerLevel::DEBUG,
-                "Alt-Svc: H3 advertised for origin %s via alt-port %d, caching h3",
+                "Alt-Svc: H3 advertised for origin %s via alt-port %d",
                 key, alt_port);
             AutoWriteLock al(pool_lock);
-            cacheProtocol(key, "h3");
             if (alt_port != url_info.port) {
                 alt_svc_port_map{key} = alt_port;
             } else {
@@ -3474,21 +3464,9 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
                 # Alt-Svc response pointing elsewhere.
                 remove alt_svc_port_map{key};
             }
-            # Drain existing non-H3 connections so subsequent requests use H3.
-            # setDraining() prevents new streams while in-flight streams complete.
-            if (pool.hasKey(key)) {
-                foreach HttpClientConnection conn in (pool{key}) {
-                    if (!conn.isClosed() && !conn.isDraining() && conn.getProtocol() != "h3") {
-                        log(LoggerLevel::DEBUG,
-                            "Alt-Svc: draining %s connection %d to %s to force H3 upgrade",
-                            conn.getProtocol(), conn.getConnectionId(), key);
-                        try {
-                            conn.setDraining();
-                        } catch () {
-                        }
-                    }
-                }
-            }
+            # An advertisement does not establish QUIC reachability. Keep the
+            # negotiated cache, probe cooldown, and usable pooled connections.
+            # The next eligible race will try the advertised UDP port.
             return;
         }
     }
@@ -3497,7 +3475,7 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
     /** For plain HTTP connections where h2c fails, caches "h1" so subsequent
         connections use HTTP/1.1 directly.  For HTTPS connections, falls back
         from H3 to H2 on any H3-specific error or on a generic connection error
-        while H3 is cached (e.g., from Alt-Svc discovery), and from H2 to H1
+        while a previous H3 winner is cached, and from H2 to H1
         when the endpoint definitively refused HTTP/2 via ALPN.
 
         Runs on the user thread from the request retry loops, before the retry
@@ -3536,7 +3514,7 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
             # error while waiting for readiness (waitForReady()).
             # HTTPCLIENT-TIMEOUT is raised when the QUIC handshake starts but
             # never completes (waitForReady() expires).
-            # When H3 is currently cached (from a prior Alt-Svc response), either
+            # When H3 is currently cached (from a previous race winner), either
             # error means the QUIC connection failed — fall back to H2.
             # Use a read lock to check the cache first to avoid the write-lock
             # overhead on the common (H2, non-H3) path.
@@ -3783,6 +3761,7 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
                 remove protocol_cache{evict_key};
                 remove h3_probe_times{evict_key};
                 remove h1_probe_times{evict_key};
+                remove alt_svc_port_map{evict_key};
             }
         }
     }
