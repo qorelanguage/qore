@@ -132,13 +132,22 @@ public class ProviderIndex inherits ProviderIndexUtil {
 
     #! Return apps to include in the index
     private static list<hash<DataProviderAppInfo>> getIndexApps(*list<string> apps) {
+        list<hash<DataProviderAppInfo>> all_apps = DataProviderActionCatalog::getAllApps();
+        list<hash<DataProviderInitializationFailureInfo>> failures
+            = DataProviderActionCatalog::getInitializationFailures(apps);
+        if (failures) {
+            throw "DATA-PROVIDER-INITIALIZATION-ERROR",
+                sprintf("cannot create a complete provider index: %d application or action initialization "
+                    "failure(s)", failures.size()), failures;
+        }
+
         if (!apps) {
-            return DataProviderActionCatalog::getAllApps();
+            return all_apps;
         }
 
         hash<string, bool> app_filter = map {$1: True}, apps.iterator();
         list<hash<DataProviderAppInfo>> rv;
-        foreach hash<DataProviderAppInfo> app in (DataProviderActionCatalog::getAllApps()) {
+        foreach hash<DataProviderAppInfo> app in (all_apps) {
             if (remove app_filter{app.name}) {
                 push rv, app;
             }

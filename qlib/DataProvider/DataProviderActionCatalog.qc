@@ -683,6 +683,36 @@ public hashdecl DataProviderFileApiInfo {
     *hash<auto> options_add;
 }
 
+#! Describes an application or action initialization failure retained by the data provider catalog
+/** Deferred initialization normally allows healthy applications and actions to remain available after another
+    registration fails. This record preserves the failed technical identity and original exception separately from
+    any human-readable logging so that complete-catalog consumers can reject a partial result reliably.
+
+    @since %DataProvider 3.7
+*/
+public hashdecl DataProviderInitializationFailureInfo {
+    #! Initialization unit that failed; either \c app or \c action
+    string kind;
+
+    #! Exact technical application identifier
+    string app;
+
+    #! Exact technical action identifier; present when \c kind is \c action
+    *string action;
+
+    #! Original exception error code
+    string error;
+
+    #! Original exception description
+    string description;
+
+    #! Original exception argument
+    auto argument;
+
+    #! Module path associated with the failed registration, when known
+    *string module_context;
+}
+
 #! DataProvider action and application catalog class
 public class DataProviderActionCatalog {
     public {
@@ -787,6 +817,9 @@ public class DataProviderActionCatalog {
         #! Pending application action init handler map: app -> action -> init metadata
         static hash<string, hash<string, hash<auto>>> initactionmap;
 
+        #! Retained initialization failures: app -> action (or an empty key for the app) -> failure
+        static hash<string, hash<string, hash<DataProviderInitializationFailureInfo>>> initialization_failure_map;
+
         #! Maps apps to the modules that define them: app -> module path -> True
         static hash<string, hash<string, bool>> appmodmap;
 
@@ -836,6 +869,8 @@ public class DataProviderActionCatalog {
 
         initmap{app} = {
             "init": init,
+            "kind": "app",
+            "app": app,
             "module_context": module_context
                 ?? DataProviderActionCatalog::registrationModulePath(),
         };
@@ -866,8 +901,76 @@ public class DataProviderActionCatalog {
 
         initactionmap{app}{action} = {
             "init": init,
+            "kind": "action",
+            "app": app,
+            "action": action,
             "module_context": DataProviderActionCatalog::registrationModulePath(),
         };
+    }
+
+    #! Retains a structured application or action initialization failure
+    /** Provider integrations that perform eager initialization should call this method before propagating an
+        initialization exception. Deferred catalog initialization records failures automatically.
+
+        A later successful registration of the same application or action clears the matching failure. Until then,
+        the failure remains available across repeated discovery attempts through @ref getInitializationFailures().
+
+        @param kind initialization unit; must be \c app or \c action
+        @param app exact technical application identifier
+        @param action exact technical action identifier; required for an action failure and omitted for an app failure
+        @param ex original exception information
+        @param module_context optional module path associated with the registration
+
+        @throw INVALID-ARGUMENT-ERROR for an invalid identity
+
+        @since %DataProvider 3.7
+    */
+    static reportInitializationFailure(string kind, string app, *string action, hash<ExceptionInfo> ex,
+            *string module_context = NOTHING) {
+        if ((kind != "app" && kind != "action") || !app.val()
+                || (kind == "action" && !action.val()) || (kind == "app" && exists action)) {
+            throw "INVALID-ARGUMENT-ERROR", sprintf("invalid data provider initialization failure identity: "
+                "kind=%y app=%y action=%y", kind, app, action);
+        }
+
+        bool needs_lock = !lck.lockOwner();
+        if (needs_lock) {
+            lck.lock();
+        }
+        on_exit if (needs_lock) {
+            lck.unlock();
+        }
+
+        initialization_failure_map{app}{action ?? ""} = <DataProviderInitializationFailureInfo>{
+            "kind": kind,
+            "app": app,
+            "action": action,
+            "error": ex.err,
+            "description": ex.desc,
+            "argument": ex.arg,
+            "module_context": module_context ?? DataProviderActionCatalog::registrationModulePath(),
+        };
+    }
+
+    #! Returns retained application and action initialization failures
+    /** @param apps optional application filter; when omitted, failures for all applications are returned
+
+        @return a snapshot of structured failures; reading the failures does not clear them
+
+        @since %DataProvider 3.7
+    */
+    static list<hash<DataProviderInitializationFailureInfo>> getInitializationFailures(
+            *list<string> apps = NOTHING) {
+        AutoLock al(lck);
+        hash<string, bool> filter = apps ? map {$1: True}, apps.iterator() : {};
+        list<hash<DataProviderInitializationFailureInfo>> rv = ();
+        foreach hash<auto> app_info in (initialization_failure_map.pairIterator()) {
+            if (apps && !filter{app_info.key}) {
+                continue;
+            }
+            rv += app_info.value.values();
+        }
+        return rv;
     }
 
     #! Registers a data provider application
@@ -968,6 +1071,7 @@ public class DataProviderActionCatalog {
                             }
                         }
                     }
+                    DataProviderActionCatalog::clearInitializationFailure(app.name, NOTHING);
                     return;
                 }
                 throw "APP-ERROR", sprintf("Application %y already registered: %y", app.name, existing_app);
@@ -980,6 +1084,7 @@ public class DataProviderActionCatalog {
 
             # add to cache
             appcache{app.name} = app;
+            DataProviderActionCatalog::clearInitializationFailure(app.name, NOTHING);
             if (module_path) {
                 appmodmap{app.name}{module_path} = True;
             }
@@ -1127,6 +1232,8 @@ public class DataProviderActionCatalog {
             DataProviderActionCatalog::registerAction(action);
             DataProviderActionCatalog::setGenericApiCallActionOwners(app.name);
         } catch (hash<ExceptionInfo> ex) {
+            DataProviderActionCatalog::reportInitializationFailure("action", app.name,
+                AbstractDataProvider::GenericApiCallActionName, ex);
             # log but do not fail the surrounding registration
             stderr.printf("DataProviderActionCatalog: failed to auto-register generic API call action for "
                 "app %y: %s: %s\n", app.name, ex.err, ex.desc);
@@ -1159,6 +1266,8 @@ public class DataProviderActionCatalog {
             # roll back any partial registrations from the failed load, then warn loudly: a REST app
             # will silently lack its make-api-call action otherwise
             ImplicitModuleTransaction::rollback(sp);
+            DataProviderActionCatalog::reportInitializationFailure("action", app.name,
+                AbstractDataProvider::GenericApiCallActionName, ex);
             stderr.printf("DataProviderActionCatalog: REST app %y qualifies for the framework-injected "
                 "%y action, but the builder-provider module %y could not be loaded; the action will be "
                 "missing from this app: %s: %s\n", app.name, AbstractDataProvider::GenericApiCallActionName,
@@ -1387,6 +1496,7 @@ public class DataProviderActionCatalog {
         }
 
         remove initmap{name};
+        remove initialization_failure_map{name};
         # remove the app's actions from both maps together; removing app_actionmap{name} on its
         # own here (and leaving the top_actionmap cleanup to deregisterAppIntern below) left the
         # top_actionmap entries - and their option/data-type graphs - leaked in the static map
@@ -1582,6 +1692,7 @@ public class DataProviderActionCatalog {
                 if (module_path) {
                     actionmodmap{action.app}{action.action}{module_path} = True;
                 }
+                DataProviderActionCatalog::clearInitializationFailure(action.app, action.action);
                 return;
             }
             list<string> diff = ();
@@ -1609,6 +1720,7 @@ public class DataProviderActionCatalog {
         if (has_get_output_type) {
             resolve_output_types{action.app}{action.action} = True;
         }
+        DataProviderActionCatalog::clearInitializationFailure(action.app, action.action);
     }
 
     #! Checks for a valid name
@@ -2763,6 +2875,7 @@ public class DataProviderActionCatalog {
         # deregistration (unbounded growth under app/connection churn)
         *hash<string, hash<DataProviderActionInfo>> actions = remove app_actionmap{name};
         remove initactionmap{name};
+        remove initialization_failure_map{name};
         remove resolve_output_types{name};
         remove appmodmap{name};
         remove actionmodmap{name};
@@ -2842,6 +2955,21 @@ public class DataProviderActionCatalog {
             = owners;
     }
 
+    #! Clears a retained initialization failure after the same identity is registered successfully
+    private static clearInitializationFailure(string app, *string action) {
+        bool needs_lock = !lck.lockOwner();
+        if (needs_lock) {
+            lck.lock();
+        }
+        on_exit if (needs_lock) {
+            lck.unlock();
+        }
+        remove initialization_failure_map{app}{action ?? ""};
+        if (!initialization_failure_map{app}) {
+            remove initialization_failure_map{app};
+        }
+    }
+
     #! Runs initialization and catches exceptions
     private static doInit(hash<auto> h) {
         try {
@@ -2857,7 +2985,8 @@ public class DataProviderActionCatalog {
             _mod_init_load_ctx = get_module_context_path();
             h.init();
         } catch (hash<ExceptionInfo> ex) {
-            stderr.printf("%s\n", get_exception_string(ex));
+            DataProviderActionCatalog::reportInitializationFailure(h.kind, h.app, h.action, ex,
+                h.module_context);
         }
     }
 

@@ -1,0 +1,149 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires Util
+%requires QUnit
+%requires FsUtil
+%requires Logger
+%requires Mime
+%requires DataProvider
+%requires ProviderIndex
+
+%try-module yaml
+%define NoYaml
+%endtry
+
+%exec-class ProviderIndexInitializationFailureTest
+
+#! Verifies that provider-index construction cannot certify a partial catalog after registration failures
+public class ProviderIndexInitializationFailureTest inherits QUnit::Test {
+    constructor() : Test("ProviderIndex initialization failures", "1.0") {
+        addTestCase("structured deferred failure blocks repeated discovery", \deferredFailureTest());
+        addTestCase("reported eager failure is filtered and retained", \eagerFailureTest());
+        set_return_value(main());
+    }
+
+    private checkModules() {
+%ifdef NoYaml
+        testSkip("no yaml module");
+%endif
+    }
+
+    private registerTestApp(string app) {
+        DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
+            "name": app,
+            "display_name": app,
+            "short_desc": "initialization failure test",
+            "desc": "initialization failure test",
+            "groups": (AppGroup::DataTransformation,),
+            "logo": "data",
+            "logo_mime_type": MimeTypeSvg,
+            "logo_file_name": "test.svg",
+            "dynamic": True,
+        });
+    }
+
+    private hash<ExceptionInfo> createIndexExpectingFailure(string app, string dir) {
+        try {
+            ProviderIndex::createDataProviderIndex(<DataProviderIndexInfo>{}, dir, <ProviderIndexCreateOptions>{
+                "load_known_factories": False,
+                "load_environment": False,
+                "load_typescript_actions": False,
+                "apps": (app,),
+            });
+            fail("provider index creation must reject an incomplete catalog");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("DATA-PROVIDER-INITIALIZATION-ERROR", ex.err);
+            return ex;
+        }
+        throw "TEST-ERROR", "provider index creation unexpectedly succeeded";
+    }
+
+    private checkFailure(hash<ExceptionInfo> ex, string kind, string app, *string action, string error,
+            string description, auto argument) {
+        list<hash<DataProviderInitializationFailureInfo>> failures = ex.arg;
+        assertEq(1, failures.size(), "one selected initialization failure is reported");
+        hash<DataProviderInitializationFailureInfo> failure = failures[0];
+        assertEq(kind, failure.kind);
+        assertEq(app, failure.app);
+        assertEq(action, failure.action);
+        assertEq(error, failure.error);
+        assertEq(description, failure.description);
+        assertEq(argument, failure.argument);
+    }
+
+    private deferredFailureTest() {
+        checkModules();
+
+        string app = "DeferredFailure_" + get_random_string(8);
+        registerTestApp(app);
+        on_exit DataProviderActionCatalog::deregisterDynamicApp(app);
+
+        DataProviderActionCatalog::registerPendingAppAction(app, "broken-action", sub () {
+            throw "DEFERRED-REGISTRATION-ERROR", "synthetic deferred action failure", {"state": "deferred"};
+        });
+
+        string dir = make_tmp_dir();
+        on_exit remove_tree(dir);
+        hash<ExceptionInfo> first = createIndexExpectingFailure(app, dir);
+        checkFailure(first, "action", app, "broken-action", "DEFERRED-REGISTRATION-ERROR",
+            "synthetic deferred action failure", {"state": "deferred"});
+        assertFalse(is_readable(join_paths(dir, "qore-data-index.yaml")),
+            "an incomplete index is not written");
+
+        # The pending callback is consumed on the first attempt, so only retained structured state can make the
+        # second discovery fail as well.
+        hash<ExceptionInfo> second = createIndexExpectingFailure(app, dir);
+        checkFailure(second, "action", app, "broken-action", "DEFERRED-REGISTRATION-ERROR",
+            "synthetic deferred action failure", {"state": "deferred"});
+
+        # A successful replacement of the same technical identity clears the retained failure.
+        DataProviderActionCatalog::registerPendingAppAction(app, "broken-action", sub () {
+            DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+                "app": app,
+                "action": "broken-action",
+                "path": "/broken-action",
+                "display_name": "Recovered action",
+                "short_desc": "recovered action",
+                "desc": "recovered action",
+                "action_code": DPAT_API,
+            });
+        });
+        DataProviderActionCatalog::getActions(app, False);
+        assertEq((), DataProviderActionCatalog::getInitializationFailures((app,)),
+            "successful replacement clears the failure");
+    }
+
+    private eagerFailureTest() {
+        checkModules();
+
+        string app = "EagerFailure_" + get_random_string(8);
+        registerTestApp(app);
+        on_exit DataProviderActionCatalog::deregisterDynamicApp(app);
+
+        try {
+            throw "EAGER-REGISTRATION-ERROR", "synthetic eager action failure", {"state": "eager"};
+        } catch (hash<ExceptionInfo> ex) {
+            # Eager integrations report before rethrowing; TypeScriptActionInterface uses this path.
+            DataProviderActionCatalog::reportInitializationFailure("action", app, "eager-action", ex,
+                "/test/eager-provider.qm");
+        }
+
+        string dir = make_tmp_dir();
+        on_exit remove_tree(dir);
+        checkFailure(createIndexExpectingFailure(app, dir), "action", app, "eager-action",
+            "EAGER-REGISTRATION-ERROR", "synthetic eager action failure", {"state": "eager"});
+
+        assertEq((), DataProviderActionCatalog::getInitializationFailures(("UnrelatedApp",)),
+            "scoped discovery ignores failures outside its selected applications");
+        list<hash<DataProviderInitializationFailureInfo>> failures
+            = DataProviderActionCatalog::getInitializationFailures((app,));
+        assertEq("/test/eager-provider.qm", failures[0].module_context,
+            "the provider module identity is retained");
+    }
+}
