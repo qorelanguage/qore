@@ -1805,7 +1805,7 @@ public class PgsqlDatabase inherits SqlUtil::AbstractDatabase {
         return ds.getDBName();
     }
 
-    #! @ref SqlUtil::AbstractDatabase.getPhysicalSize()
+    #! @ref SqlUtil::AbstractDatabase::getPhysicalSize()
     private int getPhysicalSizeImpl() {
         *string dbname = getDbName();
         if (!exists dbname) {
@@ -1814,7 +1814,7 @@ public class PgsqlDatabase inherits SqlUtil::AbstractDatabase {
         return ds.selectRow("select pg_database_size(%v) as val", dbname).val ?? GET_PHYSICAL_DB_SIZE_NOVAL;
     }
 
-    #! @ref SqlUtil::AbstractDatabase.getSchemaPhysicalSize()
+    #! @ref SqlUtil::AbstractDatabase::getSchemaPhysicalSize()
     private int getSchemaPhysicalSizeImpl(string schema) {
         # Enumerate only storage roots in the requested namespace.  pg_total_relation_size() already includes
         # every table/materialized-view index and its TOAST relation and index.  Enumerating relkind 'i', 'I',
@@ -3712,7 +3712,9 @@ public class PgsqlTable inherits SqlUtil::AbstractTable {
 
     #! parses the DDL returned by \c pg_get_indexdef to extract the WITH clause and non-default
     #! per-column operator classes
-    /** @return a hash with \c with_options (\c *hash<auto>) and \c opclass (\c *hash<string, string>)
+    /** @param ddl the index definition returned by \c pg_get_indexdef
+        @return a hash with \c with_options (<tt>*hash&lt;auto&gt;</tt>) and
+        \c opclass (<tt>*hash&lt;string, string&gt;</tt>)
     */
     static hash<auto> parsePgIndexDef(string ddl) {
         # hash<auto!> suppresses per-key type narrowing so that initially-NOTHING slots can later

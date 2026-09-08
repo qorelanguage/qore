@@ -399,6 +399,7 @@ Content-Length: 16
     @section resthandler_relnotes RestHandler Release Notes
 
     @subsection rh_1_6_7 RestHandler v1.6.7
+    - the resource name \c "0" is routed as a nonempty path segment in HTTP and internal dispatch
     - REST resource names preserve percent-encoded separators such as slashes and question marks;
       URI path segments are decoded individually after routing boundaries and query arguments are parsed
     - removed the \c Socket::setHttp2ActiveStream(stream_id) /
@@ -406,7 +407,7 @@ Content-Length: 16
       @ref RestHandler::AbstractRestClass::handleRequest()
       "AbstractRestClass::handleRequest()".  REST responses on HTTP/2
       already use the async-safe H2 @c Socket primitives via the
-      @ref HttpServerAsyncIo "HttpServerAsyncIo" controller; no REST
+      \c HttpServerAsyncIo controller; no REST
       handler relied on the \c Socket::send() / \c Socket::recv()
       redirection that the active-stream bridge enabled.
     - dropped the per-response "raw body" log entry from DEBUG to TRACE; at DEBUG level it flooded
@@ -1236,8 +1237,8 @@ public namespace RestHandler {
         /** @param auth the authentication object to use to authenticate connections (see
             HttpServer::AbstractAuthenticator); if no HttpServer::AbstractAuthenticator object is passed, then by
             default no authentication will be required
-            @param validator a REST API schema validator object; if none is present, then the default REST
-            de/serialization support is provided as documented in @ref RestSchemaValidator::NullRestSchemaValidator
+            @note Default REST de/serialization support is provided by
+            @ref RestSchemaValidator::NullRestSchemaValidator.
         */
         constructor(*HttpServer::AbstractAuthenticator auth)
                 : HttpServer::AbstractHttpRequestHandler(auth, True) {
@@ -1261,8 +1262,8 @@ public namespace RestHandler {
             @param auth the authentication object to use to authenticate connections (see
             HttpServer::AbstractAuthenticator); if no HttpServer::AbstractAuthenticator object is passed, then by
             default no authentication will be required
-            @param validator a REST API schema validator object; if none is present, then the default REST
-            de/serialization support is provided as documented in @ref RestSchemaValidator::NullRestSchemaValidator
+            @note Default REST de/serialization support is provided by
+            @ref RestSchemaValidator::NullRestSchemaValidator.
         */
         constructor(Logger::LoggerInterface logger, *HttpServer::AbstractAuthenticator auth)
                 : HttpServer::AbstractHttpRequestHandler(auth, True), LoggerWrapper(logger) {
@@ -1333,7 +1334,8 @@ public namespace RestHandler {
         /** Requests will be dispatched to REST classes registered with this object
 
             @param method the HTTP method; if the the method is unknown, an \c UNKNOWN-REST-METHOD exception is raised
-            @param path the URI path for the call
+            @param path the percent-encoded URI path for the call, optionally followed by query arguments;
+                for example, \c "customers/account%2F42" addresses resource \c "account/42" under \c customers
             @param body the arguments to the call; note that arguments are combined with any arguments provided in
             \a path
             @param cx simulated HTTP call context hash
@@ -1427,7 +1429,7 @@ public namespace RestHandler {
 
             # get class chain
             *list<string> cl;
-            if (ah.method) {
+            if (ah.method.val()) {
                 # combine continuous "/" chars into a single one
                 ah.method =~ s/\/\/+/\//g;
                 cl = map decode_url($1), ah.method.split("/");
@@ -1441,9 +1443,9 @@ public namespace RestHandler {
 
             AbstractRestClass rcls;
 
-            if (!cls)
+            if (!cls.val()) {
                 rcls = self;
-            else {
+            } else {
                 *AbstractRestClass c = subClass(cls, cx, args);
                 if (!c) {
                     # issue #2994: if we are on the last class and there is no "action" argument; see if we can find
@@ -1553,7 +1555,7 @@ public namespace RestHandler {
             }
 
             # get object and args
-            hash<auto> ah = path ? {
+            hash<auto> ah = path.val() ? {
                 "method": req.path,
                 "params": req.query,
             } : {};
@@ -1629,7 +1631,7 @@ public namespace RestHandler {
 
             # get class chain
             *list<string> cl;
-            if (ah.method) {
+            if (ah.method.val()) {
                 # combine continuous "/" chars into a single one
                 ah.method =~ s/\/\/+/\//g;
                 cl = ah.method.split("/");
@@ -1785,7 +1787,7 @@ public namespace RestHandler {
                 "arg_path": class_list,
             };
 
-            if (!cls) {
+            if (!cls.val()) {
                 rcls = self;
             } else {
                 *AbstractRestClass c = subClass(cls, cx, args);

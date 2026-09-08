@@ -8,6 +8,8 @@
 %requires ../../../../qlib/HttpServer.qm
 %requires ../../../../qlib/RestHandler.qm
 %requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/Swagger.qm
+%requires json
 %exec-class RestPathEncodingTest
 
 class EncodedResource inherits AbstractRestClass {
@@ -19,6 +21,10 @@ class EncodedResource inherits AbstractRestClass {
     }
 }
 class EncodedPathHandler inherits RestHandler {
+    constructor() : RestHandler() {
+    }
+    constructor(AbstractRestSchemaValidator validator) : RestHandler(NOTHING, validator) {
+    }
     removeRootPath(reference<string> path) {
         path =~ s/^api\///;
     }
@@ -37,6 +43,7 @@ class RestPathEncodingTest inherits QUnit::Test {
         addTestCase("query values are decoded exactly once", \queryValues());
         addTestCase("internal REST dispatch decodes individual segments", \internal());
         addTestCase("routing boundaries and error categories are preserved", \boundaries());
+        addTestCase("schema path parameters use decoded values", \schemaParameters());
         set_return_value(main());
     }
     globalSetUp() {
@@ -52,7 +59,7 @@ class RestPathEncodingTest inherits QUnit::Test {
         }
     }
     private separators() {
-        foreach string id in (("plain", "folder/customer API", "příprava-objednávky", "literal%?#id",
+        foreach string id in (("plain", "0", "folder/customer API", "příprava-objednávky", "literal%?#id",
                 "literal%2F", "a+b;c=d", "leading/slash/", "repeat//slash")) {
             assertEq({"id": id, "args": {}}, client.restGet("api/" + encode_url(id, True)).body, id);
         }
@@ -66,11 +73,37 @@ class RestPathEncodingTest inherits QUnit::Test {
             handler.handleExternalRequest("GET", "folder%2Fcustomer%20API?label=a%26b"));
         assertEq({"id": "literal%2F?", "args": {}},
             handler.handleExternalRequest("GET", "/literal%252F%3f"));
+        assertEq({"id": "0", "args": {}}, handler.handleExternalRequest("GET", "0"));
     }
     private boundaries() {
         assertEq({"id": "a+b", "args": {}}, client.restGet("api/a+b").body);
         assertEq({"id": "/", "args": {}}, client.restGet("api/%2f").body);
-        assertThrows("REST-RESPONSE-ERROR", "404", \client.restGet(), "api/parent/child");
+        assertThrows("REST-RESPONSE-ERROR", NOTHING, {"status_code": 404}, \client.restGet(), "api/parent/child");
         assertThrows("UNKNOWN-REST-METHOD", \handler.handleExternalRequest(), ("INVALID", "folder%2Fcustomer"));
+    }
+    private schemaParameters() {
+        SwaggerSchema schema = SwaggerLoader::fromString(make_json({
+            "swagger": "2.0", "info": {"title": "Encoded resource identifiers", "version": "1.0"},
+            "produces": ("application/json",),
+            "paths": {"/{id}": {"get": {
+                "parameters": ({"name": "id", "in": "path", "required": True, "type": "string",
+                    "maxLength": 20},),
+                "responses": {"200": {"description": "Resource and decoded path arguments", "schema": {
+                    "type": "object", "properties": {"id": {"type": "string"},
+                        "args": {"type": "object", "additionalProperties": {"type": "string"}}},
+                }}},
+            }}},
+        }));
+        HttpServer schema_server();
+        on_exit schema_server.stop();
+        schema_server.setDefaultHandler("schema-resources", new EncodedPathHandler(schema));
+        int port = schema_server.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        RestClient schema_client({"url": "http://127.0.0.1:" + port, "data": "json", "pre_encoded_urls": True,
+            "connect_timeout": 5000, "timeout": 5000});
+        foreach string id in (("plain", "0", "folder/customer API", "literal%2F", "key?query", "příprava")) {
+            assertEq({"id": id, "args": {"id": id}}, schema_client.restGet("api/" + encode_url(id, True)).body);
+        }
+        assertThrows("REST-RESPONSE-ERROR", "SCHEMA-VALIDATION-ERROR", {"status_code": 400},
+            \schema_client.restGet(), "api/xxxxxxxxxxxxxxxxxxxxx");
     }
 }
