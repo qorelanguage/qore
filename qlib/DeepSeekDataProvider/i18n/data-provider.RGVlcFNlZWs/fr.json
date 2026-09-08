@@ -264,8 +264,8 @@
           "message": "Jetons de sortie max"
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.desc": {
-          "source": "Reasoning.",
-          "message": "Raisonnement."
+          "source": "Control how much reasoning the model performs before answering. Set `effort` to `none` to disable thinking.",
+          "message": "Définissez le niveau de raisonnement du modèle avant sa réponse. Définissez `effort` sur `none` pour désactiver le raisonnement."
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.display_name": {
           "source": "Reasoning",
@@ -521,11 +521,11 @@
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.cHJvbXB0.display_name": {
           "source": "Prompt",
-          "message": "Prompt"
+          "message": "Texte initial"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.cHJvbXB0.short_desc": {
           "source": "Prompt",
-          "message": "Prompt"
+          "message": "Texte initial"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dG9wX3A.desc": {
           "source": "Nucleus sampling cutoff from `0` to `1`. Has no effect in thinking mode.",
@@ -677,7 +677,7 @@
         },
         "app.RGVlcFNlZWs.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
           "source": "Auto",
-          "message": "Auto"
+          "message": "Automatique"
         },
         "app.RGVlcFNlZWs.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
           "source": "Pass-through; use connection serialization and let the REST client decide",

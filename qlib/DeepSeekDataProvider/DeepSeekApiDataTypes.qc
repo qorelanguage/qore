@@ -133,6 +133,7 @@ public class DeepSeekFimRequestDataType inherits HashDataType {
                 "desc": "Text after the insertion point.",
                 "type": AbstractDataProviderTypeMap."*string",
                 "example_value": "\n    return total",
+                "preselected": True,
             },
             "max_tokens": {
                 "display_name": "Max Tokens",
@@ -212,8 +213,8 @@ public class DeepSeekReasoningDataType inherits HashDataType {
                     <AllowedValueInfo>{"value": "low", "display_name": "Low"},
                     <AllowedValueInfo>{"value": "medium", "display_name": "Medium"},
                     <AllowedValueInfo>{"value": "high", "display_name": "High"},
-                    <AllowedValueInfo>{"value": "xhigh", "display_name": "Xhigh"},
-                    <AllowedValueInfo>{"value": "max", "display_name": "Max"},
+                    <AllowedValueInfo>{"value": "xhigh", "display_name": "Extra High"},
+                    <AllowedValueInfo>{"value": "max", "display_name": "Maximum"},
                 ),
             },
         };
@@ -518,7 +519,7 @@ public class DeepSeekCreateResponseRequestDataType inherits HashDataType {
             "reasoning": {
                 "display_name": "Reasoning",
                 "short_desc": "Reasoning",
-                "desc": "Reasoning.",
+                "desc": "Control how much reasoning the model performs before answering. Set `effort` to `none` to disable thinking.",
                 "type": new DeepSeekReasoningDataType(True),
             },
             "temperature": {

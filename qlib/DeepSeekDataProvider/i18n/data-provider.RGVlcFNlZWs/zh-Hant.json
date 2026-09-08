@@ -264,8 +264,8 @@
           "message": "最大輸出權杖數"
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.desc": {
-          "source": "Reasoning.",
-          "message": "推理。"
+          "source": "Control how much reasoning the model performs before answering. Set `effort` to `none` to disable thinking.",
+          "message": "控制模型在回答前進行推理的程度。將 `effort` 設為 `none` 可停用推理。"
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.display_name": {
           "source": "Reasoning",

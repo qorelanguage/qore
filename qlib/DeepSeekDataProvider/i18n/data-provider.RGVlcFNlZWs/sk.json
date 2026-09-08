@@ -264,8 +264,8 @@
           "message": "Maximálny počet výstupných tokenov"
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.desc": {
-          "source": "Reasoning.",
-          "message": "Uvažovanie."
+          "source": "Control how much reasoning the model performs before answering. Set `effort` to `none` to disable thinking.",
+          "message": "Určite, koľko uvažovania model vykoná pred odpoveďou. Nastavením `effort` na `none` uvažovanie vypnete."
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.display_name": {
           "source": "Reasoning",
@@ -449,11 +449,11 @@
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.ZWNobw.display_name": {
           "source": "Echo Prompt",
-          "message": "Echo Prompt"
+          "message": "Zahrnúť východiskový text"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.ZWNobw.short_desc": {
           "source": "Echo Prompt",
-          "message": "Echo Prompt"
+          "message": "Zahrnúť východiskový text"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bG9ncHJvYnM.desc": {
           "source": "Number of alternative token probabilities from `0` to `20`.",
@@ -521,11 +521,11 @@
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.cHJvbXB0.display_name": {
           "source": "Prompt",
-          "message": "Prompt"
+          "message": "Východiskový text"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.cHJvbXB0.short_desc": {
           "source": "Prompt",
-          "message": "Prompt"
+          "message": "Východiskový text"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dG9wX3A.desc": {
           "source": "Nucleus sampling cutoff from `0` to `1`. Has no effect in thinking mode.",
@@ -677,7 +677,7 @@
         },
         "app.RGVlcFNlZWs.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
           "source": "Auto",
-          "message": "Auto"
+          "message": "Automaticky"
         },
         "app.RGVlcFNlZWs.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
           "source": "Pass-through; use connection serialization and let the REST client decide",

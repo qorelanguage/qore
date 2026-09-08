@@ -41,11 +41,11 @@
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.display_name": {
           "source": "Max Tokens",
-          "message": "Max Tokens"
+          "message": "Maximum tokenů"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.short_desc": {
           "source": "Max Tokens",
-          "message": "Max Tokens"
+          "message": "Maximum tokenů"
         },
         "app.RGVlcFNlZWs.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.desc": {
           "source": "Conversation history in chronological order.",
@@ -264,8 +264,8 @@
           "message": "Maximální počet výstupních tokenů"
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.desc": {
-          "source": "Reasoning.",
-          "message": "Uvažování."
+          "source": "Control how much reasoning the model performs before answering. Set `effort` to `none` to disable thinking.",
+          "message": "Určete, kolik uvažování model provede před odpovědí. Nastavením `effort` na `none` uvažování vypnete."
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.display_name": {
           "source": "Reasoning",
@@ -449,11 +449,11 @@
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.ZWNobw.display_name": {
           "source": "Echo Prompt",
-          "message": "Echo Prompt"
+          "message": "Zahrnout výchozí text"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.ZWNobw.short_desc": {
           "source": "Echo Prompt",
-          "message": "Echo Prompt"
+          "message": "Zahrnout výchozí text"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bG9ncHJvYnM.desc": {
           "source": "Number of alternative token probabilities from `0` to `20`.",
@@ -485,11 +485,11 @@
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bWF4X3Rva2Vucw.display_name": {
           "source": "Max Tokens",
-          "message": "Max Tokens"
+          "message": "Maximum tokenů"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bWF4X3Rva2Vucw.short_desc": {
           "source": "Max Tokens",
-          "message": "Max Tokens"
+          "message": "Maximum tokenů"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.c3RvcA.desc": {
           "source": "Up to 16 strings that stop generation before the matching sequence.",
@@ -521,11 +521,11 @@
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.cHJvbXB0.display_name": {
           "source": "Prompt",
-          "message": "Prompt"
+          "message": "Výchozí text"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.cHJvbXB0.short_desc": {
           "source": "Prompt",
-          "message": "Prompt"
+          "message": "Výchozí text"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.dG9wX3A.desc": {
           "source": "Nucleus sampling cutoff from `0` to `1`. Has no effect in thinking mode.",
@@ -665,7 +665,7 @@
         },
         "app.RGVlcFNlZWs.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.display_name": {
           "source": "Multipart Form",
-          "message": "Multipart Form"
+          "message": "Vícedílný formulář"
         },
         "app.RGVlcFNlZWs.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.short_desc": {
           "source": "Upload a file using multipart/form-data",

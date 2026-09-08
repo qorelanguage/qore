@@ -756,8 +756,8 @@
           "message": "Reasoning"
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.desc": {
-          "source": "Reasoning.",
-          "message": "Reasoning."
+          "source": "Control how much reasoning the model performs before answering. Set `effort` to `none` to disable thinking.",
+          "message": "Control how much reasoning the model performs before answering. Set `effort` to `none` to disable thinking."
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGVtcGVyYXR1cmU.display_name": {
           "source": "Temperature",

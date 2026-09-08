@@ -264,8 +264,8 @@
           "message": "最大出力トークン数"
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.desc": {
-          "source": "Reasoning.",
-          "message": "Reasoning."
+          "source": "Control how much reasoning the model performs before answering. Set `effort` to `none` to disable thinking.",
+          "message": "回答前にモデルが行う推論の量を設定します。推論を無効にするには、`effort` を `none` に設定してください。"
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.display_name": {
           "source": "Reasoning",
@@ -341,11 +341,11 @@
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.display_name": {
           "source": "Text Output",
-          "message": "Text Output"
+          "message": "テキスト出力"
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.short_desc": {
           "source": "Text Output",
-          "message": "Text Output"
+          "message": "テキスト出力"
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.dGVtcGVyYXR1cmU.desc": {
           "source": "Sampling temperature from `0` to `2`. Has no effect in thinking mode.",
@@ -449,11 +449,11 @@
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.ZWNobw.display_name": {
           "source": "Echo Prompt",
-          "message": "Echo Prompt"
+          "message": "プロンプトを含める"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.ZWNobw.short_desc": {
           "source": "Echo Prompt",
-          "message": "Echo Prompt"
+          "message": "プロンプトを含める"
         },
         "app.RGVlcFNlZWs.action.ZmltLWNvbXBsZXRpb24.option.bG9ncHJvYnM.desc": {
           "source": "Number of alternative token probabilities from `0` to `20`.",
@@ -989,11 +989,11 @@
         },
         "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.display_name": {
           "source": "Image File",
-          "message": "Image File"
+          "message": "画像ファイル"
         },
         "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.short_desc": {
           "source": "Image File",
-          "message": "Image File"
+          "message": "画像ファイル"
         },
         "app.RGVlcFNlZWs.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.allowed-value.c3RyaW5nOnVzZXJfZGF0YQ.display_name": {
           "source": "User Data",

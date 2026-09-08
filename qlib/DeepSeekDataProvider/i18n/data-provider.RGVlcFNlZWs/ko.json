@@ -264,8 +264,8 @@
           "message": "최대 출력 토큰"
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.desc": {
-          "source": "Reasoning.",
-          "message": "추론."
+          "source": "Control how much reasoning the model performs before answering. Set `effort` to `none` to disable thinking.",
+          "message": "모델이 답변하기 전에 수행하는 추론의 양을 설정합니다. 추론을 비활성화하려면 `effort`를 `none`으로 설정하세요."
         },
         "app.RGVlcFNlZWs.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.display_name": {
           "source": "Reasoning",

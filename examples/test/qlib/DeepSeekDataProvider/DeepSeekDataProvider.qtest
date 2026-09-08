@@ -130,6 +130,7 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
                 \liveDeepSeekTest());
         }
         addTestCase("all actions have usable metadata and paths", \actionMetadataTest());
+        addTestCase("all locales translate short presentation labels", \translationTest());
         addTestCase("model and paginated file dropdowns", \referenceDataTest());
         addTestCase("all API routes and timestamp conversion", \apiRoutesTest());
         addTestCase("beta prefix and strict tool routing", \betaTest());
@@ -332,10 +333,49 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
                 assertTrue(action.options.model.ref_data.val());
                 assertTrue(action.options.model.allowed_values_creatable);
             }
+            if (action.action == "fim-completion") {
+                assertTrue(action.options.suffix.preselected,
+                    "show both sides of the insertion point in the default form");
+                assertFalse(action.options.suffix.required,
+                    "suffix remains optional for prefix-only completion");
+            }
             assertEq(action.action == "upload-file" || action.action == "delete-file",
                 DataProviderActionCatalog::actionMutatesState(action));
         }
         assertEq(9, root.getChildProviderSummaryInfo().size());
+    }
+
+    private translationTest() {
+        # Product names, API literals, and words also native to the target language may stay unchanged.
+        hash<string, bool> literals = {"DeepSeek": True, "JSON": True, "XML": True, "YAML": True,
+            "Top-P": True};
+        foreach string method in (("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "TRACE")) {
+            literals{method} = True;
+            literals{"HTTP " + method} = True;
+            literals{"HTTP `" + method + "`"} = True;
+        }
+        hash<auto> native_words = {
+            "cs": {"Limit": True, "Model": True},
+            "de": {"Limit": True, "Suffix": True},
+            "fr": {"Instructions": True, "Messages": True},
+            "pl": {"Limit": True, "Model": True},
+            "sk": {"Limit": True, "Model": True},
+        };
+        string catalog_dir = get_script_dir()
+            + "/../../../../qlib/DeepSeekDataProvider/i18n/data-provider.RGVlcFNlZWs/";
+        foreach string locale in (DataProviderPresentation::StandardTranslationLocales) {
+            hash<auto> catalog = parse_json(File::readTextFile(catalog_dir + locale + ".json"));
+            hash<auto> messages = catalog.locales{locale}.messages;
+            assertTrue(messages.size() > 0, locale + ": catalog must contain presentation messages");
+            list<string> untranslated = ();
+            foreach hash<auto> entry in (messages.pairIterator()) {
+                string source = entry.value.source;
+                if (entry.value.message == source && !literals{source} && !native_words{locale}{source}) {
+                    push untranslated, entry.key + ": " + source;
+                }
+            }
+            assertEq((), untranslated, locale + ": untranslated presentation strings, including short labels");
+        }
     }
 
     private referenceDataTest() {
