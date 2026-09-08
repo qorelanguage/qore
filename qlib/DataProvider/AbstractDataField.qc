@@ -418,32 +418,55 @@ public class AbstractDataField inherits Qore::Serializable {
         return self;
     }
 
-    #! Sets allowed values for enum types
+    #! Sets the choices allowed for each list element
+    /** @param element_allowed_values raw values or AllowedValueInfo records; an empty list clears choices
+        @param element_allowed_values_creatable whether values outside the choices are accepted
+        @return this field
+        @throw RUNTIME-TYPE-ERROR a choice cannot be converted to the list element type
+        @note Failed conversion leaves the previous choices and membership rules unchanged.
+        @par Example
+        A currency list with choices \c ("EUR", "USD") accepts \c ("EUR", "EUR") and rejects \c ("GBP",).
+    */
     AbstractDataField setElementAllowedValues(list<auto> element_allowed_values,
             *bool element_allowed_values_creatable) {
         AbstractDataProviderType type = getType();
+        *AbstractDataProviderType et = type.getElementType();
+        list<hash<AllowedValueInfo>> resolved;
         if (element_allowed_values[0] instanceof hash<AllowedValueInfo>) {
-            self.element_allowed_values = element_allowed_values;
+            resolved = element_allowed_values;
         } else if (element_allowed_values[0].typeCode() == NT_HASH && element_allowed_values[0].hasKey("value")
-            && type.getBaseTypeCode() != NT_HASH) {
-            self.element_allowed_values = map cast<hash<AllowedValueInfo>>($1), element_allowed_values;
+            && (!et || et.getBaseTypeCode() != NT_HASH)) {
+            resolved = map cast<hash<AllowedValueInfo>>($1), element_allowed_values;
         } else {
-            self.element_allowed_values = map <AllowedValueInfo>{
+            resolved = map <AllowedValueInfo>{
                 "display_name": $1.toString(),
                 "value": $1,
             }, element_allowed_values;
         }
         on_error rethrow $1.err, sprintf("%s (element_allowed_values: %y)", $1.desc, element_allowed_values);
-        if (*AbstractDataProviderType et = type.getElementType()) {
+        if (et) {
             # check that the value can be assigned to the type
-            map self.element_allowed_values[$#].value = et.acceptsValue($1.value),
-                self.element_allowed_values.iterator();
+            map resolved[$#].value = et.acceptsValue($1.value), resolved.iterator();
         }
-        if (element_allowed_values_creatable) {
-            self.element_allowed_values_creatable = True;
-        } else if (element_allowed_values[0].value.strp()) {
-            # NOTE: requires that values can be converted to a string hash key to simulate a set
-            element_allowed_values_map = map {$1.value: True}, self.element_allowed_values;
+        *hash<string, bool> membership;
+        if (!element_allowed_values_creatable && resolved) {
+            bool hashable = True;
+            foreach hash<AllowedValueInfo> choice in (resolved) {
+                if (!choice.value.strp()) {
+                    hashable = False;
+                    break;
+                }
+            }
+            if (hashable) {
+                membership = map {$1.value: True}, resolved;
+            }
+        }
+        self.element_allowed_values = resolved;
+        self.element_allowed_values_creatable = element_allowed_values_creatable ?? False;
+        if (membership) {
+            element_allowed_values_map = membership;
+        } else {
+            remove element_allowed_values_map;
         }
         return self;
     }
@@ -522,8 +545,9 @@ public class AbstractDataField inherits Qore::Serializable {
                     }
                 }
             } else if (element_allowed_values && !element_allowed_values_creatable) {
+                list<auto> choices = map $1.value, element_allowed_values;
                 foreach auto v in (value) {
-                    if (!inlist(v, element_allowed_values)) {
+                    if (!inlist(v, choices)) {
                         throw "FIELD-VALUE-ERROR", sprintf("field %y does not accept value %y; allowed "
                             "values for elements: %y", getName(), v, (map $1.value, element_allowed_values));
                     }

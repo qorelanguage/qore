@@ -1,0 +1,85 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
+%exec-class ElementAllowedValuesTest
+
+class ElementAllowedValuesTest inherits QUnit::Test {
+    constructor() : Test("Allowed list element values", "1.0") {
+        addTestCase("Raw and described strings use converted choice values", \strings());
+        addTestCase("Converted integer choices reject values outside their set", \integers());
+        addTestCase("Structured choices compare values rather than description records", \records());
+        addTestCase("Choice replacement and custom values discard stale membership", \updates());
+        addTestCase("Invalid replacement retains the previous choices", \rollback());
+        set_return_value(main());
+    }
+
+    private static QoreDataField field(AbstractDataProviderType item, list<auto> choices) {
+        return new QoreDataField({"name": "values", "type": new ListDataType(item),
+            "element_allowed_values": choices});
+    }
+
+    private strings() {
+        foreach list<auto> choices in (("A B", "C"),
+                (<AllowedValueInfo>{"value": "A B", "display_name": "First"},
+                    <AllowedValueInfo>{"value": "C", "display_name": "Second"})) {
+            QoreDataField original = field(AbstractDataProviderType::get(StringType), choices);
+            foreach QoreDataField value in (original, Serializable::deserialize(original.serialize())) {
+                assertEq(("A B", "C", "A B"), value.acceptsValue(("A B", "C", "A B")));
+                assertEq((), value.acceptsValue(()));
+                assertEq({"A B": True, "C": True}, value.getElementAllowedValueMap());
+                assertThrows("FIELD-VALUE-ERROR", \value.acceptsValue(), (("A B", "D"),));
+            }
+        }
+    }
+
+    private integers() {
+        QoreDataField value = field(AbstractDataProviderType::get(SoftIntType), ("01", "2"));
+        assertEq((1, 2), value.acceptsValue(("1", 2)));
+        assertEq(1, value.getElementAllowedValues()[0].value);
+        assertThrows("FIELD-VALUE-ERROR", \value.acceptsValue(), ((3,),));
+    }
+
+    private records() {
+        QoreDataField original = field(AbstractDataProviderType::get(AutoHashType), ({"id": 1}, {"id": 2}));
+        foreach QoreDataField value in (original, Serializable::deserialize(original.serialize())) {
+            assertEq(({"id": 1}, {"id": 2}), value.acceptsValue(({"id": 1}, {"id": 2})));
+            assertThrows("FIELD-VALUE-ERROR", \value.acceptsValue(), (({"id": 3},),));
+        }
+        QoreDataField named = field(AbstractDataProviderType::get(AutoHashType),
+            ({"value": "invoice", "id": 1},));
+        assertEq(({"value": "invoice", "id": 1},), named.acceptsValue(({"value": "invoice", "id": 1},)));
+        assertThrows("FIELD-VALUE-ERROR", \named.acceptsValue(), (({"value": "invoice", "id": 2},),));
+        QoreDataField mixed = field(AbstractDataProviderType::get(AutoType), (1, {"id": 2}));
+        assertEq((1, {"id": 2}), mixed.acceptsValue((1, {"id": 2})));
+        assertThrows("FIELD-VALUE-ERROR", \mixed.acceptsValue(), (({"id": 3},),));
+    }
+
+    private updates() {
+        QoreDataField value = field(AbstractDataProviderType::get(StringType), ("A",));
+        value.setElementAllowedValues(("B",), False);
+        assertEq(("B",), value.acceptsValue(("B",)));
+        assertThrows("FIELD-VALUE-ERROR", \value.acceptsValue(), (("A",),));
+        value.setElementAllowedValues(("B",), True);
+        assertEq(("C",), value.acceptsValue(("C",)));
+        assertEq(NOTHING, value.getElementAllowedValueMap());
+        value.setElementAllowedValues(("A",), False);
+        assertFalse(value.getElementAllowedValuesCreatable());
+        assertThrows("FIELD-VALUE-ERROR", \value.acceptsValue(), (("C",),));
+        value.setElementAllowedValues((), False);
+        assertEq(("C",), value.acceptsValue(("C",)));
+        assertEq(NOTHING, value.getElementAllowedValueMap());
+    }
+
+    private rollback() {
+        QoreDataField value = field(AbstractDataProviderType::get(IntType), (1,));
+        auto choices = value.getElementAllowedValues();
+        assertThrows("RUNTIME-TYPE-ERROR", \value.setElementAllowedValues(), ((2, "invalid"), True));
+        assertEq(choices, value.getElementAllowedValues());
+        assertFalse(value.getElementAllowedValuesCreatable());
+        assertEq((1,), value.acceptsValue((1,)));
+        assertThrows("FIELD-VALUE-ERROR", \value.acceptsValue(), ((2,),));
+    }
+}

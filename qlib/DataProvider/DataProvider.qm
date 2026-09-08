@@ -1354,6 +1354,8 @@ fetch
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v3_8 DataProvider v3.8
+    - fixed allowed list-element choices to use converted values for both scalar and structured items;
+      replacing choices now clears stale membership rules, and a failed replacement preserves the previous choices
     - distinguish absent required fields from explicitly supplied null values, and clear requiredness
       when making an already nullable field optional
     - fixed short descriptions containing quoted parameter names or numbers to preserve ordinary words
