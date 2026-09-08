@@ -1,6 +1,6 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# Copyright 2026 Qore Technologies, s.r.o.
+# Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
 
@@ -173,6 +173,7 @@ class ReqHandler inherits AbstractHttpRequestHandler {
                 "Content-Encoding": "gzip",
             });
         } else if (rpath =~ /^fileupload/) {
+            # Closing quotes and subsequent parameters are not part of the MIME boundary.
             string boundary = (hdr."_qore_orig_content_type" =~ x/boundary="?([^";]+)"?/i)[0];
             hash<MessageInfo> h = MultiPartMessage::parseBody(boundary, body, True);
             #printf("h: %N\n", h);
@@ -1472,6 +1473,8 @@ OKKqgBjNAlYDdPhOy8O8Agk=
         msg.addPart(BinImage, "image0.png", {"Content-Type": MimeTypePng});
         msg.addPart(BinImage, "image1.png", {"Content-Type": MimeTypePng});
         hash<MessageInfo> h = msg.getMsgAndHeaders();
+        assertTrue(h.hdr."Content-Type" =~ /boundary="[^"]+"/,
+            "generated boundary containing a timezone colon must be quoted");
         hash<auto> info;
         binary img = binary(mClient.post("/fileupload", h.body, h.hdr, \info));
         assertEq(200, info."response-headers".status_code);
