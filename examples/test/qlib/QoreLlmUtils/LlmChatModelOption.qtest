@@ -51,7 +51,7 @@ public class LlmChatModelOptionTest inherits QUnit::Test {
             "deepseek": "deepseek-chat",
             "mistral": "mistral-large-latest",
             "together": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-            "fireworks": "accounts/fireworks/models/llama-v3p1-405b-instruct",
+            "fireworks": "accounts/fireworks/models/gpt-oss-120b",
             "cohere": "command-a-03-2025",
             "groq": NOTHING,
             "ollama": NOTHING,
@@ -68,7 +68,7 @@ public class LlmChatModelOptionTest inherits QUnit::Test {
             "TogetherRestClient::TogetherLlmProvider":
                 "meta-llama/Llama-3.3-70B-Instruct-Turbo",
             "FireworksRestClient::FireworksLlmProvider":
-                "accounts/fireworks/models/llama-v3p1-405b-instruct",
+                "accounts/fireworks/models/gpt-oss-120b",
             "CohereRestClient::CohereLlmProvider": "command-a-03-2025",
             # these two must NOT inherit the OpenAI default
             "GroqRestClient::GroqLlmProvider": NOTHING,
