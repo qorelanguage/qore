@@ -33,7 +33,19 @@
 #include <qore/Qore.h>
 #include "qore/intern/QoreRegexBase.h"
 
+#include <cstdlib>
+#include <cstring>
+
 namespace {
+//! Immutable after first regex use; set before starting Qore, including embedded runtimes.
+bool qore_pcre2_no_jit() {
+    static const bool disabled = []() {
+        const char* value = std::getenv("QORE_PCRE2_NO_JIT");
+        return value && !std::strcmp(value, "1");
+    }();
+    return disabled;
+}
+
 //! The calling thread's PCRE2 match context and its JIT stack.
 /** A JIT stack must not be used by two threads at the same time, so each thread owns one; the match
     context exists to carry it.
@@ -104,12 +116,20 @@ pcre2_match_context* qore_pcre2_thread_match_context() {
 
 void QoreRegexBase::jitCompile() {
     assert(p);
+    if (qore_pcre2_no_jit()) {
+        return;
+    }
     // ignore errors; PCRE2 uses the interpreter when no JIT code is attached
     pcre2_jit_compile(p, PCRE2_JIT_COMPLETE);
 }
 
 int qore_pcre2_match(const pcre2_code* code, PCRE2_SPTR8 subject, PCRE2_SIZE length,
         PCRE2_SIZE startoffset, uint32_t options, pcre2_match_data* md) {
+    if (qore_pcre2_no_jit()) {
+        // Also covers patterns with JIT code attached by an embedding application. No JIT
+        // stack or thread-local match context is needed for the interpreter.
+        return pcre2_match(code, subject, length, startoffset, options | PCRE2_NO_JIT, md, nullptr);
+    }
     int rc = pcre2_match(code, subject, length, startoffset, options, md, qore_pcre2_thread_match_context());
     if (rc == PCRE2_ERROR_JIT_STACKLIMIT) {
         // the pattern needs more backtracking stack than qore_pcre2_jit_stack_max_size; the
@@ -171,4 +191,3 @@ void QoreRegexBase::setUnicode() {
 void QoreRegexBase::setUngreedy() {
     options |= PCRE2_UNGREEDY;
 }
-

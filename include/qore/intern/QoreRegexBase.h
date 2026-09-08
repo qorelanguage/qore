@@ -82,6 +82,9 @@ static inline bool qore_pcre2_expected_match_error(int rc) {
     If the JIT still runs out of stack (@ref PCRE2_ERROR_JIT_STACKLIMIT), the match is transparently
     retried with the interpreter, which uses heap frames bounded by PCRE2's heap limit instead.
 
+    Setting QORE_PCRE2_NO_JIT=1 before the first regex operation forces the interpreter for
+    memory-checking runs. This process setting is read once and does not affect Qore's LLVM JIT.
+
     @param code the compiled pattern
     @param subject the subject string
     @param length the length of the subject string in bytes

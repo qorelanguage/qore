@@ -41,6 +41,8 @@
       - fixed character indexing and C++ substring extraction from string views to read the parent buffer
     - regex matching and global string substitution avoid repeated UTF-8 validation, improving
       processing time for large documents with many matches while retaining input validation
+    - \c QORE_PCRE2_NO_JIT=1 disables regex JIT for memory-checking runs using the installed
+      PCRE2 library; normal execution keeps JIT enabled (see @ref environment_variables)
     - passing a @ref lvalue_references "reference" to a variable holding objects no longer costs time
       proportional to the size of the object graph reachable from that variable; binding the argument applies
       the reference's type restriction to the variable, and when that leaves the value untouched no

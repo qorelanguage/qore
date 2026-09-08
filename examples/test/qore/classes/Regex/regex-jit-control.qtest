@@ -1,0 +1,76 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../../qlib"
+%requires ../../../../../qlib/QUnit.qm
+%exec-class RegexJitControlTest
+
+class RegexJitControlTest inherits QUnit::Test {
+    constructor() : Test("PCRE2 JIT control", "1.0", \ARGV) {
+        addTestCase("matching and extraction", \matching());
+        addTestCase("substitution and iteration", \iteration());
+        addTestCase("interpreter selection", \selection());
+        addTestCase("immutable process setting", \immutableSetting());
+        set_return_value(main());
+    }
+
+    matching() {
+        Regex words("(?<word>\\p{L}+)");
+        assertTrue(words.match("rosé"));
+        assertFalse(words.match("123"));
+        assertEq(("rosé",), regex_extract("rosé=12", "(\\p{L}+)=\\d+"));
+        assertFalse((new Regex("^<")).match("x"));
+        assertFalse((new Regex("\\.qm$")).match("x"));
+        assertThrows("REGEX-COMPILATION-ERROR", \invalidPattern());
+    }
+
+    private invalidPattern() {
+        Regex invalid("[");
+    }
+
+    iteration() {
+        assertEq("a=2 b=2", regex_subst("a=1 b=1", "1", "2", RE_Global));
+        Regex pattern("[a-z]+", RE_Global);
+        list<string> actual();
+        foreach hash<RegexMatchInfo> match in (pattern.matchIterator("one two")) {
+            push actual, match.match;
+        }
+        assertEq(("one", "two"), actual);
+        assertEq(("one", "two"), "one, two".splitRegex(", *"));
+    }
+
+    private string engine() {
+        # PCRE2's depth limit is enforced by its interpreter, and ignored by JIT.
+        try {
+            return (new Regex("(*LIMIT_DEPTH=1)a")).match("a") ? "jit" : "no-match";
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("REGEX-ERROR", ex.err);
+            return "interpreter";
+        }
+    }
+
+    selection() {
+        if (ENV.QORE_PCRE2_NO_JIT == "1") {
+            assertEq("interpreter", engine());
+        }
+        # The driver can require JIT on a platform known to provide it; a library
+        # built without JIT remains supported by the ordinary test suite.
+        if (ENV.QORE_TEST_REGEX_ENGINE) {
+            assertEq(ENV.QORE_TEST_REGEX_ENGINE, engine());
+        }
+    }
+
+    immutableSetting() {
+        string before = engine();
+        *string original = getenv("QORE_PCRE2_NO_JIT");
+        on_exit {
+            if (exists original) {
+                setenv("QORE_PCRE2_NO_JIT", original);
+            } else {
+                unsetenv("QORE_PCRE2_NO_JIT");
+            }
+        }
+        assertEq(0, setenv("QORE_PCRE2_NO_JIT", before == "jit" ? "1" : "0"));
+        assertEq(before, engine(), "new patterns retain the process setting after environment changes");
+    }
+}
