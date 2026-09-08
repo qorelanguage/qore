@@ -272,7 +272,7 @@ public class JinaContentOptionsDataType inherits HashDataType {
                 "display_name": "Retain Images",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Control whether image URLs or alternative text remain in the content.",
-                "allowed_values": (<AllowedValueInfo>{"value": "none", "display_name": "None"}, <AllowedValueInfo>{"value": "all", "display_name": "All"}, <AllowedValueInfo>{"value": "alt", "display_name": "Alt"}, <AllowedValueInfo>{"value": "all_p", "display_name": "All P"}, <AllowedValueInfo>{"value": "alt_p", "display_name": "Alt P"}),
+                "allowed_values": (<AllowedValueInfo>{"value": "none", "display_name": "None"}, <AllowedValueInfo>{"value": "all", "display_name": "All"}, <AllowedValueInfo>{"value": "alt", "display_name": "Alternative Text Only"}, <AllowedValueInfo>{"value": "all_p", "display_name": "Images with Generated Captions"}, <AllowedValueInfo>{"value": "alt_p", "display_name": "Generated Captions Only"}),
             },
             "locale": {
                 "display_name": "Browser Locale",
@@ -320,7 +320,7 @@ public const JinaContentOptionsDataType = new JinaContentOptionsDataType();
 #! Jina ReaderRequest fields
 public class JinaReaderRequestDataType inherits HashDataType {
     public {
-        const Fields = JinaContentOptionsDataType::Fields + {
+        const Fields = {
             "url": {
                 "display_name": "Source URL",
                 "type": AbstractDataProviderTypeMap."*uri",
@@ -350,6 +350,7 @@ public class JinaReaderRequestDataType inherits HashDataType {
                     "exclusive_with": ("html",),
                 },
             },
+        } + JinaContentOptionsDataType::Fields + {
             "page": {
                 "display_name": "Document Page",
                 "type": AbstractDataProviderTypeMap."*int",
@@ -540,7 +541,7 @@ public const JinaReaderRequestDataType = new JinaReaderRequestDataType();
 #! Jina SearchRequest fields
 public class JinaSearchRequestDataType inherits HashDataType {
     public {
-        const Fields = JinaContentOptionsDataType::Fields + {
+        const Fields = {
             "q": {
                 "display_name": "Search Query",
                 "type": AbstractDataProviderTypeMap."string",
@@ -550,6 +551,7 @@ public class JinaSearchRequestDataType inherits HashDataType {
                     "required": True,
                 },
             },
+        } + JinaContentOptionsDataType::Fields + {
             "site": {
                 "display_name": "Website Filter",
                 "type": AbstractDataProviderTypeMap."*string",

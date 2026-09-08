@@ -151,14 +151,25 @@ public class JinaDataProviderTest inherits QUnit::Test {
             if (action.action !~ /^list-(classifiers|models)$/) {
                 assertTrue(!!action.options, action.action + " has a usable form");
             }
+            int previous_rank = 0;
             foreach hash<auto> option in ((action.options ?? {}).pairIterator()) {
+                int rank = option.value.required_groups ? 0 : (option.value.required ? 1 : 2);
+                assertTrue(rank >= previous_rank, action.action + "." + option.key
+                    + " follows required groups and required fields");
+                previous_rank = rank;
                 assertTrue(option.value.display_name.val(), action.action + "." + option.key);
+                assertTrue(option.value.short_desc.val(), action.action + "." + option.key);
                 assertTrue(option.value.desc.val(), action.action + "." + option.key);
+                assertFalse(option.value.desc =~ /(?<!`)\b(true|false|True|False|NOTHING|null)\b(?!`)/,
+                    action.action + "." + option.key + " formats API literals as code");
                 if (option.value.ref_data) {
                     assertTrue(child.getSupportedReferenceData(){option.value.ref_data}, action.action);
                 }
                 foreach hash<AllowedValueInfo> value in (option.value.allowed_values ?? ()) {
                     assertTrue(value.display_name.val());
+                    if (option.key == "model") {
+                        assertRegex("^[A-Z]", value.display_name, action.action + " has readable model names");
+                    }
                 }
             }
         }
@@ -230,6 +241,9 @@ public class JinaDataProviderTest inherits QUnit::Test {
         p.getChildProvider("train-classifier").doRequest({"classifier_id": "cls-fixture",
             "input": ({"text": "Fine", "label": "positive"},)});
         assertNothing(last().body.access);
+        assertNothing(last().body.model);
+        assertEq("cls-fixture", last().body.classifier_id);
+        assertEq("Fine", last().body.input[0].text);
     }
 
     private schemaRequestsTest() {
@@ -507,10 +521,36 @@ public class JinaDataProviderTest inherits QUnit::Test {
         hash<auto> result = p.getChildProvider("train-classifier").doRequest({"model": "jina-embeddings-v3", "access": "private",
             "input": ({"text": "Excellent service", "label": "positive"}, {"text": "Terrible service", "label": "negative"})});
         string id = result.classifier_id;
-        on_exit p.getChildProvider("delete-classifier").doRequest({"classifier_id": id});
+        bool deleted = False;
+        on_exit {
+            if (!deleted) {
+                p.getChildProvider("delete-classifier").doRequest({"classifier_id": id});
+            }
+        }
+        assertTrue(id.val());
+        assertEq(2, result.num_samples);
         auto classifiers = p.getChildProvider("list-classifiers").doRequest();
-        assertTrue(!!(select classifiers, $1.classifier_id == id));
+        list<hash<auto>> matching = select classifiers, $1.classifier_id == id;
+        assertEq(1, matching.lsize());
+        assertEq("jina-embeddings-v3", matching[0].model);
+        assertEq("private", matching[0].access);
+        assertEq(("negative", "positive"), sort(matching[0].labels));
+        int updates = matching[0].updated_number;
         hash<auto> prediction = p.getChildProvider("classify").doRequest({"classifier_id": id, "input": ("Excellent support",)});
         assertEq("positive", prediction.data[0].prediction);
+        hash<auto> updated = p.getChildProvider("train-classifier").doRequest({"classifier_id": id,
+            "input": ({"text": "Helpful customer support", "label": "positive"},
+                {"text": "Unhelpful customer support", "label": "negative"})});
+        assertEq(id, updated.classifier_id);
+        assertEq(2, updated.num_samples);
+        classifiers = p.getChildProvider("list-classifiers").doRequest();
+        matching = select classifiers, $1.classifier_id == id;
+        assertEq(1, matching.lsize());
+        assertTrue(matching[0].updated_number > updates);
+        assertEq(("negative", "positive"), sort(matching[0].labels));
+        p.getChildProvider("delete-classifier").doRequest({"classifier_id": id});
+        deleted = True;
+        classifiers = p.getChildProvider("list-classifiers").doRequest();
+        assertFalse(!!(select classifiers, $1.classifier_id == id));
     }
 }

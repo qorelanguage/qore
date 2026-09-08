@@ -351,58 +351,6 @@
           "source": "Convert content into vectors for semantic search. Choose a `model` suited to your input and set `task` for query or document retrieval. Model-specific options are validated by the API schema.",
           "message": "Перетворюйте вміст на вектори для семантичного пошуку. Виберіть відповідний `model` і задайте `task` для запитів або документів. Схема API перевіряє параметри конкретної моделі."
         },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.display_name": {
-          "source": "Embedding Type",
-          "message": "Тип вбудовування"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.short_desc": {
-          "source": "Output encoding format: 'float', 'base64', 'binary', 'ubinary', or a list of…",
-          "message": "Формат вихідного кодування: 'float', 'base64', 'binary', 'ubinary' або список…"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.desc": {
-          "source": "Output encoding format: `float`, `base64`, `binary`, `ubinary`, or a list of these.",
-          "message": "Формат вихідного кодування: `float`, `base64`, `binary`, `ubinary` або список цих."
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmZsb2F0.display_name": {
-          "source": "Float",
-          "message": "Поплавок"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmJhc2U2NA.display_name": {
-          "source": "Base64",
-          "message": "Base64"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
-          "source": "Binary",
-          "message": "Двійковий"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOnViaW5hcnk.display_name": {
-          "source": "Ubinary",
-          "message": "Ubinary"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.display_name": {
-          "source": "Normalized",
-          "message": "Нормалізований"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.short_desc": {
-          "source": "If true (default), embeddings are L2-normalized to unit length",
-          "message": "Якщо true (за замовчуванням), вбудовування L2-нормалізовані до одиничної довжини"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.desc": {
-          "source": "If true (default), embeddings are L2-normalized to unit length.",
-          "message": "Якщо true (за замовчуванням), вбудовування L2-нормалізовані до одиничної довжини."
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.display_name": {
-          "source": "Truncate",
-          "message": "Усікати"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.short_desc": {
-          "source": "If true, truncates input exceeding the model's max token limit instead of…",
-          "message": "Якщо true, обрізає вхідні дані, що перевищують максимальний ліміт токенів моделі, замість…"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.desc": {
-          "source": "If true, truncates input exceeding the model's max token limit instead of returning an error.",
-          "message": "Якщо true, обрізає вхідні дані, що перевищують максимальний ліміт токенів моделі, замість повернення помилки."
-        },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.display_name": {
           "source": "Model",
           "message": "Модель"
@@ -416,76 +364,76 @@
           "message": "Модель для створення ембедингів."
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVu.display_name": {
-          "source": "jina-embeddings-v2-base-en",
-          "message": "jina-embeddings-v2-base-en"
+          "source": "Jina Embeddings V2 Base En",
+          "message": "Jina Embeddings V2 Base En"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLXpo.display_name": {
-          "source": "jina-embeddings-v2-base-zh",
-          "message": "jina-embeddings-v2-base-zh"
+          "source": "Jina Embeddings V2 Base Zh",
+          "message": "Jina Embeddings V2 Base Zh"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWRl.display_name": {
-          "source": "jina-embeddings-v2-base-de",
-          "message": "jina-embeddings-v2-base-de"
+          "source": "Jina Embeddings V2 Base De",
+          "message": "Jina Embeddings V2 Base De"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVz.display_name": {
-          "source": "jina-embeddings-v2-base-es",
-          "message": "jina-embeddings-v2-base-es"
+          "source": "Jina Embeddings V2 Base Es",
+          "message": "Jina Embeddings V2 Base Es"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWNvZGU.display_name": {
-          "source": "jina-embeddings-v2-base-code",
-          "message": "jina-embeddings-v2-base-code"
+          "source": "Jina Embeddings V2 Base Code",
+          "message": "Jina Embeddings V2 Base Code"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mw.display_name": {
-          "source": "jina-embeddings-v3",
-          "message": "jina-embeddings-v3"
+          "source": "Jina Embeddings V3",
+          "message": "Jina Embeddings V3"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
-          "source": "jina-embeddings-v5-text-nano",
-          "message": "jina-embeddings-v5-text-nano"
+          "source": "Jina Embeddings V5 Text Nano",
+          "message": "Jina Embeddings V5 Text Nano"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
-          "source": "jina-embeddings-v5-text-small",
-          "message": "jina-embeddings-v5-text-small"
+          "source": "Jina Embeddings V5 Text Small",
+          "message": "Jina Embeddings V5 Text Small"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS1vbW5pLXNtYWxs.display_name": {
-          "source": "jina-embeddings-v5-omni-small",
-          "message": "jina-embeddings-v5-omni-small"
+          "source": "Jina Embeddings V5 Omni Small",
+          "message": "Jina Embeddings V5 Omni Small"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS1vbW5pLW5hbm8.display_name": {
-          "source": "jina-embeddings-v5-omni-nano",
-          "message": "jina-embeddings-v5-omni-nano"
+          "source": "Jina Embeddings V5 Omni Nano",
+          "message": "Jina Embeddings V5 Omni Nano"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NA.display_name": {
-          "source": "jina-embeddings-v4",
-          "message": "jina-embeddings-v4"
+          "source": "Jina Embeddings V4",
+          "message": "Jina Embeddings V4"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29kZS1lbWJlZGRpbmdzLTAuNWI.display_name": {
-          "source": "jina-code-embeddings-0.5b",
-          "message": "jina-code-embeddings-0.5b"
+          "source": "Jina Code Embeddings 0.5B",
+          "message": "Jina Code Embeddings 0.5B"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29kZS1lbWJlZGRpbmdzLTEuNWI.display_name": {
-          "source": "jina-code-embeddings-1.5b",
-          "message": "jina-code-embeddings-1.5b"
+          "source": "Jina Code Embeddings 1.5B",
+          "message": "Jina Code Embeddings 1.5B"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12MQ.display_name": {
-          "source": "jina-clip-v1",
-          "message": "jina-clip-v1"
+          "source": "Jina Clip V1",
+          "message": "Jina Clip V1"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12Mg.display_name": {
-          "source": "jina-clip-v2",
-          "message": "jina-clip-v2"
+          "source": "Jina Clip V2",
+          "message": "Jina Clip V2"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12MS1lbg.display_name": {
-          "source": "jina-colbert-v1-en",
-          "message": "jina-colbert-v1-en"
+          "source": "Jina Colbert V1 En",
+          "message": "Jina Colbert V1 En"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12Mg.display_name": {
-          "source": "jina-colbert-v2",
-          "message": "jina-colbert-v2"
+          "source": "Jina Colbert V2",
+          "message": "Jina Colbert V2"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmVsc2VyLXYy.display_name": {
-          "source": "elser-v2",
-          "message": "elser-v2"
+          "source": "Elser V2",
+          "message": "Elser V2"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.aW5wdXQ.display_name": {
           "source": "Input",
@@ -583,18 +531,6 @@
           "source": "Code2Completion Passage",
           "message": "Фрагмент Code2Completion"
         },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.display_name": {
-          "source": "Late Chunking",
-          "message": "Пізнє розбиття (Late Chunking)"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.short_desc": {
-          "source": "If true, concatenates all inputs and processes as one sequence before splitting",
-          "message": "Значення True обробляє вхідні дані як одну послідовність перед поділом, збері…"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.desc": {
-          "source": "Use `True` to process inputs as one sequence before splitting, preserving context across chunks.",
-          "message": "Значення `True` обробляє вхідні дані як одну послідовність перед поділом, зберігаючи контекст між фрагментами."
-        },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZGltZW5zaW9ucw.display_name": {
           "source": "Dimensions",
           "message": "Параметри"
@@ -607,6 +543,70 @@
           "source": "Output vector size. The selected `model` determines the supported range.",
           "message": "Розмір вихідного вектора. Вибраний `model` визначає підтримуваний діапазон."
         },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.display_name": {
+          "source": "Embedding Type",
+          "message": "Тип вбудовування"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.short_desc": {
+          "source": "Output encoding format: 'float', 'base64', 'binary', 'ubinary', or a list of…",
+          "message": "Формат вихідного кодування: 'float', 'base64', 'binary', 'ubinary' або список…"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.desc": {
+          "source": "Output encoding format: `float`, `base64`, `binary`, `ubinary`, or a list of these.",
+          "message": "Формат вихідного кодування: `float`, `base64`, `binary`, `ubinary` або список цих."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmZsb2F0.display_name": {
+          "source": "Float",
+          "message": "Поплавок"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmJhc2U2NA.display_name": {
+          "source": "Base64",
+          "message": "Base64"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
+          "source": "Binary",
+          "message": "Двійковий"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOnViaW5hcnk.display_name": {
+          "source": "Ubinary",
+          "message": "Ubinary"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.display_name": {
+          "source": "Normalized",
+          "message": "Нормалізований"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.short_desc": {
+          "source": "If true (default), embeddings are L2-normalized to unit length",
+          "message": "Якщо true (за замовчуванням), вбудовування L2-нормалізовані до одиничної довжини"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.desc": {
+          "source": "If `true` (default), embeddings are L2-normalized to unit length.",
+          "message": "Якщо `true` (за замовчуванням), вбудовування L2-нормалізовані до одиничної довжини."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.display_name": {
+          "source": "Truncate",
+          "message": "Усікати"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.short_desc": {
+          "source": "If true, truncates input exceeding the model's max token limit instead of…",
+          "message": "Якщо true, обрізає вхідні дані, що перевищують максимальний ліміт токенів моделі, замість…"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.desc": {
+          "source": "If `true`, truncates input exceeding the model's max token limit instead of returning an error.",
+          "message": "Якщо `true`, обрізає вхідні дані, що перевищують максимальний ліміт токенів моделі, замість повернення помилки."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.display_name": {
+          "source": "Late Chunking",
+          "message": "Пізнє розбиття (Late Chunking)"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.short_desc": {
+          "source": "If true, concatenates all inputs and processes as one sequence before splitting",
+          "message": "Значення True обробляє вхідні дані як одну послідовність перед поділом, збері…"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.desc": {
+          "source": "Use `True` to process inputs as one sequence before splitting, preserving context across chunks.",
+          "message": "Значення `True` обробляє вхідні дані як одну послідовність перед поділом, зберігаючи контекст між фрагментами."
+        },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX211bHRpdmVjdG9y.display_name": {
           "source": "Return Multivector",
           "message": "Повернути мультивіктор"
@@ -616,8 +616,8 @@
           "message": "Якщо true, повертає одне вбудовування на токен"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX211bHRpdmVjdG9y.desc": {
-          "source": "If true, returns one embedding per token. Cannot be used with `dimensions`.",
-          "message": "Якщо true, повертає одне вбудовування на токен. Не можна використовувати з `dimensions`."
+          "source": "If `true`, returns one embedding per token. Cannot be used with `dimensions`.",
+          "message": "Якщо `true`, повертає одне вбудовування на токен. Не можна використовувати з `dimensions`."
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX3Rva2VuaXplZF9pbnB1dA.display_name": {
           "source": "Return Tokenized Input",
@@ -628,8 +628,8 @@
           "message": "Якщо true, повертає токени разом з багатовекторними вбудовуваннями"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX3Rva2VuaXplZF9pbnB1dA.desc": {
-          "source": "If true, returns tokens alongside multi-vector embeddings. Requires `return_multivector=true`.",
-          "message": "Якщо true, повертає токени разом з багатовекторними вбудовуваннями. Потрібно `return_multivector=true`."
+          "source": "If `true`, returns tokens alongside multi-vector embeddings. Requires `return_multivector=true`.",
+          "message": "Якщо `true`, повертає токени разом з багатовекторними вбудовуваннями. Потрібно `return_multivector=true`."
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.aW5wdXRfdHlwZQ.display_name": {
           "source": "Input Type",
@@ -655,6 +655,54 @@
           "source": "Improve search quality by ranking candidate `documents` against a `query`. Use `top_n` to keep the strongest matches and `return_documents` to control response size.",
           "message": "Покращуйте пошук, упорядковуючи `documents` відповідно до `query`. Параметр `top_n` обмежує кількість результатів, а `return_documents` — їхній розмір."
         },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Модель"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.short_desc": {
+          "source": "The reranking model to use",
+          "message": "Модель для повторного ранжування"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.desc": {
+          "source": "The reranking model to use.",
+          "message": "Модель для повторного ранжування."
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjItYmFzZS1tdWx0aWxpbmd1YWw.display_name": {
+          "source": "Jina Reranker V2 Base Multilingual",
+          "message": "Jina Reranker V2 Base Multilingual"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtdGlueS1lbg.display_name": {
+          "source": "Jina Reranker V1 Tiny En",
+          "message": "Jina Reranker V1 Tiny En"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtdHVyYm8tZW4.display_name": {
+          "source": "Jina Reranker V1 Turbo En",
+          "message": "Jina Reranker V1 Turbo En"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtYmFzZS1lbg.display_name": {
+          "source": "Jina Reranker V1 Base En",
+          "message": "Jina Reranker V1 Base En"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12MS1lbg.display_name": {
+          "source": "Jina Colbert V1 En",
+          "message": "Jina Colbert V1 En"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12Mg.display_name": {
+          "source": "Jina Colbert V2",
+          "message": "Jina Colbert V2"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItbTA.display_name": {
+          "source": "Jina Reranker M0",
+          "message": "Jina Reranker M0"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjM.display_name": {
+          "source": "Jina Reranker V3",
+          "message": "Jina Reranker V3"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjMuNQ.display_name": {
+          "source": "Jina Reranker V3.5",
+          "message": "Jina Reranker V3.5"
+        },
         "app.SmluYUFp.action.cmVyYW5r.option.cXVlcnk.display_name": {
           "source": "Query",
           "message": "Запит"
@@ -666,6 +714,18 @@
         "app.SmluYUFp.action.cmVyYW5r.option.cXVlcnk.desc": {
           "source": "The search query to rank documents against.",
           "message": "Пошуковий запит, за яким ранжуються документи."
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.display_name": {
+          "source": "Documents",
+          "message": "Документи"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.short_desc": {
+          "source": "Documents to rank: strings or 'TextDoc' objects",
+          "message": "Кандидатні текстові документи або зображення"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.desc": {
+          "source": "Candidate text or image documents. Supported input shapes depend on `model`.",
+          "message": "Кандидатні текстові документи або зображення. Підтримувані структури даних залежать від `model`."
         },
         "app.SmluYUFp.action.cmVyYW5r.option.dG9wX24.display_name": {
           "source": "Top N",
@@ -691,66 +751,6 @@
           "source": "Use `True` (the default) to include document content in each result.",
           "message": "Значення `True` (типове) додає вміст документа до кожного результату."
         },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.display_name": {
-          "source": "Model",
-          "message": "Модель"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.short_desc": {
-          "source": "The reranking model to use",
-          "message": "Модель для повторного ранжування"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.desc": {
-          "source": "The reranking model to use.",
-          "message": "Модель для повторного ранжування."
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjItYmFzZS1tdWx0aWxpbmd1YWw.display_name": {
-          "source": "jina-reranker-v2-base-multilingual",
-          "message": "jina-reranker-v2-base-multilingual"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtdGlueS1lbg.display_name": {
-          "source": "jina-reranker-v1-tiny-en",
-          "message": "jina-reranker-v1-tiny-en"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtdHVyYm8tZW4.display_name": {
-          "source": "jina-reranker-v1-turbo-en",
-          "message": "jina-reranker-v1-turbo-en"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtYmFzZS1lbg.display_name": {
-          "source": "jina-reranker-v1-base-en",
-          "message": "jina-reranker-v1-base-en"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12MS1lbg.display_name": {
-          "source": "jina-colbert-v1-en",
-          "message": "jina-colbert-v1-en"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12Mg.display_name": {
-          "source": "jina-colbert-v2",
-          "message": "jina-colbert-v2"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItbTA.display_name": {
-          "source": "jina-reranker-m0",
-          "message": "jina-reranker-m0"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjM.display_name": {
-          "source": "jina-reranker-v3",
-          "message": "jina-reranker-v3"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjMuNQ.display_name": {
-          "source": "jina-reranker-v3.5",
-          "message": "jina-reranker-v3.5"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.display_name": {
-          "source": "Documents",
-          "message": "Документи"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.short_desc": {
-          "source": "Documents to rank: strings or 'TextDoc' objects",
-          "message": "Кандидатні текстові документи або зображення"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.desc": {
-          "source": "Candidate text or image documents. Supported input shapes depend on `model`.",
-          "message": "Кандидатні текстові документи або зображення. Підтримувані структури даних залежать від `model`."
-        },
         "app.SmluYUFp.action.cmVyYW5r.option.bWF4X2RvY19sZW5ndGg.display_name": {
           "source": "Max Doc Length",
           "message": "Максимальна довжина документа"
@@ -772,8 +772,8 @@
           "message": "Якщо true, повертає вбудовування документа разом з оцінкою релевантності"
         },
         "app.SmluYUFp.action.cmVyYW5r.option.cmV0dXJuX2VtYmVkZGluZ3M.desc": {
-          "source": "If true, returns the document embedding alongside the relevance score.",
-          "message": "Якщо true, повертає вбудовування документа разом з оцінкою релевантності."
+          "source": "If `true`, returns the document embedding alongside the relevance score.",
+          "message": "Якщо `true`, повертає вбудовування документа разом з оцінкою релевантності."
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.display_name": {
           "source": "Classify Content",
@@ -786,18 +786,6 @@
         "app.SmluYUFp.action.Y2xhc3NpZnk.desc": {
           "source": "Route feedback, support requests, or images into `labels` with a selected `model`. For a saved classifier, provide `classifier_id` instead of `model` and `labels`.",
           "message": "Направляти відгуки, запити на підтримку або зображення до `labels` за допомогою вибраного `model`. Для збереженого класифікатора надайте `classifier_id` замість `model` та `labels`."
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.display_name": {
-          "source": "Labels",
-          "message": "Мітки"
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.short_desc": {
-          "source": "Candidate labels: a list of up to 512 labels, or a dict of up to 8 groups with…",
-          "message": "Мітки-кандидати: список до 512 міток або словник до 8 груп з…"
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.desc": {
-          "source": "Candidate labels: a list of up to 512 labels, or a dict of up to 8 groups with max 64 labels each.",
-          "message": "Мітки-кандидати: список до 512 міток або словник до 8 груп з максимум 64 мітками в кожній."
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.display_name": {
           "source": "Model",
@@ -812,68 +800,56 @@
           "message": "Модель для створення ембедингів."
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVu.display_name": {
-          "source": "jina-embeddings-v2-base-en",
-          "message": "jina-embeddings-v2-base-en"
+          "source": "Jina Embeddings V2 Base En",
+          "message": "Jina Embeddings V2 Base En"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLXpo.display_name": {
-          "source": "jina-embeddings-v2-base-zh",
-          "message": "jina-embeddings-v2-base-zh"
+          "source": "Jina Embeddings V2 Base Zh",
+          "message": "Jina Embeddings V2 Base Zh"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWRl.display_name": {
-          "source": "jina-embeddings-v2-base-de",
-          "message": "jina-embeddings-v2-base-de"
+          "source": "Jina Embeddings V2 Base De",
+          "message": "Jina Embeddings V2 Base De"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVz.display_name": {
-          "source": "jina-embeddings-v2-base-es",
-          "message": "jina-embeddings-v2-base-es"
+          "source": "Jina Embeddings V2 Base Es",
+          "message": "Jina Embeddings V2 Base Es"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWNvZGU.display_name": {
-          "source": "jina-embeddings-v2-base-code",
-          "message": "jina-embeddings-v2-base-code"
+          "source": "Jina Embeddings V2 Base Code",
+          "message": "Jina Embeddings V2 Base Code"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mw.display_name": {
-          "source": "jina-embeddings-v3",
-          "message": "jina-embeddings-v3"
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NA.display_name": {
-          "source": "jina-embeddings-v4",
-          "message": "jina-embeddings-v4"
+          "source": "Jina Embeddings V3",
+          "message": "Jina Embeddings V3"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
-          "source": "jina-embeddings-v5-text-nano",
-          "message": "jina-embeddings-v5-text-nano"
+          "source": "Jina Embeddings V5 Text Nano",
+          "message": "Jina Embeddings V5 Text Nano"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
-          "source": "jina-embeddings-v5-text-small",
-          "message": "jina-embeddings-v5-text-small"
+          "source": "Jina Embeddings V5 Text Small",
+          "message": "Jina Embeddings V5 Text Small"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NA.display_name": {
+          "source": "Jina Embeddings V4",
+          "message": "Jina Embeddings V4"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12MQ.display_name": {
-          "source": "jina-clip-v1",
-          "message": "jina-clip-v1"
+          "source": "Jina Clip V1",
+          "message": "Jina Clip V1"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12Mg.display_name": {
-          "source": "jina-clip-v2",
-          "message": "jina-clip-v2"
+          "source": "Jina Clip V2",
+          "message": "Jina Clip V2"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29kZS1lbWJlZGRpbmdzLTAuNWI.display_name": {
-          "source": "jina-code-embeddings-0.5b",
-          "message": "jina-code-embeddings-0.5b"
+          "source": "Jina Code Embeddings 0.5B",
+          "message": "Jina Code Embeddings 0.5B"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29kZS1lbWJlZGRpbmdzLTEuNWI.display_name": {
-          "source": "jina-code-embeddings-1.5b",
-          "message": "jina-code-embeddings-1.5b"
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.display_name": {
-          "source": "Input",
-          "message": "Вхідні дані"
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.short_desc": {
-          "source": "Text to classify: a string, 'TextDoc', or list of up to 512 items",
-          "message": "Текст для класифікації: рядок, 'TextDoc' або список до 512 елементів"
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.desc": {
-          "source": "Text to classify: a string, `TextDoc`, or list of up to 512 items.",
-          "message": "Текст для класифікації: рядок, `TextDoc`, або список до 512 елементів."
+          "source": "Jina Code Embeddings 1.5B",
+          "message": "Jina Code Embeddings 1.5B"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.Y2xhc3NpZmllcl9pZA.display_name": {
           "source": "Classifier ID",
@@ -887,6 +863,30 @@
           "source": "ID of the trained classifier to use.",
           "message": "Ідентифікатор навченого класифікатора для використання."
         },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "Вхідні дані"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.short_desc": {
+          "source": "Text to classify: a string, 'TextDoc', or list of up to 512 items",
+          "message": "Текст для класифікації: рядок, 'TextDoc' або список до 512 елементів"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.desc": {
+          "source": "Text to classify: a string, `TextDoc`, or list of up to 512 items.",
+          "message": "Текст для класифікації: рядок, `TextDoc`, або список до 512 елементів."
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.display_name": {
+          "source": "Labels",
+          "message": "Мітки"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.short_desc": {
+          "source": "Candidate labels: a list of up to 512 labels, or a dict of up to 8 groups with…",
+          "message": "Мітки-кандидати: список до 512 міток або словник до 8 груп з…"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.desc": {
+          "source": "Candidate labels: a list of up to 512 labels, or a dict of up to 8 groups with max 64 labels each.",
+          "message": "Мітки-кандидати: список до 512 міток або словник до 8 груп з максимум 64 мітками в кожній."
+        },
         "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.display_name": {
           "source": "Train or Update Classifier",
           "message": "Навчити або оновити класифікатор"
@@ -898,6 +898,86 @@
         "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.desc": {
           "source": "Train a classifier from labeled `input` examples and a `model`. Set `access` to control visibility. To update an existing classifier, provide `classifier_id` instead. **Service availability:** Jina returned HTTP 500 for training during verification on September 7, 2026.",
           "message": "Навчіть класифікатор на розмічених прикладах `input` та `model`. Встановіть `access` для керування видимістю. Щоб оновити існуючий класифікатор, замість цього надайте `classifier_id`. **Доступність послуги:** Jina повернула HTTP 500 для навчання під час перевірки 7 вересня 2026 року."
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Модель"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.short_desc": {
+          "source": "Text embedding model for zero-shot classification",
+          "message": "Модель вбудовування тексту для класифікації без попереднього навчання"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.desc": {
+          "source": "Text embedding model for zero-shot classification.",
+          "message": "Модель вбудовування тексту для класифікації без попереднього навчання."
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVu.display_name": {
+          "source": "Jina Embeddings V2 Base En",
+          "message": "Jina Embeddings V2 Base En"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLXpo.display_name": {
+          "source": "Jina Embeddings V2 Base Zh",
+          "message": "Jina Embeddings V2 Base Zh"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWRl.display_name": {
+          "source": "Jina Embeddings V2 Base De",
+          "message": "Jina Embeddings V2 Base De"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVz.display_name": {
+          "source": "Jina Embeddings V2 Base Es",
+          "message": "Jina Embeddings V2 Base Es"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWNvZGU.display_name": {
+          "source": "Jina Embeddings V2 Base Code",
+          "message": "Jina Embeddings V2 Base Code"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mw.display_name": {
+          "source": "Jina Embeddings V3",
+          "message": "Jina Embeddings V3"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
+          "source": "Jina Embeddings V5 Text Nano",
+          "message": "Jina Embeddings V5 Text Nano"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
+          "source": "Jina Embeddings V5 Text Small",
+          "message": "Jina Embeddings V5 Text Small"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NA.display_name": {
+          "source": "Jina Embeddings V4",
+          "message": "Jina Embeddings V4"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12MQ.display_name": {
+          "source": "Jina Clip V1",
+          "message": "Jina Clip V1"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12Mg.display_name": {
+          "source": "Jina Clip V2",
+          "message": "Jina Clip V2"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.display_name": {
+          "source": "Classifier ID",
+          "message": "Ідентифікатор класифікатора"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.short_desc": {
+          "source": "ID of the classifier to use for few-shot classification",
+          "message": "Ідентифікатор класифікатора для використання в класифікації з кількома прикладами"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.desc": {
+          "source": "ID of the classifier to use for few-shot classification.",
+          "message": "Ідентифікатор класифікатора для використання в класифікації з кількома прикладами."
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "Вхідні дані"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.short_desc": {
+          "source": "Must be a list of text-label training items with at least two unique labels",
+          "message": "Має бути список елементів навчання 'текст-мітка' щонайменше з двома унікальними мітками"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.desc": {
+          "source": "Must be a list of text-label training items with at least two unique labels. For batch training, provide a list with up to 512 items.",
+          "message": "Має бути список елементів навчання 'текст-мітка' щонайменше з двома унікальними мітками. Для пакетного навчання надайте список до 512 елементів."
         },
         "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.YWNjZXNz.display_name": {
           "source": "Access",
@@ -930,86 +1010,6 @@
         "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bnVtX2l0ZXJz.desc": {
           "source": "Number of iterations for the training process.",
           "message": "Кількість ітерацій для процесу навчання."
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.display_name": {
-          "source": "Model",
-          "message": "Модель"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.short_desc": {
-          "source": "Text embedding model for zero-shot classification",
-          "message": "Модель вбудовування тексту для класифікації без попереднього навчання"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.desc": {
-          "source": "Text embedding model for zero-shot classification.",
-          "message": "Модель вбудовування тексту для класифікації без попереднього навчання."
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVu.display_name": {
-          "source": "jina-embeddings-v2-base-en",
-          "message": "jina-embeddings-v2-base-en"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLXpo.display_name": {
-          "source": "jina-embeddings-v2-base-zh",
-          "message": "jina-embeddings-v2-base-zh"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWRl.display_name": {
-          "source": "jina-embeddings-v2-base-de",
-          "message": "jina-embeddings-v2-base-de"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVz.display_name": {
-          "source": "jina-embeddings-v2-base-es",
-          "message": "jina-embeddings-v2-base-es"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWNvZGU.display_name": {
-          "source": "jina-embeddings-v2-base-code",
-          "message": "jina-embeddings-v2-base-code"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mw.display_name": {
-          "source": "jina-embeddings-v3",
-          "message": "jina-embeddings-v3"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NA.display_name": {
-          "source": "jina-embeddings-v4",
-          "message": "jina-embeddings-v4"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
-          "source": "jina-embeddings-v5-text-nano",
-          "message": "jina-embeddings-v5-text-nano"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
-          "source": "jina-embeddings-v5-text-small",
-          "message": "jina-embeddings-v5-text-small"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12MQ.display_name": {
-          "source": "jina-clip-v1",
-          "message": "jina-clip-v1"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12Mg.display_name": {
-          "source": "jina-clip-v2",
-          "message": "jina-clip-v2"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.display_name": {
-          "source": "Input",
-          "message": "Вхідні дані"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.short_desc": {
-          "source": "Must be a list of text-label training items with at least two unique labels",
-          "message": "Має бути список елементів навчання 'текст-мітка' щонайменше з двома унікальними мітками"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.desc": {
-          "source": "Must be a list of text-label training items with at least two unique labels. For batch training, provide a list with up to 512 items.",
-          "message": "Має бути список елементів навчання 'текст-мітка' щонайменше з двома унікальними мітками. Для пакетного навчання надайте список до 512 елементів."
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.display_name": {
-          "source": "Classifier ID",
-          "message": "Ідентифікатор класифікатора"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.short_desc": {
-          "source": "ID of the classifier to use for few-shot classification",
-          "message": "Ідентифікатор класифікатора для використання в класифікації з кількома прикладами"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.desc": {
-          "source": "ID of the classifier to use for few-shot classification.",
-          "message": "Ідентифікатор класифікатора для використання в класифікації з кількома прикладами."
         },
         "app.SmluYUFp.action.bGlzdC1jbGFzc2lmaWVycw.display_name": {
           "source": "List Classifiers",
@@ -1095,6 +1095,30 @@
           "source": "Submit inline JSONL records in `input` or an `input_url` for bulk embedding. Each record contains `custom_id` and `body.input`. Use `webhook_url` for completion notifications, then retrieve status and output with the batch actions.",
           "message": "Надіслати вбудовані записи JSONL у `input` або `input_url` для масового вбудовування. Кожен запис містить `custom_id` та `body.input`. Використовуйте `webhook_url` для сповіщень про завершення, потім отримайте статус та вивід за допомогою пакетних дій."
         },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "Вхідні дані"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.short_desc": {
+          "source": "Inline JSONL lines for small batches",
+          "message": "Вбудовані рядки JSONL для невеликих пакетів"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.desc": {
+          "source": "Inline records containing `custom_id` and `body.input`. Provide either `input` or `input_url`.",
+          "message": "Вбудовані записи, що містять `custom_id` і `body.input`. Укажіть `input` або `input_url`."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.display_name": {
+          "source": "Input URL",
+          "message": "Вхідна URL-адреса"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.short_desc": {
+          "source": "URL to input JSONL file (GCS, S3, or HTTP)",
+          "message": "URL до вхідного файлу JSONL (GCS, S3 або HTTP)"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.desc": {
+          "source": "URL of a JSONL input file in GCS, S3, or HTTP storage. Provide either `input_url` or `input`.",
+          "message": "URL вхідного файлу JSONL у сховищі GCS, S3 або HTTP. Укажіть `input_url` або `input`."
+        },
         "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bW9kZWw.display_name": {
           "source": "Model",
           "message": "Модель"
@@ -1108,36 +1132,12 @@
           "message": "Модель вбудовування для використання в пакетній обробці."
         },
         "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
-          "source": "jina-embeddings-v5-text-nano",
-          "message": "jina-embeddings-v5-text-nano"
+          "source": "Jina Embeddings V5 Text Nano",
+          "message": "Jina Embeddings V5 Text Nano"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
-          "source": "jina-embeddings-v5-text-small",
-          "message": "jina-embeddings-v5-text-small"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.display_name": {
-          "source": "Input URL",
-          "message": "Вхідна URL-адреса"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.short_desc": {
-          "source": "URL to input JSONL file (GCS, S3, or HTTP)",
-          "message": "URL до вхідного файлу JSONL (GCS, S3 або HTTP)"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.desc": {
-          "source": "URL to input JSONL file (GCS, S3, or HTTP). Either input_url or input must be provided.",
-          "message": "URL до вхідного файлу JSONL (GCS, S3 або HTTP). Потрібно надати input_url або input."
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.display_name": {
-          "source": "Input",
-          "message": "Вхідні дані"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.short_desc": {
-          "source": "Inline JSONL lines for small batches",
-          "message": "Вбудовані рядки JSONL для невеликих пакетів"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.desc": {
-          "source": "Inline JSONL lines for small batches. Either input_url or input must be provided.",
-          "message": "Вбудовані рядки JSONL для невеликих пакетів. Повинні бути надані input_url або input."
+          "source": "Jina Embeddings V5 Text Small",
+          "message": "Jina Embeddings V5 Text Small"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.dGFzaw.display_name": {
           "source": "Task",
@@ -1183,18 +1183,6 @@
           "source": "Number of dimensions for output embeddings (1-1024).",
           "message": "Кількість вимірів для вихідних вбудовувань (1-1024)."
         },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.display_name": {
-          "source": "Normalized",
-          "message": "Нормалізований"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.short_desc": {
-          "source": "If true (default), embeddings are L2-normalized to unit length",
-          "message": "Якщо true (за замовчуванням), вбудовування L2-нормалізовані до одиничної довжини"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.desc": {
-          "source": "If true (default), embeddings are L2-normalized to unit length.",
-          "message": "Якщо true (за замовчуванням), вбудовування L2-нормалізовані до одиничної довжини."
-        },
         "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.d2ViaG9va191cmw.display_name": {
           "source": "Webhook URL",
           "message": "URL вебхука"
@@ -1206,6 +1194,18 @@
         "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.d2ViaG9va191cmw.desc": {
           "source": "An HTTPS URL to notify when processing completes. Verify completion using `get-batch` before trusting a notification.",
           "message": "HTTPS URL для сповіщення після завершення обробки. Перевірте завершення за допомогою `get-batch`, перш ніж довіряти сповіщенню."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.display_name": {
+          "source": "Normalized",
+          "message": "Нормалізований"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.short_desc": {
+          "source": "If true (default), embeddings are L2-normalized to unit length",
+          "message": "Якщо true (за замовчуванням), вбудовування L2-нормалізовані до одиничної довжини"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.desc": {
+          "source": "If `true` (default), embeddings are L2-normalized to unit length.",
+          "message": "Якщо `true` (за замовчуванням), вбудовування L2-нормалізовані до одиничної довжини."
         },
         "app.SmluYUFp.action.Z2V0LWJhdGNo.display_name": {
           "source": "Get Batch Status",
@@ -1290,6 +1290,42 @@
         "app.SmluYUFp.action.cmVhZC11cmw.desc": {
           "source": "Extract content from a `url`, raw `html`, or a document `file` for search and analysis. Select `region` for EU processing, filter page elements, and choose how content and links are returned.",
           "message": "Витягти вміст з `url`, необробленого `html` або документа `file` для пошуку та аналізу. Виберіть `region` для обробки в ЄС, фільтруйте елементи сторінки та виберіть, як повертатиметься вміст і посилання."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.display_name": {
+          "source": "Source URL",
+          "message": "Вихідна URL-адреса"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.short_desc": {
+          "source": "The web page or document to read",
+          "message": "Веб-сторінка або документ для читання"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.desc": {
+          "source": "The web page or document to read; also resolves relative links in uploaded HTML.",
+          "message": "Веб-сторінка або документ для читання; також розв'язує відносні посилання в завантаженому HTML."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.display_name": {
+          "source": "HTML Content",
+          "message": "HTML-вміст"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.short_desc": {
+          "source": "Convert HTML directly, optionally using 'url' as its base",
+          "message": "Конвертувати HTML безпосередньо, за бажанням використовуючи 'url' як його основу"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.desc": {
+          "source": "Convert HTML directly, optionally using `url` as its base.",
+          "message": "Конвертувати HTML безпосередньо, за бажанням використовуючи `url` як його основу."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.display_name": {
+          "source": "Document File",
+          "message": "Файл документа"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.short_desc": {
+          "source": "A PDF or Office document to convert",
+          "message": "Документ PDF або Office для конвертації"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.desc": {
+          "source": "A PDF or Office document to convert. Supply its `name`, `mime_type`, and binary or base64 `content`.",
+          "message": "Документ PDF або Office для конвертації. Надайте його `name`, `mime_type` та двійковий або base64 `content`."
         },
         "app.SmluYUFp.action.cmVhZC11cmw.option.cmVnaW9u.display_name": {
           "source": "Processing Region",
@@ -1452,16 +1488,16 @@
           "message": "Усі"
         },
         "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsdA.display_name": {
-          "source": "Alt",
-          "message": "Alt"
+          "source": "Alternative Text Only",
+          "message": "Лише альтернативний текст"
         },
         "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsbF9w.display_name": {
-          "source": "All P",
-          "message": "Усі P"
+          "source": "Images with Generated Captions",
+          "message": "Зображення зі згенерованими підписами"
         },
         "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsdF9w.display_name": {
-          "source": "Alt P",
-          "message": "Alt P"
+          "source": "Generated Captions Only",
+          "message": "Лише згенеровані підписи"
         },
         "app.SmluYUFp.action.cmVhZC11cmw.option.bG9jYWxl.display_name": {
           "source": "Browser Locale",
@@ -1522,42 +1558,6 @@
         "app.SmluYUFp.action.cmVhZC11cmw.option.dG9rZW5fYnVkZ2V0.desc": {
           "source": "Maximum tokens this content request may consume.",
           "message": "Максимальна кількість токенів, яку може споживати цей запит контенту."
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.display_name": {
-          "source": "Source URL",
-          "message": "Вихідна URL-адреса"
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.short_desc": {
-          "source": "The web page or document to read",
-          "message": "Веб-сторінка або документ для читання"
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.desc": {
-          "source": "The web page or document to read; also resolves relative links in uploaded HTML.",
-          "message": "Веб-сторінка або документ для читання; також розв'язує відносні посилання в завантаженому HTML."
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.display_name": {
-          "source": "HTML Content",
-          "message": "HTML-вміст"
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.short_desc": {
-          "source": "Convert HTML directly, optionally using 'url' as its base",
-          "message": "Конвертувати HTML безпосередньо, за бажанням використовуючи 'url' як його основу"
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.desc": {
-          "source": "Convert HTML directly, optionally using `url` as its base.",
-          "message": "Конвертувати HTML безпосередньо, за бажанням використовуючи `url` як його основу."
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.display_name": {
-          "source": "Document File",
-          "message": "Файл документа"
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.short_desc": {
-          "source": "A PDF or Office document to convert",
-          "message": "Документ PDF або Office для конвертації"
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.desc": {
-          "source": "A PDF or Office document to convert. Supply its `name`, `mime_type`, and binary or base64 `content`.",
-          "message": "Документ PDF або Office для конвертації. Надайте його `name`, `mime_type` та двійковий або base64 `content`."
         },
         "app.SmluYUFp.action.cmVhZC11cmw.option.cGFnZQ.display_name": {
           "source": "Document Page",
@@ -2171,6 +2171,18 @@
           "source": "Search for `q` and return source URLs, descriptions, and readable content. Set `respond_with` to `no-content` for fast result metadata, or use content extraction options to prepare sources for analysis.",
           "message": "Шукати `q` та повертати вихідні URL-адреси, описи та читабельний вміст. Встановіть `respond_with` на `no-content` для швидких метаданих результатів або використовуйте параметри вилучення вмісту для підготовки джерел до аналізу."
         },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.display_name": {
+          "source": "Search Query",
+          "message": "Пошуковий запит"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.short_desc": {
+          "source": "What to find on the web",
+          "message": "Що знайти в Інтернеті"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.desc": {
+          "source": "What to find on the web. Standard search operators are supported.",
+          "message": "Що знайти в Інтернеті. Підтримуються стандартні оператори пошуку."
+        },
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmVnaW9u.display_name": {
           "source": "Processing Region",
           "message": "Регіон обробки"
@@ -2332,16 +2344,16 @@
           "message": "Усі"
         },
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsdA.display_name": {
-          "source": "Alt",
-          "message": "Alt"
+          "source": "Alternative Text Only",
+          "message": "Лише альтернативний текст"
         },
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsbF9w.display_name": {
-          "source": "All P",
-          "message": "Усі P"
+          "source": "Images with Generated Captions",
+          "message": "Зображення зі згенерованими підписами"
         },
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsdF9w.display_name": {
-          "source": "Alt P",
-          "message": "Alt P"
+          "source": "Generated Captions Only",
+          "message": "Лише згенеровані підписи"
         },
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bG9jYWxl.display_name": {
           "source": "Browser Locale",
@@ -2402,18 +2414,6 @@
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.dG9rZW5fYnVkZ2V0.desc": {
           "source": "Maximum tokens this content request may consume.",
           "message": "Максимальна кількість токенів, яку може споживати цей запит контенту."
-        },
-        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.display_name": {
-          "source": "Search Query",
-          "message": "Пошуковий запит"
-        },
-        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.short_desc": {
-          "source": "What to find on the web",
-          "message": "Що знайти в Інтернеті"
-        },
-        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.desc": {
-          "source": "What to find on the web. Standard search operators are supported.",
-          "message": "Що знайти в Інтернеті. Підтримуються стандартні оператори пошуку."
         },
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.c2l0ZQ.display_name": {
           "source": "Website Filter",

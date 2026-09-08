@@ -351,58 +351,6 @@
           "source": "Convert content into vectors for semantic search. Choose a `model` suited to your input and set `task` for query or document retrieval. Model-specific options are validated by the API schema.",
           "message": "Convertissez le contenu en vecteurs pour la recherche sémantique. Choisissez un `model` adapté et définissez `task` pour les requêtes ou les documents. Le schéma API valide les options propres au modèle."
         },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.display_name": {
-          "source": "Embedding Type",
-          "message": "Type d'embeddings"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.short_desc": {
-          "source": "Output encoding format: 'float', 'base64', 'binary', 'ubinary', or a list of…",
-          "message": "Format d'encodage de sortie : 'float', 'base64', 'binary', 'ubinary', ou une liste de…"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.desc": {
-          "source": "Output encoding format: `float`, `base64`, `binary`, `ubinary`, or a list of these.",
-          "message": "Format d'encodage de sortie : `float`, `base64`, `binary`, `ubinary`, ou une liste de ceux-ci."
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmZsb2F0.display_name": {
-          "source": "Float",
-          "message": "Flotteur"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmJhc2U2NA.display_name": {
-          "source": "Base64",
-          "message": "Base64"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
-          "source": "Binary",
-          "message": "Binaire"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOnViaW5hcnk.display_name": {
-          "source": "Ubinary",
-          "message": "Ubinary"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.display_name": {
-          "source": "Normalized",
-          "message": "Normalisé"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.short_desc": {
-          "source": "If true (default), embeddings are L2-normalized to unit length",
-          "message": "Si vrai (par défaut), les embeddings sont normalisés L2 à une longueur unitaire"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.desc": {
-          "source": "If true (default), embeddings are L2-normalized to unit length.",
-          "message": "Si vrai (par défaut), les embeddings sont normalisés L2 à une longueur unitaire."
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.display_name": {
-          "source": "Truncate",
-          "message": "Tronquer"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.short_desc": {
-          "source": "If true, truncates input exceeding the model's max token limit instead of…",
-          "message": "Si vrai, tronque l'entrée dépassant la limite maximale de tokens du modèle au lieu de…"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.desc": {
-          "source": "If true, truncates input exceeding the model's max token limit instead of returning an error.",
-          "message": "Si vrai, tronque l'entrée dépassant la limite maximale de tokens du modèle au lieu de renvoyer une erreur."
-        },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.display_name": {
           "source": "Model",
           "message": "Modèle"
@@ -416,76 +364,76 @@
           "message": "Modèle utilisé pour les embeddings."
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVu.display_name": {
-          "source": "jina-embeddings-v2-base-en",
-          "message": "jina-embeddings-v2-base-en"
+          "source": "Jina Embeddings V2 Base En",
+          "message": "Jina Embeddings V2 Base En"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLXpo.display_name": {
-          "source": "jina-embeddings-v2-base-zh",
-          "message": "jina-embeddings-v2-base-zh"
+          "source": "Jina Embeddings V2 Base Zh",
+          "message": "Jina Embeddings V2 Base Zh"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWRl.display_name": {
-          "source": "jina-embeddings-v2-base-de",
-          "message": "jina-embeddings-v2-base-de"
+          "source": "Jina Embeddings V2 Base De",
+          "message": "Jina Embeddings V2 Base De"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVz.display_name": {
-          "source": "jina-embeddings-v2-base-es",
-          "message": "jina-embeddings-v2-base-es"
+          "source": "Jina Embeddings V2 Base Es",
+          "message": "Jina Embeddings V2 Base Es"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWNvZGU.display_name": {
-          "source": "jina-embeddings-v2-base-code",
-          "message": "jina-embeddings-v2-base-code"
+          "source": "Jina Embeddings V2 Base Code",
+          "message": "Jina Embeddings V2 Base Code"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mw.display_name": {
-          "source": "jina-embeddings-v3",
-          "message": "jina-embeddings-v3"
+          "source": "Jina Embeddings V3",
+          "message": "Jina Embeddings V3"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
-          "source": "jina-embeddings-v5-text-nano",
-          "message": "jina-embeddings-v5-text-nano"
+          "source": "Jina Embeddings V5 Text Nano",
+          "message": "Jina Embeddings V5 Text Nano"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
-          "source": "jina-embeddings-v5-text-small",
-          "message": "jina-embeddings-v5-text-small"
+          "source": "Jina Embeddings V5 Text Small",
+          "message": "Jina Embeddings V5 Text Small"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS1vbW5pLXNtYWxs.display_name": {
-          "source": "jina-embeddings-v5-omni-small",
-          "message": "jina-embeddings-v5-omni-small"
+          "source": "Jina Embeddings V5 Omni Small",
+          "message": "Jina Embeddings V5 Omni Small"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS1vbW5pLW5hbm8.display_name": {
-          "source": "jina-embeddings-v5-omni-nano",
-          "message": "jina-embeddings-v5-omni-nano"
+          "source": "Jina Embeddings V5 Omni Nano",
+          "message": "Jina Embeddings V5 Omni Nano"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NA.display_name": {
-          "source": "jina-embeddings-v4",
-          "message": "jina-embeddings-v4"
+          "source": "Jina Embeddings V4",
+          "message": "Jina Embeddings V4"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29kZS1lbWJlZGRpbmdzLTAuNWI.display_name": {
-          "source": "jina-code-embeddings-0.5b",
-          "message": "jina-code-embeddings-0.5b"
+          "source": "Jina Code Embeddings 0.5B",
+          "message": "Jina Code Embeddings 0.5B"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29kZS1lbWJlZGRpbmdzLTEuNWI.display_name": {
-          "source": "jina-code-embeddings-1.5b",
-          "message": "jina-code-embeddings-1.5b"
+          "source": "Jina Code Embeddings 1.5B",
+          "message": "Jina Code Embeddings 1.5B"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12MQ.display_name": {
-          "source": "jina-clip-v1",
-          "message": "jina-clip-v1"
+          "source": "Jina Clip V1",
+          "message": "Jina Clip V1"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12Mg.display_name": {
-          "source": "jina-clip-v2",
-          "message": "jina-clip-v2"
+          "source": "Jina Clip V2",
+          "message": "Jina Clip V2"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12MS1lbg.display_name": {
-          "source": "jina-colbert-v1-en",
-          "message": "jina-colbert-v1-en"
+          "source": "Jina Colbert V1 En",
+          "message": "Jina Colbert V1 En"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12Mg.display_name": {
-          "source": "jina-colbert-v2",
-          "message": "jina-colbert-v2"
+          "source": "Jina Colbert V2",
+          "message": "Jina Colbert V2"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmVsc2VyLXYy.display_name": {
-          "source": "elser-v2",
-          "message": "elser-v2"
+          "source": "Elser V2",
+          "message": "Elser V2"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.aW5wdXQ.display_name": {
           "source": "Input",
@@ -583,18 +531,6 @@
           "source": "Code2Completion Passage",
           "message": "Passage Code2Completion"
         },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.display_name": {
-          "source": "Late Chunking",
-          "message": "Late Chunking"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.short_desc": {
-          "source": "If true, concatenates all inputs and processes as one sequence before splitting",
-          "message": "Avec True, les entrées sont traitées en une seule séquence avant leur découpa…"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.desc": {
-          "source": "Use `True` to process inputs as one sequence before splitting, preserving context across chunks.",
-          "message": "Avec `True`, les entrées sont traitées en une seule séquence avant leur découpage afin de préserver le contexte entre les segments."
-        },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZGltZW5zaW9ucw.display_name": {
           "source": "Dimensions",
           "message": "Dimensions"
@@ -607,6 +543,70 @@
           "source": "Output vector size. The selected `model` determines the supported range.",
           "message": "Taille du vecteur de sortie. Le `model` choisi détermine la plage prise en charge."
         },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.display_name": {
+          "source": "Embedding Type",
+          "message": "Type d'embeddings"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.short_desc": {
+          "source": "Output encoding format: 'float', 'base64', 'binary', 'ubinary', or a list of…",
+          "message": "Format d'encodage de sortie : 'float', 'base64', 'binary', 'ubinary', ou une liste de…"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.desc": {
+          "source": "Output encoding format: `float`, `base64`, `binary`, `ubinary`, or a list of these.",
+          "message": "Format d'encodage de sortie : `float`, `base64`, `binary`, `ubinary`, ou une liste de ceux-ci."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmZsb2F0.display_name": {
+          "source": "Float",
+          "message": "Flotteur"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmJhc2U2NA.display_name": {
+          "source": "Base64",
+          "message": "Base64"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
+          "source": "Binary",
+          "message": "Binaire"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.ZW1iZWRkaW5nX3R5cGU.allowed-value.c3RyaW5nOnViaW5hcnk.display_name": {
+          "source": "Ubinary",
+          "message": "Ubinary"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.display_name": {
+          "source": "Normalized",
+          "message": "Normalisé"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.short_desc": {
+          "source": "If true (default), embeddings are L2-normalized to unit length",
+          "message": "Si vrai (par défaut), les embeddings sont normalisés L2 à une longueur unitaire"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.desc": {
+          "source": "If `true` (default), embeddings are L2-normalized to unit length.",
+          "message": "Si `true` (par défaut), les embeddings sont normalisés L2 à une longueur unitaire."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.display_name": {
+          "source": "Truncate",
+          "message": "Tronquer"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.short_desc": {
+          "source": "If true, truncates input exceeding the model's max token limit instead of…",
+          "message": "Si vrai, tronque l'entrée dépassant la limite maximale de tokens du modèle au lieu de…"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.dHJ1bmNhdGU.desc": {
+          "source": "If `true`, truncates input exceeding the model's max token limit instead of returning an error.",
+          "message": "Si `true`, tronque l'entrée dépassant la limite maximale de tokens du modèle au lieu de renvoyer une erreur."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.display_name": {
+          "source": "Late Chunking",
+          "message": "Late Chunking"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.short_desc": {
+          "source": "If true, concatenates all inputs and processes as one sequence before splitting",
+          "message": "Avec True, les entrées sont traitées en une seule séquence avant leur découpa…"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.bGF0ZV9jaHVua2luZw.desc": {
+          "source": "Use `True` to process inputs as one sequence before splitting, preserving context across chunks.",
+          "message": "Avec `True`, les entrées sont traitées en une seule séquence avant leur découpage afin de préserver le contexte entre les segments."
+        },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX211bHRpdmVjdG9y.display_name": {
           "source": "Return Multivector",
           "message": "Retourner le Multivector"
@@ -616,8 +616,8 @@
           "message": "Si vrai, renvoie un embedding par token"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX211bHRpdmVjdG9y.desc": {
-          "source": "If true, returns one embedding per token. Cannot be used with `dimensions`.",
-          "message": "Si vrai, renvoie un embedding par token. Ne peut pas être utilisé avec `dimensions`."
+          "source": "If `true`, returns one embedding per token. Cannot be used with `dimensions`.",
+          "message": "Si `true`, renvoie un embedding par token. Ne peut pas être utilisé avec `dimensions`."
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX3Rva2VuaXplZF9pbnB1dA.display_name": {
           "source": "Return Tokenized Input",
@@ -628,8 +628,8 @@
           "message": "Si vrai, renvoie les tokens avec les embeddings multi-vecteurs"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.cmV0dXJuX3Rva2VuaXplZF9pbnB1dA.desc": {
-          "source": "If true, returns tokens alongside multi-vector embeddings. Requires `return_multivector=true`.",
-          "message": "Si vrai, renvoie les tokens avec les embeddings multi-vecteurs. Nécessite `return_multivector=true`."
+          "source": "If `true`, returns tokens alongside multi-vector embeddings. Requires `return_multivector=true`.",
+          "message": "Si `true`, renvoie les tokens avec les embeddings multi-vecteurs. Nécessite `return_multivector=true`."
         },
         "app.SmluYUFp.action.Y3JlYXRlLWVtYmVkZGluZ3M.option.aW5wdXRfdHlwZQ.display_name": {
           "source": "Input Type",
@@ -655,6 +655,54 @@
           "source": "Improve search quality by ranking candidate `documents` against a `query`. Use `top_n` to keep the strongest matches and `return_documents` to control response size.",
           "message": "Améliorez la recherche en classant les `documents` selon `query`. Utilisez `top_n` pour limiter les résultats et `return_documents` pour contrôler leur taille."
         },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modèle"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.short_desc": {
+          "source": "The reranking model to use",
+          "message": "Modèle utilisé pour le reclassement"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.desc": {
+          "source": "The reranking model to use.",
+          "message": "Modèle utilisé pour le reclassement."
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjItYmFzZS1tdWx0aWxpbmd1YWw.display_name": {
+          "source": "Jina Reranker V2 Base Multilingual",
+          "message": "Jina Reranker V2 Base Multilingual"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtdGlueS1lbg.display_name": {
+          "source": "Jina Reranker V1 Tiny En",
+          "message": "Jina Reranker V1 Tiny En"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtdHVyYm8tZW4.display_name": {
+          "source": "Jina Reranker V1 Turbo En",
+          "message": "Jina Reranker V1 Turbo En"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtYmFzZS1lbg.display_name": {
+          "source": "Jina Reranker V1 Base En",
+          "message": "Jina Reranker V1 Base En"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12MS1lbg.display_name": {
+          "source": "Jina Colbert V1 En",
+          "message": "Jina Colbert V1 En"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12Mg.display_name": {
+          "source": "Jina Colbert V2",
+          "message": "Jina Colbert V2"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItbTA.display_name": {
+          "source": "Jina Reranker M0",
+          "message": "Jina Reranker M0"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjM.display_name": {
+          "source": "Jina Reranker V3",
+          "message": "Jina Reranker V3"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjMuNQ.display_name": {
+          "source": "Jina Reranker V3.5",
+          "message": "Jina Reranker V3.5"
+        },
         "app.SmluYUFp.action.cmVyYW5r.option.cXVlcnk.display_name": {
           "source": "Query",
           "message": "Requête"
@@ -666,6 +714,18 @@
         "app.SmluYUFp.action.cmVyYW5r.option.cXVlcnk.desc": {
           "source": "The search query to rank documents against.",
           "message": "Requête de recherche servant à classer les documents."
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.display_name": {
+          "source": "Documents",
+          "message": "Documents"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.short_desc": {
+          "source": "Documents to rank: strings or 'TextDoc' objects",
+          "message": "Documents candidats textuels ou visuels"
+        },
+        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.desc": {
+          "source": "Candidate text or image documents. Supported input shapes depend on `model`.",
+          "message": "Documents candidats textuels ou visuels. Les structures d’entrée acceptées dépendent de `model`."
         },
         "app.SmluYUFp.action.cmVyYW5r.option.dG9wX24.display_name": {
           "source": "Top N",
@@ -691,66 +751,6 @@
           "source": "Use `True` (the default) to include document content in each result.",
           "message": "Avec `True` (valeur par défaut), chaque résultat inclut le contenu du document."
         },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.display_name": {
-          "source": "Model",
-          "message": "Modèle"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.short_desc": {
-          "source": "The reranking model to use",
-          "message": "Modèle utilisé pour le reclassement"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.desc": {
-          "source": "The reranking model to use.",
-          "message": "Modèle utilisé pour le reclassement."
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjItYmFzZS1tdWx0aWxpbmd1YWw.display_name": {
-          "source": "jina-reranker-v2-base-multilingual",
-          "message": "jina-reranker-v2-base-multilingual"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtdGlueS1lbg.display_name": {
-          "source": "jina-reranker-v1-tiny-en",
-          "message": "jina-reranker-v1-tiny-en"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtdHVyYm8tZW4.display_name": {
-          "source": "jina-reranker-v1-turbo-en",
-          "message": "jina-reranker-v1-turbo-en"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjEtYmFzZS1lbg.display_name": {
-          "source": "jina-reranker-v1-base-en",
-          "message": "jina-reranker-v1-base-en"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12MS1lbg.display_name": {
-          "source": "jina-colbert-v1-en",
-          "message": "jina-colbert-v1-en"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29sYmVydC12Mg.display_name": {
-          "source": "jina-colbert-v2",
-          "message": "jina-colbert-v2"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItbTA.display_name": {
-          "source": "jina-reranker-m0",
-          "message": "jina-reranker-m0"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjM.display_name": {
-          "source": "jina-reranker-v3",
-          "message": "jina-reranker-v3"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtcmVyYW5rZXItdjMuNQ.display_name": {
-          "source": "jina-reranker-v3.5",
-          "message": "jina-reranker-v3.5"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.display_name": {
-          "source": "Documents",
-          "message": "Documents"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.short_desc": {
-          "source": "Documents to rank: strings or 'TextDoc' objects",
-          "message": "Documents candidats textuels ou visuels"
-        },
-        "app.SmluYUFp.action.cmVyYW5r.option.ZG9jdW1lbnRz.desc": {
-          "source": "Candidate text or image documents. Supported input shapes depend on `model`.",
-          "message": "Documents candidats textuels ou visuels. Les structures d’entrée acceptées dépendent de `model`."
-        },
         "app.SmluYUFp.action.cmVyYW5r.option.bWF4X2RvY19sZW5ndGg.display_name": {
           "source": "Max Doc Length",
           "message": "Longueur maximale du document"
@@ -772,8 +772,8 @@
           "message": "Si vrai, renvoie l'embedding du document avec le score de pertinence"
         },
         "app.SmluYUFp.action.cmVyYW5r.option.cmV0dXJuX2VtYmVkZGluZ3M.desc": {
-          "source": "If true, returns the document embedding alongside the relevance score.",
-          "message": "Si vrai, renvoie l'embedding du document avec le score de pertinence."
+          "source": "If `true`, returns the document embedding alongside the relevance score.",
+          "message": "Si `true`, renvoie l'embedding du document avec le score de pertinence."
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.display_name": {
           "source": "Classify Content",
@@ -786,18 +786,6 @@
         "app.SmluYUFp.action.Y2xhc3NpZnk.desc": {
           "source": "Route feedback, support requests, or images into `labels` with a selected `model`. For a saved classifier, provide `classifier_id` instead of `model` and `labels`.",
           "message": "Router les commentaires, les demandes d'assistance ou les images vers `labels` avec un `model` sélectionné. Pour un classificateur enregistré, fournir `classifier_id` au lieu de `model` et `labels`."
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.display_name": {
-          "source": "Labels",
-          "message": "Étiquettes"
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.short_desc": {
-          "source": "Candidate labels: a list of up to 512 labels, or a dict of up to 8 groups with…",
-          "message": "Étiquettes candidates : une liste de jusqu'à 512 étiquettes, ou un dictionnaire de jusqu'à 8 groupes avec…"
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.desc": {
-          "source": "Candidate labels: a list of up to 512 labels, or a dict of up to 8 groups with max 64 labels each.",
-          "message": "Étiquettes candidates : une liste de jusqu'à 512 étiquettes, ou un dictionnaire de jusqu'à 8 groupes avec un maximum de 64 étiquettes chacun."
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.display_name": {
           "source": "Model",
@@ -812,68 +800,56 @@
           "message": "Modèle utilisé pour les embeddings."
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVu.display_name": {
-          "source": "jina-embeddings-v2-base-en",
-          "message": "jina-embeddings-v2-base-en"
+          "source": "Jina Embeddings V2 Base En",
+          "message": "Jina Embeddings V2 Base En"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLXpo.display_name": {
-          "source": "jina-embeddings-v2-base-zh",
-          "message": "jina-embeddings-v2-base-zh"
+          "source": "Jina Embeddings V2 Base Zh",
+          "message": "Jina Embeddings V2 Base Zh"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWRl.display_name": {
-          "source": "jina-embeddings-v2-base-de",
-          "message": "jina-embeddings-v2-base-de"
+          "source": "Jina Embeddings V2 Base De",
+          "message": "Jina Embeddings V2 Base De"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVz.display_name": {
-          "source": "jina-embeddings-v2-base-es",
-          "message": "jina-embeddings-v2-base-es"
+          "source": "Jina Embeddings V2 Base Es",
+          "message": "Jina Embeddings V2 Base Es"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWNvZGU.display_name": {
-          "source": "jina-embeddings-v2-base-code",
-          "message": "jina-embeddings-v2-base-code"
+          "source": "Jina Embeddings V2 Base Code",
+          "message": "Jina Embeddings V2 Base Code"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mw.display_name": {
-          "source": "jina-embeddings-v3",
-          "message": "jina-embeddings-v3"
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NA.display_name": {
-          "source": "jina-embeddings-v4",
-          "message": "jina-embeddings-v4"
+          "source": "Jina Embeddings V3",
+          "message": "Jina Embeddings V3"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
-          "source": "jina-embeddings-v5-text-nano",
-          "message": "jina-embeddings-v5-text-nano"
+          "source": "Jina Embeddings V5 Text Nano",
+          "message": "Jina Embeddings V5 Text Nano"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
-          "source": "jina-embeddings-v5-text-small",
-          "message": "jina-embeddings-v5-text-small"
+          "source": "Jina Embeddings V5 Text Small",
+          "message": "Jina Embeddings V5 Text Small"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NA.display_name": {
+          "source": "Jina Embeddings V4",
+          "message": "Jina Embeddings V4"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12MQ.display_name": {
-          "source": "jina-clip-v1",
-          "message": "jina-clip-v1"
+          "source": "Jina Clip V1",
+          "message": "Jina Clip V1"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12Mg.display_name": {
-          "source": "jina-clip-v2",
-          "message": "jina-clip-v2"
+          "source": "Jina Clip V2",
+          "message": "Jina Clip V2"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29kZS1lbWJlZGRpbmdzLTAuNWI.display_name": {
-          "source": "jina-code-embeddings-0.5b",
-          "message": "jina-code-embeddings-0.5b"
+          "source": "Jina Code Embeddings 0.5B",
+          "message": "Jina Code Embeddings 0.5B"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY29kZS1lbWJlZGRpbmdzLTEuNWI.display_name": {
-          "source": "jina-code-embeddings-1.5b",
-          "message": "jina-code-embeddings-1.5b"
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.display_name": {
-          "source": "Input",
-          "message": "Entrée"
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.short_desc": {
-          "source": "Text to classify: a string, 'TextDoc', or list of up to 512 items",
-          "message": "Texte à classer : une chaîne, 'TextDoc', ou une liste de jusqu'à 512 éléments"
-        },
-        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.desc": {
-          "source": "Text to classify: a string, `TextDoc`, or list of up to 512 items.",
-          "message": "Texte à classer : une chaîne, `TextDoc`, ou une liste de jusqu'à 512 éléments."
+          "source": "Jina Code Embeddings 1.5B",
+          "message": "Jina Code Embeddings 1.5B"
         },
         "app.SmluYUFp.action.Y2xhc3NpZnk.option.Y2xhc3NpZmllcl9pZA.display_name": {
           "source": "Classifier ID",
@@ -887,6 +863,30 @@
           "source": "ID of the trained classifier to use.",
           "message": "ID du classifieur entraîné à utiliser."
         },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "Entrée"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.short_desc": {
+          "source": "Text to classify: a string, 'TextDoc', or list of up to 512 items",
+          "message": "Texte à classer : une chaîne, 'TextDoc', ou une liste de jusqu'à 512 éléments"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.aW5wdXQ.desc": {
+          "source": "Text to classify: a string, `TextDoc`, or list of up to 512 items.",
+          "message": "Texte à classer : une chaîne, `TextDoc`, ou une liste de jusqu'à 512 éléments."
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.display_name": {
+          "source": "Labels",
+          "message": "Étiquettes"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.short_desc": {
+          "source": "Candidate labels: a list of up to 512 labels, or a dict of up to 8 groups with…",
+          "message": "Étiquettes candidates : une liste de jusqu'à 512 étiquettes, ou un dictionnaire de jusqu'à 8 groupes avec…"
+        },
+        "app.SmluYUFp.action.Y2xhc3NpZnk.option.bGFiZWxz.desc": {
+          "source": "Candidate labels: a list of up to 512 labels, or a dict of up to 8 groups with max 64 labels each.",
+          "message": "Étiquettes candidates : une liste de jusqu'à 512 étiquettes, ou un dictionnaire de jusqu'à 8 groupes avec un maximum de 64 étiquettes chacun."
+        },
         "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.display_name": {
           "source": "Train or Update Classifier",
           "message": "Entraîner ou mettre à jour le classificateur"
@@ -898,6 +898,86 @@
         "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.desc": {
           "source": "Train a classifier from labeled `input` examples and a `model`. Set `access` to control visibility. To update an existing classifier, provide `classifier_id` instead. **Service availability:** Jina returned HTTP 500 for training during verification on September 7, 2026.",
           "message": "Entraîner un classificateur à partir d'exemples étiquetés `input` et d'un `model`. Définissez `access` pour contrôler la visibilité. Pour mettre à jour un classificateur existant, fournissez `classifier_id` à la place. **Disponibilité du service :** Jina a renvoyé HTTP 500 pour l'entraînement lors de la vérification le 7 septembre 2026."
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modèle"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.short_desc": {
+          "source": "Text embedding model for zero-shot classification",
+          "message": "Modèle d'embeddings de texte pour la classification zero-shot"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.desc": {
+          "source": "Text embedding model for zero-shot classification.",
+          "message": "Modèle d'embeddings de texte pour la classification zero-shot."
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVu.display_name": {
+          "source": "Jina Embeddings V2 Base En",
+          "message": "Jina Embeddings V2 Base En"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLXpo.display_name": {
+          "source": "Jina Embeddings V2 Base Zh",
+          "message": "Jina Embeddings V2 Base Zh"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWRl.display_name": {
+          "source": "Jina Embeddings V2 Base De",
+          "message": "Jina Embeddings V2 Base De"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVz.display_name": {
+          "source": "Jina Embeddings V2 Base Es",
+          "message": "Jina Embeddings V2 Base Es"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWNvZGU.display_name": {
+          "source": "Jina Embeddings V2 Base Code",
+          "message": "Jina Embeddings V2 Base Code"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mw.display_name": {
+          "source": "Jina Embeddings V3",
+          "message": "Jina Embeddings V3"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
+          "source": "Jina Embeddings V5 Text Nano",
+          "message": "Jina Embeddings V5 Text Nano"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
+          "source": "Jina Embeddings V5 Text Small",
+          "message": "Jina Embeddings V5 Text Small"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NA.display_name": {
+          "source": "Jina Embeddings V4",
+          "message": "Jina Embeddings V4"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12MQ.display_name": {
+          "source": "Jina Clip V1",
+          "message": "Jina Clip V1"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12Mg.display_name": {
+          "source": "Jina Clip V2",
+          "message": "Jina Clip V2"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.display_name": {
+          "source": "Classifier ID",
+          "message": "ID du classificateur"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.short_desc": {
+          "source": "ID of the classifier to use for few-shot classification",
+          "message": "ID du classificateur à utiliser pour la classification à peu d'exemples"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.desc": {
+          "source": "ID of the classifier to use for few-shot classification.",
+          "message": "ID du classificateur à utiliser pour la classification à peu d'exemples."
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "Entrée"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.short_desc": {
+          "source": "Must be a list of text-label training items with at least two unique labels",
+          "message": "Doit être une liste d'éléments d'entraînement texte-libellé avec au moins deux libellés uniques"
+        },
+        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.desc": {
+          "source": "Must be a list of text-label training items with at least two unique labels. For batch training, provide a list with up to 512 items.",
+          "message": "Doit être une liste d'éléments d'entraînement texte-libellé avec au moins deux libellés uniques. Pour l'entraînement par lots, fournissez une liste avec jusqu'à 512 éléments."
         },
         "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.YWNjZXNz.display_name": {
           "source": "Access",
@@ -930,86 +1010,6 @@
         "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bnVtX2l0ZXJz.desc": {
           "source": "Number of iterations for the training process.",
           "message": "Nombre d'itérations pour le processus d'entraînement."
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.display_name": {
-          "source": "Model",
-          "message": "Modèle"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.short_desc": {
-          "source": "Text embedding model for zero-shot classification",
-          "message": "Modèle d'embeddings de texte pour la classification zero-shot"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.desc": {
-          "source": "Text embedding model for zero-shot classification.",
-          "message": "Modèle d'embeddings de texte pour la classification zero-shot."
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVu.display_name": {
-          "source": "jina-embeddings-v2-base-en",
-          "message": "jina-embeddings-v2-base-en"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLXpo.display_name": {
-          "source": "jina-embeddings-v2-base-zh",
-          "message": "jina-embeddings-v2-base-zh"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWRl.display_name": {
-          "source": "jina-embeddings-v2-base-de",
-          "message": "jina-embeddings-v2-base-de"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWVz.display_name": {
-          "source": "jina-embeddings-v2-base-es",
-          "message": "jina-embeddings-v2-base-es"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mi1iYXNlLWNvZGU.display_name": {
-          "source": "jina-embeddings-v2-base-code",
-          "message": "jina-embeddings-v2-base-code"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12Mw.display_name": {
-          "source": "jina-embeddings-v3",
-          "message": "jina-embeddings-v3"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NA.display_name": {
-          "source": "jina-embeddings-v4",
-          "message": "jina-embeddings-v4"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
-          "source": "jina-embeddings-v5-text-nano",
-          "message": "jina-embeddings-v5-text-nano"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
-          "source": "jina-embeddings-v5-text-small",
-          "message": "jina-embeddings-v5-text-small"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12MQ.display_name": {
-          "source": "jina-clip-v1",
-          "message": "jina-clip-v1"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtY2xpcC12Mg.display_name": {
-          "source": "jina-clip-v2",
-          "message": "jina-clip-v2"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.display_name": {
-          "source": "Input",
-          "message": "Entrée"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.short_desc": {
-          "source": "Must be a list of text-label training items with at least two unique labels",
-          "message": "Doit être une liste d'éléments d'entraînement texte-libellé avec au moins deux libellés uniques"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.aW5wdXQ.desc": {
-          "source": "Must be a list of text-label training items with at least two unique labels. For batch training, provide a list with up to 512 items.",
-          "message": "Doit être une liste d'éléments d'entraînement texte-libellé avec au moins deux libellés uniques. Pour l'entraînement par lots, fournissez une liste avec jusqu'à 512 éléments."
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.display_name": {
-          "source": "Classifier ID",
-          "message": "ID du classificateur"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.short_desc": {
-          "source": "ID of the classifier to use for few-shot classification",
-          "message": "ID du classificateur à utiliser pour la classification à peu d'exemples"
-        },
-        "app.SmluYUFp.action.dHJhaW4tY2xhc3NpZmllcg.option.Y2xhc3NpZmllcl9pZA.desc": {
-          "source": "ID of the classifier to use for few-shot classification.",
-          "message": "ID du classificateur à utiliser pour la classification à peu d'exemples."
         },
         "app.SmluYUFp.action.bGlzdC1jbGFzc2lmaWVycw.display_name": {
           "source": "List Classifiers",
@@ -1095,6 +1095,30 @@
           "source": "Submit inline JSONL records in `input` or an `input_url` for bulk embedding. Each record contains `custom_id` and `body.input`. Use `webhook_url` for completion notifications, then retrieve status and output with the batch actions.",
           "message": "Soumettre des enregistrements JSONL en ligne dans `input` ou un `input_url` pour un embedding en vrac. Chaque enregistrement contient `custom_id` et `body.input`. Utiliser `webhook_url` pour les notifications de complétion, puis récupérer le statut et la sortie avec les actions par lot."
         },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "Entrée"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.short_desc": {
+          "source": "Inline JSONL lines for small batches",
+          "message": "Lignes JSONL intégrées pour les petits lots"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.desc": {
+          "source": "Inline records containing `custom_id` and `body.input`. Provide either `input` or `input_url`.",
+          "message": "Enregistrements intégrés contenant `custom_id` et `body.input`. Fournissez soit `input`, soit `input_url`."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.display_name": {
+          "source": "Input URL",
+          "message": "URL d'entrée"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.short_desc": {
+          "source": "URL to input JSONL file (GCS, S3, or HTTP)",
+          "message": "URL vers le fichier JSONL d'entrée (GCS, S3 ou HTTP)"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.desc": {
+          "source": "URL of a JSONL input file in GCS, S3, or HTTP storage. Provide either `input_url` or `input`.",
+          "message": "URL du fichier JSONL d’entrée dans un stockage GCS, S3 ou HTTP. Fournissez soit `input_url`, soit `input`."
+        },
         "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bW9kZWw.display_name": {
           "source": "Model",
           "message": "Modèle"
@@ -1108,36 +1132,12 @@
           "message": "Le modèle d'embeddings à utiliser pour le traitement par lots."
         },
         "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LW5hbm8.display_name": {
-          "source": "jina-embeddings-v5-text-nano",
-          "message": "jina-embeddings-v5-text-nano"
+          "source": "Jina Embeddings V5 Text Nano",
+          "message": "Jina Embeddings V5 Text Nano"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bW9kZWw.allowed-value.c3RyaW5nOmppbmEtZW1iZWRkaW5ncy12NS10ZXh0LXNtYWxs.display_name": {
-          "source": "jina-embeddings-v5-text-small",
-          "message": "jina-embeddings-v5-text-small"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.display_name": {
-          "source": "Input URL",
-          "message": "URL d'entrée"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.short_desc": {
-          "source": "URL to input JSONL file (GCS, S3, or HTTP)",
-          "message": "URL vers le fichier JSONL d'entrée (GCS, S3 ou HTTP)"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXRfdXJs.desc": {
-          "source": "URL to input JSONL file (GCS, S3, or HTTP). Either input_url or input must be provided.",
-          "message": "URL vers le fichier JSONL d'entrée (GCS, S3 ou HTTP). input_url ou input doit être fourni."
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.display_name": {
-          "source": "Input",
-          "message": "Entrée"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.short_desc": {
-          "source": "Inline JSONL lines for small batches",
-          "message": "Lignes JSONL intégrées pour les petits lots"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.aW5wdXQ.desc": {
-          "source": "Inline JSONL lines for small batches. Either input_url or input must be provided.",
-          "message": "Lignes JSONL intégrées pour les petits lots. input_url ou input doit être fourni."
+          "source": "Jina Embeddings V5 Text Small",
+          "message": "Jina Embeddings V5 Text Small"
         },
         "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.dGFzaw.display_name": {
           "source": "Task",
@@ -1183,18 +1183,6 @@
           "source": "Number of dimensions for output embeddings (1-1024).",
           "message": "Nombre de dimensions pour les plongements de sortie (1-1024)."
         },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.display_name": {
-          "source": "Normalized",
-          "message": "Normalisé"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.short_desc": {
-          "source": "If true (default), embeddings are L2-normalized to unit length",
-          "message": "Si vrai (par défaut), les embeddings sont normalisés L2 à une longueur unitaire"
-        },
-        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.desc": {
-          "source": "If true (default), embeddings are L2-normalized to unit length.",
-          "message": "Si vrai (par défaut), les embeddings sont normalisés L2 à une longueur unitaire."
-        },
         "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.d2ViaG9va191cmw.display_name": {
           "source": "Webhook URL",
           "message": "URL du webhook"
@@ -1206,6 +1194,18 @@
         "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.d2ViaG9va191cmw.desc": {
           "source": "An HTTPS URL to notify when processing completes. Verify completion using `get-batch` before trusting a notification.",
           "message": "Une URL HTTPS à notifier lorsque le traitement est terminé. Vérifiez l'achèvement à l'aide de `get-batch` avant de faire confiance à une notification."
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.display_name": {
+          "source": "Normalized",
+          "message": "Normalisé"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.short_desc": {
+          "source": "If true (default), embeddings are L2-normalized to unit length",
+          "message": "Si vrai (par défaut), les embeddings sont normalisés L2 à une longueur unitaire"
+        },
+        "app.SmluYUFp.action.Y3JlYXRlLWJhdGNoLWVtYmVkZGluZ3M.option.bm9ybWFsaXplZA.desc": {
+          "source": "If `true` (default), embeddings are L2-normalized to unit length.",
+          "message": "Si `true` (par défaut), les embeddings sont normalisés L2 à une longueur unitaire."
         },
         "app.SmluYUFp.action.Z2V0LWJhdGNo.display_name": {
           "source": "Get Batch Status",
@@ -1290,6 +1290,42 @@
         "app.SmluYUFp.action.cmVhZC11cmw.desc": {
           "source": "Extract content from a `url`, raw `html`, or a document `file` for search and analysis. Select `region` for EU processing, filter page elements, and choose how content and links are returned.",
           "message": "Extraire le contenu d'un `url`, d'un `html` brut ou d'un `file` de document pour la recherche et l'analyse. Sélectionnez `region` pour le traitement dans l'UE, filtrez les éléments de page et choisissez comment le contenu et les liens sont retournés."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.display_name": {
+          "source": "Source URL",
+          "message": "URL source"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.short_desc": {
+          "source": "The web page or document to read",
+          "message": "La page web ou le document à lire"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.desc": {
+          "source": "The web page or document to read; also resolves relative links in uploaded HTML.",
+          "message": "La page web ou le document à lire ; résout également les liens relatifs dans le HTML téléchargé."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.display_name": {
+          "source": "HTML Content",
+          "message": "Contenu HTML"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.short_desc": {
+          "source": "Convert HTML directly, optionally using 'url' as its base",
+          "message": "Convertir le HTML directement, en utilisant 'url' comme base facultativement"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.desc": {
+          "source": "Convert HTML directly, optionally using `url` as its base.",
+          "message": "Convertir le HTML directement, en utilisant `url` comme base facultativement."
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.display_name": {
+          "source": "Document File",
+          "message": "Fichier de document"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.short_desc": {
+          "source": "A PDF or Office document to convert",
+          "message": "Un document PDF ou Office à convertir"
+        },
+        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.desc": {
+          "source": "A PDF or Office document to convert. Supply its `name`, `mime_type`, and binary or base64 `content`.",
+          "message": "Un document PDF ou Office à convertir. Fournissez son `name`, `mime_type`, et son `content` binaire ou base64."
         },
         "app.SmluYUFp.action.cmVhZC11cmw.option.cmVnaW9u.display_name": {
           "source": "Processing Region",
@@ -1452,16 +1488,16 @@
           "message": "Tous"
         },
         "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsdA.display_name": {
-          "source": "Alt",
-          "message": "Alt"
+          "source": "Alternative Text Only",
+          "message": "Texte alternatif uniquement"
         },
         "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsbF9w.display_name": {
-          "source": "All P",
-          "message": "Tout P"
+          "source": "Images with Generated Captions",
+          "message": "Images avec légendes générées"
         },
         "app.SmluYUFp.action.cmVhZC11cmw.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsdF9w.display_name": {
-          "source": "Alt P",
-          "message": "Alt P"
+          "source": "Generated Captions Only",
+          "message": "Légendes générées uniquement"
         },
         "app.SmluYUFp.action.cmVhZC11cmw.option.bG9jYWxl.display_name": {
           "source": "Browser Locale",
@@ -1522,42 +1558,6 @@
         "app.SmluYUFp.action.cmVhZC11cmw.option.dG9rZW5fYnVkZ2V0.desc": {
           "source": "Maximum tokens this content request may consume.",
           "message": "Nombre maximum de jetons que cette requête de contenu peut consommer."
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.display_name": {
-          "source": "Source URL",
-          "message": "URL source"
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.short_desc": {
-          "source": "The web page or document to read",
-          "message": "La page web ou le document à lire"
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.dXJs.desc": {
-          "source": "The web page or document to read; also resolves relative links in uploaded HTML.",
-          "message": "La page web ou le document à lire ; résout également les liens relatifs dans le HTML téléchargé."
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.display_name": {
-          "source": "HTML Content",
-          "message": "Contenu HTML"
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.short_desc": {
-          "source": "Convert HTML directly, optionally using 'url' as its base",
-          "message": "Convertir le HTML directement, en utilisant 'url' comme base facultativement"
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.aHRtbA.desc": {
-          "source": "Convert HTML directly, optionally using `url` as its base.",
-          "message": "Convertir le HTML directement, en utilisant `url` comme base facultativement."
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.display_name": {
-          "source": "Document File",
-          "message": "Fichier de document"
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.short_desc": {
-          "source": "A PDF or Office document to convert",
-          "message": "Un document PDF ou Office à convertir"
-        },
-        "app.SmluYUFp.action.cmVhZC11cmw.option.ZmlsZQ.desc": {
-          "source": "A PDF or Office document to convert. Supply its `name`, `mime_type`, and binary or base64 `content`.",
-          "message": "Un document PDF ou Office à convertir. Fournissez son `name`, `mime_type`, et son `content` binaire ou base64."
         },
         "app.SmluYUFp.action.cmVhZC11cmw.option.cGFnZQ.display_name": {
           "source": "Document Page",
@@ -2171,6 +2171,18 @@
           "source": "Search for `q` and return source URLs, descriptions, and readable content. Set `respond_with` to `no-content` for fast result metadata, or use content extraction options to prepare sources for analysis.",
           "message": "Rechercher `q` et retourner les URL source, les descriptions et le contenu lisible. Définir `respond_with` sur `no-content` pour des métadonnées de résultats rapides, ou utiliser les options d'extraction de contenu pour préparer les sources à l'analyse."
         },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.display_name": {
+          "source": "Search Query",
+          "message": "Requête de recherche"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.short_desc": {
+          "source": "What to find on the web",
+          "message": "Ce qu'il faut trouver sur le web"
+        },
+        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.desc": {
+          "source": "What to find on the web. Standard search operators are supported.",
+          "message": "Ce qu'il faut trouver sur le web. Les opérateurs de recherche standard sont pris en charge."
+        },
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmVnaW9u.display_name": {
           "source": "Processing Region",
           "message": "Région de traitement"
@@ -2332,16 +2344,16 @@
           "message": "Tous"
         },
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsdA.display_name": {
-          "source": "Alt",
-          "message": "Alt"
+          "source": "Alternative Text Only",
+          "message": "Texte alternatif uniquement"
         },
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsbF9w.display_name": {
-          "source": "All P",
-          "message": "Tout P"
+          "source": "Images with Generated Captions",
+          "message": "Images avec légendes générées"
         },
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cmV0YWluX2ltYWdlcw.allowed-value.c3RyaW5nOmFsdF9w.display_name": {
-          "source": "Alt P",
-          "message": "Alt P"
+          "source": "Generated Captions Only",
+          "message": "Légendes générées uniquement"
         },
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.bG9jYWxl.display_name": {
           "source": "Browser Locale",
@@ -2402,18 +2414,6 @@
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.dG9rZW5fYnVkZ2V0.desc": {
           "source": "Maximum tokens this content request may consume.",
           "message": "Nombre maximum de jetons que cette requête de contenu peut consommer."
-        },
-        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.display_name": {
-          "source": "Search Query",
-          "message": "Requête de recherche"
-        },
-        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.short_desc": {
-          "source": "What to find on the web",
-          "message": "Ce qu'il faut trouver sur le web"
-        },
-        "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.cQ.desc": {
-          "source": "What to find on the web. Standard search operators are supported.",
-          "message": "Ce qu'il faut trouver sur le web. Les opérateurs de recherche standard sont pris en charge."
         },
         "app.SmluYUFp.action.c2VhcmNoLXdlYg.option.c2l0ZQ.display_name": {
           "source": "Website Filter",
