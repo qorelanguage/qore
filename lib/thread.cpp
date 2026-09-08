@@ -3029,16 +3029,23 @@ void qore_exit_process(int rc) {
     // so when called from the signal handler thread (e.g., SIGTERM handler),
     // other application threads may still be active; we must use _Exit() to
     // avoid running static destructors while other threads access static data
+    // External workers remain in tp_thread_counter until their native join,
+    // including TLS destruction after releasing their Qore TID. Do not wait for
+    // them here: exit() can be called by a worker or while its cleanup is blocked.
     if (thread_list.getNumThreads() <= 1
 #ifdef HAVE_SIGNAL_HANDLING
         && q_gettid() > 0
 #endif
+        && !tp_thread_counter.getCount()
     ) {
         // The native JIT compiler uses a dedicated C++ thread that is not part of
         // thread_list.  Stop it while LLVM's process-wide state is still intact;
         // otherwise exit() can run LLVM static destructors concurrently with an
         // in-progress ORC materialization.
         QoreJIT::instance().shutdown();
+        // The reaper has no Qore TID either. With all external workers joined,
+        // stop it before static destruction reaches its condition variable.
+        qore_stop_external_thread_reaper();
         exit(rc);
     }
     // do not call exit here since it will try to execute cleanup, which will cause crashes
@@ -3276,7 +3283,8 @@ public:
         condition.signal();
     }
 
-    // Only called by qore_cleanup after the external counter reaches zero.
+    // Only called after the external counter reaches zero, either by
+    // qore_cleanup or by a quiescent qore_exit_process.
     void stop() {
         {
             AutoLocker al(mutex);

@@ -32,6 +32,25 @@ and restores it immediately after the creation attempt. It does not alter the
 resource limits of other processes. The ordinary mode is portable and requires
 no resource-limit changes.
 
+## Explicit process exit
+
+Run the subprocess matrix against either a Release or Debug build:
+
+```bash
+cmake --build build --target qore qore-native-thread-cleanup-test -j4
+python3 examples/test/qore/classes/ThreadPool/explicit_exit.py \
+  --qore build/qore --native build/qore-native-thread-cleanup-test --repeat 5
+```
+
+The runner selects each executable's build library and gives every child a
+five-second timeout. It covers normal cleanup, explicit exit without a reaper,
+an idle reaper, empty/stopped ThreadPools, active workers, TLS cleanup held after
+Qore TID release (default and custom stacks), and exits from signal handlers.
+It checks exit statuses 0, 17 and 255, Qore output, and deterministic C stdio and
+`atexit` markers: idle exits flush and run callbacks, while immediate exits with
+active native cleanup or from signal handlers bypass both. Native barriers stay
+closed in active cases, so an accidental wait for native cleanup fails by timeout.
+
 Run the existing `ThreadPool.qtest`, AsyncIoController unit/logger suites, and
 HTTP shutdown/consumer regressions with the new `libqore`, debugging enabled,
 and local module paths. For regex-heavy runs under Valgrind, set
