@@ -3449,7 +3449,8 @@ MACRO (QORE_BINARY_MODULE_TWO_PHASE_DOCS _binary_module _user_modules)
 
         # Create the final-pass Doxyfile by copying the initial one and appending
         # the correct TAGFILES line plus re-enabling doc error warnings.
-        file(COPY_FILE ${CMAKE_BINARY_DIR}/Doxyfile ${CMAKE_BINARY_DIR}/Doxyfile.final)
+        # COPYONLY preserves literal Doxygen substitutions and supports CMake < 3.21.
+        configure_file("${CMAKE_BINARY_DIR}/Doxyfile" "${CMAKE_BINARY_DIR}/Doxyfile.final" COPYONLY)
         file(APPEND ${CMAKE_BINARY_DIR}/Doxyfile.final
             "\n# Final pass: enable user module cross-references and re-enable doc error warnings\nTAGFILES = ${_qb2pd_tagfiles}\nWARN_IF_DOC_ERROR = YES\n")
 

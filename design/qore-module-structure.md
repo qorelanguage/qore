@@ -223,6 +223,13 @@ into user module symbols:
 
 #### Preferred: `qore_binary_module_two_phase_docs()` macro
 
+The helper copies the Doxyfile with `configure_file(COPYONLY)` so literal Doxygen
+substitutions survive and external modules can configure on CMake versions before
+3.21. Verify the exported helper with
+`python3 examples/test/cmake/test_two_phase_docs.py -v`; set `CMAKE_EXECUTABLE` to
+exercise an older CMake executable. The test covers reconfiguration, dependency
+targets, disabled documentation and missing dependency diagnostics.
+
 External modules should use the `qore_binary_module_two_phase_docs()` macro from
 `QoreMacros.cmake`. It handles all three phases, including the correct relative
 paths for tag files (a subtle point — see below), and replaces ~25 lines of
