@@ -248,6 +248,33 @@ lazy-discovery/reopen path, so introducing the trailer does not invalidate exist
 artifacts. The EOF format also keeps a qmod self-contained; there is no sidecar whose
 installation, renaming, or symlink lifetime could diverge from the executable artifact.
 
+## Namespace Ownership in Metadata
+
+Namespace metadata contains the declarations owned by the compilation unit and the
+namespace paths needed to place them. Collection visits every namespace before
+applying ownership filters to individual declarations: a module can add classes,
+functions, or other declarations under a namespace created by a dependency.
+
+After visiting a subtree, collection omits an empty namespace if it is a builtin
+namespace or belongs to an excluded dependency. Roots and explicitly declared empty
+user namespaces remain, as do all ancestors of retained declarations. The namespace
+and symbol-index writers use the same collection logic. Removing a trailing empty
+branch preserves every retained namespace index and takes constant additional work
+per namespace. Collection also checks cooperative cancellation every 100 items.
+
+This matters because AOT loading registers transitive dependency providers globally
+but imports only the source-level dependency surface into the module's Program.
+For example, a module that privately depends on another JSON-using module must not
+recreate an empty `Qore::Json` namespace: its later `load_module("json")` must import
+the native module and register its feature normally. Genuine conflicts with
+user-defined namespaces continue to fail. Rejected native namespaces remain owned
+by the registration call until it queues a successful commit, so error paths also
+release their copied declarations.
+
+Rebuild artifacts produced by compilers that emitted empty dependency namespaces;
+loading such an artifact can still report `Namespace 'Json' already exists in
+'::Qore'`. There is no metadata format change or dependency-visibility expansion.
+
 ## Symbol Index
 
 Newly generated metadata may also carry an optional `SYMBOL_INDEX` section. The

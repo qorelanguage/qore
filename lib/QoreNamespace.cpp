@@ -695,6 +695,9 @@ FunctionEntry* qore_ns_private::addPendingVariantIntern(const char* fname, Abstr
 }
 
 void qore_ns_private::addModuleNamespace(qore_ns_private* nns, QoreModuleContext& qmc) {
+    // Ownership transfers to the pending commit only after validation succeeds.
+    // A rejected namespace still owns copied module declarations and must be destroyed.
+    std::unique_ptr<QoreNamespace> holder(nns->ns);
     if (nsl.find(nns->name)) {
         std::string path;
         getPath(path, true);
@@ -711,6 +714,7 @@ void qore_ns_private::addModuleNamespace(qore_ns_private* nns, QoreModuleContext
     }
 
     qmc.mcnl.push_back(ModuleContextNamespaceCommit(this, nns));
+    holder.release();
 }
 
 void qore_ns_private::addCommitNamespaceIntern(qore_ns_private* nns) {

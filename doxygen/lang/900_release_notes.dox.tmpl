@@ -1413,6 +1413,14 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
     in-tree reference module, descriptor linter, and verification tooling.
     @endparblock
 
+    @par AOT Dependency Namespace Isolation
+    AOT compilation now omits empty namespace branches belonging to dependencies while preserving
+    user-declared namespaces and namespaces extended by the compiled module.  This prevents later
+    dynamic imports from failing with <tt>Namespace 'Json' already exists in '::Qore'</tt>, including
+    Swagger loading through the data-provider index.  Rebuild existing <tt>.qmod</tt> artifacts to
+    remove the defective metadata; native namespace conflict checks remain enforced and release
+    the rejected namespace without leaking its copied declarations.
+
     @par Module-Loading Lock Hierarchy
     @parblock
     Cold runtime module loads serialize on a process-global lock while applying @ref exec_mode_aot "AOT"

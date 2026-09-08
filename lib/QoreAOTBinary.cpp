@@ -6258,6 +6258,7 @@ struct AOTSerializeState {
         uint32_t parent_idx;
     };
     std::vector<NSInfo> namespaces;
+    size_t collection_iterations = 0;
 
     struct ClassInfo {
         QoreClass* cls;
@@ -6526,10 +6527,24 @@ static bool hasInheritedConcreteMethodVariant(QoreClass* qc, const char* method_
     @param compile_files optional multi-file filter used for aggregate
            script metadata
 */
-static void collectItems(AOTSerializeState& state, qore_ns_private* ns, uint32_t parent_idx,
+static bool collectItems(AOTSerializeState& state, qore_ns_private* ns, uint32_t parent_idx,
         const char* current_module, const std::unordered_set<std::string>* keep_modules = nullptr,
         const char* compile_file = nullptr,
-        const std::unordered_set<std::string>* compile_files = nullptr) {
+        const std::unordered_set<std::string>* compile_files = nullptr,
+        std::string* error = nullptr) {
+    auto cancelled = [&]() {
+        if (!(state.collection_iterations++ % 100)
+                && qore_check_cancel(nullptr, "AOT namespace item collection")) {
+            if (error) {
+                *error = "operation cancelled during AOT namespace item collection";
+            }
+            return true;
+        }
+        return false;
+    };
+    if (cancelled()) {
+        return false;
+    }
     uint32_t ns_idx = static_cast<uint32_t>(state.namespaces.size());
     state.namespaces.push_back({ns, parent_idx});
 
@@ -6537,6 +6552,9 @@ static void collectItems(AOTSerializeState& state, qore_ns_private* ns, uint32_t
     {
         ClassListIterator cli(ns->classList);
         while (cli.next()) {
+            if (cancelled()) {
+                return false;
+            }
             QoreClass* cls = cli.get();
             qore_class_private* priv = qore_class_private::get(*cls);
             if (!priv->sys) {
@@ -6565,11 +6583,17 @@ static void collectItems(AOTSerializeState& state, qore_ns_private* ns, uint32_t
 
                 // Collect user methods for this class
                 for (auto& mi : priv->hm) {
+                    if (cancelled()) {
+                        return false;
+                    }
                     if (mi.second->isUser()) {
                         state.methods.push_back({mi.second, class_idx, false});
                     }
                 }
                 for (auto& mi : priv->shm) {
+                    if (cancelled()) {
+                        return false;
+                    }
                     if (mi.second->isUser()) {
                         state.methods.push_back({mi.second, class_idx, true});
                     }
@@ -6582,6 +6606,9 @@ static void collectItems(AOTSerializeState& state, qore_ns_private* ns, uint32_t
     {
         HashDeclListIterator hdi(ns->hashDeclList);
         while (hdi.next()) {
+            if (cancelled()) {
+                return false;
+            }
             TypedHashDecl* hd = hdi.get();
             if (!hd->isSystem()) {
                 // Filter out hashdecls from reexported dependencies
@@ -6612,6 +6639,9 @@ static void collectItems(AOTSerializeState& state, qore_ns_private* ns, uint32_t
     {
         EnumListIterator eli(ns->enumList);
         while (eli.next()) {
+            if (cancelled()) {
+                return false;
+            }
             QoreEnumDecl* ed = eli.get();
             if (!ed->isSystem()) {
                 // Filter out enums from reexported dependencies
@@ -6640,6 +6670,9 @@ static void collectItems(AOTSerializeState& state, qore_ns_private* ns, uint32_t
 
     // Collect user typedefs (only resolved ones)
     for (auto& ti : ns->typedefMap) {
+        if (cancelled()) {
+            return false;
+        }
         if (ti.second->typeInfo) {
             // Filter out typedefs from reexported dependencies
             const char* td_module = ti.second->getModuleName();
@@ -6662,6 +6695,9 @@ static void collectItems(AOTSerializeState& state, qore_ns_private* ns, uint32_t
     {
         ConstantListIterator cli(ns->constant);
         while (cli.next()) {
+            if (cancelled()) {
+                return false;
+            }
             ConstantEntry* ce = cli.getEntry();
             if (!ce->isSystem() && !ce->isExternalStub()) {
                 // Filter out constants from reexported dependencies
@@ -6683,6 +6719,9 @@ static void collectItems(AOTSerializeState& state, qore_ns_private* ns, uint32_t
 
     // Collect user global variables
     for (auto& vi : ns->var_list.vmap) {
+        if (cancelled()) {
+            return false;
+        }
         Var* var = vi.second;
         if (var->isImported() || var->isAOTImport()) {
             // Imported globals belong to dependency modules.  Serializing them
@@ -6712,6 +6751,9 @@ static void collectItems(AOTSerializeState& state, qore_ns_private* ns, uint32_t
 
     // Collect user functions
     for (auto fi = ns->func_list.begin(), fe = ns->func_list.end(); fi != fe; ++fi) {
+        if (cancelled()) {
+            return false;
+        }
         FunctionEntry* entry = fi->second;
         QoreFunction* func = entry->getFunction();
         if (func && !entry->hasBuiltin()) {
@@ -6729,6 +6771,9 @@ static void collectItems(AOTSerializeState& state, qore_ns_private* ns, uint32_t
                 bool any_in_file = false;
                 QoreFunctionIterator vit(*func);
                 while (vit.next()) {
+                    if (cancelled()) {
+                        return false;
+                    }
                     const AbstractQoreFunctionVariant* v = vit.getVariant();
                     UserVariantBase* uvb = const_cast<AbstractQoreFunctionVariant*>(v)
                         ->getUserVariantBase();
@@ -6756,6 +6801,9 @@ static void collectItems(AOTSerializeState& state, qore_ns_private* ns, uint32_t
 
     // Recurse into child namespaces (filter out namespaces from reexported dependencies)
     for (auto ni = ns->nsl.nsmap.begin(), ne = ns->nsl.nsmap.end(); ni != ne; ++ni) {
+        if (cancelled()) {
+            return false;
+        }
         QoreNamespace* child_ns = ni->second;
         if (child_ns) {
             qore_ns_private* child_priv = qore_ns_private::get(*child_ns);
@@ -6774,9 +6822,30 @@ static void collectItems(AOTSerializeState& state, qore_ns_private* ns, uint32_t
             // catch real cross-module items using each item's own
             // `getModuleName()`, which IS accurate.  Matching fix on
             // the compile-walker side in QoreAOT.cpp.
-            collectItems(state, child_priv, ns_idx, current_module, keep_modules, compile_file, compile_files);
+            if (!collectItems(state, child_priv, ns_idx, current_module, keep_modules,
+                    compile_file, compile_files, error)) {
+                return false;
+            }
         }
     }
+
+    // Namespace ownership alone cannot filter a subtree: another module may extend it.
+    // After collecting declarations and descendants, discard only an empty dependency
+    // shell.  Recreating such a shell without importing its provider (e.g. Qore::Json)
+    // would make a later, legitimate load_module() fail with a namespace collision.
+    // Keep explicitly declared empty user namespaces and all structural ancestors.
+    auto has_items = [ns_idx](const auto& items) {
+        return !items.empty() && items.back().ns_idx == ns_idx;
+    };
+    if (parent_idx != UINT32_MAX && state.namespaces.size() == static_cast<size_t>(ns_idx) + 1
+            && (ns->builtin || shouldSkipReexportedItem(ns->getModuleName(), current_module, keep_modules))
+            && !has_items(state.classes) && !has_items(state.hashdecls) && !has_items(state.enums)
+            && !has_items(state.typedefs) && !has_items(state.constants) && !has_items(state.globals)
+            && !has_items(state.functions)) {
+        assert(state.namespaces.back().ns == ns);
+        state.namespaces.pop_back();
+    }
+    return true;
 }
 
 } // namespace
@@ -8390,7 +8459,10 @@ bool serializeSymbolIndex(QoreAOTBinaryWriter& writer, qore_ns_private* root_ns,
 
     AOTSerializeState state;
     state.root_ns = root_ns;
-    collectItems(state, root_ns, UINT32_MAX, module_name, keep_modules, compile_file, compile_files);
+    if (!collectItems(state, root_ns, UINT32_MAX, module_name, keep_modules, compile_file, compile_files,
+            error)) {
+        return false;
+    }
 
     if (module_name && !*module_name && keep_modules
             && !hasAOTBinaryCompileFileFilter(compile_file, compile_files)) {
@@ -8409,7 +8481,10 @@ bool serializeSymbolIndex(QoreAOTBinaryWriter& writer, qore_ns_private* root_ns,
             }
             qore_ns_private* module_root_priv = qore_ns_private::get(*module_root);
             if (module_root_priv != root_ns) {
-                collectItems(state, module_root_priv, UINT32_MAX, mod.c_str(), nullptr, nullptr, nullptr);
+                if (!collectItems(state, module_root_priv, UINT32_MAX, mod.c_str(), nullptr, nullptr, nullptr,
+                        error)) {
+                    return false;
+                }
             }
         }
     }
@@ -19357,7 +19432,10 @@ bool serializeNamespaceTree(QoreAOTBinaryWriter& writer, qore_ns_private* root_n
         root_ns->ns->getName());
     AOTSerializeState state;
     state.root_ns = root_ns;  // Store root namespace for program-wide CRM building
-    collectItems(state, root_ns, UINT32_MAX, module_name, keep_modules, compile_file, compile_files);
+    if (!collectItems(state, root_ns, UINT32_MAX, module_name, keep_modules, compile_file, compile_files,
+            error)) {
+        return false;
+    }
 
     struct WriterSerializationContextScope {
         QoreAOTBinaryWriter& writer;
@@ -19412,7 +19490,10 @@ bool serializeNamespaceTree(QoreAOTBinaryWriter& writer, qore_ns_private* root_n
                 size_t before_classes = state.classes.size();
                 size_t before_methods = state.methods.size();
                 extra_roots.push_back(module_root_priv);
-                collectItems(state, module_root_priv, UINT32_MAX, mod.c_str(), nullptr, nullptr, nullptr);
+                if (!collectItems(state, module_root_priv, UINT32_MAX, mod.c_str(), nullptr, nullptr, nullptr,
+                        error)) {
+                    return false;
+                }
                 if (debug_local_modules) {
                     fprintf(stderr,
                         "AOT local module metadata: collected '%s' root='%s' classes +%zu methods +%zu\n",

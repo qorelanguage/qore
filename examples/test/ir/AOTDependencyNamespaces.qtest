@@ -1,0 +1,211 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%no-child-restrictions
+%prepend-module-path "${SCRIPT_DIR}/../../../qlib"
+%requires ../../../qlib/QUnit.qm
+%requires ../../../qlib/FsUtil.qm
+%exec-class AOTDependencyNamespacesTest
+
+class AOTDependencyNamespacesTest inherits QUnit::Test {
+    private {
+        string qore_bin = ENV.QORE_BIN ?? ENV.QORE_BINARY ?? QORE_ARGV[0] ?? "qore";
+        string libqore_dir = ENV.QORE_LIBDIR ?? dirname(qore_bin);
+    }
+
+    constructor() : QUnit::Test("AOTDependencyNamespacesTest", "1.0", \ARGV) {
+        addTestCase("private native dependencies allow later dynamic imports", \dynamicImports());
+        addTestCase("namespace extensions and declared empty namespaces survive", \namespaceContributions());
+        addTestCase("genuine native namespace collisions remain errors", \genuineCollision());
+        addTestCase("native namespace class conflicts release rejected declarations", \classCollision());
+        set_return_value(main());
+    }
+
+    private string quote(string value) {
+        return "'" + join("'\\''", split("'", value)) + "'";
+    }
+
+    private writeText(string path, string text) {
+        File f();
+        f.open2(path, O_WRONLY | O_CREAT | O_TRUNC);
+        on_exit f.close();
+        f.write(text);
+    }
+
+    private string run(string dir, string module_path, list<string> args, int expected_status = 0) {
+        string output_path = dir + "/output.log";
+        string command = sprintf("QORE_LIBDIR=%s LD_LIBRARY_PATH=%s QORE_MODULE_DIR=%s %s -b --enable-debug",
+            quote(libqore_dir), quote(libqore_dir), quote(module_path), quote(qore_bin));
+        foreach string arg in (args) {
+            command += " " + quote(arg);
+        }
+        int status = system(command + " > " + quote(output_path) + " 2>&1");
+        string output = File::readTextFile(output_path);
+        assertEq(expected_status, status, output);
+        assertEq(-1, output.find("warning:"), output);
+        return output;
+    }
+
+    private compileModule(string dir, string name, string code, string module_path) {
+        string source = dir + "/src/" + name + ".qm";
+        writeText(source, "%modern\nmodule " + name + " { version = \"1.0\"; "
+            + "desc = \"AOT namespace regression\"; author = \"Qore\"; license = \"MIT\"; }\n" + code);
+        string artifact = dir + "/modules/" + name + ".qmod";
+        run(dir, module_path, ("--compile-module", "--output", artifact, source));
+        assertTrue(is_file(artifact), "module compiler produced " + artifact);
+    }
+
+    private string makeDirs() {
+        string dir = make_tmp_dir("aot-dependency-namespaces-");
+        mkdir(dir + "/src");
+        mkdir(dir + "/modules");
+        return dir;
+    }
+
+    private string modulePath(string dir) {
+        return dir + "/modules:" + (ENV.QORE_MODULE_DIR ?? "");
+    }
+
+    dynamicImports() {
+        string dir = makeDirs();
+        on_exit remove_tree(dir);
+        string modules = modulePath(dir);
+        compileModule(dir, "AOTNsDependency", "%requires json
+public namespace AOTNsDependency {
+    public string sub value() { return make_json({\"answer\": 42}); }
+}", modules);
+        compileModule(dir, "AOTNsConsumer", "%requires json
+public namespace AOTNsConsumer {
+    public int sub answer() { return parse_json(\"{\\\"answer\\\":42}\").answer; }
+}", modules);
+        compileModule(dir, "AOTNsLoader", "%requires AOTNsDependency
+public namespace AOTNsLoader {
+    public string sub native() {
+        load_module(\"json\");
+        load_module(\"json\");
+        return AOTNsDependency::value();
+    }
+    public string sub run(string feature) {
+        load_module(feature);
+        load_module(feature);
+        return AOTNsDependency::value();
+    }
+}", modules);
+        # The second module must be compiled against the first qmod; source dependencies
+        # do not reproduce the faulty transitive namespace metadata. Runtime has no .qm fallback.
+        string script = dir + "/run.qr";
+        writeText(script, "%modern
+%requires AOTNsLoader
+printf(\"%s\\n\", AOTNsLoader::native());
+Program p();
+p.loadModule(\"AOTNsLoader\");
+printf(\"%s\\n\", p.callFunction(\"AOTNsLoader::run\", \"AOTNsConsumer\"));
+");
+        string expected = "{\"answer\":42}\n{\"answer\":42}\n";
+        assertEq(expected, run(dir, modules, (script,)));
+        assertEq(expected, run(dir, dir + "/src:" + (ENV.QORE_MODULE_DIR ?? ""), (script,)));
+        # Reverse native/user-module order in a fresh process, so no committed-feature
+        # fast path can hide a collision in the initial dynamic import.
+        writeText(script, "%modern
+%requires AOTNsLoader
+printf(\"%s\\n\", AOTNsLoader::run(\"AOTNsConsumer\"));
+printf(\"%s\\n\", AOTNsLoader::native());
+");
+        assertEq(expected, run(dir, modules, (script,)));
+    }
+
+    namespaceContributions() {
+        string dir = makeDirs();
+        on_exit remove_tree(dir);
+        string modules = modulePath(dir);
+        compileModule(dir, "AOTNsBase", "public namespace AOTNsShared {
+    public namespace Constants { public const Base = 1; }
+    public namespace Classes { public class Base { int value() { return 2; } } }
+    public namespace Deep { public namespace Leaf { public const Base = 3; } }
+    public namespace Hashes { public const Base = 4; }
+    public namespace Enums { public const Base = 5; }
+    public namespace Typedefs { public const Base = 6; }
+    public namespace Globals { public const Base = 7; }
+}", modules);
+        compileModule(dir, "AOTNsExtension", "%requires AOTNsBase
+public namespace AOTNsShared {
+    public namespace Constants { public const Added = 40; }
+    public namespace Classes { public class Added inherits Base {} }
+    public namespace Deep { public namespace Leaf { public int sub added() { return 3; } } }
+    public namespace Hashes { public hashdecl Added { int value; } }
+    public namespace Enums { public enum Added : int { Value = 5 } }
+    public namespace Typedefs { public typedef Added = int; }
+    public namespace Globals { public our int Added; }
+}
+public namespace AOTNsEmpty { public namespace Nested {} }
+public namespace AOTNsExtension {
+    public int sub value() {
+        AOTNsShared::Classes::Added a();
+        hash<AOTNsShared::Hashes::Added> h = <AOTNsShared::Hashes::Added>{\"value\": 4};
+        AOTNsShared::Typedefs::Added t = 6;
+        AOTNsShared::Globals::Added = 7;
+        return AOTNsShared::Constants::Added + a.value() + AOTNsShared::Deep::Leaf::added()
+            + h.value + int(AOTNsShared::Enums::Added::Value) + t + AOTNsShared::Globals::Added;
+    }
+}", modules);
+        string script = dir + "/run.qr";
+        writeText(script, "%modern
+%requires reflection
+%requires AOTNsExtension
+printf(\"%d\\n\", AOTNsExtension::value());
+Namespace n(\"AOTNsEmpty::Nested\");
+printf(\"%s\\n\", n.getName());
+");
+        assertEq("67\nNested\n", run(dir, modules, (script,)));
+    }
+
+    genuineCollision() {
+        string dir = makeDirs();
+        on_exit remove_tree(dir);
+        string script = dir + "/collision.qr";
+        writeText(script, "%modern
+public namespace Qore { public namespace Json { public const Owned = 7; } }
+load_module(\"json\");
+");
+        string output = run(dir, modulePath(dir), (script,), 3);
+        assertTrue(output.find("Namespace 'Json' already exists in '::Qore'") != -1, output);
+        compileModule(dir, "AOTNsCollision", "public namespace Qore {
+    public namespace Json { public const Owned = 7; }
+}
+public namespace AOTNsCollision {
+    public sub collide() { load_module(\"json\"); }
+}", modulePath(dir));
+        writeText(script, "%modern\n%requires AOTNsCollision\nAOTNsCollision::collide();\n");
+        output = run(dir, modulePath(dir), (script,), 3);
+        assertTrue(output.find("Namespace 'Json' already exists in '::Qore'") != -1, output);
+    }
+
+    classCollision() {
+        string dir = makeDirs();
+        on_exit remove_tree(dir);
+        string script = dir + "/class-collision.qr";
+        # Module init can make nontransactional changes, so a failed Program import is
+        # intentionally not retried. Exercise each rejection in a fresh Program instead.
+        writeText(script, "%modern
+int errors = 0;
+int total = 0;
+for (int i = 0; i < 3; ++i) {
+    Program p();
+    p.parse(\"%modern\\npublic namespace Qore { public class Json { int value() { return 7; } } }\\n\"
+        + \"public int sub ownedValue() { Json owned(); return owned.value(); }\", \"class conflict\");
+    try {
+        p.loadModule(\"json\");
+    } catch (hash<ExceptionInfo> ex) {
+        @assert(ex.err == \"MODULE-LOAD-ERROR\");
+        @assert(ex.desc.find(\"A class with the same name as the namespace ('Json')\") != -1);
+        ++errors;
+    }
+    total += p.callFunction(\"ownedValue\");
+}
+printf(\"%d errors; class total %d\\n\", errors, total);
+");
+        assertEq("3 errors; class total 21\n", run(dir, modulePath(dir), (script,)));
+    }
+}

@@ -155,10 +155,17 @@ internal scheduling/state race requires vendor logs, and is not corrected by ret
 The two minimal worker diagnostics are also terminal failures. The dashboard confirmed that no
 classifier remained after training probes.
 
-The installation's general `qdp` bootstrap emits an existing Swagger AOT/json namespace collision
-warning and uses its source fallback. It occurred before Jina installation, also reproduces with the
-current built runtime, and persists after refreshing the Swagger artifact. The installed Jina smoke
-checks themselves complete without warnings. Index startup also emits Java logging-provider diagnostics.
+The Swagger AOT/json namespace collision is fixed in Qore: the compiler emitted empty dependency
+namespaces into module metadata, so a later JSON import collided with an unregistered `Qore::Json`
+namespace. Namespace collection now omits those empty branches while retaining module-owned
+declarations and their ancestors. The regression also exposed and fixed a leak when native namespace
+registration rejects a genuine conflict; source and AOT conflict paths are clean under Valgrind.
+
+After rebuilding and atomically publishing the standard qmods, running `qctl update-index`, and
+restarting Qorus, both `qdp @JinaAi` and the indexed Jina action lookup complete without source-fallback
+warnings. The installed connection/action smoke test passes, and the provider regression suite passes
+all 12 cases and 1219 assertions. See [the AOT namespace design](../../../../../design/aot-object-files-and-module-artifacts.md#namespace-ownership-in-metadata)
+and [the native regression test](../../../ir/AOTDependencyNamespaces.qtest).
 Neither is a Jina registration or action-dispatch failure; they are not represented as clean global
 platform logs. CMake configuration reports that the unused quictls and LibreSSL alternatives are disabled.
 
