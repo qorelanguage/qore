@@ -1,0 +1,114 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%exec-class BoxedForeachTest
+
+class BoxedForeachTest inherits QUnit::Test {
+    const Values = (140737488355328, 0, -140737488355329, 140737488355327,
+        9223372036854775807, -9223372036854775807 - 1);
+
+    constructor() : Test("Typed foreach numeric ownership", "1.0") {
+        addTestCase("Repeated boxed and inline integer values", \integers());
+        addTestCase("Continue, break, and return cleanup", \exits());
+        addTestCase("Exception cleanup", \exceptions());
+        addTestCase("Cancellation inside a boxed numeric iteration", \cancellation());
+        addTestCase("Boxed NaNs and inline float values", \floats());
+        set_return_value(main());
+    }
+
+    integers() {
+        list<int> values = Values;
+        list<int> result;
+        foreach int value in (values) {
+            push result, value;
+        }
+        assertEq(values, result);
+        assertEq(values, Values, "iteration retains the source values");
+        list<int> empty = ();
+        foreach int value in (empty) {
+            push result, value;
+        }
+        assertEq(Values, result);
+    }
+
+    private int first(list<int> values) {
+        foreach int value in (values) {
+            return value;
+        }
+        return 0;
+    }
+
+    exits() {
+        list<int> values = Values;
+        list<int> result;
+        foreach int value in (values) {
+            if (value == 0) {
+                continue;
+            }
+            push result, value;
+            if (value < 0) {
+                break;
+            }
+        }
+        assertEq((140737488355328, -140737488355329), result);
+        assertEq(140737488355328, first(values));
+        assertEq(0, first(()));
+        assertEq(Values, values);
+    }
+
+    private throwValue(list<int> values) {
+        foreach int value in (values) {
+            throw "BOXED-FOREACH-TEST", string(value);
+        }
+    }
+
+    exceptions() {
+        list<int> values = Values;
+        assertThrows("BOXED-FOREACH-TEST", \throwValue(), (values,));
+        assertEq(Values, values);
+        assertEq(140737488355328, first(values), "iteration still works after unwinding");
+    }
+
+    cancellation() {
+        Queue ready();
+        Queue blocked();
+        Queue done();
+        list<int> values = Values;
+        int tid = background sub() {
+            string result = "completed";
+            try {
+                foreach int value in (values) {
+                    ready.push(value);
+                    blocked.get(10000);
+                }
+            } catch (hash<ExceptionInfo> error) {
+                clear_thread_cancel();
+                result = error.err;
+            }
+            done.push(result);
+        }();
+        assertEq(140737488355328, ready.get(10000));
+        cancel_thread(tid);
+        assertEq("THREAD-CANCELLED", done.get(10000));
+        assertEq(Values, values);
+    }
+
+    floats() {
+        list<float> values = (-@nan@, 1.5, -@nan@, -0.0, @inf@, -@inf@, @nan@);
+        list<float> result;
+        foreach float value in (values) {
+            push result, value;
+        }
+        assertEq(7, result.size());
+        assertTrue(result[0].nanp());
+        assertEq(1.5, result[1]);
+        assertTrue(result[2].nanp());
+        assertEq(-0.0, result[3]);
+        assertEq(@inf@, result[4]);
+        assertEq(-@inf@, result[5]);
+        assertTrue(result[6].nanp());
+        assertTrue(values[0].nanp(), "source NaN remains valid after iteration");
+    }
+}

@@ -1,0 +1,87 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%exec-class RemoveBoxedTest
+
+class RemoveBoxedTest inherits QUnit::Test {
+    const Values = (0, 140737488355327, 140737488355328, -140737488355329,
+        9223372036854775807, -9223372036854775807 - 1);
+
+    constructor() : Test("Removal owns boxed integer values", "1.0") {
+        addTestCase("Hash members", \hashes());
+        addTestCase("List indices", \lists());
+        addTestCase("Object members", \objects());
+        addTestCase("Local variables and reference removal", \variables());
+        addTestCase("AST removal and ignored-result cleanup", \astRemoval());
+        set_return_value(main());
+    }
+
+    hashes() {
+        foreach int value in (Values) {
+            hash<auto> record = {"value": value, "other": "retained"};
+            assertEq(value, remove record.value);
+            assertEq({"other": "retained"}, record);
+            assertEq(NOTHING, remove record.value);
+        }
+    }
+
+    lists() {
+        foreach int value in (Values) {
+            list<auto> values = ("before", value, "after");
+            assertEq(value, remove values[1]);
+            assertEq(("before", NOTHING, "after"), values);
+            values = (value, value);
+            assertEq((value, value), remove values[0..1]);
+            assertEq(0, values.size());
+        }
+    }
+
+    objects() {
+        foreach int value in (Values) {
+            Holder holder(value);
+            assertEq(value, holder.take());
+            assertEq(NOTHING, holder.get());
+            holder.value = value;
+            assertEq(value, remove holder.value);
+            assertEq(NOTHING, holder.value);
+        }
+    }
+
+    variables() {
+        foreach int value in (Values) {
+            auto current = value;
+            assertEq(value, remove current);
+            assertEq(NOTHING, current);
+            current = value;
+            reference<auto> alias = \current;
+            auto result = remove alias;
+            assertEq(value, result);
+            assertEq(NOTHING, current);
+        }
+    }
+
+    astRemoval() {
+        Program program();
+        program.setExecMode(EM_AST);
+        program.parse("%modern\nlist<auto> sub take(int value) {\n"
+            "hash<auto> record = {\"value\": value, \"other\": 1};\n"
+            "auto taken = remove record.value;\n"
+            "record.value = value;\n"
+            "map remove record{$1}, keys record;\n"
+            "list<auto> entries = (value,);\n"
+            "auto item = remove entries[0];\n"
+            "return (taken, item, record.size());\n}\n", "boxed-integer-removal");
+        foreach int value in (Values) {
+            assertEq((value, value, 0), program.callFunction("take", value));
+        }
+    }
+}
+
+class Holder {
+    public { auto value; }
+    constructor(int value) { self.value = value; }
+    auto take() { return remove value; }
+    auto get() { return value; }
+}

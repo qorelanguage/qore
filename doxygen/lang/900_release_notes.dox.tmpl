@@ -189,6 +189,8 @@
       @ref Qore::RegexSubst "RegexSubst", @ref Qore::RegexExtract "RegexExtract"
     - regex substitution preserves embedded NUL characters in patterns, subjects, replacement templates,
       captures and callback results; integer validation cannot be bypassed by truncating an unmatched suffix
+    - raw non-scientific number formatting retains every digit of integral values; removing boxed integer
+      values and iterating typed numeric lists releases temporary storage without assertions or leaks
 
     <i>Fast text processing:</i> see @ref fast_text_processing for the full overview
     - @ref Qore::Scanner "Scanner" cursor-based byte/codepoint reader for tokenisers and parsers

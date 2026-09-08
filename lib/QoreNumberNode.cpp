@@ -42,7 +42,12 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
 
     mpfr_exp_t exp;
 
-    char* buf = mpfr_get_str(0, &exp, base, 0, num, QORE_MPFR_RND);
+    // MPFR's automatic digit count is sufficient to round-trip at the source precision,
+    // but can round away low integer digits when the exponent exceeds that precision.
+    // Raw integral output must also retain its value in a higher-precision consumer.
+    // The binary exponent bounds the number of digits in every supported base (>= 2).
+    size_t digits = !round && mpfr_integer_p(num) ? static_cast<size_t>(mpfr_get_exp(num)) : 0;
+    char* buf = mpfr_get_str(0, &exp, base, digits, num, QORE_MPFR_RND);
     if (!buf) {
         numError(str);
         return;

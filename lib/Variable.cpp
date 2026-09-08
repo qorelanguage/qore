@@ -2384,12 +2384,7 @@ void LValueRemoveHelper::doRemove(QoreValue lvalue) {
     }
 
     if (t == NT_SELF_VARREF) {
-#ifdef DEBUG
-        // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-        assert(!rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, lvalue.get<SelfVarrefNode>()->str, false)));
-#else
-        rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, lvalue.get<SelfVarrefNode>()->str, false));
-#endif
+        discard(rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, lvalue.get<SelfVarrefNode>()->str, false)), xsink);
         return;
     }
 
@@ -2411,12 +2406,7 @@ void LValueRemoveHelper::doRemove(QoreValue lvalue) {
 
     // could be any type if in a background expression
     if (t != NT_OPERATOR) {
-#ifdef DEBUG
-        // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-        assert(!rv.assignInitial(lvalue.refSelf()));
-#else
-        rv.assignInitial(lvalue.refSelf());
-#endif
+        discard(rv.assignInitial(lvalue.refSelf()), xsink);
         return;
     }
 
@@ -2471,12 +2461,7 @@ void LValueRemoveHelper::doRemove(QoreValue lvalue) {
             unsigned old_count = qore_hash_private::getScanCount(*h);
 
             QoreHashNode* rvh = new QoreHashNode(autoTypeInfo);
-#ifdef DEBUG
-            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-            assert(!rv.assignInitial(rvh));
-#else
-            rv.assignInitial(rvh);
-#endif
+            discard(rv.assignInitial(rvh), xsink);
 
             qore_hash_private* hp = qore_hash_private::get(*h);
 
@@ -2520,12 +2505,7 @@ void LValueRemoveHelper::doRemove(QoreValue lvalue) {
         }
     }
 
-#ifdef DEBUG
-    // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-    assert(!rv.assignInitial(v));
-#else
-    rv.assignInitial(v);
-#endif
+    discard(rv.assignInitial(v), xsink);
 }
 
 static void do_list_value(QoreListNode& v, QoreListNode& l, int64 ind, const QoreTypeInfo*& vtype, bool& vcommon,
@@ -2662,12 +2642,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
                 if (!qore_list_private::getScanCount(*l))
                     lvh.setDelta(-1);
             }
-#ifdef DEBUG
-            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-            assert(!rv.assignInitial(v.release()));
-#else
-            rv.assignInitial(v.release());
-#endif
+            discard(rv.assignInitial(v.release()), xsink);
             return;
         }
 
@@ -2712,12 +2687,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
                         xsink->assimilate(xsink2);
                 }
             }
-#ifdef DEBUG
-            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-            assert(!rv.assignInitial(v.release()));
-#else
-            rv.assignInitial(v.release());
-#endif
+            discard(rv.assignInitial(v.release()), xsink);
             return;
         }
 
@@ -2748,12 +2718,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
                     bin->splice(i, 1);
                 }
             }
-#ifdef DEBUG
-            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-            assert(!rv.assignInitial(v.release()));
-#else
-            rv.assignInitial(v.release());
-#endif
+            discard(rv.assignInitial(v.release()), xsink);
             return;
         }
     }
@@ -2833,12 +2798,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
                 if (!qore_list_private::getScanCount(*l))
                     lvh.setDelta(-1);
             }
-#ifdef DEBUG
-            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-            assert(!rv.assignInitial(v.release()));
-#else
-            rv.assignInitial(v.release());
-#endif
+            discard(rv.assignInitial(v.release()), xsink);
             return;
         }
 
@@ -2886,12 +2846,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
                 if (xsink2)
                     xsink->assimilate(xsink2);
             }
-#ifdef DEBUG
-            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-            assert(!rv.assignInitial(v.release()));
-#else
-            rv.assignInitial(v.release());
-#endif
+            discard(rv.assignInitial(v.release()), xsink);
             return;
         }
 
@@ -2925,12 +2880,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
             for (auto& i : iset) {
                 bin->splice(i, 1);
             }
-#ifdef DEBUG
-            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-            assert(!rv.assignInitial(v.release()));
-#else
-            rv.assignInitial(v.release());
-#endif
+            discard(rv.assignInitial(v.release()), xsink);
             return;
         }
     }
@@ -2994,12 +2944,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsRangeOperatorNode* op)
                         v = nullptr;
                         break;
                 }
-#ifdef DEBUG
-                // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-                assert(!rv.assignInitial(v));
-#else
-                rv.assignInitial(v);
-#endif
+                discard(rv.assignInitial(v), xsink);
             }
             return;
         }
@@ -3073,12 +3018,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsRangeOperatorNode* op)
             return;
     }
 
-#ifdef DEBUG
-    // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-    assert(!rv.assignInitial(v.release()));
-#else
-    rv.assignInitial(v.release());
-#endif
+    discard(rv.assignInitial(v.release()), xsink);
 }
 
 bool LocalVarValue::TypeSubstitutionCache::matches(const QoreTypeInfo* typeInfo, const QoreTypeInfo* refTypeInfo,

@@ -284,6 +284,17 @@ list<int> cps = map $1.ord(), iterate "café";   # (99, 97, 102, 233)
     - \c -500.494n
     - \c 2.35e10n
 
+    @par Exact Integer Text:
+    For integral number values, \c value.toString(NF_Raw) includes every stored integer digit,
+    even when the exponent exceeds the value's binary precision. This is useful when exporting
+    large identifiers to a consumer with greater precision. Default and scientific formatting
+    retain their existing display behavior. For example:
+    @code{.py}
+    number identifier = number(1e100);
+    string text = identifier.toString(NF_Raw);
+    @assert(number(text) == identifier);
+    @endcode
+
     @par Pseudo Class for Type Number:
     @ref Qore::zzz8numberzzz9
 

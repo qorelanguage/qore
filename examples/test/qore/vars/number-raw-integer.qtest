@@ -1,0 +1,53 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%exec-class RawIntegerTest
+
+class RawIntegerTest inherits QUnit::Test {
+    constructor() : Test("Exact raw integral number rendering", "1.0") {
+        addTestCase("Large low-precision integer digits", \large());
+        addTestCase("Integer boundaries and signs", \boundaries());
+        addTestCase("Fractions and special values retain raw formatting", \otherValues());
+        set_return_value(main());
+    }
+
+    large() {
+        # Independently computed: round decimal 10^100 to its nearest 128-bit significand.
+        # Qore's native float-to-number conversion parses the float's 17-digit decimal spelling.
+        float source = 1e100;
+        number value = number(source);
+        string exact = "9999999999999999999999999999999999999977097647868758532633238403510597078305024613172747796087832576";
+        assertEq(128, value.prec());
+        assertEq(exact, value.toString(NF_Raw));
+        assertEq("-" + exact, (-value).toString(NF_Raw));
+        assertEq(value, number(value.toString(NF_Raw)), "raw decimal reconstructs the stored value exactly");
+        assertEq(-value, number((-value).toString(NF_Raw)));
+        # Raw must not be the shorter round-trip decimal spelling: a high-precision parser
+        # assigns that spelling a different integer even if a 128-bit parser rounds it back.
+        assertFalse(number("9999999999999999999999999999999999999977" + strmul("0", 62)) == value);
+    }
+
+    boundaries() {
+        foreach string source in ("0", "1", "-1", "9223372036854775807", "-9223372036854775808",
+                "18446744073709551615", "10000000000000000000000000000000000000000000000000001",
+                "-10000000000000000000000000000000000000000000000000001") {
+            number value = number(source);
+            assertEq(source, value.toString(NF_Raw));
+            assertEq(value, number(value.toString(NF_Raw)));
+        }
+    }
+
+    otherValues() {
+        foreach number value in (0.5n, -0.5n, 1.25n, -1.25n) {
+            assertEq(value, number(value.toString(NF_Raw)));
+            assertEq(value.toString(), value.toString(NF_Raw));
+        }
+        foreach number value in (number(@inf@), number(-@inf@), number(@nan@)) {
+            assertEq(value.toString(), value.toString(NF_Raw));
+        }
+        assertEq("0.8", 0.8n.toString());
+        assertEq("8e-01", 0.8n.toString(NF_Scientific));
+    }
+}

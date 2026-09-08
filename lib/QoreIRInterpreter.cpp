@@ -11448,9 +11448,11 @@ load_local_done:
                     return false;
                 }
                 if (inst->opcode == QoreIROpcode::TypedForeachNextInt) {
-                    setValueSlotDirect(values, inst->result.id, QoreValue(entry.getAsBigInt()));
+                    // Numeric conversions can allocate NaN-boxing fallback nodes.
+                    // Own the result across loop iterations and non-local exits.
+                    setOwnedValueSlot(values, cleanup, inst->result.id, QoreValue(entry.getAsBigInt()), xsink);
                 } else if (inst->opcode == QoreIROpcode::TypedForeachNextFloat) {
-                    setValueSlotDirect(values, inst->result.id, QoreValue(entry.getAsFloat()));
+                    setOwnedValueSlot(values, cleanup, inst->result.id, QoreValue(entry.getAsFloat()), xsink);
                 } else if (inst->opcode == QoreIROpcode::TypedForeachNextBool) {
                     setValueSlotDirect(values, inst->result.id, QoreValue(entry.getAsBool()));
                 } else {
