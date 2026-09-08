@@ -3011,7 +3011,10 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
             return field;
         }
         HashDataType type = cast<HashDataType>(field.getType().getMandatoryType());
-        hash<string, AbstractDataField> fields = type.getFields();
+        *hash<string, AbstractDataField> fields = type.getFields();
+        if (!fields) {
+            return field;
+        }
         foreach string name in (keys fields) {
             if (param.schema.properties{name}.readOnly) {
                 # A read-only property's requiredness applies to responses. Keep its declaration

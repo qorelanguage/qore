@@ -433,6 +433,7 @@ public class OpenApi3Test inherits QUnit::Test {
         addTestCase("Test multipart file or URL unions", \testMultipartFileOrUrl());
 
         addTestCase("Test direction-specific required properties", \testDirectionRequired());
+        addTestCase("Test empty object request bodies", \testEmptyObjectRequestBodies());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -5854,6 +5855,31 @@ public class OpenApi3Test inherits QUnit::Test {
             schema.parseResponse("POST", "/records", 200, "{\"name\":\"Invoice archive\"}",
                 {"content-type": "application/json"});
         });
+    }
+
+    testEmptyObjectRequestBodies() {
+        hash<auto> empty_body = {"schema": {"type": "object", "properties": {}}};
+        OpenApi3Schema schema("", ValidOpenApi31Schema + {"paths": {
+            "/json": {"post": {
+                "requestBody": {"required": True, "content": {"application/json": empty_body}},
+                "responses": {"200": {"description": "Success"}}
+            }},
+            "/form": {"get": {
+                "requestBody": {"required": False,
+                    "content": {"application/x-www-form-urlencoded": empty_body}},
+                "responses": {"200": {"description": "Success"}}
+            }},
+        }});
+        foreach hash<string, string> test in ((
+                {"method": "post", "path": "/json"},
+                {"method": "get", "path": "/form"})) {
+            OpenApi3::PathItemObject path = schema.paths.match(test.path);
+            OpenApi3::OperationObject op = path.getOperation(test.method, test.path);
+            AbstractDataField field = op.getRequestBodyField(path);
+            assertTrue(field.getType().getMandatoryType() instanceof HashDataType);
+            assertNothing(field.getType().getMandatoryType().getFields());
+            assertEq({}, field.acceptsValue({}));
+        }
     }
 
     testMultipartFileOrUrl() {
