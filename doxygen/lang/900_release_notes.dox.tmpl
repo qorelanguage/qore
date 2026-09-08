@@ -2213,10 +2213,18 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing a REST client for <a href="https://www.firecrawl.dev/">Firecrawl</a>'s web scraping API
 
     - @ref fireworksdataproviderintro "FireworksDataProvider" module
-      - new module providing a data provider API for <a href="https://fireworks.ai">Fireworks AI</a> hosted open-weight inference
+      - provides 132 actions for <a href="https://fireworks.ai">Fireworks AI</a> inference, models, datasets,
+        deployments, batch jobs, fine-tuning, evaluations, and usage reporting
+      - pins the vendor OpenAPI schemas with reproducible imports, typed action forms, account-scoped
+        resource dropdowns, and live API regression tests
+      - adds reranking and structured embedding inputs, dimensions, logits, and normalization
+      - includes complete translations for all 12 supported presentation locales
 
     - @ref fireworksrestclientintro "FireworksRestClient" module
-      - new module providing a REST client for <a href="https://fireworks.ai">Fireworks AI</a>'s OpenAI-compatible inference API
+      - fixes the inference URL prefix in both REST transports and authenticates connection pings with
+        the account-list endpoint without generating tokens
+      - repairs saved connection ping paths and automatic URLs, associates connections with the Fireworks AI app,
+        and updates default chat and embedding models to available serverless models
 
     - @ref freshbooksdataproviderintro "FreshBooksDataProvider" module
       - new module providing a data provider API for <a href="https://www.freshbooks.com/">FreshBooks</a> accounting and invoicing services

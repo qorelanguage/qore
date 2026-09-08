@@ -1,0 +1,1128 @@
+{
+  "list-accounts": {
+    "request": {},
+    "response": {}
+  },
+  "get-account": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {
+      "email": "test@example.org"
+    }
+  },
+  "get-account-usage-filter-options": {
+    "request": {
+      "startTime": "2026-09-08T00:00:00Z",
+      "endTime": "2026-09-08T00:00:00Z",
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "list-audit-logs": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "list-batch-inference-jobs": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "create-batch-inference-job": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "get-batch-inference-job": {
+    "request": {
+      "account_id": "test-account",
+      "batch_inference_job_id": "test-batch-inference-job"
+    },
+    "response": {}
+  },
+  "delete-batch-inference-job": {
+    "request": {
+      "account_id": "test-account",
+      "batch_inference_job_id": "test-batch-inference-job"
+    },
+    "response": {}
+  },
+  "get-billing-summary": {
+    "request": {
+      "startTime": "2026-09-08T00:00:00Z",
+      "endTime": "2026-09-08T00:00:00Z",
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "query-usage-costs": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "get-billing-settings": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "get-account-usage": {
+    "request": {
+      "startTime": "2026-09-08T00:00:00Z",
+      "endTime": "2026-09-08T00:00:00Z",
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "list-datasets": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "create-dataset": {
+    "request": {
+      "account_id": "test-account",
+      "dataset": {},
+      "datasetId": "test-dataset"
+    },
+    "response": {}
+  },
+  "get-dataset": {
+    "request": {
+      "account_id": "test-account",
+      "dataset_id": "test-dataset"
+    },
+    "response": {}
+  },
+  "update-dataset": {
+    "request": {
+      "account_id": "test-account",
+      "dataset_id": "test-dataset"
+    },
+    "response": {}
+  },
+  "delete-dataset": {
+    "request": {
+      "account_id": "test-account",
+      "dataset_id": "test-dataset"
+    },
+    "response": {}
+  },
+  "get-dataset-download-endpoint": {
+    "request": {
+      "account_id": "test-account",
+      "dataset_id": "test-dataset"
+    },
+    "response": {}
+  },
+  "get-dataset-upload-endpoint": {
+    "request": {
+      "account_id": "test-account",
+      "dataset_id": "test-dataset",
+      "filenameToSize": {}
+    },
+    "response": {}
+  },
+  "split-dataset": {
+    "request": {
+      "account_id": "test-account",
+      "dataset_id": "test-dataset"
+    },
+    "response": {}
+  },
+  "validate-dataset-upload": {
+    "request": {
+      "account_id": "test-account",
+      "dataset_id": "test-dataset"
+    },
+    "response": {}
+  },
+  "list-deployed-models": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "create-deployed-model": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "get-deployed-model": {
+    "request": {
+      "account_id": "test-account",
+      "deployed_model_id": "test-deployed-model"
+    },
+    "response": {}
+  },
+  "update-deployed-model": {
+    "request": {
+      "account_id": "test-account",
+      "deployed_model_id": "test-deployed-model"
+    },
+    "response": {}
+  },
+  "delete-deployed-model": {
+    "request": {
+      "account_id": "test-account",
+      "deployed_model_id": "test-deployed-model"
+    },
+    "response": {}
+  },
+  "list-deployment-shapes": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "get-deployment-shape": {
+    "request": {
+      "account_id": "test-account",
+      "deployment_shape_id": "test-deployment-shape"
+    },
+    "response": {
+      "baseModel": "accounts/fireworks/models/gpt-oss-120b"
+    }
+  },
+  "list-deployment-shape-versions": {
+    "request": {
+      "account_id": "test-account",
+      "deployment_shape_id": "test-deployment-shape"
+    },
+    "response": {}
+  },
+  "get-deployment-shape-version": {
+    "request": {
+      "account_id": "test-account",
+      "deployment_shape_id": "test-deployment-shape",
+      "version_id": "test-version"
+    },
+    "response": {}
+  },
+  "list-deployments": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "create-deployment": {
+    "request": {
+      "account_id": "test-account",
+      "baseModel": "accounts/fireworks/models/gpt-oss-120b"
+    },
+    "response": {
+      "baseModel": "accounts/fireworks/models/gpt-oss-120b"
+    }
+  },
+  "get-deployment": {
+    "request": {
+      "account_id": "test-account",
+      "deployment_id": "test-deployment"
+    },
+    "response": {
+      "baseModel": "accounts/fireworks/models/gpt-oss-120b"
+    }
+  },
+  "update-deployment": {
+    "request": {
+      "account_id": "test-account",
+      "deployment_id": "test-deployment",
+      "baseModel": "accounts/fireworks/models/gpt-oss-120b"
+    },
+    "response": {
+      "baseModel": "accounts/fireworks/models/gpt-oss-120b"
+    }
+  },
+  "delete-deployment": {
+    "request": {
+      "account_id": "test-account",
+      "deployment_id": "test-deployment"
+    },
+    "response": {}
+  },
+  "get-ledger": {
+    "request": {
+      "account_id": "test-account",
+      "deployment_id": "test-deployment"
+    },
+    "response": {}
+  },
+  "reset-ledger": {
+    "request": {
+      "account_id": "test-account",
+      "deployment_id": "test-deployment"
+    },
+    "response": {}
+  },
+  "list-deployment-shards": {
+    "request": {
+      "account_id": "test-account",
+      "deployment_id": "test-deployment"
+    },
+    "response": {}
+  },
+  "get-termination-message": {
+    "request": {
+      "account_id": "test-account",
+      "deployment_id": "test-deployment"
+    },
+    "response": {}
+  },
+  "get-deployment-metrics": {
+    "request": {
+      "account_id": "test-account",
+      "deployment_id": "test-deployment"
+    },
+    "response": {}
+  },
+  "scale-deployment": {
+    "request": {
+      "account_id": "test-account",
+      "deployment_id": "test-deployment"
+    },
+    "response": {}
+  },
+  "undelete-deployment": {
+    "request": {
+      "account_id": "test-account",
+      "deployment_id": "test-deployment"
+    },
+    "response": {
+      "baseModel": "accounts/fireworks/models/gpt-oss-120b"
+    }
+  },
+  "list-dpo-jobs": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "create-dpo-job": {
+    "request": {
+      "account_id": "test-account",
+      "dataset": "accounts/test-account/datasets/test-dataset"
+    },
+    "response": {
+      "dataset": "accounts/test-account/datasets/test-dataset"
+    }
+  },
+  "get-dpo-job": {
+    "request": {
+      "account_id": "test-account",
+      "dpo_job_id": "test-dpo-job"
+    },
+    "response": {
+      "dataset": "accounts/test-account/datasets/test-dataset"
+    }
+  },
+  "delete-dpo-job": {
+    "request": {
+      "account_id": "test-account",
+      "dpo_job_id": "test-dpo-job"
+    },
+    "response": {}
+  },
+  "cancel-dpo-job": {
+    "request": {
+      "account_id": "test-account",
+      "dpo_job_id": "test-dpo-job"
+    },
+    "response": {}
+  },
+  "get-dpo-job-metrics-file-endpoint": {
+    "request": {
+      "account_id": "test-account",
+      "dpo_job_id": "test-dpo-job"
+    },
+    "response": {}
+  },
+  "resume-dpo-job": {
+    "request": {
+      "account_id": "test-account",
+      "dpo_job_id": "test-dpo-job"
+    },
+    "response": {
+      "dataset": "accounts/test-account/datasets/test-dataset"
+    }
+  },
+  "list-evaluation-jobs": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "create-evaluation-job": {
+    "request": {
+      "account_id": "test-account",
+      "evaluationJob": {
+        "evaluator": "test",
+        "inputDataset": "test",
+        "outputDataset": "test"
+      }
+    },
+    "response": {
+      "evaluator": "test",
+      "inputDataset": "test",
+      "outputDataset": "test"
+    }
+  },
+  "get-evaluation-job": {
+    "request": {
+      "account_id": "test-account",
+      "evaluation_job_id": "test-evaluation-job"
+    },
+    "response": {
+      "evaluator": "test",
+      "inputDataset": "test",
+      "outputDataset": "test"
+    }
+  },
+  "delete-evaluation-job": {
+    "request": {
+      "account_id": "test-account",
+      "evaluation_job_id": "test-evaluation-job"
+    },
+    "response": {}
+  },
+  "get-evaluation-job-execution-log-endpoint": {
+    "request": {
+      "account_id": "test-account",
+      "evaluation_job_id": "test-evaluation-job"
+    },
+    "response": {}
+  },
+  "list-evaluations": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "create-evaluation": {
+    "request": {
+      "account_id": "test-account",
+      "evaluation": {
+        "evaluationType": "test",
+        "providers": [
+          {}
+        ],
+        "assertions": [
+          {
+            "assertionType": "ASSERTION_TYPE_UNSPECIFIED"
+          }
+        ]
+      }
+    },
+    "response": {
+      "evaluationType": "test",
+      "providers": [
+        {}
+      ],
+      "assertions": [
+        {
+          "assertionType": "ASSERTION_TYPE_UNSPECIFIED"
+        }
+      ]
+    }
+  },
+  "get-evaluation": {
+    "request": {
+      "account_id": "test-account",
+      "evaluation_id": "test-evaluation"
+    },
+    "response": {
+      "evaluationType": "test",
+      "providers": [
+        {}
+      ],
+      "assertions": [
+        {
+          "assertionType": "ASSERTION_TYPE_UNSPECIFIED"
+        }
+      ]
+    }
+  },
+  "delete-evaluation": {
+    "request": {
+      "account_id": "test-account",
+      "evaluation_id": "test-evaluation"
+    },
+    "response": {}
+  },
+  "preview-evaluation": {
+    "request": {
+      "account_id": "test-account",
+      "evaluation_id": "test-evaluation",
+      "sampleData": "test"
+    },
+    "response": {}
+  },
+  "validate-assertions": {
+    "request": {
+      "account_id": "test-account",
+      "assertions": [
+        {
+          "assertionType": "ASSERTION_TYPE_UNSPECIFIED"
+        }
+      ]
+    },
+    "response": {}
+  },
+  "list-evaluators": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "get-evaluator": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator_id": "test-evaluator"
+    },
+    "response": {}
+  },
+  "update-evaluator": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator_id": "test-evaluator"
+    },
+    "response": {}
+  },
+  "delete-evaluator": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator_id": "test-evaluator"
+    },
+    "response": {}
+  },
+  "list-evaluator-versions": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator_id": "test-evaluator"
+    },
+    "response": {}
+  },
+  "get-evaluator-version": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator_id": "test-evaluator",
+      "version_id": "test-version"
+    },
+    "response": {}
+  },
+  "delete-evaluator-version": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator_id": "test-evaluator",
+      "version_id": "test-version"
+    },
+    "response": {}
+  },
+  "alias-evaluator-version": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator_id": "test-evaluator",
+      "version_id": "test-version",
+      "aliasId": "test"
+    },
+    "response": {}
+  },
+  "rollback-evaluator": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator_id": "test-evaluator",
+      "version_id": "test-version"
+    },
+    "response": {}
+  },
+  "get-evaluator-build-log-endpoint": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator_id": "test-evaluator"
+    },
+    "response": {}
+  },
+  "get-evaluator-source-code-endpoint": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator_id": "test-evaluator"
+    },
+    "response": {}
+  },
+  "get-evaluator-upload-endpoint": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator_id": "test-evaluator",
+      "filenameToSize": {}
+    },
+    "response": {}
+  },
+  "validate-evaluator-upload": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator_id": "test-evaluator"
+    },
+    "response": {}
+  },
+  "preview-evaluator": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator": {},
+      "sampleData": [
+        "test"
+      ]
+    },
+    "response": {}
+  },
+  "create-evaluator": {
+    "request": {
+      "account_id": "test-account",
+      "evaluator": {}
+    },
+    "response": {}
+  },
+  "list-models": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "create-model": {
+    "request": {
+      "account_id": "test-account",
+      "modelId": "test-model"
+    },
+    "response": {}
+  },
+  "get-model": {
+    "request": {
+      "account_id": "test-account",
+      "model_id": "test-model"
+    },
+    "response": {}
+  },
+  "update-model": {
+    "request": {
+      "account_id": "test-account",
+      "model_id": "test-model"
+    },
+    "response": {}
+  },
+  "delete-model": {
+    "request": {
+      "account_id": "test-account",
+      "model_id": "test-model"
+    },
+    "response": {}
+  },
+  "create-model-version": {
+    "request": {
+      "account_id": "test-account",
+      "model_id": "test-model"
+    },
+    "response": {}
+  },
+  "deploy-model-version": {
+    "request": {
+      "account_id": "test-account",
+      "model_id": "test-model",
+      "version_id": "test-version",
+      "deployment": "test",
+      "rolloutStrategy": "ROLLOUT_STRATEGY_UNSPECIFIED"
+    },
+    "response": {}
+  },
+  "get-model-version-count": {
+    "request": {
+      "account_id": "test-account",
+      "model_id": "test-model"
+    },
+    "response": {}
+  },
+  "get-model-download-endpoint": {
+    "request": {
+      "account_id": "test-account",
+      "model_id": "test-model"
+    },
+    "response": {}
+  },
+  "get-model-upload-endpoint": {
+    "request": {
+      "account_id": "test-account",
+      "model_id": "test-model",
+      "filenameToSize": {}
+    },
+    "response": {}
+  },
+  "import-model": {
+    "request": {
+      "account_id": "test-account",
+      "model_id": "test-model"
+    },
+    "response": {}
+  },
+  "prepare-model": {
+    "request": {
+      "account_id": "test-account",
+      "model_id": "test-model"
+    },
+    "response": {}
+  },
+  "validate-model-upload": {
+    "request": {
+      "account_id": "test-account",
+      "model_id": "test-model"
+    },
+    "response": {}
+  },
+  "list-pricing-plans": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "get-pricing-plan": {
+    "request": {
+      "account_id": "test-account",
+      "pricing_plan_id": "test-pricing-plan"
+    },
+    "response": {
+      "billingType": "BILLING_TYPE_UNSPECIFIED",
+      "startTime": "2026-09-08T00:00:00Z"
+    }
+  },
+  "list-quotas": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "get-quota": {
+    "request": {
+      "account_id": "test-account",
+      "quota_id": "test-quota"
+    },
+    "response": {}
+  },
+  "list-reinforcement-fine-tuning-jobs": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "create-reinforcement-fine-tuning-job": {
+    "request": {
+      "account_id": "test-account",
+      "dataset": "accounts/test-account/datasets/test-dataset",
+      "evaluator": "test"
+    },
+    "response": {
+      "dataset": "accounts/test-account/datasets/test-dataset",
+      "evaluator": "test"
+    }
+  },
+  "get-reinforcement-fine-tuning-job": {
+    "request": {
+      "account_id": "test-account",
+      "reinforcement_fine_tuning_job_id": "test-reinforcement-fine-tuning-job"
+    },
+    "response": {
+      "dataset": "accounts/test-account/datasets/test-dataset",
+      "evaluator": "test"
+    }
+  },
+  "update-reinforcement-fine-tuning-job": {
+    "request": {
+      "account_id": "test-account",
+      "reinforcement_fine_tuning_job_id": "test-reinforcement-fine-tuning-job",
+      "dataset": "accounts/test-account/datasets/test-dataset",
+      "evaluator": "test"
+    },
+    "response": {
+      "dataset": "accounts/test-account/datasets/test-dataset",
+      "evaluator": "test"
+    }
+  },
+  "delete-reinforcement-fine-tuning-job": {
+    "request": {
+      "account_id": "test-account",
+      "reinforcement_fine_tuning_job_id": "test-reinforcement-fine-tuning-job"
+    },
+    "response": {}
+  },
+  "cancel-reinforcement-fine-tuning-job": {
+    "request": {
+      "account_id": "test-account",
+      "reinforcement_fine_tuning_job_id": "test-reinforcement-fine-tuning-job"
+    },
+    "response": {}
+  },
+  "get-reinforcement-fine-tuning-job-metrics-file-endpoint": {
+    "request": {
+      "account_id": "test-account",
+      "reinforcement_fine_tuning_job_id": "test-reinforcement-fine-tuning-job"
+    },
+    "response": {}
+  },
+  "resume-reinforcement-fine-tuning-job": {
+    "request": {
+      "account_id": "test-account",
+      "reinforcement_fine_tuning_job_id": "test-reinforcement-fine-tuning-job"
+    },
+    "response": {
+      "dataset": "accounts/test-account/datasets/test-dataset",
+      "evaluator": "test"
+    }
+  },
+  "list-routers": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "create-router": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "get-router": {
+    "request": {
+      "account_id": "test-account",
+      "router_id": "test-router"
+    },
+    "response": {}
+  },
+  "update-router": {
+    "request": {
+      "account_id": "test-account",
+      "router_id": "test-router"
+    },
+    "response": {}
+  },
+  "delete-router": {
+    "request": {
+      "account_id": "test-account",
+      "router_id": "test-router"
+    },
+    "response": {}
+  },
+  "list-serverless-models": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "list-account-serverless-rate-limits": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "get-account-serverless-token-usage": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "list-supervised-fine-tuning-jobs": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "create-supervised-fine-tuning-job": {
+    "request": {
+      "account_id": "test-account",
+      "dataset": "accounts/test-account/datasets/test-dataset"
+    },
+    "response": {
+      "dataset": "accounts/test-account/datasets/test-dataset"
+    }
+  },
+  "get-supervised-fine-tuning-job": {
+    "request": {
+      "account_id": "test-account",
+      "supervised_fine_tuning_job_id": "test-supervised-fine-tuning-job"
+    },
+    "response": {
+      "dataset": "accounts/test-account/datasets/test-dataset"
+    }
+  },
+  "delete-supervised-fine-tuning-job": {
+    "request": {
+      "account_id": "test-account",
+      "supervised_fine_tuning_job_id": "test-supervised-fine-tuning-job"
+    },
+    "response": {}
+  },
+  "cancel-supervised-fine-tuning-job": {
+    "request": {
+      "account_id": "test-account",
+      "supervised_fine_tuning_job_id": "test-supervised-fine-tuning-job"
+    },
+    "response": {}
+  },
+  "resume-supervised-fine-tuning-job": {
+    "request": {
+      "account_id": "test-account",
+      "supervised_fine_tuning_job_id": "test-supervised-fine-tuning-job"
+    },
+    "response": {
+      "dataset": "accounts/test-account/datasets/test-dataset"
+    }
+  },
+  "estimate-supervised-fine-tuning-job-cost": {
+    "request": {
+      "account_id": "test-account",
+      "dataset": "accounts/test-account/datasets/test-dataset"
+    },
+    "response": {}
+  },
+  "list-training-shapes": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "get-training-shape": {
+    "request": {
+      "account_id": "test-account",
+      "training_shape_id": "test-training-shape"
+    },
+    "response": {
+      "baseModel": "accounts/fireworks/models/gpt-oss-120b",
+      "trainerImageTag": "test"
+    }
+  },
+  "list-training-shape-versions": {
+    "request": {
+      "account_id": "test-account",
+      "training_shape_id": "test-training-shape"
+    },
+    "response": {}
+  },
+  "get-training-shape-version": {
+    "request": {
+      "account_id": "test-account",
+      "training_shape_id": "test-training-shape",
+      "version_id": "test-version"
+    },
+    "response": {}
+  },
+  "get-account-usage-limits": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "update-account-usage-limits": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "list-user-usage-limits": {
+    "request": {
+      "account_id": "test-account"
+    },
+    "response": {}
+  },
+  "upload-dataset-file": {
+    "request": {
+      "account_id": "test-account",
+      "dataset_id": "test-dataset",
+      "file": {
+        "name": "invoices.jsonl",
+        "content": "eyJ0ZXh0IjoiaGVsbG8ifQo=",
+        "mime_type": "application/jsonl"
+      }
+    },
+    "response": {}
+  },
+  "create-response": {
+    "request": {
+      "model": "accounts/fireworks/models/gpt-oss-120b",
+      "input": "Hello",
+      "max_output_tokens": 8
+    },
+    "response": {
+      "created_at": 1,
+      "status": "test",
+      "model": "accounts/fireworks/models/gpt-oss-120b",
+      "output": [
+        {
+          "id": "test",
+          "role": "test",
+          "content": [
+            {
+              "type": "test"
+            }
+          ],
+          "status": "test"
+        }
+      ]
+    }
+  },
+  "list-responses": {
+    "request": {},
+    "response": {
+      "data": [
+        {
+          "created_at": 1,
+          "status": "test",
+          "model": "accounts/fireworks/models/gpt-oss-120b",
+          "output": [
+            {
+              "id": "test",
+              "role": "test",
+              "content": [
+                {
+                  "type": "test"
+                }
+              ],
+              "status": "test"
+            }
+          ]
+        }
+      ],
+      "has_more": false
+    }
+  },
+  "get-response": {
+    "request": {
+      "response_id": "test-response"
+    },
+    "response": {
+      "created_at": 1,
+      "status": "test",
+      "model": "accounts/fireworks/models/gpt-oss-120b",
+      "output": [
+        {
+          "id": "test",
+          "role": "test",
+          "content": [
+            {
+              "type": "test"
+            }
+          ],
+          "status": "test"
+        }
+      ]
+    }
+  },
+  "delete-response": {
+    "request": {
+      "response_id": "test-response"
+    },
+    "response": {
+      "message": "test"
+    }
+  },
+  "text-completion": {
+    "request": {
+      "prompt": "Hello",
+      "model": "accounts/fireworks/models/gpt-oss-120b",
+      "max_tokens": 8
+    },
+    "response": {
+      "id": "test-response",
+      "object": "text_completion",
+      "created": 1700000000,
+      "model": "accounts/fireworks/models/gpt-oss-120b",
+      "choices": [
+        {
+          "index": 0,
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "Hello"
+          },
+          "text": "Hello"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 1,
+        "completion_tokens": 1,
+        "total_tokens": 2
+      }
+    }
+  },
+  "chat-completion": {
+    "request": {
+      "model": "accounts/fireworks/models/gpt-oss-120b",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hello"
+        }
+      ],
+      "max_tokens": 8
+    },
+    "response": {
+      "id": "test-response",
+      "object": "chat.completion",
+      "created": 1700000000,
+      "model": "accounts/fireworks/models/gpt-oss-120b",
+      "choices": [
+        {
+          "index": 0,
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "Hello"
+          },
+          "text": "Hello"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 1,
+        "completion_tokens": 1,
+        "total_tokens": 2
+      }
+    }
+  },
+  "create-message": {
+    "request": {
+      "model": "accounts/fireworks/models/gpt-oss-120b",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hello"
+        }
+      ],
+      "max_tokens": 8
+    },
+    "response": {
+      "id": "test",
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "citations": [
+            {
+              "cited_text": "test",
+              "document_index": 0,
+              "document_title": "test",
+              "end_char_index": 1,
+              "file_id": "test-file",
+              "start_char_index": 0,
+              "type": "char_location"
+            }
+          ],
+          "text": "test",
+          "type": "text"
+        }
+      ],
+      "model": "accounts/fireworks/models/gpt-oss-120b",
+      "stop_reason": "end_turn",
+      "stop_sequence": "test"
+    }
+  }
+}

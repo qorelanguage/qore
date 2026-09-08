@@ -54,11 +54,11 @@ public class FireworksChatCompletionDataProvider inherits FireworksDataProviderC
     }
 
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return getSchemaProvider(getName()).getRequestType();
     }
 
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return getSchemaProvider(getName()).getResponseType();
     }
 
     private hash<DataProviderInfo> getStaticInfoImpl() {
@@ -66,11 +66,7 @@ public class FireworksChatCompletionDataProvider inherits FireworksDataProviderC
     }
 
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        hash<auto> body = doRestCommand("POST", "chat/completions", req).body;
-        if (body.created.typeCode() == NT_INT) {
-            body.created = 1970-01-01Z + seconds(body.created);
-        }
-        return body;
+        return getSchemaProvider(getName()).doRequest(req, request_options);
     }
 }
 }

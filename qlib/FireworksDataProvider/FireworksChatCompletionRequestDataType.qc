@@ -113,12 +113,12 @@ public class FireworksChatCompletionRequestDataType inherits HashDataType {
                 "display_name": "Model",
                 "short_desc": "The Fireworks-hosted model identifier",
                 "desc": "Fireworks model identifier in `accounts/<owner>/models/<name>` format, "
-                    "e.g. `accounts/fireworks/models/llama-v3p1-405b-instruct`, "
+                    "e.g. `accounts/fireworks/models/gpt-oss-120b`, "
                     "`accounts/fireworks/models/qwen2p5-72b-instruct`.\n\n"
                     "See the [Fireworks model catalog](https://fireworks.ai/models).",
                 "type": AbstractDataProviderTypeMap."string",
                 "required": True,
-                "example_value": "accounts/fireworks/models/llama-v3p1-405b-instruct",
+                "example_value": "accounts/fireworks/models/gpt-oss-120b",
             },
             "messages": {
                 "display_name": "Messages",
@@ -226,19 +226,46 @@ public class FireworksEmbeddingRequestDataType inherits HashDataType {
                 "display_name": "Model",
                 "short_desc": "The Fireworks-hosted embedding model",
                 "desc": "Fireworks embedding model identifier, e.g. "
-                    "`nomic-ai/nomic-embed-text-v1.5`.",
+                    "`accounts/fireworks/models/qwen3-embedding-8b`.",
                 "type": AbstractDataProviderTypeMap."string",
                 "required": True,
-                "example_value": "nomic-ai/nomic-embed-text-v1.5",
+                "example_value": "accounts/fireworks/models/qwen3-embedding-8b",
+                "ref_data": "inference-models",
+                "supports_custom_values": True,
             },
             "input": {
                 "display_name": "Input",
                 "short_desc": "Text(s) to embed",
                 "desc": "Text input(s) to convert to embedding vectors.  Can be a single string "
                     "or a list of strings for batch embedding.",
-                "type": AbstractDataProviderTypeMap."softlist",
+                "type": new QoreUnionDataType((AbstractDataProviderTypeMap."string",
+                    AbstractDataProviderType::get("list<string>"), AbstractDataProviderTypeMap."hash",
+                    AbstractDataProviderType::get("list<hash<auto>>"))),
                 "required": True,
                 "example_value": ("Hello, world!",),
+            },
+            "prompt_template": {
+                "display_name": "Prompt Template",
+                "type": AbstractDataProviderTypeMap."*string",
+                "desc": "Format structured inputs before embedding using the model's template syntax.",
+                "example_value": "Embed this text: {text}",
+            },
+            "dimensions": {
+                "display_name": "Dimensions",
+                "type": AbstractDataProviderTypeMap."*int",
+                "desc": "Number of output dimensions for models supporting variable embedding sizes.",
+                "example_value": 768,
+            },
+            "return_logits": {
+                "display_name": "Return Logits",
+                "type": AbstractDataProviderType::get("*list<int>"),
+                "desc": "Return scores for the selected token or class indices; an empty list requests all indices.",
+                "example_value": (0, 1),
+            },
+            "normalize": {
+                "display_name": "Normalize",
+                "type": AbstractDataProviderTypeMap."*bool",
+                "desc": "Normalize embedding vectors, or apply softmax when `return_logits` is set.",
             },
             "encoding_format": {
                 "display_name": "Encoding Format",

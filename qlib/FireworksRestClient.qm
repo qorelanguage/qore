@@ -34,7 +34,7 @@
 %requires QoreRagTypes
 
 module FireworksRestClient {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for calling Fireworks AI REST services";
     author = "Qore Technologies <info@qoretechnologies.com>";
     url = "https://qore.org";
@@ -81,8 +81,8 @@ module FireworksRestClient {
 %requires FireworksRestClient
 
 FireworksRestClient rest({"apikey": api_key});
-hash<auto> ans = rest.post("/v1/chat/completions", {
-    "model": "accounts/fireworks/models/llama-v3p1-405b-instruct",
+hash<auto> ans = rest.restPost("chat/completions", {
+    "model": "accounts/fireworks/models/gpt-oss-120b",
     "messages": ({"role": "user", "content": "Hello!"},),
 });
 printf("%Y\n", ans.body);
@@ -93,6 +93,12 @@ printf("%Y\n", ans.body);
     [Fireworks model catalog](https://fireworks.ai/models).
 
     @section FireworksRestClientRelnotes Release Notes
+
+    @subsection FireworksRestClientv1_1 FireworksRestClient v1.1
+    - preserve the inference URL prefix in synchronous and asynchronous REST requests
+    - verify authentication with the account listing endpoint without generating tokens
+    - repair previously saved ping paths and automatic connection URLs on load
+    - associate connections with the Fireworks AI application
 
     @subsection FireworksRestClientv1_0 FireworksRestClient v1.0
     - the initial version of the %FireworksRestClient module
@@ -110,20 +116,23 @@ public class FireworksRestClientBase {
         const DefaultApiVersion = "v1";
 
         #! Default Fireworks chat model
-        const DefaultChatModel = "accounts/fireworks/models/llama-v3p1-405b-instruct";
+        const DefaultChatModel = "accounts/fireworks/models/gpt-oss-120b";
 
         const DefaultOptions = {
             "url": DefaultUrl,
             "api": DefaultApiVersion,
-            "default_path": "/" + DefaultApiVersion,
+            "default_path": "/inference/" + DefaultApiVersion,
         };
     }
 
+    #! Applies authentication and preserves the inference namespace in both REST transports
+    /** @param opts client options, including an optional custom URL
+        @return options suitable for the REST client
+    */
     static hash<auto> getOptions(hash<auto> opts) {
         hash<auto> rv = DefaultOptions + opts;
-        if (opts.api) {
-            rv.default_path = "/" + opts.api;
-        }
+        string base_path = parse_url(rv.url).path ?? "";
+        rv.default_path = rtrim(base_path, "/") + "/" + rv.api;
         if (rv.apikey) {
             rv.token = rv.apikey;
             delete rv.apikey;
@@ -136,14 +145,10 @@ public class FireworksRestClientBase {
 
 #! REST client for Fireworks AI REST API (sync)
 public class FireworksRestClient inherits RestClient::RestClient, FireworksRestClientBase {
-    private {
-        string api;
-    }
-
     constructor(hash<auto> opts, *softbool do_not_connect)
             : RestClient(FireworksRestClientBase::getOptions(opts), True) {
         if (validator instanceof NullRestSchemaValidator) {
-            setConnectionPath(getString(opts, "api") ?? DefaultApiVersion);
+            setConnectionPath(FireworksRestClientBase::getOptions(opts).default_path);
         }
     }
 }
@@ -167,7 +172,8 @@ public class FireworksRestConnection inherits RestClient::RestConnection {
                 "Fireworks serves OSS chat models (Llama 3.1/3.3, Qwen, DeepSeek, Mixtral) "
                 "and embedding models via an OpenAI-compatible API.\n\n"
                 "Requires an API key for Bearer authentication.  Get your API key from the "
-                "[Fireworks Dashboard](https://fireworks.ai/account/api-keys).",
+                "[Fireworks Dashboard](https://fireworks.ai/account/api-keys).\n\n"
+                "Pings verify authentication by listing accounts without generating tokens.",
             "cls": Class::forName("FireworksRestConnection"),
             "auto_url": True,
             "schemes": {"fireworks": True},
@@ -189,6 +195,9 @@ public class FireworksRestConnection inherits RestClient::RestConnection {
                     "desc": "The API version to use.",
                     "type": "string",
                     "default_value": FireworksRestClientBase::DefaultApiVersion,
+                    "allowed_values": (
+                        <AllowedValueInfo>{"value": "v1", "display_name": "V1"},
+                    ),
                 },
                 "chat-model": <ConnectionOptionInfo>{
                     "display_name": "Chat Model",
@@ -197,7 +206,7 @@ public class FireworksRestConnection inherits RestClient::RestConnection {
                         "selected for chat.\n\n"
                         "Chat models are a separate family from embedding models and cannot "
                         "be used interchangeably."
-                        "\n\nExample values: `accounts/fireworks/models/llama-v3p1-405b-instruct` (the default)",
+                        "\n\nExample values: `accounts/fireworks/models/gpt-oss-120b` (the default)",
                     "type": "string",
                     "default_value": FireworksRestClientBase::DefaultChatModel,
                 },
@@ -216,16 +225,39 @@ public class FireworksRestConnection inherits RestClient::RestConnection {
 
         const DefaultPingMethod = "GET";
         const DefaultPingHeaders = {"Accept": MimeTypeJson};
-        const DefaultPingPath = "models";
+        const DefaultPingPath = "/v1/accounts?pageSize=1";
     }
 
     constructor(string name, string description, string url = DefaultUrl,
             hash<auto> attributes = {}, hash<auto> options = {})
-            : RestConnection(name, description, url, attributes, options) {
+            : RestConnection(name, description, url, attributes, FireworksRestConnection::fixPingOptions(options)) {
     }
 
     constructor(hash<auto> config, *hash<auto> attr)
-            : RestConnection(config + (exists config.url ? {} : {"url": DefaultUrl}), attr) {
+            : RestConnection(FireworksRestConnection::getConfig(config), attr) {
+    }
+
+    private static hash<auto> getConfig(hash<auto> config) {
+        config.url = DefaultUrl;
+        config.opts = fixPingOptions(config.opts ?? {});
+        return config;
+    }
+
+    #! Migrates the previously shipped inference models ping when a connection is loaded
+    private static hash<auto> fixPingOptions(hash<auto> options) {
+        if ((options.ping_method ?? "GET") == "GET"
+                && (!exists options.ping_path || options.ping_path == "models"
+                    || options.ping_path == "/models" || options.ping_path == "/v1/models")) {
+            options.ping_method = DefaultPingMethod;
+            options.ping_path = DefaultPingPath;
+        }
+        return options;
+    }
+
+    #! Associates this connection with its application
+    /** @return the Fireworks AI application name */
+    *string getAppName() {
+        return "FireworksAi";
     }
 
     string getType() {
@@ -268,9 +300,6 @@ public class FireworksRestConnection inherits RestClient::RestConnection {
             hash<auto> update;
             if (url != FireworksRestClientBase::DefaultUrl && url != DefaultUrl) {
                 update.url = DefaultUrl;
-            }
-            if (opts.ping_path =~ /^\//) {
-                update.ping_path = opts.ping_path.substr(1);
             }
             if (update) {
                 doUpdateOptions(self, update);
@@ -342,7 +371,7 @@ public namespace QoreRagUtils {
 #! Fireworks AI-backed embedder — calls the Fireworks `/embeddings` endpoint
 public class FireworksEmbedder inherits AbstractEmbedder {
     public {
-        const DefaultModel = "nomic-ai/nomic-embed-text-v1.5";
+        const DefaultModel = "accounts/fireworks/models/qwen3-embedding-8b";
         const Backend = "fireworks";
     }
 

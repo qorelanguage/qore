@@ -36,10 +36,12 @@ public class FireworksDataProvider inherits FireworksDataProviderCommon {
 
     private {
         static hash<string, Reflection::Class> childMap = DefaultChildMap;
+        static Mutex child_lock();
 
         const DefaultChildMap = {
             "chat-completion":
                 Class::forName("FireworksDataProvider::FireworksChatCompletionDataProvider"),
+            "rerank": Class::forName("FireworksDataProvider::FireworksRerankDataProvider"),
             "create-embeddings":
                 Class::forName("FireworksDataProvider::FireworksEmbeddingDataProvider"),
         };
@@ -55,27 +57,47 @@ public class FireworksDataProvider inherits FireworksDataProviderCommon {
         return ProviderInfo.name;
     }
 
+    #! Registers an additional child without replacing a built-in action
+    /** @param pathname unique child path
+        @param cls provider class accepting a REST client
+        @throw FIREWORKS-CHILD-ERROR the child name is already registered
+    */
     static registerChild(string pathname, Reflection::Class cls) {
-        if (childMap{pathname}) {
+        AutoLock al(child_lock);
+        if (childMap{pathname} || inlist(pathname, getSchemaActionNames())) {
             throw "FIREWORKS-CHILD-ERROR", sprintf("child %y already registered", pathname);
         }
         childMap{pathname} = cls;
     }
 
-    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator();
-    }
-
     private *list<string> getChildProviderNamesImpl() {
-        return keys childMap;
+        AutoLock al(child_lock);
+        hash<string, bool> names = map {$1: True}, getSchemaActionNames();
+        map names{$1} = True, keys childMap;
+        return keys names;
     }
 
     private *AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = childMap{name};
+        *Class cls;
+        {
+            AutoLock al(child_lock);
+            cls = childMap{name};
+        }
         if (!cls) {
+            if (inlist(name, getSchemaActionNames())) {
+                return getSchemaProvider(name);
+            }
             return;
         }
         return cls.newObject(rest);
+    }
+
+    private static list<string> getSchemaActionNames() {
+        list<string> names;
+        foreach RestSchemaActionSet aset in (FireworksSchema::getActionSets()) {
+            names += aset.getActionNames();
+        }
+        return names;
     }
 
     private hash<DataProviderInfo> getStaticInfoImpl() {

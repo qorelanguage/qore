@@ -28,9 +28,10 @@
 %requires(reexport) DataProvider
 %requires(reexport) FireworksRestClient
 %requires RestClientIo
+%requires RestSchemaActions
 
 module FireworksDataProvider {
-    version = "1.0";
+    version = "1.1";
     desc = "user module providing a data provider API for Fireworks AI services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -44,46 +45,38 @@ module FireworksDataProvider {
             "display_name": "Fireworks AI",
             "short_desc": "Fireworks AI hosted open-weight LLMs and embeddings",
             "desc": "Provides access to [Fireworks AI](https://fireworks.ai) — a managed "
-                "inference platform for open-weight LLMs (Llama 3.1/3.3, Qwen, DeepSeek, "
-                "Mixtral) and embedding models via an OpenAI-compatible API.\n\n"
-                "**Common use cases**:\n"
-                "- **High-throughput OSS chat** without owning GPU infrastructure\n"
-                "- **RAG embeddings** using `nomic-ai/nomic-embed-text-v1.5` and similar models\n"
-                "- **Tool-calling agents** with structured-output JSON schema support",
+                "platform for model inference and training.\n\n"
+                "- Generate chat, text, and agent responses with open-weight models\n"
+                "- Create embeddings and rerank documents for search\n"
+                "- Manage models, datasets, deployments, and batch inference\n"
+                "- Fine-tune models and evaluate their quality\n"
+                "- Inspect account usage, limits, and billing",
             "scheme": "fireworks",
-            "logo": FireworksLogo,
+            "logo": Priv::FireworksLogo,
             "logo_file_name": "fireworks-ai-logo.svg",
             "logo_mime_type": MimeTypeSvg,
             "groups": (DataProvider::AppGroup::AiLlm,),
         });
 
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": FireworksDataProvider::AppName,
-            "path": "/chat-completion",
-            "action": "chat-completion",
-            "display_name": "Chat Completion",
-            "short_desc": "Generate a chat completion from a Fireworks-hosted model",
-            "desc": "Sends a list of chat messages to a Fireworks-hosted model via the "
-                "OpenAI-compatible `/v1/chat/completions` endpoint.",
-            "action_code": DPAT_API,
-            "groups": ("Chat",),
-            "options": DataProviderActionCatalog::getActionOptionFromFields(
-                FireworksChatCompletionRequestDataType::Fields{"messages", "model",}, {
-                    "preselected": True, "required": True,
+        RestSchemaActionCodecs::registerCodec(<RestSchemaWireCodecInfo>{
+            "name": "fireworks-resource-id",
+            "type": AbstractDataProviderTypeMap."*string",
+            "to_wire": auto sub(auto value) {
+                if (!exists value) {
+                    return NOTHING;
                 }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                FireworksChatCompletionRequestDataType::Fields{
-                    "temperature", "max_tokens",
-                }, {
-                    "preselected": True,
+                string id = value;
+                if (!id || id =~ /\/$/) {
+                    throw "FIREWORKS-RESOURCE-ID-ERROR", "resource ID must not be empty or end with a slash";
                 }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                FireworksChatCompletionRequestDataType::Fields - (
-                    "messages", "model", "temperature", "max_tokens",
-                )
-            ),
-            "output_type": FireworksChatCompletionDataProvider::ResponseType,
+                return (split("/", id)).last();
+            },
+            "from_wire": auto sub(auto value) { return value; },
+            "desc": "Accept a resource ID or full resource name and send the final ID segment.",
         });
+        foreach RestSchemaActionSet aset in (FireworksSchema::getActionSets()) {
+            aset.registerActions(FireworksDataProvider::AppName);
+        }
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": FireworksDataProvider::AppName,
@@ -104,6 +97,21 @@ module FireworksDataProvider {
             ),
             "output_type": FireworksEmbeddingDataProvider::ResponseType,
         });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": AppName, "path": "/rerank", "action": "rerank", "display_name": "Rerank Documents",
+            "short_desc": "Rank documents by relevance to a search query",
+            "desc": "Improve search results by scoring candidate documents against a query. "
+                "Use `top_n` to keep the most relevant results. **Inference is billed by Fireworks.**",
+            "action_code": DPAT_API, "groups": ("Embeddings",),
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
+                FireworksRerankRequestDataType::Fields{"query", "documents",},
+                {"preselected": True, "required": True})
+                + DataProviderActionCatalog::getActionOptionFromFields(
+                    FireworksRerankRequestDataType::Fields{"model", "top_n",}, {"preselected": True})
+                + DataProviderActionCatalog::getActionOptionFromFields(
+                    FireworksRerankRequestDataType::Fields - ("query", "documents", "model", "top_n")),
+            "output_type": FireworksRerankResponseType,
+        });
     };
 }
 
@@ -123,6 +131,25 @@ module FireworksDataProvider {
 
     @section FireworksDataProviderRelnotes Release Notes
 
+    @subsection FireworksDataProviderv1_1 FireworksDataProvider v1.1
+    - add pinned schema actions for models, deployments, datasets, batch inference, fine-tuning,
+      evaluations, billing, text completions, Responses, and Anthropic-compatible messages
+    - add account and resource dropdowns with custom ID support
+    - preserve the original chat completion and embedding action names
+
+    @par Example:
+    @code{.py}
+FireworksDataProvider provider({"apikey": api_key});
+auto accounts = provider.getChildProvider("list-accounts").doRequest({"pageSize": 20});
+auto models = provider.getChildProvider("list-models").doRequest({
+    "account_id": "fireworks", "pageSize": 20,
+});
+    @endcode
+
+    @note Inference, training, and deployment creation can incur charges. Connection pings and
+    catalog lookups do not generate tokens. Listings return one page; use the returned page token
+    to retrieve more results.
+
     @subsection FireworksDataProviderv1_0 FireworksDataProvider v1.0
     - the initial version of the %FireworksDataProvider module
 */
@@ -133,5 +160,5 @@ public namespace FireworksDataProvider {
 public const AppName = "FireworksAi";
 }
 
-#! App logo loaded from file
-public const FireworksLogo = File::readTextFile(get_script_dir() + "/fireworks-ai-logo.svg");
+#! Compatibility alias for the application logo
+public const FireworksLogo = Priv::FireworksLogo;

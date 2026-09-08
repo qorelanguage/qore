@@ -1,16 +1,30 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
 %allow-injection
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Logger
-%requires ConnectionProvider
-%requires DataProvider
-%requires FireworksDataProvider
+%try-module json
+%define MissingJson
+%endtry
+%ifdef MissingJson
+printf("SKIP: this test requires the external json module\n");
+%else
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/DataProvider
+%try-module yaml
+%define MissingYaml
+%endtry
+%ifdef MissingYaml
+printf("SKIP: this test requires the external yaml module\n");
+%else
+%requires ../../../../qlib/RestSchemaActions
+%requires ../../../../qlib/FireworksDataProvider
 
 %exec-class FireworksDataProviderTest
 
@@ -19,10 +33,29 @@ class FakeFireworksRestClientIo inherits RestClientIo::RestClientIo {
         *hash<auto> last_request;
         string last_method;
         string last_path;
-        hash<auto> response_body;
+        hash<auto> response_body = {};
+        *data last_raw;
+        *hash<auto> last_headers;
+        int requests = 0;
+        bool lose_response = False;
     }
 
     constructor() : RestClientIo({"url": "https://api.fireworks.ai/inference", "token": "x"}) {
+    }
+
+    RestClient::AbstractRestClient copyWithUrl(string url) {
+        return self;
+    }
+
+    hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body, *hash<auto> hdr) {
+        last_method = method;
+        last_path = path;
+        last_raw = body;
+        last_headers = hdr;
+        ++requests;
+        last_request = body.val() && (hdr."Content-Type" ?? hdr."content-type" ?? "") !~ /^multipart\//
+            ? parse_json(body.toString()) : NOTHING;
+        return <RestClient::RestResponseInfo>{"status_code": 200, "body": response_body};
     }
 
     hash<RestClient::RestResponseInfo> restDoRequest(string method, string path,
@@ -30,6 +63,10 @@ class FakeFireworksRestClientIo inherits RestClientIo::RestClientIo {
         last_method = method;
         last_path = path;
         last_request = body;
+        ++requests;
+        if (lose_response) {
+            throw "SOCKET-CLOSED", "response lost after request was sent";
+        }
         return <RestClient::RestResponseInfo>{"body": response_body};
     }
 
@@ -56,6 +93,7 @@ public class FireworksDataProviderTest inherits QUnit::Test {
     public {
         const MyOpts = Opts + {
             "conn": "c,connection=s",
+            "live": "live",
         };
 
         const OptionColumn = 22;
@@ -63,22 +101,34 @@ public class FireworksDataProviderTest inherits QUnit::Test {
 
     private {
         *string conn_name;
+        *AbstractConnection live_connection;
+        *AbstractDataProvider live_root;
     }
 
     constructor() : Test("FireworksDataProvider Test", "1.0", \ARGV, MyOpts) {
         conn_name = m_options.conn ?? ENV.FIREWORKS_CONNECTION;
 
-        addTestCase("factory + app + 2 actions registered", \registrationTest());
-        addTestCase("root provider lists 2 children",       \rootProviderTest());
+        addTestCase("factory and complete action catalog registered", \registrationTest());
+        addTestCase("root resolves all action paths",       \rootProviderTest());
         addTestCase("chat-completion converts created date", \chatRequestTest());
         addTestCase("create-embeddings forwards body unchanged",
             \embeddingRequestTest());
 
-        # Live test requires a real Fireworks AI connection.
-        # Cost: 1 token-bounded llama-v3p1-8b-instruct request (~$0.0001 per run).
-        if (conn_name) {
-            addTestCase("live: ping + chat-completion (llama-v3p1-8b-instruct)",
-                \liveFireworksTest());
+        addTestCase("all schema operations build valid requests", \allOperationsTest());
+        addTestCase("schema drift and action contracts", \contractTest());
+        addTestCase("cascading resource dropdowns", \referenceDataTest());
+        addTestCase("negative inputs fail before sending", \negativeTest());
+        addTestCase("reranking and embedding options", \inferenceOptionsTest());
+        addTestCase("lost inference responses are not retried", \lostResponseTest());
+        addTestCase("all locales render complete action forms", \translationTest());
+
+        # Live tests require an explicitly selected connection or --live.
+        # Cost: bounded chat, one embedding input, and two rerank documents.
+        if (conn_name || m_options.live) {
+            addTestCase("live: connection and read-only catalogs", \liveFireworksTest());
+            addTestCase("live: bounded chat completion", \liveChatTest());
+            addTestCase("live: one embedding input", \liveEmbedTest());
+            addTestCase("live: two rerank candidates", \liveRerankTest());
         }
         set_return_value(main());
     }
@@ -86,9 +136,9 @@ public class FireworksDataProviderTest inherits QUnit::Test {
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-c,--connection=ARG",
-            "set the Fireworks AI connection name; without it (and "
-            "without the FIREWORKS_CONNECTION env var) the live test is skipped",
+            "run live tests using this connection (or FIREWORKS_CONNECTION)",
             OptionColumn);
+        printOption("--live", "run live tests using FIREWORKSAI_APIKEY; includes three small paid calls", OptionColumn);
     }
 
     private registrationTest() {
@@ -109,9 +159,8 @@ public class FireworksDataProviderTest inherits QUnit::Test {
         list<hash<DataProviderActionInfo>> actions = select
             DataProvider::DataProviderActionCatalog::getActions("FireworksAi"),
             $1.action != AbstractDataProvider::GenericApiCallActionName;
-        assertEq(2, actions.size());
-        list<string> action_names = sort(map $1.action, actions);
-        assertEq(("chat-completion", "create-embeddings"), action_names);
+        assertEq(132, actions.size());
+        assertTrue(inlist("rerank", map $1.action, actions));
     }
 
     private rootProviderTest() {
@@ -122,7 +171,10 @@ public class FireworksDataProviderTest inherits QUnit::Test {
         # GenericApiCallAutoInjection.qtest in RestClientDataProvider)
         list<string> children = sort(select prov.getChildProviderNames(),
             $1 != AbstractDataProvider::GenericApiCallChildName);
-        assertEq(("chat-completion", "create-embeddings"), children);
+        assertEq(132, children.size());
+        foreach RestSchemaActionSet aset in (FireworksSchema::getActionSets()) {
+            aset.validateActionPaths(prov);
+        }
     }
 
     private chatRequestTest() {
@@ -145,7 +197,7 @@ public class FireworksDataProviderTest inherits QUnit::Test {
         });
 
         assertEq("POST", fake.last_method);
-        assertEq("chat/completions", fake.last_path);
+        assertEq("/inference/v1/chat/completions", fake.last_path);
         assertEq("Hi", resp.choices[0].message.content);
         assertEq(NT_DATE, resp.created.typeCode());
         assertEq(1700000000, int(resp.created - 1970-01-01Z));
@@ -170,32 +222,301 @@ public class FireworksDataProviderTest inherits QUnit::Test {
         });
 
         assertEq("POST", fake.last_method);
-        assertEq("embeddings", fake.last_path);
+        assertEq("/inference/v1/embeddings", fake.last_path);
         assertEq("nomic-ai/nomic-embed-text-v1.5", fake.last_request.model);
         assertEq(3, resp.data[0].embedding.size());
     }
 
-    #! Exercises Fireworks AI's live chat-completion endpoint
-    /** Verifies the actual wire format against Fireworks AI's production
-        endpoint with a token-bounded request on llama-v3p1-8b-instruct.
-        Cost: ~$0.0001 per run (capped via max_tokens=16).
-    */
-    private liveFireworksTest() {
-        AbstractConnection conn = get_connection(conn_name);
-        hash<auto> ping = conn.ping(True);
-        assertTrue(ping.ok, sprintf("Fireworks connection ping failed: %s",
-            ping.info ?? "no info"));
+    private hash<auto> getFixtures() {
+        return convertFixtureDates(parse_json(File::readTextFile(get_script_dir() + "/requests.json")));
+    }
 
-        AbstractDataProvider prov = conn.getDataProvider();
-        AbstractDataProvider chat = prov.getChildProvider("chat-completion");
-        auto resp = chat.doRequest({
-            "model": "accounts/fireworks/models/llama-v3p1-8b-instruct",
-            "messages": ({"role": "user", "content": "Say hi in one word."},),
-            "max_tokens": 16,
+    private auto convertFixtureDates(auto value) {
+        if (value.typeCode() == NT_HASH) {
+            return map {$1.key: convertFixtureDates($1.value)}, value.pairIterator();
+        }
+        if (value.typeCode() == NT_LIST) {
+            return map convertFixtureDates($1), value;
+        }
+        return value === "2026-09-08T00:00:00Z" ? 2026-09-08Z : value;
+    }
+
+    private allOperationsTest() {
+        hash<auto> fixtures = getFixtures();
+        list<string> errors = ();
+        FakeFireworksRestClientIo fake();
+        FireworksDataProvider::FireworksDataProvider root(fake);
+        foreach RestSchemaActionSet aset in (FireworksSchema::getActionSets()) {
+            foreach string name in (aset.getActionNames()) {
+                RestSchemaActionOperation op = aset.getOperationEx(name);
+                hash<auto> request = fixtures{name}.request;
+                fake.response_body = fixtures{name}.response;
+                try {
+                    root.getChildProvider(name).doRequest(request);
+                } catch (hash<ExceptionInfo> ex) {
+                    push errors, sprintf("%s: %s: %s", name, ex.err, ex.desc);
+                    continue;
+                }
+                assertEq(op.getInfo().method, fake.last_method, name);
+                string path = op.getInfo().path;
+                foreach string key in (keys request) {
+                    path = replace(path, "{" + key + "}", request{key}.toString());
+                }
+                string prefix = aset.getSchema().getBasePath();
+                assertEq((prefix == "/" ? "" : prefix) + path, fake.last_path.split("?")[0], name);
+                if (name == "upload-dataset-file") {
+                    assertTrue(index(fake.last_raw.toString(), "filename=\"invoices.jsonl\"") >= 0);
+                    assertTrue(index(fake.last_raw.toString(), "{\"text\":\"hello\"}") >= 0);
+                }
+            }
+        }
+        assertEq((), errors);
+        assertEq(130, fake.requests);
+    }
+
+    private contractTest() {
+        foreach RestSchemaActionSet aset in (FireworksSchema::getActionSets()) {
+            assertEq((), RestSchemaDrift::compare(aset, aset.getSchema()));
+        }
+        foreach hash<DataProviderActionInfo> action in (DataProviderActionCatalog::getActions("FireworksAi")) {
+            if (action.action == AbstractDataProvider::GenericApiCallActionName) {
+                continue;
+            }
+            assertTrue(action.display_name.val(), action.action);
+            assertTrue(action.short_desc.val() && action.short_desc.size() < 80, action.action);
+            assertTrue(action.desc.val(), action.action);
+            assertTrue(exists action.output_type, action.action);
+            assertFalse(exists action.cls, action.action);
+            assertEq("/" + action.action, action.path);
+        }
+        hash<string, AbstractDataField> fields = FireworksSchema::getActionSet("chat-completion")
+            .getOperationEx("chat-completion").getRequestType().getFields();
+        foreach string name in ("messages", "model", "tools", "response_format", "max_tokens") {
+            assertTrue(exists fields{name}, name);
+        }
+        assertFalse(exists fields.stream);
+        assertEq("inference-models", fields.model.getAttributes().ref_data);
+        hash<string, AbstractDataField> deployment_fields = FireworksSchema::getActionSet("create-deployment")
+            .getOperationEx("create-deployment").getRequestType().getFields();
+        assertFalse(exists deployment_fields.state, "response-owned state is not an editable input");
+        assertFalse(exists deployment_fields.region, "placement is configurable; the resolved region is output-only");
+        list<hash<AllowedValueInfo>> accelerator_values = deployment_fields.acceleratorType.getAllowedValues();
+        assertTrue(accelerator_values.size() > 1, "accelerator choices are a finite set");
+        foreach hash<AllowedValueInfo> value in (accelerator_values) {
+            assertTrue(exists value.value);
+            assertFalse(index(value.display_name, "_") >= 0, "accelerator names use readable labels");
+        }
+        assertTrue(FireworksSchema::ControlProvenance.source_paths > 100);
+        assertRegex("^[a-f0-9]{64}$", FireworksSchema::ControlProvenance.source_sha256);
+    }
+
+    private referenceDataTest() {
+        FakeFireworksRestClientIo fake();
+        FireworksDataProvider::FireworksDataProvider root(fake);
+        fake.response_body = {"accounts": ({"name": "accounts/acme", "displayName": "Acme"},)};
+        auto accounts = root.getChildProvider("get-account").getReferenceData("accounts");
+        assertEq("accounts/acme", accounts[0].value);
+        assertEq("Acme", accounts[0].display_name);
+        assertTrue(fake.last_path.startsWith("/v1/accounts?"));
+        foreach hash<auto> test in (
+                {"action": "get-dataset", "ref": "datasets", "field": "datasets"},
+                {"action": "get-model", "ref": "models", "field": "models"},
+                {"action": "get-deployment", "ref": "deployments", "field": "deployments"}) {
+            int before = fake.requests;
+            assertNothing(root.getChildProvider(test.action).getReferenceData(test.ref));
+            assertEq(before, fake.requests, "missing parent does not send a request");
+            fake.response_body = {test.field: ({"name": "accounts/acme/" + test.field + "/a",
+                "displayName": "Invoices"},)};
+            auto values = root.getChildProvider(test.action).getReferenceData(test.ref, {"account_id": "accounts/acme"});
+            assertEq("Invoices", values[0].display_name);
+            assertEq("accounts/acme/" + test.field + "/a", values[0].value);
+            assertTrue(fake.last_path.startsWith("/v1/accounts/acme/" + test.field));
+        }
+        fake.response_body = {"datasets": ()};
+        assertNothing(root.getChildProvider("get-dataset").getReferenceData("datasets", {"account_id": "acme"}));
+    }
+
+    private negativeTest() {
+        assertThrows("CONSTRUCTOR-ERROR", sub() { new FireworksDataProvider::FireworksDataProvider({}); });
+        FakeFireworksRestClientIo fake();
+        FireworksDataProvider::FireworksDataProvider root(fake);
+        foreach hash<auto> test in (
+                {"action": "get-model", "request": {}},
+                {"action": "chat-completion", "request": {"model": "test"}},
+                {"action": "rerank", "request": {"query": "test", "documents": ()}},
+                {"action": "rerank", "request": {"query": "", "documents": ("text",)}},
+                {"action": "rerank", "request": {"query": "test", "documents": ("text",), "top_n": 0}},
+                {"action": "create-embeddings", "request": {"model": "test", "input": ""}},
+                {"action": "create-embeddings", "request": {"model": "test", "input": ()}},
+                {"action": "create-embeddings", "request": {"model": "test", "input": (map "text", xrange(2049))}},
+                {"action": "create-embeddings", "request": {"model": "test", "input": "text", "dimensions": 0}}) {
+            *hash<ExceptionInfo> error;
+            try {
+                root.getChildProvider(test.action).doRequest(test.request);
+            } catch (hash<ExceptionInfo> ex) {
+                error = ex;
+            }
+            assertTrue(exists error, test.action);
+            assertEq(0, fake.requests, "invalid input never reaches the transport");
+        }
+        assertThrows("FIREWORKS-CHILD-ERROR", sub() {
+            FireworksDataProvider::FireworksDataProvider::registerChild("get-model",
+                Class::forName("FireworksEmbeddingDataProvider"));
         });
-        assertTrue(resp.choices[0].message.content.val(),
-            "Fireworks returned non-empty assistant content");
-        assertTrue(resp.usage.total_tokens > 0,
-            "Fireworks reported positive total_tokens");
+    }
+
+    private inferenceOptionsTest() {
+        FakeFireworksRestClientIo fake();
+        FireworksDataProvider::FireworksDataProvider root(fake);
+        fake.response_body = {"model": "reranker", "object": "list", "data": (
+            {"index": 1, "relevance_score": 0.9, "document": "Refunds accepted"},),
+            "usage": {"prompt_tokens": 10, "total_tokens": 10}};
+        auto result = root.getChildProvider("rerank").doRequest({
+            "query": "refunds", "documents": ("Delivery", "Refunds accepted"), "top_n": 1,
+            "return_documents": True, "task": "Find refund policy",
+        });
+        assertEq("/inference/v1/rerank", fake.last_path);
+        assertEq(1, result.data[0]."index");
+        assertEq(0.9, result.data[0].relevance_score);
+        assertEq("Find refund policy", fake.last_request.task);
+        fake.response_body = {"data": ()};
+        root.getChildProvider("create-embeddings").doRequest({
+            "model": "embedder", "input": {"text": "invoice"}, "prompt_template": "{text}",
+            "dimensions": 32, "return_logits": (0, 1), "normalize": True,
+        });
+        assertEq({"text": "invoice"}, fake.last_request.input);
+        assertEq(32, fake.last_request.dimensions);
+        assertEq((0, 1), fake.last_request.return_logits);
+        assertTrue(fake.last_request.normalize);
+        root.getChildProvider("create-embeddings").doRequest({
+            "model": "embedder", "input": (map "text", xrange(2048)), "dimensions": 1,
+        });
+        assertEq(2048, fake.last_request.input.size(), "the maximum batch size is accepted");
+        assertEq(1, fake.last_request.dimensions, "the minimum dimension is accepted");
+    }
+
+    private lostResponseTest() {
+        FakeFireworksRestClientIo fake();
+        fake.lose_response = True;
+        FireworksDataProvider::FireworksDataProvider root(fake);
+        foreach hash<auto> test in (
+                {"action": "rerank", "request": {"query": "test", "documents": ("text",)}},
+                {"action": "create-embeddings", "request": {"model": "test", "input": "text"}}) {
+            int before = fake.requests;
+            assertThrows("SOCKET-CLOSED", sub() { root.getChildProvider(test.action).doRequest(test.request); });
+            assertEq(before + 1, fake.requests, "a lost response must not duplicate paid inference");
+        }
+    }
+
+    private translationTest() {
+        hash<DataProviderAppInfo> app = DataProviderActionCatalog::getApp("FireworksAi");
+        list<hash<DataProviderActionInfo>> actions = DataProviderActionCatalog::getActions("FireworksAi");
+        string catalog_path = get_script_dir() + "/../../../../qlib/FireworksDataProvider/i18n";
+        foreach string locale in (("cs", "de", "es", "fr", "it", "ja", "ko", "pl", "sk", "uk", "zh-Hant", "zh-TW")) {
+            DataProviderPresentationCatalog catalog(DataProviderPresentation::defaultCatalogDomain(app.name),
+                locale, {"search_path": (catalog_path,)});
+            assertFalse(exists catalog.projectApp(app).presentation_incomplete, locale);
+            foreach hash<DataProviderActionInfo> action in (actions) {
+                hash<auto> translated = catalog.projectAction(app, action);
+                assertFalse(exists translated.presentation_incomplete, locale + ": " + action.action);
+                assertEq(action.action, translated.action, "translation preserves action identity");
+                foreach hash<auto> option in (action.options.pairIterator()) {
+                    assertFalse(exists catalog.projectOption(app, action, option.key, option.value).presentation_incomplete,
+                        locale + ": " + action.action + ": " + option.key);
+                    foreach hash<AllowedValueInfo> value in (option.value.allowed_values) {
+                        hash<auto> localized = catalog.projectAllowedValue(app, action, option.key, value);
+                        assertFalse(exists localized.presentation_incomplete, locale + ": " + value.display_name);
+                        assertEq(value.value, localized.value, "translation preserves the API wire value");
+                    }
+                }
+            }
+        }
+    }
+
+    #! Verifies the named connection and a bounded set of live model workflows
+    /** Runs only with -c/--connection, FIREWORKS_CONNECTION, or --live. Performs read-only catalog calls and three small inference
+        requests: at most 64 chat output tokens, one embedding input, and two rerank candidates.
+        It never provisions deployments or starts training or batch jobs.
+    */
+    private AbstractDataProvider getLiveRoot() {
+        if (!live_root) {
+            if (conn_name) {
+                live_connection = get_connection(conn_name);
+            } else {
+                if (!ENV.FIREWORKSAI_APIKEY) {
+                    throw "LIVE-TEST-CONFIG-ERROR", "--live requires FIREWORKSAI_APIKEY";
+                }
+                live_connection = new FireworksRestClient::FireworksRestConnection("live", "live API test",
+                    FireworksRestClient::FireworksRestConnection::DefaultUrl, {},
+                    {"apikey": ENV.FIREWORKSAI_APIKEY, "connect_timeout": 15s, "timeout": 30s});
+            }
+            live_root = live_connection.getDataProvider();
+        }
+        return live_root;
+    }
+
+    private liveFireworksTest() {
+        AbstractDataProvider root = getLiveRoot();
+        assertEq("FireworksAi", live_connection.getAppName());
+        assertTrue(live_connection.ping(True).ok);
+        auto accounts = root.getChildProvider("list-accounts").doRequest({"pageSize": 1});
+        assertTrue(accounts.accounts.size() > 0);
+        string account = accounts.accounts[0].name;
+        auto catalog = root.getChildProvider("list-serverless-models").doRequest({
+            "account_id": account, "pageSize": 200,
+        });
+        assertTrue(catalog.models.size() > 0);
+        foreach hash<auto> test in (
+                {"action": "list-datasets", "key": "datasets"},
+                {"action": "list-deployments", "key": "deployments"},
+                {"action": "list-batch-inference-jobs", "key": "batchInferenceJobs"},
+                {"action": "list-supervised-fine-tuning-jobs", "key": "supervisedFineTuningJobs"}) {
+            auto response = root.getChildProvider(test.action).doRequest({"account_id": account, "pageSize": 1});
+            assertTrue(exists response{test.key}, test.action);
+        }
+        auto models = root.getChildProvider("chat-completion").getReferenceData("inference-models");
+        assertTrue(models.size() > 0);
+    }
+
+    private liveChatTest() {
+        AbstractDataProvider root = getLiveRoot();
+        string chat_model = ENV.FIREWORKS_TEST_CHAT_MODEL ?? "accounts/fireworks/models/gpt-oss-120b";
+        auto chat = root.getChildProvider("chat-completion").doRequest({
+            "model": chat_model,
+            "messages": ({"role": "user", "content": "Say hi."},),
+            "max_tokens": 64, "reasoning_effort": "low", "temperature": 0.0,
+        });
+        assertTrue(chat.choices[0].message.content.val());
+        assertTrue(chat.usage.total_tokens > 0);
+        assertTrue(chat.usage.completion_tokens <= 64);
+        assertEq(NT_DATE, chat.created.typeCode());
+        printf("Live chat tokens: %d (output %d)\n", chat.usage.total_tokens, chat.usage.completion_tokens);
+    }
+
+    private liveEmbedTest() {
+        AbstractDataProvider root = getLiveRoot();
+        auto embedded = root.getChildProvider("create-embeddings").doRequest({
+            "model": ENV.FIREWORKS_TEST_EMBED_MODEL ?? "accounts/fireworks/models/qwen3-embedding-8b",
+            "input": "invoice", "dimensions": 32,
+        });
+        assertEq(32, embedded.data[0].embedding.size());
+        assertTrue(embedded.usage.total_tokens > 0);
+        printf("Live embedding tokens: %d\n", embedded.usage.total_tokens);
+    }
+
+    private liveRerankTest() {
+        AbstractDataProvider root = getLiveRoot();
+        auto ranked = root.getChildProvider("rerank").doRequest({
+            "model": ENV.FIREWORKS_TEST_RERANK_MODEL ?? "accounts/fireworks/models/qwen3-reranker-8b",
+            "query": "refund", "documents": ("Refunds accepted", "Blue sky"), "top_n": 1,
+        });
+        assertEq(1, ranked.data.size());
+        assertEq(0, ranked.data[0]."index");
+        assertTrue(ranked.data[0].relevance_score >= 0.0 && ranked.data[0].relevance_score <= 1.0);
+        printf("Live reranking tokens: %d\n", ranked.usage.total_tokens);
     }
 }
+
+%endif
+
+%endif

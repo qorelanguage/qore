@@ -1,21 +1,99 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires QoreLlmTypes
-%requires QoreLlmUtils
-%requires QoreRagTypes
-%requires QoreRagUtils
-%requires OpenAiRestClient
-%requires FireworksRestClient
+%try-module json
+%define MissingJson
+%endtry
+%ifdef MissingJson
+printf("SKIP: this test requires the external json module\n");
+%else
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/QoreLlmTypes.qm
+%requires ../../../../qlib/QoreLlmUtils
+%requires ../../../../qlib/QoreRagTypes.qm
+%requires ../../../../qlib/QoreRagUtils
+%requires ../../../../qlib/OpenAiRestClient.qm
+%requires ../../../../qlib/FireworksRestClient.qm
+
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/Logger.qm
 
 %exec-class FireworksRestClientTest
 
+class FireworksWireHandler inherits AbstractHttpRequestHandler {
+    private {
+        Mutex mutex();
+        hash<auto> request;
+    }
+
+    hash<auto> getRequest() {
+        AutoLock al(mutex);
+        return request;
+    }
+
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        AutoLock al(mutex);
+        request = hdr;
+        request.body = body.val() ? parse_json(body) : NOTHING;
+        if (hdr.authorization != "Bearer test-key") {
+            return makeResponse(401, "{}", {"Content-Type": MimeTypeJson});
+        }
+        if (hdr.path.split("?")[0] == "v1/accounts") {
+            return makeResponse(200, "{\"accounts\":[]}", {"Content-Type": MimeTypeJson});
+        }
+        if (hdr.path == "inference/v1/embeddings") {
+            return makeResponse(200, make_json({
+                "data": ({"index": 0, "embedding": (0.1, 0.2)},),
+            }), {"Content-Type": MimeTypeJson});
+        }
+        if (hdr.path == "inference/v1/chat/completions") {
+            return makeResponse(200, make_json({
+                "id": "test", "model": "test-model", "created": 1700000000,
+                "choices": ({"index": 0, "finish_reason": "stop",
+                    "message": {"role": "assistant", "content": "OK"}},),
+                "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+            }), {"Content-Type": MimeTypeJson});
+        }
+        return makeResponse(404, "{}", {"Content-Type": MimeTypeJson});
+    }
+}
+
+class SyncFireworksConnection inherits FireworksRestClient::FireworksRestConnection {
+    constructor(string url, string apikey)
+            : FireworksRestConnection("sync", "test", url, {}, {"apikey": apikey}) {
+    }
+
+    private object getAsyncImpl(bool connect = True, *hash<auto> rtopts) {
+        throw "CONNECTION-ASYNC-UNSUPPORTED", "test synchronous ping";
+    }
+}
+
 public class FireworksRestClientTest inherits QUnit::Test {
+    private {
+        HttpServer http;
+        int port;
+        FireworksWireHandler handler;
+    }
+
+    globalSetUp() {
+        http = new HttpServer(<HttpServerOptionInfo>{
+            "logger": new Logger("fireworks-test", LoggerLevel::getLevelWarn()),
+        });
+        port = http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        handler = new FireworksWireHandler();
+        http.setDefaultHandler("fireworks", handler);
+    }
+
+    globalTearDown() {
+        delete http;
+    }
+
     constructor() : Test("FireworksRestClient Test", "1.0") {
         addTestCase("connection scheme registered",       \connectionSchemeTest());
         addTestCase("LLM factory registered + lazy-loadable",
@@ -26,6 +104,12 @@ public class FireworksRestClientTest inherits QUnit::Test {
         addTestCase("REST client options apply Bearer mapping",
             \restOptionsTest());
         addTestCase("embedder requires api_key",          \embedderConfigTest());
+        addTestCase("REST transports preserve inference namespace", \wirePathTest());
+        addTestCase("embedder uses inference namespace", \embedderWireTest());
+        addTestCase("LLM provider uses inference namespace", \llmWireTest());
+        addTestCase("connection migration and app association", \migrationTest());
+        addTestCase("pings authenticate on all transports", \pingWireTest());
+        addTestCase("live pings verify valid and invalid keys", \livePingTest());
         set_return_value(main());
     }
 
@@ -55,7 +139,7 @@ public class FireworksRestClientTest inherits QUnit::Test {
     private defaultUrlTest() {
         FireworksRestClient::FireworksLlmProvider p(
             <QoreLlmUtils::LlmBackendConfig>{
-                "model": "accounts/fireworks/models/llama-v3p1-405b-instruct",
+                "model": "accounts/fireworks/models/gpt-oss-120b",
                 "api_key": "test-key",
             });
         assertEq("fireworks", p.getMode());
@@ -66,7 +150,7 @@ public class FireworksRestClientTest inherits QUnit::Test {
     private chatPathTest() {
         FireworksRestClient::FireworksLlmProvider p(
             <QoreLlmUtils::LlmBackendConfig>{
-                "model": "accounts/fireworks/models/llama-v3p1-405b-instruct",
+                "model": "accounts/fireworks/models/gpt-oss-120b",
                 "api_key": "k",
             });
         assertEq("/v1/chat/completions", p.getChatCompletionsPath());
@@ -80,20 +164,138 @@ public class FireworksRestClientTest inherits QUnit::Test {
         assertEq(NOTHING, opts.apikey);
         assertEq("https://api.fireworks.ai/inference", opts.url);
         assertEq("v1", opts.api);
-        assertEq("/v1", opts.default_path);
+        assertEq("/inference/v1", opts.default_path);
     }
 
     private embedderConfigTest() {
         assertThrows("EMBEDDER-CONFIG-ERROR", sub () {
             new QoreRagUtils::FireworksEmbedder(<QoreRagUtils::EmbedderConfig>{
                 "backend": "fireworks",
-                "model": "nomic-ai/nomic-embed-text-v1.5",
+                "model": "accounts/fireworks/models/qwen3-embedding-8b",
             });
         });
         QoreRagUtils::FireworksEmbedder e(<QoreRagUtils::EmbedderConfig>{
             "backend": "fireworks",
             "api_key": "k",
         });
-        assertEq("nomic-ai/nomic-embed-text-v1.5", e.getModel());
+        assertEq("accounts/fireworks/models/qwen3-embedding-8b", e.getModel());
     }
+    private string localUrl() {
+        return sprintf("http://127.0.0.1:%d/inference", port);
+    }
+
+    private wirePathTest() {
+        hash<auto> opts = {"url": localUrl(), "apikey": "test-key"};
+        foreach AbstractRestClient client in (
+                new FireworksRestClient::FireworksRestClient(opts),
+                new FireworksRestClient::FireworksRestClientIo(opts)) {
+            client.restPost("chat/completions", {"messages": (), "model": "test-model"});
+            assertEq("inference/v1/chat/completions", handler.getRequest().path);
+            assertEq("Bearer test-key", handler.getRequest().authorization);
+            assertEq("test-model", handler.getRequest().body.model);
+        }
+    }
+
+    private embedderWireTest() {
+        QoreRagUtils::FireworksEmbedder embedder(<QoreRagUtils::EmbedderConfig>{
+            "api_key": "test-key", "url": localUrl(),
+        });
+        assertEq((0.1, 0.2), embedder.encode("invoice"));
+        assertEq("inference/v1/embeddings", handler.getRequest().path);
+        assertEq(("invoice",), handler.getRequest().body.input);
+        assertEq(2, embedder.getDimension());
+    }
+
+    private llmWireTest() {
+        FireworksRestClient::FireworksLlmProvider provider(<QoreLlmUtils::LlmBackendConfig>{
+            "api_key": "test-key", "url": localUrl(), "model": "test-model",
+        });
+        assertEq("OK", provider.chat((<QoreLlmUtils::ChatMessage>{
+            "role": "user", "content": "Hi",
+        },)).content);
+        assertEq("inference/v1/chat/completions", handler.getRequest().path);
+    }
+
+    private migrationTest() {
+        foreach string path in ("models", "/models", "/v1/models") {
+            FireworksRestClient::FireworksRestConnection conn({
+                "name": "saved", "desc": "test", "url": "fireworks://localhost",
+                "opts": {"apikey": "test-key", "ping_method": "GET", "ping_path": path},
+            });
+            assertEq("FireworksAi", conn.getInfo().app);
+            assertEq("https://api.fireworks.ai/inference", conn.getConnectionOptions().url);
+            assertEq("/v1/accounts?pageSize=1", conn.getRealOptions().ping_path);
+        }
+        assertThrows("CONNECTION-OPTION-ERROR", sub () {
+            new FireworksRestClient::FireworksRestConnection("missing", "test");
+        });
+        assertTrue(FireworksRestClient::FireworksRestConnection::ConnectionScheme.options.apikey.sensitive);
+    }
+
+    #! Uses socket readiness to drive the connection's asynchronous ping without timing sleeps
+    private drivePing(AbstractPollOperation op) {
+        on_exit op.abort();
+        date deadline = now_us() + 15s;
+        while (!op.goalReached()) {
+            *hash<SocketPollInfo> info = op.continuePoll();
+            if (info) {
+                timeout remaining = deadline - now_us();
+                assertTrue(remaining > 0, "ping deadline");
+                assertTrue(exists Socket::poll((info,), remaining), "socket becomes ready");
+            }
+        }
+    }
+
+    private pingWireTest() {
+        foreach string key in ("test-key", "invalid-key") {
+            FireworksRestClient::FireworksRestConnection conn("test", "test", localUrl(), {}, {"apikey": key});
+            SyncFireworksConnection sync(localUrl(), key);
+            foreach code<auto()> ping in (
+                    auto sub() { return conn.ping(True); },
+                    auto sub() { return sync.ping(True); },
+                    auto sub() { drivePing(conn.startPollConnect()); return NOTHING; },
+                    auto sub() {
+                        drivePing(new RestClient::RestPingPollOperation(conn, conn.get(False), conn.getRealOptions()));
+                        return NOTHING;
+                    }) {
+                if (key == "test-key") {
+                    ping();
+                } else {
+                    assertAuthFailure(ping);
+                }
+                assertEq("v1/accounts", handler.getRequest().path.split("?")[0]);
+                assertEq("GET", handler.getRequest().method);
+                assertEq("Bearer " + key, handler.getRequest().authorization);
+            }
+        }
+    }
+
+    private assertAuthFailure(code<auto()> ping) {
+        *hash<ExceptionInfo> error;
+        try {
+            ping();
+        } catch (hash<ExceptionInfo> ex) {
+            error = ex;
+        }
+        assertTrue(exists error, "invalid credentials fail");
+        assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|HTTP-CLIENT-RECEIVE-ERROR)$", error.err);
+        assertTrue(index(error.desc, "401") >= 0, "failure is authentication rejection");
+    }
+
+    private livePingTest() {
+        if (!ENV.FIREWORKSAI_APIKEY) {
+            testSkip("set FIREWORKSAI_APIKEY for live authentication checks (no inference)");
+        }
+        FireworksRestClient::FireworksRestConnection conn("live", "test",
+            FireworksRestClient::FireworksRestConnection::DefaultUrl, {}, {"apikey": ENV.FIREWORKSAI_APIKEY});
+        assertTrue(conn.ping(True).ok);
+        drivePing(conn.startPollConnect());
+        FireworksRestClient::FireworksRestConnection invalid("invalid", "test",
+            FireworksRestClient::FireworksRestConnection::DefaultUrl, {}, {"apikey": "qore-invalid-key"});
+        assertAuthFailure(auto sub() { return invalid.ping(True); });
+        assertAuthFailure(auto sub() { drivePing(invalid.startPollConnect()); return NOTHING; });
+    }
+
 }
+
+%endif

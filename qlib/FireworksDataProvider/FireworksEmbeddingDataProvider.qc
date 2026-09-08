@@ -66,6 +66,12 @@ public class FireworksEmbeddingDataProvider inherits FireworksDataProviderCommon
     }
 
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        if (!req.input || (req.input.typeCode() == NT_LIST && req.input.size() > 2048)) {
+            throw "FIREWORKS-INPUT-ERROR", "provide a non-empty input with at most 2048 items";
+        }
+        if (exists req.dimensions && req.dimensions < 1) {
+            throw "FIREWORKS-INPUT-ERROR", "dimensions must be positive";
+        }
         return doRestCommand("POST", "embeddings", req).body;
     }
 }

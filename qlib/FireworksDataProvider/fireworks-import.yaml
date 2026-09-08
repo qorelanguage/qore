@@ -1,0 +1,33 @@
+# Copyright 2026 Qore Technologies, s.r.o.
+documents:
+- name: Fireworks Control
+  source: https://docs.fireworks.ai/gateway.openapi.yaml
+  output: fireworks-control-openapi.yaml
+  manifest: FireworksDataProvider:FireworksManifest::ControlManifest
+  provenance: FireworksSchema.qc
+  const: ControlProvenance
+- name: Fireworks Upload
+  source: https://docs.fireworks.ai/gateway-extra.openapi.yaml
+  output: fireworks-upload-openapi.yaml
+  manifest: FireworksDataProvider:FireworksManifest::UploadManifest
+  provenance: FireworksSchema.qc
+  const: UploadProvenance
+- name: Fireworks Text
+  source: https://docs.fireworks.ai/text-completion.openapi.yaml
+  output: fireworks-text-openapi.yaml
+  manifest: FireworksDataProvider:FireworksManifest::TextManifest
+  provenance: FireworksSchema.qc
+  const: TextProvenance
+- name: Fireworks Responses
+  source: https://docs.fireworks.ai/responses.openapi.yaml
+  output: fireworks-responses-openapi.yaml
+  manifest: FireworksDataProvider:FireworksManifest::ResponsesManifest
+  provenance: FireworksSchema.qc
+  const: ResponsesProvenance
+- name: Fireworks Messages
+  source: https://docs.fireworks.ai/anthropic-messages.openapi.json
+  output: fireworks-messages-openapi.yaml
+  json: false
+  manifest: FireworksDataProvider:FireworksManifest::MessagesManifest
+  provenance: FireworksSchema.qc
+  const: MessagesProvenance

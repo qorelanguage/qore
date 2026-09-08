@@ -36,7 +36,6 @@ public class FireworksDataProviderCommon inherits DataProvider::AbstractDataProv
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The Fireworks AI API key.  Get one from the "
                     "[Fireworks Dashboard](https://fireworks.ai/account/api-keys).",
-                "required": True,
                 "sensitive": True,
             },
             "url": <DataProviderOptionInfo>{
@@ -72,12 +71,6 @@ public class FireworksDataProviderCommon inherits DataProvider::AbstractDataProv
             },
         };
 
-        const RetrySet = {
-            "SOCKET-SSL-ERROR": True,
-            "SOCKET-CLOSED": True,
-        };
-
-        const MaxIoRetries = 5;
     }
 
     private {
@@ -85,13 +78,14 @@ public class FireworksDataProviderCommon inherits DataProvider::AbstractDataProv
     }
 
     constructor(RestClientIo::RestClientIo rest) {
-        self.rest = rest;
+        self.rest = cast<RestClientIo::RestClientIo>(rest.copyWithUrl(rest.getUrl().toString()));
+        self.rest.clearConnectionPath();
     }
 
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         if (copts.restclient) {
-            rest = copts.restclient;
+            rest = cast<RestClientIo::RestClientIo>(copts.restclient.copyWithUrl(copts.restclient.getUrl().toString()));
         }
         if (!rest) {
             if (!copts.apikey.val()) {
@@ -105,55 +99,31 @@ public class FireworksDataProviderCommon inherits DataProvider::AbstractDataProv
             };
             rest = new FireworksRestClient::FireworksRestClientIo(opts);
         }
+        rest.clearConnectionPath();
     }
 
+    #! Returns a provider for one of the schema actions
+    /** @param action stable action ID
+        @return a provider using this connection's transport
+    */
+    private RestSchemaActionDataProvider getSchemaProvider(string action) {
+        RestSchemaActionSet aset = FireworksSchema::getActionSet(action);
+        return new RestSchemaActionDataProvider(aset, aset.getOperationEx(action), rest);
+    }
+
+    #! Returns the supported dropdown names
+    /** @return dropdowns provided by the account/model catalog */
+    *hash<string, bool> getSupportedReferenceData() {
+        return getSchemaProvider("list-models").getSupportedReferenceData();
+    }
+
+    private *list<hash<AllowedValueInfo>> getReferenceDataImpl(string type, *hash<auto> options) {
+        return getSchemaProvider("list-models").getReferenceData(type, options);
+    }
+
+    #! Makes a non-retried inference request; retrying a paid POST after a lost response can double bill
     private hash<auto> doRestCommand(string method, string path, auto body, *hash<auto> hdr) {
-        int retries = 0;
-        while (True) {
-            try {
-                debug("REST %y %y body: %y", method, path, body);
-                switch (method.upr()) {
-                    case "GET":
-                        return rest.restGet(path, hdr);
-                    case "POST":
-                        return rest.restPost(path, body, hdr);
-                    case "DELETE":
-                        return rest.restDel(path, body, hdr);
-                    default:
-                        return rest.restDoRequest(method, path, body, hdr);
-                }
-            } catch (hash<ExceptionInfo> ex) {
-                if (retry(ex, \retries)) {
-                    continue;
-                }
-                rethrow ex.err, sprintf("%s (request path: %y)", ex.desc,
-                    ex.arg.request_path ?? path), ex.arg;
-            }
-        }
-    }
-
-    private bool retry(hash<ExceptionInfo> ex, reference<int> retries) {
-        if (RetrySet{ex.err}) {
-            if (++retries == MaxIoRetries) {
-                LoggerWrapper::error(sprintf("Maximum retries exceeded (%d)", retries));
-                return False;
-            }
-            warn("Technical error making REST call: %s: %s; retrying", ex.err, ex.desc);
-            return True;
-        }
-        if (ex.err == "REST-RESPONSE-ERROR" && ex.arg.status_code == 429) {
-            if (++retries == MaxIoRetries) {
-                LoggerWrapper::error(sprintf("Maximum retries exceeded (%d)", retries));
-                return False;
-            }
-            *string retry_after = ex.arg.headers."retry-after";
-            int wait_secs = retry_after.val() ? retry_after.toInt() : (1 << retries);
-            warn("Rate limited (429); waiting %d second(s) before retry %d",
-                wait_secs, retries);
-            sleep(wait_secs);
-            return True;
-        }
-        return False;
+        return rest.restDoRequest(method, "/inference/v1/" + ltrim(path, "/"), body, hdr);
     }
 }
 }
