@@ -1385,6 +1385,24 @@ fetch
       nothing about the case the word was written in, but it suppressed case folding and then introduced a
       spurious word break (ex: \c "STRAßE_NAME" previously yielded \c "STRAß E Name" and now yields
       \c "Straße Name")
+    - fixed expression rendering to parenthesize an argument only where the grouping requires it, in both
+      @ref DataProvider::DataProvider::renderExpression() "DataProvider::renderExpression()" and
+      @ref DataProvider::DpqlSerializer "DpqlSerializer", which answered the question separately and were each
+      wrong in a different direction; the description parenthesized every nested operator, so the left-nested
+      tree for \c "1 + 2 + 3" was described as \c "(1 + 2) + 3", and the serializer parenthesized none at equal
+      precedence, so \c "1 - (2 - 3)" was serialized as \c "1 - 2 - 3", which parses as \c "(1 - 2) - 3" and is
+      a different expression (2 serialized as -4); both now use
+      @ref DataProvider::DpqlSerializer::getArgumentContext() "DpqlSerializer::getArgumentContext()", which
+      leaves the first argument bare (parsing restores that grouping) and parenthesizes a later one unless the
+      operator is listed in @ref DataProvider::DpqlAssociativeOperators "DpqlAssociativeOperators"; \c + is
+      deliberately not listed, as it concatenates when an operand is a string
+      (\c "1 + (2 + \"a\")" is \c "12a" where \c "1 + 2 + \"a\"" is \c "3a")
+    - made the DPQL operator precedence levels (@ref DPQL_PREC_PRIMARY etc),
+      @ref DataProvider::DpqlOperatorPrecedence "DpqlOperatorPrecedence" and
+      @ref DataProvider::DpqlAssociativeOperators "DpqlAssociativeOperators" public, and added
+      @ref DataProvider::DpqlSerializer::getOperatorPrecedence() "DpqlSerializer::getOperatorPrecedence()" and
+      @ref DataProvider::DpqlSerializer::getArgumentContext() "DpqlSerializer::getArgumentContext()", so that
+      any renderer can parenthesize expressions by the same rule the parser reads them by
 
     @subsection dataprovider_v3_7 DataProvider v3.7
     - fixed \c HashDataType required-field tracking when an optional field with a default is added after a

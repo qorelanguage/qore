@@ -26,13 +26,72 @@
 public namespace DataProvider {
 
 #! Operator precedence levels (lower = binds tighter)
-const DPQL_PREC_PRIMARY = 0;
-const DPQL_PREC_MULTIPLICATIVE = 1;
-const DPQL_PREC_ADDITIVE = 2;
-const DPQL_PREC_UNARY = 3;
-const DPQL_PREC_COMPARISON = 4;
-const DPQL_PREC_AND = 5;
-const DPQL_PREC_OR = 6;
+/** Public since @ref DpqlSerializer::getOperatorPrecedence() and
+    @ref DpqlSerializer::getArgumentContext() answer in them: a value a caller cannot name is one
+    they cannot act on.
+
+    @since DataProvider 3.8 (public; the values themselves are unchanged)
+*/
+public const DPQL_PREC_PRIMARY = 0;
+#! @copydoc DPQL_PREC_PRIMARY
+public const DPQL_PREC_MULTIPLICATIVE = 1;
+#! @copydoc DPQL_PREC_PRIMARY
+public const DPQL_PREC_ADDITIVE = 2;
+#! @copydoc DPQL_PREC_PRIMARY
+public const DPQL_PREC_UNARY = 3;
+#! @copydoc DPQL_PREC_PRIMARY
+public const DPQL_PREC_COMPARISON = 4;
+#! @copydoc DPQL_PREC_PRIMARY
+public const DPQL_PREC_AND = 5;
+#! @copydoc DPQL_PREC_PRIMARY
+public const DPQL_PREC_OR = 6;
+
+#! Operator precedence by operator name (lower = binds tighter)
+/** Shared, so that everything that renders an expression parenthesises it by the same rule the
+    parser reads it by. Two renderers with two rules is two chances to be wrong, and both were:
+    one stated something the author never wrote (parentheses around every nested operator), the
+    other lost something they did.
+
+    @since DataProvider 3.8
+*/
+public const DpqlOperatorPrecedence = {
+        DP_OP_OR: DPQL_PREC_OR,
+        DP_OP_AND: DPQL_PREC_AND,
+        DP_SEARCH_OP_EQ: DPQL_PREC_COMPARISON,
+        DP_SEARCH_OP_NE: DPQL_PREC_COMPARISON,
+        DP_SEARCH_OP_LT: DPQL_PREC_COMPARISON,
+        DP_SEARCH_OP_LE: DPQL_PREC_COMPARISON,
+        DP_SEARCH_OP_GT: DPQL_PREC_COMPARISON,
+        DP_SEARCH_OP_GE: DPQL_PREC_COMPARISON,
+        DP_SEARCH_OP_BETWEEN: DPQL_PREC_COMPARISON,
+        DP_SEARCH_OP_IN: DPQL_PREC_COMPARISON,
+        DP_OP_NOT_IN: DPQL_PREC_COMPARISON,
+        DP_SEARCH_OP_REGEX: DPQL_PREC_COMPARISON,
+        DP_OP_REGEX_MATCH: DPQL_PREC_COMPARISON,
+        DP_OP_REGEX_NMATCH: DPQL_PREC_COMPARISON,
+        DP_SEARCH_OP_NOT: DPQL_PREC_UNARY,
+        DP_OP_PLUS: DPQL_PREC_ADDITIVE,
+        DP_OP_MINUS: DPQL_PREC_ADDITIVE,
+        DP_OP_MULT: DPQL_PREC_MULTIPLICATIVE,
+        DP_OP_DIV: DPQL_PREC_MULTIPLICATIVE,
+        DP_OP_MOD: DPQL_PREC_MULTIPLICATIVE,
+};
+
+#! Operators whose grouping cannot change the result
+/** Re-parsing rebuilds a left-associative tree, so an argument at the same precedence as its
+    parent comes back re-associated. For these operators that is harmless — \c a && (b && c) and
+    \c (a && b) && c answer the same question — so the parentheses are noise and are dropped.
+
+    Everything else keeps them, and \c + is deliberately not on this list: it concatenates when an
+    operand is a string, so \c 1 + (2 + "a") is \c "12a" while \c 1 + 2 + "a" is \c "3a". Rendering
+    one as the other is not a cosmetic difference.
+
+    @since DataProvider 3.8
+*/
+public const DpqlAssociativeOperators = {
+    DP_OP_AND: True,
+    DP_OP_OR: True,
+};
 
 #! Serializer for DPQL (Data Provider Query Language) expressions
 /** This class converts DataProviderExpression hashes back into human-readable
@@ -70,28 +129,7 @@ public class DpqlSerializer {
         *hash<string, bool> reserved_identifiers;
 
         #! Map of operators to their precedence
-        const hash<auto> OperatorPrecedence = {
-            DP_OP_OR: DPQL_PREC_OR,
-            DP_OP_AND: DPQL_PREC_AND,
-            DP_SEARCH_OP_EQ: DPQL_PREC_COMPARISON,
-            DP_SEARCH_OP_NE: DPQL_PREC_COMPARISON,
-            DP_SEARCH_OP_LT: DPQL_PREC_COMPARISON,
-            DP_SEARCH_OP_LE: DPQL_PREC_COMPARISON,
-            DP_SEARCH_OP_GT: DPQL_PREC_COMPARISON,
-            DP_SEARCH_OP_GE: DPQL_PREC_COMPARISON,
-            DP_SEARCH_OP_BETWEEN: DPQL_PREC_COMPARISON,
-            DP_SEARCH_OP_IN: DPQL_PREC_COMPARISON,
-            DP_OP_NOT_IN: DPQL_PREC_COMPARISON,
-            DP_SEARCH_OP_REGEX: DPQL_PREC_COMPARISON,
-            DP_OP_REGEX_MATCH: DPQL_PREC_COMPARISON,
-            DP_OP_REGEX_NMATCH: DPQL_PREC_COMPARISON,
-            DP_SEARCH_OP_NOT: DPQL_PREC_UNARY,
-            DP_OP_PLUS: DPQL_PREC_ADDITIVE,
-            DP_OP_MINUS: DPQL_PREC_ADDITIVE,
-            DP_OP_MULT: DPQL_PREC_MULTIPLICATIVE,
-            DP_OP_DIV: DPQL_PREC_MULTIPLICATIVE,
-            DP_OP_MOD: DPQL_PREC_MULTIPLICATIVE,
-        };
+        const OperatorPrecedence = DpqlOperatorPrecedence;
 
         #! Map of operators to their DPQL symbols
         const hash<string, string> OperatorSymbols = {
@@ -140,6 +178,42 @@ public class DpqlSerializer {
         }
     }
 
+    #! Returns the precedence of an operator (lower binds tighter)
+    /** @param op the operator name
+
+        @return its precedence, or @ref DPQL_PREC_PRIMARY for anything that is not an operator
+
+        @since DataProvider 3.8
+    */
+    static int getOperatorPrecedence(string op) {
+        return DpqlOperatorPrecedence{op} ?? DPQL_PREC_PRIMARY;
+    }
+
+    #! Returns the precedence context an operator's argument is rendered in
+    /** The single answer to "does this argument need parentheses?", used by every renderer so that
+        two of them cannot disagree. An argument is parenthesised exactly when its own precedence is
+        LOOSER than the context returned here.
+
+        The first argument never needs them: it is where left-associative parsing puts a
+        same-precedence child back, so \c (1 - 2) - 3 reads as \c 1 - 2 - 3 and comes back
+        identical. A later argument does, because re-parsing would re-associate it — and
+        \c 1 - (2 - 3) rendered as \c 1 - 2 - 3 is not the same expression, it is 2 rendered as -4.
+
+        @ref DpqlAssociativeOperators are the exception: there the grouping cannot change the
+        answer, so the parentheses would state something the author did not write.
+
+        @param op the operator name
+        @param argn the argument's position
+
+        @return the precedence context to render that argument in
+
+        @since DataProvider 3.8
+    */
+    static int getArgumentContext(string op, int argn) {
+        int prec = DpqlSerializer::getOperatorPrecedence(op);
+        return (!argn || DpqlAssociativeOperators{op}) ? prec : prec - 1;
+    }
+
     #! Serializes an expression to DPQL string
     /** @param exp the expression to serialize
         @return the DPQL string representation
@@ -164,11 +238,11 @@ public class DpqlSerializer {
 
         switch (op) {
             case DP_OP_OR:
-                result = serializeBinaryOp(exp.args, "||", DPQL_PREC_OR);
+                result = serializeBinaryOp(exp.args, "||", op);
                 break;
 
             case DP_OP_AND:
-                result = serializeBinaryOp(exp.args, "&&", DPQL_PREC_AND);
+                result = serializeBinaryOp(exp.args, "&&", op);
                 break;
 
             case DP_SEARCH_OP_EQ:
@@ -177,7 +251,7 @@ public class DpqlSerializer {
             case DP_SEARCH_OP_LE:
             case DP_SEARCH_OP_GT:
             case DP_SEARCH_OP_GE:
-                result = serializeComparisonOp(exp.args, OperatorSymbols{op});
+                result = serializeComparisonOp(exp.args, OperatorSymbols{op}, op);
                 break;
 
             case DP_SEARCH_OP_NOT:
@@ -210,7 +284,7 @@ public class DpqlSerializer {
             case DP_OP_MULT:
             case DP_OP_DIV:
             case DP_OP_MOD:
-                result = serializeArithmeticOp(exp.args, OperatorSymbols{op}, prec);
+                result = serializeArithmeticOp(exp.args, OperatorSymbols{op}, op);
                 break;
 
             case DP_EXPR_VALUE:
@@ -273,7 +347,7 @@ public class DpqlSerializer {
                         && inlist("Comparison", expressions{op}.groups)
                         && exp.args.size() == 2) {
                     string sym = name_to_symbol{op} ?? op;
-                    result = serializeComparisonOp(exp.args, sym);
+                    result = serializeComparisonOp(exp.args, sym, op);
                 } else {
                     # Unknown operator - treat as function call
                     result = serializeFunctionCall(op, exp.args);
@@ -297,30 +371,31 @@ public class DpqlSerializer {
     }
 
     #! Serializes a binary operator with multiple arguments (&&, ||)
-    private string serializeBinaryOp(list<auto> args, string symbol, int prec) {
+    private string serializeBinaryOp(list<auto> args, string symbol, string op) {
         list<string> parts = ();
+        int argn = 0;
         foreach auto arg in (args) {
-            parts += serializeArg(arg, prec);
+            parts += serializeArg(arg, DpqlSerializer::getArgumentContext(op, argn++));
         }
         return parts.join(" " + symbol + " ");
     }
 
     #! Serializes a comparison operator
-    private string serializeComparisonOp(list<auto> args, string symbol) {
+    private string serializeComparisonOp(list<auto> args, string symbol, string op) {
         if (args.size() < 2) {
             return "";
         }
-        return serializeArg(args[0], DPQL_PREC_COMPARISON) + " " + symbol + " " +
-            serializeArg(args[1], DPQL_PREC_COMPARISON);
+        return serializeArg(args[0], DpqlSerializer::getArgumentContext(op, 0)) + " " + symbol + " "
+            + serializeArg(args[1], DpqlSerializer::getArgumentContext(op, 1));
     }
 
     #! Serializes an arithmetic binary operator with correct precedence
-    private string serializeArithmeticOp(list<auto> args, string symbol, int prec) {
+    private string serializeArithmeticOp(list<auto> args, string symbol, string op) {
         if (args.size() < 2) {
             return "";
         }
-        return serializeArg(args[0], prec) + " " + symbol + " " +
-            serializeArg(args[1], prec);
+        return serializeArg(args[0], DpqlSerializer::getArgumentContext(op, 0)) + " " + symbol + " "
+            + serializeArg(args[1], DpqlSerializer::getArgumentContext(op, 1));
     }
 
     #! Serializes the NOT operator

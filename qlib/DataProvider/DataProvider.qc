@@ -864,16 +864,31 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{datasourc
             throw "INVALID-EXPRESSION", sprintf("Expression %y not found in expression map", exp.exp);
         }
         if (info.type == DET_Function) {
-            str = sprintf("%s(%s)", info.name, (foldl $1 + ", " + $2, (map renderExpressionArg($1, emap,
-                info.arg_info[$1]), exp.args)));
+            # a call's arguments are delimited by the call's own parentheses and commas, so nothing
+            # inside them can be misread: rendered in the loosest context, which never parenthesises
+            list<string> args = ();
+            for (int i = 0; i < exp.args.size(); ++i) {
+                args += renderExpressionArg(exp.args[i], emap, info.arg_info[i], DPQL_PREC_OR + 1);
+            }
+            str = sprintf("%s(%s)", info.name, args.join(", "));
         } else if (info.render_template) {
             str = renderExpressionTemplate(info, exp, emap);
         } else {
+            # Parentheses by the same rule the DPQL serializer uses, so that the description of an
+            # expression and the DPQL for it agree about which grouping the author wrote. Rendering
+            # every nested operator in parentheses is always CORRECT, but it states something they
+            # did not write: `1 + 2 + 3` came back as `(1 + 2) + 3`, an artefact of the tree being
+            # left-nested rather than anything about the expression.
             if (exp.args.size() == 1) {
-                str = sprintf("%s %s", info.symbol, renderExpressionArg(exp.args[0], emap, info.arg_info[0]));
+                str = sprintf("%s %s", info.symbol, renderExpressionArg(exp.args[0], emap, info.arg_info[0],
+                    DpqlSerializer::getArgumentContext(exp.exp, 0)));
             } else {
-                str = foldl $1 + " " + info.symbol + " " + $2, (map renderExpressionArg($1, emap, info.arg_info[$1]),
-                    exp.args);
+                list<string> args = ();
+                for (int i = 0; i < exp.args.size(); ++i) {
+                    args += renderExpressionArg(exp.args[i], emap, info.arg_info[i],
+                        DpqlSerializer::getArgumentContext(exp.exp, i));
+                }
+                str = args.join(" " + info.symbol + " ");
             }
         }
         return str;
@@ -1704,7 +1719,8 @@ if (errors) {
         @since DataProvider 3.3
     */
     static private string renderExpressionArg(hash<DataProviderFieldReference> ref,
-            hash<string, hash<DataProviderExpressionInfo>> emap, *hash<DataProviderArgInfo> arg_info) {
+            hash<string, hash<DataProviderExpressionInfo>> emap, *hash<DataProviderArgInfo> arg_info,
+            *int context_prec) {
         return sprintf("{%s}", ref.field);
     }
 
@@ -1713,7 +1729,8 @@ if (errors) {
         @since DataProvider 3.3
     */
     static private string renderExpressionArg(hash<DataProviderTemplateReference> ref,
-            hash<string, hash<DataProviderExpressionInfo>> emap, *hash<DataProviderArgInfo> arg_info) {
+            hash<string, hash<DataProviderExpressionInfo>> emap, *hash<DataProviderArgInfo> arg_info,
+            *int context_prec) {
         if (ref.raw) {
             return ref.raw;
         }
@@ -1732,17 +1749,27 @@ if (errors) {
         @since DataProvider 3.3
     */
     static private string renderExpressionArg(hash<DataProviderExpression> exp,
-            hash<string, hash<DataProviderExpressionInfo>> emap, *hash<DataProviderArgInfo> arg_info) {
+            hash<string, hash<DataProviderExpressionInfo>> emap, *hash<DataProviderArgInfo> arg_info,
+            *int context_prec) {
         *hash<DataProviderExpressionInfo> info = emap{exp.exp};
         if (!info) {
             throw "INVALID-EXPRESSION", sprintf("Expression %y not found in expression map", info.name);
         }
+        # Parenthesised exactly when this argument's own operator binds LOOSER than the context it
+        # is being rendered in — @ref DpqlSerializer::getArgumentContext() is the single answer to
+        # that question, shared so the description and the DPQL cannot disagree.
+        #
+        # A caller that names no context gets @ref DPQL_PREC_PRIMARY, the tightest there is, which
+        # parenthesises every operator: the behaviour this had everywhere before, kept for the
+        # template renderer, which substitutes arguments into prose rather than into an expression.
+        bool parens = info.type == DET_Operator
+            && DpqlSerializer::getOperatorPrecedence(exp.exp) > (context_prec ?? DPQL_PREC_PRIMARY);
         string str;
-        if (info.type == DET_Operator) {
+        if (parens) {
             str = "(";
         }
         str += renderExpression(exp, emap);
-        if (info.type == DET_Operator) {
+        if (parens) {
             str += ")";
         }
         return str;
@@ -1753,7 +1780,7 @@ if (errors) {
         @since DataProvider 3.3
     */
     static private string renderExpressionArg(auto v, hash<string, hash<DataProviderExpressionInfo>> emap,
-            *hash<DataProviderArgInfo> arg_info) {
+            *hash<DataProviderArgInfo> arg_info, *int context_prec) {
         if (!exists v) {
             if (!exists (v = arg_info.default_value)) {
                 return "";

@@ -90,6 +90,7 @@ public class DpqlTest inherits QUnit::Test {
         addTestCase("serializer tests", \serializerTests());
         addTestCase("accessor serializer tests", \accessorSerializerTests());
         addTestCase("round-trip tests", \roundTripTests());
+        addTestCase("expression parentheses tests", \expressionParenthesesTests());
         addTestCase("accessor round-trip tests", \accessorRoundTripTests());
         addTestCase("accessor operator discoverability tests", \accessorOperatorDiscoverabilityTests());
         addTestCase("accessor serializer edge case tests", \accessorSerializerEdgeCaseTests());
@@ -1338,6 +1339,74 @@ public class DpqlTest inherits QUnit::Test {
             string dpql = DataProvider::serializeDpqlExpression(exp, expmap);
             assertEq("substr(@name, 0, 5)", dpql, "serializer strips () from function symbol");
         }
+    }
+
+    #! Parentheses appear where they are needed and nowhere else
+    /** Two renderers used to answer this question separately and each was wrong in its own
+        direction. The description parenthesised EVERY nested operator, so `1 + 2 + 3` came back as
+        `(1 + 2) + 3` — an artefact of the tree being left-nested, stated to the author as though
+        they had written it. The DPQL serializer parenthesised NONE at equal precedence, so
+        `1 - (2 - 3)` came back as `1 - 2 - 3`, which re-parses as `(1 - 2) - 3`: 2 serialized as
+        -4. Both now ask `DpqlSerializer::getArgumentContext()`.
+    */
+    expressionParenthesesTests() {
+        code bin = hash<DataProviderExpression> sub (string op, auto l, auto r) {
+            return <DataProviderExpression>{"exp": op, "args": (l, r)};
+        };
+
+        # The first argument is where left-associative parsing puts a same-precedence child back,
+        # so it needs no parentheses in either rendering.
+        foreach string op in (("+", "-")) {
+            hash<DataProviderExpression> exp = bin(op, bin(op, 1, 2), 3);
+            string expected = sprintf("1 %s 2 %s 3", op, op);
+            assertEq(expected, DataProvider::serializeDpqlExpression(exp), sprintf("serialize left-nested %s", op));
+            assertEq(expected, DataProvider::renderExpression(exp), sprintf("render left-nested %s", op));
+        }
+
+        # A later argument keeps them, and this is the correctness half: without them the text
+        # re-parses as a DIFFERENT expression.
+        foreach string op in (("-", "/")) {
+            hash<DataProviderExpression> exp = bin(op, 1, bin(op, 2, 3));
+            string expected = sprintf("1 %s (2 %s 3)", op, op);
+            assertEq(expected, DataProvider::serializeDpqlExpression(exp), sprintf("serialize right-nested %s", op));
+            assertEq(expected, DataProvider::renderExpression(exp), sprintf("render right-nested %s", op));
+            # what the parentheses are FOR: the AST survives the trip through text
+            assertEq(exp, DataProvider::parseDpqlExpression(DataProvider::serializeDpqlExpression(exp)),
+                sprintf("round-trip right-nested %s", op));
+        }
+
+        # `+` is not on the associative list, and this is why: it concatenates when an operand is a
+        # string, so re-associating it changes the answer ("12a" becomes "3a").
+        {
+            hash<DataProviderExpression> exp = bin("+", 1, bin("+", 2, "a"));
+            assertEq('1 + (2 + "a")', DataProvider::serializeDpqlExpression(exp));
+            assertEq(exp, DataProvider::parseDpqlExpression(DataProvider::serializeDpqlExpression(exp)),
+                "round-trip right-nested + with a string operand");
+        }
+
+        # Precedence: a looser argument needs them, a tighter one does not.
+        assertEq("(1 + 2) * 3", DataProvider::serializeDpqlExpression(bin("*", bin("+", 1, 2), 3)));
+        assertEq("(1 + 2) * 3", DataProvider::renderExpression(bin("*", bin("+", 1, 2), 3)));
+        assertEq("1 + 2 * 3", DataProvider::serializeDpqlExpression(bin("+", 1, bin("*", 2, 3))));
+        assertEq("1 + 2 * 3", DataProvider::renderExpression(bin("+", 1, bin("*", 2, 3))));
+
+        # An associative operator drops them wherever they fall: re-association cannot change the
+        # answer, so keeping them would state a grouping that means nothing.
+        {
+            hash<DataProviderExpression> exp = bin(DP_OP_AND, bin(DP_SEARCH_OP_EQ,
+                <DataProviderFieldReference>{"field": "a"}, 1), bin(DP_OP_AND,
+                bin(DP_SEARCH_OP_EQ, <DataProviderFieldReference>{"field": "b"}, 2),
+                bin(DP_SEARCH_OP_EQ, <DataProviderFieldReference>{"field": "c"}, 3)));
+            assertEq("@a == 1 && @b == 2 && @c == 3", DataProvider::serializeDpqlExpression(exp));
+        }
+
+        # The shared rule itself, stated directly.
+        assertEq(DPQL_PREC_ADDITIVE, DpqlSerializer::getOperatorPrecedence(DP_OP_PLUS));
+        assertEq(DPQL_PREC_PRIMARY, DpqlSerializer::getOperatorPrecedence("not-an-operator"));
+        assertEq(DPQL_PREC_ADDITIVE, DpqlSerializer::getArgumentContext(DP_OP_MINUS, 0));
+        assertEq(DPQL_PREC_ADDITIVE - 1, DpqlSerializer::getArgumentContext(DP_OP_MINUS, 1));
+        # associative: every argument gets the same context as the first
+        assertEq(DpqlSerializer::getArgumentContext(DP_OP_AND, 0), DpqlSerializer::getArgumentContext(DP_OP_AND, 1));
     }
 
     roundTripTests() {
