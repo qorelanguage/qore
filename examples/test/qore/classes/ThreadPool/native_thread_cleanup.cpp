@@ -237,6 +237,12 @@ int main(int argc, char** argv) {
     assert(!setvbuf(stdout, output_buffer, _IOFBF, sizeof(output_buffer)));
     bool signal = argc > 1 && !strncmp(argv[1], "--exit-signal", 13);
     qore_init(QL_MIT, "UTF-8", true, signal ? QLO_NONE : QLO_DISABLE_SIGNAL_HANDLING);
+    if (argc > 1 && !strcmp(argv[1], "--return-with-idle-reaper")) {
+        checkNativeCleanup(false);
+        assert(tp_thread_counter.getCount() == 0);
+        puts("Returning without qore_cleanup");
+        return 0;
+    }
     if (argc > 1 && !strncmp(argv[1], "--exit-", 7)) {
         checkExplicitExit(argv[1]);
     }

@@ -3105,6 +3105,10 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       worker before static destruction; exits with active workers or native TLS cleanup still terminate
       immediately without running static destructors
 
+    - fixed process shutdown hanging when an embedding host omitted \c qore_cleanup() after using a
+      ThreadPool; static destruction now joins an idle native cleanup worker before destroying its
+      synchronization primitives, and fails explicitly if external native threads are still active
+
     - fixed a crash cleaning up a thread that still held a @ref Qore::SQL::Datasource "Datasource" connection when
       the @ref Qore::SQL::Datasource "Datasource" object itself was already destroyed (for example when another
       thread deleted it while this one held the connection).  The datasource is registered as a thread resource

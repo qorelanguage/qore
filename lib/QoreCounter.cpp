@@ -37,7 +37,7 @@
 struct qore_counter_private {
     enum cond_status_e { Cond_Deleted = -1 };
 
-    QoreThreadLock l;
+    mutable QoreThreadLock l;
     QoreCondition cond;
     int cnt;
     int waiting;
@@ -161,10 +161,12 @@ int QoreCounter::waitForZero(ExceptionSink* xsink, int timeout_ms) {
 }
 
 int QoreCounter::getCount() const {
+    AutoLocker al(&priv->l);
     return priv->cnt;
 }
 
 int QoreCounter::getWaiting() const {
+    AutoLocker al(&priv->l);
     return priv->waiting;
 }
 

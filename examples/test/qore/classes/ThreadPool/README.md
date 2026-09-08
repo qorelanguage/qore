@@ -44,8 +44,9 @@ python3 examples/test/qore/classes/ThreadPool/explicit_exit.py \
 
 The runner selects each executable's build library and gives every child a
 five-second timeout. It covers normal cleanup, explicit exit without a reaper,
-an idle reaper, empty/stopped ThreadPools, active workers, TLS cleanup held after
-Qore TID release (default and custom stacks), and exits from signal handlers.
+an idle reaper, natural process return without `qore_cleanup()`, empty/stopped
+ThreadPools, active workers, TLS cleanup held after Qore TID release (default and
+custom stacks), and exits from signal handlers.
 It checks exit statuses 0, 17 and 255, Qore output, and deterministic C stdio and
 `atexit` markers: idle exits flush and run callbacks, while immediate exits with
 active native cleanup or from signal handlers bypass both. Native barriers stay

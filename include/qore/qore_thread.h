@@ -313,6 +313,24 @@ int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg, size_t stack_s
  */
 DLLEXPORT int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg, int flags);
 
+//! Stops and joins the native cleanup worker for external-lifecycle threads
+/** This function is intended for embedding runtimes whose process shutdown does not call
+    qore_cleanup(). All QTF_EXTERNAL_LIFECYCLE threads must have completed first; callers can wait
+    for tp_thread_counter to reach zero before calling this function. No new external-lifecycle threads
+    may be started concurrently. Repeated calls are safe.
+
+    @note Calling this function while an external-lifecycle thread is active terminates the process.
+
+    @par Example:
+    @code{.cpp}
+    tp_thread_counter.waitForZero();
+    qore_stop_external_thread_reaper();
+    @endcode
+
+    @since %Qore 3.0
+ */
+DLLEXPORT void qore_stop_external_thread_reaper();
+
 //! use this class to temporarily register and deregister a foreign thread to allow Qore code to be executed and the Qore library to be used from threads not created by the Qore library
 /** @since %Qore 0.8.7
  */

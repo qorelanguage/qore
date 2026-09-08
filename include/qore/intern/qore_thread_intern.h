@@ -1065,8 +1065,6 @@ public:
 DLLLOCAL void init_qore_threads();
 DLLLOCAL QoreNamespace* get_thread_ns(QoreNamespace& qorens);
 DLLLOCAL void delete_qore_threads();
-//! Join the native cleanup worker after all external-lifecycle threads have been joined.
-DLLLOCAL void qore_stop_external_thread_reaper();
 DLLLOCAL QoreListNode* get_thread_list();
 DLLLOCAL QoreHashNode* getAllCallStacks();
 DLLLOCAL QoreListNode* qore_get_thread_call_stack();

@@ -25,6 +25,8 @@ def main():
     for mode in ([], ["--empty"]):
         cases.append(("native cleanup " + str(mode), [native, *mode], 0,
                       "Passed native thread cleanup checks\n"))
+    cases.append(("native return with idle reaper", [native, "--return-with-idle-reaper"], 0,
+                  "Returning without qore_cleanup\n"))
     for mode in ("empty", "idle", "active", "tls", "tls-custom", "signal", "signal-tls"):
         # The idle cases must flush C stdio and run atexit callbacks. Active
         # workers, native TLS, and signal-handler exits must bypass both.

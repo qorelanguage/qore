@@ -3252,7 +3252,15 @@ struct ThreadArg {
 class DLLLOCAL ExternalThreadReaper {
 public:
     ~ExternalThreadReaper() {
-        assert(!started && !head && !tail);
+        // Embedders are required to call qore_cleanup(), but a host process can
+        // reach C++ static destruction without doing so. Never destroy the
+        // condition variable while the reaper is still waiting on it. A zero
+        // external counter means that no worker can still publish completion.
+        stop();
+        if (head || tail) {
+            fputs("qore: native thread cleanup queue is not empty during static destruction\n", stderr);
+            abort();
+        }
     }
 
     int ensureStarted(ExceptionSink* xsink) {
@@ -3286,6 +3294,10 @@ public:
     // Only called after the external counter reaches zero, either by
     // qore_cleanup or by a quiescent qore_exit_process.
     void stop() {
+        if (tp_thread_counter.getCount()) {
+            fputs("qore: external native threads still active while stopping the cleanup worker\n", stderr);
+            abort();
+        }
         {
             AutoLocker al(mutex);
             if (!started) {
