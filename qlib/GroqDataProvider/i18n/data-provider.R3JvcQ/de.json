@@ -3,41 +3,1337 @@
   "locales": {
     "de": {
       "messages": {
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.desc": {
-          "source": "Sends a list of chat messages to a Groq-hosted model using the OpenAI-compatible `/v1/chat/completions` endpoint and returns the generated response.  See the [Groq models documentation](https://console.groq.com/docs/models) for the currently-available models.\n\n**Example use cases**:\n- Low-latency chat and conversational agents\n- Fast tool-calling agents (pass `tools` and `tool_choice` in the request)\n- Structured extraction (pass `response_format` with a JSON schema)",
-          "message": "Sendet eine Liste von Chat-Nachrichten über den OpenAI-kompatiblen Endpunkt `/v1/chat/completions` an ein von Groq gehostetes Modell und gibt die generierte Antwort zurück. Informationen zu den aktuell verfügbaren Modellen finden Sie in der [Groq-Modell-Dokumentation](https://console.groq.com/docs/models).\n\n**Beispiel-Anwendungsfälle**:\n- Chat- und Konversations-Agenten mit geringer Latenz\n- Schnelle Tool-Calling-Agenten (`tools` und `tool_choice` in der Anfrage übergeben)\n- Strukturierte Extraktion (`response_format` mit einem JSON-Schema übergeben)"
+        "app.R3JvcQ.display_name": {
+          "source": "Groq",
+          "message": "Groq"
+        },
+        "app.R3JvcQ.short_desc": {
+          "source": "Fast AI responses, speech, batch inference, and LoRA adapter hosting",
+          "message": "Schnelle KI-Antworten, Sprache, Batch-Inferenz und Hosting von LoRA-Adaptern"
+        },
+        "app.R3JvcQ.desc": {
+          "source": "Use [Groq](https://groq.com) to bring fast AI inference into business workflows.\n\n- Generate chat and structured responses with tool calling\n- Transcribe, translate, and synthesize speech\n- Upload files and manage batch inference\n- Host externally trained LoRA adapters with enterprise access\n- Discover available models and inspect their capabilities",
+          "message": "Nutzen Sie [Groq](https://groq.com) für schnelle KI-Inferenz in Geschäftsabläufen.\n\n- Chat- und strukturierte Antworten mit Werkzeugaufrufen generieren\n- Sprache transkribieren, übersetzen und synthetisieren\n- Dateien hochladen und Batch-Inferenz verwalten\n- Extern trainierte LoRA-Adapter mit Enterprise-Zugang hosten\n- Verfügbare Modelle finden und ihre Fähigkeiten prüfen"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.display_name": {
+          "source": "Make an API call",
+          "message": "API-Aufruf ausführen"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.short_desc": {
+          "source": "Make a custom API call to Groq",
+          "message": "Einen benutzerdefinierten API-Aufruf an Groq ausführen"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.desc": {
+          "source": "Make a custom HTTP / REST API call to **Groq** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
+          "message": "Einen benutzerdefinierten HTTP- / REST-API-Aufruf an **Groq** mit der Authentifizierung der konfigurierten Verbindung ausführen.\n\nGeben Sie die HTTP-Methode, den URI-Pfad (relativ zur API-Basis-URL der Verbindung), optionale Abfrageparameter, Header und den Anforderungstext an. Die Antwort wird als Hash zurückgegeben, der den Statuscode, die Antwort-Header und den Antworttext enthält.\n\nVerwenden Sie diese Aktion für Endpunkte, die in dieser App noch nicht als erstklassige Aktionen bereitgestellt werden."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.display_name": {
+          "source": "HTTP Method",
+          "message": "HTTP-Methode"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.short_desc": {
+          "source": "The HTTP method to use for the request",
+          "message": "Die für die Anfrage zu verwendende HTTP-Methode"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.desc": {
+          "source": "The HTTP method to use for the request",
+          "message": "Die für die Anfrage zu verwendende HTTP-Methode"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.display_name": {
+          "source": "GET",
+          "message": "GET"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.short_desc": {
+          "source": "HTTP GET",
+          "message": "HTTP GET"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.desc": {
+          "source": "HTTP `GET`",
+          "message": "HTTP `GET`"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.display_name": {
+          "source": "POST",
+          "message": "POST"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.short_desc": {
+          "source": "HTTP POST",
+          "message": "HTTP POST"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.desc": {
+          "source": "HTTP `POST`",
+          "message": "HTTP `POST`"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.display_name": {
+          "source": "PUT",
+          "message": "PUT"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.short_desc": {
+          "source": "HTTP PUT",
+          "message": "HTTP PUT"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.desc": {
+          "source": "HTTP `PUT`",
+          "message": "HTTP `PUT`"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.display_name": {
+          "source": "PATCH",
+          "message": "PATCH"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.short_desc": {
+          "source": "HTTP PATCH",
+          "message": "HTTP PATCH"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.desc": {
+          "source": "HTTP `PATCH`",
+          "message": "HTTP `PATCH`"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.display_name": {
+          "source": "DELETE",
+          "message": "DELETE"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.short_desc": {
+          "source": "HTTP DELETE",
+          "message": "HTTP DELETE"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.desc": {
+          "source": "HTTP `DELETE`",
+          "message": "HTTP `DELETE`"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.display_name": {
+          "source": "HEAD",
+          "message": "HEAD"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.short_desc": {
+          "source": "HTTP HEAD",
+          "message": "HTTP HEAD"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.desc": {
+          "source": "HTTP `HEAD`",
+          "message": "HTTP `HEAD`"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.display_name": {
+          "source": "OPTIONS",
+          "message": "OPTIONS"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.short_desc": {
+          "source": "HTTP OPTIONS",
+          "message": "HTTP OPTIONS"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.desc": {
+          "source": "HTTP `OPTIONS`",
+          "message": "HTTP `OPTIONS`"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.display_name": {
+          "source": "TRACE",
+          "message": "TRACE"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.short_desc": {
+          "source": "HTTP TRACE",
+          "message": "HTTP TRACE"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.desc": {
+          "source": "HTTP `TRACE`",
+          "message": "HTTP `TRACE`"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.display_name": {
+          "source": "URI Path",
+          "message": "URI-Pfad"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.short_desc": {
+          "source": "The URI path relative to the connection's API base URL",
+          "message": "Der URI-Pfad relativ zur API-Basis-URL der Verbindung"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.desc": {
+          "source": "The URI path relative to the connection's API base URL. May contain `{name}` placeholders that are replaced from `path_vars`. Example: `/users/{id}/comments`.",
+          "message": "Der URI-Pfad relativ zur API-Basis-URL der Verbindung. Kann `{name}`-Platzhalter enthalten, die aus `path_vars` ersetzt werden. Beispiel: `/users/{id}/comments`."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.display_name": {
+          "source": "Body Type",
+          "message": "Body-Typ"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.short_desc": {
+          "source": "How the body is serialized and what Content-Type is sent",
+          "message": "Wie der Body serialisiert wird und welcher Content-Type gesendet wird"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.desc": {
+          "source": "Selects the body serialization mode and the corresponding `Content-Type` header. Changing this field reshapes the `body` editor - selecting JSON exposes a JSON editor, selecting Multipart Form exposes a file picker, and so on.",
+          "message": "Wählt den Body-Serialisierungsmodus und den entsprechenden Header `Content-Type` aus. Das Ändern dieses Feldes passt den Editor `body` an – die Auswahl von JSON zeigt einen JSON-Editor an, die Auswahl von Multipart Form zeigt eine Dateiauswahl an usw."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Auto"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Pass-through; use connection serialization and let the REST client decide",
+          "message": "Durchreichen; Verbindungsserialisierung nutzen, REST-Client entscheiden lassen"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Pass the body to the REST client unchanged; the client decides serialization based on its configured `data` option and the value type",
+          "message": "Übergeben Sie den Body unverändert an den REST-Client; der Client entscheidet über die Serialisierung basierend auf seiner konfigurierten `data`-Option und dem Werttyp"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.short_desc": {
+          "source": "Serialize body as JSON",
+          "message": "Body als JSON serialisieren"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.desc": {
+          "source": "Serialize the body as JSON; sets `Content-Type: application/json`. The body should be a hash, list, or scalar value.",
+          "message": "Serialisieren Sie den Body als JSON; setzt `Content-Type: application/json`. Der Body sollte ein Hash, eine Liste oder ein Skalarwert sein."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.display_name": {
+          "source": "Form (URL-encoded)",
+          "message": "Formular (URL-kodiert)"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.short_desc": {
+          "source": "Serialize body as application/x-www-form-urlencoded form fields",
+          "message": "Body als application/x-www-form-urlencoded-Formularfelder serialisieren"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.desc": {
+          "source": "Serialize a hash of form fields as `application/x-www-form-urlencoded`. The body must be a hash whose values are scalars (strings/numbers/booleans).",
+          "message": "Serialisieren Sie einen Hash von Formularfeldern als `application/x-www-form-urlencoded`. Der Body muss ein Hash sein, dessen Werte Skalare sind (Strings/Zahlen/Booleans)."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.display_name": {
+          "source": "Multipart Form",
+          "message": "Multipart-Formular"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.short_desc": {
+          "source": "Upload a file using multipart/form-data",
+          "message": "Eine Datei mit multipart/form-data hochladen"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.desc": {
+          "source": "Upload a file using `multipart/form-data`. The body must be a @ref DataProvider::FileDataType \"FileDataType\" structure (filename + content + mime_type). The framework builds the multipart envelope and sets the boundary header.",
+          "message": "Laden Sie eine Datei mit `multipart/form-data` hoch. Der Body muss eine @ref DataProvider::FileDataType \"FileDataType\"-Struktur sein (filename + content + mime_type). Das Framework erstellt die Multipart-Hülle und setzt den Boundary-Header."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.display_name": {
+          "source": "XML",
+          "message": "XML"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.short_desc": {
+          "source": "Send body as XML",
+          "message": "Body als XML senden"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.desc": {
+          "source": "Send the body as XML. If the body is a hash it is serialized to XML; if it is a string it is sent verbatim. Sets `Content-Type: application/xml`.",
+          "message": "Senden Sie den Body als XML. Wenn der Body ein Hash ist, wird er zu XML serialisiert; wenn er ein String ist, wird er wörtlich gesendet. Setzt `Content-Type: application/xml`."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.display_name": {
+          "source": "YAML",
+          "message": "YAML"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.short_desc": {
+          "source": "Send body as YAML",
+          "message": "Body als YAML senden"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.desc": {
+          "source": "Send the body as YAML. If the body is a hash it is serialized to YAML; if it is a string it is sent verbatim. Sets `Content-Type: application/x-yaml`.",
+          "message": "Senden Sie den Body als YAML. Wenn der Body ein Hash ist, wird er zu YAML serialisiert; wenn er ein String ist, wird er wörtlich gesendet. Setzt `Content-Type: application/x-yaml`."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "Klartext"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Send body as text/plain",
+          "message": "Body als text/plain senden"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Send the body as plain text. The body must be a string. Sets `Content-Type: text/plain`.",
+          "message": "Senden Sie den Body als Klartext. Der Body muss ein String sein. Setzt `Content-Type: text/plain`."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
+          "source": "Raw Binary",
+          "message": "Rohbinärdaten"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.short_desc": {
+          "source": "Send body as raw bytes",
+          "message": "Body als Rohbytes senden"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.desc": {
+          "source": "Send the body as raw bytes. The body must be a binary value. Sets `Content-Type: application/octet-stream` unless overridden by `hdr`.",
+          "message": "Senden Sie den Body als Rohbytes. Der Body muss ein Binärwert sein. Setzt `Content-Type: application/octet-stream`, sofern nicht durch `hdr` überschrieben."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.display_name": {
+          "source": "Body",
+          "message": "Body"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.short_desc": {
+          "source": "The request body",
+          "message": "Der Anfragen-Body"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.desc": {
+          "source": "The request body. The effective type depends on `body_type`: JSON/form/YAML expect a hash, XML/text expect a string, multipart expects a file structure, binary expects raw bytes.",
+          "message": "Der Anfragen-Body. Der effektive Typ hängt von `body_type` ab: JSON/form/YAML erwarten einen Hash, XML/Text erwarten einen String, Multipart erwartet eine Dateistruktur, Binary erwartet Rohbytes."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.display_name": {
+          "source": "Path Variables",
+          "message": "Pfadvariablen"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.short_desc": {
+          "source": "Values for {name} placeholders in path",
+          "message": "Werte für {name}-Platzhalter im Pfad"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.desc": {
+          "source": "Hash of values substituted into `{name}` placeholders in the URI path. Example: with `path = /users/{id}` and `path_vars = {id: 123}` the framework sends `/users/123`. Values are URL-encoded.",
+          "message": "Hash von Werten, die in `{name}`-Platzhalter im URI-Pfad eingesetzt werden. Beispiel: Bei `path = /users/{id}` und `path_vars = {id: 123}` sendet das Framework `/users/123`. Werte werden URL-codiert."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.display_name": {
+          "source": "Query Arguments",
+          "message": "Abfrageargumente"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.short_desc": {
+          "source": "Query string parameters",
+          "message": "Abfragezeichenfolgen-Parameter"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.desc": {
+          "source": "Hash of query string parameters to append to the URI path. Values are URL-encoded; list values are joined with `,`.",
+          "message": "Hash von Abfragezeichenfolgen-Parametern, die an den URI-Pfad angehängt werden sollen. Werte werden URL-codiert; Listenwerte werden mit `,` zusammengefügt."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.aGRy.display_name": {
+          "source": "Custom Headers",
+          "message": "Benutzerdefinierte Header"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.aGRy.short_desc": {
+          "source": "Extra request headers",
+          "message": "Zusätzliche Anfrage-Header"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.aGRy.desc": {
+          "source": "Hash of custom headers added to the request. These override any default headers set by `body_type` (e.g. supplying `Content-Type` here wins over the body-type default).",
+          "message": "Hash benutzerdefinierter Header, die der Anfrage hinzugefügt werden. Diese überschreiben alle von `body_type` festgelegten Standard-Header (z. B. überschreibt die Angabe von `Content-Type` hier den Standard für den Body-Typ)."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.display_name": {
+          "source": "Expected Status Codes",
+          "message": "Erwartete Statuscodes"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.short_desc": {
+          "source": "Response status codes treated as success",
+          "message": "Antwort-Statuscodes, die als Erfolg behandelt werden"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.desc": {
+          "source": "Optional list of HTTP status codes treated as success. If set and the response status is not in this list, the action throws `REST-STATUS-ERROR`. When unset, the REST client's default behavior applies (typically: 2xx is success, non-2xx throws).",
+          "message": "Optionale Liste von HTTP-Statuscodes, die als Erfolg behandelt werden. Wenn festgelegt und der Antwortstatus nicht in dieser Liste enthalten ist, löst die Aktion `REST-STATUS-ERROR` aus. Wenn nicht festgelegt, gilt das Standardverhalten des REST-Clients (typischerweise: 2xx ist Erfolg, Nicht-2xx löst eine Exception aus)."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.display_name": {
+          "source": "Return Errors as Data",
+          "message": "Fehler als Daten zurückgeben"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.short_desc": {
+          "source": "Return non-2xx responses normally instead of throwing",
+          "message": "Nicht-2xx-Antworten normal zurückgeben, anstatt eine Exception auszulösen"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.desc": {
+          "source": "If `True`, non-2xx HTTP responses return as the normal response hash (with the actual status code) instead of raising `REST-RESPONSE-ERROR`. Useful for handling 4xx/5xx as data - e.g. checking whether a resource exists. Overrides the connection's `error_passthru` setting for this call only.",
+          "message": "Wenn `True`, werden Nicht-2xx-HTTP-Antworten als normaler Antwort-Hash (mit dem tatsächlichen Statuscode) zurückgegeben, anstatt `REST-RESPONSE-ERROR` auszulösen. Nützlich für die Behandlung von 4xx/5xx als Daten – z. B. zum Überprüfen, ob eine Ressource existiert. Überschreibt die Einstellung `error_passthru` der Verbindung nur für diesen Aufruf."
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.display_name": {
+          "source": "Include Debug Info",
+          "message": "Debug-Informationen einschließen"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.short_desc": {
+          "source": "Include request/timing/size debug info in the response",
+          "message": "Debug-Informationen zu Anfrage/Laufzeit/Größe in die Antwort einschließen"
+        },
+        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.desc": {
+          "source": "If `True`, the response hash includes a `debug` sub-hash containing the request method/URL/headers (with sensitive values redacted), request and response sizes, and round-trip duration. Useful when investigating slow or failing calls. Off by default to keep responses lean.",
+          "message": "Wenn `True`, enthält der Antwort-Hash einen Sub-Hash `debug`, der die Anfragemethode/URL/Header (mit unkenntlich gemachten sensiblen Werten), Anfrage- und Antwortgrößen sowie die Verarbeitungsdauer enthält. Nützlich bei der Untersuchung langsamer oder fehlschlagender Aufrufe. Standardmäßig deaktiviert, um Antworten schlank zu halten."
+        },
+        "app.R3JvcQ.action.Z2V0LW1vZGVs.display_name": {
+          "source": "Get Model",
+          "message": "Modell abrufen"
+        },
+        "app.R3JvcQ.action.Z2V0LW1vZGVs.short_desc": {
+          "source": "Inspect a model before selecting it for inference",
+          "message": "Ein Modell überprüfen, bevor es für die Inferenz ausgewählt wird"
+        },
+        "app.R3JvcQ.action.Z2V0LW1vZGVs.desc": {
+          "source": "Inspect a model before selecting it for inference.",
+          "message": "Ein Modell überprüfen, bevor es für die Inferenz ausgewählt wird."
+        },
+        "app.R3JvcQ.action.Z2V0LW1vZGVs.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.R3JvcQ.action.Z2V0LW1vZGVs.option.bW9kZWw.short_desc": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.R3JvcQ.action.Z2V0LW1vZGVs.option.bW9kZWw.desc": {
+          "source": "Select the existing resource to inspect or manage.",
+          "message": "Wählen Sie eine vorhandene Ressource zum Überprüfen oder Verwalten aus."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.display_name": {
+          "source": "Create Response",
+          "message": "Antwort erstellen"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.short_desc": {
+          "source": "Generate a response with structured output and tool calls",
+          "message": "Eine Antwort mit strukturierter Ausgabe und Werkzeugaufrufen generieren"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.desc": {
+          "source": "Generate a response with structured output and tool calls.\n\nUses the beta Responses API. Select a compatible model. Returns a completed response; streaming and stored response continuation are not supported by this action.",
+          "message": "Eine Antwort mit strukturierter Ausgabe und Werkzeugaufrufen generieren.\n\nVerwendet die Beta-API für Antworten. Wählen Sie ein kompatibles Modell aus. Gibt eine abgeschlossene Antwort zurück; Streaming und fortgesetzte gespeicherte Antworten werden von dieser Aktion nicht unterstützt."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.bW9kZWw.short_desc": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.bW9kZWw.desc": {
+          "source": "Choose an active model suited to this action from the live Groq catalog.",
+          "message": "Wählen Sie ein aktives Modell aus dem Live-Groq-Katalog aus, das für diese Aktion geeignet ist."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5wdXQ.display_name": {
+          "source": "Input",
+          "message": "Eingabe"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5wdXQ.short_desc": {
+          "source": "Input",
+          "message": "Eingabe"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5wdXQ.desc": {
+          "source": "Text or a list of input messages and tool results.",
+          "message": "Text oder eine Liste von Eingabemeldungen und Werkzeugergebnissen."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5zdHJ1Y3Rpb25z.display_name": {
+          "source": "Instructions",
+          "message": "Anweisungen"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5zdHJ1Y3Rpb25z.short_desc": {
+          "source": "Instructions",
+          "message": "Anweisungen"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.aW5zdHJ1Y3Rpb25z.desc": {
+          "source": "Instructions guiding the response.",
+          "message": "Anweisungen, die die Antwort leiten."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.bWF4X291dHB1dF90b2tlbnM.display_name": {
+          "source": "Maximum Output Tokens",
+          "message": "Maximale Ausgabetoken"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.bWF4X291dHB1dF90b2tlbnM.short_desc": {
+          "source": "Maximum Output Tokens",
+          "message": "Maximale Ausgabetoken"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.bWF4X291dHB1dF90b2tlbnM.desc": {
+          "source": "Upper limit including reasoning and visible output.",
+          "message": "Obergrenze einschließlich Denkprozess und sichtbare Ausgabe."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "Temperatur"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "Temperature",
+          "message": "Temperatur"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGVtcGVyYXR1cmU.desc": {
+          "source": "Output randomness between `0` and `2`.",
+          "message": "Ausgabewahrscheinlichkeit zwischen `0` und `2`."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX3A.display_name": {
+          "source": "Top P",
+          "message": "Top P"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX3A.short_desc": {
+          "source": "Top P",
+          "message": "Top P"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9wX3A.desc": {
+          "source": "Nucleus sampling probability between `0` and `1`.",
+          "message": "Nucleus-Sampling-Wahrscheinlichkeit zwischen `0` und `1`."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.display_name": {
+          "source": "Tools",
+          "message": "Werkzeuge"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.short_desc": {
+          "source": "Tools",
+          "message": "Werkzeuge"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.desc": {
+          "source": "Functions, built-in browser or code tools, and remote MCP servers. See the [Responses guide](https://console.groq.com/docs/responses-api).",
+          "message": "Funktionen, integrierte Browser- oder Code-Werkzeuge sowie externe MCP-Server. Weitere Informationen finden Sie im [Responses-Leitfaden](https://console.groq.com/docs/responses-api)."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.display_name": {
+          "source": "Tool Choice",
+          "message": "Tool-Auswahl"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.short_desc": {
+          "source": "Tool Choice",
+          "message": "Tool-Auswahl"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.desc": {
+          "source": "Choose `none`, `auto`, `required`, or a named tool object.",
+          "message": "Wählen Sie `none`, `auto`, `required` oder ein benanntes Tool-Objekt aus."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOm5vbmU.display_name": {
+          "source": "None",
+          "message": "Keine"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Auto"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOnJlcXVpcmVk.display_name": {
+          "source": "Required",
+          "message": "Erforderlich"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cGFyYWxsZWxfdG9vbF9jYWxscw.display_name": {
+          "source": "Parallel Tool Calls",
+          "message": "Parallele Tool-Aufrufe"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cGFyYWxsZWxfdG9vbF9jYWxscw.short_desc": {
+          "source": "Parallel Tool Calls",
+          "message": "Parallele Tool-Aufrufe"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cGFyYWxsZWxfdG9vbF9jYWxscw.desc": {
+          "source": "Allow more than one tool call in a response.",
+          "message": "Erlaubt mehr als einen Tool-Aufruf in einer Antwort."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.display_name": {
+          "source": "Reasoning",
+          "message": "Schlussfolgerung"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.short_desc": {
+          "source": "Reasoning",
+          "message": "Schlussfolgerung"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.desc": {
+          "source": "Configure reasoning for a compatible model.",
+          "message": "Konfigurieren Sie die Schlussfolgerung für ein kompatibles Modell."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.short_desc": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.desc": {
+          "source": "Choose text or JSON output.",
+          "message": "Wählen Sie Text- oder JSON-Ausgabe aus."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metadaten"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.bWV0YWRhdGE.short_desc": {
+          "source": "Metadata",
+          "message": "Metadaten"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.bWV0YWRhdGE.desc": {
+          "source": "Up to sixteen metadata pairs.",
+          "message": "Bis zu sechzehn Metadaten-Paare."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.c2VydmljZV90aWVy.display_name": {
+          "source": "Service Tier",
+          "message": "Service-Tier"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.c2VydmljZV90aWVy.short_desc": {
+          "source": "Service Tier",
+          "message": "Service-Tier"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.c2VydmljZV90aWVy.desc": {
+          "source": "Choose latency and capacity handling.",
+          "message": "Wählen Sie Latenz und Kapazitätsverarbeitung aus."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.c2VydmljZV90aWVy.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Auto"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.c2VydmljZV90aWVy.allowed-value.c3RyaW5nOmRlZmF1bHQ.display_name": {
+          "source": "Default",
+          "message": "Standard"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.c2VydmljZV90aWVy.allowed-value.c3RyaW5nOmZsZXg.display_name": {
+          "source": "Flex",
+          "message": "Flex"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dXNlcg.display_name": {
+          "source": "User ID",
+          "message": "Benutzer-ID"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dXNlcg.short_desc": {
+          "source": "User ID",
+          "message": "Benutzer-ID"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dXNlcg.desc": {
+          "source": "An application-specific end-user identifier.",
+          "message": "Eine anwendungsspezifische Endbenutzer-Identifikation."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.c3RvcmU.display_name": {
+          "source": "Store",
+          "message": "Speichern"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.c3RvcmU.short_desc": {
+          "source": "Store",
+          "message": "Speichern"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.c3RvcmU.desc": {
+          "source": "Groq currently supports only `False`.",
+          "message": "Groq unterstützt derzeit nur `False`."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.c3RvcmU.allowed-value.Ym9vbDpmYWxzZQ.display_name": {
+          "source": "Do Not Store",
+          "message": "Nicht speichern"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.display_name": {
+          "source": "Transcribe Audio",
+          "message": "Audio transkribieren"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.short_desc": {
+          "source": "Turn a recording into text in its original language",
+          "message": "Wandeln Sie eine Aufnahme in Text in der ursprünglichen Sprache um"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.desc": {
+          "source": "Turn a recording into text in its original language.\n\nSupply exactly one of `file` or `url`. `json` and `verbose_json` return typed transcript data; `text` returns a string.",
+          "message": "Wandeln Sie eine Aufnahme in Text in der ursprünglichen Sprache um.\n\nGeben Sie genau eines von `file` oder `url` an. `json` und `verbose_json` geben typisierte Transkriptdaten zurück; `text` gibt eine Zeichenkette zurück."
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.display_name": {
+          "source": "File",
+          "message": "Datei"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.short_desc": {
+          "source": "File",
+          "message": "Datei"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.desc": {
+          "source": "Named file with `name`, raw binary or base64 `content`, and optional `mime_type`.",
+          "message": "Benannte Datei mit `name`, rohem Binär- oder base64-codiertem `content` sowie optional `mime_type`."
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.dXJs.display_name": {
+          "source": "Audio URL",
+          "message": "Audio-URL"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.dXJs.short_desc": {
+          "source": "Audio URL",
+          "message": "Audio-URL"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.dXJs.desc": {
+          "source": "Public audio URL or a base64 data URL. Supply exactly one of `file` or `url`.",
+          "message": "Öffentliche Audio-URL oder eine base64-codierte Daten-URL. Geben Sie genau eines von `file` oder `url` an."
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.bW9kZWw.short_desc": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.bW9kZWw.desc": {
+          "source": "Choose an active model suited to this action from the live Groq catalog.",
+          "message": "Wählen Sie ein aktives Modell aus dem Live-Groq-Katalog, das für diese Aktion geeignet ist."
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.cHJvbXB0.display_name": {
+          "source": "Prompt",
+          "message": "Prompt"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.cHJvbXB0.short_desc": {
+          "source": "Prompt",
+          "message": "Prompt"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.cHJvbXB0.desc": {
+          "source": "Spelling hints or context for the recording.",
+          "message": "Rechtschreibhinweise oder Kontext für die Aufnahme."
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.cmVzcG9uc2VfZm9ybWF0.display_name": {
+          "source": "Response Format",
+          "message": "Antwortformat"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.cmVzcG9uc2VfZm9ybWF0.short_desc": {
+          "source": "Response Format",
+          "message": "Antwortformat"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.cmVzcG9uc2VfZm9ybWF0.desc": {
+          "source": "Return JSON, timestamped verbose JSON, or plain text.",
+          "message": "Geben Sie JSON, timestampbasiertes ausführliches JSON oder reinen Text zurück."
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "Json",
+          "message": "JSON"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnZlcmJvc2VfanNvbg.display_name": {
+          "source": "Verbose Json",
+          "message": "Ausführliches JSON"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "Temperatur"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "Temperature",
+          "message": "Temperatur"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.dGVtcGVyYXR1cmU.desc": {
+          "source": "Sampling temperature between `0` and `1`.",
+          "message": "Sampling-Temperatur zwischen `0` und `1`."
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.bGFuZ3VhZ2U.display_name": {
+          "source": "Language",
+          "message": "Sprache"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.bGFuZ3VhZ2U.short_desc": {
+          "source": "Language",
+          "message": "Sprache"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.bGFuZ3VhZ2U.desc": {
+          "source": "ISO 639-1 input language code; omit to detect it.",
+          "message": "ISO 639-1-Eingabesprachencode; lassen Sie dies leer, um die Sprache automatisch zu erkennen."
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.dGltZXN0YW1wX2dyYW51bGFyaXRpZXM.display_name": {
+          "source": "Timestamp Granularities",
+          "message": "Zeitstempelgranularitäten"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.dGltZXN0YW1wX2dyYW51bGFyaXRpZXM.short_desc": {
+          "source": "Timestamp Granularities",
+          "message": "Zeitstempelgranularitäten"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.dGltZXN0YW1wX2dyYW51bGFyaXRpZXM.desc": {
+          "source": "Word and/or segment timestamps; requires `response_format` of `verbose_json`.",
+          "message": "Wort- und/oder Segmentzeitstempel; erfordert `response_format` von `verbose_json`."
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.dGltZXN0YW1wX2dyYW51bGFyaXRpZXM.allowed-value.c3RyaW5nOndvcmQ.display_name": {
+          "source": "Word",
+          "message": "Wort"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.dGltZXN0YW1wX2dyYW51bGFyaXRpZXM.allowed-value.c3RyaW5nOnNlZ21lbnQ.display_name": {
+          "source": "Segment",
+          "message": "Segment"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.display_name": {
+          "source": "Translate Audio",
+          "message": "Audio übersetzen"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.short_desc": {
+          "source": "Translate a recording into English text",
+          "message": "Ein Aufnahme in englischen Text übersetzen"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.desc": {
+          "source": "Translate a recording into English text.\n\nSupply exactly one of `file` or `url`. `json` and `verbose_json` return typed transcript data; `text` returns a string.",
+          "message": "Ein Aufnahme in englischen Text übersetzen.\n\nGeben Sie genau eines von `file` oder `url` an. `json` und `verbose_json` geben typisierte Transkriptdaten zurück; `text` gibt eine Zeichenkette zurück."
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.display_name": {
+          "source": "File",
+          "message": "Datei"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.short_desc": {
+          "source": "File",
+          "message": "Datei"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.desc": {
+          "source": "Named file with `name`, raw binary or base64 `content`, and optional `mime_type`.",
+          "message": "Benannte Datei mit `name`, rohen Binärdaten oder base64-codierten `content` und optionalen `mime_type`."
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.dXJs.display_name": {
+          "source": "Audio URL",
+          "message": "Audio-URL"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.dXJs.short_desc": {
+          "source": "Audio URL",
+          "message": "Audio-URL"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.dXJs.desc": {
+          "source": "Public audio URL or a base64 data URL. Supply exactly one of `file` or `url`.",
+          "message": "Öffentliche Audio-URL oder eine base64-codierte Daten-URL. Geben Sie genau eines von `file` oder `url` an."
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.bW9kZWw.short_desc": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.bW9kZWw.desc": {
+          "source": "Choose an active model suited to this action from the live Groq catalog.",
+          "message": "Wählen Sie ein aktives Modell aus dem Live-Groq-Katalog, das für diese Aktion geeignet ist."
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.cHJvbXB0.display_name": {
+          "source": "Prompt",
+          "message": "Prompt"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.cHJvbXB0.short_desc": {
+          "source": "Prompt",
+          "message": "Prompt"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.cHJvbXB0.desc": {
+          "source": "Spelling hints or context for the recording.",
+          "message": "Rechtschreibhinweise oder Kontext für die Aufnahme."
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.cmVzcG9uc2VfZm9ybWF0.display_name": {
+          "source": "Response Format",
+          "message": "Antwortformat"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.cmVzcG9uc2VfZm9ybWF0.short_desc": {
+          "source": "Response Format",
+          "message": "Antwortformat"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.cmVzcG9uc2VfZm9ybWF0.desc": {
+          "source": "Return JSON, timestamped verbose JSON, or plain text.",
+          "message": "Geben Sie JSON, ausführliches JSON mit Zeitstempeln oder reinen Text zurück."
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "Json",
+          "message": "JSON"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnZlcmJvc2VfanNvbg.display_name": {
+          "source": "Verbose Json",
+          "message": "Ausführliches JSON"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "Temperatur"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "Temperature",
+          "message": "Temperatur"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.dGVtcGVyYXR1cmU.desc": {
+          "source": "Sampling temperature between `0` and `1`.",
+          "message": "Sampling-Temperatur zwischen `0` und `1`."
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.display_name": {
+          "source": "Generate Speech",
+          "message": "Sprache generieren"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.short_desc": {
+          "source": "Turn text into spoken audio for customers and audiences",
+          "message": "Text in gesprochene Audio für Kunden und Zuschauer umwandeln"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.desc": {
+          "source": "Turn text into spoken audio for customers and audiences.\n\nReturns raw audio bytes. Select a voice for the chosen model; Orpheus supports `wav` output.",
+          "message": "Text in gesprochene Audio für Kunden und Zuschauer umwandeln.\n\nGibt rohe Audiodaten zurück. Wählen Sie eine Stimme für das gewählte Modell; Orpheus unterstützt `wav` Ausgabe."
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.bW9kZWw.short_desc": {
+          "source": "Model",
+          "message": "Modell"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.bW9kZWw.desc": {
+          "source": "Choose an active model suited to this action from the live Groq catalog.",
+          "message": "Wählen Sie ein aktives Modell aus dem Live-Groq-Katalog aus, das für diese Aktion geeignet ist."
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.aW5wdXQ.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.aW5wdXQ.short_desc": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.aW5wdXQ.desc": {
+          "source": "Text to turn into speech.",
+          "message": "Text, der in Sprache umgewandelt werden soll."
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.dm9pY2U.display_name": {
+          "source": "Voice",
+          "message": "Stimme"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.dm9pY2U.short_desc": {
+          "source": "Voice",
+          "message": "Stimme"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.dm9pY2U.desc": {
+          "source": "Voice for the selected model. Orpheus voice choices follow the published model guide.",
+          "message": "Stimme für das ausgewählte Modell. Orpheus-Stimmenoptionen folgen der veröffentlichten Modellanleitung."
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.cmVzcG9uc2VfZm9ybWF0.display_name": {
+          "source": "Audio Format",
+          "message": "Audioformat"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.cmVzcG9uc2VfZm9ybWF0.short_desc": {
+          "source": "Audio Format",
+          "message": "Audioformat"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.cmVzcG9uc2VfZm9ybWF0.desc": {
+          "source": "Orpheus supports WAV output. Other formats depend on the model.",
+          "message": "Orpheus unterstützt WAV-Ausgabe. Andere Formate hängen vom Modell ab."
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOndhdg.display_name": {
+          "source": "Wav",
+          "message": "Wav"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOmZsYWM.display_name": {
+          "source": "Flac",
+          "message": "Flac"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOm1wMw.display_name": {
+          "source": "Mp3",
+          "message": "Mp3"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOm11bGF3.display_name": {
+          "source": "Mulaw",
+          "message": "Mulaw"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOm9nZw.display_name": {
+          "source": "Ogg",
+          "message": "Ogg"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.c2FtcGxlX3JhdGU.display_name": {
+          "source": "Sample Rate",
+          "message": "Abtastrate"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.c2FtcGxlX3JhdGU.short_desc": {
+          "source": "Sample Rate",
+          "message": "Abtastrate"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.c2FtcGxlX3JhdGU.desc": {
+          "source": "Output samples per second, where supported by the model.",
+          "message": "Ausgabepunkte pro Sekunde, sofern vom Modell unterstützt."
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.c2FtcGxlX3JhdGU.allowed-value.aW50OjgwMDA.display_name": {
+          "source": "8000",
+          "message": "8000"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.c2FtcGxlX3JhdGU.allowed-value.aW50OjE2MDAw.display_name": {
+          "source": "16000",
+          "message": "16000"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.c2FtcGxlX3JhdGU.allowed-value.aW50OjIyMDUw.display_name": {
+          "source": "22050",
+          "message": "22050"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.c2FtcGxlX3JhdGU.allowed-value.aW50OjI0MDAw.display_name": {
+          "source": "24000",
+          "message": "24000"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.c2FtcGxlX3JhdGU.allowed-value.aW50OjMyMDAw.display_name": {
+          "source": "32000",
+          "message": "32000"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.c2FtcGxlX3JhdGU.allowed-value.aW50OjQ0MTAw.display_name": {
+          "source": "44100",
+          "message": "44100"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.c2FtcGxlX3JhdGU.allowed-value.aW50OjQ4MDAw.display_name": {
+          "source": "48000",
+          "message": "48000"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.c3BlZWQ.display_name": {
+          "source": "Speed",
+          "message": "Geschwindigkeit"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.c3BlZWQ.short_desc": {
+          "source": "Speed",
+          "message": "Geschwindigkeit"
+        },
+        "app.R3JvcQ.action.Z2VuZXJhdGUtc3BlZWNo.option.c3BlZWQ.desc": {
+          "source": "Speech speed from `0.5` to `5`, where supported by the model.",
+          "message": "Sprachgeschwindigkeit von `0.5` bis `5`, sofern vom Modell unterstützt."
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.display_name": {
+          "source": "Upload File",
+          "message": "Datei hochladen"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.short_desc": {
+          "source": "Upload batch requests or a pre-trained LoRA adapter",
+          "message": "Laden Sie Batch-Anfragen oder einen vortrainierten LoRA-Adapter hoch"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.desc": {
+          "source": "Upload batch requests or a pre-trained LoRA adapter.",
+          "message": "Laden Sie Batch-Anfragen oder einen vortrainierten LoRA-Adapter hoch."
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.display_name": {
+          "source": "File",
+          "message": "Datei"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.short_desc": {
+          "source": "File",
+          "message": "Datei"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.desc": {
+          "source": "Named file with `name`, raw binary or base64 `content`, and optional `mime_type`.",
+          "message": "Benannte Datei mit `name`, rohen Binärdaten oder base64-codierten `content`, und optionalen `mime_type`."
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.display_name": {
+          "source": "Purpose",
+          "message": "Zweck"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.short_desc": {
+          "source": "Purpose",
+          "message": "Zweck"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.desc": {
+          "source": "Upload `batch` JSONL input, or a `fine_tuning` ZIP containing a pre-trained LoRA adapter. **LoRA requires enterprise access.**",
+          "message": "Laden Sie `batch` JSONL-Eingabedaten hoch oder eine `fine_tuning` ZIP-Datei, die einen vortrainierten LoRA-Adapter enthält. **LoRA erfordert Enterprise-Zugang.**"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.allowed-value.c3RyaW5nOmJhdGNo.display_name": {
+          "source": "Batch Input",
+          "message": "Batch-Eingabe"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.allowed-value.c3RyaW5nOmZpbmVfdHVuaW5n.display_name": {
+          "source": "LoRA Adapter",
+          "message": "LoRA-Adapter"
+        },
+        "app.R3JvcQ.action.bGlzdC1maWxlcw.display_name": {
+          "source": "List Files",
+          "message": "Dateien auflisten"
+        },
+        "app.R3JvcQ.action.bGlzdC1maWxlcw.short_desc": {
+          "source": "Find uploaded files and batch result files",
+          "message": "Gefundene hochgeladene Dateien und Batch-Ergebnisdateien"
+        },
+        "app.R3JvcQ.action.bGlzdC1maWxlcw.desc": {
+          "source": "Find uploaded files and batch result files.\n\nReturns the resources made available by the authenticated listing endpoint.",
+          "message": "Finden Sie hochgeladene Dateien und Batch-Ergebnisdateien.\n\nGibt die Ressourcen zurück, die durch den authentifizierten Listen-Endpunkt verfügbar gemacht wurden."
+        },
+        "app.R3JvcQ.action.Z2V0LWZpbGU.display_name": {
+          "source": "Get File",
+          "message": "Datei abrufen"
+        },
+        "app.R3JvcQ.action.Z2V0LWZpbGU.short_desc": {
+          "source": "Inspect the size and purpose of an uploaded file",
+          "message": "Größe und Zweck einer hochgeladenen Datei überprüfen"
+        },
+        "app.R3JvcQ.action.Z2V0LWZpbGU.desc": {
+          "source": "Inspect the size and purpose of an uploaded file.",
+          "message": "Größe und Zweck einer hochgeladenen Datei überprüfen."
+        },
+        "app.R3JvcQ.action.Z2V0LWZpbGU.option.ZmlsZV9pZA.display_name": {
+          "source": "File",
+          "message": "Datei"
+        },
+        "app.R3JvcQ.action.Z2V0LWZpbGU.option.ZmlsZV9pZA.short_desc": {
+          "source": "File",
+          "message": "Datei"
+        },
+        "app.R3JvcQ.action.Z2V0LWZpbGU.option.ZmlsZV9pZA.desc": {
+          "source": "Select the existing resource to inspect or manage.",
+          "message": "Wählen Sie die vorhandene Ressource zum Überprüfen oder Verwalten aus."
+        },
+        "app.R3JvcQ.action.ZG93bmxvYWQtZmlsZQ.display_name": {
+          "source": "Download File",
+          "message": "Datei herunterladen"
+        },
+        "app.R3JvcQ.action.ZG93bmxvYWQtZmlsZQ.short_desc": {
+          "source": "Download original input or completed batch results",
+          "message": "Original-Eingabe oder abgeschlossene Batch-Ergebnisse herunterladen"
+        },
+        "app.R3JvcQ.action.ZG93bmxvYWQtZmlsZQ.desc": {
+          "source": "Download original input or completed batch results.\n\nReturns the file contents as binary data, including JSONL batch results.",
+          "message": "Original-Eingabe oder abgeschlossene Batch-Ergebnisse herunterladen.\n\nGibt den Dateiinhalt als Binärdaten zurück, einschließlich JSONL-Batch-Ergebnisse."
+        },
+        "app.R3JvcQ.action.ZG93bmxvYWQtZmlsZQ.option.ZmlsZV9pZA.display_name": {
+          "source": "File",
+          "message": "Datei"
+        },
+        "app.R3JvcQ.action.ZG93bmxvYWQtZmlsZQ.option.ZmlsZV9pZA.short_desc": {
+          "source": "File",
+          "message": "Datei"
+        },
+        "app.R3JvcQ.action.ZG93bmxvYWQtZmlsZQ.option.ZmlsZV9pZA.desc": {
+          "source": "Select the existing resource to inspect or manage.",
+          "message": "Wählen Sie die vorhandene Ressource zum Überprüfen oder Verwalten aus."
+        },
+        "app.R3JvcQ.action.ZGVsZXRlLWZpbGU.display_name": {
+          "source": "Delete File",
+          "message": "Datei löschen"
+        },
+        "app.R3JvcQ.action.ZGVsZXRlLWZpbGU.short_desc": {
+          "source": "Remove a file that is no longer needed",
+          "message": "Eine Datei entfernen, die nicht mehr benötigt wird"
+        },
+        "app.R3JvcQ.action.ZGVsZXRlLWZpbGU.desc": {
+          "source": "Remove a file that is no longer needed.",
+          "message": "Eine Datei entfernen, die nicht mehr benötigt wird."
+        },
+        "app.R3JvcQ.action.ZGVsZXRlLWZpbGU.option.ZmlsZV9pZA.display_name": {
+          "source": "File",
+          "message": "Datei"
+        },
+        "app.R3JvcQ.action.ZGVsZXRlLWZpbGU.option.ZmlsZV9pZA.short_desc": {
+          "source": "File",
+          "message": "Datei"
+        },
+        "app.R3JvcQ.action.ZGVsZXRlLWZpbGU.option.ZmlsZV9pZA.desc": {
+          "source": "Select the existing resource to inspect or manage.",
+          "message": "Wählen Sie die vorhandene Ressource aus, um sie zu überprüfen oder zu verwalten."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.display_name": {
+          "source": "Create Batch",
+          "message": "Batch erstellen"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.short_desc": {
+          "source": "Submit a file of inference requests for batch processing",
+          "message": "Übermitteln Sie eine Datei mit Inferenzanfragen zur Batch-Verarbeitung"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.desc": {
+          "source": "Submit a file of inference requests for batch processing.\n\nReturns the batch immediately. Use `Get Batch` later to inspect progress and download its `output_file_id` with `Download File`. Inference usage is billed by Groq.",
+          "message": "Übermitteln Sie eine Datei mit Inferenzanfragen zur Batch-Verarbeitung.\n\nGibt den Batch sofort zurück. Verwenden Sie `Get Batch` später, um den Fortschritt zu überprüfen und die `output_file_id` mit `Download File` herunterzuladen. Die Inferenznutzung wird nach Gebühren von Groq berechnet."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.aW5wdXRfZmlsZV9pZA.display_name": {
+          "source": "Input File",
+          "message": "Eingabedatei"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.aW5wdXRfZmlsZV9pZA.short_desc": {
+          "source": "Input File",
+          "message": "Eingabedatei"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.aW5wdXRfZmlsZV9pZA.desc": {
+          "source": "Select a JSONL file uploaded with `purpose` set to `batch`.",
+          "message": "Wählen Sie eine JSONL-Datei aus, die mit `purpose` auf `batch` hochgeladen wurde."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.ZW5kcG9pbnQ.display_name": {
+          "source": "Endpoint",
+          "message": "Endpunkt"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.ZW5kcG9pbnQ.short_desc": {
+          "source": "Endpoint",
+          "message": "Endpunkt"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.ZW5kcG9pbnQ.desc": {
+          "source": "The inference operation used by every request in the batch.",
+          "message": "Die Inferenzoperation, die von jeder Anfrage im Batch verwendet wird."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.ZW5kcG9pbnQ.allowed-value.c3RyaW5nOi92MS9jaGF0L2NvbXBsZXRpb25z.display_name": {
+          "source": "Chat Completions",
+          "message": "Chat-Abschlüsse"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.ZW5kcG9pbnQ.allowed-value.c3RyaW5nOi92MS9hdWRpby90cmFuc2NyaXB0aW9ucw.display_name": {
+          "source": "Audio Transcriptions",
+          "message": "Audio-Transkriptionen"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.ZW5kcG9pbnQ.allowed-value.c3RyaW5nOi92MS9hdWRpby90cmFuc2xhdGlvbnM.display_name": {
+          "source": "Audio Translations",
+          "message": "Audio-Übersetzungen"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.Y29tcGxldGlvbl93aW5kb3c.display_name": {
+          "source": "Completion Window",
+          "message": "Abschlussfenster"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.Y29tcGxldGlvbl93aW5kb3c.short_desc": {
+          "source": "Completion Window",
+          "message": "Abschlussfenster"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.Y29tcGxldGlvbl93aW5kb3c.desc": {
+          "source": "Maximum processing duration, from `24h` through `7d`, for example `36h`.",
+          "message": "Maximale Verarbeitungsdauer von `24h` bis `7d`, beispielsweise `36h`."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metadaten"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.bWV0YWRhdGE.short_desc": {
+          "source": "Metadata",
+          "message": "Metadaten"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWJhdGNo.option.bWV0YWRhdGE.desc": {
+          "source": "Custom key/value metadata for tracking this batch.",
+          "message": "Benutzerdefinierte Schlüssel/Wert-Metadaten zum Nachverfolgen dieses Batches."
+        },
+        "app.R3JvcQ.action.bGlzdC1iYXRjaGVz.display_name": {
+          "source": "List Batches",
+          "message": "Batches auflisten"
+        },
+        "app.R3JvcQ.action.bGlzdC1iYXRjaGVz.short_desc": {
+          "source": "Find batches and inspect their current processing state",
+          "message": "Batches finden und ihren aktuellen Verarbeitungsstatus überprüfen"
+        },
+        "app.R3JvcQ.action.bGlzdC1iYXRjaGVz.desc": {
+          "source": "Find batches and inspect their current processing state.\n\nReturns the resources made available by the authenticated listing endpoint.",
+          "message": "Batches finden und ihren aktuellen Verarbeitungsstatus überprüfen.\n\nGibt die Ressourcen zurück, die durch den authentifizierten Auflistungsendpunkt verfügbar gemacht wurden."
+        },
+        "app.R3JvcQ.action.Z2V0LWJhdGNo.display_name": {
+          "source": "Get Batch",
+          "message": "Batch abrufen"
+        },
+        "app.R3JvcQ.action.Z2V0LWJhdGNo.short_desc": {
+          "source": "Inspect progress and locate output files for a batch",
+          "message": "Fortschritt überprüfen und Ausgabedateien für einen Batch finden"
+        },
+        "app.R3JvcQ.action.Z2V0LWJhdGNo.desc": {
+          "source": "Inspect progress and locate output files for a batch.",
+          "message": "Fortschritt überprüfen und Ausgabedateien für einen Batch finden."
+        },
+        "app.R3JvcQ.action.Z2V0LWJhdGNo.option.YmF0Y2hfaWQ.display_name": {
+          "source": "Batch",
+          "message": "Batch"
+        },
+        "app.R3JvcQ.action.Z2V0LWJhdGNo.option.YmF0Y2hfaWQ.short_desc": {
+          "source": "Batch",
+          "message": "Batch"
+        },
+        "app.R3JvcQ.action.Z2V0LWJhdGNo.option.YmF0Y2hfaWQ.desc": {
+          "source": "Select the existing resource to inspect or manage.",
+          "message": "Wählen Sie die vorhandene Ressource aus, um sie zu überprüfen oder zu verwalten."
+        },
+        "app.R3JvcQ.action.Y2FuY2VsLWJhdGNo.display_name": {
+          "source": "Cancel Batch",
+          "message": "Batch abbrechen"
+        },
+        "app.R3JvcQ.action.Y2FuY2VsLWJhdGNo.short_desc": {
+          "source": "Cancel outstanding requests in a batch",
+          "message": "Stehende Anfragen in einer Gruppe abbrechen"
+        },
+        "app.R3JvcQ.action.Y2FuY2VsLWJhdGNo.desc": {
+          "source": "Cancel outstanding requests in a batch.",
+          "message": "Stehende Anfragen in einer Gruppe abbrechen."
+        },
+        "app.R3JvcQ.action.Y2FuY2VsLWJhdGNo.option.YmF0Y2hfaWQ.display_name": {
+          "source": "Batch",
+          "message": "Gruppe"
+        },
+        "app.R3JvcQ.action.Y2FuY2VsLWJhdGNo.option.YmF0Y2hfaWQ.short_desc": {
+          "source": "Batch",
+          "message": "Gruppe"
+        },
+        "app.R3JvcQ.action.Y2FuY2VsLWJhdGNo.option.YmF0Y2hfaWQ.desc": {
+          "source": "Select the existing resource to inspect or manage.",
+          "message": "Wählen Sie die vorhandene Ressource aus, um sie zu überprüfen oder zu verwalten."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.display_name": {
+          "source": "Register LoRA Adapter",
+          "message": "LoRA-Adapter registrieren"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.short_desc": {
+          "source": "Register a pre-trained adapter for specialized inference",
+          "message": "Registrieren eines vortrainierten Adapters für spezialisierte Inferenz"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.desc": {
+          "source": "Register a pre-trained adapter for specialized inference.\n\n**Enterprise access required.** Upload an externally trained LoRA adapter with `purpose` set to `fine_tuning`. Groq hosts adapters and does not train models. See the [LoRA guide](https://console.groq.com/docs/lora).",
+          "message": "Registrieren eines vortrainierten Adapters für spezialisierte Inferenz.\n\n**Enterprise-Zugang erforderlich.** Laden Sie einen extern trainierten LoRA-Adapter mit `purpose` auf `fine_tuning` hoch. Groq hostet Adapter und trainiert keine Modelle. Siehe die [LoRA-Anleitung](https://console.groq.com/docs/lora)."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.option.aW5wdXRfZmlsZV9pZA.display_name": {
+          "source": "Adapter File",
+          "message": "Adapter-Datei"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.option.aW5wdXRfZmlsZV9pZA.short_desc": {
+          "source": "Adapter File",
+          "message": "Adapter-Datei"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.option.aW5wdXRfZmlsZV9pZA.desc": {
+          "source": "A ZIP uploaded with `purpose` set to `fine_tuning`.",
+          "message": "Eine ZIP-Datei, die mit `purpose` auf `fine_tuning` hochgeladen wurde."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.option.bmFtZQ.desc": {
+          "source": "A recognizable name for this pre-trained adapter.",
+          "message": "Ein erkennbarer Name für diesen vortrainierten Adapter."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.option.YmFzZV9tb2RlbA.display_name": {
+          "source": "Base Model",
+          "message": "Basismodell"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.option.YmFzZV9tb2RlbA.short_desc": {
+          "source": "Base Model",
+          "message": "Basismodell"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.option.YmFzZV9tb2RlbA.desc": {
+          "source": "Exact Groq base model version used when training the adapter externally.",
+          "message": "Genau die Groq-Basismodellversion, die beim externen Training des Adapters verwendet wurde."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.option.dHlwZQ.display_name": {
+          "source": "Adapter Type",
+          "message": "Adapter-Typ"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.option.dHlwZQ.short_desc": {
+          "source": "Adapter Type",
+          "message": "Adapter-Typ"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.option.dHlwZQ.desc": {
+          "source": "The pre-trained adapter format. Groq hosts adapters; it does not train them.",
+          "message": "Das Format des vortrainierten Adapters. Groq hostet Adapter; es trainiert sie nicht."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLWZpbmUtdHVuaW5n.option.dHlwZQ.allowed-value.c3RyaW5nOmxvcmE.display_name": {
+          "source": "LoRA",
+          "message": "LoRA"
+        },
+        "app.R3JvcQ.action.bGlzdC1maW5lLXR1bmluZ3M.display_name": {
+          "source": "List LoRA Adapters",
+          "message": "LoRA-Adapter auflisten"
+        },
+        "app.R3JvcQ.action.bGlzdC1maW5lLXR1bmluZ3M.short_desc": {
+          "source": "Find adapters available to your organization",
+          "message": "Adapter finden, die Ihrer Organisation zur Verfügung stehen"
+        },
+        "app.R3JvcQ.action.bGlzdC1maW5lLXR1bmluZ3M.desc": {
+          "source": "Find adapters available to your organization.\n\n**Enterprise access required.** Upload an externally trained LoRA adapter with `purpose` set to `fine_tuning`. Groq hosts adapters and does not train models. See the [LoRA guide](https://console.groq.com/docs/lora).\n\nReturns the resources made available by the authenticated listing endpoint.",
+          "message": "Adapter finden, die Ihrer Organisation zur Verfügung stehen.\n\n**Enterprise-Zugang erforderlich.** Laden Sie einen extern trainierten LoRA-Adapter mit `purpose` auf `fine_tuning` hoch. Groq hostet Adapter und trainiert keine Modelle. Siehe die [LoRA-Anleitung](https://console.groq.com/docs/lora).\n\nGibt die Ressourcen zurück, die durch den authentifizierten Listen-Endpunkt verfügbar gemacht wurden."
+        },
+        "app.R3JvcQ.action.Z2V0LWZpbmUtdHVuaW5n.display_name": {
+          "source": "Get LoRA Adapter",
+          "message": "LoRA-Adapter abrufen"
+        },
+        "app.R3JvcQ.action.Z2V0LWZpbmUtdHVuaW5n.short_desc": {
+          "source": "Inspect a registered adapter and its model identifier",
+          "message": "Einen registrierten Adapter und seine Modell-ID überprüfen"
+        },
+        "app.R3JvcQ.action.Z2V0LWZpbmUtdHVuaW5n.desc": {
+          "source": "Inspect a registered adapter and its model identifier.\n\n**Enterprise access required.** Upload an externally trained LoRA adapter with `purpose` set to `fine_tuning`. Groq hosts adapters and does not train models. See the [LoRA guide](https://console.groq.com/docs/lora).",
+          "message": "Einen registrierten Adapter und seine Modell-ID überprüfen.\n\n**Enterprise-Zugang erforderlich.** Laden Sie einen extern trainierten LoRA-Adapter mit `purpose` auf `fine_tuning` hoch. Groq hostet Adapter und trainiert keine Modelle. Siehe die [LoRA-Anleitung](https://console.groq.com/docs/lora)."
+        },
+        "app.R3JvcQ.action.Z2V0LWZpbmUtdHVuaW5n.option.aWQ.display_name": {
+          "source": "LoRA Adapter",
+          "message": "LoRA-Adapter"
+        },
+        "app.R3JvcQ.action.Z2V0LWZpbmUtdHVuaW5n.option.aWQ.short_desc": {
+          "source": "LoRA Adapter",
+          "message": "LoRA-Adapter"
+        },
+        "app.R3JvcQ.action.Z2V0LWZpbmUtdHVuaW5n.option.aWQ.desc": {
+          "source": "Select the existing resource to inspect or manage.",
+          "message": "Wählen Sie die vorhandene Ressource aus, um sie zu überprüfen oder zu verwalten."
+        },
+        "app.R3JvcQ.action.ZGVsZXRlLWZpbmUtdHVuaW5n.display_name": {
+          "source": "Delete LoRA Adapter",
+          "message": "LoRA-Adapter löschen"
+        },
+        "app.R3JvcQ.action.ZGVsZXRlLWZpbmUtdHVuaW5n.short_desc": {
+          "source": "Remove a registered adapter from your organization",
+          "message": "Entfernen eines registrierten Adapters aus Ihrer Organisation"
+        },
+        "app.R3JvcQ.action.ZGVsZXRlLWZpbmUtdHVuaW5n.desc": {
+          "source": "Remove a registered adapter from your organization.\n\n**Enterprise access required.** Upload an externally trained LoRA adapter with `purpose` set to `fine_tuning`. Groq hosts adapters and does not train models. See the [LoRA guide](https://console.groq.com/docs/lora).",
+          "message": "Entfernen eines registrierten Adapters aus Ihrer Organisation.\n\n**Enterprise-Zugang erforderlich.** Laden Sie einen extern trainierten LoRA-Adapter mit `purpose` auf `fine_tuning` hoch. Groq hostet Adapter und trainiert keine Modelle. Weitere Informationen im [LoRA-Leitfaden](https://console.groq.com/docs/lora)."
+        },
+        "app.R3JvcQ.action.ZGVsZXRlLWZpbmUtdHVuaW5n.option.aWQ.display_name": {
+          "source": "LoRA Adapter",
+          "message": "LoRA-Adapter"
+        },
+        "app.R3JvcQ.action.ZGVsZXRlLWZpbmUtdHVuaW5n.option.aWQ.short_desc": {
+          "source": "LoRA Adapter",
+          "message": "LoRA-Adapter"
+        },
+        "app.R3JvcQ.action.ZGVsZXRlLWZpbmUtdHVuaW5n.option.aWQ.desc": {
+          "source": "Select the existing resource to inspect or manage.",
+          "message": "Wählen Sie die vorhandene Ressource zum Überprüfen oder Verwalten aus."
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.display_name": {
           "source": "Chat Completion",
           "message": "Chat-Vervollständigung"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.desc": {
-          "source": "ID of the Groq-hosted model to use.  See the [Groq models documentation](https://console.groq.com/docs/models) for the currently-available models; the `list-models` action returns the live list served by the API.",
-          "message": "ID des zu verwendenden, von Groq gehosteten Modells. Informationen zu den aktuell verfügbaren Modellen finden Sie in der [Groq-Modell-Dokumentation](https://console.groq.com/docs/models); die Aktion `list-models` gibt die aktuelle Live-Liste der API zurück."
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.short_desc": {
+          "source": "Generate a chat completion from a Groq-hosted open-weight model",
+          "message": "Eine Chat-Completion aus einem von Groq gehosteten Open-Weight-Modell generieren"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.display_name": {
-          "source": "Model",
-          "message": "Modell"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.short_desc": {
-          "source": "The Groq-hosted model to use",
-          "message": "Das zu verwendende von Groq gehostete Modell"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.desc": {
-          "source": "Legacy output limit. Prefer `max_completion_tokens`; do not supply both.",
-          "message": "Älteres Ausgabelimit. Verwenden Sie bevorzugt `max_completion_tokens`; geben Sie nicht beide Limits an."
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.display_name": {
-          "source": "Max Tokens",
-          "message": "Max. Tokens"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.short_desc": {
-          "source": "Maximum tokens to emit in the completion",
-          "message": "Maximale Anzahl an Token, die in der Vervollständigung ausgegeben werden"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.desc": {
-          "source": "The conversation history as a list of message objects.  Each message has a `role` (`system`, `user`, `assistant`, or `tool`) and `content` (text).",
-          "message": "Der Konversationsverlauf als Liste von Nachrichtenobjekten. Jede Nachricht hat eine `role` (`system`, `user`, `assistant` oder `tool`) und `content` (Text)."
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.desc": {
+          "source": "Sends a list of chat messages to a Groq-hosted model using the OpenAI-compatible `/v1/chat/completions` endpoint and returns the generated response.  See the [Groq models documentation](https://console.groq.com/docs/models) for the currently-available models.\n\n**Example use cases**:\n- Low-latency chat and conversational agents\n- Fast tool-calling agents (pass `tools` and `tool_choice` in the request)\n- Structured extraction (pass `response_format` with a JSON schema)",
+          "message": "Sendet eine Liste von Chat-Nachrichten über den OpenAI-kompatiblen Endpunkt `/v1/chat/completions` an ein von Groq gehostetes Modell und gibt die generierte Antwort zurück. Informationen zu den aktuell verfügbaren Modellen finden Sie in der [Groq-Modell-Dokumentation](https://console.groq.com/docs/models).\n\n**Beispiel-Anwendungsfälle**:\n- Chat- und Konversations-Agenten mit geringer Latenz\n- Schnelle Tool-Calling-Agenten (`tools` und `tool_choice` in der Anfrage übergeben)\n- Strukturierte Extraktion (`response_format` mit einem JSON-Schema übergeben)"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.display_name": {
           "source": "Messages",
@@ -47,21 +1343,257 @@
           "source": "List of chat messages forming the conversation",
           "message": "Liste von Chat-Nachrichten, die die Unterhaltung bilden"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.desc": {
-          "source": "Integer seed for deterministic sampling.",
-          "message": "Ganzzahliger Seed für deterministisches Sampling."
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.desc": {
+          "source": "The conversation history as a list of message objects.  Each message has a `role` (`system`, `user`, `assistant`, or `tool`) and `content` (text).",
+          "message": "Der Konversationsverlauf als Liste von Nachrichtenobjekten. Jede Nachricht hat eine `role` (`system`, `user`, `assistant` oder `tool`) und `content` (Text)."
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.display_name": {
-          "source": "Seed",
-          "message": "Seed"
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Modell"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.short_desc": {
-          "source": "Deterministic sampling seed",
-          "message": "Deterministischer Sampling-Seed"
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.short_desc": {
+          "source": "The Groq-hosted model to use",
+          "message": "Das zu verwendende von Groq gehostete Modell"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RvcA.desc": {
-          "source": "One or more stop sequences.  Can be a single string or a list (Groq supports up to 4 stop sequences).",
-          "message": "Eine oder mehrere Stoppsequenzen. Kann eine einzelne Zeichenfolge oder eine Liste sein (Groq unterstützt bis zu 4 Stoppsequenzen)."
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.desc": {
+          "source": "ID of the Groq-hosted model to use.  See the [Groq models documentation](https://console.groq.com/docs/models) for the currently-available models; the `list-models` action returns the live list served by the API.",
+          "message": "ID des zu verwendenden, von Groq gehosteten Modells. Informationen zu den aktuell verfügbaren Modellen finden Sie in der [Groq-Modell-Dokumentation](https://console.groq.com/docs/models); die Aktion `list-models` gibt die aktuelle Live-Liste der API zurück."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "Temperatur"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "Sampling temperature (0-2); higher values give more varied output",
+          "message": "Sampling-Temperatur (0-2); höhere Werte führen zu vielfältigeren Ausgaben"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dGVtcGVyYXR1cmU.desc": {
+          "source": "Controls randomness of the output.  Range `0.0` to `2.0`.  Defaults to `1.0`.",
+          "message": "Steuert die Zufälligkeit der Ausgabe. Bereich `0.0` bis `2.0`. Standardmäßig `1.0`."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X2NvbXBsZXRpb25fdG9rZW5z.display_name": {
+          "source": "Maximum Completion Tokens",
+          "message": "Maximale Anzahl an Abschluss-Token"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X2NvbXBsZXRpb25fdG9rZW5z.short_desc": {
+          "source": "Maximum Completion Tokens",
+          "message": "Maximale Anzahl an Abschluss-Token"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X2NvbXBsZXRpb25fdG9rZW5z.desc": {
+          "source": "Upper token limit including reasoning and visible output.",
+          "message": "Obergrenze an Token, einschließlich Schlussfolgerungen und sichtbarem Output."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cGFyYWxsZWxfdG9vbF9jYWxscw.display_name": {
+          "source": "Parallel Tool Calls",
+          "message": "Parallele Tool-Aufrufe"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cGFyYWxsZWxfdG9vbF9jYWxscw.short_desc": {
+          "source": "Parallel Tool Calls",
+          "message": "Parallele Tool-Aufrufe"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cGFyYWxsZWxfdG9vbF9jYWxscw.desc": {
+          "source": "Allow multiple tool calls in a single response.",
+          "message": "Erlaubt mehrere Tool-Aufrufe in einer einzelnen Antwort."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZGlzYWJsZV90b29sX3ZhbGlkYXRpb24.display_name": {
+          "source": "Disable Tool Validation",
+          "message": "Tool-Validierung deaktivieren"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZGlzYWJsZV90b29sX3ZhbGlkYXRpb24.short_desc": {
+          "source": "Disable Tool Validation",
+          "message": "Tool-Validierung deaktivieren"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZGlzYWJsZV90b29sX3ZhbGlkYXRpb24.desc": {
+          "source": "Allow tool calls absent from `tools`; useful for external tool dispatch.",
+          "message": "Erlaubt Tool-Aufrufe ohne `tools`; nützlich für externe Tool-Dispatch."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.aW5jbHVkZV9yZWFzb25pbmc.display_name": {
+          "source": "Include Reasoning",
+          "message": "Schlussfolgerungen einbeziehen"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.aW5jbHVkZV9yZWFzb25pbmc.short_desc": {
+          "source": "Include Reasoning",
+          "message": "Schlussfolgerungen einbeziehen"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.aW5jbHVkZV9yZWFzb25pbmc.desc": {
+          "source": "Include reasoning in the response; mutually exclusive with `reasoning_format`.",
+          "message": "Schlussfolgerungen in der Antwort einbeziehen; wechselseitig ausschließend mit `reasoning_format`."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.display_name": {
+          "source": "Reasoning Effort",
+          "message": "Schlussfolgerungsaufwand"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.short_desc": {
+          "source": "Reasoning Effort",
+          "message": "Schlussfolgerungsaufwand"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.desc": {
+          "source": "Reasoning effort; supported choices depend on the selected model.",
+          "message": "Schlussfolgerungsaufwand; unterstützte Auswahlmöglichkeiten hängen vom gewählten Modell ab."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOm5vbmU.display_name": {
+          "source": "None",
+          "message": "Keiner"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOmRlZmF1bHQ.display_name": {
+          "source": "Default",
+          "message": "Standard"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOm1pbmltYWw.display_name": {
+          "source": "Minimal",
+          "message": "Minimal"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "Low",
+          "message": "Niedrig"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOm1lZGl1bQ.display_name": {
+          "source": "Medium",
+          "message": "Mittel"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "High",
+          "message": "Hoch"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOnhoaWdo.display_name": {
+          "source": "Xhigh",
+          "message": "Xhoch"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2VmZm9ydA.allowed-value.c3RyaW5nOm1heA.display_name": {
+          "source": "Max",
+          "message": "Maximal"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2Zvcm1hdA.display_name": {
+          "source": "Reasoning Format",
+          "message": "Format für Schlussfolgerungen"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2Zvcm1hdA.short_desc": {
+          "source": "Reasoning Format",
+          "message": "Schlussfolgerungsformat"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2Zvcm1hdA.desc": {
+          "source": "How to expose reasoning; mutually exclusive with `include_reasoning`.",
+          "message": "Wie die Schlussfolgerung dargestellt wird; wechselseitig ausschließend mit `include_reasoning`."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2Zvcm1hdA.allowed-value.c3RyaW5nOmhpZGRlbg.display_name": {
+          "source": "Hidden",
+          "message": "Versteckt"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2Zvcm1hdA.allowed-value.c3RyaW5nOnJhdw.display_name": {
+          "source": "Raw",
+          "message": "Roh"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVhc29uaW5nX2Zvcm1hdA.allowed-value.c3RyaW5nOnBhcnNlZA.display_name": {
+          "source": "Parsed",
+          "message": "Geparsed"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VydmljZV90aWVy.display_name": {
+          "source": "Service Tier",
+          "message": "Service-Tier"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VydmljZV90aWVy.short_desc": {
+          "source": "Service Tier",
+          "message": "Service-Tier"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VydmljZV90aWVy.desc": {
+          "source": "Select processing capacity and latency handling.",
+          "message": "Wählen Sie die Verarbeitungskapazität und die Latenzbehandlung aus."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VydmljZV90aWVy.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Automatisch"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VydmljZV90aWVy.allowed-value.c3RyaW5nOm9uX2RlbWFuZA.display_name": {
+          "source": "On Demand",
+          "message": "Nach Bedarf"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VydmljZV90aWVy.allowed-value.c3RyaW5nOmZsZXg.display_name": {
+          "source": "Flex",
+          "message": "Flex"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VydmljZV90aWVy.allowed-value.c3RyaW5nOnBlcmZvcm1hbmNl.display_name": {
+          "source": "Performance",
+          "message": "Leistung"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.display_name": {
+          "source": "Compound Configuration",
+          "message": "Zusammengesetzte Konfiguration"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.short_desc": {
+          "source": "Compound Configuration",
+          "message": "Verbundkonfiguration"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.desc": {
+          "source": "Configure Compound models and built-in tools with `models` and `tools`.",
+          "message": "Konfigurieren Sie Compound-Modelle und integrierte Tools mit `models` und `tools`."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.display_name": {
+          "source": "Documents",
+          "message": "Dokumente"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.short_desc": {
+          "source": "Documents",
+          "message": "Dokumente"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.desc": {
+          "source": "Context documents with a text or JSON `source` and optional citation `id`.",
+          "message": "Kontextdokumente mit einem Text- oder JSON-`source` und optionaler Zitierung `id`."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.display_name": {
+          "source": "Search Settings",
+          "message": "Sucheinstellungen"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.short_desc": {
+          "source": "Search Settings",
+          "message": "Sucheinstellungen"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.desc": {
+          "source": "Configure web search with `include_domains`, `exclude_domains`, and `country`.",
+          "message": "Konfigurieren Sie die Web-Suche mit `include_domains`, `exclude_domains` und `country`."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y2l0YXRpb25fb3B0aW9ucw.display_name": {
+          "source": "Citation Options",
+          "message": "Zitieroptionen"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y2l0YXRpb25fb3B0aW9ucw.short_desc": {
+          "source": "Citation Options",
+          "message": "Zitieroptionen"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y2l0YXRpb25fb3B0aW9ucw.desc": {
+          "source": "Include citations for document and search grounding.",
+          "message": "Zitierungen für Dokumenten- und Suchgrundlagen einschließen."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y2l0YXRpb25fb3B0aW9ucw.allowed-value.c3RyaW5nOmVuYWJsZWQ.display_name": {
+          "source": "Enabled",
+          "message": "Aktiviert"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y2l0YXRpb25fb3B0aW9ucw.allowed-value.c3RyaW5nOmRpc2FibGVk.display_name": {
+          "source": "Disabled",
+          "message": "Deaktiviert"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.display_name": {
+          "source": "Max Tokens",
+          "message": "Max. Tokens"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.short_desc": {
+          "source": "Maximum tokens to emit in the completion",
+          "message": "Maximale Anzahl an Token, die in der Vervollständigung ausgegeben werden"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWF4X3Rva2Vucw.desc": {
+          "source": "Legacy output limit. Prefer `max_completion_tokens`; do not supply both.",
+          "message": "Älteres Ausgabelimit. Verwenden Sie bevorzugt `max_completion_tokens`; geben Sie nicht beide Limits an."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX3A.display_name": {
+          "source": "Top-P",
+          "message": "Top-P"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX3A.short_desc": {
+          "source": "Nucleus sampling cutoff (0-1)",
+          "message": "Grenzwert für Nucleus-Sampling (0-1)"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX3A.desc": {
+          "source": "Nucleus sampling cutoff.  Range `0.0` to `1.0`.  Usually left at `1.0`.",
+          "message": "Grenzwert für Nucleus-Sampling. Bereich `0.0` bis `1.0`. Meist bei `1.0` belassen."
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RvcA.display_name": {
           "source": "Stop Sequences",
@@ -71,17 +1603,33 @@
           "source": "String or list of strings; generation halts when emitted",
           "message": "Zeichenkette oder Liste von Zeichenketten; Generierung stoppt bei Ausgabe"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.desc": {
-          "source": "Hash that forces a structured response shape.  The most common use is JSON mode: `{type: \"json_object\"}`.",
-          "message": "Hash, der eine strukturierte Antwortform erzwingt. Die häufigste Verwendung ist der JSON-Modus: `{type: \"json_object\"}`."
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c3RvcA.desc": {
+          "source": "One or more stop sequences.  Can be a single string or a list (Groq supports up to 4 stop sequences).",
+          "message": "Eine oder mehrere Stoppsequenzen. Kann eine einzelne Zeichenfolge oder eine Liste sein (Groq unterstützt bis zu 4 Stoppsequenzen)."
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.display_name": {
-          "source": "Response Format",
-          "message": "Antwortformat"
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.display_name": {
+          "source": "Tools",
+          "message": "Tools"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.short_desc": {
-          "source": "Force structured output (e.g. JSON)",
-          "message": "Strukturierte Ausgabe erzwingen (z. B. JSON)"
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.short_desc": {
+          "source": "OpenAI-style tool definitions the model may call",
+          "message": "OpenAI-konforme Tool-Definitionen, die das Modell aufrufen kann"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.desc": {
+          "source": "Custom function definitions or supported built-in tools. Use `function` with a `function` definition, or select `browser_search` or `code_interpreter` for a compatible model.",
+          "message": "Benutzerdefinierte Funktionen oder unterstützte integrierte Werkzeuge. Verwenden Sie `function` mit einer `function`-Definition oder wählen Sie `browser_search` bzw. `code_interpreter` für ein kompatibles Modell."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.display_name": {
+          "source": "Tool Choice",
+          "message": "Tool-Auswahl"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.short_desc": {
+          "source": "Whether and which tool the model must invoke",
+          "message": "Ob und welches Tool das Modell aufrufen muss"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.desc": {
+          "source": "Controls tool invocation.\n\n- `none` — never call a tool (text-only reply)\n- `auto` — model decides (default when `tools` is set)\n- `required` — model must call at least one tool",
+          "message": "Steuert den Tool-Aufruf.\n\n- `none` – niemals ein Tool aufrufen (reine Textantwort)\n- `auto` – Modell entscheidet (Standard, wenn `tools` festgelegt ist)\n- `required` – Modell muss mindestens ein Tool aufrufen"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.allowed-value.c3RyaW5nOm5vbmU.display_name": {
           "source": "None - never call a tool",
@@ -95,57 +1643,29 @@
           "source": "Required - must call a tool",
           "message": "Erforderlich – muss ein Tool aufrufen"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.desc": {
-          "source": "Controls tool invocation.\n\n- `none` — never call a tool (text-only reply)\n- `auto` — model decides (default when `tools` is set)\n- `required` — model must call at least one tool",
-          "message": "Steuert den Tool-Aufruf.\n\n- `none` – niemals ein Tool aufrufen (reine Textantwort)\n- `auto` – Modell entscheidet (Standard, wenn `tools` festgelegt ist)\n- `required` – Modell muss mindestens ein Tool aufrufen"
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.display_name": {
+          "source": "Response Format",
+          "message": "Antwortformat"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.display_name": {
-          "source": "Tool Choice",
-          "message": "Tool-Auswahl"
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.short_desc": {
+          "source": "Force structured output (e.g. JSON)",
+          "message": "Strukturierte Ausgabe erzwingen (z. B. JSON)"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.short_desc": {
-          "source": "Whether and which tool the model must invoke",
-          "message": "Ob und welches Tool das Modell aufrufen muss"
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.desc": {
+          "source": "Hash that forces a structured response shape.  The most common use is JSON mode: `{type: \"json_object\"}`.",
+          "message": "Hash, der eine strukturierte Antwortform erzwingt. Die häufigste Verwendung ist der JSON-Modus: `{type: \"json_object\"}`."
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.desc": {
-          "source": "Custom function definitions or supported built-in tools. Use `function` with a `function` definition, or select `browser_search` or `code_interpreter` for a compatible model.",
-          "message": "Benutzerdefinierte Funktionen oder unterstützte integrierte Werkzeuge. Verwenden Sie `function` mit einer `function`-Definition oder wählen Sie `browser_search` bzw. `code_interpreter` für ein kompatibles Modell."
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.display_name": {
+          "source": "Seed",
+          "message": "Seed"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.display_name": {
-          "source": "Tools",
-          "message": "Tools"
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.short_desc": {
+          "source": "Deterministic sampling seed",
+          "message": "Deterministischer Sampling-Seed"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.short_desc": {
-          "source": "OpenAI-style tool definitions the model may call",
-          "message": "OpenAI-konforme Tool-Definitionen, die das Modell aufrufen kann"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX3A.desc": {
-          "source": "Nucleus sampling cutoff.  Range `0.0` to `1.0`.  Usually left at `1.0`.",
-          "message": "Grenzwert für Nucleus-Sampling. Bereich `0.0` bis `1.0`. Meist bei `1.0` belassen."
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX3A.display_name": {
-          "source": "Top-P",
-          "message": "Top-P"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9wX3A.short_desc": {
-          "source": "Nucleus sampling cutoff (0-1)",
-          "message": "Grenzwert für Nucleus-Sampling (0-1)"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dGVtcGVyYXR1cmU.desc": {
-          "source": "Controls randomness of the output.  Range `0.0` to `2.0`.  Defaults to `1.0`.",
-          "message": "Steuert die Zufälligkeit der Ausgabe. Bereich `0.0` bis `2.0`. Standardmäßig `1.0`."
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dGVtcGVyYXR1cmU.display_name": {
-          "source": "Temperature",
-          "message": "Temperatur"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dGVtcGVyYXR1cmU.short_desc": {
-          "source": "Sampling temperature (0-2); higher values give more varied output",
-          "message": "Sampling-Temperatur (0-2); höhere Werte führen zu vielfältigeren Ausgaben"
-        },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcg.desc": {
-          "source": "Opaque identifier representing the end user.  Logged server-side for abuse tracking and usage attribution; does not affect generation.",
-          "message": "Opake Kennung, die den Endbenutzer darstellt. Wird serverseitig für Missbrauchsverfolgung und Nutzungszuordnung protokolliert; hat keinen Einfluss auf die Generierung."
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.desc": {
+          "source": "Integer seed for deterministic sampling.",
+          "message": "Ganzzahliger Seed für deterministisches Sampling."
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcg.display_name": {
           "source": "User ID",
@@ -155,13 +1675,9 @@
           "source": "Opaque end-user identifier for abuse tracking",
           "message": "Opake Endbenutzer-Kennung zur Missbrauchsverfolgung"
         },
-        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.short_desc": {
-          "source": "Generate a chat completion from a Groq-hosted open-weight model",
-          "message": "Eine Chat-Completion aus einem von Groq gehosteten Open-Weight-Modell generieren"
-        },
-        "app.R3JvcQ.action.bGlzdC1tb2RlbHM.desc": {
-          "source": "Returns the list of models currently served by the Groq API using the `/v1/models` endpoint, including context window sizes and active flags.  See the [Groq models documentation](https://console.groq.com/docs/models) for details on each model.",
-          "message": "Gibt die Liste der derzeit von der Groq-API über den Endpunkt `/v1/models` bereitgestellten Modelle zurück, einschließlich Kontextfenstergrößen und Aktivitäts-Flags. Details zu den einzelnen Modellen finden Sie in der [Groq-Modell-Dokumentation](https://console.groq.com/docs/models)."
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dXNlcg.desc": {
+          "source": "Opaque identifier representing the end user.  Logged server-side for abuse tracking and usage attribution; does not affect generation.",
+          "message": "Opake Kennung, die den Endbenutzer darstellt. Wird serverseitig für Missbrauchsverfolgung und Nutzungszuordnung protokolliert; hat keinen Einfluss auf die Generierung."
         },
         "app.R3JvcQ.action.bGlzdC1tb2RlbHM.display_name": {
           "source": "List Models",
@@ -171,341 +1687,9 @@
           "source": "List the models currently available on the Groq API",
           "message": "Listet die derzeit in der Groq-API verfügbaren Modelle auf"
         },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.desc": {
-          "source": "Make a custom HTTP / REST API call to **Groq** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
-          "message": "Einen benutzerdefinierten HTTP- / REST-API-Aufruf an **Groq** mit der Authentifizierung der konfigurierten Verbindung ausführen.\n\nGeben Sie die HTTP-Methode, den URI-Pfad (relativ zur API-Basis-URL der Verbindung), optionale Abfrageparameter, Header und den Anforderungstext an. Die Antwort wird als Hash zurückgegeben, der den Statuscode, die Antwort-Header und den Antworttext enthält.\n\nVerwenden Sie diese Aktion für Endpunkte, die in dieser App noch nicht als erstklassige Aktionen bereitgestellt werden."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.display_name": {
-          "source": "Make an API call",
-          "message": "API-Aufruf ausführen"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.desc": {
-          "source": "The request body. The effective type depends on `body_type`: JSON/form/YAML expect a hash, XML/text expect a string, multipart expects a file structure, binary expects raw bytes.",
-          "message": "Der Anfragen-Body. Der effektive Typ hängt von `body_type` ab: JSON/form/YAML erwarten einen Hash, XML/Text erwarten einen String, Multipart erwartet eine Dateistruktur, Binary erwartet Rohbytes."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.display_name": {
-          "source": "Body",
-          "message": "Body"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.short_desc": {
-          "source": "The request body",
-          "message": "Der Anfragen-Body"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.desc": {
-          "source": "Upload a file using `multipart/form-data`. The body must be a @ref DataProvider::FileDataType \"FileDataType\" structure (filename + content + mime_type). The framework builds the multipart envelope and sets the boundary header.",
-          "message": "Laden Sie eine Datei mit `multipart/form-data` hoch. Der Body muss eine @ref DataProvider::FileDataType \"FileDataType\"-Struktur sein (filename + content + mime_type). Das Framework erstellt die Multipart-Hülle und setzt den Boundary-Header."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.display_name": {
-          "source": "Multipart Form",
-          "message": "Multipart-Formular"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.short_desc": {
-          "source": "Upload a file using multipart/form-data",
-          "message": "Eine Datei mit multipart/form-data hochladen"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
-          "source": "Pass the body to the REST client unchanged; the client decides serialization based on its configured `data` option and the value type",
-          "message": "Übergeben Sie den Body unverändert an den REST-Client; der Client entscheidet über die Serialisierung basierend auf seiner konfigurierten `data`-Option und dem Werttyp"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
-          "source": "Auto",
-          "message": "Auto"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
-          "source": "Pass-through; use connection serialization and let the REST client decide",
-          "message": "Durchreichen; Verbindungsserialisierung nutzen, REST-Client entscheiden lassen"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.desc": {
-          "source": "Send the body as raw bytes. The body must be a binary value. Sets `Content-Type: application/octet-stream` unless overridden by `hdr`.",
-          "message": "Senden Sie den Body als Rohbytes. Der Body muss ein Binärwert sein. Setzt `Content-Type: application/octet-stream`, sofern nicht durch `hdr` überschrieben."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
-          "source": "Raw Binary",
-          "message": "Rohbinärdaten"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.short_desc": {
-          "source": "Send body as raw bytes",
-          "message": "Body als Rohbytes senden"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.desc": {
-          "source": "Serialize a hash of form fields as `application/x-www-form-urlencoded`. The body must be a hash whose values are scalars (strings/numbers/booleans).",
-          "message": "Serialisieren Sie einen Hash von Formularfeldern als `application/x-www-form-urlencoded`. Der Body muss ein Hash sein, dessen Werte Skalare sind (Strings/Zahlen/Booleans)."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.display_name": {
-          "source": "Form (URL-encoded)",
-          "message": "Formular (URL-kodiert)"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.short_desc": {
-          "source": "Serialize body as application/x-www-form-urlencoded form fields",
-          "message": "Body als application/x-www-form-urlencoded-Formularfelder serialisieren"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.desc": {
-          "source": "Serialize the body as JSON; sets `Content-Type: application/json`. The body should be a hash, list, or scalar value.",
-          "message": "Serialisieren Sie den Body als JSON; setzt `Content-Type: application/json`. Der Body sollte ein Hash, eine Liste oder ein Skalarwert sein."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.display_name": {
-          "source": "JSON",
-          "message": "JSON"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.short_desc": {
-          "source": "Serialize body as JSON",
-          "message": "Body als JSON serialisieren"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.desc": {
-          "source": "Send the body as plain text. The body must be a string. Sets `Content-Type: text/plain`.",
-          "message": "Senden Sie den Body als Klartext. Der Body muss ein String sein. Setzt `Content-Type: text/plain`."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.display_name": {
-          "source": "Plain Text",
-          "message": "Klartext"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
-          "source": "Send body as text/plain",
-          "message": "Body als text/plain senden"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.desc": {
-          "source": "Send the body as XML. If the body is a hash it is serialized to XML; if it is a string it is sent verbatim. Sets `Content-Type: application/xml`.",
-          "message": "Senden Sie den Body als XML. Wenn der Body ein Hash ist, wird er zu XML serialisiert; wenn er ein String ist, wird er wörtlich gesendet. Setzt `Content-Type: application/xml`."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.display_name": {
-          "source": "XML",
-          "message": "XML"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.short_desc": {
-          "source": "Send body as XML",
-          "message": "Body als XML senden"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.desc": {
-          "source": "Send the body as YAML. If the body is a hash it is serialized to YAML; if it is a string it is sent verbatim. Sets `Content-Type: application/x-yaml`.",
-          "message": "Senden Sie den Body als YAML. Wenn der Body ein Hash ist, wird er zu YAML serialisiert; wenn er ein String ist, wird er wörtlich gesendet. Setzt `Content-Type: application/x-yaml`."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.display_name": {
-          "source": "YAML",
-          "message": "YAML"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.short_desc": {
-          "source": "Send body as YAML",
-          "message": "Body als YAML senden"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.desc": {
-          "source": "Selects the body serialization mode and the corresponding `Content-Type` header. Changing this field reshapes the `body` editor - selecting JSON exposes a JSON editor, selecting Multipart Form exposes a file picker, and so on.",
-          "message": "Wählt den Body-Serialisierungsmodus und den entsprechenden Header `Content-Type` aus. Das Ändern dieses Feldes passt den Editor `body` an – die Auswahl von JSON zeigt einen JSON-Editor an, die Auswahl von Multipart Form zeigt eine Dateiauswahl an usw."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.display_name": {
-          "source": "Body Type",
-          "message": "Body-Typ"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.short_desc": {
-          "source": "How the body is serialized and what Content-Type is sent",
-          "message": "Wie der Body serialisiert wird und welcher Content-Type gesendet wird"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.desc": {
-          "source": "If `True`, non-2xx HTTP responses return as the normal response hash (with the actual status code) instead of raising `REST-RESPONSE-ERROR`. Useful for handling 4xx/5xx as data - e.g. checking whether a resource exists. Overrides the connection's `error_passthru` setting for this call only.",
-          "message": "Wenn `True`, werden Nicht-2xx-HTTP-Antworten als normaler Antwort-Hash (mit dem tatsächlichen Statuscode) zurückgegeben, anstatt `REST-RESPONSE-ERROR` auszulösen. Nützlich für die Behandlung von 4xx/5xx als Daten – z. B. zum Überprüfen, ob eine Ressource existiert. Überschreibt die Einstellung `error_passthru` der Verbindung nur für diesen Aufruf."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.display_name": {
-          "source": "Return Errors as Data",
-          "message": "Fehler als Daten zurückgeben"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.short_desc": {
-          "source": "Return non-2xx responses normally instead of throwing",
-          "message": "Nicht-2xx-Antworten normal zurückgeben, anstatt eine Exception auszulösen"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.desc": {
-          "source": "Optional list of HTTP status codes treated as success. If set and the response status is not in this list, the action throws `REST-STATUS-ERROR`. When unset, the REST client's default behavior applies (typically: 2xx is success, non-2xx throws).",
-          "message": "Optionale Liste von HTTP-Statuscodes, die als Erfolg behandelt werden. Wenn festgelegt und der Antwortstatus nicht in dieser Liste enthalten ist, löst die Aktion `REST-STATUS-ERROR` aus. Wenn nicht festgelegt, gilt das Standardverhalten des REST-Clients (typischerweise: 2xx ist Erfolg, Nicht-2xx löst eine Exception aus)."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.display_name": {
-          "source": "Expected Status Codes",
-          "message": "Erwartete Statuscodes"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.short_desc": {
-          "source": "Response status codes treated as success",
-          "message": "Antwort-Statuscodes, die als Erfolg behandelt werden"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.aGRy.desc": {
-          "source": "Hash of custom headers added to the request. These override any default headers set by `body_type` (e.g. supplying `Content-Type` here wins over the body-type default).",
-          "message": "Hash benutzerdefinierter Header, die der Anfrage hinzugefügt werden. Diese überschreiben alle von `body_type` festgelegten Standard-Header (z. B. überschreibt die Angabe von `Content-Type` hier den Standard für den Body-Typ)."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.aGRy.display_name": {
-          "source": "Custom Headers",
-          "message": "Benutzerdefinierte Header"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.aGRy.short_desc": {
-          "source": "Extra request headers",
-          "message": "Zusätzliche Anfrage-Header"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.desc": {
-          "source": "If `True`, the response hash includes a `debug` sub-hash containing the request method/URL/headers (with sensitive values redacted), request and response sizes, and round-trip duration. Useful when investigating slow or failing calls. Off by default to keep responses lean.",
-          "message": "Wenn `True`, enthält der Antwort-Hash einen Sub-Hash `debug`, der die Anfragemethode/URL/Header (mit unkenntlich gemachten sensiblen Werten), Anfrage- und Antwortgrößen sowie die Verarbeitungsdauer enthält. Nützlich bei der Untersuchung langsamer oder fehlschlagender Aufrufe. Standardmäßig deaktiviert, um Antworten schlank zu halten."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.display_name": {
-          "source": "Include Debug Info",
-          "message": "Debug-Informationen einschließen"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.short_desc": {
-          "source": "Include request/timing/size debug info in the response",
-          "message": "Debug-Informationen zu Anfrage/Laufzeit/Größe in die Antwort einschließen"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.desc": {
-          "source": "HTTP `OPTIONS`",
-          "message": "HTTP `OPTIONS`"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.display_name": {
-          "source": "OPTIONS",
-          "message": "OPTIONS"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.short_desc": {
-          "source": "HTTP OPTIONS",
-          "message": "HTTP OPTIONS"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.desc": {
-          "source": "HTTP `DELETE`",
-          "message": "HTTP `DELETE`"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.display_name": {
-          "source": "DELETE",
-          "message": "DELETE"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.short_desc": {
-          "source": "HTTP DELETE",
-          "message": "HTTP DELETE"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.desc": {
-          "source": "HTTP `GET`",
-          "message": "HTTP `GET`"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.display_name": {
-          "source": "GET",
-          "message": "GET"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.short_desc": {
-          "source": "HTTP GET",
-          "message": "HTTP GET"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.desc": {
-          "source": "HTTP `HEAD`",
-          "message": "HTTP `HEAD`"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.display_name": {
-          "source": "HEAD",
-          "message": "HEAD"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.short_desc": {
-          "source": "HTTP HEAD",
-          "message": "HTTP HEAD"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.desc": {
-          "source": "HTTP `PATCH`",
-          "message": "HTTP `PATCH`"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.display_name": {
-          "source": "PATCH",
-          "message": "PATCH"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.short_desc": {
-          "source": "HTTP PATCH",
-          "message": "HTTP PATCH"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.desc": {
-          "source": "HTTP `POST`",
-          "message": "HTTP `POST`"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.display_name": {
-          "source": "POST",
-          "message": "POST"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.short_desc": {
-          "source": "HTTP POST",
-          "message": "HTTP POST"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.desc": {
-          "source": "HTTP `PUT`",
-          "message": "HTTP `PUT`"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.display_name": {
-          "source": "PUT",
-          "message": "PUT"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.short_desc": {
-          "source": "HTTP PUT",
-          "message": "HTTP PUT"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.desc": {
-          "source": "HTTP `TRACE`",
-          "message": "HTTP `TRACE`"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.display_name": {
-          "source": "TRACE",
-          "message": "TRACE"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.short_desc": {
-          "source": "HTTP TRACE",
-          "message": "HTTP TRACE"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.desc": {
-          "source": "The HTTP method to use for the request",
-          "message": "Die für die Anfrage zu verwendende HTTP-Methode"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.display_name": {
-          "source": "HTTP Method",
-          "message": "HTTP-Methode"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.short_desc": {
-          "source": "The HTTP method to use for the request",
-          "message": "Die für die Anfrage zu verwendende HTTP-Methode"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.desc": {
-          "source": "The URI path relative to the connection's API base URL. May contain `{name}` placeholders that are replaced from `path_vars`. Example: `/users/{id}/comments`.",
-          "message": "Der URI-Pfad relativ zur API-Basis-URL der Verbindung. Kann `{name}`-Platzhalter enthalten, die aus `path_vars` ersetzt werden. Beispiel: `/users/{id}/comments`."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.display_name": {
-          "source": "URI Path",
-          "message": "URI-Pfad"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.short_desc": {
-          "source": "The URI path relative to the connection's API base URL",
-          "message": "Der URI-Pfad relativ zur API-Basis-URL der Verbindung"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.desc": {
-          "source": "Hash of values substituted into `{name}` placeholders in the URI path. Example: with `path = /users/{id}` and `path_vars = {id: 123}` the framework sends `/users/123`. Values are URL-encoded.",
-          "message": "Hash von Werten, die in `{name}`-Platzhalter im URI-Pfad eingesetzt werden. Beispiel: Bei `path = /users/{id}` und `path_vars = {id: 123}` sendet das Framework `/users/123`. Werte werden URL-codiert."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.display_name": {
-          "source": "Path Variables",
-          "message": "Pfadvariablen"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.short_desc": {
-          "source": "Values for {name} placeholders in path",
-          "message": "Werte für {name}-Platzhalter im Pfad"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.desc": {
-          "source": "Hash of query string parameters to append to the URI path. Values are URL-encoded; list values are joined with `,`.",
-          "message": "Hash von Abfragezeichenfolgen-Parametern, die an den URI-Pfad angehängt werden sollen. Werte werden URL-codiert; Listenwerte werden mit `,` zusammengefügt."
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.display_name": {
-          "source": "Query Arguments",
-          "message": "Abfrageargumente"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.short_desc": {
-          "source": "Query string parameters",
-          "message": "Abfragezeichenfolgen-Parameter"
-        },
-        "app.R3JvcQ.action.bWFrZS1hcGktY2FsbA.short_desc": {
-          "source": "Make a custom API call to Groq",
-          "message": "Einen benutzerdefinierten API-Aufruf an Groq ausführen"
-        },
-        "app.R3JvcQ.desc": {
-          "source": "Use [Groq](https://groq.com) to bring fast AI inference into business workflows.\n\n- Generate chat and structured responses with tool calling\n- Transcribe, translate, and synthesize speech\n- Upload files and manage batch inference\n- Host externally trained LoRA adapters with enterprise access\n- Discover available models and inspect their capabilities",
-          "message": "Nutzen Sie [Groq](https://groq.com) für schnelle KI-Inferenz in Geschäftsabläufen.\n\n- Chat- und strukturierte Antworten mit Werkzeugaufrufen generieren\n- Sprache transkribieren, übersetzen und synthetisieren\n- Dateien hochladen und Batch-Inferenz verwalten\n- Extern trainierte LoRA-Adapter mit Enterprise-Zugang hosten\n- Verfügbare Modelle finden und ihre Fähigkeiten prüfen"
-        },
-        "app.R3JvcQ.display_name": {
-          "source": "Groq",
-          "message": "Groq"
-        },
-        "app.R3JvcQ.short_desc": {
-          "source": "Fast AI responses, speech, batch inference, and LoRA adapter hosting",
-          "message": "Schnelle KI-Antworten, Sprache, Batch-Inferenz und Hosting von LoRA-Adaptern"
+        "app.R3JvcQ.action.bGlzdC1tb2RlbHM.desc": {
+          "source": "Returns the list of models currently served by the Groq API using the `/v1/models` endpoint, including context window sizes and active flags.  See the [Groq models documentation](https://console.groq.com/docs/models) for details on each model.",
+          "message": "Gibt die Liste der derzeit von der Groq-API über den Endpunkt `/v1/models` bereitgestellten Modelle zurück, einschließlich Kontextfenstergrößen und Aktivitäts-Flags. Details zu den einzelnen Modellen finden Sie in der [Groq-Modell-Dokumentation](https://console.groq.com/docs/models)."
         }
       }
     }
