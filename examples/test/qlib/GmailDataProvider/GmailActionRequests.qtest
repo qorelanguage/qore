@@ -461,6 +461,17 @@ public class GmailActionRequestsTest inherits QUnit::Test {
         assertRegex("t1", drafts[0].short_desc);
         assertEq(("gmail/v1/users/me/drafts?maxResults=100",), rest.getPaths("GET"));
 
+        # the result never exceeds the advertised maximum, even when the server hands back a larger page
+        int max_drafts = GmailApiDataProviderBase::MaxReferenceDrafts;
+        rest.drafts = map ("id": sprintf("r-%d", $1), "message": {"id": sprintf("m-%d", $1), "threadId": "t"}),
+            xrange(1, max_drafts + 100);
+        rest.requests = ();
+        drafts = prov.getReferenceData("drafts");
+        assertEq(max_drafts, drafts.size(), "the drafts reference data is capped");
+        assertEq(sprintf("r-%d", max_drafts), drafts[max_drafts - 1].value, "and keeps the first entries");
+        assertEq(("gmail/v1/users/me/drafts?maxResults=100",), rest.getPaths("GET"),
+            "a page is never requested beyond the page size");
+
         assertNothing(prov.getReferenceData("messages"), "unknown reference data is not an error");
         assertThrows("UNSUPPORTED-REFERENCE-DATA", sub () {
             prov.getReferenceDataEx("messages");

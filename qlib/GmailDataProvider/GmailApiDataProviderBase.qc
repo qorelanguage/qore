@@ -112,12 +112,17 @@ public class GmailApiDataProviderBase inherits GoogleDataProvider::GoogleApiData
         list<hash<AllowedValueInfo>> rv = ();
         *string page_token;
         do {
-            string uri = sprintf("gmail/v1/users/me/drafts?maxResults=%d", ReferenceDraftPageSize);
+            # never ask for, or keep, more than the advertised maximum
+            int page_size = min(ReferenceDraftPageSize, MaxReferenceDrafts - rv.size());
+            string uri = sprintf("gmail/v1/users/me/drafts?maxResults=%d", page_size);
             if (page_token.val()) {
                 uri += "&pageToken=" + encode_url(page_token);
             }
             hash<auto> res = rest.restGet(uri).body;
             foreach hash<auto> draft in (res.drafts) {
+                if (rv.size() >= MaxReferenceDrafts) {
+                    break;
+                }
                 rv += <AllowedValueInfo>{
                     "value": draft.id,
                     "display_name": draft.id,

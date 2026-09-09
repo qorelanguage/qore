@@ -144,13 +144,15 @@ public class GmailAttachmentWatchDataProvider inherits GmailMessageWatchDataProv
     */
     private messageReceived(hash<auto> msg) {
         int matches;
+        # the same for every attachment of the message
+        hash<auto> source_info = GmailAttachmentWatchDataProvider::getSourceInfo(msg);
         foreach hash<auto> att in (msg.attachments) {
             if (attachment_regex && (!att.filename.val() || !regex(att.filename, attachment_regex, re_flags))) {
                 LoggerWrapper::debug("Gmail: skipping attachment with filename %y; does not match glob: %y",
                     att.filename, attachment_glob);
                 continue;
             }
-            notifyObservers(EVENT_ATTACHMENT_MATCHED, att + GmailAttachmentWatchDataProvider::getSourceInfo(msg));
+            notifyObservers(EVENT_ATTACHMENT_MATCHED, att + source_info);
             ++matches;
         }
         LoggerWrapper::info("Gmail: message %y matched attachments: %d/%d", msg.id, matches, msg.attachments.size());
