@@ -1478,6 +1478,25 @@ int main() {
 }"
 HAVE_STRUCT_STAT_ST_TIMESPEC)
 
+# POSIX.1-2008 per-thread locales, used by q_strtod() to parse floating-point text in the
+# classic locale no matter what an embedding application or an external module has done with
+# setlocale() (issue 1556).  Checked by compiling rather than by symbol lookup because the
+# declarations live in <xlocale.h> on Darwin and in <locale.h> elsewhere.
+check_cxx_source_compiles("#include <clocale>
+#ifdef __APPLE__
+#include <xlocale.h>
+#endif
+#include <cstdlib>
+int main() {
+    locale_t classic = newlocale(LC_ALL_MASK, \"C\", (locale_t)0);
+    locale_t prev = uselocale(classic);
+    double rv = strtod(\"1.5\", nullptr);
+    uselocale(prev);
+    freelocale(classic);
+    return rv > 0.0 ? 0 : 1;
+}"
+HAVE_USELOCALE)
+
 # net/if_dl.h is not self-contained
 include(CheckIncludeFiles)
 check_include_files("sys/types.h;sys/socket.h;net/if_dl.h" HAVE_NET_IF_DL_H)

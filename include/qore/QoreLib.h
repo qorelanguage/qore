@@ -879,7 +879,18 @@ DLLEXPORT void* q_memrmem(const void* big, size_t big_len, const void* little, s
 DLLEXPORT int q_env_subst(QoreString& str);
 
 //! converts a string to a double in a locale-independent way
-/** @since %Qore 0.8.13
+/** Converts the longest prefix of \a str that forms a valid floating-point number, exactly as
+    \c strtod() does in the classic locale, and returns 0.0 when there is no such prefix; empty,
+    whitespace-only and non-numeric input therefore convert to 0.0.  Leading classic-locale
+    whitespace is skipped, trailing characters are ignored, and the hexadecimal, \c inf and \c nan
+    forms accepted by \c strtod() are accepted here as well.  The decimal point is always \c '.'
+    regardless of any locale an embedding application or module has installed.
+
+    @param str the string to convert; may be @ref nullptr, which converts to 0.0
+
+    @return the converted value, or 0.0 if no conversion could be performed
+
+    @since %Qore 0.8.13
  */
 DLLEXPORT double q_strtod(const char* str);
 

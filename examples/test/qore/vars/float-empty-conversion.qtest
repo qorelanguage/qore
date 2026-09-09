@@ -9,6 +9,7 @@ class EmptyFloatConversionTest inherits QUnit::Test {
     constructor() : Test("String to float initialization", "1.0") {
         addTestCase("Empty and whitespace-only inputs initialize zero", \emptyInputs());
         addTestCase("Malformed and numeric-prefix inputs retain conversion behavior", \malformedInputs());
+        addTestCase("Hexadecimal, infinite and NaN forms convert like strtod()", \strtodForms());
         addTestCase("Numeric values and signed zero remain intact", \numericInputs());
         set_return_value(main());
     }
@@ -33,12 +34,37 @@ class EmptyFloatConversionTest inherits QUnit::Test {
         }
     }
 
+    #! Conversion takes the longest valid prefix and ignores the rest, as strtod() does.
+    /** The prefix rule must not depend on the C++ standard library the build uses: an
+        istringstream extraction accumulates an implementation-defined character set before
+        converting, and libstdc++ and libc++ disagree on it, so "1x" used to convert to 1.0 on
+        Linux and 0.0 on macOS.
+    */
     private malformedInputs() {
-        foreach string input in ("abc", "+", "-", ".", "1e", (160).toUnicode()) {
+        # no valid prefix at all
+        foreach string input in ("abc", "+", "-", ".", "e5", "x10", (160).toUnicode()) {
             check(input, 0.0);
         }
         check("1x", 1.0);
+        check("1e", 1.0);
+        check("1e5x", 100000.0);
         check(" -2.5tail", -2.5);
+    }
+
+    #! float() accepts every form strtod() accepts, including the ones with no decimal digits.
+    private strtodForms() {
+        check("0x10", 16.0);
+        check("0x1p4", 16.0);
+        check("inf", @inf@);
+        check("INFINITY", @inf@);
+        check("-inf", -@inf@);
+        # a stringified infinity or NaN converts back to the value it came from
+        check(string(@inf@), @inf@);
+        # NaN never compares equal, so it is checked with the predicate instead of check()
+        assertTrue(float("nan").nanp(), "lowercase NaN");
+        assertTrue(float("NAN").nanp(), "uppercase NaN");
+        assertTrue(convertedArgument("nan").nanp(), "NaN through softfloat coercion");
+        assertTrue(float(string(@nan@)).nanp(), "stringified NaN round-trips");
     }
 
     private numericInputs() {

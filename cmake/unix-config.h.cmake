@@ -133,6 +133,7 @@
 #cmakedefine HAVE_TBBMALLOC
 #cmakedefine HAVE_TIMEGM
 #cmakedefine HAVE_UNSETENV
+#cmakedefine HAVE_USELOCALE
 #cmakedefine HAVE_USLEEP
 #cmakedefine HAVE_VFORK
 #cmakedefine HAVE_VPRINTF

@@ -2963,6 +2963,13 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
 
     - Fixed empty or whitespace-only string-to-float conversion returning an uninitialized value;
       these inputs now consistently convert to zero.
+    - Fixed string-to-float conversion producing different results on different platforms. The
+      conversion used a C++ stream extraction whose accepted character set is implementation-defined,
+      so for example \c "1x" converted to \c 1.0 with libstdc++ and to \c 0.0 with libc++, and
+      \c "0x10" converted to \c 0.0 and \c 16.0 respectively. Conversion now follows \c strtod() in
+      the classic locale on every platform: the longest valid prefix is converted and \c 0.0 is
+      returned when there is none. As a result the hexadecimal, \c inf and \c nan forms are now
+      accepted, so a stringified infinite or NaN value converts back to the value it came from.
     - Fixed static-file cache revalidation and large-file compression in WebUtil 1.8.1. Conditional
       responses preserve the selected cache policy, and large files are compressed with bounded memory.
       Content encoding negotiation honors client preferences and exclusions across HTTP/1, HTTP/2, and HTTP/3.

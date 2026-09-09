@@ -52,17 +52,24 @@
 #include <cctype>
 #include <cerrno>
 #include <climits>
+#include <clocale>
 #include <cstring>
 #include <ctime>
 #include <locale>
 #include <map>
 #include <sstream>
 #include <string>
+
 #include <strings.h>
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
+
+#if defined(HAVE_USELOCALE) && defined(__APPLE__)
+// newlocale()/uselocale() are declared here on Darwin and in <locale.h> elsewhere
+#include <xlocale.h>
+#endif
 
 #ifdef HAVE_PWD_H
 #include <dirent.h>
@@ -3016,13 +3023,59 @@ void* q_memrmem(const void* big, size_t big_len, const void* little, size_t litt
     return nullptr;
 }
 
+#ifdef HAVE_USELOCALE
+//! Returns the process-wide classic locale used for locale-independent numeric parsing.
+/** Created once and deliberately never freed: q_strtod() is reachable from static destructors and
+    from teardown paths that run after any destructible singleton would already be gone, and using
+    a freed locale_t is undefined behavior.  The operating system reclaims it at process exit.
+*/
+static locale_t q_get_classic_locale() {
+    static locale_t classic = newlocale(LC_ALL_MASK, "C", (locale_t)0);
+    return classic;
+}
+
+//! Installs the classic locale on the calling thread for the lifetime of the object.
+/** uselocale() is per-thread, so unlike setlocale() this cannot disturb any other thread.
+*/
+class QoreClassicLocaleHelper {
+public:
+    DLLLOCAL QoreClassicLocaleHelper() {
+        locale_t classic = q_get_classic_locale();
+        if (classic != (locale_t)0) {
+            prev = uselocale(classic);
+        }
+    }
+
+    DLLLOCAL ~QoreClassicLocaleHelper() {
+        if (prev != (locale_t)0) {
+            uselocale(prev);
+        }
+    }
+
+    DLLLOCAL QoreClassicLocaleHelper(const QoreClassicLocaleHelper&) = delete;
+    DLLLOCAL QoreClassicLocaleHelper& operator=(const QoreClassicLocaleHelper&) = delete;
+
+private:
+    locale_t prev = (locale_t)0;
+};
+#endif
+
 double q_strtod(const char* str) {
-    std::istringstream istr(str);
-    istr.imbue(std::locale::classic());
-    // The stream sentry can fail at EOF before numeric extraction assigns a value.
-    double rv = 0.0;
-    istr >> rv;
-    return rv;
+    if (!str) {
+        return 0.0;
+    }
+#ifdef HAVE_USELOCALE
+    // an external module or embedding application that called setlocale() must not be able to
+    // change the decimal point character this conversion accepts (issue 1556)
+    QoreClassicLocaleHelper classic;
+#endif
+    // strtod() is used rather than a std::istringstream extraction because the set of characters
+    // the stream's num_get facet accumulates before conversion is implementation-defined, and
+    // libstdc++ and libc++ disagree on it: "1x" converted to 1.0 on one and 0.0 on the other,
+    // "0x10" to 0.0 and 16.0, so the same program produced different numbers per platform.
+    // strtod() converts the longest valid prefix and returns 0.0 when there is none, which also
+    // covers empty and whitespace-only input.
+    return strtod(str, nullptr);
 }
 
 #ifdef _Q_WINDOWS
