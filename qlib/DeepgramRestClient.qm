@@ -139,7 +139,8 @@ public class DeepgramRestClientBase {
         hash<auto!> rv;
         rv += DefaultOptions + opts;
         if (rv.default_headers) {
-            rv.headers = (rv.headers ?? {}) + remove rv.default_headers;
+            # explicit headers win over the legacy option on key collisions
+            rv.headers = (remove rv.default_headers) + (rv.headers ?? {});
         }
         if (rv.apikey) {
             rv.headers = (rv.headers ?? {}) + {"Authorization": "Token " + rv.apikey};
