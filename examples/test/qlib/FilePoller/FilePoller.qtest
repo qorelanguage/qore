@@ -1,5 +1,6 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
 
 %modern
 
@@ -41,9 +42,20 @@ public class FilePollerTest inherits QUnit::Test {
     constructor() : Test("FilePoller", "1.0") {
         addTestCase("FilePoller", \filePollerTest());
         addTestCase("FilePollerDataProvider", \filePollerDataProviderTest());
+        addTestCase("stable file-event date examples", \dateExamples());
 
         # Return for compatibility with test harness that checks return value
         set_return_value(main());
+    }
+
+    private dateExamples() {
+        hash<auto> sample = FilePollerFileEventInfoDataType.getExampleValue();
+        foreach string field in (("atime", "mtime", "ctime")) {
+            assertEq(2000-01-01T00:00:00Z, sample{field});
+            assertEq(0, sample{field}.getUtcOffset());
+        }
+        assertEq(sample, new FilePollerFileEventInfoDataType().getExampleValue(),
+            "independent event type construction preserves example identity");
     }
 
     private filePollerTest() {

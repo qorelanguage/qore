@@ -59,6 +59,7 @@ module MewsRestDataProvider {
             "groups": (DataProvider::AppGroup::Hospitality,),
         });
 
+        # Register stable, illustrative UTC date ranges. Examples are not runtime defaults.
         # register all supported actions
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": MewsRestDataProvider::AppName,
@@ -74,7 +75,7 @@ module MewsRestDataProvider {
                     "short_desc": "The earliest date and time of the closed date",
                     "desc": "The earliest date and time of the closed date; i.e. `ClosedUtc` >= <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-01-01T00:00:00Z,
                     "loc": "where",
                     "preselected": True,
                 },
@@ -83,7 +84,7 @@ module MewsRestDataProvider {
                     "short_desc": "The upper limit of the closed date (and time) range",
                     "desc": "The upper limit of the closed date (and time) range; i.e. `ClosedUtc` < <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-02-01T00:00:00Z,
                     "loc": "where",
                     "preselected": True,
                 },
@@ -92,7 +93,7 @@ module MewsRestDataProvider {
                     "short_desc": "The earliest date and time of the updated date",
                     "desc": "The earliest date and time of the updated date; i.e. `CreatedUtc` >= <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-01-01T00:00:00Z,
                     "loc": "where",
                 },
                 "CreatedUtcEnd": <ActionOptionInfo>{
@@ -100,7 +101,7 @@ module MewsRestDataProvider {
                     "short_desc": "The upper limit of the created date (and time) range",
                     "desc": "The upper limit of the created date (and time) range; i.e. `CreatedUtc` < <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-02-01T00:00:00Z,
                     "loc": "where",
                 },
                 "UpdatedUtcStart": <ActionOptionInfo>{
@@ -108,7 +109,7 @@ module MewsRestDataProvider {
                     "short_desc": "The earliest date and time of the updated date",
                     "desc": "The earliest date and time of the updated date; i.e. `UpdatedUtc` >= <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-01-01T00:00:00Z,
                     "loc": "where",
                 },
                 "UpdatedUtcEnd": <ActionOptionInfo>{
@@ -116,7 +117,7 @@ module MewsRestDataProvider {
                     "short_desc": "The upper limit of the updated date (and time) range",
                     "desc": "The upper limit of the updated date (and time) range; i.e. `UpdatedUtc` < <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-02-01T00:00:00Z,
                     "loc": "where",
                 },
                 "ChargedUtcStart": <ActionOptionInfo>{
@@ -124,7 +125,7 @@ module MewsRestDataProvider {
                     "short_desc": "The earliest date and time of the charged date",
                     "desc": "The earliest date and time of the charged date; i.e. `ChargedUtc` >= <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-01-01T00:00:00Z,
                     "loc": "where",
                 },
                 "ChargedUtcEnd": <ActionOptionInfo>{
@@ -132,7 +133,7 @@ module MewsRestDataProvider {
                     "short_desc": "The upper limit of the charged date (and time) range",
                     "desc": "The upper limit of the charged date (and time) range; i.e. `ChargedUtc` < <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-02-01T00:00:00Z,
                     "loc": "where",
                 },
                 "ConsumedUtcStart": <ActionOptionInfo>{
@@ -140,7 +141,7 @@ module MewsRestDataProvider {
                     "short_desc": "The earliest date and time of the consumed date",
                     "desc": "The earliest date and time of the consumed date; i.e. `ConsumedUtc` >= <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-01-01T00:00:00Z,
                     "loc": "where",
                 },
                 "ConsumedUtcEnd": <ActionOptionInfo>{
@@ -148,7 +149,7 @@ module MewsRestDataProvider {
                     "short_desc": "The upper limit of the consumed date (and time) range",
                     "desc": "The upper limit of the consumed date (and time) range; i.e. `UpdatedUtc` < <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-02-01T00:00:00Z,
                     "loc": "where",
                 },
                 "CanceledUtcStart": <ActionOptionInfo>{
@@ -156,7 +157,7 @@ module MewsRestDataProvider {
                     "short_desc": "The earliest date and time of the canceled date",
                     "desc": "The earliest date and time of the canceled date; i.e. `CanceledUtc` >= <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-01-01T00:00:00Z,
                     "loc": "where",
                 },
                 "CanceledUtcEnd": <ActionOptionInfo>{
@@ -164,7 +165,7 @@ module MewsRestDataProvider {
                     "short_desc": "The upper limit of the canceled date (and time) range",
                     "desc": "The upper limit of the canceled date (and time) range; i.e. `CanceledUtc` < <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-02-01T00:00:00Z,
                     "loc": "where",
                 },
                 "EnterpriseId": <ActionOptionInfo>{
@@ -256,7 +257,7 @@ module MewsRestDataProvider {
                     "short_desc": "The earliest date and time of the closed date",
                     "desc": "The earliest date and time of the closed date; i.e. `ClosedUtc` >= <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-01-01T00:00:00Z,
                     "preselected": True,
                     "loc": "where",
                 },
@@ -265,7 +266,7 @@ module MewsRestDataProvider {
                     "short_desc": "The upper limit of the closed date (and time) range",
                     "desc": "The upper limit of the closed date (and time) range; i.e. `ClosedUtc` < <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-02-01T00:00:00Z,
                     "preselected": True,
                     "loc": "where",
                 },
@@ -274,7 +275,7 @@ module MewsRestDataProvider {
                     "short_desc": "The earliest date and time of the updated date",
                     "desc": "The earliest date and time of the updated date; i.e. `CreatedUtc` >= <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-01-01T00:00:00Z,
                     "loc": "where",
                 },
                 "CreatedUtcEnd": <ActionOptionInfo>{
@@ -282,7 +283,7 @@ module MewsRestDataProvider {
                     "short_desc": "The upper limit of the created date (and time) range",
                     "desc": "The upper limit of the created date (and time) range; i.e. `CreatedUtc` < <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-02-01T00:00:00Z,
                     "loc": "where",
                 },
                 "UpdatedUtcStart": <ActionOptionInfo>{
@@ -290,7 +291,7 @@ module MewsRestDataProvider {
                     "short_desc": "The earliest date and time of the updated date",
                     "desc": "The earliest date and time of the updated date; i.e. `UpdatedUtc` >= <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-01-01T00:00:00Z,
                     "loc": "where",
                 },
                 "UpdatedUtcEnd": <ActionOptionInfo>{
@@ -298,7 +299,7 @@ module MewsRestDataProvider {
                     "short_desc": "The upper limit of the updated date (and time) range",
                     "desc": "The upper limit of the updated date (and time) range; i.e. `UpdatedUtc` < <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-02-01T00:00:00Z,
                     "loc": "where",
                 },
                 "ChargedUtcStart": <ActionOptionInfo>{
@@ -306,7 +307,7 @@ module MewsRestDataProvider {
                     "short_desc": "The earliest date and time of the charged date",
                     "desc": "The earliest date and time of the charged date; i.e. `ChargedUtc` >= <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-01-01T00:00:00Z,
                     "loc": "where",
                 },
                 "ChargedUtcEnd": <ActionOptionInfo>{
@@ -314,7 +315,7 @@ module MewsRestDataProvider {
                     "short_desc": "The upper limit of the charged date (and time) range",
                     "desc": "The upper limit of the charged date (and time) range; i.e. `ChargedUtc` < <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-02-01T00:00:00Z,
                     "loc": "where",
                 },
                 "SettlementUtcStart": <ActionOptionInfo>{
@@ -322,7 +323,7 @@ module MewsRestDataProvider {
                     "short_desc": "The earliest date and time of the settlement date",
                     "desc": "The earliest date and time of the settlement date; i.e. `SettlementUtc` >= <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-01-01T00:00:00Z,
                     "loc": "where",
                 },
                 "SettlementUtcEnd": <ActionOptionInfo>{
@@ -330,7 +331,7 @@ module MewsRestDataProvider {
                     "short_desc": "The upper limit of the settlement date (and time) range",
                     "desc": "The upper limit of the settlement date (and time) range; i.e. `SettlementUtc` < <this date>",
                     "type": AbstractDataProviderTypeMap."date",
-                    "example_value": now(),
+                    "example_value": 2024-02-01T00:00:00Z,
                     "loc": "where",
                 },
                 "EnterpriseId": <ActionOptionInfo>{
@@ -551,6 +552,7 @@ module MewsRestDataProvider {
     @section mewsrestdataprovider_relnotes Release Notes
 
     @subsection mewsrestdataprovider_v1_1 MewsRestDataProvider v1.1
+    - order-item and payment search examples now use stable, nonempty UTC date ranges instead of the load time
     - migrated from @ref MewsRestClient::MewsRestClient "MewsRestClient" (synchronous HTTP/1.x) to
       @ref MewsRestClient::MewsRestClientIo "MewsRestClientIo" (async HTTP/1.x, HTTP/2, and HTTP/3,
       with connection multiplexing on HTTP/2 and HTTP/3) as the default REST transport; this

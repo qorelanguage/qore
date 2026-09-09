@@ -46,6 +46,11 @@ discovery-isolation mode.
    context, then let AOT initialization import them into the module's own Program.
    Preserve explicit reexports and genuine collision errors. Test against source
    loading without excluding compiled Qorus modules or suppressing fallback warnings.
+7. Provider-owned illustrative samples must also be stable at their source. Mews
+   order-item/payment search ranges use January 2024 UTC boundaries (start before
+   end), and FilePoller timestamp examples use the fixed UTC sample. These edits
+   change only examples, not defaults, query execution, or actual event timestamps;
+   downstream comparison still treats every authored example as significant.
 
 ## Implementation and acceptance sequence
 

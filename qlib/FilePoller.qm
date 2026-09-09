@@ -109,6 +109,7 @@ module FilePoller {
     @section file_poller_relnotes FilePoller Release Notes
 
     @subsection file_poller_2_0 FilePoller v2.0
+    - file-event timestamp examples are stable UTC samples; actual event timestamps are unchanged
     - added support for the data provider action catalog API
       (<a href="https://github.com/qoretechnologies/qore/issues/4808">issue 4808</a>)
 
@@ -1024,19 +1025,19 @@ public class FilePollerFileEventInfoDataType inherits HashDataType {
                 "display_name": "Access Timestamp",
                 "short_desc": "The last accessed date/time of the file",
                 "desc": "The last accessed date/time of the file",
-                "example_value": now_us(),
+                "example_value": 2000-01-01T00:00:00Z,
             },
             "mtime": {
                 "display_name": "Modified Timestamp",
                 "short_desc": "The last modified date/time of the file",
                 "desc": "The last modified date/time of the file",
-                "example_value": now_us(),
+                "example_value": 2000-01-01T00:00:00Z,
             },
             "ctime": {
                 "display_name": "Creation Timestamp",
                 "short_desc": "The created date/time of the file",
                 "desc": "The created date/time of the file",
-                "example_value": now_us(),
+                "example_value": 2000-01-01T00:00:00Z,
             },
             "blksize": {
                 "display_name": "Block Size",

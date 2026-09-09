@@ -1,0 +1,42 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires QUnit
+%requires DataProvider
+%requires MewsRestDataProvider
+%exec-class MewsCatalogExamplesTest
+
+#! Offline catalog checks: no Mews connection, credentials, or requests
+class MewsCatalogExamplesTest inherits QUnit::Test {
+    constructor() : Test("Mews catalog examples", "1.0", \ARGV) {
+        addTestCase("search date examples are stable nonempty UTC ranges", \dateExamples());
+        set_return_value(main());
+    }
+
+    private dateExamples() {
+        hash<string, list<string>> ranges = {
+            "get-order-items": ("ClosedUtc", "CreatedUtc", "UpdatedUtc", "ChargedUtc", "ConsumedUtc", "CanceledUtc"),
+            "get-payments": ("ClosedUtc", "CreatedUtc", "UpdatedUtc", "ChargedUtc", "SettlementUtc"),
+        };
+        int checked = 0;
+        foreach hash<DataProviderActionInfo> action in (DataProviderActionCatalog::getActions("Mews", False)) {
+            if (!exists ranges{action.action}) {
+                continue;
+            }
+            foreach string field in (ranges{action.action}) {
+                hash<ActionOptionInfo> start = action.options{field + "Start"};
+                hash<ActionOptionInfo> end = action.options{field + "End"};
+                assertEq(2024-01-01T00:00:00Z, start.example_value);
+                assertEq(2024-02-01T00:00:00Z, end.example_value);
+                assertEq(0, start.example_value.getUtcOffset());
+                assertEq(0, end.example_value.getUtcOffset());
+                assertTrue(start.example_value < end.example_value, "illustrative interval is nonempty");
+                assertNothing(start.default_value, "an example must not become an execution default");
+                assertNothing(end.default_value);
+                checked += 2;
+            }
+        }
+        assertEq(22, checked, "both complete action date-option sets are covered");
+    }
+}
