@@ -65,10 +65,15 @@ class RecursiveClosureLocalsTest inherits QUnit::Test {
         list<string> llvm_link = split(" ", trim(run(dir.path, (llvm_config, "--libs"))));
         string root = get_script_dir() + "/../../..";
         string executable = dir.path + "/recursive-locals";
+        # -Wl,-rpath is what lets the driver find libqore (and a shared LLVM): LD_LIBRARY_PATH
+        # is a Linux-only mechanism, and libqore's macOS install name is
+        # @rpath/libqore.<ver>.dylib, so a binary linked with -L/-l alone has nowhere to look
+        # and dies in dyld before main()
         run(dir.path, (ENV.CXX ?? "c++", "-std=c++20", "-g", "-I" + root + "/include",
             "-I" + lib_dir + "/include", "-I" + llvm_include,
             get_script_dir() + "/recursive_closure_locals.cpp", "-L" + lib_dir,
-            "-L" + llvm_lib, "-lqore") + llvm_link + ("-o", executable));
+            "-L" + llvm_lib, "-Wl,-rpath," + lib_dir, "-Wl,-rpath," + llvm_lib,
+            "-lqore") + llvm_link + ("-o", executable));
         assertEq("recursive-closure-locals: ok\n", run(dir.path, (executable, source)));
     }
 

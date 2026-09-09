@@ -75,9 +75,12 @@ class OptionalMapTypeFoldingTest inherits QUnit::Test {
         TmpDir dir("qore-map-cancel-");
         string root = get_script_dir() + "/../../..";
         string executable = dir.path + "/map-cancel";
+        # -Wl,-rpath is what lets the driver find libqore: LD_LIBRARY_PATH is a Linux-only
+        # mechanism, and libqore's macOS install name is @rpath/libqore.<ver>.dylib, so a
+        # binary linked with -L/-l alone has nowhere to look and dies in dyld before main()
         run(dir.path, (ENV.CXX ?? "c++", "-std=c++17", "-g", "-I" + root + "/include",
             "-I" + lib_dir + "/include", get_script_dir() + "/optional_map_cancellation.cpp",
-            "-L" + lib_dir, "-lqore", "-o", executable));
+            "-L" + lib_dir, "-Wl,-rpath," + lib_dir, "-lqore", "-o", executable));
         assertEq("optional-map-cancellation: ok\n", run(dir.path, (executable,)));
         assertEq("optional-map-cancellation: ok\n", run(dir.path, (executable,), True));
     }
