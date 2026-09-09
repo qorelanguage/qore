@@ -140,6 +140,8 @@
     - new @ref Qore::ParseOptions "ParseOptions" container supporting more than 64 option bits
 
     <i>Networking and I/O:</i>
+    - already encoded HTTP request paths accept the URI unreserved character <tt>~</tt>,
+      for example <tt>/~user/catalog.xsd</tt>, while retaining existing percent escapes
     - caught TLS handshake failures retain their exception details without writing unsolicited
       diagnostics to standard error in Debug builds; detailed debug logging remains available
     - HTTP/1.0 client connections require explicit keep-alive before reuse; redirects reconnect after
