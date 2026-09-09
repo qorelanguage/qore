@@ -1,0 +1,132 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+
+class RecursiveLocalWalker {
+    public {
+        list<string> result();
+    }
+
+    private static clean(reference<*hash<auto>> value) {
+        remove value.unused;
+    }
+
+    walk(*hash<auto> data) {
+        foreach *hash<auto> node in (data.nodes) {
+            clean(\node);
+            if (node.child) {
+                walk(node.child);
+            }
+            push result, node.name;
+        }
+    }
+}
+
+list<int> sub recursiveCaptured(int depth) {
+    int value = depth;
+    code<int()> increment = int sub() { return ++value; };
+    list<int> result();
+    if (depth) {
+        result = recursiveCaptured(depth - 1);
+    }
+    push result, increment();
+    return result;
+}
+
+int sub capturedParameter(int value) {
+    code<int()> increment = int sub() { return ++value; };
+    return increment();
+}
+
+list<reference<string>> sub escapedLocals(list<string> input) {
+    list<reference<string>> result();
+    foreach string value in (input) {
+        string local = value;
+        push result, \local;
+    }
+    return result;
+}
+
+string sub readReference(reference<string> value) {
+    return value;
+}
+
+sub writeReference(reference<string> value, string replacement) {
+    value = replacement;
+}
+
+list<string> sub recursiveFailure(int depth) {
+    list<string> result();
+    foreach string name in ("first", "second") {
+        string local = sprintf("%d:%s", depth, name);
+        reference<string> retained = \local;
+        if (!depth) {
+            throw "EXPECTED-RECURSIVE-ERROR", local;
+        }
+        try {
+            result += recursiveFailure(depth - 1);
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err != "EXPECTED-RECURSIVE-ERROR") {
+                rethrow;
+            }
+            push result, ex.desc;
+        }
+        push result, retained;
+    }
+    return result;
+}
+
+int sub recursiveUnassigned(int depth) {
+    *int value;
+    code<*int()> read = *int sub() { return value; };
+    @assert(read() === NOTHING);
+    if (depth) {
+        @assert(recursiveUnassigned(depth - 1) == depth);
+    }
+    @assert(read() === NOTHING);
+    value = depth + 1;
+    return read();
+}
+
+int sub warmRecursiveLocals() {
+    RecursiveLocalWalker walker();
+    walker.walk({"nodes": {"name": "leaf"}});
+    @assert(walker.result == ("leaf",));
+    @assert(recursiveCaptured(0) == (1,));
+    @assert(capturedParameter(40) == 41);
+    @assert(readReference(escapedLocals(("warm",))[0]) == "warm");
+    @assert(recursiveUnassigned(0) == 1);
+    try {
+        recursiveFailure(0);
+        throw "MISSING-ERROR", "recursiveFailure must throw at depth zero";
+    } catch (hash<ExceptionInfo> ex) {
+        @assert(ex.err == "EXPECTED-RECURSIVE-ERROR");
+    }
+    return 1;
+}
+
+int sub checkRecursiveLocals() {
+    RecursiveLocalWalker walker();
+    walker.walk({"nodes": ({"name": "outer", "child": {"nodes":
+        ({"name": "inner-1"}, {"name": "inner-2"})}}, {"name": "sibling"})});
+    @assert(walker.result == ("inner-1", "inner-2", "outer", "sibling"));
+    walker.walk(NOTHING);
+    walker.walk({"nodes": ()});
+    @assert(walker.result == ("inner-1", "inner-2", "outer", "sibling"));
+    @assert(recursiveCaptured(3) == (1, 2, 3, 4));
+    @assert(capturedParameter(40) == 41);
+    list<reference<string>> escaped = escapedLocals(("alpha", "beta", "gamma"));
+    @assert(readReference(escaped[0]) == "alpha" && readReference(escaped[1]) == "beta"
+        && readReference(escaped[2]) == "gamma");
+    writeReference(escaped[1], "changed");
+    @assert(readReference(escaped[0]) == "alpha" && readReference(escaped[1]) == "changed"
+        && readReference(escaped[2]) == "gamma");
+    @assert(recursiveFailure(1) == ("0:first", "1:first", "0:first", "1:second"));
+    @assert(recursiveUnassigned(3) == 4);
+    @assert(recursiveCaptured(1) == (1, 2));
+    return 1;
+}
+
+warmRecursiveLocals();
+checkRecursiveLocals();
+printf("recursive-closure-locals: ok\n");

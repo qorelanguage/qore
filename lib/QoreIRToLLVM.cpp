@@ -24495,6 +24495,16 @@ bool QoreIRToLLVM::lowerInstruction(const QoreIRInstruction* inst, llvm::Functio
                 llvm::Value* var_ptr = llvm::ConstantInt::get(i64_type,
                         reinterpret_cast<uint64_t>(linst->local));
                 llvm::Value* var_as_ptr = builder->CreateIntToPtr(var_ptr, ptr_type);
+                // The frame wrapper skips closure-use body locals.  Create this
+                // call's binding before lookup: an older recursive frame can
+                // contain the same LocalVar, but must never supply its storage.
+                const void* local_key = reinterpret_cast<const void*>(linst->local);
+                if (linst->local && linst->local->closureUse()
+                        && (current_body_locals.count(local_key) || block_scoped_locals.count(local_key))) {
+                    auto instantiate = module.getOrInsertFunction("qore_rt_instantiate_local",
+                            llvm::FunctionType::get(void_type, {ptr_type}, false));
+                    builder->CreateCall(instantiate, {var_as_ptr});
+                }
                 auto ll_ft = llvm::FunctionType::get(i64_type, {ptr_type, ptr_type}, false);
                 auto helper = module.getOrInsertFunction("qore_rt_load_local", ll_ft);
                 auto helper_throwing = module.getOrInsertFunction(
@@ -24612,6 +24622,16 @@ bool QoreIRToLLVM::lowerInstruction(const QoreIRInstruction* inst, llvm::Functio
                 llvm::Value* var_ptr = llvm::ConstantInt::get(i64_type,
                         reinterpret_cast<uint64_t>(linst->local));
                 llvm::Value* var_as_ptr = builder->CreateIntToPtr(var_ptr, ptr_type);
+                // The frame wrapper skips closure-use body locals.  Create this
+                // call's binding before lookup: an older recursive frame can
+                // contain the same LocalVar, but must never supply its storage.
+                const void* local_key = reinterpret_cast<const void*>(linst->local);
+                if (linst->local && linst->local->closureUse()
+                        && (current_body_locals.count(local_key) || block_scoped_locals.count(local_key))) {
+                    auto instantiate = module.getOrInsertFunction("qore_rt_instantiate_local",
+                            llvm::FunctionType::get(void_type, {ptr_type}, false));
+                    builder->CreateCall(instantiate, {var_as_ptr});
+                }
                 auto al_ft = llvm::FunctionType::get(void_type,
                         {ptr_type, i64_type, ptr_type}, false);
                 const char* helper_name = linst->weak ? "qore_rt_assign_local"

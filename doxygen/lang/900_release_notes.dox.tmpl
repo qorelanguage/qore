@@ -32,6 +32,8 @@
       stored inline
     - generic hash-field maps retain their actual result element type in IR, JIT and AOT execution;
       common type inference retains optional types in either operand order and across repeated NOTHING values
+    - JIT execution preserves each recursive call's own reference-backed and closure-captured local variables,
+      including tree traversals, exception cleanup, and escaped references
     - native fast-path dispatch for the @ref map "map", @ref select "select", and
       @ref foldl "foldl" functional operators (over lists, hashes, and objects) bypasses
       per-element virtual calls for built-in iterators
