@@ -41,6 +41,11 @@ discovery-isolation mode.
 5. Preserve native serialization and atomic file publication. No timestamps,
    examples, schemas, or dependency identities are omitted by downstream equality
    checks. A genuinely different named dependency or authored value remains drift.
+6. Full Qorus acceptance exposed AOT preflight importing private dependencies into
+   the host Program. Register these providers globally with the caller's resolution
+   context, then let AOT initialization import them into the module's own Program.
+   Preserve explicit reexports and genuine collision errors. Test against source
+   loading without excluding compiled Qorus modules or suppressing fallback warnings.
 
 ## Implementation and acceptance sequence
 

@@ -2792,12 +2792,15 @@ int QoreModuleManager::loadAOTBinaryModuleDependencies(ExceptionSink& xsink,
         if (i && !(i % 10) && qore_check_cancel(&xsink, "AOT binary module dependency loading")) {
             return -1;
         }
-        // The descriptor dependency list contains the module's direct,
-        // non-reexported %requires dependencies. Import them into the caller
-        // just as the source-module loader does. The wider provider list in
-        // the embedded AOT metadata is still loaded globally by generated AOT
-        // init, so transitive providers do not leak into every caller.
-        loadModuleIntern(xsink, xsink, dependencies[i].c_str(), path_pgm);
+        // Resolve native symbols before dlopen without importing private
+        // dependencies into the host. A source module imports these into its
+        // own Program, not the caller; generated AOT init does the same.
+        // Importing here can collide with unrelated host declarations even
+        // when the dependency is absent from the module's public surface.
+        // Preserve the caller's module search path and sandbox context.
+        loadModuleIntern(xsink, xsink, dependencies[i].c_str(), nullptr, false,
+            MOD_OP_NONE, nullptr, nullptr, nullptr, QMLO_NONE, QP_WARN_MODULES,
+            nullptr, path_pgm);
         if (xsink) {
             return -1;
         }

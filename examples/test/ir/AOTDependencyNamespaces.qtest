@@ -17,6 +17,7 @@ class AOTDependencyNamespacesTest inherits QUnit::Test {
 
     constructor() : QUnit::Test("AOTDependencyNamespacesTest", "1.0", \ARGV) {
         addTestCase("private native dependencies allow later dynamic imports", \dynamicImports());
+        addTestCase("private dependencies do not collide with host classes", \privateHostCollision());
         addTestCase("namespace extensions and declared empty namespaces survive", \namespaceContributions());
         addTestCase("genuine native namespace collisions remain errors", \genuineCollision());
         addTestCase("native namespace class conflicts release rejected declarations", \classCollision());
@@ -114,6 +115,50 @@ printf(\"%s\\n\", AOTNsLoader::run(\"AOTNsConsumer\"));
 printf(\"%s\\n\", AOTNsLoader::native());
 ");
         assertEq(expected, run(dir, modules, (script,)));
+    }
+
+    privateHostCollision() {
+        string dir = makeDirs();
+        on_exit remove_tree(dir);
+        string modules = modulePath(dir);
+        compileModule(dir, "AOTPrivateDependency", "public class AOTSharedName {
+    static string value() { return \"dependency\"; }
+}", modules);
+        compileModule(dir, "AOTPrivateConsumer", "%requires AOTPrivateDependency
+public string sub consumerValue() { return AOTSharedName::value(); }
+", modules);
+        compileModule(dir, "AOTReexportConsumer", "%requires(reexport) AOTPrivateDependency
+public string sub consumerValue() { return AOTSharedName::value(); }
+", modules);
+        string script = dir + "/private-host.qr";
+        writeText(script, "%modern
+Program p();
+p.parse(\"%modern\\npublic class AOTSharedName { static string value() { return \\\"host\\\"; } }\\n\"
+    + \"public string sub hostValue() { return AOTSharedName::value(); }\", \"host\");
+p.loadModule(\"AOTPrivateConsumer\");
+p.loadModule(\"AOTPrivateConsumer\");
+printf(\"%s/%s\\n\", p.callFunction(\"hostValue\"), p.callFunction(\"consumerValue\"));
+try {
+    p.loadModule(\"AOTPrivateDependency\");
+    throw \"TEST-ERROR\", \"explicit dependency import must reject the host collision\";
+} catch (hash<ExceptionInfo> ex) {
+    @assert(ex.err == \"MODULE-LOAD-ERROR\");
+    printf(\"explicit collision rejected\\n\");
+}
+Program reexport_host();
+reexport_host.parse(\"%modern\\npublic class AOTSharedName {}\", \"reexport host\");
+try {
+    reexport_host.loadModule(\"AOTReexportConsumer\");
+    throw \"TEST-ERROR\", \"reexport must reject the host collision\";
+} catch (hash<ExceptionInfo> ex) {
+    @assert(ex.err == \"MODULE-LOAD-ERROR\");
+    printf(\"reexport collision rejected\\n\");
+}
+");
+        string expected = "host/dependency\nexplicit collision rejected\nreexport collision rejected\n";
+        # All dependencies and consumers use real AOT artifacts with no source fallback.
+        assertEq(expected, run(dir, modules, (script,)));
+        assertEq(expected, run(dir, dir + "/src:" + (ENV.QORE_MODULE_DIR ?? ""), (script,)));
     }
 
     namespaceContributions() {

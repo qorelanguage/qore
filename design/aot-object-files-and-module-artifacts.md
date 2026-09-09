@@ -248,6 +248,18 @@ lazy-discovery/reopen path, so introducing the trailer does not invalidate exist
 artifacts. The EOF format also keeps a qmod self-contained; there is no sidecar whose
 installation, renaming, or symlink lifetime could diverge from the executable artifact.
 
+Preflight registers dependency providers without importing their declarations into
+the host Program. Non-reexported `%requires` imports belong to the module's own
+Program, just as with source loading; AOT initialization restores that surface from
+metadata. Only explicit reexports extend the host. The caller's search-path and
+sandbox context still governs provider resolution. Otherwise a private dependency
+can incorrectly collide with an unrelated host class (for example Qorus client
+classes already linked into `qctl`). `AOTDependencyNamespaces.qtest` verifies both
+representations, repeated loading, and rejection of genuine explicit-import and
+reexport conflicts. This correction does not require recompiling existing qmods.
+Failed reexports propagate their error before the consumer namespace is merged;
+they must not be cleared and presented as a successful partial module import.
+
 ## Namespace Ownership in Metadata
 
 Namespace metadata contains the declarations owned by the compilation unit and the

@@ -13745,7 +13745,14 @@ static void qore_aot_module_ns_init_impl(QoreNamespace* root_ns, QoreNamespace* 
     // items — system classes from binary modules (e.g., LoggerLevel from logger_bin)
     // are NOT user-public and would be skipped by the namespace merge.
     if (reexport_deps && !reexport_deps->empty()) {
+        size_t reexport_count = 0;
         for (const std::string& dep : *reexport_deps) {
+            if (!(reexport_count++ % 10) && qore_check_cancel(&xsink, "AOT module reexport loading")) {
+                if (!external_xsink) {
+                    xsink.handleExceptions();
+                }
+                return;
+            }
             if (!qore_program_private::get(*tpgm)->hasFeature(dep.c_str())) {
                 printd(5, "AOT module ns_init '%s': loading reexported dep '%s' into target program\n",
                     mod_name, dep.c_str());
@@ -13755,9 +13762,12 @@ static void qore_aot_module_ns_init_impl(QoreNamespace* root_ns, QoreNamespace* 
                 // parseLoadModule/runTimeLoadModule
                 QMM.loadModuleForReexport(xsink, dep.c_str(), tpgm);
                 if (xsink) {
-                    printd(0, "AOT module ns_init '%s': WARNING - failed to load reexported dep '%s'\n",
-                        mod_name, dep.c_str());
-                    xsink.clear();
+                    // A failed reexport makes the public module surface incomplete.
+                    // Preserve the failure instead of publishing a partial import.
+                    if (!external_xsink) {
+                        xsink.handleExceptions();
+                    }
+                    return;
                 }
             }
         }

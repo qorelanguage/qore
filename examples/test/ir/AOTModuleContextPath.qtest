@@ -516,12 +516,15 @@ public string sub readAOTPublicOurShared() {
         f.open2(script_path, O_WRONLY | O_CREAT | O_TRUNC);
         f.write("%modern
 %requires AOTPublicOurMain
+%requires AOTPublicOurDep
 
 printf(\"top=%s\\n\", AOTPublicOurShared.value());
 printf(\"aot=%s\\n\", readAOTPublicOurShared());
 ");
         f.close();
 
+        # The top-level read needs an explicit dependency import, just as with
+        # source modules; AOTPublicOurMain's private dependency is not reexported.
         string run_out = runQoreScriptWithTimeout(tmp_dir, script_path);
         assertEq("top=live-slot\naot=live-slot\nEXIT=0\n", run_out,
             "AOT-compiled downstream method must read the dependency module's live public our slot");

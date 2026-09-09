@@ -1429,6 +1429,9 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
     @endparblock
 
     @par AOT Dependency Namespace Isolation
+    Loading compiled modules now keeps non-reexported dependencies private to the module,
+    matching source-module behavior and avoiding false conflicts with host classes.
+    Failed reexports are reported instead of silently accepting an incomplete public module interface.
     AOT compilation now omits empty namespace branches belonging to dependencies while preserving
     user-declared namespaces and namespaces extended by the compiled module.  This prevents later
     dynamic imports from failing with <tt>Namespace 'Json' already exists in '::Qore'</tt>, including
