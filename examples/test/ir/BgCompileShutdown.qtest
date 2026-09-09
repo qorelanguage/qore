@@ -24,6 +24,7 @@ class BgCompileShutdownTest inherits QUnit::Test {
         libqore_dir = ENV.QORE_LIBDIR ?? dirname(qore_bin);
         script_path = "/tmp/qore-bg-compile-shutdown-" + string(getpid()) + ".qr";
         addTestCase("queued tier promotions are cancelled at shutdown", \testShutdown());
+        addTestCase("native code remains mapped for module delete callbacks", \testModuleDeleteCallback());
         addTestCase("oversized functions remain at the IR tier", \testOversizedFunction());
         addTestCase("the native compilation budget is configurable", \testBudgetOverride());
         addTestCase("a zero budget disables the size limit", \testBudgetDisabled());
@@ -68,6 +69,45 @@ class BgCompileShutdownTest inherits QUnit::Test {
             "all calls completed before shutdown: " + output);
         assertTrue(output =~ /\[BG-JIT\] cancelled [1-9][0-9]* pending compilations? at shutdown/,
             "shutdown cancelled queued tier promotions: " + output);
+    }
+
+    private testModuleDeleteCallback() {
+        string module_path = "/tmp/QoreJitDeleteCallback" + string(getpid()) + ".qm";
+        string log_path = module_path + ".log";
+        on_exit unlink(module_path);
+        on_exit unlink(log_path);
+
+        string module_name = "QoreJitDeleteCallback" + string(getpid());
+        string source = sprintf("%%modern\n"
+            "module %s {\n"
+            "    version = \"1.0\";\n"
+            "    desc = \"JIT shutdown ordering regression fixture\";\n"
+            "    author = \"Qore Technologies\";\n"
+            "    url = \"https://qore.org\";\n"
+            "    license = \"MIT\";\n"
+            "    init = sub () { %s::Worker::hot(1); %s::Worker::hot(2); };\n"
+            "    del = sub () { throw \"JIT-DELETE-CALLBACK\", string(%s::Worker::hot(40)); };\n"
+            "}\n"
+            "public namespace %s {\n"
+            "public class Worker {\n"
+            "    static int hot(int value) { return value + 2; }\n"
+            "}\n"
+            "}\n", module_name, module_name, module_name, module_name, module_name);
+        File module_file();
+        module_file.open2(module_path, O_WRONLY | O_CREAT | O_TRUNC);
+        module_file.write(source);
+        module_file.close();
+
+        int rc = system(sprintf("QORE_IR_THRESHOLD=1 QORE_JIT_THRESHOLD=1 QORE_JIT_SYNC_COMPILE=1 "
+            "QORE_JIT_TIMING=1 "
+            "LD_LIBRARY_PATH=%s %s -b --exec-mode=tiered -l %s -e \"int value = 0;\" >%s 2>&1",
+            shellQuote(libqore_dir), shellQuote(qore_bin), shellQuote(module_path), shellQuote(log_path)));
+        string output = File::readTextFile(log_path);
+        assertEq(0, rc, "module delete callback completed after JIT quiescence: " + output);
+        assertTrue(output =~ /\[BG-JIT\] compiled 'hot@.*promoted to JIT tier/,
+            "the function used by the delete callback reached the native tier: " + output);
+        assertTrue(output =~ /JIT-DELETE-CALLBACK.*42/s,
+            "module delete callback executed compiled code: " + output);
     }
 
     private string writeScript(string source) {

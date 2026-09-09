@@ -897,11 +897,12 @@ static void optimizeModule(llvm::Module& module, int opt_level) {
     constructor instead, which puts it at the same point in the teardown order.  It matters for a
     process that exits without going through qore_exit_process() or qore_main_intern(): the
     background thread must not still be compiling while LLVM's process-wide state is torn down.
-    shutdown() is idempotent and permanently stops the queue from accepting work, so running it
-    here as well as from those two callers is harmless.
+    Only the compiler is stopped here.  Other atexit callbacks and static destructors can still
+    destroy Programs and execute their cleanup code after this handler runs, so releasing the LLVM
+    engine here would invalidate native entry points that those callbacks can still reach.
 */
 static void qore_jit_shutdown_at_exit() {
-    QoreJIT::instance().shutdown();
+    QoreJIT::instance().stopBackgroundCompiler();
 }
 
 // The singleton is allocated once and deliberately never destroyed.  Programs are torn down from
@@ -914,8 +915,9 @@ static void qore_jit_shutdown_at_exit() {
 // that into an uncaught std::system_error ("mutex lock failed: Invalid argument"), losing the exit
 // status the script set; glibc silently tolerates it, so the same defect is invisible on Linux.
 // An immortal singleton keeps the JIT usable for the entire life of the process.  Its resources are
-// released by shutdown(), which qore_exit_process() and qore_main_intern() call explicitly, and the
-// rest is reclaimed by the operating system at process exit.
+// released late by shutdown() after normal qore_cleanup() has destroyed module Programs.  On a
+// direct exit(), only the compiler is stopped and the operating system reclaims the execution
+// engine after all process callbacks have finished.
 QoreJIT& QoreJIT::instance() {
     static QoreJIT* jit = [] {
         QoreJIT* rv = new QoreJIT;
@@ -2124,8 +2126,8 @@ void QoreJIT::waitForBgCompileQueue(QoreProgram* pgm) {
     }
 }
 
-void QoreJIT::shutdown() {
-    // Ensure background thread is stopped BEFORE any other shutdown
+void QoreJIT::stopBackgroundCompiler() {
+    // Ensure background thread is stopped BEFORE Programs or functions are destroyed.
     bool was_running;
     {
         // Serialize the shutdown transition with worker startup and queue insertion.
@@ -2169,8 +2171,14 @@ void QoreJIT::shutdown() {
         fprintf(stderr, "[BG-JIT] cancelled %zu pending compilation%s at shutdown\n",
             cancelled_count, cancelled_count == 1 ? "" : "s");
     }
+}
 
-    // Then shut down LLVM (acquire compile_mutex to serialize with any ongoing compilation)
+void QoreJIT::shutdown() {
+    stopBackgroundCompiler();
+
+    // Release LLVM only after every function that can hold a published entry point is gone.
+    // Acquiring compile_mutex also documents and enforces serialization with compilation even if
+    // shutdown() is called independently of the normal two-phase qore_cleanup() path.
     std::lock_guard<std::mutex> compile_lock(compile_mutex);
     jit.reset();
     symbols_registered = false;

@@ -365,9 +365,10 @@ void qore_cleanup() {
         purge_thread_resources(&xsink);
     }
 
-    // Shutdown JIT background thread FIRST before destroying programs/functions
-    // to avoid use-after-free: BgCompileWork holds raw pointers to UserVariantBase members
-    QoreJIT::instance().shutdown();
+    // Stop JIT background compilation before destroying programs/functions: BgCompileWork holds
+    // raw pointers to UserVariantBase members.  Keep the LLVM engine alive, however, because user
+    // module delete callbacks below can still call functions through published native entry points.
+    QoreJIT::instance().stopBackgroundCompiler();
 
     // drop any user-module QoreObject references held by the async I/O
     // controller singleton (logger, timer callback, timer user data) BEFORE
@@ -403,6 +404,10 @@ void qore_cleanup() {
 
     // delete all loadable modules
     QMM.cleanup();
+
+    // All module programs and their callable UserVariantBase objects are gone, so native entry
+    // points can no longer be reached and the LLVM execution engine may now be released safely.
+    QoreJIT::instance().shutdown();
 
 #ifdef HAVE_MPFR_BUILDOPT_TLS_P
     // ensure MPFR caches are released for the main thread

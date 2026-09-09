@@ -61,6 +61,18 @@ pending background compiles (matched via `QoreIRFunction::pgm`; a compile with n
 owning program is treated as matching any teardown), so destroying one Program
 never serializes behind unrelated Programs' compilation.
 
+Process shutdown has two ordered JIT phases. It first permanently stops and drains
+the background compiler, making its raw references to Program-owned IR safe before
+Program teardown begins. Published native code remains mapped while user-module
+delete callbacks, registered shutdown handlers, atexit callbacks, and static
+destructors can still execute Qore functions. Normal `qore_cleanup()` releases the
+LLVM execution engine only after all module Programs have been destroyed. A direct
+`exit()` stops compilation but leaves the immortal engine for the operating system to
+reclaim, because callback registration order cannot prove that no later process
+callback will invoke a published entry point. This boundary prevents both compiler
+work from outliving its source IR and cached native function pointers from outliving
+their executable mapping, without adding checks to the runtime dispatch path.
+
 Threads that run LLVM are started through `q_start_llvm_compile_thread()` with an
 explicit 8MB stack (`QORE_LLVM_COMPILE_STACK_SIZE`), never with `std::thread`, which
 cannot request a stack size and takes the platform default: `RLIMIT_STACK` (8MB) on

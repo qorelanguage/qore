@@ -616,6 +616,17 @@ public:
     //! Compile and execute, falling back to IR interpreter on failure.
     bool executeWithFallback(const QoreIRFunction& func, QoreValue& return_value, ExceptionSink* xsink,
             std::string& error, const std::unordered_set<const LocalVar*>* pre_instantiated = nullptr);
+    //! Permanently stop and drain the background compiler without releasing executable code.
+    /** Shutdown callbacks can still execute hot Qore functions after compilation must stop.  This
+        phase makes queued IR safe for Program teardown while keeping every published native entry
+        point valid until the owning functions have been destroyed.
+    */
+    void stopBackgroundCompiler();
+
+    //! Stop compilation and release the LLVM execution engine.
+    /** Every UserVariantBase that can call a published native entry point must already be destroyed
+        before this function is called.
+    */
     void shutdown();
     void setDeoptPolicy(DeoptPolicy policy);
 

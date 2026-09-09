@@ -3042,7 +3042,9 @@ void qore_exit_process(int rc) {
         // thread_list.  Stop it while LLVM's process-wide state is still intact;
         // otherwise exit() can run LLVM static destructors concurrently with an
         // in-progress ORC materialization.
-        QoreJIT::instance().shutdown();
+        // Keep compiled code mapped because later atexit callbacks and static destructors can still
+        // execute Qore cleanup code after the native compiler has been stopped.
+        QoreJIT::instance().stopBackgroundCompiler();
         // The reaper has no Qore TID either. With all external workers joined,
         // stop it before static destruction reaches its condition variable.
         qore_stop_external_thread_reaper();
