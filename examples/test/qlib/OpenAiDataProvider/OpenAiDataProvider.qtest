@@ -164,6 +164,7 @@ public class OpenAiDataProviderTest inherits QUnit::Test {
         addTestCase("response stream events", \responseStreamEventsTest());
         addTestCase("response stream error", \responseStreamErrorTest());
         addTestCase("response action create", \responseActionCreateTest());
+        addTestCase("response action media parts", \responseActionMediaPartsTest());
         addTestCase("response action stream", \responseActionStreamTest());
         addTestCase("response action invalid args", \responseActionInvalidArgsTest());
         addTestCase("conversation helpers", \conversationHelpersTest());
@@ -895,6 +896,63 @@ public class OpenAiDataProviderTest inherits QUnit::Test {
         assertEq("hello", result.output[0].content[0].text);
     }
 
+    #! Image and audio output parts carry a file-reference hash next to their string metadata
+    /** A plain hash<auto> literal narrows to the element type of its initial values, so adding
+        the `data` hash to a part built from two strings used to fail at run time with
+        RUNTIME-TYPE-ERROR for every response containing an image or audio part.
+    */
+    responseActionMediaPartsTest() {
+        checkModule();
+        FakeOpenAiRestClient rest();
+        rest.response_body = {
+            "id": "resp_media",
+            "output": (
+                {
+                    "role": "assistant",
+                    "content": (
+                        {
+                            "type": "output_image",
+                            "mime_type": "image/png",
+                            "image_url": "https://example.com/a.png",
+                            "file_id": "file_img",
+                        },
+                        {
+                            "type": "output_audio",
+                            "mime_type": "audio/mpeg",
+                            "file_id": "file_audio",
+                            "format": "mp3",
+                        },
+                    ),
+                },
+            ),
+        };
+
+        OpenAiResponseActionSession session({
+            "restclient": rest,
+        });
+        hash<auto> result = session.handleAction("openai-response-create", {
+            "model": "gpt-4.1-mini",
+            "input": (
+                {
+                    "input_item": {
+                        "role": "user",
+                        "content": ({"type": "input_text", "text": "hello"},),
+                    },
+                },
+            ),
+        });
+        assertEq("resp_media", result.response_id);
+        list<auto> content = result.output[0].content;
+        assertEq(2, content.size());
+        assertEq("image", content[0].type);
+        assertEq("image/png", content[0].mime_type);
+        assertEq("https://example.com/a.png", content[0].url);
+        assertEq({"file_id": "file_img"}, content[0].data);
+        assertEq("file", content[1].type);
+        assertEq("audio/mpeg", content[1].mime_type);
+        assertEq({"file_id": "file_audio", "format": "mp3"}, content[1].data);
+    }
+
     responseActionStreamTest() {
         checkModule();
         FakeOpenAiRestClient rest();
@@ -909,16 +967,20 @@ public class OpenAiDataProviderTest inherits QUnit::Test {
 
         list<hash<auto>> events = ();
         Mutex m();
-        Condition cond();
+        # the emitter runs in the SSE thread; the counter reaches zero exactly when both events
+        # have been emitted, so no polling or sleeping is needed here
+        Counter pending(rest.stream_events.size());
 
         OpenAiResponseActionSession session({
             "restclient": rest,
         });
         session.setEmitter(sub (hash<auto> evt) {
-            m.lock();
-            on_exit m.unlock();
-            events += evt;
-            cond.broadcast();
+            {
+                m.lock();
+                on_exit m.unlock();
+                events += evt;
+            }
+            pending.dec();
         });
 
         session.handleAction("openai-response-start", {
@@ -938,20 +1000,17 @@ public class OpenAiDataProviderTest inherits QUnit::Test {
             ),
         });
 
-        date start = now_us();
-        m.lock();
-        on_exit m.unlock();
-        while (events.lsize() < 2) {
-            cond.wait(m, 1s);
-            if ((now_us() - start) > 5s) {
-                throw "ERROR", "no stream events in timeout";
-            }
-        }
+        assertEq(0, pending.waitForZero(30s), "stream events were not emitted");
 
-        assertEq("openai-response-event", events[0].event);
-        assertEq("text-delta", events[0].data.event_type);
-        assertEq("response.output_text.delta", events[0].data.openai_type);
-        assertEq("response-completed", events[1].data.event_type);
+        {
+            m.lock();
+            on_exit m.unlock();
+            assertEq(2, events.size());
+            assertEq("openai-response-event", events[0].event);
+            assertEq("text-delta", events[0].data.event_type);
+            assertEq("response.output_text.delta", events[0].data.openai_type);
+            assertEq("response-completed", events[1].data.event_type);
+        }
 
         hash<auto> stop_result = session.handleAction("openai-response-stop", {});
         assertEq("stopped", stop_result.status);

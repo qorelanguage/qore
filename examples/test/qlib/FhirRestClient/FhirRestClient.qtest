@@ -41,7 +41,8 @@ class TestFhirHandler inherits AbstractHttpRequestHandler {
         string path = parsed.method;
         path =~ s/^fhir\///;
 
-        hash<auto> request = {
+        # heterogeneous: string request metadata plus the parsed JSON body hash below
+        hash<auto!> request = {
             "method": hdr.method,
             "path": path,
             "params": parsed.params,

@@ -829,12 +829,47 @@ public class AnthropicDataProviderTest inherits QUnit::Test {
             },
         );
 
-        # test the action session by verifying it can handle create/stop actions
-        # (streaming through the action session is integration-tested via stream events test)
         hash<auto> opts = {
             "restclient": rest,
         };
         AnthropicMessageActionSession session(opts);
+
+        list<hash<auto>> events = ();
+        Mutex m();
+        # the emitter runs in the SSE thread; the counter reaches zero exactly when all three
+        # events have been emitted, so no polling or sleeping is needed here
+        Counter pending(rest.stream_events.size());
+        session.setEmitter(sub (hash<auto> evt) {
+            {
+                m.lock();
+                on_exit m.unlock();
+                events += evt;
+            }
+            pending.dec();
+        });
+
+        session.handleAction("anthropic-message-start", {
+            "model": "claude-sonnet-4-6-20250514",
+            "max_tokens": 1024,
+            "messages": ({"role": "user", "content": "Hello!"},),
+        });
+        assertEq(0, pending.waitForZero(30s), "stream events were not emitted");
+
+        {
+            m.lock();
+            on_exit m.unlock();
+            assertEq(3, events.size());
+            assertEq("anthropic-message-event", events[0].event);
+            assertEq("message_start", events[0].data.type);
+            assertEq("msg_as1", events[0].data.message.id);
+            assertEq("content_block_delta", events[1].data.type);
+            assertEq(0, events[1].data.index);
+            assertEq("text-delta", events[1].data.normalized_type);
+            assertEq("Hi", events[1].data.text);
+            assertEq("message_stop", events[2].data.type);
+            assertEq("message-completed", events[2].data.normalized_type);
+        }
+
         hash<auto> stop_result = session.handleAction("anthropic-message-stop");
         assertEq("stopped", stop_result.status);
     }

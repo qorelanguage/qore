@@ -124,7 +124,8 @@ public class MailgunCreateRouteDataProvider inherits MailgunDataProviderBase {
             throw "MAILGUN-ERROR", "action is required";
         }
 
-        hash<auto> body = {
+        # heterogeneous: the string expression plus the integer priority and action list below
+        hash<auto!> body = {
             "expression": req.expression,
         };
 

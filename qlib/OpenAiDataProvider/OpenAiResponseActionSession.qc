@@ -305,7 +305,8 @@ public class OpenAiResponseActionSession inherits DataProvider::Observer {
     }
 
     private hash<auto> makeImagePart(hash<auto> part) {
-        hash<auto> rv = {
+        # heterogeneous: string part metadata plus the file-reference hash below
+        hash<auto!> rv = {
             "type": "image",
             "mime_type": part.mime_type,
         };
@@ -319,7 +320,8 @@ public class OpenAiResponseActionSession inherits DataProvider::Observer {
     }
 
     private hash<auto> makeAudioPart(hash<auto> part) {
-        hash<auto> rv = {
+        # heterogeneous: string part metadata plus the file-reference hash below
+        hash<auto!> rv = {
             "type": "file",
             "mime_type": part.mime_type,
         };
@@ -333,7 +335,8 @@ public class OpenAiResponseActionSession inherits DataProvider::Observer {
     }
 
     private hash<auto> buildEventPayload(hash<auto> payload) {
-        hash<auto> data = {
+        # heterogeneous: string event identifiers plus the content list, raw data and error hashes below
+        hash<auto!> data = {
             "event_type": simplifyEventType(payload.type),
             "openai_type": payload.type,
             "id": payload.id,

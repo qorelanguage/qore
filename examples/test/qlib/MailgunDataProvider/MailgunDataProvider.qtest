@@ -40,6 +40,24 @@
 
 %exec-class MailgunDataProviderTest
 
+#! Records the form-encoded request body without contacting the Mailgun API
+class FakeMailgunRestClient inherits MailgunRestClient::MailgunRestClient {
+    public {
+        string last_path;
+        auto last_body;
+        hash<auto> response_body = {"message": "Route has been created", "route": {"id": "route_1"}};
+    }
+
+    constructor() : MailgunRestClient({"apikey": "fake-key", "api_domain": "mg.example.com"}, True) {
+    }
+
+    hash<auto> post(string path, auto body, *reference<hash<auto>> info, *hash<auto> hdr) {
+        last_path = path;
+        last_body = body;
+        return {"body": response_body};
+    }
+}
+
 public class MailgunDataProviderTest inherits QUnit::Test {
     private {
         #! Mailgun REST client for integration tests
@@ -73,6 +91,7 @@ public class MailgunDataProviderTest inherits QUnit::Test {
         addTestCase("metadata tests", \metadataTests());
         addTestCase("child provider tests", \childProviderTests());
         addTestCase("data type tests", \dataTypeTests());
+        addTestCase("create route request body", \createRouteBodyTests());
         addTestCase("negative tests", \negativeTests());
         addTestCase("corner case tests", \cornerCaseTests());
         addTestCase("connection tests", \connectionTests());
@@ -298,6 +317,37 @@ public class MailgunDataProviderTest inherits QUnit::Test {
         assertTrue(failFields.hasKey("recipient"));
         assertTrue(failFields.hasKey("delivery-status"));
         assertTrue(failFields.hasKey("reason"));
+    }
+
+    #! The route request mixes the string expression with an integer priority and an action list
+    /** A plain hash<auto> literal narrows to the element type of its initial values, so building
+        the body from the string expression first and adding the other fields afterwards used to
+        fail at run time with RUNTIME-TYPE-ERROR before every request reached the API.
+    */
+    createRouteBodyTests() {
+        checkJson();
+        FakeMailgunRestClient rest();
+        MailgunDataProvider::MailgunCreateRouteDataProvider prov(rest);
+        hash<auto> resp = prov.doRequest({
+            "expression": "match_recipient(\".*@example.com\")",
+            "action": "forward(\"http://example.com/hook\")",
+            "description": "test route",
+            "priority": 3,
+        });
+        assertEq("route_1", resp.id);
+        assertEq("/v3/routes", rest.last_path);
+        list<string> params = split("&", rest.last_body);
+        assertEq(1, (select params, $1 =~ /^priority=3$/).size());
+        assertEq(1, (select params, $1 =~ /^description=test%20route$/).size());
+        assertEq(1, (select params, $1 =~ /^expression=/).size());
+        assertEq(1, (select params, $1 =~ /^action=/).size());
+
+        # the form encoding repeats the key once per list element
+        prov.doRequest({
+            "expression": "match_recipient(\".*@example.com\")",
+            "action": ("stop()", "forward(\"http://example.com/hook\")"),
+        });
+        assertEq(2, (select split("&", rest.last_body), $1 =~ /^action=/).size());
     }
 
     #! Negative tests - test error handling and invalid inputs

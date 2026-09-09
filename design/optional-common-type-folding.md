@@ -13,6 +13,14 @@ containing an identity, `NOTHING`, and another identity therefore keeps a usable
 optional hash element type. It does not degrade to `list<auto>` and then fail a
 method taking `list<*hash<Identity>>`.
 
+Retaining the optional type makes a two-`NOTHING` literal behave like a one-`NOTHING`
+literal: `{"a": string, "b": NOTHING, "c": NOTHING}` is `hash<string, *string>`, where the
+second `NOTHING` used to reach the "multiple return alternatives" path and collapse the whole
+literal to `auto`. Code that built a container from string-ish values and then added a hash or
+a list under a new key was therefore only ever working by accident; the declaration for a
+container that genuinely holds mixed types is `hash<auto!>` / `list<auto!>`, which does not
+narrow. A plain `hash<auto>` still narrows to the element type of the value assigned to it.
+
 The generic hash-field map specialization (`MapHashKeyValue`) infers its result's common
 element type from the actual values. It collects into an unconstrained list and
 publishes the inferred type after the loop, matching the AST map's value-type

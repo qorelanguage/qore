@@ -239,7 +239,8 @@ public class AnthropicMessageActionSession inherits DataProvider::Observer {
 
     #! Builds event payload from stream data for the emitter
     private hash<auto> buildEventPayload(hash<auto> data_) {
-        hash<auto> payload = {
+        # heterogeneous: the string event type plus integer indexes and message/delta/usage hashes below
+        hash<auto!> payload = {
             "type": data_.type,
         };
         switch (data_.type) {

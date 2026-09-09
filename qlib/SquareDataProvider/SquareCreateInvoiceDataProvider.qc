@@ -130,7 +130,8 @@ public class SquareCreateInvoiceDataProvider inherits SquareDataProviderBase {
 
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
         # Build the invoice structure from flattened user-friendly fields
-        hash<auto> invoice = {
+        # heterogeneous: string ids plus the recipient hash and payment-request list below
+        hash<auto!> invoice = {
             "location_id": req.location_id,
             "order_id": req.order_id,
         };

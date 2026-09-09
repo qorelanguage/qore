@@ -39,6 +39,24 @@
 
 %exec-class SquareDataProviderTest
 
+#! Records the request body without contacting the Square API
+class FakeSquareRestClient inherits SquareRestClient::SquareRestClient {
+    public {
+        string last_path;
+        auto last_body;
+        hash<auto> response_body = {"invoice": {"id": "inv_1"}};
+    }
+
+    constructor() : SquareRestClient({"token": "fake-token"}, True) {
+    }
+
+    hash<auto> post(string path, auto body, *reference<hash<auto>> info, *hash<auto> hdr) {
+        last_path = path;
+        last_body = body;
+        return {"body": response_body};
+    }
+}
+
 public class SquareDataProviderTest inherits QUnit::Test {
     private {
         #! Square REST client for integration tests
@@ -75,6 +93,7 @@ public class SquareDataProviderTest inherits QUnit::Test {
         addTestCase("child provider tests", \childProviderTests());
         addTestCase("data type tests", \dataTypeTests());
         addTestCase("trigger example data tests", \triggerExampleDataTests());
+        addTestCase("create invoice request body", \createInvoiceBodyTests());
         addTestCase("negative tests", \negativeTests());
         addTestCase("connection tests", \connectionTests());
 
@@ -485,6 +504,38 @@ public class SquareDataProviderTest inherits QUnit::Test {
             assertTrue(exampleData instanceof hash,
                 sprintf("%s getExampleEventData() should return a hash", triggerName));
         }
+    }
+
+    #! The invoice request mixes strings with a recipient hash and a payment-request list
+    /** A plain hash<auto> literal narrows to the element type of its initial values, so building
+        the invoice from the two string ids first and adding the containers afterwards used to
+        fail at run time with RUNTIME-TYPE-ERROR before every request reached the API.
+    */
+    createInvoiceBodyTests() {
+        checkJson();
+        FakeSquareRestClient rest();
+        SquareDataProvider::SquareCreateInvoiceDataProvider prov(rest);
+        hash<auto> resp = prov.doRequest({
+            "location_id": "loc_1",
+            "order_id": "ord_1",
+            "customer_id": "cust_1",
+            "payment_request_type": "BALANCE",
+            "invoice_number": "INV-1",
+            "title": "Test invoice",
+            "description": "Test description",
+            "delivery_method": "EMAIL",
+        });
+        assertEq("inv_1", resp.id);
+        assertEq("invoices", rest.last_path);
+        hash<auto> invoice = rest.last_body.invoice;
+        assertEq("loc_1", invoice.location_id);
+        assertEq("ord_1", invoice.order_id);
+        assertEq({"customer_id": "cust_1"}, invoice.primary_recipient);
+        assertEq(({"request_type": "BALANCE"},), invoice.payment_requests);
+        assertEq("INV-1", invoice.invoice_number);
+        assertEq("Test invoice", invoice.title);
+        assertEq("EMAIL", invoice.delivery_method);
+        assertTrue(rest.last_body.idempotency_key.val());
     }
 
     #! Negative tests - test error handling and invalid inputs
