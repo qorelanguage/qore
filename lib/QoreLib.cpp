@@ -3019,7 +3019,8 @@ void* q_memrmem(const void* big, size_t big_len, const void* little, size_t litt
 double q_strtod(const char* str) {
     std::istringstream istr(str);
     istr.imbue(std::locale::classic());
-    double rv;
+    // The stream sentry can fail at EOF before numeric extraction assigns a value.
+    double rv = 0.0;
     istr >> rv;
     return rv;
 }

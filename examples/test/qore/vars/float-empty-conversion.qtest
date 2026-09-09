@@ -1,0 +1,56 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%exec-class EmptyFloatConversionTest
+
+class EmptyFloatConversionTest inherits QUnit::Test {
+    constructor() : Test("String to float initialization", "1.0") {
+        addTestCase("Empty and whitespace-only inputs initialize zero", \emptyInputs());
+        addTestCase("Malformed and numeric-prefix inputs retain conversion behavior", \malformedInputs());
+        addTestCase("Numeric values and signed zero remain intact", \numericInputs());
+        set_return_value(main());
+    }
+
+    private static float convertedArgument(softfloat value) {
+        return value;
+    }
+
+    private check(string input, float expected) {
+        # A runtime string exercises both explicit conversion and argument coercion.
+        assertEq(expected, float(input));
+        assertEq(expected, convertedArgument(input));
+    }
+
+    private emptyInputs() {
+        list<string> values = ("", " ", "\t", "\r", "\n", (11).toUnicode(), (12).toUnicode(),
+            " \t\r\n" + (11).toUnicode() + (12).toUnicode(), strmul(" ", 4096));
+        for (int iteration = 0; iteration < 16; ++iteration) {
+            foreach string input in (values) {
+                check(input, 0.0);
+            }
+        }
+    }
+
+    private malformedInputs() {
+        foreach string input in ("abc", "+", "-", ".", "1e", (160).toUnicode()) {
+            check(input, 0.0);
+        }
+        check("1x", 1.0);
+        check(" -2.5tail", -2.5);
+    }
+
+    private numericInputs() {
+        check("0", 0.0);
+        check("+0", 0.0);
+        check(" 1.25\t", 1.25);
+        check("-1.25e2", -125.0);
+        check("1e-20", 1e-20);
+        check("9007199254740992", 9007199254740992.0);
+        foreach string input in ("-0", " -0.0 ", "-0e10") {
+            assertEq("-0e0", float(input).toStringRoundTrip(True));
+            assertEq("-0e0", convertedArgument(input).toStringRoundTrip(True));
+        }
+    }
+}

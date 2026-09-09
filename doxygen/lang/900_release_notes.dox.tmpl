@@ -2941,6 +2941,8 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
 
     @subsection qore_3_0_0_bug_fixes Bug Fixes in Qore
 
+    - Fixed empty or whitespace-only string-to-float conversion returning an uninitialized value;
+      these inputs now consistently convert to zero.
     - Fixed static-file cache revalidation and large-file compression in WebUtil 1.8.1. Conditional
       responses preserve the selected cache policy, and large files are compressed with bounded memory.
       Content encoding negotiation honors client preferences and exclusions across HTTP/1, HTTP/2, and HTTP/3.
