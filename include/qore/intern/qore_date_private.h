@@ -130,7 +130,7 @@ struct qore_date_info {
     DLLLOCAL static const int positive_months[];
     DLLLOCAL static const int negative_months[];
 
-    DLLLOCAL static bool isLeapYear(int year);
+    DLLLOCAL static bool isLeapYear(int64 year);
 
     // returns the year and the positive number of seconds from the beginning
     // of the year (even for dates before 1970)
@@ -202,14 +202,16 @@ struct qore_date_info {
             yo += d;
         }
 
-        year = (int)(mult * 400 + 2000 + yo);
+        // Keep the March-based year wide until January/February have been restored.
+        // The intermediate year can be INT_MIN - 1 for a representable January date.
+        int64 calendar_year = mult * 400 + 2000 + yo;
 
         //printd(5, "qore_date_info::get_epoch_year() after 1: epoch: %d (%d from %d) year base: %d\n", epoch, d, SECS_PER_YEAR, year);
 
         // check if we are in the current year or the next and align with year start
         // r is currently the offset from YEAR-03-01
         if (epoch >= SECS_AFTER_LD) {
-            ++year;
+            ++calendar_year;
             epoch -= SECS_AFTER_LD;
         } else {
             // move offset start of current year
@@ -218,30 +220,25 @@ struct qore_date_info {
                 epoch += SECS_PER_DAY;
         }
 
+        year = static_cast<int>(calendar_year);
         //printd(5, "qore_date_info::get_epoch_year() after adj: epoch: %d year: %d\n", epoch, year);
     }
 
     // number of leap days from 1970-01-01Z to a certain month and year
     DLLLOCAL static int leap_days_from_epoch(int year, int month) {
         assert(month > 0 && month < 13);
-        // 1968-02-29 was the 478th leap day from year 0 assuming a proleptic gregorian calendar
-        int d;
-        if (year >= 1970) {
-            d = year/4 - year/100 + year/400 - 477;
-            if (month < 3 && isLeapYear(year))
-                --d;
-        } else {
-            --year;
-            d = year/4 - year/100 + year/400 - 477;
-            if (year < 0)
-                --d;
-            // first leap year before 1970 is 1968
-            // adjust for negative leap days
-            if (month > 2 && isLeapYear(year + 1))
-                ++d;
+        // Count complete leap years before this year. Floor division is required
+        // for negative years; a single correction after truncated divisions is wrong.
+        int64 previous = static_cast<int64>(year) - 1;
+        auto floor_divide = [](int64 value, int divisor) -> int64 {
+            return value / divisor - (value % divisor < 0 ? 1 : 0);
+        };
+        int64 days = floor_divide(previous, 4) - floor_divide(previous, 100)
+            + floor_divide(previous, 400) - 477;
+        if (month > 2 && isLeapYear(year)) {
+            ++days;
         }
-
-        return d;
+        return static_cast<int>(days);
     }
 
     DLLLOCAL static int getLastDayOfMonth(int month, int year) {
@@ -251,10 +248,12 @@ struct qore_date_info {
         return qore_date_info::isLeapYear(year) ? 29 : 28;
     }
 
-    DLLLOCAL static int getDayOfWeek(int year, int month, int day) {
+    DLLLOCAL static int getDayOfWeek(int64 year, int month, int day) {
         assert(month > 0 && month < 13);
+        // Gregorian weekdays repeat after 400 years. A positive equivalent year
+        // keeps the divisions exact and the weekday index in 0..6 at either int limit.
         int a = (14 - month) / 12;
-        int y = year - a;
+        int y = 2000 + static_cast<int>(year % 400) - a;
         int m = month + 12 * a - 2;
         return (day + y + y / 4 - y / 100 + y / 400 + (31 * m / 12)) % 7;
     }
@@ -270,7 +269,8 @@ struct qore_date_info {
             day = 1;
 
         // calculate seconds
-        int64 epoch = (year - 1970) * SECS_PER_YEAR + (positive_months[month - 1] + day - 1
+        int64 epoch = (static_cast<int64>(year) - 1970) * SECS_PER_YEAR
+            + (static_cast<int64>(positive_months[month - 1]) + day - 1
             + leap_days_from_epoch(year, month)) * SECS_PER_DAY;
 
         //printd(5, "qore_date_info::getEpochSeconds(year: %d, month: %d, day: %d) epoch: %lld "
@@ -480,7 +480,7 @@ struct qore_simple_tm2 : public qore_simple_tm {
         //printd(5, "qore_simple_tm2::setLiteral() %04d-%02d-%02d %02d:%02d:%02d.%06d\n", year, month, day, hour,
         //    minute, second, us);
     }
-    DLLLOCAL void getISOWeek(int& yr, int& week, int& wday) const;
+    DLLLOCAL void getISOWeek(int64& yr, int& week, int& wday) const;
 };
 
 DLLLOCAL void concatOffset(int utcoffset, QoreString& str, bool allow_z = false);
@@ -670,7 +670,7 @@ public:
         setNowIntern();
     }
 
-    DLLLOCAL void getISOWeek(int& yr, int& week, int& wday) const {
+    DLLLOCAL void getISOWeek(int64& yr, int& week, int& wday) const {
         qore_simple_tm2 tm(epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch), us);
         tm.getISOWeek(yr, week, wday);
     }
@@ -1492,7 +1492,7 @@ public:
         return relative ? 0 : d.abs.getDayOfWeek();
     }
 
-    DLLLOCAL void getISOWeek(int& yr, int& week, int& wday) const {
+    DLLLOCAL void getISOWeek(int64& yr, int& week, int& wday) const {
         if (relative) {
             yr = 1970;
             week = wday = 1;
@@ -1564,8 +1564,7 @@ public:
 
         if (week > 52) {
             // get maximum week number in this year
-            int mw = 52 + ((jan1 == 4 && !qore_date_info::isLeapYear(year))
-                || (jan1 == 3 && qore_date_info::isLeapYear(year)));
+            int mw = 52 + (jan1 == 4 || (jan1 == 3 && qore_date_info::isLeapYear(year)));
             if (week > mw) {
                 xsink->raiseException("ISO-8601-INVALID-WEEK", "there are only %d calendar weeks in year %d (week "
                     "value passed: %d)", mw, year, week);

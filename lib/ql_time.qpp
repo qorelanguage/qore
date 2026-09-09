@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1010,7 +1010,10 @@ int n = get_years(dt);
     @note equivalent to pseudo-method <date>::years()
 */
 int get_years(date date_value) [flags=CONSTANT,NAMED_ARGS] {
-    return date_value->getYear();
+    // The legacy C++ getYear() API returns short; the stored calendar component is int.
+    qore_tm info;
+    date_value->getInfo(info);
+    return info.year;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1338,7 +1341,8 @@ int get_iso_day_of_week(date date_value) [flags=CONSTANT,NAMED_ARGS] {
     @deprecated use get_iso_week_hash(); camel-case function names were deprecated in %Qore 0.8.12
 */
 hash<IsoWeekInfo> getISOWeekHash(date dt) [flags=CONSTANT,DEPRECATED] {
-    int year, week, day;
+    int64 year;
+    int week, day;
     dt->getISOWeek(year, week, day);
 
     QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo, xsink);
@@ -1375,7 +1379,8 @@ hash<IsoWeekInfo> h = get_iso_week_hash(2007-05-15); # returns year=2007, week=2
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getISOWeekHash()
 */
 hash<IsoWeekInfo> get_iso_week_hash(date date_value) [flags=CONSTANT,NAMED_ARGS] {
-    int year, week, day;
+    int64 year;
+    int week, day;
     date_value->getISOWeek(year, week, day);
 
     QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo, xsink);
@@ -1403,10 +1408,11 @@ string str = getISOWeekString(2007-05-15); # returns "2007-W20-2"
     @deprecated use get_iso_week_string(); camel-case function names were deprecated in %Qore 0.8.12
 */
 string getISOWeekString(date dt) [flags=CONSTANT,DEPRECATED] {
-    int year, week, day;
+    int64 year;
+    int week, day;
     dt->getISOWeek(year, week, day);
     QoreStringNode *str = new QoreStringNode();
-    str->sprintf("%04d-W%02d-%d", year, week, day);
+    str->sprintf("%s" QLLDx(04) "-W%02d-%d", year < 0 ? "-" : "", year < 0 ? -year : year, week, day);
     return str;
 }
 
@@ -1434,10 +1440,11 @@ string str = get_iso_week_string(2007-05-15); # returns "2007-W20-2"
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getISOWeekString()
 */
 string get_iso_week_string(date date_value) [flags=CONSTANT,NAMED_ARGS] {
-    int year, week, day;
+    int64 year;
+    int week, day;
     date_value->getISOWeek(year, week, day);
     QoreStringNode *str = new QoreStringNode();
-    str->sprintf("%04d-W%02d-%d", year, week, day);
+    str->sprintf("%s" QLLDx(04) "-W%02d-%d", year < 0 ? "-" : "", year < 0 ? -year : year, week, day);
     return str;
 }
 

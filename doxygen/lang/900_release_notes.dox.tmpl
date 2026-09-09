@@ -1484,6 +1484,22 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
     Strings without an explicit zone still use the object's time zone, including its daylight saving rules.
     The C++ API adds a \c DateTimeNode(zone,string,xsink) constructor for the same checked conversion.
 
+    @par Extended Calendar Years
+    Absolute date strings accept separated years with at least four digits, including negative years and
+    years greater than 9999, within the native signed-integer calendar range. Existing unsigned compact
+    date/time syntax remains available. Gregorian leap-day and weekday calculations now work for negative
+    years; \c YYYY, \c IF and ordinary date output retain at least four digits after a negative year sign.
+    @ref Qore::get_years() "get_years()" and \c <date>::years() return the complete stored year without
+    16-bit truncation. The existing C++ ABI is unchanged; native callers needing the full year use
+    \c DateTime::getInfo(). Qore retains astronomical year zero and its flexible date grammar; callers
+    implementing XML Schema or another wire format must apply that format's separate lexical rules.
+    ISO week calculations also retain week 53 for leap years beginning on Thursday, including equivalent
+    negative years; for example, 2004-12-31 is 2004-W53-5.
+    An additive \c DateTime::getISOWeek(int64&,int&,int&) overload preserves the ISO week year when it
+    extends beyond a native calendar boundary; Qore week accessors and formatters use the wider result.
+    Compact native date-string construction uses a growing buffer, fixing a buffer overrun for extended
+    calendar years; compact concatenation also retains the negative year's complete padded magnitude.
+
     @par Safe Cleanup of Invalid Serialized Containers
     @ref Qore::Serializable "Serializable" now retains ownership of indexed hashes and lists when
     deserialization rejects a member or reference. Malformed input raises the original type or

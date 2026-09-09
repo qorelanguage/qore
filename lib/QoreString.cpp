@@ -1732,15 +1732,8 @@ QoreString::QoreString(double f) : priv(new qore_string_private) {
     q_fix_decimal(this, 0);
 }
 
-QoreString::QoreString(const DateTime *d) : priv(new qore_string_private) {
-    priv->allocated = 15;
-    priv->buf = (char*)malloc(sizeof(char) * priv->allocated);
-
-    qore_tm info;
-    d->getInfo(info);
-    priv->len = ::sprintf(priv->buf, "%04d%02d%02d%02d%02d%02d", info.year, info.month,
-                            info.day, info.hour, info.minute, info.second);
-    priv->encoding = QCS_DEFAULT;
+QoreString::QoreString(const DateTime *d) : QoreString() {
+    concat(d);
 }
 
 QoreString::QoreString(const BinaryNode *b) : priv(new qore_string_private) {
@@ -3001,14 +2994,18 @@ void QoreString::concat(const DateTime *d) {
     QORE_ASSERT_MUTABLE(this);
     qore_tm info;
     d->getInfo(info);
-    sprintf("%04d%02d%02d%02d%02d%02d", info.year, info.month, info.day, info.hour, info.minute, info.second);
+    int64 year = info.year;
+    sprintf("%s" QLLDx(04) "%02d%02d%02d%02d%02d", year < 0 ? "-" : "", year < 0 ? -year : year,
+        info.month, info.day, info.hour, info.minute, info.second);
 }
 
 // FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatISO8601DateTime(const DateTime *d) {
     qore_tm info;
     d->getInfo(currentTZ(), info);
-    sprintf("%04d%02d%02dT%02d:%02d:%02d", info.year, info.month, info.day, info.hour, info.minute, info.second);
+    int64 year = info.year;
+    sprintf("%s" QLLDx(04) "%02d%02dT%02d:%02d:%02d", year < 0 ? "-" : "", year < 0 ? -year : year,
+        info.month, info.day, info.hour, info.minute, info.second);
 }
 
 void QoreString::concatHex(const BinaryNode *b) {

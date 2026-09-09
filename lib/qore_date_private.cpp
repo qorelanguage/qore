@@ -34,6 +34,7 @@
 
 #include <cerrno>
 #include <cstring>
+#include <limits>
 #include <sys/time.h>
 
 const char *STATIC_UTC = "UTC";
@@ -81,6 +82,15 @@ static int ampm(int hour) {
     return i ? i : 12;
 }
 
+static void concat_year(QoreString& str, int64 year) {
+    int64 magnitude = year;
+    if (magnitude < 0) {
+        str.concat('-');
+        magnitude = -magnitude;
+    }
+    str.sprintf(QLLDx(04), magnitude);
+}
+
 static int get_uint(const char *&p, int digits) {
     int rc = 0;
     for (int i = 0; i < digits; ++i) {
@@ -125,7 +135,7 @@ static int get_int_or_float(const char*& p, double& d, bool& err) {
     return rc * sign;
 }
 
-bool qore_date_info::isLeapYear(int year) {
+bool qore_date_info::isLeapYear(int64 year) {
    if (!(year % 100))
       return !(year % 400) ? true : false;
    return (year % 4) ? false : true;
@@ -438,18 +448,53 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
     const char* p = str;
 
-    int year = get_uint(p, 4);
-    if (year < 0) {
-        if (xsink)
-            xsink->raiseException("INVALID-DATE", "date '%s': cannot parse year value", str);
+    bool signed_year = *p == '-' || *p == '+';
+    bool negative_year = *p == '-';
+    if (signed_year) {
+        ++p;
+    }
+    const char* first_digit = p;
+    int64 magnitude = 0;
+    int64 limit = negative_year ? -static_cast<int64>(std::numeric_limits<int>::min())
+        : std::numeric_limits<int>::max();
+    bool overflow = false;
+    size_t count = 0;
+    while (*p >= '0' && *p <= '9') {
+        if (!overflow) {
+            int digit = *p - '0';
+            if (magnitude > (limit - digit) / 10) {
+                overflow = true;
+            } else {
+                magnitude = magnitude * 10 + digit;
+            }
+        }
+        ++p;
+        if (!(++count % 100) && xsink && qore_check_cancel(xsink, "parsing an extended calendar year")) {
+            set(n_zone, 0, 0);
+            return;
+        }
+    }
+    // A separator after an unsigned basic YYYYMMDD[HHMMSS] can introduce the
+    // time or its UTC offset. A longer separated year has a following -MM-DD.
+    bool needs_sep = *p == '-' && (signed_year || count == 4
+        || (p[1] && p[2] && p[3] == '-'));
+    int year;
+    if (count < 4 || (signed_year && !needs_sep) || (needs_sep && overflow)) {
+        if (xsink) {
+            xsink->raiseException("INVALID-DATE", "date '%s': invalid calendar year; expected at least four "
+                "digits within %d to %d, with separators for signed or extended years", str,
+                std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+        }
         set(n_zone, 0, 0);
         return;
     }
-
-    bool needs_sep = false;
-    if (*p == '-') {
-        needs_sep = true;
+    if (needs_sep) {
+        year = static_cast<int>(negative_year ? -magnitude : magnitude);
         ++p;
+    } else {
+        // Preserve the existing unsigned YYYYMMDD basic form, including compact times.
+        p = first_digit;
+        year = get_uint(p, 4);
     }
 
     int month = get_uint(p, 2);
@@ -725,7 +770,8 @@ void qore_absolute_time::getAsString(QoreString &str, bool yaml) const {
         get(nullptr, i);
     }
 
-    str.sprintf("%04d-%02d-%02d %02d:%02d:%02d.%06d", i.year, i.month, i.day, i.hour, i.minute, i.second, i.us);
+    concat_year(str, i.year);
+    str.sprintf("-%02d-%02d %02d:%02d:%02d.%06d", i.month, i.day, i.hour, i.minute, i.second, i.us);
 
     if (yaml) {
         // YAML timestamps take the UTC offset directly after the time with no day of week and no zone name,
@@ -942,7 +988,7 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
                 }
                 s++;
                 if ((s[1] == 'Y') && (s[2] == 'Y')) {
-                    str.sprintf("%04d", i.year);
+                    concat_year(str, i.year);
                     s += 2;
                 }
                 else
@@ -1042,7 +1088,8 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
                 if (s[1] == 'F') {
                     ++s;
                     if (!relative) {
-                        str.sprintf("%04d-%02d-%02dT%02d:%02d:%02d", i.year, i.month, i.day, i.hour, i.minute, i.second);
+                        concat_year(str, i.year);
+                        str.sprintf("-%02d-%02dT%02d:%02d:%02d", i.month, i.day, i.hour, i.minute, i.second);
                         if (i.us) {
                             str.sprintf(".%06d", i.us);
                             // trim trailing zeros
@@ -1086,7 +1133,8 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
                     }
                     break;
                 }
-                int yr, wk, wd;
+                int64 yr;
+                int wk, wd;
                 if (!relative) {
                     d.abs.getISOWeek(yr, wk, wd);
                 }
@@ -1097,7 +1145,11 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
                 }
                 if (s[1] == 'y' || s[1] == 'Y') {
                     ++s;
-                    str.sprintf(*s == 'y' ? "%d" : "%04d", yr);
+                    if (*s == 'y') {
+                        str.sprintf(QLLD, yr);
+                    } else {
+                        concat_year(str, yr);
+                    }
                     break;
                 }
                 if (s[1] == 'w' || s[1] == 'W') {
@@ -1110,7 +1162,8 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
                     str.sprintf("%d", wd);
                     break;
                 }
-                str.sprintf("%04d-W%02d-%d", yr, wk, wd);
+                concat_year(str, yr);
+                str.sprintf("-W%02d-%d", wk, wd);
                 break;
             }
             case 'P':
@@ -1313,7 +1366,7 @@ void qore_date_private::setDate(const char *str, ExceptionSink* xsink) {
       setAbsoluteDate(str, currentTZ(), xsink);
 }
 
-void qore_simple_tm2::getISOWeek(int &yr, int &week, int &wday) const {
+void qore_simple_tm2::getISOWeek(int64& yr, int& week, int& wday) const {
    // get day of week of jan 1 of this year
    int jan1 = qore_date_info::getDayOfWeek(year, 1, 1);
 
@@ -1324,13 +1377,14 @@ void qore_simple_tm2::getISOWeek(int &yr, int &week, int &wday) const {
 
    //printd(5, "qore_simple_tm2::getISOWeek() year=%d, start=%d, daw=%d dn=%d offset=%d\n", year, jan1, dow, dn, (jan1 > 4 ? 9 - jan1 : 2 - jan1));
    if ((!jan1 && dn == 1) || (jan1 == 5 && dn < 4) || (jan1 == 6 && dn < 3)) {
-      yr = year - 1;
+      yr = static_cast<int64>(year) - 1;
       jan1 = qore_date_info::getDayOfWeek(yr, 1, 1);
       //printd(5, "qore_simple_tm2::getISOWeek() previous year=%d, start=%d, leap=%d\n", yr, jan1, qore_date_info::isLeapYear(yr));
-      if ((jan1 == 4 && !qore_date_info::isLeapYear(yr)) || (jan1 == 3 && qore_date_info::isLeapYear(yr)))
+      if (jan1 == 4 || (jan1 == 3 && qore_date_info::isLeapYear(yr))) {
          week = 53;
-      else
+      } else {
          week = 52;
+      }
       return;
    }
    yr = year;
@@ -1338,9 +1392,9 @@ void qore_simple_tm2::getISOWeek(int &yr, int &week, int &wday) const {
    int offset = jan1 > 4 ? jan1 - 9 : jan1 - 2;
    week = ((dn + offset) / 7) + 1;
    if (week == 53) {
-      if ((jan1 == 4 && !qore_date_info::isLeapYear(yr)) || (jan1 == 3 && qore_date_info::isLeapYear(yr)))
+      if (jan1 == 4 || (jan1 == 3 && qore_date_info::isLeapYear(yr))) {
          return;
-      else {
+      } else {
          ++yr;
          week = 1;
       }

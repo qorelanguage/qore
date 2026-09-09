@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -203,7 +203,13 @@ void DateTime::setRelativeDateLiteral(int64 date) {
 
 // return the ISO-8601 calendar week information - note that the ISO-8601 calendar year may be different than the actual year
 void DateTime::getISOWeek(int& yr, int& week, int& wday) const {
-   priv->getISOWeek(yr, week, wday);
+    int64 full_year;
+    priv->getISOWeek(full_year, week, wday);
+    yr = static_cast<int>(full_year);
+}
+
+void DateTime::getISOWeek(int64& yr, int& week, int& wday) const {
+    priv->getISOWeek(yr, week, wday);
 }
 
 // note that ISO-8601 week days go from 1 - 7 = Mon - Sun

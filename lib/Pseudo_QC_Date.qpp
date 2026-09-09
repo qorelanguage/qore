@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -93,7 +93,9 @@ int n = d.years();
     @note equivalent to get_years(date)
 */
 int <date>::years() [const;flags=CONSTANT] {
-   return dt->getYear();
+    qore_tm info;
+    dt->getInfo(info);
+    return info.year;
 }
 
 //! Returns an integer corresponding to the literal month value in the date (does not calculate a duration)
@@ -636,7 +638,8 @@ hash<IsoWeekInfo> h = 2007-05-15.isoWeekHash(); # returns year=2007, week=20, da
     @since %Qore 0.8.12
 */
 hash<IsoWeekInfo> <date>::isoWeekHash() [const;flags=CONSTANT] {
-    int year, week, day;
+    int64 year;
+    int week, day;
     dt->getISOWeek(year, week, day);
 
     QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo, xsink);
@@ -664,9 +667,10 @@ string str = 2007-05-15.isoWeekString(); # returns "2007-W20-2"
     @since %Qore 0.8.12
 */
 string <date>::isoWeekString() [const;flags=CONSTANT] {
-   int year, week, day;
+   int64 year;
+   int week, day;
    dt->getISOWeek(year, week, day);
    QoreStringNode *str = new QoreStringNode();
-   str->sprintf("%04d-W%02d-%d", year, week, day);
+   str->sprintf("%s" QLLDx(04) "-W%02d-%d", year < 0 ? "-" : "", year < 0 ? -year : year, week, day);
    return str;
 }

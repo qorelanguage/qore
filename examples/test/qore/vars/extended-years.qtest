@@ -1,0 +1,155 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%exec-class ExtendedYearsTest
+
+class ExtendedYearsTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Extended calendar years", "1.0") {
+        addTestCase("separated extended years and calendar cycles", \extendedYears());
+        addTestCase("negative epoch components and weekday formatting", \negativeEpochs());
+        addTestCase("complete Gregorian cycle and leap boundaries", \calendarCycle());
+        addTestCase("leap years beginning Thursday retain week 53", \leapWeek());
+        addTestCase("legacy basic dates and explicit zones", \compatibleDates());
+        addTestCase("invalid years, calendar dates and recovery", \invalidYears());
+        addTestCase("full stored year through public Qore accessors", \yearAccessors());
+        set_return_value(main());
+    }
+
+    private static string yearText(int year) {
+        return (year < 0 ? "-" : "") + sprintf("%04d", abs(year));
+    }
+
+    # Gregorian dates and weekdays repeat every 400 years, including astronomical year zero.
+    # Anchor each test to a contemporary calendar date instead of repeating the epoch algorithm.
+    private static date reference(TimeZone zone, int year, string suffix) {
+        int reduced = 2000 + ((year % 400) + 400) % 400;
+        date anchor = zone.date(sprintf("%04d", reduced) + suffix);
+        int cycles = (year - reduced) / 400;
+        return zone.date(get_epoch_seconds(anchor) + cycles * 12622780800, anchor.microseconds());
+    }
+
+    private extendedYears() {
+        TimeZone utc(0);
+        foreach int year in (-2147483648, -2147483647, -100001, -40001, -32769, -12345,
+                -10000, -401, -400, -399, -101, -100, -99, -5, -4, -3, -1, 0, 1,
+                9999, 10000, 12345, 32767, 32768, 40000, 100001, 2147483646, 2147483647) {
+            foreach string suffix in ("-01-01T00:00:00Z", "-02-28T23:59:59.123456Z",
+                    "-03-01T12:30:45Z", "-12-31T23:59:59Z") {
+                string lexical = yearText(year) + suffix;
+                date expected = reference(utc, year, suffix);
+                date actual = utc.date(lexical);
+                assertEq(get_epoch_seconds(expected), get_epoch_seconds(actual), lexical);
+                assertEq(expected.microseconds(), actual.microseconds(), lexical);
+                assertEq(year, actual.info().year, lexical);
+                assertEq(year, actual.years(), lexical);
+                assertEq(year, get_years(actual), lexical);
+                assertEq(lexical.substr(0, lexical.length() - 1) + "+00:00", actual.format("IF"), lexical);
+                assertEq(yearText(year), actual.format("YYYY"), lexical);
+            }
+        }
+    }
+
+    private negativeEpochs() {
+        TimeZone utc(0);
+        foreach int year in (-10001, -401, -400, -399, -101, -100, -99, -5, -4, -3, -1, 0, 1) {
+            foreach string suffix in ("-01-01T00:00:00Z", "-02-28T00:00:00Z", "-03-01T00:00:00Z") {
+                date value = reference(utc, year, suffix);
+                int reduced = 2000 + ((year % 400) + 400) % 400;
+                date anchor = utc.date(sprintf("%04d", reduced) + suffix);
+                assertEq(anchor.info().dow, value.info().dow);
+                assertEq(anchor.format("Day DY Dy dy"), value.format("Day DY Dy dy"));
+                assertEq(year, value.info().year);
+                assertEq(yearText(year) + suffix.substr(1, 2) + suffix.substr(4, 2) + "000000", string(value));
+                assertEq(value, utc.date(value.format("IF")));
+            }
+        }
+    }
+
+    private compatibleDates() {
+        TimeZone east(19800);
+        foreach string text in ("20260909", "2026-09-09", "20260909T000000", "20260909-000000",
+                "2026-09-09T00:00:00") {
+            assertEq(2026-09-08T18:30:00Z, east.date(text), text);
+        }
+        assertEq(2026-09-09T03:30:00Z, east.date("20260909000000-03:30"));
+        foreach int year in (-12345, -4, 0, 12345, 40000) {
+            foreach string offset in ("Z", "+05:30", "-03:30") {
+                string lexical = yearText(year) + "-03-01T12:34:56.123456" + offset;
+                date parsed = east.date(lexical);
+                assertEq(reference(east, year, "-03-01T12:34:56.123456" + offset), parsed, lexical);
+                assertEq(parsed, east.date(parsed.format("IF")), lexical);
+            }
+        }
+        assertEq(east.date("12345-09-09T00:00:00"), east.date("+12345-09-09T00:00:00"));
+        assertEq(east.date("-0004-02-29T00:00:00"), east.date("-0004-02-29"));
+    }
+
+    private calendarCycle() {
+        TimeZone utc(0);
+        for (int year = -400; year < 0; ++year) {
+            int contemporary = year + 2400;
+            foreach string suffix in ("-01-01T00:00:00Z", "-02-28T00:00:00Z", "-03-01T00:00:00Z",
+                    "-12-31T00:00:00Z") {
+                date actual = utc.date(yearText(year) + suffix);
+                date anchor = utc.date(yearText(contemporary) + suffix);
+                assertEq(get_epoch_seconds(anchor) - 6 * 12622780800, get_epoch_seconds(actual));
+                assertEq(anchor.info().dow, actual.info().dow);
+                hash<IsoWeekInfo> actual_week = actual.isoWeekHash();
+                hash<IsoWeekInfo> anchor_week = anchor.isoWeekHash();
+                assertEq(anchor_week.year - 2400, actual_week.year);
+                assertEq(anchor_week.week, actual_week.week);
+                assertEq(anchor_week.day, actual_week.day);
+            }
+            bool leap = !(year % 4) && ((year % 100) || !(year % 400));
+            string leap_day = yearText(year) + "-02-29T00:00:00Z";
+            if (leap) {
+                assertEq(reference(utc, year, "-02-29T00:00:00Z"), utc.date(leap_day));
+            } else {
+                assertThrows("INVALID-DATE", \utc.date(), (leap_day,));
+            }
+        }
+    }
+
+    private invalidYears() {
+        TimeZone utc(0);
+        foreach string text in ("-001-01-01", "+001-01-01", "123-01-01", "-00010101", "+20260101",
+                "2147483648-01-01", "-2147483649-01-01", "999999999999999999999999-01-01",
+                "12345-aa-01", "12345-13-01", "12345-02-29", "-0001-02-29", "-0100-02-29",
+                "-0400-02-30", "12345-01-01T25:00:00") {
+            assertThrows("INVALID-DATE", \utc.date(), (text,), text);
+            assertEq(2026-09-09T00:00:00Z, utc.date("2026-09-09"), text);
+        }
+    }
+
+    private yearAccessors() {
+        foreach int year in (-2147483648, -40000, -32769, 32768, 40000, 2147483647) {
+            date interval = years(year);
+            assertEq(year, interval.info().year);
+            assertEq(year, interval.years());
+            assertEq(year, get_years(interval));
+        }
+    }
+
+    private leapWeek() {
+        TimeZone utc(0);
+        foreach int year in (-396, 2004, 10004) {
+            date last = utc.date(yearText(year) + "-12-31T00:00:00Z");
+            date first = utc.date(yearText(year + 1) + "-01-01T00:00:00Z");
+            assertEq(<IsoWeekInfo>{"year": year, "week": 53, "day": 5}, last.isoWeekHash());
+            assertEq(<IsoWeekInfo>{"year": year, "week": 53, "day": 6}, first.isoWeekHash());
+            date generated = get_date_from_iso_week(year, 53, 5);
+            assertEq(yearText(year) + "-12-31", generated.format("YYYY-MM-DD"));
+        }
+        date boundary = utc.date("2147483647-12-31T00:00:00Z");
+        assertEq(<IsoWeekInfo>{"year": 2147483648, "week": 1, "day": 2}, boundary.isoWeekHash());
+        assertEq(boundary.isoWeekHash(), get_iso_week_hash(boundary));
+        assertEq("2147483648-W01-2", boundary.isoWeekString());
+        assertEq(boundary.isoWeekString(), get_iso_week_string(boundary));
+        assertEq("2147483648-W01-2", boundary.format("I"));
+        assertEq("2147483648", boundary.format("IY"));
+        assertEq("-0396-W53-5", utc.date("-0396-12-31T00:00:00Z").isoWeekString());
+    }
+}

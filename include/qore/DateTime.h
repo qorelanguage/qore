@@ -4,7 +4,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -336,6 +336,15 @@ public:
    */
    DLLEXPORT void getISOWeek(int& year, int& week, int& day) const;
 
+   //! returns ISO-8601 week information with a year wide enough for native calendar boundaries
+   /** @param year the ISO week year, which can differ from the calendar year by one
+       @param week the ISO week number
+       @param day the day offset in the week (1-7 = Mon-Sun)
+       @note use this overload when the week year can exceed the range of an int
+       @since Qore 3.0.0
+   */
+   DLLEXPORT void getISOWeek(int64& year, int& week, int& day) const;
+
    //! formats the date/time value to a QoreString
    /** the formatted date/time value will be appended to the QoreString argument according to the format string
        Format codes are as follows:
@@ -392,6 +401,7 @@ public:
 
    //! returns the year portion of the date-time value (in local time according to the time zone for absolute date/time values)
    /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), or DateTime::getDay() is called, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
+       @note this legacy API has a 16-bit return type; use DateTime::getInfo() and qore_tm::year for the full stored year
        @return the year portion of the date-time value
    */
    DLLEXPORT short getYear() const;
