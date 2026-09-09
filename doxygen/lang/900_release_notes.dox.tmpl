@@ -140,6 +140,8 @@
     - new @ref Qore::ParseOptions "ParseOptions" container supporting more than 64 option bits
 
     <i>Networking and I/O:</i>
+    - caught TLS handshake failures retain their exception details without writing unsolicited
+      diagnostics to standard error in Debug builds; detailed debug logging remains available
     - HTTP/1.0 client connections require explicit keep-alive before reuse; redirects reconnect after
       nonpersistent responses, and comma-separated or repeated Connection options honor close precedence
     - <a href="https://datatracker.ietf.org/doc/html/rfc9113">HTTP/2</a> and

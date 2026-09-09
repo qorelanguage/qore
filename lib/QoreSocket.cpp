@@ -5873,7 +5873,7 @@ int SSLSocketHelper::startConnect(ExceptionSink* xsink) {
                 // remote closed the connection
                 break;
             default:
-                printd(0, "SSLSocketHelper::startConnect() SSL_get_error() reports error %d\n", err);
+                printd(5, "SSLSocketHelper::startConnect() SSL_get_error() reports error %d\n", err);
                 break;
         }
 

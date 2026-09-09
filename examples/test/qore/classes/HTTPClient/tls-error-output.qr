@@ -1,0 +1,11 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+
+HTTPClient client({"url": ARGV[0], "timeout": 20s, "connect_timeout": 20s});
+client.setSslVerifyMode(SSL_VERIFY_PEER);
+try {
+    printf("BODY:%s\n", client.get("/"));
+} catch (hash<ExceptionInfo> ex) {
+    printf("ERROR:%s\n%s\n", ex.err, ex.desc);
+}
