@@ -446,6 +446,9 @@ public class RestHandlerTest inherits QUnit::Test {
             assertEq({"arg": "hello|0"}, rest.put("/test/echo?arg=hello%7C0").body);
             assertEq({"arg": "hello\\0"}, rest.put("/test/echo?arg=hello%5C0").body);
             assertEq({"arg": "hello~0"}, rest.put("/test/echo?arg=hello%7E0").body);
+            # ~ is unreserved (RFC 3986 section 2.3), so a literal tilde needs no escape and is
+            # sent through as-is rather than rejected
+            assertEq({"arg": "hello~0"}, rest.put("/test/echo?arg=hello~0").body);
             assertEq({"arg": "hello`0"}, rest.put("/test/echo?arg=hello%600").body);
             assertEq({"arg": "hello^0"}, rest.put("/test/echo?arg=hello%5E0").body);
             assertEq({"arg": "Compliance & Audit", "limit": "100"},
@@ -457,7 +460,6 @@ public class RestHandlerTest inherits QUnit::Test {
             assertThrows("URL-ENCODING-ERROR", \rest.get(), "path{0}");
             assertThrows("URL-ENCODING-ERROR", \rest.get(), "path|0");
             assertThrows("URL-ENCODING-ERROR", \rest.get(), "path\\0");
-            assertThrows("URL-ENCODING-ERROR", \rest.get(), "path~0");
             assertThrows("URL-ENCODING-ERROR", \rest.get(), "path`0");
             assertThrows("URL-ENCODING-ERROR", \rest.get(), "path^0");
         }
