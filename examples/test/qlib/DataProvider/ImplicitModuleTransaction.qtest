@@ -28,6 +28,7 @@ class ImplicitModuleTransactionTest inherits QUnit::Test {
     testFactoryRollback() {
         # Record which factories exist before the test
         *list<string> factories_before = DataProvider::listFactories();
+        int revision_before = DataProviderActionCatalog::getCatalogRevision();
 
         # Simulate the tryLoad() pattern: savepoint, load, commit/rollback
         # This is the same pattern as DataProvider::tryLoad() which is the transaction boundary
@@ -44,6 +45,9 @@ class ImplicitModuleTransactionTest inherits QUnit::Test {
                 sprintf("expected INIT-ERROR or LOAD-MODULE-ERROR, got %y: %y", ex.err, ex.desc));
         }
         assertTrue(caught, "module load should have thrown an exception");
+        assertEq(revision_before + 2,
+            DataProviderActionCatalog::getCatalogRevision(),
+            "factory registration and rollback each advance the qualification revision");
 
         # Get factories after failed module load
         *list<string> factories_after = DataProvider::listFactories();

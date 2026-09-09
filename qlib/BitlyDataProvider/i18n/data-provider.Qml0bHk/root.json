@@ -471,6 +471,66 @@
           "source": "A list of deep link configurations for mobile apps",
           "message": "A list of deep link configurations for mobile apps"
         },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.YXBwX2lk.display_name": {
+          "source": "App ID",
+          "message": "App ID"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.YXBwX2lk.short_desc": {
+          "source": "Application identifier",
+          "message": "Application identifier"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.YXBwX2lk.desc": {
+          "source": "The identifier for the mobile application",
+          "message": "The identifier for the mobile application"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.YXBwX3VyaV9wYXRo.display_name": {
+          "source": "App URI Path",
+          "message": "App URI Path"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.YXBwX3VyaV9wYXRo.short_desc": {
+          "source": "Path within the app",
+          "message": "Path within the app"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.YXBwX3VyaV9wYXRo.desc": {
+          "source": "The path within the app to route to (e.g., `/store?id=123456`)",
+          "message": "The path within the app to route to (e.g., `/store?id=123456`)"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.aW5zdGFsbF90eXBl.display_name": {
+          "source": "Install Type",
+          "message": "Install Type"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.aW5zdGFsbF90eXBl.short_desc": {
+          "source": "App install behavior",
+          "message": "App install behavior"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.aW5zdGFsbF90eXBl.desc": {
+          "source": "Controls what happens when the app is not installed",
+          "message": "Controls what happens when the app is not installed"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.aW5zdGFsbF90eXBl.allowed-value.c3RyaW5nOm5vX2luc3RhbGw.display_name": {
+          "source": "No Install",
+          "message": "No Install"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.aW5zdGFsbF90eXBl.allowed-value.c3RyaW5nOmF1dG9faW5zdGFsbA.display_name": {
+          "source": "Auto Install",
+          "message": "Auto Install"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.aW5zdGFsbF90eXBl.allowed-value.c3RyaW5nOnByb21vdGVfaW5zdGFsbA.display_name": {
+          "source": "Promote Install",
+          "message": "Promote Install"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.aW5zdGFsbF91cmw.display_name": {
+          "source": "Install URL",
+          "message": "Install URL"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.aW5zdGFsbF91cmw.short_desc": {
+          "source": "App installation URL",
+          "message": "App installation URL"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLWJpdGxpbms.option.ZGVlcGxpbmtz.field.aW5zdGFsbF91cmw.desc": {
+          "source": "The URL where users can install the app if not already installed",
+          "message": "The URL where users can install the app if not already installed"
+        },
         "app.Qml0bHk.action.dXBkYXRlLWJpdGxpbms.display_name": {
           "source": "Update a Bitlink",
           "message": "Update a Bitlink"
@@ -1191,6 +1251,30 @@
           "source": "The destination for the QR code. Provide either `long_url` or `bitlink_id`",
           "message": "The destination for the QR code. Provide either `long_url` or `bitlink_id`"
         },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.ZGVzdGluYXRpb24.field.Yml0bGlua19pZA.display_name": {
+          "source": "Bitlink ID",
+          "message": "Bitlink ID"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.ZGVzdGluYXRpb24.field.Yml0bGlua19pZA.short_desc": {
+          "source": "Existing bitlink to link",
+          "message": "Existing bitlink to link"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.ZGVzdGluYXRpb24.field.Yml0bGlua19pZA.desc": {
+          "source": "The ID of an existing bitlink to create a QR code for. Either `long_url` or `bitlink_id` must be provided",
+          "message": "The ID of an existing bitlink to create a QR code for. Either `long_url` or `bitlink_id` must be provided"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.ZGVzdGluYXRpb24.field.bG9uZ191cmw.display_name": {
+          "source": "Long URL",
+          "message": "Long URL"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.ZGVzdGluYXRpb24.field.bG9uZ191cmw.short_desc": {
+          "source": "Destination URL",
+          "message": "Destination URL"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.ZGVzdGluYXRpb24.field.bG9uZ191cmw.desc": {
+          "source": "The destination URL for the QR code. Either `long_url` or `bitlink_id` must be provided",
+          "message": "The destination URL for the QR code. Either `long_url` or `bitlink_id` must be provided"
+        },
         "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.display_name": {
           "source": "Render Customizations",
           "message": "Render Customizations"
@@ -1202,6 +1286,86 @@
         "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.desc": {
           "source": "Appearance customization settings for the QR code including colors and dot pattern",
           "message": "Appearance customization settings for the QR code including colors and dot pattern"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.YmFja2dyb3VuZF9jb2xvcg.display_name": {
+          "source": "Background Color",
+          "message": "Background Color"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.YmFja2dyb3VuZF9jb2xvcg.short_desc": {
+          "source": "QR code background color",
+          "message": "QR code background color"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.YmFja2dyb3VuZF9jb2xvcg.desc": {
+          "source": "The background color as a hex string with alpha channel (e.g., `\"#FFFFFFFF\"`)",
+          "message": "The background color as a hex string with alpha channel (e.g., `\"#FFFFFFFF\"`)"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fY29sb3I.display_name": {
+          "source": "Dot Pattern Color",
+          "message": "Dot Pattern Color"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fY29sb3I.short_desc": {
+          "source": "QR code dot pattern color",
+          "message": "QR code dot pattern color"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fY29sb3I.desc": {
+          "source": "The color of the QR code dot pattern as a hex string (e.g., `\"#000000FF\"`)",
+          "message": "The color of the QR code dot pattern as a hex string (e.g., `\"#000000FF\"`)"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.display_name": {
+          "source": "Dot Pattern Type",
+          "message": "Dot Pattern Type"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.short_desc": {
+          "source": "QR code dot shape/pattern",
+          "message": "QR code dot shape/pattern"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.desc": {
+          "source": "The shape of the dots in the QR code pattern",
+          "message": "The shape of the dots in the QR code pattern"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOnN0YW5kYXJk.display_name": {
+          "source": "Standard",
+          "message": "Standard"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOnJvdW5kZWQ.display_name": {
+          "source": "Rounded",
+          "message": "Rounded"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOmNpcmNsZQ.display_name": {
+          "source": "Circle",
+          "message": "Circle"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOmJsb2Nr.display_name": {
+          "source": "Block",
+          "message": "Block"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOmJsb2I.display_name": {
+          "source": "Blob",
+          "message": "Blob"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOnZlcnRpY2Fs.display_name": {
+          "source": "Vertical",
+          "message": "Vertical"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOmhvcml6b250YWw.display_name": {
+          "source": "Horizontal",
+          "message": "Horizontal"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOnRyaWFuZ2xl.display_name": {
+          "source": "Triangle",
+          "message": "Triangle"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOmhlYXJ0.display_name": {
+          "source": "Heart",
+          "message": "Heart"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOnN0YXI.display_name": {
+          "source": "Star",
+          "message": "Star"
+        },
+        "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOmRpYW1vbmQ.display_name": {
+          "source": "Diamond",
+          "message": "Diamond"
         },
         "app.Qml0bHk.action.Y3JlYXRlLXFyLWNvZGU.option.dGFncw.display_name": {
           "source": "Tags",
@@ -1287,6 +1451,30 @@
           "source": "The new destination for the QR code. Provide either `long_url` or `bitlink_id`",
           "message": "The new destination for the QR code. Provide either `long_url` or `bitlink_id`"
         },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.ZGVzdGluYXRpb24.field.Yml0bGlua19pZA.display_name": {
+          "source": "Bitlink ID",
+          "message": "Bitlink ID"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.ZGVzdGluYXRpb24.field.Yml0bGlua19pZA.short_desc": {
+          "source": "Existing bitlink to link",
+          "message": "Existing bitlink to link"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.ZGVzdGluYXRpb24.field.Yml0bGlua19pZA.desc": {
+          "source": "The ID of an existing bitlink to create a QR code for. Either `long_url` or `bitlink_id` must be provided",
+          "message": "The ID of an existing bitlink to create a QR code for. Either `long_url` or `bitlink_id` must be provided"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.ZGVzdGluYXRpb24.field.bG9uZ191cmw.display_name": {
+          "source": "Long URL",
+          "message": "Long URL"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.ZGVzdGluYXRpb24.field.bG9uZ191cmw.short_desc": {
+          "source": "Destination URL",
+          "message": "Destination URL"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.ZGVzdGluYXRpb24.field.bG9uZ191cmw.desc": {
+          "source": "The destination URL for the QR code. Either `long_url` or `bitlink_id` must be provided",
+          "message": "The destination URL for the QR code. Either `long_url` or `bitlink_id` must be provided"
+        },
         "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.display_name": {
           "source": "Render Customizations",
           "message": "Render Customizations"
@@ -1298,6 +1486,86 @@
         "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.desc": {
           "source": "Updated appearance customization settings for the QR code",
           "message": "Updated appearance customization settings for the QR code"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.YmFja2dyb3VuZF9jb2xvcg.display_name": {
+          "source": "Background Color",
+          "message": "Background Color"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.YmFja2dyb3VuZF9jb2xvcg.short_desc": {
+          "source": "QR code background color",
+          "message": "QR code background color"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.YmFja2dyb3VuZF9jb2xvcg.desc": {
+          "source": "The background color as a hex string with alpha channel (e.g., `\"#FFFFFFFF\"`)",
+          "message": "The background color as a hex string with alpha channel (e.g., `\"#FFFFFFFF\"`)"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fY29sb3I.display_name": {
+          "source": "Dot Pattern Color",
+          "message": "Dot Pattern Color"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fY29sb3I.short_desc": {
+          "source": "QR code dot pattern color",
+          "message": "QR code dot pattern color"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fY29sb3I.desc": {
+          "source": "The color of the QR code dot pattern as a hex string (e.g., `\"#000000FF\"`)",
+          "message": "The color of the QR code dot pattern as a hex string (e.g., `\"#000000FF\"`)"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.display_name": {
+          "source": "Dot Pattern Type",
+          "message": "Dot Pattern Type"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.short_desc": {
+          "source": "QR code dot shape/pattern",
+          "message": "QR code dot shape/pattern"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.desc": {
+          "source": "The shape of the dots in the QR code pattern",
+          "message": "The shape of the dots in the QR code pattern"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOnN0YW5kYXJk.display_name": {
+          "source": "Standard",
+          "message": "Standard"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOnJvdW5kZWQ.display_name": {
+          "source": "Rounded",
+          "message": "Rounded"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOmNpcmNsZQ.display_name": {
+          "source": "Circle",
+          "message": "Circle"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOmJsb2Nr.display_name": {
+          "source": "Block",
+          "message": "Block"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOmJsb2I.display_name": {
+          "source": "Blob",
+          "message": "Blob"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOnZlcnRpY2Fs.display_name": {
+          "source": "Vertical",
+          "message": "Vertical"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOmhvcml6b250YWw.display_name": {
+          "source": "Horizontal",
+          "message": "Horizontal"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOnRyaWFuZ2xl.display_name": {
+          "source": "Triangle",
+          "message": "Triangle"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOmhlYXJ0.display_name": {
+          "source": "Heart",
+          "message": "Heart"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOnN0YXI.display_name": {
+          "source": "Star",
+          "message": "Star"
+        },
+        "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.cmVuZGVyX2N1c3RvbWl6YXRpb25z.field.ZG90X3BhdHRlcm5fdHlwZQ.allowed-value.c3RyaW5nOmRpYW1vbmQ.display_name": {
+          "source": "Diamond",
+          "message": "Diamond"
         },
         "app.Qml0bHk.action.dXBkYXRlLXFyLWNvZGU.option.dGFncw.display_name": {
           "source": "Tags",

@@ -411,6 +411,138 @@
           "source": "A list of contact objects to create and associate with this lead. Each contact can include `name`, `title`, `emails`, and `phones` fields",
           "message": "A list of contact objects to create and associate with this lead. Each contact can include `name`, `title`, `emails`, and `phones` fields"
         },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.ZW1haWxz.display_name": {
+          "source": "Email Addresses",
+          "message": "Email Addresses"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.ZW1haWxz.short_desc": {
+          "source": "The contact email addresses",
+          "message": "The contact email addresses"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.ZW1haWxz.desc": {
+          "source": "A list of email address objects, each with `type` and `email` fields",
+          "message": "A list of email address objects, each with `type` and `email` fields"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZUVtYWlsRW50cnlEYXRhVHlwZTpoYXNoPGF1dG8-Izg2MTU0NjcwMWQ3YzRkMTkzMmE4MzYwOTVhNTQ0MGQzZmEyMmYxOWMzNDMwYzRhNmVhOGQ4MDJkYWNkYWM0ODM6b3B0aW9uOlkyOXVkR0ZqZEhNOmZpZWxkOlpXMWhhV3h6.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZUVtYWlsRW50cnlEYXRhVHlwZTpoYXNoPGF1dG8-Izg2MTU0NjcwMWQ3YzRkMTkzMmE4MzYwOTVhNTQ0MGQzZmEyMmYxOWMzNDMwYzRhNmVhOGQ4MDJkYWNkYWM0ODM6b3B0aW9uOlkyOXVkR0ZqZEhNOmZpZWxkOlpXMWhhV3h6.field.ZW1haWw.short_desc": {
+          "source": "The email address",
+          "message": "The email address"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZUVtYWlsRW50cnlEYXRhVHlwZTpoYXNoPGF1dG8-Izg2MTU0NjcwMWQ3YzRkMTkzMmE4MzYwOTVhNTQ0MGQzZmEyMmYxOWMzNDMwYzRhNmVhOGQ4MDJkYWNkYWM0ODM6b3B0aW9uOlkyOXVkR0ZqZEhNOmZpZWxkOlpXMWhhV3h6.field.ZW1haWw.desc": {
+          "source": "The email address value",
+          "message": "The email address value"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZUVtYWlsRW50cnlEYXRhVHlwZTpoYXNoPGF1dG8-Izg2MTU0NjcwMWQ3YzRkMTkzMmE4MzYwOTVhNTQ0MGQzZmEyMmYxOWMzNDMwYzRhNmVhOGQ4MDJkYWNkYWM0ODM6b3B0aW9uOlkyOXVkR0ZqZEhNOmZpZWxkOlpXMWhhV3h6.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZUVtYWlsRW50cnlEYXRhVHlwZTpoYXNoPGF1dG8-Izg2MTU0NjcwMWQ3YzRkMTkzMmE4MzYwOTVhNTQ0MGQzZmEyMmYxOWMzNDMwYzRhNmVhOGQ4MDJkYWNkYWM0ODM6b3B0aW9uOlkyOXVkR0ZqZEhNOmZpZWxkOlpXMWhhV3h6.field.dHlwZQ.short_desc": {
+          "source": "The email type",
+          "message": "The email type"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZUVtYWlsRW50cnlEYXRhVHlwZTpoYXNoPGF1dG8-Izg2MTU0NjcwMWQ3YzRkMTkzMmE4MzYwOTVhNTQ0MGQzZmEyMmYxOWMzNDMwYzRhNmVhOGQ4MDJkYWNkYWM0ODM6b3B0aW9uOlkyOXVkR0ZqZEhNOmZpZWxkOlpXMWhhV3h6.field.dHlwZQ.desc": {
+          "source": "The type of email address (e.g., `office`, `home`, `direct`)",
+          "message": "The type of email address (e.g., `office`, `home`, `direct`)"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.bmFtZQ.short_desc": {
+          "source": "The contact name",
+          "message": "The contact name"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.bmFtZQ.desc": {
+          "source": "The full name of the contact",
+          "message": "The full name of the contact"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.cGhvbmVz.display_name": {
+          "source": "Phone Numbers",
+          "message": "Phone Numbers"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.cGhvbmVz.short_desc": {
+          "source": "The contact phone numbers",
+          "message": "The contact phone numbers"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.cGhvbmVz.desc": {
+          "source": "A list of phone number objects, each with `type` and `phone` fields",
+          "message": "A list of phone number objects, each with `type` and `phone` fields"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZVBob25lRW50cnlEYXRhVHlwZTpoYXNoPGF1dG8-IzRiNmQzNjQxZmIxOGJkM2NjOTNlYTk4MzRkZDM5NGU2M2UzNjNjMjU4OTA2ZTViNDU2ZGQ3MGNmMTBiNzIwNTM6b3B0aW9uOlkyOXVkR0ZqZEhNOmZpZWxkOmNHaHZibVZ6.field.cGhvbmU.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZVBob25lRW50cnlEYXRhVHlwZTpoYXNoPGF1dG8-IzRiNmQzNjQxZmIxOGJkM2NjOTNlYTk4MzRkZDM5NGU2M2UzNjNjMjU4OTA2ZTViNDU2ZGQ3MGNmMTBiNzIwNTM6b3B0aW9uOlkyOXVkR0ZqZEhNOmZpZWxkOmNHaHZibVZ6.field.cGhvbmU.short_desc": {
+          "source": "The phone number",
+          "message": "The phone number"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZVBob25lRW50cnlEYXRhVHlwZTpoYXNoPGF1dG8-IzRiNmQzNjQxZmIxOGJkM2NjOTNlYTk4MzRkZDM5NGU2M2UzNjNjMjU4OTA2ZTViNDU2ZGQ3MGNmMTBiNzIwNTM6b3B0aW9uOlkyOXVkR0ZqZEhNOmZpZWxkOmNHaHZibVZ6.field.cGhvbmU.desc": {
+          "source": "The phone number value",
+          "message": "The phone number value"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZVBob25lRW50cnlEYXRhVHlwZTpoYXNoPGF1dG8-IzRiNmQzNjQxZmIxOGJkM2NjOTNlYTk4MzRkZDM5NGU2M2UzNjNjMjU4OTA2ZTViNDU2ZGQ3MGNmMTBiNzIwNTM6b3B0aW9uOlkyOXVkR0ZqZEhNOmZpZWxkOmNHaHZibVZ6.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZVBob25lRW50cnlEYXRhVHlwZTpoYXNoPGF1dG8-IzRiNmQzNjQxZmIxOGJkM2NjOTNlYTk4MzRkZDM5NGU2M2UzNjNjMjU4OTA2ZTViNDU2ZGQ3MGNmMTBiNzIwNTM6b3B0aW9uOlkyOXVkR0ZqZEhNOmZpZWxkOmNHaHZibVZ6.field.dHlwZQ.short_desc": {
+          "source": "The phone type",
+          "message": "The phone type"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZVBob25lRW50cnlEYXRhVHlwZTpoYXNoPGF1dG8-IzRiNmQzNjQxZmIxOGJkM2NjOTNlYTk4MzRkZDM5NGU2M2UzNjNjMjU4OTA2ZTViNDU2ZGQ3MGNmMTBiNzIwNTM6b3B0aW9uOlkyOXVkR0ZqZEhNOmZpZWxkOmNHaHZibVZ6.field.dHlwZQ.desc": {
+          "source": "The type of phone number (e.g., `mobile`, `office`, `home`, `fax`)",
+          "message": "The type of phone number (e.g., `mobile`, `office`, `home`, `fax`)"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.dGl0bGU.display_name": {
+          "source": "Title",
+          "message": "Title"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.dGl0bGU.short_desc": {
+          "source": "The contact title",
+          "message": "The contact title"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.dGl0bGU.desc": {
+          "source": "The job title of the contact",
+          "message": "The job title of the contact"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.dXJscw.display_name": {
+          "source": "URLs",
+          "message": "URLs"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.dXJscw.short_desc": {
+          "source": "The contact URLs",
+          "message": "The contact URLs"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.Y29udGFjdHM.field.dXJscw.desc": {
+          "source": "A list of URL objects, each with `type` and `url` fields",
+          "message": "A list of URL objects, each with `type` and `url` fields"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZVVybEVudHJ5RGF0YVR5cGU6aGFzaDxhdXRvPiMwZDJhZDc0OTA1NzczNDkzYjRkZjQ0NzNkMTVkNjJkZDZmOGZmMzA1NTk0OWU1OGU3ZjM5MTUzNjBmMTY0N2RjOm9wdGlvbjpZMjl1ZEdGamRITTpmaWVsZDpkWEpzY3c.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZVVybEVudHJ5RGF0YVR5cGU6aGFzaDxhdXRvPiMwZDJhZDc0OTA1NzczNDkzYjRkZjQ0NzNkMTVkNjJkZDZmOGZmMzA1NTk0OWU1OGU3ZjM5MTUzNjBmMTY0N2RjOm9wdGlvbjpZMjl1ZEdGamRITTpmaWVsZDpkWEpzY3c.field.dHlwZQ.short_desc": {
+          "source": "The URL type",
+          "message": "The URL type"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZVVybEVudHJ5RGF0YVR5cGU6aGFzaDxhdXRvPiMwZDJhZDc0OTA1NzczNDkzYjRkZjQ0NzNkMTVkNjJkZDZmOGZmMzA1NTk0OWU1OGU3ZjM5MTUzNjBmMTY0N2RjOm9wdGlvbjpZMjl1ZEdGamRITTpmaWVsZDpkWEpzY3c.field.dHlwZQ.desc": {
+          "source": "The type of URL (e.g., `url`, `office`, `home`)",
+          "message": "The type of URL (e.g., `url`, `office`, `home`)"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZVVybEVudHJ5RGF0YVR5cGU6aGFzaDxhdXRvPiMwZDJhZDc0OTA1NzczNDkzYjRkZjQ0NzNkMTVkNjJkZDZmOGZmMzA1NTk0OWU1OGU3ZjM5MTUzNjBmMTY0N2RjOm9wdGlvbjpZMjl1ZEdGamRITTpmaWVsZDpkWEpzY3c.field.dXJs.display_name": {
+          "source": "URL",
+          "message": "URL"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZVVybEVudHJ5RGF0YVR5cGU6aGFzaDxhdXRvPiMwZDJhZDc0OTA1NzczNDkzYjRkZjQ0NzNkMTVkNjJkZDZmOGZmMzA1NTk0OWU1OGU3ZjM5MTUzNjBmMTY0N2RjOm9wdGlvbjpZMjl1ZEdGamRITTpmaWVsZDpkWEpzY3c.field.dXJs.short_desc": {
+          "source": "The URL value",
+          "message": "The URL value"
+        },
+        "app.Q2xvc2U.type.YWN0aW9uOlkzSmxZWFJsTFd4bFlXUTpDbG9zZVVybEVudHJ5RGF0YVR5cGU6aGFzaDxhdXRvPiMwZDJhZDc0OTA1NzczNDkzYjRkZjQ0NzNkMTVkNjJkZDZmOGZmMzA1NTk0OWU1OGU3ZjM5MTUzNjBmMTY0N2RjOm9wdGlvbjpZMjl1ZEdGamRITTpmaWVsZDpkWEpzY3c.field.dXJs.desc": {
+          "source": "The URL value",
+          "message": "The URL value"
+        },
         "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.display_name": {
           "source": "Addresses",
           "message": "Addresses"
@@ -422,6 +554,90 @@
         "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.desc": {
           "source": "List of address objects for the lead",
           "message": "List of address objects for the lead"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.YWRkcmVzc18x.display_name": {
+          "source": "Address Line 1",
+          "message": "Address Line 1"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.YWRkcmVzc18x.short_desc": {
+          "source": "The first address line",
+          "message": "The first address line"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.YWRkcmVzc18x.desc": {
+          "source": "The first line of the street address",
+          "message": "The first line of the street address"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.YWRkcmVzc18y.display_name": {
+          "source": "Address Line 2",
+          "message": "Address Line 2"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.YWRkcmVzc18y.short_desc": {
+          "source": "The second address line",
+          "message": "The second address line"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.YWRkcmVzc18y.desc": {
+          "source": "The second line of the street address (e.g., suite, floor)",
+          "message": "The second line of the street address (e.g., suite, floor)"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.Y2l0eQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.Y2l0eQ.short_desc": {
+          "source": "The city",
+          "message": "The city"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.Y2l0eQ.desc": {
+          "source": "The city name",
+          "message": "The city name"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.Y291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.Y291bnRyeQ.short_desc": {
+          "source": "The country code",
+          "message": "The country code"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.Y291bnRyeQ.desc": {
+          "source": "The ISO 3166-1 alpha-2 country code",
+          "message": "The ISO 3166-1 alpha-2 country code"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.bGFiZWw.display_name": {
+          "source": "Label",
+          "message": "Label"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.bGFiZWw.short_desc": {
+          "source": "The address label",
+          "message": "The address label"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.bGFiZWw.desc": {
+          "source": "The label for the address (e.g., `business`, `mailing`)",
+          "message": "The label for the address (e.g., `business`, `mailing`)"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.c3RhdGU.display_name": {
+          "source": "State",
+          "message": "State"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.c3RhdGU.short_desc": {
+          "source": "The state or province",
+          "message": "The state or province"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.c3RhdGU.desc": {
+          "source": "The state or province name or abbreviation",
+          "message": "The state or province name or abbreviation"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.emlwY29kZQ.display_name": {
+          "source": "Zip Code",
+          "message": "Zip Code"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.emlwY29kZQ.short_desc": {
+          "source": "The zip or postal code",
+          "message": "The zip or postal code"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWxlYWQ.option.YWRkcmVzc2Vz.field.emlwY29kZQ.desc": {
+          "source": "The zip or postal code",
+          "message": "The zip or postal code"
         },
         "app.Q2xvc2U.action.dXBkYXRlLWxlYWQ.display_name": {
           "source": "Update a Lead",
@@ -643,6 +859,30 @@
           "source": "A list of email address objects, each with `type` and `email` fields",
           "message": "A list of email address objects, each with `type` and `email` fields"
         },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.ZW1haWxz.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.ZW1haWxz.field.ZW1haWw.short_desc": {
+          "source": "The email address",
+          "message": "The email address"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.ZW1haWxz.field.ZW1haWw.desc": {
+          "source": "The email address value",
+          "message": "The email address value"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.ZW1haWxz.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.ZW1haWxz.field.dHlwZQ.short_desc": {
+          "source": "The email type",
+          "message": "The email type"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.ZW1haWxz.field.dHlwZQ.desc": {
+          "source": "The type of email address (e.g., `office`, `home`, `direct`)",
+          "message": "The type of email address (e.g., `office`, `home`, `direct`)"
+        },
         "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.cGhvbmVz.display_name": {
           "source": "Phone Numbers",
           "message": "Phone Numbers"
@@ -655,6 +895,30 @@
           "source": "A list of phone number objects, each with `type` and `phone` fields",
           "message": "A list of phone number objects, each with `type` and `phone` fields"
         },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.cGhvbmVz.field.cGhvbmU.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.cGhvbmVz.field.cGhvbmU.short_desc": {
+          "source": "The phone number",
+          "message": "The phone number"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.cGhvbmVz.field.cGhvbmU.desc": {
+          "source": "The phone number value",
+          "message": "The phone number value"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.cGhvbmVz.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.cGhvbmVz.field.dHlwZQ.short_desc": {
+          "source": "The phone type",
+          "message": "The phone type"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.cGhvbmVz.field.dHlwZQ.desc": {
+          "source": "The type of phone number (e.g., `mobile`, `office`, `home`, `fax`)",
+          "message": "The type of phone number (e.g., `mobile`, `office`, `home`, `fax`)"
+        },
         "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.dXJscw.display_name": {
           "source": "URLs",
           "message": "URLs"
@@ -666,6 +930,30 @@
         "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.dXJscw.desc": {
           "source": "List of URL objects for the contact",
           "message": "List of URL objects for the contact"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.dXJscw.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.dXJscw.field.dHlwZQ.short_desc": {
+          "source": "The URL type",
+          "message": "The URL type"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.dXJscw.field.dHlwZQ.desc": {
+          "source": "The type of URL (e.g., `url`, `office`, `home`)",
+          "message": "The type of URL (e.g., `url`, `office`, `home`)"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.dXJscw.field.dXJs.display_name": {
+          "source": "URL",
+          "message": "URL"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.dXJscw.field.dXJs.short_desc": {
+          "source": "The URL value",
+          "message": "The URL value"
+        },
+        "app.Q2xvc2U.action.Y3JlYXRlLWNvbnRhY3Q.option.dXJscw.field.dXJs.desc": {
+          "source": "The URL value",
+          "message": "The URL value"
         },
         "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.display_name": {
           "source": "Update a Contact",
@@ -723,6 +1011,30 @@
           "source": "The new list of email address objects",
           "message": "The new list of email address objects"
         },
+        "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.ZW1haWxz.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.ZW1haWxz.field.ZW1haWw.short_desc": {
+          "source": "The email address",
+          "message": "The email address"
+        },
+        "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.ZW1haWxz.field.ZW1haWw.desc": {
+          "source": "The email address value",
+          "message": "The email address value"
+        },
+        "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.ZW1haWxz.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.ZW1haWxz.field.dHlwZQ.short_desc": {
+          "source": "The email type",
+          "message": "The email type"
+        },
+        "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.ZW1haWxz.field.dHlwZQ.desc": {
+          "source": "The type of email address (e.g., `office`, `home`, `direct`)",
+          "message": "The type of email address (e.g., `office`, `home`, `direct`)"
+        },
         "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.cGhvbmVz.display_name": {
           "source": "Phone Numbers",
           "message": "Phone Numbers"
@@ -734,6 +1046,30 @@
         "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.cGhvbmVz.desc": {
           "source": "The new list of phone number objects",
           "message": "The new list of phone number objects"
+        },
+        "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.cGhvbmVz.field.cGhvbmU.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.cGhvbmVz.field.cGhvbmU.short_desc": {
+          "source": "The phone number",
+          "message": "The phone number"
+        },
+        "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.cGhvbmVz.field.cGhvbmU.desc": {
+          "source": "The phone number value",
+          "message": "The phone number value"
+        },
+        "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.cGhvbmVz.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.cGhvbmVz.field.dHlwZQ.short_desc": {
+          "source": "The phone type",
+          "message": "The phone type"
+        },
+        "app.Q2xvc2U.action.dXBkYXRlLWNvbnRhY3Q.option.cGhvbmVz.field.dHlwZQ.desc": {
+          "source": "The type of phone number (e.g., `mobile`, `office`, `home`, `fax`)",
+          "message": "The type of phone number (e.g., `mobile`, `office`, `home`, `fax`)"
         },
         "app.Q2xvc2U.action.ZGVsZXRlLWNvbnRhY3Q.display_name": {
           "source": "Delete a Contact",

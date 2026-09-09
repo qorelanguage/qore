@@ -495,6 +495,18 @@
           "source": "The currency for this customer",
           "message": "The currency for this customer"
         },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q3VycmVuY3k.field.Q3VycmVuY3lDb2Rl.display_name": {
+          "source": "Currency Code",
+          "message": "Currency Code"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q3VycmVuY3k.field.Q3VycmVuY3lDb2Rl.short_desc": {
+          "source": "Currency code",
+          "message": "Currency code"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q3VycmVuY3k.field.Q3VycmVuY3lDb2Rl.desc": {
+          "source": "ISO currency code (e.g., NZD, USD, GBP)",
+          "message": "ISO currency code (e.g., NZD, USD, GBP)"
+        },
         "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.display_name": {
           "source": "Addresses",
           "message": "Addresses"
@@ -506,6 +518,90 @@
         "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.desc": {
           "source": "List of addresses for this customer",
           "message": "List of addresses for this customer"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.QWRkcmVzc05hbWU.display_name": {
+          "source": "Address Name",
+          "message": "Address Name"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.QWRkcmVzc05hbWU.short_desc": {
+          "source": "Name for this address",
+          "message": "Name for this address"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.QWRkcmVzc05hbWU.desc": {
+          "source": "Descriptive name for this address (e.g., 'Main Office', 'Warehouse')",
+          "message": "Descriptive name for this address (e.g., 'Main Office', 'Warehouse')"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.QWRkcmVzc1R5cGU.display_name": {
+          "source": "Address Type",
+          "message": "Address Type"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.QWRkcmVzc1R5cGU.short_desc": {
+          "source": "Type of address",
+          "message": "Type of address"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.QWRkcmVzc1R5cGU.desc": {
+          "source": "The type of address",
+          "message": "The type of address"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.QWRkcmVzc1R5cGU.allowed-value.c3RyaW5nOlNoaXBwaW5n.desc": {
+          "source": "Shipping address",
+          "message": "Shipping address"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.QWRkcmVzc1R5cGU.allowed-value.c3RyaW5nOlBvc3RhbA.desc": {
+          "source": "Postal/mailing address",
+          "message": "Postal/mailing address"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.QWRkcmVzc1R5cGU.allowed-value.c3RyaW5nOlBoeXNpY2Fs.desc": {
+          "source": "Physical location address",
+          "message": "Physical location address"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.short_desc": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.short_desc": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.UG9zdGFsQ29kZQ.display_name": {
+          "source": "Postal Code",
+          "message": "Postal Code"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.UG9zdGFsQ29kZQ.short_desc": {
+          "source": "Postal/ZIP code",
+          "message": "Postal/ZIP code"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.UG9zdGFsQ29kZQ.desc": {
+          "source": "Postal or ZIP code",
+          "message": "Postal or ZIP code"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.U3RyZWV0QWRkcmVzcw.display_name": {
+          "source": "Street Address",
+          "message": "Street Address"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.U3RyZWV0QWRkcmVzcw.short_desc": {
+          "source": "Street address",
+          "message": "Street address"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.U3RyZWV0QWRkcmVzcw.desc": {
+          "source": "Street address line",
+          "message": "Street address line"
         },
         "app.VW5sZWFzaGVkU29mdHdhcmU.action.Z2V0LWN1c3RvbWVy.display_name": {
           "source": "Get Customer",
@@ -1071,6 +1167,126 @@
           "source": "List of line items for this sales order",
           "message": "List of line items for this sales order"
         },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.Q29tbWVudHM.display_name": {
+          "source": "Comments",
+          "message": "Comments"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.Q29tbWVudHM.short_desc": {
+          "source": "Line comments",
+          "message": "Line comments"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.Q29tbWVudHM.desc": {
+          "source": "Comments for this line item",
+          "message": "Comments for this line item"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.RGlzY291bnRSYXRl.display_name": {
+          "source": "Discount Rate",
+          "message": "Discount Rate"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.RGlzY291bnRSYXRl.short_desc": {
+          "source": "Line discount rate",
+          "message": "Line discount rate"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.RGlzY291bnRSYXRl.desc": {
+          "source": "The discount rate for this line",
+          "message": "The discount rate for this line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.R3VpZA.display_name": {
+          "source": "Line GUID",
+          "message": "Line GUID"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.R3VpZA.short_desc": {
+          "source": "Unique line identifier",
+          "message": "Unique line identifier"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.R3VpZA.desc": {
+          "source": "The unique GUID identifier of the order line",
+          "message": "The unique GUID identifier of the order line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZU51bWJlcg.display_name": {
+          "source": "Line Number",
+          "message": "Line Number"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZU51bWJlcg.short_desc": {
+          "source": "Line number",
+          "message": "Line number"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZU51bWJlcg.desc": {
+          "source": "The line number within the order",
+          "message": "The line number within the order"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZVRheA.display_name": {
+          "source": "Line Tax",
+          "message": "Line Tax"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZVRheA.short_desc": {
+          "source": "Tax for line",
+          "message": "Tax for line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZVRheA.desc": {
+          "source": "The tax amount for this line",
+          "message": "The tax amount for this line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZVRvdGFs.display_name": {
+          "source": "Line Total",
+          "message": "Line Total"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZVRvdGFs.short_desc": {
+          "source": "Total for line",
+          "message": "Total for line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZVRvdGFs.desc": {
+          "source": "The total amount for this line before tax",
+          "message": "The total amount for this line before tax"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.T3JkZXJRdWFudGl0eQ.display_name": {
+          "source": "Order Quantity",
+          "message": "Order Quantity"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.T3JkZXJRdWFudGl0eQ.short_desc": {
+          "source": "Quantity ordered",
+          "message": "Quantity ordered"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.T3JkZXJRdWFudGl0eQ.desc": {
+          "source": "The quantity ordered",
+          "message": "The quantity ordered"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.UHJvZHVjdA.display_name": {
+          "source": "Product",
+          "message": "Product"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.UHJvZHVjdA.short_desc": {
+          "source": "Product details",
+          "message": "Product details"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.UHJvZHVjdA.desc": {
+          "source": "The product for this line",
+          "message": "The product for this line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.VGF4UmF0ZQ.display_name": {
+          "source": "Tax Rate",
+          "message": "Tax Rate"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.VGF4UmF0ZQ.short_desc": {
+          "source": "Line tax rate",
+          "message": "Line tax rate"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.VGF4UmF0ZQ.desc": {
+          "source": "The tax rate for this line",
+          "message": "The tax rate for this line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.VW5pdFByaWNl.display_name": {
+          "source": "Unit Price",
+          "message": "Unit Price"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.VW5pdFByaWNl.short_desc": {
+          "source": "Price per unit",
+          "message": "Price per unit"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.VW5pdFByaWNl.desc": {
+          "source": "The price per unit",
+          "message": "The price per unit"
+        },
         "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLXNhbGVzLW9yZGVy.option.Q29tbWVudHM.display_name": {
           "source": "Comments",
           "message": "Comments"
@@ -1287,6 +1503,126 @@
           "source": "List of line items for this sales order",
           "message": "List of line items for this sales order"
         },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.Q29tbWVudHM.display_name": {
+          "source": "Comments",
+          "message": "Comments"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.Q29tbWVudHM.short_desc": {
+          "source": "Line comments",
+          "message": "Line comments"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.Q29tbWVudHM.desc": {
+          "source": "Comments for this line item",
+          "message": "Comments for this line item"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.RGlzY291bnRSYXRl.display_name": {
+          "source": "Discount Rate",
+          "message": "Discount Rate"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.RGlzY291bnRSYXRl.short_desc": {
+          "source": "Line discount rate",
+          "message": "Line discount rate"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.RGlzY291bnRSYXRl.desc": {
+          "source": "The discount rate for this line",
+          "message": "The discount rate for this line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.R3VpZA.display_name": {
+          "source": "Line GUID",
+          "message": "Line GUID"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.R3VpZA.short_desc": {
+          "source": "Unique line identifier",
+          "message": "Unique line identifier"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.R3VpZA.desc": {
+          "source": "The unique GUID identifier of the order line",
+          "message": "The unique GUID identifier of the order line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZU51bWJlcg.display_name": {
+          "source": "Line Number",
+          "message": "Line Number"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZU51bWJlcg.short_desc": {
+          "source": "Line number",
+          "message": "Line number"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZU51bWJlcg.desc": {
+          "source": "The line number within the order",
+          "message": "The line number within the order"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZVRheA.display_name": {
+          "source": "Line Tax",
+          "message": "Line Tax"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZVRheA.short_desc": {
+          "source": "Tax for line",
+          "message": "Tax for line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZVRheA.desc": {
+          "source": "The tax amount for this line",
+          "message": "The tax amount for this line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZVRvdGFs.display_name": {
+          "source": "Line Total",
+          "message": "Line Total"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZVRvdGFs.short_desc": {
+          "source": "Total for line",
+          "message": "Total for line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.TGluZVRvdGFs.desc": {
+          "source": "The total amount for this line before tax",
+          "message": "The total amount for this line before tax"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.T3JkZXJRdWFudGl0eQ.display_name": {
+          "source": "Order Quantity",
+          "message": "Order Quantity"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.T3JkZXJRdWFudGl0eQ.short_desc": {
+          "source": "Quantity ordered",
+          "message": "Quantity ordered"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.T3JkZXJRdWFudGl0eQ.desc": {
+          "source": "The quantity ordered",
+          "message": "The quantity ordered"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.UHJvZHVjdA.display_name": {
+          "source": "Product",
+          "message": "Product"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.UHJvZHVjdA.short_desc": {
+          "source": "Product details",
+          "message": "Product details"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.UHJvZHVjdA.desc": {
+          "source": "The product for this line",
+          "message": "The product for this line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.VGF4UmF0ZQ.display_name": {
+          "source": "Tax Rate",
+          "message": "Tax Rate"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.VGF4UmF0ZQ.short_desc": {
+          "source": "Line tax rate",
+          "message": "Line tax rate"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.VGF4UmF0ZQ.desc": {
+          "source": "The tax rate for this line",
+          "message": "The tax rate for this line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.VW5pdFByaWNl.display_name": {
+          "source": "Unit Price",
+          "message": "Unit Price"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.VW5pdFByaWNl.short_desc": {
+          "source": "Price per unit",
+          "message": "Price per unit"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLXNhbGVzLW9yZGVy.option.U2FsZXNPcmRlckxpbmVz.field.VW5pdFByaWNl.desc": {
+          "source": "The price per unit",
+          "message": "The price per unit"
+        },
         "app.VW5sZWFzaGVkU29mdHdhcmU.action.ZGVsZXRlLXNhbGVzLW9yZGVy.display_name": {
           "source": "Delete Sales Order",
           "message": "Delete Sales Order"
@@ -1407,6 +1743,114 @@
           "source": "List of line items for this credit note",
           "message": "List of line items for this credit note"
         },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.QmF0Y2hOdW1iZXJz.display_name": {
+          "source": "Batch Numbers",
+          "message": "Batch Numbers"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.QmF0Y2hOdW1iZXJz.short_desc": {
+          "source": "Batch tracking numbers",
+          "message": "Batch tracking numbers"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.QmF0Y2hOdW1iZXJz.desc": {
+          "source": "Batch numbers for this line (if batch tracked)",
+          "message": "Batch numbers for this line (if batch tracked)"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q29tbWVudHM.display_name": {
+          "source": "Comments",
+          "message": "Comments"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q29tbWVudHM.short_desc": {
+          "source": "Line comments",
+          "message": "Line comments"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q29tbWVudHM.desc": {
+          "source": "Comments for this line item (max 1024 characters)",
+          "message": "Comments for this line item (max 1024 characters)"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q3JlZGl0UHJpY2U.display_name": {
+          "source": "Credit Price",
+          "message": "Credit Price"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q3JlZGl0UHJpY2U.short_desc": {
+          "source": "Price per unit",
+          "message": "Price per unit"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q3JlZGl0UHJpY2U.desc": {
+          "source": "The price per unit for this credit",
+          "message": "The price per unit for this credit"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q3JlZGl0UXVhbnRpdHk.display_name": {
+          "source": "Credit Quantity",
+          "message": "Credit Quantity"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q3JlZGl0UXVhbnRpdHk.short_desc": {
+          "source": "Quantity credited",
+          "message": "Quantity credited"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q3JlZGl0UXVhbnRpdHk.desc": {
+          "source": "The quantity being credited",
+          "message": "The quantity being credited"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.R3VpZA.display_name": {
+          "source": "Line GUID",
+          "message": "Line GUID"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.R3VpZA.short_desc": {
+          "source": "Unique line identifier",
+          "message": "Unique line identifier"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.R3VpZA.desc": {
+          "source": "The unique GUID identifier of the credit note line",
+          "message": "The unique GUID identifier of the credit note line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UHJvZHVjdA.display_name": {
+          "source": "Product",
+          "message": "Product"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UHJvZHVjdA.short_desc": {
+          "source": "Product details",
+          "message": "Product details"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UHJvZHVjdA.desc": {
+          "source": "The product for this line (Guid or ProductCode)",
+          "message": "The product for this line (Guid or ProductCode)"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UmVhc29u.display_name": {
+          "source": "Reason",
+          "message": "Reason"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UmVhc29u.short_desc": {
+          "source": "Reason for credit",
+          "message": "Reason for credit"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UmVhc29u.desc": {
+          "source": "The reason for this credit",
+          "message": "The reason for this credit"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UmV0dXJu.display_name": {
+          "source": "Return",
+          "message": "Return"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UmV0dXJu.short_desc": {
+          "source": "Is a return",
+          "message": "Is a return"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UmV0dXJu.desc": {
+          "source": "Whether this is a return of goods",
+          "message": "Whether this is a return of goods"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.U2VyaWFsTnVtYmVycw.display_name": {
+          "source": "Serial Numbers",
+          "message": "Serial Numbers"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.U2VyaWFsTnVtYmVycw.short_desc": {
+          "source": "Serial tracking numbers",
+          "message": "Serial tracking numbers"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.U2VyaWFsTnVtYmVycw.desc": {
+          "source": "Serial numbers for this line (if serialized)",
+          "message": "Serial numbers for this line (if serialized)"
+        },
         "app.VW5sZWFzaGVkU29mdHdhcmU.action.Y3JlYXRlLWNyZWRpdC1ub3Rl.option.Q29tbWVudHM.display_name": {
           "source": "Comments",
           "message": "Comments"
@@ -1478,6 +1922,114 @@
         "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.desc": {
           "source": "List of line items for this credit note",
           "message": "List of line items for this credit note"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.QmF0Y2hOdW1iZXJz.display_name": {
+          "source": "Batch Numbers",
+          "message": "Batch Numbers"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.QmF0Y2hOdW1iZXJz.short_desc": {
+          "source": "Batch tracking numbers",
+          "message": "Batch tracking numbers"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.QmF0Y2hOdW1iZXJz.desc": {
+          "source": "Batch numbers for this line (if batch tracked)",
+          "message": "Batch numbers for this line (if batch tracked)"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q29tbWVudHM.display_name": {
+          "source": "Comments",
+          "message": "Comments"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q29tbWVudHM.short_desc": {
+          "source": "Line comments",
+          "message": "Line comments"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q29tbWVudHM.desc": {
+          "source": "Comments for this line item (max 1024 characters)",
+          "message": "Comments for this line item (max 1024 characters)"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q3JlZGl0UHJpY2U.display_name": {
+          "source": "Credit Price",
+          "message": "Credit Price"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q3JlZGl0UHJpY2U.short_desc": {
+          "source": "Price per unit",
+          "message": "Price per unit"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q3JlZGl0UHJpY2U.desc": {
+          "source": "The price per unit for this credit",
+          "message": "The price per unit for this credit"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q3JlZGl0UXVhbnRpdHk.display_name": {
+          "source": "Credit Quantity",
+          "message": "Credit Quantity"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q3JlZGl0UXVhbnRpdHk.short_desc": {
+          "source": "Quantity credited",
+          "message": "Quantity credited"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.Q3JlZGl0UXVhbnRpdHk.desc": {
+          "source": "The quantity being credited",
+          "message": "The quantity being credited"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.R3VpZA.display_name": {
+          "source": "Line GUID",
+          "message": "Line GUID"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.R3VpZA.short_desc": {
+          "source": "Unique line identifier",
+          "message": "Unique line identifier"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.R3VpZA.desc": {
+          "source": "The unique GUID identifier of the credit note line",
+          "message": "The unique GUID identifier of the credit note line"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UHJvZHVjdA.display_name": {
+          "source": "Product",
+          "message": "Product"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UHJvZHVjdA.short_desc": {
+          "source": "Product details",
+          "message": "Product details"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UHJvZHVjdA.desc": {
+          "source": "The product for this line (Guid or ProductCode)",
+          "message": "The product for this line (Guid or ProductCode)"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UmVhc29u.display_name": {
+          "source": "Reason",
+          "message": "Reason"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UmVhc29u.short_desc": {
+          "source": "Reason for credit",
+          "message": "Reason for credit"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UmVhc29u.desc": {
+          "source": "The reason for this credit",
+          "message": "The reason for this credit"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UmV0dXJu.display_name": {
+          "source": "Return",
+          "message": "Return"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UmV0dXJu.short_desc": {
+          "source": "Is a return",
+          "message": "Is a return"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.UmV0dXJu.desc": {
+          "source": "Whether this is a return of goods",
+          "message": "Whether this is a return of goods"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.U2VyaWFsTnVtYmVycw.display_name": {
+          "source": "Serial Numbers",
+          "message": "Serial Numbers"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.U2VyaWFsTnVtYmVycw.short_desc": {
+          "source": "Serial tracking numbers",
+          "message": "Serial tracking numbers"
+        },
+        "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q3JlZGl0Tm90ZUxpbmVz.field.U2VyaWFsTnVtYmVycw.desc": {
+          "source": "Serial numbers for this line (if serialized)",
+          "message": "Serial numbers for this line (if serialized)"
         },
         "app.VW5sZWFzaGVkU29mdHdhcmU.action.dXBkYXRlLWNyZWRpdC1ub3Rl.option.Q29tbWVudHM.display_name": {
           "source": "Comments",

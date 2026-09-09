@@ -44,6 +44,7 @@ class QoreDataProviderI18nCmd {
             "check":   "check",
             "check_tree": "check-tree",
             "check_source_tree": "check-source-tree",
+            "update_source_tree": "update-source-tree",
             "require_standard_locales": "require-standard-locales",
             "require_complete_locales": "require-complete-locales",
             "verbose": "v,verbose:i+",
@@ -88,6 +89,16 @@ class QoreDataProviderI18nCmd {
         }
         list<string> required_locales = opt.require_standard_locales
             ? DataProviderPresentation::StandardTranslationLocales : ();
+        if (opt.update_source_tree) {
+            if (opt.check || opt.check_tree || opt.check_source_tree
+                    || opt.app) {
+                fail("--update-source-tree cannot be combined with a check mode or --app");
+            }
+            updateSourceTree(opt.output,
+                cast<list<string>>(opt.module ?? ()),
+                cast<list<string>>(opt.owner ?? ()), opt.verbose);
+            return;
+        }
         if (opt.check_source_tree) {
             if (opt.app) {
                 fail("--check-source-tree cannot be combined with --app");
@@ -431,6 +442,103 @@ class QoreDataProviderI18nCmd {
         }
         printf("verified %d owner module(s), %d catalog domain(s), %d translation(s)\n",
             owner_modules.size(), roots.size(), translation_count);
+    }
+
+    #! Regenerates every source-owned root catalog after loading the complete owner set once
+    private updateSourceTree(string output, list<string> extra_modules,
+            list<string> explicit_owners, *int verbose) {
+        list<string> source_roots = providerSourceRoots(output);
+        list<hash<auto>> roots = ();
+        foreach string source_root in (source_roots) {
+            collectRootCatalogs(source_root, \roots);
+        }
+        if (!roots) {
+            throw "DATA-PROVIDER-I18N-ERROR", sprintf(
+                "no source-owned provider root catalogs found below %y",
+                output);
+        }
+
+        hash<string, bool> owner_modules = map {$1: True},
+            explicit_owners;
+        foreach string source_root in (source_roots) {
+            collectProviderSourceOwners(source_root, \owner_modules);
+        }
+        list<hash<auto>> owned_roots = ();
+        foreach hash<auto> root in (roots) {
+            *string module_name = sourceOwnerModule(root.search_root);
+            if (!module_name.val()) {
+                if (explicit_owners.size() != 1) {
+                    throw "DATA-PROVIDER-I18N-ERROR", sprintf(
+                        "cannot infer an owner module for catalog %y; pass exactly one --owner for a noncanonical source tree",
+                        root.path);
+                }
+                module_name = explicit_owners.first();
+            }
+            owner_modules{module_name} = True;
+            root.owner = module_name;
+            owned_roots += root;
+        }
+
+        hash<string, bool> modules_to_load = owner_modules;
+        foreach string module_name in (extra_modules) {
+            modules_to_load{module_name} = True;
+        }
+        foreach string module_name in (sort(keys modules_to_load)) {
+            if (verbose) {
+                printf("loading provider module %s\n",
+                    color.key(module_name));
+            }
+            load_module(module_name);
+        }
+
+        hash<string, hash<string, hash<auto>>> owner_catalogs;
+        foreach string owner in (sort(keys owner_modules)) {
+            owner_catalogs{owner} = moduleCatalogs(owner);
+        }
+
+        # Validate the complete owner/domain mapping before touching any file.
+        # This prevents a late duplicate, orphan, or new-domain error from
+        # leaving an otherwise repairable tree only partly regenerated.
+        hash<string, hash<string, bool>> seen;
+        hash<string, hash<auto>> roots_by_path;
+        foreach hash<auto> root in (owned_roots) {
+            if (seen{root.owner}{root.domain}) {
+                throw "DATA-PROVIDER-I18N-ERROR", sprintf(
+                    "duplicate catalog domain %y for owner module %y",
+                    root.domain, root.owner);
+            }
+            seen{root.owner}{root.domain} = True;
+            if (!exists owner_catalogs{root.owner}{root.domain}) {
+                throw "DATA-PROVIDER-I18N-ERROR", sprintf(
+                    "catalog %y is orphaned; module %y no longer owns domain %y",
+                    root.path, root.owner, root.domain);
+            }
+            roots_by_path{root.path} = root;
+        }
+        foreach string owner in (sort(keys owner_catalogs)) {
+            foreach string domain in (sort(keys owner_catalogs{owner})) {
+                if (!seen{owner}{domain}) {
+                    throw "DATA-PROVIDER-I18N-ERROR", sprintf(
+                        "owner module %y has new catalog domain %y with no existing canonical source-tree location",
+                        owner, domain);
+                }
+            }
+        }
+        int written = 0;
+        foreach string path in (sort(keys roots_by_path)) {
+            hash<auto> root = roots_by_path{path};
+            string data = make_json(
+                owner_catalogs{root.owner}{root.domain},
+                JGF_ADD_FORMATTING) + "\n";
+            writeFile(path, data);
+            ++written;
+            if (verbose) {
+                printf("wrote %s (%d messages)\n", color.key(path),
+                    owner_catalogs{root.owner}{root.domain}.locales.root.messages.size());
+            }
+        }
+        printf("updated %d owner module(s), %d catalog domain(s)\n",
+            owner_modules.size(), written);
     }
 
     #! Returns the production library roots below a source-tree path
@@ -785,10 +893,16 @@ class QoreDataProviderI18nCmd {
     }
 
     private writeFile(string path, string data) {
+        # Write beside the destination and replace it atomically. A process,
+        # disk, or serialization failure must leave either the old complete
+        # catalog or the new complete catalog, never a truncated JSON file.
+        string temporary = path + ".tmp." + get_random_string(12);
+        on_exit unlink(temporary);
         File file();
-        file.open2(path, O_CREAT | O_WRONLY | O_TRUNC);
+        file.open2(temporary, O_CREAT | O_EXCL | O_WRONLY, 0644);
         file.write(data);
         file.close();
+        rename(temporary, path);
     }
 
     private bool removeNoColorOption() {
@@ -825,6 +939,8 @@ class QoreDataProviderI18nCmd {
         printf("      --check-tree   Recursively verify catalogs without loading providers\n");
         printf("      --check-source-tree\n");
         printf("                     Load source owners and verify roots and translations\n");
+        printf("      --update-source-tree\n");
+        printf("                     Load source owners once and rewrite every root catalog\n");
         printf("      --require-standard-locales\n");
         printf("                     Require every standard translation locale in a check\n");
         printf("      --require-complete-locales\n");

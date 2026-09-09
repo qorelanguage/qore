@@ -62,6 +62,9 @@ its overlay, not by module code).
       QORE_MODULE_DIR=build/qlib-qmod:build/modules/i18n:build/modules/json:qlib LD_LIBRARY_PATH=build \
         build/qore bin/qore-data-provider-i18n -C -o qlib/<Module>/i18n -m <Module> --owner <Module>
       ```
+      After a framework identity change, regenerate all existing source-owned roots in one deterministic owner-loading
+      pass with `build/qore bin/qore-data-provider-i18n -C --update-source-tree -o .`; then refresh every translation
+      and run the strict source-tree check below.
       Regenerate whenever a `display_name`, `short_desc` or `desc` changes; the test compares the committed
       tree against what the module currently produces. Note the check only reaches an app once its factory is
       in `FactoryMap`, so a module missing both fails silently until the factory is added.
@@ -73,8 +76,29 @@ its overlay, not by module code).
 ### Visibility (the app does not appear until the index is rebuilt)
 - [ ] After installing, the index was rebuilt: `sudo make install` -> `copy-qore-modules` -> `qctl update-index` -> restart the platform, **in that order**
 - [ ] `qdp @<AppName>` lists the app and its actions
-- [ ] The index build logged no `has no module path` or `unregistered scheme` error for the app — both skip it silently and leave the exit status 0
+- [ ] The index build produced a complete `DataProviderDiscoveryReportInfo`; no missing module path, unknown scheme,
+      source-load, factory, retained initializer, or expected-inventory failure is present. Output text is not a
+      success signal.
+- [ ] Every authoritative or filtered index build supplies the exact expected app/action inventory available from
+      its producer boundary, and publication uses a current qualified-discovery token.
 - [ ] If the app is missing, checked whether `QORE_PROVIDER_INDEX_DIR` is set: when it is, tooling reads the index and never scans modules, so a working `load_module()` proves registration but not visibility
+
+### Qualification architecture
+
+- [ ] Every producer publishes an exact lightweight app/action inventory before schema materialization; collecting
+      it does not execute dynamic schema, connection, or action callbacks.
+- [ ] Producer inventory has a change revision, filtered builds collect only their selected app scope, and a change
+      after collection invalidates sealing or publication.
+- [ ] Every caught registration, discovery-source, factory, scheme, or publication failure is retained in structured
+      qualification state. Logs and empty stdout/stderr are diagnostics, not success signals.
+- [ ] Failed environment registration and provider modules are not entered in a loaded/visited cache; a later
+      qualification repeats the structured failure or succeeds after the dependency is repaired.
+- [ ] An authoritative index is published only through a current, authenticated, single-use qualified-discovery
+      token, with the revision check and atomic writer protected by the same catalog lock.
+- [ ] External schemas are normalized once at a versioned producer boundary. Absent, empty, and null are distinct,
+      and conversion to `AllowedValueInfo` occurs only in declared choice positions.
+- [ ] Presentation extraction reads only static metadata and declared fallback types; it never executes dynamic type,
+      default-value, example, network, or connection callbacks.
 
 ### App Info
 - [ ] `display_name` is user-friendly ("Zoho Books" not "zohobooks")
@@ -107,6 +131,10 @@ See [Action Path Resolution](data-provider-development-guide.md#action-path-reso
 - [ ] Each option has `display_name` and `short_desc`
 - [ ] Complex options have `desc` explaining format/structure (**markdown-formatted**)
 - [ ] Option `allowed_values` declared explicitly in the option definition (never as text in `desc` or `short_desc`)
+- [ ] Every user-visible label on fields reachable through an option type, list element, or union branch appears in
+      the generated root catalog; nested `allowed_values` and `element_allowed_values` are included.
+- [ ] Every shipped locale has exact root message-ID/source parity after regeneration; a fallback to producer text
+      does not qualify as a completed translation.
 
 ### DPAT_FIND / DPAT_FIND_SINGLE Actions (CRITICAL)
 - [ ] **Every** action option exists in the data provider's `SearchOptions`
@@ -210,6 +238,8 @@ The goal: actions should expose enough API functionality to be genuinely useful,
 - [ ] **Every `allowed_values` entry is a `hash<AllowedValueInfo>` with both `value` and `display_name`**
 - [ ] `display_name` is user-friendly (Title Case, human-readable — e.g., "Bank Transfer" not "bank_transfer")
 - [ ] No option has allowed values described only in `desc`, `short_desc`, or `display_name` text
+- [ ] External schema adapters convert choices to `AllowedValueInfo` only in declared choice positions; an arbitrary
+      raw hash containing a `value` member remains a raw value.
 
 ### Example (correct — AllowedValueInfo with display_name)
 ```qore

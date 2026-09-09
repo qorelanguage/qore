@@ -87,6 +87,94 @@
           "source": "Any attachments for the message",
           "message": "Any attachments for the message"
         },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.Y29udGVudC1pZA.display_name": {
+          "source": "Content-ID",
+          "message": "Content-ID"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.Y29udGVudC1pZA.short_desc": {
+          "source": "Content-ID for inline attachments",
+          "message": "Content-ID for inline attachments"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.Y29udGVudC1pZA.desc": {
+          "source": "Content-ID for inline attachments (without angle brackets). Use this for images embedded in HTML emails that are referenced as `cid:content-id` in the HTML body. When set, the attachment will be marked as inline rather than a regular attachment.",
+          "message": "Content-ID for inline attachments (without angle brackets). Use this for images embedded in HTML emails that are referenced as `cid:content-id` in the HTML body. When set, the attachment will be marked as inline rather than a regular attachment."
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZGF0YQ.display_name": {
+          "source": "Attachment Data",
+          "message": "Attachment Data"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZGF0YQ.short_desc": {
+          "source": "The data for the attachment",
+          "message": "The data for the attachment"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZGF0YQ.desc": {
+          "source": "The data for the attachment",
+          "message": "The data for the attachment"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.display_name": {
+          "source": "Attachment Encoding",
+          "message": "Attachment Encoding"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.short_desc": {
+          "source": "The encoding to use for the attachment",
+          "message": "The encoding to use for the attachment"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.desc": {
+          "source": "The encoding to use for the attachment",
+          "message": "The encoding to use for the attachment"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOmRlZmF1bHQ.desc": {
+          "source": "`quoted-printable` for string data, `base64` for binary data",
+          "message": "`quoted-printable` for string data, `base64` for binary data"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOm5vbmU.desc": {
+          "source": "No content encoding (not recommended)",
+          "message": "No content encoding (not recommended)"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOnF1b3RlZC1wcmludGFibGU.desc": {
+          "source": "Quoted printable encoding",
+          "message": "Quoted printable encoding"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOmJhc2U2NA.desc": {
+          "source": "Base64 encoding",
+          "message": "Base64 encoding"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.aGRy.display_name": {
+          "source": "Headers",
+          "message": "Headers"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.aGRy.short_desc": {
+          "source": "Optional headers to send with the attachment",
+          "message": "Optional headers to send with the attachment"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.aGRy.desc": {
+          "source": "Optional headers to send with the attachment",
+          "message": "Optional headers to send with the attachment"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bWltZS10eXBl.display_name": {
+          "source": "Mime Type",
+          "message": "Mime Type"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bWltZS10eXBl.short_desc": {
+          "source": "The MIME type of the attachment",
+          "message": "The MIME type of the attachment"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bWltZS10eXBl.desc": {
+          "source": "The MIME type of the attachment",
+          "message": "The MIME type of the attachment"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bmFtZQ.short_desc": {
+          "source": "The name or filename of the attachment",
+          "message": "The name or filename of the attachment"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bmFtZQ.desc": {
+          "source": "The name or filename of the attachment",
+          "message": "The name or filename of the attachment"
+        },
         "app.U01UUA.action.c2VuZC1lbWFpbA.option.YmNj.display_name": {
           "source": "BCC",
           "message": "BCC"

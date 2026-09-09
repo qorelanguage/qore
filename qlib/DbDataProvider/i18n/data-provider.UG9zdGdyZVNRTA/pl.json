@@ -3,10 +3,6 @@
   "locales": {
     "pl": {
       "messages": {
-        "app.UG9zdGdyZVNRTA.desc": {
-          "source": "Create and manage connections to a PostgreSQL database server",
-          "message": "Twórz połączenia i zarządzaj nimi z serwerem bazy danych PostgreSQL"
-        },
         "app.UG9zdGdyZVNRTA.display_name": {
           "source": "PostgreSQL",
           "message": "PostgreSQL"
@@ -14,6 +10,10 @@
         "app.UG9zdGdyZVNRTA.short_desc": {
           "source": "PostgreSQL database server",
           "message": "Serwer bazy danych PostgreSQL"
+        },
+        "app.UG9zdGdyZVNRTA.desc": {
+          "source": "Create and manage connections to a PostgreSQL database server",
+          "message": "Twórz połączenia i zarządzaj nimi z serwerem bazy danych PostgreSQL"
         }
       }
     }

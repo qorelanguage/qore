@@ -1,0 +1,52 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires QUnit
+%requires ConnectionProvider
+
+%exec-class ConnectionSchemeQualificationTest
+
+#! Verifies revision-qualified connection-scheme snapshot publication
+public class ConnectionSchemeQualificationTest inherits QUnit::Test {
+    constructor() : Test("Connection scheme qualification", "1.0") {
+        addTestCase("scheme snapshot publication", \schemeSnapshotPublicationTest());
+        set_return_value(main());
+    }
+
+    schemeSnapshotPublicationTest() {
+        string scheme = "qualification-" + get_random_string(8);
+        int before = ConnectionSchemeCache::getRegistryRevision();
+        ConnectionSchemeCache::registerPendingScheme(scheme, sub () {});
+        assertEq(before + 1, ConnectionSchemeCache::getRegistryRevision(),
+            "pending scheme registration advances the registry revision");
+        int snapshot = ConnectionSchemeCache::getRegistryRevision();
+        ConnectionSchemeCache::deregisterScheme(scheme);
+        assertEq(snapshot + 1, ConnectionSchemeCache::getRegistryRevision(),
+            "pending scheme removal advances the registry revision");
+        assertThrows("CONNECTION-SCHEME-SNAPSHOT-STALE", sub () {
+            ConnectionSchemeCache::publishStableRegistrySnapshot(
+                snapshot, nothing sub () {});
+        }, NOTHING, "a stale connection-scheme snapshot cannot publish");
+
+        string consumed_scheme = "qualification-consumed-" + get_random_string(8);
+        ConnectionSchemeCache::registerPendingScheme(consumed_scheme,
+            nothing sub () {});
+        int pending = ConnectionSchemeCache::getRegistryRevision();
+        assertEq(NOTHING, ConnectionSchemeCache::getScheme(consumed_scheme));
+        assertEq(pending + 1, ConnectionSchemeCache::getRegistryRevision(),
+            "consuming a pending scheme advances the registry revision even when it registers no replacement");
+
+        int stable = ConnectionSchemeCache::getRegistryRevision();
+        hash<auto> published
+            = ConnectionSchemeCache::publishStableRegistrySnapshot(
+                stable, hash<auto> sub () {
+                    return {"published": True};
+                });
+        assertEq({"published": True}, published);
+    }
+}

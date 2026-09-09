@@ -97,10 +97,27 @@ class QJar {
             module_name =~ s/\.qm$//;
         }
         p.loadModule(module_load);
-        p.parse("binary sub byte_code(Class cls) { return get_byte_code('::' + cls.getPathName()); }
+
+        # User-module dependencies have their own persistent Programs, which lets JNI resolve
+        # their canonical qoremod.<module> Java names even when they are not re-exported by the
+        # target module.  Binary-module dependencies do not have an owning Program, however, and
+        # a non-re-exported dependency namespace is therefore invisible from this scratch Program.
+        # Read the target Program's own module graph and explicitly import only its binary
+        # dependencies. JNI then sees the same owning namespace while generating the target's
+        # method signatures as it sees when generating that binary module itself, without importing
+        # unrelated binary modules loaded by qjar. This prevents one native class from receiving
+        # both qoremod.<module> and legacy qore.<namespace> binary names.
+        p.parse("hash sub loaded_module_info() { return get_module_hash(); }
+                 binary sub byte_code(Class cls) { return get_byte_code('::' + cls.getPathName()); }
                  string sub java_name(Class cls) { return get_java_name('::' + cls.getPathName()); }
                  list<string> sub loaded_modules() { return keys get_module_hash(); }", "api");
-
+        hash<auto> loaded_module_info = p.callFunction("loaded_module_info");
+        foreach string dependency in (sort(keys loaded_module_info)) {
+            *hash<auto> info = loaded_module_info{dependency};
+            if (info && !info.user) {
+                p.loadModule(dependency);
+            }
+        }
         opts."module" = module_name;
         if (module_name =~ /^QorusFakeApi/) {
             foreach string name in (cast<list<string>>(p.callFunction("loaded_modules"))) {

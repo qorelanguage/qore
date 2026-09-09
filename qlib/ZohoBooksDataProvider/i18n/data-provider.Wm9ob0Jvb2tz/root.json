@@ -379,6 +379,186 @@
           "source": "The line items on the invoice",
           "message": "The line items on the invoice"
         },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.YWNjb3VudF9pZA.display_name": {
+          "source": "Account ID",
+          "message": "Account ID"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.YWNjb3VudF9pZA.short_desc": {
+          "source": "Income/expense account",
+          "message": "Income/expense account"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.YWNjb3VudF9pZA.desc": {
+          "source": "The account ID for this line item",
+          "message": "The account ID for this line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "Description"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "Additional description",
+          "message": "Additional description"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGVzY3JpcHRpb24.desc": {
+          "source": "Additional description for the line item",
+          "message": "Additional description for the line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGlzY291bnQ.display_name": {
+          "source": "Discount",
+          "message": "Discount"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGlzY291bnQ.short_desc": {
+          "source": "Discount amount or percentage",
+          "message": "Discount amount or percentage"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGlzY291bnQ.desc": {
+          "source": "Discount applied to this line item",
+          "message": "Discount applied to this line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGlzY291bnRfYW1vdW50.display_name": {
+          "source": "Discount Amount",
+          "message": "Discount Amount"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGlzY291bnRfYW1vdW50.short_desc": {
+          "source": "Discount amount",
+          "message": "Discount amount"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGlzY291bnRfYW1vdW50.desc": {
+          "source": "The discount amount for this line item",
+          "message": "The discount amount for this line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.aXRlbV9pZA.display_name": {
+          "source": "Item ID",
+          "message": "Item ID"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.aXRlbV9pZA.short_desc": {
+          "source": "Reference to an inventory item",
+          "message": "Reference to an inventory item"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.aXRlbV9pZA.desc": {
+          "source": "The ID of the item from the Items list (optional)",
+          "message": "The ID of the item from the Items list (optional)"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.aXRlbV90b3RhbA.display_name": {
+          "source": "Item Total",
+          "message": "Item Total"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.aXRlbV90b3RhbA.short_desc": {
+          "source": "Total for this line item",
+          "message": "Total for this line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.aXRlbV90b3RhbA.desc": {
+          "source": "The total amount for this line item (quantity * rate)",
+          "message": "The total amount for this line item (quantity * rate)"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.bGluZV9pdGVtX2lk.display_name": {
+          "source": "Line Item ID",
+          "message": "Line Item ID"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.bGluZV9pdGVtX2lk.short_desc": {
+          "source": "Unique identifier for the line item",
+          "message": "Unique identifier for the line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.bGluZV9pdGVtX2lk.desc": {
+          "source": "The unique identifier for this line item",
+          "message": "The unique identifier for this line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.bmFtZQ.short_desc": {
+          "source": "Name of the line item",
+          "message": "Name of the line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.bmFtZQ.desc": {
+          "source": "The name or description of the line item",
+          "message": "The name or description of the line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cHJvamVjdF9pZA.short_desc": {
+          "source": "Associated project",
+          "message": "Associated project"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cHJvamVjdF9pZA.desc": {
+          "source": "The project ID this line item is associated with",
+          "message": "The project ID this line item is associated with"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cXVhbnRpdHk.short_desc": {
+          "source": "Quantity of items",
+          "message": "Quantity of items"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cXVhbnRpdHk.desc": {
+          "source": "The quantity of items",
+          "message": "The quantity of items"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cmF0ZQ.display_name": {
+          "source": "Rate",
+          "message": "Rate"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cmF0ZQ.short_desc": {
+          "source": "Price per unit",
+          "message": "Price per unit"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cmF0ZQ.desc": {
+          "source": "The price per unit for this item",
+          "message": "The price per unit for this item"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X2lk.display_name": {
+          "source": "Tax ID",
+          "message": "Tax ID"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X2lk.short_desc": {
+          "source": "Tax rate ID",
+          "message": "Tax rate ID"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X2lk.desc": {
+          "source": "The ID of the tax rate to apply",
+          "message": "The ID of the tax rate to apply"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X25hbWU.display_name": {
+          "source": "Tax Name",
+          "message": "Tax Name"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X25hbWU.short_desc": {
+          "source": "Name of the tax",
+          "message": "Name of the tax"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X25hbWU.desc": {
+          "source": "The name of the tax applied",
+          "message": "The name of the tax applied"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X3BlcmNlbnRhZ2U.display_name": {
+          "source": "Tax Percentage",
+          "message": "Tax Percentage"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X3BlcmNlbnRhZ2U.short_desc": {
+          "source": "Tax rate percentage",
+          "message": "Tax rate percentage"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X3BlcmNlbnRhZ2U.desc": {
+          "source": "The tax percentage applied",
+          "message": "The tax percentage applied"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dW5pdA.display_name": {
+          "source": "Unit",
+          "message": "Unit"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dW5pdA.short_desc": {
+          "source": "Unit of measurement",
+          "message": "Unit of measurement"
+        },
+        "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dW5pdA.desc": {
+          "source": "The unit of measurement (e.g., pcs, hrs, kg)",
+          "message": "The unit of measurement (e.g., pcs, hrs, kg)"
+        },
         "app.Wm9ob0Jvb2tz.action.Y3JlYXRlLWludm9pY2U.option.ZGF0ZQ.display_name": {
           "source": "Invoice Date",
           "message": "Invoice Date"
@@ -670,6 +850,186 @@
         "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.desc": {
           "source": "The line items on the invoice (replaces existing line items if provided)",
           "message": "The line items on the invoice (replaces existing line items if provided)"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.YWNjb3VudF9pZA.display_name": {
+          "source": "Account ID",
+          "message": "Account ID"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.YWNjb3VudF9pZA.short_desc": {
+          "source": "Income/expense account",
+          "message": "Income/expense account"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.YWNjb3VudF9pZA.desc": {
+          "source": "The account ID for this line item",
+          "message": "The account ID for this line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "Description"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "Additional description",
+          "message": "Additional description"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGVzY3JpcHRpb24.desc": {
+          "source": "Additional description for the line item",
+          "message": "Additional description for the line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGlzY291bnQ.display_name": {
+          "source": "Discount",
+          "message": "Discount"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGlzY291bnQ.short_desc": {
+          "source": "Discount amount or percentage",
+          "message": "Discount amount or percentage"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGlzY291bnQ.desc": {
+          "source": "Discount applied to this line item",
+          "message": "Discount applied to this line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGlzY291bnRfYW1vdW50.display_name": {
+          "source": "Discount Amount",
+          "message": "Discount Amount"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGlzY291bnRfYW1vdW50.short_desc": {
+          "source": "Discount amount",
+          "message": "Discount amount"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.ZGlzY291bnRfYW1vdW50.desc": {
+          "source": "The discount amount for this line item",
+          "message": "The discount amount for this line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.aXRlbV9pZA.display_name": {
+          "source": "Item ID",
+          "message": "Item ID"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.aXRlbV9pZA.short_desc": {
+          "source": "Reference to an inventory item",
+          "message": "Reference to an inventory item"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.aXRlbV9pZA.desc": {
+          "source": "The ID of the item from the Items list (optional)",
+          "message": "The ID of the item from the Items list (optional)"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.aXRlbV90b3RhbA.display_name": {
+          "source": "Item Total",
+          "message": "Item Total"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.aXRlbV90b3RhbA.short_desc": {
+          "source": "Total for this line item",
+          "message": "Total for this line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.aXRlbV90b3RhbA.desc": {
+          "source": "The total amount for this line item (quantity * rate)",
+          "message": "The total amount for this line item (quantity * rate)"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.bGluZV9pdGVtX2lk.display_name": {
+          "source": "Line Item ID",
+          "message": "Line Item ID"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.bGluZV9pdGVtX2lk.short_desc": {
+          "source": "Unique identifier for the line item",
+          "message": "Unique identifier for the line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.bGluZV9pdGVtX2lk.desc": {
+          "source": "The unique identifier for this line item",
+          "message": "The unique identifier for this line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.bmFtZQ.short_desc": {
+          "source": "Name of the line item",
+          "message": "Name of the line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.bmFtZQ.desc": {
+          "source": "The name or description of the line item",
+          "message": "The name or description of the line item"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "Project ID"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cHJvamVjdF9pZA.short_desc": {
+          "source": "Associated project",
+          "message": "Associated project"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cHJvamVjdF9pZA.desc": {
+          "source": "The project ID this line item is associated with",
+          "message": "The project ID this line item is associated with"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cXVhbnRpdHk.short_desc": {
+          "source": "Quantity of items",
+          "message": "Quantity of items"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cXVhbnRpdHk.desc": {
+          "source": "The quantity of items",
+          "message": "The quantity of items"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cmF0ZQ.display_name": {
+          "source": "Rate",
+          "message": "Rate"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cmF0ZQ.short_desc": {
+          "source": "Price per unit",
+          "message": "Price per unit"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.cmF0ZQ.desc": {
+          "source": "The price per unit for this item",
+          "message": "The price per unit for this item"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X2lk.display_name": {
+          "source": "Tax ID",
+          "message": "Tax ID"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X2lk.short_desc": {
+          "source": "Tax rate ID",
+          "message": "Tax rate ID"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X2lk.desc": {
+          "source": "The ID of the tax rate to apply",
+          "message": "The ID of the tax rate to apply"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X25hbWU.display_name": {
+          "source": "Tax Name",
+          "message": "Tax Name"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X25hbWU.short_desc": {
+          "source": "Name of the tax",
+          "message": "Name of the tax"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X25hbWU.desc": {
+          "source": "The name of the tax applied",
+          "message": "The name of the tax applied"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X3BlcmNlbnRhZ2U.display_name": {
+          "source": "Tax Percentage",
+          "message": "Tax Percentage"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X3BlcmNlbnRhZ2U.short_desc": {
+          "source": "Tax rate percentage",
+          "message": "Tax rate percentage"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dGF4X3BlcmNlbnRhZ2U.desc": {
+          "source": "The tax percentage applied",
+          "message": "The tax percentage applied"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dW5pdA.display_name": {
+          "source": "Unit",
+          "message": "Unit"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dW5pdA.short_desc": {
+          "source": "Unit of measurement",
+          "message": "Unit of measurement"
+        },
+        "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.bGluZV9pdGVtcw.field.dW5pdA.desc": {
+          "source": "The unit of measurement (e.g., pcs, hrs, kg)",
+          "message": "The unit of measurement (e.g., pcs, hrs, kg)"
         },
         "app.Wm9ob0Jvb2tz.action.dXBkYXRlLWludm9pY2U.option.ZGlzY291bnQ.display_name": {
           "source": "Discount",

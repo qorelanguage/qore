@@ -51,7 +51,7 @@
 %endtry
 
 module DataProvider {
-    version = "3.7";
+    version = "3.8";
     desc = "user module for data integration patterns and data and API introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -1354,6 +1354,20 @@ fetch
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v3_8 DataProvider v3.8
+    - added generation-scoped provider discovery qualification with typed expected-inventory callbacks, structured
+      failure reports, revision-bound single-use publication tokens, and qualified atomic ProviderIndex publication;
+      healthy registrations remain usable and failures remain retryable in live processes, but a partial result cannot
+      silently certify an authoritative index
+    - environment-driven provider discovery now returns typed registration and provider-module failures to
+      ProviderIndex qualification; failed modules remain retryable instead of being marked loaded and then silently
+      skipped by later discovery generations
+    - provider presentation catalogs now recursively extract structured option fields, list elements, union branches,
+      and nested allowed values with stable bounded IDs while preserving existing flat IDs; anonymous nested types
+      are action-scoped and include any stable producer schema path so equal-shaped objects with different semantics
+      cannot silently share translations. New static
+      @ref DataProvider::AbstractDataField::getPresentationInfo() "presentation metadata" and
+      @ref DataProvider::AbstractDataField::getDeclaredType() "declared types" keep extraction deterministic without
+      invoking context-dependent dynamic type, default, or example callbacks
     - fixed allowed list-element choices to use converted values for both scalar and structured items;
       replacing choices now clears stale membership rules, and a failed replacement preserves the previous choices
     - distinguish absent required fields from explicitly supplied null values, and clear requiredness

@@ -1,0 +1,458 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires QUnit
+%requires DataProvider
+
+%exec-class DiscoveryQualificationTest
+
+#! Verifies generation-scoped data-provider discovery qualification
+public class DiscoveryQualificationTest inherits QUnit::Test {
+    constructor() : Test("DataProvider discovery qualification", "1.0") {
+        addTestCase("expected inventory and authenticated publication", \qualifiedPublicationTest());
+        addTestCase("missing expected identity has structured diagnostics", \missingExpectedTest());
+        addTestCase("retained failures are scoped to expected apps", \failureScopeTest());
+        addTestCase("successful retry clears retained failure", \successfulRetryTest());
+        addTestCase("catalog mutation invalidates qualification", \staleQualificationTest());
+        addTestCase("catalog mutation invalidates checked-point snapshot", \staleSnapshotTest());
+        addTestCase("aborted and forged sessions are rejected", \sessionAuthenticationTest());
+        addTestCase("producer inventories are collected lazily", \inventoryProviderTest());
+        addTestCase("inventory providers follow module transaction rollback",
+            \inventoryProviderRollbackTest());
+        addTestCase("inventory provider failures are structured", \inventoryProviderFailureTest());
+        addTestCase("invalid inventory provider output is structured",
+            \invalidInventoryProviderTest());
+        addTestCase("inventory mutations invalidate collected snapshots", \inventoryMutationTest());
+        addTestCase("unmaterialized declarations block and deregister cleanly",
+            \unmaterializedDeregistrationTest());
+        addTestCase("pending declarations become exact expected inventory",
+            \pendingDeclarationInventoryTest());
+        set_return_value(main());
+    }
+
+    private registerTestApp(string app) {
+        DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
+            "name": app,
+            "display_name": app,
+            "short_desc": "discovery qualification test",
+            "desc": "discovery qualification test",
+            "groups": (AppGroup::DataTransformation,),
+            "logo": "data",
+            "logo_mime_type": "image/svg+xml",
+            "logo_file_name": "test.svg",
+            "dynamic": True,
+        });
+    }
+
+    private registerTestAction(string app, string action) {
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": app,
+            "action": action,
+            "path": "/" + action,
+            "display_name": action,
+            "short_desc": "discovery qualification test action",
+            "desc": "discovery qualification test action",
+            "action_code": DPAT_API,
+        });
+    }
+
+    private qualifiedPublicationTest() {
+        string app = "DiscoveryQualified_" + get_random_string(8);
+        registerTestApp(app);
+        on_exit DataProviderActionCatalog::deregisterDynamicApp(app);
+        registerTestAction(app, "ready");
+
+        DataProviderDiscoverySession session
+            = DataProviderActionCatalog::beginDiscovery((<DataProviderDiscoveryExpectedIdentityInfo>{
+                "app": app,
+                "action": "ready",
+            },));
+        DataProviderQualifiedDiscovery qualification
+            = DataProviderActionCatalog::sealDiscovery(session);
+        assertTrue(qualification.getReport().complete);
+        list<string> expected_actions = map $1,
+            qualification.getReport().actions, $1 == app + "/ready";
+        assertEq((app + "/ready",), expected_actions,
+            "the qualified report contains the expected action");
+        hash<auto> published = DataProviderActionCatalog::publishQualifiedDiscovery(
+            qualification, hash<auto> sub () {
+                return {"published": True};
+            });
+        assertEq({"published": True}, published);
+        assertThrows("DATA-PROVIDER-DISCOVERY-TOKEN-ERROR", sub () {
+            DataProviderActionCatalog::assertQualifiedDiscovery(qualification);
+        }, NOTHING, "a qualification token is single-use after publication");
+
+        DataProviderQualifiedDiscovery discarded
+            = DataProviderActionCatalog::sealDiscovery(
+                DataProviderActionCatalog::beginDiscovery());
+        DataProviderActionCatalog::discardQualifiedDiscovery(discarded);
+        DataProviderActionCatalog::discardQualifiedDiscovery(discarded);
+        assertThrows("DATA-PROVIDER-DISCOVERY-TOKEN-ERROR", sub () {
+            DataProviderActionCatalog::publishQualifiedDiscovery(
+                discarded, nothing sub () {});
+        }, NOTHING, "an explicitly discarded token cannot publish");
+    }
+
+    private missingExpectedTest() {
+        string app = "MissingExpected_" + get_random_string(8);
+        DataProviderDiscoverySession session
+            = DataProviderActionCatalog::beginDiscovery((<DataProviderDiscoveryExpectedIdentityInfo>{
+                "app": app,
+                "action": "absent",
+            },));
+        try {
+            DataProviderActionCatalog::sealDiscovery(session);
+            fail("missing expected identity must fail qualification");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("DATA-PROVIDER-DISCOVERY-ERROR", ex.err);
+            hash<DataProviderDiscoveryReportInfo> report = ex.arg;
+            assertFalse(report.complete);
+            assertEq("expected-inventory", report.failures[0].phase);
+            assertEq(app + "/absent", report.failures[0].identity);
+            assertEq("DATA-PROVIDER-EXPECTED-IDENTITY-MISSING", report.failures[0].error);
+        }
+    }
+
+    private failureScopeTest() {
+        string selected = "DiscoverySelected_" + get_random_string(8);
+        string unrelated = "DiscoveryUnrelated_" + get_random_string(8);
+        registerTestApp(selected);
+        registerTestApp(unrelated);
+        on_exit DataProviderActionCatalog::deregisterDynamicApp(selected);
+        on_exit DataProviderActionCatalog::deregisterDynamicApp(unrelated);
+        try {
+            throw "UNRELATED-ERROR", "unrelated retained failure";
+        } catch (hash<ExceptionInfo> ex) {
+            DataProviderActionCatalog::reportInitializationFailure(
+                "app", unrelated, NOTHING, ex);
+        }
+
+        DataProviderDiscoverySession session
+            = DataProviderActionCatalog::beginDiscovery((<DataProviderDiscoveryExpectedIdentityInfo>{
+                "app": selected,
+            },), (selected,));
+        DataProviderQualifiedDiscovery qualification
+            = DataProviderActionCatalog::sealDiscovery(session);
+        assertTrue(qualification.getReport().complete,
+            "an unrelated retained failure does not contaminate selected discovery");
+        DataProviderActionCatalog::publishQualifiedDiscovery(
+            qualification, nothing sub () {});
+
+        # An expected fragment is not itself a filter. Full discovery combines
+        # inventories from multiple producers and must retain failures from all
+        # of them unless an explicit app scope was supplied.
+        DataProviderDiscoverySession full_session
+            = DataProviderActionCatalog::beginDiscovery((<DataProviderDiscoveryExpectedIdentityInfo>{
+                "app": selected,
+            },));
+        try {
+            DataProviderActionCatalog::sealDiscovery(full_session);
+            assertTrue(False,
+                "a full discovery cannot hide another producer's retained failure");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("DATA-PROVIDER-DISCOVERY-ERROR", ex.err);
+            hash<DataProviderDiscoveryReportInfo> report = ex.arg;
+            assertEq(1, (map $1, report.failures,
+                $1.app == unrelated && $1.error == "UNRELATED-ERROR").size(),
+                "the full report retains unrelated producer failures");
+        }
+    }
+
+    private successfulRetryTest() {
+        string app = "DiscoveryRetry_" + get_random_string(8);
+        registerTestApp(app);
+        on_exit DataProviderActionCatalog::deregisterDynamicApp(app);
+        try {
+            throw "RETRY-ERROR", "retry test failure";
+        } catch (hash<ExceptionInfo> ex) {
+            DataProviderActionCatalog::reportInitializationFailure(
+                "action", app, "retry", ex);
+        }
+
+        DataProviderDiscoverySession failed
+            = DataProviderActionCatalog::beginDiscovery((<DataProviderDiscoveryExpectedIdentityInfo>{
+                "app": app,
+                "action": "retry",
+            },));
+        assertThrows("DATA-PROVIDER-DISCOVERY-ERROR", sub () {
+            DataProviderActionCatalog::sealDiscovery(failed);
+        });
+
+        registerTestAction(app, "retry");
+        DataProviderDiscoverySession retried
+            = DataProviderActionCatalog::beginDiscovery((<DataProviderDiscoveryExpectedIdentityInfo>{
+                "app": app,
+                "action": "retry",
+            },));
+        DataProviderQualifiedDiscovery qualification
+            = DataProviderActionCatalog::sealDiscovery(retried);
+        assertTrue(qualification.getReport().complete);
+        DataProviderActionCatalog::publishQualifiedDiscovery(
+            qualification, nothing sub () {});
+    }
+
+    private staleQualificationTest() {
+        string app = "DiscoveryStale_" + get_random_string(8);
+        registerTestApp(app);
+        on_exit DataProviderActionCatalog::deregisterDynamicApp(app);
+        DataProviderDiscoverySession session
+            = DataProviderActionCatalog::beginDiscovery((<DataProviderDiscoveryExpectedIdentityInfo>{
+                "app": app,
+            },));
+        DataProviderQualifiedDiscovery qualification
+            = DataProviderActionCatalog::sealDiscovery(session);
+        DataProviderActionCatalog::registerPendingAppAction(
+            app, "late", sub () {});
+        assertThrows("DATA-PROVIDER-DISCOVERY-STALE", sub () {
+            DataProviderActionCatalog::assertQualifiedDiscovery(qualification);
+        });
+    }
+
+    private staleSnapshotTest() {
+        string app = "DiscoverySnapshot_" + get_random_string(8);
+        registerTestApp(app);
+        on_exit DataProviderActionCatalog::deregisterDynamicApp(app);
+        DataProviderDiscoverySession session
+            = DataProviderActionCatalog::beginDiscovery((<DataProviderDiscoveryExpectedIdentityInfo>{
+                "app": app,
+            },));
+        DataProviderActionCatalog::checkpointDiscoverySnapshot(session);
+        DataProviderActionCatalog::registerPendingAppAction(
+            app, "during-snapshot", sub () {});
+        try {
+            DataProviderActionCatalog::sealDiscovery(session);
+            fail("a mutation while copying a checked-point snapshot must not qualify");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("DATA-PROVIDER-DISCOVERY-ERROR", ex.err);
+            hash<DataProviderDiscoveryReportInfo> report = ex.arg;
+            list<hash<DataProviderDiscoveryFailureInfo>> failures = map $1,
+                report.failures,
+                $1.error == "DATA-PROVIDER-DISCOVERY-SNAPSHOT-STALE";
+            assertEq(1, failures.size());
+            assertEq("catalog-snapshot-stale", failures[0].phase);
+        }
+    }
+
+    private sessionAuthenticationTest() {
+        assertThrows("INVALID-ARGUMENT-ERROR", sub () {
+            DataProviderActionCatalog::beginDiscovery((), ());
+        }, NOTHING,
+            "an explicit empty scope cannot accidentally become full discovery");
+        DataProviderDiscoverySession session
+            = DataProviderActionCatalog::beginDiscovery();
+        DataProviderDiscoverySession forged
+            = new DataProviderDiscoverySession(session.getGeneration());
+        assertThrows("DATA-PROVIDER-DISCOVERY-SESSION-ERROR", sub () {
+            DataProviderActionCatalog::sealDiscovery(forged);
+        });
+        DataProviderActionCatalog::abortDiscovery(session);
+        DataProviderActionCatalog::abortDiscovery(session);
+        assertThrows("DATA-PROVIDER-DISCOVERY-SESSION-ERROR", sub () {
+            DataProviderActionCatalog::sealDiscovery(session);
+        });
+    }
+
+    private inventoryProviderTest() {
+        string app = "DiscoveryInventory_" + get_random_string(8);
+        registerTestApp(app);
+        registerTestAction(app, "known");
+        on_exit DataProviderActionCatalog::deregisterDynamicApp(app);
+        string provider = "test-inventory-" + get_random_string(8);
+        DataProviderActionCatalog::registerDiscoveryInventoryProvider(
+            provider,
+            list<hash<DataProviderDiscoveryExpectedIdentityInfo>> sub () {
+                return (<DataProviderDiscoveryExpectedIdentityInfo>{
+                    "app": app,
+                }, <DataProviderDiscoveryExpectedIdentityInfo>{
+                    "app": app,
+                    "action": "known",
+                }, <DataProviderDiscoveryExpectedIdentityInfo>{
+                    "app": "UnselectedInventoryApp",
+                    "action": "absent",
+                });
+            });
+        on_exit DataProviderActionCatalog::deregisterDiscoveryInventoryProvider(
+            provider);
+
+        DataProviderDiscoverySession session
+            = DataProviderActionCatalog::beginDiscovery((), (app,));
+        DataProviderActionCatalog::collectDiscoveryExpectedInventory(
+            session);
+        DataProviderQualifiedDiscovery qualification
+            = DataProviderActionCatalog::sealDiscovery(session);
+        assertEq(2, qualification.getReport().expected.size());
+        DataProviderActionCatalog::publishQualifiedDiscovery(
+            qualification, nothing sub () {});
+    }
+
+    private inventoryProviderRollbackTest() {
+        string provider = "test-rolled-back-inventory-"
+            + get_random_string(8);
+        string absent_app = "RolledBackInventory_"
+            + get_random_string(8);
+        int savepoint = ImplicitModuleTransaction::savepoint();
+        DataProviderActionCatalog::registerDiscoveryInventoryProvider(
+            provider,
+            list<hash<DataProviderDiscoveryExpectedIdentityInfo>> sub () {
+                return (<DataProviderDiscoveryExpectedIdentityInfo>{
+                    "app": absent_app,
+                },);
+            });
+        ImplicitModuleTransaction::rollback(savepoint);
+
+        DataProviderDiscoverySession session
+            = DataProviderActionCatalog::beginDiscovery();
+        DataProviderActionCatalog::collectDiscoveryExpectedInventory(
+            session);
+        DataProviderQualifiedDiscovery qualification
+            = DataProviderActionCatalog::sealDiscovery(session);
+        assertTrue(qualification.getReport().complete,
+            "a rolled-back inventory callback cannot affect later discovery");
+        DataProviderActionCatalog::publishQualifiedDiscovery(
+            qualification, nothing sub () {});
+    }
+
+    private inventoryProviderFailureTest() {
+        string provider = "test-broken-inventory-"
+            + get_random_string(8);
+        DataProviderActionCatalog::registerDiscoveryInventoryProvider(
+            provider,
+            list<hash<DataProviderDiscoveryExpectedIdentityInfo>> sub () {
+                throw "TEST-INVENTORY-ERROR", "inventory callback failed";
+            });
+        on_exit DataProviderActionCatalog::deregisterDiscoveryInventoryProvider(
+            provider);
+        DataProviderDiscoverySession session
+            = DataProviderActionCatalog::beginDiscovery();
+        DataProviderActionCatalog::collectDiscoveryExpectedInventory(session);
+        try {
+            DataProviderActionCatalog::sealDiscovery(session);
+            fail("an inventory callback failure must reject qualification");
+        } catch (hash<ExceptionInfo> ex) {
+            hash<DataProviderDiscoveryReportInfo> report = ex.arg;
+            list<hash<DataProviderDiscoveryFailureInfo>> failures = map $1,
+                report.failures, $1.identity == provider;
+            assertEq(1, failures.size());
+            assertEq("inventory", failures[0].phase);
+            assertEq("TEST-INVENTORY-ERROR", failures[0].error);
+        }
+    }
+
+    private invalidInventoryProviderTest() {
+        string provider = "test-invalid-inventory-"
+            + get_random_string(8);
+        DataProviderActionCatalog::registerDiscoveryInventoryProvider(
+            provider,
+            list<hash<DataProviderDiscoveryExpectedIdentityInfo>> sub () {
+                return (<DataProviderDiscoveryExpectedIdentityInfo>{
+                    "app": "",
+                },);
+            });
+        on_exit DataProviderActionCatalog::deregisterDiscoveryInventoryProvider(
+            provider);
+        DataProviderDiscoverySession session
+            = DataProviderActionCatalog::beginDiscovery();
+        DataProviderActionCatalog::collectDiscoveryExpectedInventory(session);
+        try {
+            DataProviderActionCatalog::sealDiscovery(session);
+            fail("invalid producer inventory must reject qualification");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("DATA-PROVIDER-DISCOVERY-ERROR", ex.err);
+            hash<DataProviderDiscoveryReportInfo> report = ex.arg;
+            list<hash<DataProviderDiscoveryFailureInfo>> failures = map $1,
+                report.failures, $1.identity == provider;
+            assertEq(1, failures.size());
+            assertEq("inventory", failures[0].phase);
+            assertEq("INVALID-ARGUMENT-ERROR", failures[0].error);
+        }
+    }
+
+    private inventoryMutationTest() {
+        string provider = "test-changing-inventory-"
+            + get_random_string(8);
+        DataProviderActionCatalog::registerDiscoveryInventoryProvider(
+            provider,
+            list<hash<DataProviderDiscoveryExpectedIdentityInfo>> sub () {
+                return ();
+            });
+        on_exit DataProviderActionCatalog::deregisterDiscoveryInventoryProvider(
+            provider);
+
+        DataProviderDiscoverySession session
+            = DataProviderActionCatalog::beginDiscovery();
+        DataProviderActionCatalog::collectDiscoveryExpectedInventory(session);
+        DataProviderActionCatalog::markDiscoveryInventoryChanged(provider);
+        try {
+            DataProviderActionCatalog::sealDiscovery(session);
+            fail("a changed inventory snapshot must not qualify");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("DATA-PROVIDER-DISCOVERY-ERROR", ex.err);
+            hash<DataProviderDiscoveryReportInfo> report = ex.arg;
+            list<hash<DataProviderDiscoveryFailureInfo>> failures = map $1,
+                report.failures,
+                $1.error == "DATA-PROVIDER-DISCOVERY-INVENTORY-STALE";
+            assertEq(1, failures.size());
+            assertEq("inventory-stale", failures[0].phase);
+        }
+    }
+
+    private unmaterializedDeregistrationTest() {
+        string app = "DiscoveryPending_" + get_random_string(8);
+        DataProviderActionCatalog::registerPendingApp(app, sub () {});
+        DataProviderDiscoverySession session
+            = DataProviderActionCatalog::beginDiscovery();
+        assertThrows("DATA-PROVIDER-DISCOVERY-ERROR", sub () {
+            DataProviderActionCatalog::sealDiscovery(session);
+        }, NOTHING,
+            "an unmaterialized pending identity cannot qualify");
+        int revision = DataProviderActionCatalog::getCatalogRevision();
+        DataProviderActionCatalog::deregisterDynamicApp(app);
+        assertEq(revision + 1,
+            DataProviderActionCatalog::getCatalogRevision(),
+            "explicit deregistration removes retained pending identity state");
+    }
+
+    private pendingDeclarationInventoryTest() {
+        string missing_app = "DiscoverySilentApp_" + get_random_string(8);
+        on_exit DataProviderActionCatalog::deregisterDynamicApp(missing_app);
+        DataProviderDiscoverySession app_session
+            = DataProviderActionCatalog::beginDiscovery((), (missing_app,));
+        DataProviderActionCatalog::registerPendingApp(missing_app,
+            sub () {});
+        DataProviderActionCatalog::getAllApps();
+        try {
+            DataProviderActionCatalog::sealDiscovery(app_session);
+            fail("a silent pending app initializer must not qualify");
+        } catch (hash<ExceptionInfo> ex) {
+            hash<DataProviderDiscoveryReportInfo> report = ex.arg;
+            assertEq((missing_app,), map $1.app, report.expected);
+            assertEq("DATA-PROVIDER-EXPECTED-IDENTITY-MISSING",
+                report.failures[0].error);
+        }
+
+        string app = "DiscoverySilentAction_" + get_random_string(8);
+        registerTestApp(app);
+        on_exit DataProviderActionCatalog::deregisterDynamicApp(app);
+        DataProviderActionCatalog::registerPendingAppAction(app, "silent",
+            sub () {});
+        DataProviderDiscoverySession action_session
+            = DataProviderActionCatalog::beginDiscovery((), (app,));
+        DataProviderActionCatalog::getAllApps();
+        try {
+            DataProviderActionCatalog::sealDiscovery(action_session);
+            fail("a silent pending action initializer must not qualify");
+        } catch (hash<ExceptionInfo> ex) {
+            hash<DataProviderDiscoveryReportInfo> report = ex.arg;
+            assertEq((app + "/silent",), map $1.app + "/" + $1.action,
+                report.expected);
+            assertEq("DATA-PROVIDER-EXPECTED-IDENTITY-MISSING",
+                report.failures[0].error);
+        }
+    }
+}

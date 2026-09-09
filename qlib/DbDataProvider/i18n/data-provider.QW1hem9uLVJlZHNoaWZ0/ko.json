@@ -3,10 +3,6 @@
   "locales": {
     "ko": {
       "messages": {
-        "app.QW1hem9uLVJlZHNoaWZ0.desc": {
-          "source": "Create and manage connections to a Amazon Redshift data warehouse",
-          "message": "Amazon Redshift 데이터 웨어하우스에 대한 연결 생성 및 관리"
-        },
         "app.QW1hem9uLVJlZHNoaWZ0.display_name": {
           "source": "Amazon-Redshift",
           "message": "Amazon-Redshift"
@@ -14,6 +10,10 @@
         "app.QW1hem9uLVJlZHNoaWZ0.short_desc": {
           "source": "Amazon Redshift data warehouse",
           "message": "Amazon Redshift 데이터 웨어하우스"
+        },
+        "app.QW1hem9uLVJlZHNoaWZ0.desc": {
+          "source": "Create and manage connections to a Amazon Redshift data warehouse",
+          "message": "Amazon Redshift 데이터 웨어하우스에 대한 연결 생성 및 관리"
         }
       }
     }

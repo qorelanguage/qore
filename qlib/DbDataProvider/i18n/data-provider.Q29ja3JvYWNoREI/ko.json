@@ -3,10 +3,6 @@
   "locales": {
     "ko": {
       "messages": {
-        "app.Q29ja3JvYWNoREI.desc": {
-          "source": "Create and manage connections to a CockroachDB distributed SQL database",
-          "message": "CockroachDB 분산 SQL 데이터베이스에 대한 연결 생성 및 관리"
-        },
         "app.Q29ja3JvYWNoREI.display_name": {
           "source": "CockroachDB",
           "message": "CockroachDB"
@@ -14,6 +10,10 @@
         "app.Q29ja3JvYWNoREI.short_desc": {
           "source": "CockroachDB distributed SQL database",
           "message": "CockroachDB 분산 SQL 데이터베이스"
+        },
+        "app.Q29ja3JvYWNoREI.desc": {
+          "source": "Create and manage connections to a CockroachDB distributed SQL database",
+          "message": "CockroachDB 분산 SQL 데이터베이스에 대한 연결 생성 및 관리"
         }
       }
     }

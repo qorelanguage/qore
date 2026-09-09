@@ -399,6 +399,230 @@
           "source": "List of form content blocks defining the form structure (questions, text, images, etc.); a `FORM_TITLE` block is automatically prepended from the `title` field",
           "message": "List of form content blocks defining the form structure (questions, text, images, etc.); a `FORM_TITLE` block is automatically prepended from the `title` field"
         },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.Z3JvdXBUeXBl.display_name": {
+          "source": "Group Type",
+          "message": "Group Type"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.Z3JvdXBUeXBl.short_desc": {
+          "source": "The group type for this block",
+          "message": "The group type for this block"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.Z3JvdXBUeXBl.desc": {
+          "source": "The group type identifier; for standalone blocks, this should match the block `type`; for child blocks (e.g., dropdown options), use the parent block's type",
+          "message": "The group type identifier; for standalone blocks, this should match the block `type`; for child blocks (e.g., dropdown options), use the parent block's type"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.Z3JvdXBVdWlk.display_name": {
+          "source": "Group UUID",
+          "message": "Group UUID"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.Z3JvdXBVdWlk.short_desc": {
+          "source": "Groups related blocks together",
+          "message": "Groups related blocks together"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.Z3JvdXBVdWlk.desc": {
+          "source": "UUID that groups related blocks together; for standalone blocks, use the block's own `uuid`; for child blocks (e.g., dropdown options), use the parent block's `uuid`",
+          "message": "UUID that groups related blocks together; for standalone blocks, use the block's own `uuid`; for child blocks (e.g., dropdown options), use the parent block's `uuid`"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.cGF5bG9hZA.display_name": {
+          "source": "Payload",
+          "message": "Payload"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.cGF5bG9hZA.short_desc": {
+          "source": "Block-specific configuration",
+          "message": "Block-specific configuration"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.cGF5bG9hZA.desc": {
+          "source": "Type-specific configuration object whose structure depends on the block `type`.\n\n**Common fields** (most input blocks): `isRequired` (boolean), `isHidden` (boolean), `placeholder` (string), `hasDefaultAnswer` (boolean), `defaultAnswer`, `name` (string)\n\n**Text blocks** (`INPUT_TEXT`, `TEXTAREA`): `hasMinCharacters`, `minCharacters`, `hasMaxCharacters`, `maxCharacters`\n\n**Choice blocks** (`MULTIPLE_CHOICE`, `CHECKBOX`, `DROPDOWN`): `index` (number), `isFirst` (boolean), `isLast` (boolean), `allowMultiple`, `hasOtherOption`, `randomize`, `image`, `text`\n\n**Rating/Scale** (`RATING`): `stars`; (`LINEAR_SCALE`): `start`, `end`, `step`, `leftLabel`, `rightLabel`\n\n**File upload** (`FILE_UPLOAD`): `hasMultipleFiles`, `maxFiles`, `maxFileSize`, `allowedFiles`\n\n**Rich text** (`TEXT`, `TITLE`, headings): `html` (string with rich text content)\n\n**Example** (`INPUT_TEXT`):\n```json\n{\"isRequired\": false, \"isHidden\": false, \"placeholder\": \"Enter your name\"}\n```",
+          "message": "Type-specific configuration object whose structure depends on the block `type`.\n\n**Common fields** (most input blocks): `isRequired` (boolean), `isHidden` (boolean), `placeholder` (string), `hasDefaultAnswer` (boolean), `defaultAnswer`, `name` (string)\n\n**Text blocks** (`INPUT_TEXT`, `TEXTAREA`): `hasMinCharacters`, `minCharacters`, `hasMaxCharacters`, `maxCharacters`\n\n**Choice blocks** (`MULTIPLE_CHOICE`, `CHECKBOX`, `DROPDOWN`): `index` (number), `isFirst` (boolean), `isLast` (boolean), `allowMultiple`, `hasOtherOption`, `randomize`, `image`, `text`\n\n**Rating/Scale** (`RATING`): `stars`; (`LINEAR_SCALE`): `start`, `end`, `step`, `leftLabel`, `rightLabel`\n\n**File upload** (`FILE_UPLOAD`): `hasMultipleFiles`, `maxFiles`, `maxFileSize`, `allowedFiles`\n\n**Rich text** (`TEXT`, `TITLE`, headings): `html` (string with rich text content)\n\n**Example** (`INPUT_TEXT`):\n```json\n{\"isRequired\": false, \"isHidden\": false, \"placeholder\": \"Enter your name\"}\n```"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.display_name": {
+          "source": "Block Type",
+          "message": "Block Type"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.short_desc": {
+          "source": "The type of block",
+          "message": "The type of block"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.desc": {
+          "source": "The block type discriminator that determines the block's behavior and payload structure",
+          "message": "The block type discriminator that determines the block's behavior and payload structure"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkZPUk1fVElUTEU.display_name": {
+          "source": "Form Title",
+          "message": "Form Title"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlRFWFQ.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkxBQkVM.display_name": {
+          "source": "Label",
+          "message": "Label"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlRJVExF.display_name": {
+          "source": "Title",
+          "message": "Title"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkhFQURJTkdfMQ.display_name": {
+          "source": "Heading 1",
+          "message": "Heading 1"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkhFQURJTkdfMg.display_name": {
+          "source": "Heading 2",
+          "message": "Heading 2"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkhFQURJTkdfMw.display_name": {
+          "source": "Heading 3",
+          "message": "Heading 3"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkRJVklERVI.display_name": {
+          "source": "Divider",
+          "message": "Divider"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlBBR0VfQlJFQUs.display_name": {
+          "source": "Page Break",
+          "message": "Page Break"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklNQUdF.display_name": {
+          "source": "Image",
+          "message": "Image"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkVNQkVE.display_name": {
+          "source": "Embed",
+          "message": "Embed"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkVNQkVEX1ZJREVP.display_name": {
+          "source": "Embed Video",
+          "message": "Embed Video"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkVNQkVEX0FVRElP.display_name": {
+          "source": "Embed Audio",
+          "message": "Embed Audio"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlFVRVNUSU9O.display_name": {
+          "source": "Question",
+          "message": "Question"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOk1BVFJJWA.display_name": {
+          "source": "Matrix",
+          "message": "Matrix"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX1RFWFQ.display_name": {
+          "source": "Text Input",
+          "message": "Text Input"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX05VTUJFUg.display_name": {
+          "source": "Number Input",
+          "message": "Number Input"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX0VNQUlM.display_name": {
+          "source": "Email Input",
+          "message": "Email Input"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX0xJTks.display_name": {
+          "source": "Link Input",
+          "message": "Link Input"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX1BIT05FX05VTUJFUg.display_name": {
+          "source": "Phone Number Input",
+          "message": "Phone Number Input"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX0RBVEU.display_name": {
+          "source": "Date Input",
+          "message": "Date Input"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX1RJTUU.display_name": {
+          "source": "Time Input",
+          "message": "Time Input"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlRFWFRBUkVB.display_name": {
+          "source": "Text Area",
+          "message": "Text Area"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkZJTEVfVVBMT0FE.display_name": {
+          "source": "File Upload",
+          "message": "File Upload"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkxJTkVBUl9TQ0FMRQ.display_name": {
+          "source": "Linear Scale",
+          "message": "Linear Scale"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlJBVElORw.display_name": {
+          "source": "Rating",
+          "message": "Rating"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkhJRERFTl9GSUVMRFM.display_name": {
+          "source": "Hidden Fields",
+          "message": "Hidden Fields"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOk1VTFRJUExFX0NIT0lDRV9PUFRJT04.display_name": {
+          "source": "Multiple Choice Option",
+          "message": "Multiple Choice Option"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkNIRUNLQk9Y.display_name": {
+          "source": "Checkbox",
+          "message": "Checkbox"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkRST1BET1dOX09QVElPTg.display_name": {
+          "source": "Dropdown Option",
+          "message": "Dropdown Option"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlJBTktJTkdfT1BUSU9O.display_name": {
+          "source": "Ranking Option",
+          "message": "Ranking Option"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOk1VTFRJX1NFTEVDVF9PUFRJT04.display_name": {
+          "source": "Multi Select Option",
+          "message": "Multi Select Option"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlBBWU1FTlQ.display_name": {
+          "source": "Payment",
+          "message": "Payment"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlNJR05BVFVSRQ.display_name": {
+          "source": "Signature",
+          "message": "Signature"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOk1BVFJJWF9ST1c.display_name": {
+          "source": "Matrix Row",
+          "message": "Matrix Row"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOk1BVFJJWF9DT0xVTU4.display_name": {
+          "source": "Matrix Column",
+          "message": "Matrix Column"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOldBTExFVF9DT05ORUNU.display_name": {
+          "source": "Wallet Connect",
+          "message": "Wallet Connect"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkNPTkRJVElPTkFMX0xPR0lD.display_name": {
+          "source": "Conditional Logic",
+          "message": "Conditional Logic"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkNBTENVTEFURURfRklFTERT.display_name": {
+          "source": "Calculated Fields",
+          "message": "Calculated Fields"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkNBUFRDSEE.display_name": {
+          "source": "Captcha",
+          "message": "Captcha"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlJFU1BPTkRFTlRfQ09VTlRSWQ.display_name": {
+          "source": "Respondent Country",
+          "message": "Respondent Country"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dXVpZA.display_name": {
+          "source": "Block UUID",
+          "message": "Block UUID"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dXVpZA.short_desc": {
+          "source": "Unique block identifier",
+          "message": "Unique block identifier"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.YmxvY2tz.field.dXVpZA.desc": {
+          "source": "Unique identifier (UUID) for this block",
+          "message": "Unique identifier (UUID) for this block"
+        },
         "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.dGVtcGxhdGVJZA.display_name": {
           "source": "Template ID",
           "message": "Template ID"
@@ -434,6 +658,390 @@
         "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.desc": {
           "source": "Form configuration including closure, notifications, and display options",
           "message": "Form configuration including closure, notifications, and display options"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VEYXRl.display_name": {
+          "source": "Close Date",
+          "message": "Close Date"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VEYXRl.short_desc": {
+          "source": "Scheduled close date",
+          "message": "Scheduled close date"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VEYXRl.desc": {
+          "source": "The date when the form will automatically close, in `YYYY-MM-DD` format (for example `2025-12-31`)",
+          "message": "The date when the form will automatically close, in `YYYY-MM-DD` format (for example `2025-12-31`)"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VNZXNzYWdlRGVzY3JpcHRpb24.display_name": {
+          "source": "Close Message Description",
+          "message": "Close Message Description"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VNZXNzYWdlRGVzY3JpcHRpb24.short_desc": {
+          "source": "Description shown when form is closed",
+          "message": "Description shown when form is closed"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VNZXNzYWdlRGVzY3JpcHRpb24.desc": {
+          "source": "The description displayed when a user tries to access a closed form",
+          "message": "The description displayed when a user tries to access a closed form"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VNZXNzYWdlVGl0bGU.display_name": {
+          "source": "Close Message Title",
+          "message": "Close Message Title"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VNZXNzYWdlVGl0bGU.short_desc": {
+          "source": "Title shown when form is closed",
+          "message": "Title shown when form is closed"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VNZXNzYWdlVGl0bGU.desc": {
+          "source": "The title displayed when a user tries to access a closed form",
+          "message": "The title displayed when a user tries to access a closed form"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VUaW1l.display_name": {
+          "source": "Close Time",
+          "message": "Close Time"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VUaW1l.short_desc": {
+          "source": "Scheduled close time",
+          "message": "Scheduled close time"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VUaW1l.desc": {
+          "source": "The time when the form will automatically close, in 24-hour `HH:mm` format (for example `23:59`)",
+          "message": "The time when the form will automatically close, in 24-hour `HH:mm` format (for example `23:59`)"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VUaW1lem9uZQ.display_name": {
+          "source": "Close Timezone",
+          "message": "Close Timezone"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VUaW1lem9uZQ.short_desc": {
+          "source": "Timezone for scheduled close",
+          "message": "Timezone for scheduled close"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VUaW1lem9uZQ.desc": {
+          "source": "The timezone for the scheduled form close date/time",
+          "message": "The timezone for the scheduled form close date/time"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUGFydGlhbFN1Ym1pc3Npb25z.display_name": {
+          "source": "Has Partial Submissions",
+          "message": "Has Partial Submissions"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUGFydGlhbFN1Ym1pc3Npb25z.short_desc": {
+          "source": "Allow partial submissions",
+          "message": "Allow partial submissions"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUGFydGlhbFN1Ym1pc3Npb25z.desc": {
+          "source": "`True` to save partial submissions when respondents don't complete the form",
+          "message": "`True` to save partial submissions when respondents don't complete the form"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUHJvZ3Jlc3NCYXI.display_name": {
+          "source": "Has Progress Bar",
+          "message": "Has Progress Bar"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUHJvZ3Jlc3NCYXI.short_desc": {
+          "source": "Show progress bar",
+          "message": "Show progress bar"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUHJvZ3Jlc3NCYXI.desc": {
+          "source": "`True` to display a progress bar on multi-page forms",
+          "message": "`True` to display a progress bar on multi-page forms"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUmVzcG9uZGVudEVtYWlsTm90aWZpY2F0aW9ucw.display_name": {
+          "source": "Respondent Email Notifications",
+          "message": "Respondent Email Notifications"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUmVzcG9uZGVudEVtYWlsTm90aWZpY2F0aW9ucw.short_desc": {
+          "source": "Enable email notifications to respondents",
+          "message": "Enable email notifications to respondents"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUmVzcG9uZGVudEVtYWlsTm90aWZpY2F0aW9ucw.desc": {
+          "source": "`True` to send confirmation emails to respondents after submission",
+          "message": "`True` to send confirmation emails to respondents after submission"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzU2VsZkVtYWlsTm90aWZpY2F0aW9ucw.display_name": {
+          "source": "Self Email Notifications",
+          "message": "Self Email Notifications"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzU2VsZkVtYWlsTm90aWZpY2F0aW9ucw.short_desc": {
+          "source": "Enable email notifications to form owner",
+          "message": "Enable email notifications to form owner"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzU2VsZkVtYWlsTm90aWZpY2F0aW9ucw.desc": {
+          "source": "`True` to send email notifications to the form owner on new submissions",
+          "message": "`True` to send email notifications to the form owner on new submissions"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aXNDbG9zZWQ.display_name": {
+          "source": "Is Closed",
+          "message": "Is Closed"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aXNDbG9zZWQ.short_desc": {
+          "source": "Whether the form is closed",
+          "message": "Whether the form is closed"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.aXNDbG9zZWQ.desc": {
+          "source": "`True` if the form is closed and no longer accepting submissions",
+          "message": "`True` if the form is closed and no longer accepting submissions"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.bGFuZ3VhZ2U.display_name": {
+          "source": "Language",
+          "message": "Language"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.bGFuZ3VhZ2U.short_desc": {
+          "source": "Form display language",
+          "message": "Form display language"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.bGFuZ3VhZ2U.desc": {
+          "source": "The language code for the form (max 12 characters)",
+          "message": "The language code for the form (max 12 characters)"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cGFnZUF1dG9KdW1w.display_name": {
+          "source": "Page Auto Jump",
+          "message": "Page Auto Jump"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cGFnZUF1dG9KdW1w.short_desc": {
+          "source": "Auto-advance pages",
+          "message": "Auto-advance pages"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cGFnZUF1dG9KdW1w.desc": {
+          "source": "`True` to automatically advance to the next page when all fields are filled",
+          "message": "`True` to automatically advance to the next page when all fields are filled"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "Password"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cGFzc3dvcmQ.short_desc": {
+          "source": "Form access password",
+          "message": "Form access password"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cGFzc3dvcmQ.desc": {
+          "source": "Optional password required to access the form",
+          "message": "Optional password required to access the form"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVkaXJlY3RPbkNvbXBsZXRpb24.display_name": {
+          "source": "Redirect on Completion",
+          "message": "Redirect on Completion"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVkaXJlY3RPbkNvbXBsZXRpb24.short_desc": {
+          "source": "URL to redirect to after submission",
+          "message": "URL to redirect to after submission"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVkaXJlY3RPbkNvbXBsZXRpb24.desc": {
+          "source": "The URL to redirect respondents to after form submission",
+          "message": "The URL to redirect respondents to after form submission"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsQm9keQ.display_name": {
+          "source": "Respondent Email Body",
+          "message": "Respondent Email Body"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsQm9keQ.short_desc": {
+          "source": "Respondent notification email body",
+          "message": "Respondent notification email body"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsQm9keQ.desc": {
+          "source": "The body content for respondent confirmation emails",
+          "message": "The body content for respondent confirmation emails"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsRnJvbU5hbWU.display_name": {
+          "source": "Respondent Email From Name",
+          "message": "Respondent Email From Name"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsRnJvbU5hbWU.short_desc": {
+          "source": "Respondent notification sender name",
+          "message": "Respondent notification sender name"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsRnJvbU5hbWU.desc": {
+          "source": "The sender display name for respondent confirmation emails",
+          "message": "The sender display name for respondent confirmation emails"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsUmVwbHlUbw.display_name": {
+          "source": "Respondent Email Reply-To",
+          "message": "Respondent Email Reply-To"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsUmVwbHlUbw.short_desc": {
+          "source": "Respondent notification reply-to address",
+          "message": "Respondent notification reply-to address"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsUmVwbHlUbw.desc": {
+          "source": "The reply-to email address for respondent confirmation emails",
+          "message": "The reply-to email address for respondent confirmation emails"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsU3ViamVjdA.display_name": {
+          "source": "Respondent Email Subject",
+          "message": "Respondent Email Subject"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsU3ViamVjdA.short_desc": {
+          "source": "Respondent notification email subject",
+          "message": "Respondent notification email subject"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsU3ViamVjdA.desc": {
+          "source": "The subject line for respondent confirmation emails",
+          "message": "The subject line for respondent confirmation emails"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsVG8.display_name": {
+          "source": "Respondent Email To",
+          "message": "Respondent Email To"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsVG8.short_desc": {
+          "source": "Respondent notification email address",
+          "message": "Respondent notification email address"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsVG8.desc": {
+          "source": "The email address to send respondent confirmation emails to",
+          "message": "The email address to send respondent confirmation emails to"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2F2ZUZvckxhdGVy.display_name": {
+          "source": "Save for Later",
+          "message": "Save for Later"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2F2ZUZvckxhdGVy.short_desc": {
+          "source": "Allow saving form for later",
+          "message": "Allow saving form for later"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2F2ZUZvckxhdGVy.desc": {
+          "source": "`True` to allow respondents to save their progress and return later",
+          "message": "`True` to allow respondents to save their progress and return later"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsQm9keQ.display_name": {
+          "source": "Self Email Body",
+          "message": "Self Email Body"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsQm9keQ.short_desc": {
+          "source": "Owner notification email body",
+          "message": "Owner notification email body"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsQm9keQ.desc": {
+          "source": "The body content for form owner notification emails",
+          "message": "The body content for form owner notification emails"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsRnJvbU5hbWU.display_name": {
+          "source": "Self Email From Name",
+          "message": "Self Email From Name"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsRnJvbU5hbWU.short_desc": {
+          "source": "Owner notification sender name",
+          "message": "Owner notification sender name"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsRnJvbU5hbWU.desc": {
+          "source": "The sender display name for form owner notification emails",
+          "message": "The sender display name for form owner notification emails"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsUmVwbHlUbw.display_name": {
+          "source": "Self Email Reply-To",
+          "message": "Self Email Reply-To"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsUmVwbHlUbw.short_desc": {
+          "source": "Owner notification reply-to address",
+          "message": "Owner notification reply-to address"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsUmVwbHlUbw.desc": {
+          "source": "The reply-to email address for owner notification emails",
+          "message": "The reply-to email address for owner notification emails"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsU3ViamVjdA.display_name": {
+          "source": "Self Email Subject",
+          "message": "Self Email Subject"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsU3ViamVjdA.short_desc": {
+          "source": "Owner notification email subject",
+          "message": "Owner notification email subject"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsU3ViamVjdA.desc": {
+          "source": "The subject line for form owner notification emails",
+          "message": "The subject line for form owner notification emails"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsVG8.display_name": {
+          "source": "Self Email To",
+          "message": "Self Email To"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsVG8.short_desc": {
+          "source": "Owner notification email address",
+          "message": "Owner notification email address"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsVG8.desc": {
+          "source": "The email address to send form owner notifications to",
+          "message": "The email address to send form owner notifications to"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3R5bGVz.display_name": {
+          "source": "Styles",
+          "message": "Styles"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3R5bGVz.short_desc": {
+          "source": "Custom CSS styles",
+          "message": "Custom CSS styles"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3R5bGVz.desc": {
+          "source": "Custom CSS styles applied to the form",
+          "message": "Custom CSS styles applied to the form"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uRHVyYXRpb24.display_name": {
+          "source": "Data Retention Duration",
+          "message": "Data Retention Duration"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uRHVyYXRpb24.short_desc": {
+          "source": "Submission data retention duration",
+          "message": "Submission data retention duration"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uRHVyYXRpb24.desc": {
+          "source": "The duration value for how long submission data is retained",
+          "message": "The duration value for how long submission data is retained"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.display_name": {
+          "source": "Data Retention Unit",
+          "message": "Data Retention Unit"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.short_desc": {
+          "source": "Submission data retention time unit",
+          "message": "Submission data retention time unit"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.desc": {
+          "source": "The time unit for the data retention duration",
+          "message": "The time unit for the data retention duration"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.allowed-value.c3RyaW5nOm1pbnV0ZXM.display_name": {
+          "source": "Minutes",
+          "message": "Minutes"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.allowed-value.c3RyaW5nOmhvdXJz.display_name": {
+          "source": "Hours",
+          "message": "Hours"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.allowed-value.c3RyaW5nOmRheXM.display_name": {
+          "source": "Days",
+          "message": "Days"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.allowed-value.c3RyaW5nOndlZWtz.display_name": {
+          "source": "Weeks",
+          "message": "Weeks"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.allowed-value.c3RyaW5nOm1vbnRocw.display_name": {
+          "source": "Months",
+          "message": "Months"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.allowed-value.c3RyaW5nOnllYXJz.display_name": {
+          "source": "Years",
+          "message": "Years"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNMaW1pdA.display_name": {
+          "source": "Submissions Limit",
+          "message": "Submissions Limit"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNMaW1pdA.short_desc": {
+          "source": "Maximum number of submissions",
+          "message": "Maximum number of submissions"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNMaW1pdA.desc": {
+          "source": "The maximum number of submissions allowed before the form closes automatically",
+          "message": "The maximum number of submissions allowed before the form closes automatically"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.dW5pcXVlU3VibWlzc2lvbktleQ.display_name": {
+          "source": "Unique Submission Key",
+          "message": "Unique Submission Key"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.dW5pcXVlU3VibWlzc2lvbktleQ.short_desc": {
+          "source": "Field for unique submission enforcement",
+          "message": "Field for unique submission enforcement"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLWZvcm0.option.c2V0dGluZ3M.field.dW5pcXVlU3VibWlzc2lvbktleQ.desc": {
+          "source": "The field key used to enforce unique submissions",
+          "message": "The field key used to enforce unique submissions"
         },
         "app.VGFsbHk.action.Z2V0LWZvcm0.display_name": {
           "source": "Get Form",
@@ -535,6 +1143,230 @@
           "source": "Updated list of form content blocks",
           "message": "Updated list of form content blocks"
         },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.Z3JvdXBUeXBl.display_name": {
+          "source": "Group Type",
+          "message": "Group Type"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.Z3JvdXBUeXBl.short_desc": {
+          "source": "The group type for this block",
+          "message": "The group type for this block"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.Z3JvdXBUeXBl.desc": {
+          "source": "The group type identifier; for standalone blocks, this should match the block `type`; for child blocks (e.g., dropdown options), use the parent block's type",
+          "message": "The group type identifier; for standalone blocks, this should match the block `type`; for child blocks (e.g., dropdown options), use the parent block's type"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.Z3JvdXBVdWlk.display_name": {
+          "source": "Group UUID",
+          "message": "Group UUID"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.Z3JvdXBVdWlk.short_desc": {
+          "source": "Groups related blocks together",
+          "message": "Groups related blocks together"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.Z3JvdXBVdWlk.desc": {
+          "source": "UUID that groups related blocks together; for standalone blocks, use the block's own `uuid`; for child blocks (e.g., dropdown options), use the parent block's `uuid`",
+          "message": "UUID that groups related blocks together; for standalone blocks, use the block's own `uuid`; for child blocks (e.g., dropdown options), use the parent block's `uuid`"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.cGF5bG9hZA.display_name": {
+          "source": "Payload",
+          "message": "Payload"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.cGF5bG9hZA.short_desc": {
+          "source": "Block-specific configuration",
+          "message": "Block-specific configuration"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.cGF5bG9hZA.desc": {
+          "source": "Type-specific configuration object whose structure depends on the block `type`.\n\n**Common fields** (most input blocks): `isRequired` (boolean), `isHidden` (boolean), `placeholder` (string), `hasDefaultAnswer` (boolean), `defaultAnswer`, `name` (string)\n\n**Text blocks** (`INPUT_TEXT`, `TEXTAREA`): `hasMinCharacters`, `minCharacters`, `hasMaxCharacters`, `maxCharacters`\n\n**Choice blocks** (`MULTIPLE_CHOICE`, `CHECKBOX`, `DROPDOWN`): `index` (number), `isFirst` (boolean), `isLast` (boolean), `allowMultiple`, `hasOtherOption`, `randomize`, `image`, `text`\n\n**Rating/Scale** (`RATING`): `stars`; (`LINEAR_SCALE`): `start`, `end`, `step`, `leftLabel`, `rightLabel`\n\n**File upload** (`FILE_UPLOAD`): `hasMultipleFiles`, `maxFiles`, `maxFileSize`, `allowedFiles`\n\n**Rich text** (`TEXT`, `TITLE`, headings): `html` (string with rich text content)\n\n**Example** (`INPUT_TEXT`):\n```json\n{\"isRequired\": false, \"isHidden\": false, \"placeholder\": \"Enter your name\"}\n```",
+          "message": "Type-specific configuration object whose structure depends on the block `type`.\n\n**Common fields** (most input blocks): `isRequired` (boolean), `isHidden` (boolean), `placeholder` (string), `hasDefaultAnswer` (boolean), `defaultAnswer`, `name` (string)\n\n**Text blocks** (`INPUT_TEXT`, `TEXTAREA`): `hasMinCharacters`, `minCharacters`, `hasMaxCharacters`, `maxCharacters`\n\n**Choice blocks** (`MULTIPLE_CHOICE`, `CHECKBOX`, `DROPDOWN`): `index` (number), `isFirst` (boolean), `isLast` (boolean), `allowMultiple`, `hasOtherOption`, `randomize`, `image`, `text`\n\n**Rating/Scale** (`RATING`): `stars`; (`LINEAR_SCALE`): `start`, `end`, `step`, `leftLabel`, `rightLabel`\n\n**File upload** (`FILE_UPLOAD`): `hasMultipleFiles`, `maxFiles`, `maxFileSize`, `allowedFiles`\n\n**Rich text** (`TEXT`, `TITLE`, headings): `html` (string with rich text content)\n\n**Example** (`INPUT_TEXT`):\n```json\n{\"isRequired\": false, \"isHidden\": false, \"placeholder\": \"Enter your name\"}\n```"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.display_name": {
+          "source": "Block Type",
+          "message": "Block Type"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.short_desc": {
+          "source": "The type of block",
+          "message": "The type of block"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.desc": {
+          "source": "The block type discriminator that determines the block's behavior and payload structure",
+          "message": "The block type discriminator that determines the block's behavior and payload structure"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkZPUk1fVElUTEU.display_name": {
+          "source": "Form Title",
+          "message": "Form Title"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlRFWFQ.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkxBQkVM.display_name": {
+          "source": "Label",
+          "message": "Label"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlRJVExF.display_name": {
+          "source": "Title",
+          "message": "Title"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkhFQURJTkdfMQ.display_name": {
+          "source": "Heading 1",
+          "message": "Heading 1"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkhFQURJTkdfMg.display_name": {
+          "source": "Heading 2",
+          "message": "Heading 2"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkhFQURJTkdfMw.display_name": {
+          "source": "Heading 3",
+          "message": "Heading 3"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkRJVklERVI.display_name": {
+          "source": "Divider",
+          "message": "Divider"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlBBR0VfQlJFQUs.display_name": {
+          "source": "Page Break",
+          "message": "Page Break"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklNQUdF.display_name": {
+          "source": "Image",
+          "message": "Image"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkVNQkVE.display_name": {
+          "source": "Embed",
+          "message": "Embed"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkVNQkVEX1ZJREVP.display_name": {
+          "source": "Embed Video",
+          "message": "Embed Video"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkVNQkVEX0FVRElP.display_name": {
+          "source": "Embed Audio",
+          "message": "Embed Audio"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlFVRVNUSU9O.display_name": {
+          "source": "Question",
+          "message": "Question"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOk1BVFJJWA.display_name": {
+          "source": "Matrix",
+          "message": "Matrix"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX1RFWFQ.display_name": {
+          "source": "Text Input",
+          "message": "Text Input"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX05VTUJFUg.display_name": {
+          "source": "Number Input",
+          "message": "Number Input"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX0VNQUlM.display_name": {
+          "source": "Email Input",
+          "message": "Email Input"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX0xJTks.display_name": {
+          "source": "Link Input",
+          "message": "Link Input"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX1BIT05FX05VTUJFUg.display_name": {
+          "source": "Phone Number Input",
+          "message": "Phone Number Input"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX0RBVEU.display_name": {
+          "source": "Date Input",
+          "message": "Date Input"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOklOUFVUX1RJTUU.display_name": {
+          "source": "Time Input",
+          "message": "Time Input"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlRFWFRBUkVB.display_name": {
+          "source": "Text Area",
+          "message": "Text Area"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkZJTEVfVVBMT0FE.display_name": {
+          "source": "File Upload",
+          "message": "File Upload"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkxJTkVBUl9TQ0FMRQ.display_name": {
+          "source": "Linear Scale",
+          "message": "Linear Scale"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlJBVElORw.display_name": {
+          "source": "Rating",
+          "message": "Rating"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkhJRERFTl9GSUVMRFM.display_name": {
+          "source": "Hidden Fields",
+          "message": "Hidden Fields"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOk1VTFRJUExFX0NIT0lDRV9PUFRJT04.display_name": {
+          "source": "Multiple Choice Option",
+          "message": "Multiple Choice Option"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkNIRUNLQk9Y.display_name": {
+          "source": "Checkbox",
+          "message": "Checkbox"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkRST1BET1dOX09QVElPTg.display_name": {
+          "source": "Dropdown Option",
+          "message": "Dropdown Option"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlJBTktJTkdfT1BUSU9O.display_name": {
+          "source": "Ranking Option",
+          "message": "Ranking Option"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOk1VTFRJX1NFTEVDVF9PUFRJT04.display_name": {
+          "source": "Multi Select Option",
+          "message": "Multi Select Option"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlBBWU1FTlQ.display_name": {
+          "source": "Payment",
+          "message": "Payment"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlNJR05BVFVSRQ.display_name": {
+          "source": "Signature",
+          "message": "Signature"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOk1BVFJJWF9ST1c.display_name": {
+          "source": "Matrix Row",
+          "message": "Matrix Row"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOk1BVFJJWF9DT0xVTU4.display_name": {
+          "source": "Matrix Column",
+          "message": "Matrix Column"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOldBTExFVF9DT05ORUNU.display_name": {
+          "source": "Wallet Connect",
+          "message": "Wallet Connect"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkNPTkRJVElPTkFMX0xPR0lD.display_name": {
+          "source": "Conditional Logic",
+          "message": "Conditional Logic"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkNBTENVTEFURURfRklFTERT.display_name": {
+          "source": "Calculated Fields",
+          "message": "Calculated Fields"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOkNBUFRDSEE.display_name": {
+          "source": "Captcha",
+          "message": "Captcha"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dHlwZQ.allowed-value.c3RyaW5nOlJFU1BPTkRFTlRfQ09VTlRSWQ.display_name": {
+          "source": "Respondent Country",
+          "message": "Respondent Country"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dXVpZA.display_name": {
+          "source": "Block UUID",
+          "message": "Block UUID"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dXVpZA.short_desc": {
+          "source": "Unique block identifier",
+          "message": "Unique block identifier"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.YmxvY2tz.field.dXVpZA.desc": {
+          "source": "Unique identifier (UUID) for this block",
+          "message": "Unique identifier (UUID) for this block"
+        },
         "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.display_name": {
           "source": "Settings",
           "message": "Settings"
@@ -546,6 +1378,390 @@
         "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.desc": {
           "source": "Updated form configuration",
           "message": "Updated form configuration"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VEYXRl.display_name": {
+          "source": "Close Date",
+          "message": "Close Date"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VEYXRl.short_desc": {
+          "source": "Scheduled close date",
+          "message": "Scheduled close date"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VEYXRl.desc": {
+          "source": "The date when the form will automatically close, in `YYYY-MM-DD` format (for example `2025-12-31`)",
+          "message": "The date when the form will automatically close, in `YYYY-MM-DD` format (for example `2025-12-31`)"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VNZXNzYWdlRGVzY3JpcHRpb24.display_name": {
+          "source": "Close Message Description",
+          "message": "Close Message Description"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VNZXNzYWdlRGVzY3JpcHRpb24.short_desc": {
+          "source": "Description shown when form is closed",
+          "message": "Description shown when form is closed"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VNZXNzYWdlRGVzY3JpcHRpb24.desc": {
+          "source": "The description displayed when a user tries to access a closed form",
+          "message": "The description displayed when a user tries to access a closed form"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VNZXNzYWdlVGl0bGU.display_name": {
+          "source": "Close Message Title",
+          "message": "Close Message Title"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VNZXNzYWdlVGl0bGU.short_desc": {
+          "source": "Title shown when form is closed",
+          "message": "Title shown when form is closed"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VNZXNzYWdlVGl0bGU.desc": {
+          "source": "The title displayed when a user tries to access a closed form",
+          "message": "The title displayed when a user tries to access a closed form"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VUaW1l.display_name": {
+          "source": "Close Time",
+          "message": "Close Time"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VUaW1l.short_desc": {
+          "source": "Scheduled close time",
+          "message": "Scheduled close time"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VUaW1l.desc": {
+          "source": "The time when the form will automatically close, in 24-hour `HH:mm` format (for example `23:59`)",
+          "message": "The time when the form will automatically close, in 24-hour `HH:mm` format (for example `23:59`)"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VUaW1lem9uZQ.display_name": {
+          "source": "Close Timezone",
+          "message": "Close Timezone"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VUaW1lem9uZQ.short_desc": {
+          "source": "Timezone for scheduled close",
+          "message": "Timezone for scheduled close"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.Y2xvc2VUaW1lem9uZQ.desc": {
+          "source": "The timezone for the scheduled form close date/time",
+          "message": "The timezone for the scheduled form close date/time"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUGFydGlhbFN1Ym1pc3Npb25z.display_name": {
+          "source": "Has Partial Submissions",
+          "message": "Has Partial Submissions"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUGFydGlhbFN1Ym1pc3Npb25z.short_desc": {
+          "source": "Allow partial submissions",
+          "message": "Allow partial submissions"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUGFydGlhbFN1Ym1pc3Npb25z.desc": {
+          "source": "`True` to save partial submissions when respondents don't complete the form",
+          "message": "`True` to save partial submissions when respondents don't complete the form"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUHJvZ3Jlc3NCYXI.display_name": {
+          "source": "Has Progress Bar",
+          "message": "Has Progress Bar"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUHJvZ3Jlc3NCYXI.short_desc": {
+          "source": "Show progress bar",
+          "message": "Show progress bar"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUHJvZ3Jlc3NCYXI.desc": {
+          "source": "`True` to display a progress bar on multi-page forms",
+          "message": "`True` to display a progress bar on multi-page forms"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUmVzcG9uZGVudEVtYWlsTm90aWZpY2F0aW9ucw.display_name": {
+          "source": "Respondent Email Notifications",
+          "message": "Respondent Email Notifications"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUmVzcG9uZGVudEVtYWlsTm90aWZpY2F0aW9ucw.short_desc": {
+          "source": "Enable email notifications to respondents",
+          "message": "Enable email notifications to respondents"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzUmVzcG9uZGVudEVtYWlsTm90aWZpY2F0aW9ucw.desc": {
+          "source": "`True` to send confirmation emails to respondents after submission",
+          "message": "`True` to send confirmation emails to respondents after submission"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzU2VsZkVtYWlsTm90aWZpY2F0aW9ucw.display_name": {
+          "source": "Self Email Notifications",
+          "message": "Self Email Notifications"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzU2VsZkVtYWlsTm90aWZpY2F0aW9ucw.short_desc": {
+          "source": "Enable email notifications to form owner",
+          "message": "Enable email notifications to form owner"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aGFzU2VsZkVtYWlsTm90aWZpY2F0aW9ucw.desc": {
+          "source": "`True` to send email notifications to the form owner on new submissions",
+          "message": "`True` to send email notifications to the form owner on new submissions"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aXNDbG9zZWQ.display_name": {
+          "source": "Is Closed",
+          "message": "Is Closed"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aXNDbG9zZWQ.short_desc": {
+          "source": "Whether the form is closed",
+          "message": "Whether the form is closed"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.aXNDbG9zZWQ.desc": {
+          "source": "`True` if the form is closed and no longer accepting submissions",
+          "message": "`True` if the form is closed and no longer accepting submissions"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.bGFuZ3VhZ2U.display_name": {
+          "source": "Language",
+          "message": "Language"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.bGFuZ3VhZ2U.short_desc": {
+          "source": "Form display language",
+          "message": "Form display language"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.bGFuZ3VhZ2U.desc": {
+          "source": "The language code for the form (max 12 characters)",
+          "message": "The language code for the form (max 12 characters)"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cGFnZUF1dG9KdW1w.display_name": {
+          "source": "Page Auto Jump",
+          "message": "Page Auto Jump"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cGFnZUF1dG9KdW1w.short_desc": {
+          "source": "Auto-advance pages",
+          "message": "Auto-advance pages"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cGFnZUF1dG9KdW1w.desc": {
+          "source": "`True` to automatically advance to the next page when all fields are filled",
+          "message": "`True` to automatically advance to the next page when all fields are filled"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "Password"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cGFzc3dvcmQ.short_desc": {
+          "source": "Form access password",
+          "message": "Form access password"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cGFzc3dvcmQ.desc": {
+          "source": "Optional password required to access the form",
+          "message": "Optional password required to access the form"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVkaXJlY3RPbkNvbXBsZXRpb24.display_name": {
+          "source": "Redirect on Completion",
+          "message": "Redirect on Completion"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVkaXJlY3RPbkNvbXBsZXRpb24.short_desc": {
+          "source": "URL to redirect to after submission",
+          "message": "URL to redirect to after submission"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVkaXJlY3RPbkNvbXBsZXRpb24.desc": {
+          "source": "The URL to redirect respondents to after form submission",
+          "message": "The URL to redirect respondents to after form submission"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsQm9keQ.display_name": {
+          "source": "Respondent Email Body",
+          "message": "Respondent Email Body"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsQm9keQ.short_desc": {
+          "source": "Respondent notification email body",
+          "message": "Respondent notification email body"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsQm9keQ.desc": {
+          "source": "The body content for respondent confirmation emails",
+          "message": "The body content for respondent confirmation emails"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsRnJvbU5hbWU.display_name": {
+          "source": "Respondent Email From Name",
+          "message": "Respondent Email From Name"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsRnJvbU5hbWU.short_desc": {
+          "source": "Respondent notification sender name",
+          "message": "Respondent notification sender name"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsRnJvbU5hbWU.desc": {
+          "source": "The sender display name for respondent confirmation emails",
+          "message": "The sender display name for respondent confirmation emails"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsUmVwbHlUbw.display_name": {
+          "source": "Respondent Email Reply-To",
+          "message": "Respondent Email Reply-To"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsUmVwbHlUbw.short_desc": {
+          "source": "Respondent notification reply-to address",
+          "message": "Respondent notification reply-to address"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsUmVwbHlUbw.desc": {
+          "source": "The reply-to email address for respondent confirmation emails",
+          "message": "The reply-to email address for respondent confirmation emails"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsU3ViamVjdA.display_name": {
+          "source": "Respondent Email Subject",
+          "message": "Respondent Email Subject"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsU3ViamVjdA.short_desc": {
+          "source": "Respondent notification email subject",
+          "message": "Respondent notification email subject"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsU3ViamVjdA.desc": {
+          "source": "The subject line for respondent confirmation emails",
+          "message": "The subject line for respondent confirmation emails"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsVG8.display_name": {
+          "source": "Respondent Email To",
+          "message": "Respondent Email To"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsVG8.short_desc": {
+          "source": "Respondent notification email address",
+          "message": "Respondent notification email address"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.cmVzcG9uZGVudEVtYWlsVG8.desc": {
+          "source": "The email address to send respondent confirmation emails to",
+          "message": "The email address to send respondent confirmation emails to"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2F2ZUZvckxhdGVy.display_name": {
+          "source": "Save for Later",
+          "message": "Save for Later"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2F2ZUZvckxhdGVy.short_desc": {
+          "source": "Allow saving form for later",
+          "message": "Allow saving form for later"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2F2ZUZvckxhdGVy.desc": {
+          "source": "`True` to allow respondents to save their progress and return later",
+          "message": "`True` to allow respondents to save their progress and return later"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsQm9keQ.display_name": {
+          "source": "Self Email Body",
+          "message": "Self Email Body"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsQm9keQ.short_desc": {
+          "source": "Owner notification email body",
+          "message": "Owner notification email body"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsQm9keQ.desc": {
+          "source": "The body content for form owner notification emails",
+          "message": "The body content for form owner notification emails"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsRnJvbU5hbWU.display_name": {
+          "source": "Self Email From Name",
+          "message": "Self Email From Name"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsRnJvbU5hbWU.short_desc": {
+          "source": "Owner notification sender name",
+          "message": "Owner notification sender name"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsRnJvbU5hbWU.desc": {
+          "source": "The sender display name for form owner notification emails",
+          "message": "The sender display name for form owner notification emails"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsUmVwbHlUbw.display_name": {
+          "source": "Self Email Reply-To",
+          "message": "Self Email Reply-To"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsUmVwbHlUbw.short_desc": {
+          "source": "Owner notification reply-to address",
+          "message": "Owner notification reply-to address"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsUmVwbHlUbw.desc": {
+          "source": "The reply-to email address for owner notification emails",
+          "message": "The reply-to email address for owner notification emails"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsU3ViamVjdA.display_name": {
+          "source": "Self Email Subject",
+          "message": "Self Email Subject"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsU3ViamVjdA.short_desc": {
+          "source": "Owner notification email subject",
+          "message": "Owner notification email subject"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsU3ViamVjdA.desc": {
+          "source": "The subject line for form owner notification emails",
+          "message": "The subject line for form owner notification emails"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsVG8.display_name": {
+          "source": "Self Email To",
+          "message": "Self Email To"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsVG8.short_desc": {
+          "source": "Owner notification email address",
+          "message": "Owner notification email address"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c2VsZkVtYWlsVG8.desc": {
+          "source": "The email address to send form owner notifications to",
+          "message": "The email address to send form owner notifications to"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3R5bGVz.display_name": {
+          "source": "Styles",
+          "message": "Styles"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3R5bGVz.short_desc": {
+          "source": "Custom CSS styles",
+          "message": "Custom CSS styles"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3R5bGVz.desc": {
+          "source": "Custom CSS styles applied to the form",
+          "message": "Custom CSS styles applied to the form"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uRHVyYXRpb24.display_name": {
+          "source": "Data Retention Duration",
+          "message": "Data Retention Duration"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uRHVyYXRpb24.short_desc": {
+          "source": "Submission data retention duration",
+          "message": "Submission data retention duration"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uRHVyYXRpb24.desc": {
+          "source": "The duration value for how long submission data is retained",
+          "message": "The duration value for how long submission data is retained"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.display_name": {
+          "source": "Data Retention Unit",
+          "message": "Data Retention Unit"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.short_desc": {
+          "source": "Submission data retention time unit",
+          "message": "Submission data retention time unit"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.desc": {
+          "source": "The time unit for the data retention duration",
+          "message": "The time unit for the data retention duration"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.allowed-value.c3RyaW5nOm1pbnV0ZXM.display_name": {
+          "source": "Minutes",
+          "message": "Minutes"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.allowed-value.c3RyaW5nOmhvdXJz.display_name": {
+          "source": "Hours",
+          "message": "Hours"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.allowed-value.c3RyaW5nOmRheXM.display_name": {
+          "source": "Days",
+          "message": "Days"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.allowed-value.c3RyaW5nOndlZWtz.display_name": {
+          "source": "Weeks",
+          "message": "Weeks"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.allowed-value.c3RyaW5nOm1vbnRocw.display_name": {
+          "source": "Months",
+          "message": "Months"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNEYXRhUmV0ZW50aW9uVW5pdA.allowed-value.c3RyaW5nOnllYXJz.display_name": {
+          "source": "Years",
+          "message": "Years"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNMaW1pdA.display_name": {
+          "source": "Submissions Limit",
+          "message": "Submissions Limit"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNMaW1pdA.short_desc": {
+          "source": "Maximum number of submissions",
+          "message": "Maximum number of submissions"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.c3VibWlzc2lvbnNMaW1pdA.desc": {
+          "source": "The maximum number of submissions allowed before the form closes automatically",
+          "message": "The maximum number of submissions allowed before the form closes automatically"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.dW5pcXVlU3VibWlzc2lvbktleQ.display_name": {
+          "source": "Unique Submission Key",
+          "message": "Unique Submission Key"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.dW5pcXVlU3VibWlzc2lvbktleQ.short_desc": {
+          "source": "Field for unique submission enforcement",
+          "message": "Field for unique submission enforcement"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLWZvcm0.option.c2V0dGluZ3M.field.dW5pcXVlU3VibWlzc2lvbktleQ.desc": {
+          "source": "The field key used to enforce unique submissions",
+          "message": "The field key used to enforce unique submissions"
         },
         "app.VGFsbHk.action.ZGVsZXRlLWZvcm0.display_name": {
           "source": "Delete Form",
@@ -899,6 +2115,30 @@
           "source": "Optional list of custom HTTP header objects (name/value pairs) sent with webhook requests",
           "message": "Optional list of custom HTTP header objects (name/value pairs) sent with webhook requests"
         },
+        "app.VGFsbHk.action.Y3JlYXRlLXdlYmhvb2s.option.aHR0cEhlYWRlcnM.field.bmFtZQ.display_name": {
+          "source": "Header Name",
+          "message": "Header Name"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLXdlYmhvb2s.option.aHR0cEhlYWRlcnM.field.bmFtZQ.short_desc": {
+          "source": "The HTTP header name",
+          "message": "The HTTP header name"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLXdlYmhvb2s.option.aHR0cEhlYWRlcnM.field.bmFtZQ.desc": {
+          "source": "The name of the custom HTTP header",
+          "message": "The name of the custom HTTP header"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLXdlYmhvb2s.option.aHR0cEhlYWRlcnM.field.dmFsdWU.display_name": {
+          "source": "Header Value",
+          "message": "Header Value"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLXdlYmhvb2s.option.aHR0cEhlYWRlcnM.field.dmFsdWU.short_desc": {
+          "source": "The HTTP header value",
+          "message": "The HTTP header value"
+        },
+        "app.VGFsbHk.action.Y3JlYXRlLXdlYmhvb2s.option.aHR0cEhlYWRlcnM.field.dmFsdWU.desc": {
+          "source": "The value of the custom HTTP header",
+          "message": "The value of the custom HTTP header"
+        },
         "app.VGFsbHk.action.Y3JlYXRlLXdlYmhvb2s.option.ZXh0ZXJuYWxTdWJzY3JpYmVy.display_name": {
           "source": "External Subscriber",
           "message": "External Subscriber"
@@ -1010,6 +2250,30 @@
         "app.VGFsbHk.action.dXBkYXRlLXdlYmhvb2s.option.aHR0cEhlYWRlcnM.desc": {
           "source": "Updated list of custom HTTP header objects",
           "message": "Updated list of custom HTTP header objects"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLXdlYmhvb2s.option.aHR0cEhlYWRlcnM.field.bmFtZQ.display_name": {
+          "source": "Header Name",
+          "message": "Header Name"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLXdlYmhvb2s.option.aHR0cEhlYWRlcnM.field.bmFtZQ.short_desc": {
+          "source": "The HTTP header name",
+          "message": "The HTTP header name"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLXdlYmhvb2s.option.aHR0cEhlYWRlcnM.field.bmFtZQ.desc": {
+          "source": "The name of the custom HTTP header",
+          "message": "The name of the custom HTTP header"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLXdlYmhvb2s.option.aHR0cEhlYWRlcnM.field.dmFsdWU.display_name": {
+          "source": "Header Value",
+          "message": "Header Value"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLXdlYmhvb2s.option.aHR0cEhlYWRlcnM.field.dmFsdWU.short_desc": {
+          "source": "The HTTP header value",
+          "message": "The HTTP header value"
+        },
+        "app.VGFsbHk.action.dXBkYXRlLXdlYmhvb2s.option.aHR0cEhlYWRlcnM.field.dmFsdWU.desc": {
+          "source": "The value of the custom HTTP header",
+          "message": "The value of the custom HTTP header"
         },
         "app.VGFsbHk.action.ZGVsZXRlLXdlYmhvb2s.display_name": {
           "source": "Delete Webhook",

@@ -79,6 +79,22 @@ another. Contributions with the same locale and message identity must be
 structurally identical; provider presentation rejects conflicting owner fragments
 instead of selecting text by catalog search-path or filename order.
 
+Catalog source extraction follows the complete reachable option-type graph. Existing flat action-option IDs are
+stable. First-layer nested fields are option scoped (and union-branch qualified); deeper reusable types use stable
+app/action/option/occurrence/type/field identities whose occurrence contains its canonical technical field path and
+any union context above it. The type segment includes an explicit producer schema path when available and a
+label-independent digest of immediate technical field/type shape. Repeated paths to the same concrete type object are
+visited once per action/option, while distinct objects
+claiming the same stable identity are compared for source conflicts; catalog size therefore remains proportional to
+distinct type metadata rather than paths through a shared schema DAG. Every committed translation locale must have
+exact root ID/source parity. Run the repository source-tree check
+with `--require-standard-locales --require-complete-locales` after regenerating catalogs; source-language fallback is
+runtime resilience, not release qualification. See
+[data-provider-discovery-qualification.md](data-provider-discovery-qualification.md).
+
+For release qualification, install modules and catalogs into an empty prefix and run discovery without any source
+module path. This catches missing installed catalog fragments and dependencies that an in-tree path would mask.
+
 Projects that consume Qore's CMake API but keep modules outside `qlib/` call
 `QORE_INSTALL_USER_MODULE_CATALOGS(<ModuleName> <catalog-source-dir>
 <install-component> <catalog-install-root>)` explicitly. The source directory,
@@ -114,6 +130,12 @@ Rules:
   - Use `%requires` for hard deps.
   - Use `%try-module` only for optional deps.
 - Avoid circular load paths where possible; move optional services into a separate module.
+- `qjar` generates each user module in a scratch `Program`. User-module dependencies retain an owning `Program`, but
+  binary dependencies do not; therefore `qjar` imports the binary modules loaded by the target's dependency graph
+  before generating signatures. Keep this import step when changing documentation generation, or a non-reexported
+  native type can be emitted once as canonical `qoremod.<module>.*` and again as legacy `qore.<namespace>.*`, causing
+  `NoClassDefFoundError` or distinct JVM class identities. The `AOTNestedConstantRef.qtest` regression covers this
+  boundary with a user module whose public method returns a non-reexported i18n binary-module class.
 
 ## Module Documentation
 

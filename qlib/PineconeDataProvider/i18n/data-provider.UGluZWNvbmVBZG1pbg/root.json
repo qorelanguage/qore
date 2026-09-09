@@ -987,6 +987,102 @@
           "source": "Role bindings for the invitee. Must include at least one `organization`-scoped binding that grants organization membership (`OrgOwner`, `OrgManager`, `OrgBillingAdmin`, or `OrgMember`); `project`-scoped bindings are optional. Not returned in the response.",
           "message": "Role bindings for the invitee. Must include at least one `organization`-scoped binding that grants organization membership (`OrgOwner`, `OrgManager`, `OrgBillingAdmin`, or `OrgMember`); `project`-scoped bindings are optional. Not returned in the response."
         },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfaWQ.display_name": {
+          "source": "Resource ID",
+          "message": "Resource ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfaWQ.short_desc": {
+          "source": "Resource ID",
+          "message": "Resource ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfaWQ.desc": {
+          "source": "Project UUID. Required when `resource_type` is `project`; omit for `organization` scope.",
+          "message": "Project UUID. Required when `resource_type` is `project`; omit for `organization` scope."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.display_name": {
+          "source": "Resource Type",
+          "message": "Resource Type"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.short_desc": {
+          "source": "Resource Type",
+          "message": "Resource Type"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.desc": {
+          "source": "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`.",
+          "message": "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Organization",
+          "message": "Organization"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Project"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.short_desc": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.desc": {
+          "source": "A role assigned to a principal at a resource scope.",
+          "message": "A role assigned to a principal at a resource scope."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
+          "source": "Organization Owner",
+          "message": "Organization Owner"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
+          "source": "Organization Manager",
+          "message": "Organization Manager"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
+          "source": "Organization Member",
+          "message": "Organization Member"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
+          "source": "Organization Billing Admin",
+          "message": "Organization Billing Admin"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
+          "source": "Project Owner",
+          "message": "Project Owner"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
+          "source": "Project Manager",
+          "message": "Project Manager"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
+          "source": "Project Member",
+          "message": "Project Member"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "Project Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "Project Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "Control Plane Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "Control Plane Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "Data Plane Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "Data Plane Viewer"
+        },
         "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.display_name": {
           "source": "Get Invite",
           "message": "Get Invite"
@@ -1130,6 +1226,102 @@
         "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.desc": {
           "source": "Optional initial role bindings. Omitting the field or passing an empty array creates the service account with no role bindings; roles can be added later via the role binding endpoints. A service account may be granted any organization- or project-scoped role. Not returned in the response.",
           "message": "Optional initial role bindings. Omitting the field or passing an empty array creates the service account with no role bindings; roles can be added later via the role binding endpoints. A service account may be granted any organization- or project-scoped role. Not returned in the response."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfaWQ.display_name": {
+          "source": "Resource ID",
+          "message": "Resource ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfaWQ.short_desc": {
+          "source": "Resource ID",
+          "message": "Resource ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfaWQ.desc": {
+          "source": "Project UUID. Required when `resource_type` is `project`; omit for `organization` scope.",
+          "message": "Project UUID. Required when `resource_type` is `project`; omit for `organization` scope."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.display_name": {
+          "source": "Resource Type",
+          "message": "Resource Type"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.short_desc": {
+          "source": "Resource Type",
+          "message": "Resource Type"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.desc": {
+          "source": "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`.",
+          "message": "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Organization",
+          "message": "Organization"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Project"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.short_desc": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.desc": {
+          "source": "A role assigned to a principal at a resource scope.",
+          "message": "A role assigned to a principal at a resource scope."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
+          "source": "Organization Owner",
+          "message": "Organization Owner"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
+          "source": "Organization Manager",
+          "message": "Organization Manager"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
+          "source": "Organization Member",
+          "message": "Organization Member"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
+          "source": "Organization Billing Admin",
+          "message": "Organization Billing Admin"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
+          "source": "Project Owner",
+          "message": "Project Owner"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
+          "source": "Project Manager",
+          "message": "Project Manager"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
+          "source": "Project Member",
+          "message": "Project Member"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "Project Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "Project Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "Control Plane Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "Control Plane Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "Data Plane Editor"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "Data Plane Viewer"
         },
         "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.display_name": {
           "source": "Get Service Account",

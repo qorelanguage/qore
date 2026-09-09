@@ -3,10 +3,6 @@
   "locales": {
     "fr": {
       "messages": {
-        "app.T3JhY2xl.desc": {
-          "source": "Create and manage connections to a Oracle database server",
-          "message": "Créer et gérer des connexions à un serveur de base de données Oracle"
-        },
         "app.T3JhY2xl.display_name": {
           "source": "Oracle",
           "message": "Oracle"
@@ -14,6 +10,10 @@
         "app.T3JhY2xl.short_desc": {
           "source": "Oracle database server",
           "message": "Serveur de base de données Oracle"
+        },
+        "app.T3JhY2xl.desc": {
+          "source": "Create and manage connections to a Oracle database server",
+          "message": "Créer et gérer des connexions à un serveur de base de données Oracle"
         }
       }
     }

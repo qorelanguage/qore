@@ -363,6 +363,70 @@
           "source": "The conversation history as a list of message objects.",
           "message": "The conversation history as a list of message objects."
         },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.Y29udGVudA.display_name": {
+          "source": "Content",
+          "message": "Content"
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.Y29udGVudA.short_desc": {
+          "source": "The text content of the message",
+          "message": "The text content of the message"
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.Y29udGVudA.desc": {
+          "source": "The text content of the message.",
+          "message": "The text content of the message."
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.aW1hZ2Vz.display_name": {
+          "source": "Images",
+          "message": "Images"
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.aW1hZ2Vz.short_desc": {
+          "source": "List of base64-encoded images (multimodal models)",
+          "message": "List of base64-encoded images (multimodal models)"
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.aW1hZ2Vz.desc": {
+          "source": "List of base64-encoded image strings.  Used with multimodal Ollama models (e.g. `llava`, `bakllava`).",
+          "message": "List of base64-encoded image strings.  Used with multimodal Ollama models (e.g. `llava`, `bakllava`)."
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.short_desc": {
+          "source": "The role of the message author",
+          "message": "The role of the message author"
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.desc": {
+          "source": "The role of the author of this message: `system`, `user`, `assistant`, or `tool`.",
+          "message": "The role of the author of this message: `system`, `user`, `assistant`, or `tool`."
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnN5c3RlbQ.display_name": {
+          "source": "System",
+          "message": "System"
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "User"
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOmFzc2lzdGFudA.display_name": {
+          "source": "Assistant",
+          "message": "Assistant"
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnRvb2w.display_name": {
+          "source": "Tool",
+          "message": "Tool"
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxscw.display_name": {
+          "source": "Tool Calls",
+          "message": "Tool Calls"
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxscw.short_desc": {
+          "source": "Tool invocations emitted by the assistant",
+          "message": "Tool invocations emitted by the assistant"
+        },
+        "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxscw.desc": {
+          "source": "List of tool calls emitted by the assistant.",
+          "message": "List of tool calls emitted by the assistant."
+        },
         "app.T2xsYW1h.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.display_name": {
           "source": "Model",
           "message": "Model"

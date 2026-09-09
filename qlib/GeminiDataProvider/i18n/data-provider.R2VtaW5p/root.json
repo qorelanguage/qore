@@ -399,6 +399,94 @@
           "source": "The content of the current conversation with the model. For single-turn queries, this is a single message. For multi-turn queries, this is a repeated field that contains conversation history and the latest request. For simple text prompts, use the `prompt` field instead",
           "message": "The content of the current conversation with the model. For single-turn queries, this is a single message. For multi-turn queries, this is a repeated field that contains conversation history and the latest request. For simple text prompts, use the `prompt` field instead"
         },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Y29udGVudHM.field.cGFydHM.display_name": {
+          "source": "Parts",
+          "message": "Parts"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Y29udGVudHM.field.cGFydHM.short_desc": {
+          "source": "The content parts",
+          "message": "The content parts"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Y29udGVudHM.field.cGFydHM.desc": {
+          "source": "Ordered list of content parts that make up this message",
+          "message": "Ordered list of content parts that make up this message"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOloyVnVaWEpoZEdVdFkyOXVkR1Z1ZEE6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.aW5saW5lX2RhdGE.display_name": {
+          "source": "Inline Data",
+          "message": "Inline Data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOloyVnVaWEpoZEdVdFkyOXVkR1Z1ZEE6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.aW5saW5lX2RhdGE.short_desc": {
+          "source": "Inline media data",
+          "message": "Inline media data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOloyVnVaWEpoZEdVdFkyOXVkR1Z1ZEE6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.aW5saW5lX2RhdGE.desc": {
+          "source": "Inline media data such as images, audio, or video; mutually exclusive with `text`",
+          "message": "Inline media data such as images, audio, or video; mutually exclusive with `text`"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOloyVnVaWEpoZEdVdFkyOXVkR1Z1ZEE6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.ZGF0YQ.display_name": {
+          "source": "Data",
+          "message": "Data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOloyVnVaWEpoZEdVdFkyOXVkR1Z1ZEE6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.ZGF0YQ.short_desc": {
+          "source": "Base64-encoded binary data",
+          "message": "Base64-encoded binary data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOloyVnVaWEpoZEdVdFkyOXVkR1Z1ZEE6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.ZGF0YQ.desc": {
+          "source": "Base64-encoded binary data (e.g., image, audio, video)",
+          "message": "Base64-encoded binary data (e.g., image, audio, video)"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOloyVnVaWEpoZEdVdFkyOXVkR1Z1ZEE6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME Type"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOloyVnVaWEpoZEdVdFkyOXVkR1Z1ZEE6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type of the inline data",
+          "message": "The MIME type of the inline data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOloyVnVaWEpoZEdVdFkyOXVkR1Z1ZEE6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.bWltZV90eXBl.desc": {
+          "source": "The IANA standard MIME type of the source data",
+          "message": "The IANA standard MIME type of the source data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOloyVnVaWEpoZEdVdFkyOXVkR1Z1ZEE6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.dGV4dA.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOloyVnVaWEpoZEdVdFkyOXVkR1Z1ZEE6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.dGV4dA.short_desc": {
+          "source": "The text content of the part",
+          "message": "The text content of the part"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOloyVnVaWEpoZEdVdFkyOXVkR1Z1ZEE6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.dGV4dA.desc": {
+          "source": "The text content of the part; mutually exclusive with `inline_data`",
+          "message": "The text content of the part; mutually exclusive with `inline_data`"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Y29udGVudHM.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Y29udGVudHM.field.cm9sZQ.short_desc": {
+          "source": "The role of the content author",
+          "message": "The role of the content author"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Y29udGVudHM.field.cm9sZQ.desc": {
+          "source": "The role of the content author: `user` or `model`",
+          "message": "The role of the content author: `user` or `model`"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "User"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.desc": {
+          "source": "Content from the user",
+          "message": "Content from the user"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOm1vZGVs.display_name": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOm1vZGVs.desc": {
+          "source": "Content from the model",
+          "message": "Content from the model"
+        },
         "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.display_name": {
           "source": "Generation Config",
           "message": "Generation Config"
@@ -411,6 +499,126 @@
           "source": "Configuration options for model generation and outputs",
           "message": "Configuration options for model generation and outputs"
         },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.Y2FuZGlkYXRlQ291bnQ.display_name": {
+          "source": "Candidate Count",
+          "message": "Candidate Count"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.Y2FuZGlkYXRlQ291bnQ.short_desc": {
+          "source": "Number of response candidates",
+          "message": "Number of response candidates"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.Y2FuZGlkYXRlQ291bnQ.desc": {
+          "source": "Number of generated responses to return. Currently only 1 is supported",
+          "message": "Number of generated responses to return. Currently only 1 is supported"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.bWF4T3V0cHV0VG9rZW5z.display_name": {
+          "source": "Max Output Tokens",
+          "message": "Max Output Tokens"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.bWF4T3V0cHV0VG9rZW5z.short_desc": {
+          "source": "Maximum number of tokens to generate",
+          "message": "Maximum number of tokens to generate"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.bWF4T3V0cHV0VG9rZW5z.desc": {
+          "source": "The maximum number of tokens to generate in the response",
+          "message": "The maximum number of tokens to generate in the response"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.display_name": {
+          "source": "Response MIME Type",
+          "message": "Response MIME Type"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.short_desc": {
+          "source": "Output MIME type",
+          "message": "Output MIME type"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.desc": {
+          "source": "The MIME type of the generated candidate text",
+          "message": "The MIME type of the generated candidate text"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "Plain Text",
+          "message": "Plain Text"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text output",
+          "message": "Plain text output"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL2pzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL2pzb24.desc": {
+          "source": "JSON structured output (use with `responseSchema`)",
+          "message": "JSON structured output (use with `responseSchema`)"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.allowed-value.c3RyaW5nOnRleHQveC5lbnVt.display_name": {
+          "source": "Enum",
+          "message": "Enum"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.allowed-value.c3RyaW5nOnRleHQveC5lbnVt.desc": {
+          "source": "Enum output (one of a set of values)",
+          "message": "Enum output (one of a set of values)"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VTY2hlbWE.display_name": {
+          "source": "Response Schema",
+          "message": "Response Schema"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VTY2hlbWE.short_desc": {
+          "source": "Schema for structured output",
+          "message": "Schema for structured output"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VTY2hlbWE.desc": {
+          "source": "Output schema for the generated candidate text when `responseMimeType` is `application/json`. Uses OpenAPI 3.0 Schema format with uppercase type names (e.g., `STRING`, `OBJECT`, `ARRAY`, `NUMBER`, `INTEGER`, `BOOLEAN`). Supports `properties`, `items`, `required`, `enum`, `description`, `nullable`, and numeric constraints (`minimum`, `maximum`)",
+          "message": "Output schema for the generated candidate text when `responseMimeType` is `application/json`. Uses OpenAPI 3.0 Schema format with uppercase type names (e.g., `STRING`, `OBJECT`, `ARRAY`, `NUMBER`, `INTEGER`, `BOOLEAN`). Supports `properties`, `items`, `required`, `enum`, `description`, `nullable`, and numeric constraints (`minimum`, `maximum`)"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.c3RvcFNlcXVlbmNlcw.display_name": {
+          "source": "Stop Sequences",
+          "message": "Stop Sequences"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.c3RvcFNlcXVlbmNlcw.short_desc": {
+          "source": "Sequences that stop generation",
+          "message": "Sequences that stop generation"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.c3RvcFNlcXVlbmNlcw.desc": {
+          "source": "A list of strings that, if encountered, will stop generation",
+          "message": "A list of strings that, if encountered, will stop generation"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "Temperature"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "Controls randomness in generation",
+          "message": "Controls randomness in generation"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dGVtcGVyYXR1cmU.desc": {
+          "source": "Controls the randomness of the output. Values range from `0.0` to `2.0`. Higher values produce more random output",
+          "message": "Controls the randomness of the output. Values range from `0.0` to `2.0`. Higher values produce more random output"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dG9wSw.display_name": {
+          "source": "Top K",
+          "message": "Top K"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dG9wSw.short_desc": {
+          "source": "Top-K sampling parameter",
+          "message": "Top-K sampling parameter"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dG9wSw.desc": {
+          "source": "The maximum number of tokens to consider when sampling",
+          "message": "The maximum number of tokens to consider when sampling"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dG9wUA.display_name": {
+          "source": "Top P",
+          "message": "Top P"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dG9wUA.short_desc": {
+          "source": "Nucleus sampling parameter",
+          "message": "Nucleus sampling parameter"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dG9wUA.desc": {
+          "source": "The maximum cumulative probability of tokens to consider when sampling. Used for nucleus sampling",
+          "message": "The maximum cumulative probability of tokens to consider when sampling. Used for nucleus sampling"
+        },
         "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.display_name": {
           "source": "Safety Settings",
           "message": "Safety Settings"
@@ -422,6 +630,102 @@
         "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.desc": {
           "source": "A list of unique safety settings for blocking unsafe content",
           "message": "A list of unique safety settings for blocking unsafe content"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.display_name": {
+          "source": "Category",
+          "message": "Category"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.short_desc": {
+          "source": "The safety category",
+          "message": "The safety category"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.desc": {
+          "source": "The safety category to configure a threshold for",
+          "message": "The safety category to configure a threshold for"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfSEFSQVNTTUVOVA.display_name": {
+          "source": "Harassment",
+          "message": "Harassment"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfSEFSQVNTTUVOVA.desc": {
+          "source": "Harassment content",
+          "message": "Harassment content"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfSEFURV9TUEVFQ0g.display_name": {
+          "source": "Hate Speech",
+          "message": "Hate Speech"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfSEFURV9TUEVFQ0g.desc": {
+          "source": "Hate speech content",
+          "message": "Hate speech content"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfU0VYVUFMTFlfRVhQTElDSVQ.display_name": {
+          "source": "Sexually Explicit",
+          "message": "Sexually Explicit"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfU0VYVUFMTFlfRVhQTElDSVQ.desc": {
+          "source": "Sexually explicit content",
+          "message": "Sexually explicit content"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfREFOR0VST1VTX0NPTlRFTlQ.display_name": {
+          "source": "Dangerous Content",
+          "message": "Dangerous Content"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfREFOR0VST1VTX0NPTlRFTlQ.desc": {
+          "source": "Dangerous content",
+          "message": "Dangerous content"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfQ0lWSUNfSU5URUdSSVRZ.display_name": {
+          "source": "Civic Integrity",
+          "message": "Civic Integrity"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfQ0lWSUNfSU5URUdSSVRZ.desc": {
+          "source": "Civic integrity content",
+          "message": "Civic integrity content"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.display_name": {
+          "source": "Threshold",
+          "message": "Threshold"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.short_desc": {
+          "source": "The blocking threshold",
+          "message": "The blocking threshold"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.desc": {
+          "source": "The threshold at which this safety category is blocked",
+          "message": "The threshold at which this safety category is blocked"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX05PTkU.display_name": {
+          "source": "Block None",
+          "message": "Block None"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX05PTkU.desc": {
+          "source": "Always show regardless of probability of unsafe content",
+          "message": "Always show regardless of probability of unsafe content"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX0xPV19BTkRfQUJPVkU.display_name": {
+          "source": "Block Low and Above",
+          "message": "Block Low and Above"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX0xPV19BTkRfQUJPVkU.desc": {
+          "source": "Block when low probability of unsafe content or higher",
+          "message": "Block when low probability of unsafe content or higher"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX01FRElVTV9BTkRfQUJPVkU.display_name": {
+          "source": "Block Medium and Above",
+          "message": "Block Medium and Above"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX01FRElVTV9BTkRfQUJPVkU.desc": {
+          "source": "Block when medium probability of unsafe content or higher",
+          "message": "Block when medium probability of unsafe content or higher"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX09OTFlfSElHSA.display_name": {
+          "source": "Block Only High",
+          "message": "Block Only High"
+        },
+        "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX09OTFlfSElHSA.desc": {
+          "source": "Block when high probability of unsafe content",
+          "message": "Block when high probability of unsafe content"
         },
         "app.R2VtaW5p.action.Z2VuZXJhdGUtY29udGVudA.option.ZmlsZVNlYXJjaFN0b3Jl.display_name": {
           "source": "File Search Store",
@@ -603,6 +907,94 @@
           "source": "The content of the current conversation with the model. For single-turn queries, this is a single message. For multi-turn queries, this is a repeated field that contains conversation history and the latest request. For simple text prompts, use the `prompt` field instead",
           "message": "The content of the current conversation with the model. For single-turn queries, this is a single message. For multi-turn queries, this is a repeated field that contains conversation history and the latest request. For simple text prompts, use the `prompt` field instead"
         },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Y29udGVudHM.field.cGFydHM.display_name": {
+          "source": "Parts",
+          "message": "Parts"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Y29udGVudHM.field.cGFydHM.short_desc": {
+          "source": "The content parts",
+          "message": "The content parts"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Y29udGVudHM.field.cGFydHM.desc": {
+          "source": "Ordered list of content parts that make up this message",
+          "message": "Ordered list of content parts that make up this message"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOmMzUnlaV0Z0TFdOdmJuUmxiblE6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.aW5saW5lX2RhdGE.display_name": {
+          "source": "Inline Data",
+          "message": "Inline Data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOmMzUnlaV0Z0TFdOdmJuUmxiblE6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.aW5saW5lX2RhdGE.short_desc": {
+          "source": "Inline media data",
+          "message": "Inline media data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOmMzUnlaV0Z0TFdOdmJuUmxiblE6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.aW5saW5lX2RhdGE.desc": {
+          "source": "Inline media data such as images, audio, or video; mutually exclusive with `text`",
+          "message": "Inline media data such as images, audio, or video; mutually exclusive with `text`"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOmMzUnlaV0Z0TFdOdmJuUmxiblE6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.ZGF0YQ.display_name": {
+          "source": "Data",
+          "message": "Data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOmMzUnlaV0Z0TFdOdmJuUmxiblE6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.ZGF0YQ.short_desc": {
+          "source": "Base64-encoded binary data",
+          "message": "Base64-encoded binary data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOmMzUnlaV0Z0TFdOdmJuUmxiblE6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.ZGF0YQ.desc": {
+          "source": "Base64-encoded binary data (e.g., image, audio, video)",
+          "message": "Base64-encoded binary data (e.g., image, audio, video)"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOmMzUnlaV0Z0TFdOdmJuUmxiblE6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME Type"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOmMzUnlaV0Z0TFdOdmJuUmxiblE6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type of the inline data",
+          "message": "The MIME type of the inline data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOmMzUnlaV0Z0TFdOdmJuUmxiblE6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.bWltZV90eXBl.desc": {
+          "source": "The IANA standard MIME type of the source data",
+          "message": "The IANA standard MIME type of the source data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOmMzUnlaV0Z0TFdOdmJuUmxiblE6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.dGV4dA.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOmMzUnlaV0Z0TFdOdmJuUmxiblE6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.dGV4dA.short_desc": {
+          "source": "The text content of the part",
+          "message": "The text content of the part"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOmMzUnlaV0Z0TFdOdmJuUmxiblE6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.dGV4dA.desc": {
+          "source": "The text content of the part; mutually exclusive with `inline_data`",
+          "message": "The text content of the part; mutually exclusive with `inline_data`"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Y29udGVudHM.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Y29udGVudHM.field.cm9sZQ.short_desc": {
+          "source": "The role of the content author",
+          "message": "The role of the content author"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Y29udGVudHM.field.cm9sZQ.desc": {
+          "source": "The role of the content author: `user` or `model`",
+          "message": "The role of the content author: `user` or `model`"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "User"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.desc": {
+          "source": "Content from the user",
+          "message": "Content from the user"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOm1vZGVs.display_name": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOm1vZGVs.desc": {
+          "source": "Content from the model",
+          "message": "Content from the model"
+        },
         "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.display_name": {
           "source": "Generation Config",
           "message": "Generation Config"
@@ -615,6 +1007,126 @@
           "source": "Configuration options for model generation and outputs",
           "message": "Configuration options for model generation and outputs"
         },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.Y2FuZGlkYXRlQ291bnQ.display_name": {
+          "source": "Candidate Count",
+          "message": "Candidate Count"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.Y2FuZGlkYXRlQ291bnQ.short_desc": {
+          "source": "Number of response candidates",
+          "message": "Number of response candidates"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.Y2FuZGlkYXRlQ291bnQ.desc": {
+          "source": "Number of generated responses to return. Currently only 1 is supported",
+          "message": "Number of generated responses to return. Currently only 1 is supported"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.bWF4T3V0cHV0VG9rZW5z.display_name": {
+          "source": "Max Output Tokens",
+          "message": "Max Output Tokens"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.bWF4T3V0cHV0VG9rZW5z.short_desc": {
+          "source": "Maximum number of tokens to generate",
+          "message": "Maximum number of tokens to generate"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.bWF4T3V0cHV0VG9rZW5z.desc": {
+          "source": "The maximum number of tokens to generate in the response",
+          "message": "The maximum number of tokens to generate in the response"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.display_name": {
+          "source": "Response MIME Type",
+          "message": "Response MIME Type"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.short_desc": {
+          "source": "Output MIME type",
+          "message": "Output MIME type"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.desc": {
+          "source": "The MIME type of the generated candidate text",
+          "message": "The MIME type of the generated candidate text"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "Plain Text",
+          "message": "Plain Text"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text output",
+          "message": "Plain text output"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL2pzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL2pzb24.desc": {
+          "source": "JSON structured output (use with `responseSchema`)",
+          "message": "JSON structured output (use with `responseSchema`)"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.allowed-value.c3RyaW5nOnRleHQveC5lbnVt.display_name": {
+          "source": "Enum",
+          "message": "Enum"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VNaW1lVHlwZQ.allowed-value.c3RyaW5nOnRleHQveC5lbnVt.desc": {
+          "source": "Enum output (one of a set of values)",
+          "message": "Enum output (one of a set of values)"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VTY2hlbWE.display_name": {
+          "source": "Response Schema",
+          "message": "Response Schema"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VTY2hlbWE.short_desc": {
+          "source": "Schema for structured output",
+          "message": "Schema for structured output"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.cmVzcG9uc2VTY2hlbWE.desc": {
+          "source": "Output schema for the generated candidate text when `responseMimeType` is `application/json`. Uses OpenAPI 3.0 Schema format with uppercase type names (e.g., `STRING`, `OBJECT`, `ARRAY`, `NUMBER`, `INTEGER`, `BOOLEAN`). Supports `properties`, `items`, `required`, `enum`, `description`, `nullable`, and numeric constraints (`minimum`, `maximum`)",
+          "message": "Output schema for the generated candidate text when `responseMimeType` is `application/json`. Uses OpenAPI 3.0 Schema format with uppercase type names (e.g., `STRING`, `OBJECT`, `ARRAY`, `NUMBER`, `INTEGER`, `BOOLEAN`). Supports `properties`, `items`, `required`, `enum`, `description`, `nullable`, and numeric constraints (`minimum`, `maximum`)"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.c3RvcFNlcXVlbmNlcw.display_name": {
+          "source": "Stop Sequences",
+          "message": "Stop Sequences"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.c3RvcFNlcXVlbmNlcw.short_desc": {
+          "source": "Sequences that stop generation",
+          "message": "Sequences that stop generation"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.c3RvcFNlcXVlbmNlcw.desc": {
+          "source": "A list of strings that, if encountered, will stop generation",
+          "message": "A list of strings that, if encountered, will stop generation"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "Temperature"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "Controls randomness in generation",
+          "message": "Controls randomness in generation"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dGVtcGVyYXR1cmU.desc": {
+          "source": "Controls the randomness of the output. Values range from `0.0` to `2.0`. Higher values produce more random output",
+          "message": "Controls the randomness of the output. Values range from `0.0` to `2.0`. Higher values produce more random output"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dG9wSw.display_name": {
+          "source": "Top K",
+          "message": "Top K"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dG9wSw.short_desc": {
+          "source": "Top-K sampling parameter",
+          "message": "Top-K sampling parameter"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dG9wSw.desc": {
+          "source": "The maximum number of tokens to consider when sampling",
+          "message": "The maximum number of tokens to consider when sampling"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dG9wUA.display_name": {
+          "source": "Top P",
+          "message": "Top P"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dG9wUA.short_desc": {
+          "source": "Nucleus sampling parameter",
+          "message": "Nucleus sampling parameter"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.Z2VuZXJhdGlvbkNvbmZpZw.field.dG9wUA.desc": {
+          "source": "The maximum cumulative probability of tokens to consider when sampling. Used for nucleus sampling",
+          "message": "The maximum cumulative probability of tokens to consider when sampling. Used for nucleus sampling"
+        },
         "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.display_name": {
           "source": "Safety Settings",
           "message": "Safety Settings"
@@ -626,6 +1138,102 @@
         "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.desc": {
           "source": "A list of unique safety settings for blocking unsafe content",
           "message": "A list of unique safety settings for blocking unsafe content"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.display_name": {
+          "source": "Category",
+          "message": "Category"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.short_desc": {
+          "source": "The safety category",
+          "message": "The safety category"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.desc": {
+          "source": "The safety category to configure a threshold for",
+          "message": "The safety category to configure a threshold for"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfSEFSQVNTTUVOVA.display_name": {
+          "source": "Harassment",
+          "message": "Harassment"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfSEFSQVNTTUVOVA.desc": {
+          "source": "Harassment content",
+          "message": "Harassment content"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfSEFURV9TUEVFQ0g.display_name": {
+          "source": "Hate Speech",
+          "message": "Hate Speech"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfSEFURV9TUEVFQ0g.desc": {
+          "source": "Hate speech content",
+          "message": "Hate speech content"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfU0VYVUFMTFlfRVhQTElDSVQ.display_name": {
+          "source": "Sexually Explicit",
+          "message": "Sexually Explicit"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfU0VYVUFMTFlfRVhQTElDSVQ.desc": {
+          "source": "Sexually explicit content",
+          "message": "Sexually explicit content"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfREFOR0VST1VTX0NPTlRFTlQ.display_name": {
+          "source": "Dangerous Content",
+          "message": "Dangerous Content"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfREFOR0VST1VTX0NPTlRFTlQ.desc": {
+          "source": "Dangerous content",
+          "message": "Dangerous content"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfQ0lWSUNfSU5URUdSSVRZ.display_name": {
+          "source": "Civic Integrity",
+          "message": "Civic Integrity"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.Y2F0ZWdvcnk.allowed-value.c3RyaW5nOkhBUk1fQ0FURUdPUllfQ0lWSUNfSU5URUdSSVRZ.desc": {
+          "source": "Civic integrity content",
+          "message": "Civic integrity content"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.display_name": {
+          "source": "Threshold",
+          "message": "Threshold"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.short_desc": {
+          "source": "The blocking threshold",
+          "message": "The blocking threshold"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.desc": {
+          "source": "The threshold at which this safety category is blocked",
+          "message": "The threshold at which this safety category is blocked"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX05PTkU.display_name": {
+          "source": "Block None",
+          "message": "Block None"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX05PTkU.desc": {
+          "source": "Always show regardless of probability of unsafe content",
+          "message": "Always show regardless of probability of unsafe content"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX0xPV19BTkRfQUJPVkU.display_name": {
+          "source": "Block Low and Above",
+          "message": "Block Low and Above"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX0xPV19BTkRfQUJPVkU.desc": {
+          "source": "Block when low probability of unsafe content or higher",
+          "message": "Block when low probability of unsafe content or higher"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX01FRElVTV9BTkRfQUJPVkU.display_name": {
+          "source": "Block Medium and Above",
+          "message": "Block Medium and Above"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX01FRElVTV9BTkRfQUJPVkU.desc": {
+          "source": "Block when medium probability of unsafe content or higher",
+          "message": "Block when medium probability of unsafe content or higher"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX09OTFlfSElHSA.display_name": {
+          "source": "Block Only High",
+          "message": "Block Only High"
+        },
+        "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.c2FmZXR5U2V0dGluZ3M.field.dGhyZXNob2xk.allowed-value.c3RyaW5nOkJMT0NLX09OTFlfSElHSA.desc": {
+          "source": "Block when high probability of unsafe content",
+          "message": "Block when high probability of unsafe content"
         },
         "app.R2VtaW5p.action.c3RyZWFtLWNvbnRlbnQ.option.ZmlsZVNlYXJjaFN0b3Jl.display_name": {
           "source": "File Search Store",
@@ -763,6 +1371,94 @@
           "source": "The content to embed. Only the `parts.text` fields will be counted. For simple text, use the `text` field instead",
           "message": "The content to embed. Only the `parts.text` fields will be counted. For simple text, use the `text` field instead"
         },
+        "app.R2VtaW5p.action.ZW1iZWQtY29udGVudA.option.Y29udGVudA.field.cGFydHM.display_name": {
+          "source": "Parts",
+          "message": "Parts"
+        },
+        "app.R2VtaW5p.action.ZW1iZWQtY29udGVudA.option.Y29udGVudA.field.cGFydHM.short_desc": {
+          "source": "The content parts",
+          "message": "The content parts"
+        },
+        "app.R2VtaW5p.action.ZW1iZWQtY29udGVudA.option.Y29udGVudA.field.cGFydHM.desc": {
+          "source": "Ordered list of content parts that make up this message",
+          "message": "Ordered list of content parts that make up this message"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlpXMWlaV1F0WTI5dWRHVnVkQTpHZW1pbmlDb250ZW50UGFydERhdGFUeXBlOmhhc2g8YXV0bz4jYmYwNTVhZjllNTc4ZGYyMzY5ODVjZGIxMjc4MzBjOWVkNjYzZWEwYzAxZDZlNWY1MTRmYWQ3NThiZmNkYmIzZjpvcHRpb246WTI5dWRHVnVkQTpmaWVsZDpjR0Z5ZEhN.field.aW5saW5lX2RhdGE.display_name": {
+          "source": "Inline Data",
+          "message": "Inline Data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlpXMWlaV1F0WTI5dWRHVnVkQTpHZW1pbmlDb250ZW50UGFydERhdGFUeXBlOmhhc2g8YXV0bz4jYmYwNTVhZjllNTc4ZGYyMzY5ODVjZGIxMjc4MzBjOWVkNjYzZWEwYzAxZDZlNWY1MTRmYWQ3NThiZmNkYmIzZjpvcHRpb246WTI5dWRHVnVkQTpmaWVsZDpjR0Z5ZEhN.field.aW5saW5lX2RhdGE.short_desc": {
+          "source": "Inline media data",
+          "message": "Inline media data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlpXMWlaV1F0WTI5dWRHVnVkQTpHZW1pbmlDb250ZW50UGFydERhdGFUeXBlOmhhc2g8YXV0bz4jYmYwNTVhZjllNTc4ZGYyMzY5ODVjZGIxMjc4MzBjOWVkNjYzZWEwYzAxZDZlNWY1MTRmYWQ3NThiZmNkYmIzZjpvcHRpb246WTI5dWRHVnVkQTpmaWVsZDpjR0Z5ZEhN.field.aW5saW5lX2RhdGE.desc": {
+          "source": "Inline media data such as images, audio, or video; mutually exclusive with `text`",
+          "message": "Inline media data such as images, audio, or video; mutually exclusive with `text`"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlpXMWlaV1F0WTI5dWRHVnVkQTpHZW1pbmlJbmxpbmVEYXRhRGF0YVR5cGU6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlIzY0ODIzYmQxNjQyMWFlZDZiNzBhMWZmMWY0NjIyYjFmOTc4ZGNmZjE4MjYyMTYyYmM5YzFmNWU4YmQ3YjNhZDE6b3B0aW9uOlkyOXVkR1Z1ZEE6ZmllbGQ6Y0dGeWRITTpmaWVsZDphVzVzYVc1bFgyUmhkR0U.field.ZGF0YQ.display_name": {
+          "source": "Data",
+          "message": "Data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlpXMWlaV1F0WTI5dWRHVnVkQTpHZW1pbmlJbmxpbmVEYXRhRGF0YVR5cGU6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlIzY0ODIzYmQxNjQyMWFlZDZiNzBhMWZmMWY0NjIyYjFmOTc4ZGNmZjE4MjYyMTYyYmM5YzFmNWU4YmQ3YjNhZDE6b3B0aW9uOlkyOXVkR1Z1ZEE6ZmllbGQ6Y0dGeWRITTpmaWVsZDphVzVzYVc1bFgyUmhkR0U.field.ZGF0YQ.short_desc": {
+          "source": "Base64-encoded binary data",
+          "message": "Base64-encoded binary data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlpXMWlaV1F0WTI5dWRHVnVkQTpHZW1pbmlJbmxpbmVEYXRhRGF0YVR5cGU6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlIzY0ODIzYmQxNjQyMWFlZDZiNzBhMWZmMWY0NjIyYjFmOTc4ZGNmZjE4MjYyMTYyYmM5YzFmNWU4YmQ3YjNhZDE6b3B0aW9uOlkyOXVkR1Z1ZEE6ZmllbGQ6Y0dGeWRITTpmaWVsZDphVzVzYVc1bFgyUmhkR0U.field.ZGF0YQ.desc": {
+          "source": "Base64-encoded binary data (e.g., image, audio, video)",
+          "message": "Base64-encoded binary data (e.g., image, audio, video)"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlpXMWlaV1F0WTI5dWRHVnVkQTpHZW1pbmlJbmxpbmVEYXRhRGF0YVR5cGU6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlIzY0ODIzYmQxNjQyMWFlZDZiNzBhMWZmMWY0NjIyYjFmOTc4ZGNmZjE4MjYyMTYyYmM5YzFmNWU4YmQ3YjNhZDE6b3B0aW9uOlkyOXVkR1Z1ZEE6ZmllbGQ6Y0dGeWRITTpmaWVsZDphVzVzYVc1bFgyUmhkR0U.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME Type"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlpXMWlaV1F0WTI5dWRHVnVkQTpHZW1pbmlJbmxpbmVEYXRhRGF0YVR5cGU6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlIzY0ODIzYmQxNjQyMWFlZDZiNzBhMWZmMWY0NjIyYjFmOTc4ZGNmZjE4MjYyMTYyYmM5YzFmNWU4YmQ3YjNhZDE6b3B0aW9uOlkyOXVkR1Z1ZEE6ZmllbGQ6Y0dGeWRITTpmaWVsZDphVzVzYVc1bFgyUmhkR0U.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type of the inline data",
+          "message": "The MIME type of the inline data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlpXMWlaV1F0WTI5dWRHVnVkQTpHZW1pbmlJbmxpbmVEYXRhRGF0YVR5cGU6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlIzY0ODIzYmQxNjQyMWFlZDZiNzBhMWZmMWY0NjIyYjFmOTc4ZGNmZjE4MjYyMTYyYmM5YzFmNWU4YmQ3YjNhZDE6b3B0aW9uOlkyOXVkR1Z1ZEE6ZmllbGQ6Y0dGeWRITTpmaWVsZDphVzVzYVc1bFgyUmhkR0U.field.bWltZV90eXBl.desc": {
+          "source": "The IANA standard MIME type of the source data",
+          "message": "The IANA standard MIME type of the source data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlpXMWlaV1F0WTI5dWRHVnVkQTpHZW1pbmlDb250ZW50UGFydERhdGFUeXBlOmhhc2g8YXV0bz4jYmYwNTVhZjllNTc4ZGYyMzY5ODVjZGIxMjc4MzBjOWVkNjYzZWEwYzAxZDZlNWY1MTRmYWQ3NThiZmNkYmIzZjpvcHRpb246WTI5dWRHVnVkQTpmaWVsZDpjR0Z5ZEhN.field.dGV4dA.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlpXMWlaV1F0WTI5dWRHVnVkQTpHZW1pbmlDb250ZW50UGFydERhdGFUeXBlOmhhc2g8YXV0bz4jYmYwNTVhZjllNTc4ZGYyMzY5ODVjZGIxMjc4MzBjOWVkNjYzZWEwYzAxZDZlNWY1MTRmYWQ3NThiZmNkYmIzZjpvcHRpb246WTI5dWRHVnVkQTpmaWVsZDpjR0Z5ZEhN.field.dGV4dA.short_desc": {
+          "source": "The text content of the part",
+          "message": "The text content of the part"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlpXMWlaV1F0WTI5dWRHVnVkQTpHZW1pbmlDb250ZW50UGFydERhdGFUeXBlOmhhc2g8YXV0bz4jYmYwNTVhZjllNTc4ZGYyMzY5ODVjZGIxMjc4MzBjOWVkNjYzZWEwYzAxZDZlNWY1MTRmYWQ3NThiZmNkYmIzZjpvcHRpb246WTI5dWRHVnVkQTpmaWVsZDpjR0Z5ZEhN.field.dGV4dA.desc": {
+          "source": "The text content of the part; mutually exclusive with `inline_data`",
+          "message": "The text content of the part; mutually exclusive with `inline_data`"
+        },
+        "app.R2VtaW5p.action.ZW1iZWQtY29udGVudA.option.Y29udGVudA.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.R2VtaW5p.action.ZW1iZWQtY29udGVudA.option.Y29udGVudA.field.cm9sZQ.short_desc": {
+          "source": "The role of the content author",
+          "message": "The role of the content author"
+        },
+        "app.R2VtaW5p.action.ZW1iZWQtY29udGVudA.option.Y29udGVudA.field.cm9sZQ.desc": {
+          "source": "The role of the content author: `user` or `model`",
+          "message": "The role of the content author: `user` or `model`"
+        },
+        "app.R2VtaW5p.action.ZW1iZWQtY29udGVudA.option.Y29udGVudA.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "User"
+        },
+        "app.R2VtaW5p.action.ZW1iZWQtY29udGVudA.option.Y29udGVudA.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.desc": {
+          "source": "Content from the user",
+          "message": "Content from the user"
+        },
+        "app.R2VtaW5p.action.ZW1iZWQtY29udGVudA.option.Y29udGVudA.field.cm9sZQ.allowed-value.c3RyaW5nOm1vZGVs.display_name": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.R2VtaW5p.action.ZW1iZWQtY29udGVudA.option.Y29udGVudA.field.cm9sZQ.allowed-value.c3RyaW5nOm1vZGVs.desc": {
+          "source": "Content from the model",
+          "message": "Content from the model"
+        },
         "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.display_name": {
           "source": "Batch Embed",
           "message": "Batch Embed"
@@ -798,6 +1494,206 @@
         "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.desc": {
           "source": "List of individual embed content requests. The `model` field in each request is ignored in favor of the top-level model",
           "message": "List of individual embed content requests. The `model` field in each request is ignored in favor of the top-level model"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.Y29udGVudA.display_name": {
+          "source": "Content",
+          "message": "Content"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.Y29udGVudA.short_desc": {
+          "source": "The content to embed",
+          "message": "The content to embed"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.Y29udGVudA.desc": {
+          "source": "The content to embed. Only the `parts.text` fields will be counted. For simple text, use the `text` field instead",
+          "message": "The content to embed. Only the `parts.text` fields will be counted. For simple text, use the `text` field instead"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50RGF0YVR5cGU6R2VtaW5pQ29udGVudERhdGFUeXBlIzU0NDllMzc0ZDcwZTkzZDMyNDdlOTkxODU0ZDk0YjkwZDE3MGZiY2JiM2YxNTkzOTNkYmEwZjFlZmU4Njg4YjQ6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE.field.cGFydHM.display_name": {
+          "source": "Parts",
+          "message": "Parts"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50RGF0YVR5cGU6R2VtaW5pQ29udGVudERhdGFUeXBlIzU0NDllMzc0ZDcwZTkzZDMyNDdlOTkxODU0ZDk0YjkwZDE3MGZiY2JiM2YxNTkzOTNkYmEwZjFlZmU4Njg4YjQ6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE.field.cGFydHM.short_desc": {
+          "source": "The content parts",
+          "message": "The content parts"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50RGF0YVR5cGU6R2VtaW5pQ29udGVudERhdGFUeXBlIzU0NDllMzc0ZDcwZTkzZDMyNDdlOTkxODU0ZDk0YjkwZDE3MGZiY2JiM2YxNTkzOTNkYmEwZjFlZmU4Njg4YjQ6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE.field.cGFydHM.desc": {
+          "source": "Ordered list of content parts that make up this message",
+          "message": "Ordered list of content parts that make up this message"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50UGFydERhdGFUeXBlOmhhc2g8YXV0bz4jYmYwNTVhZjllNTc4ZGYyMzY5ODVjZGIxMjc4MzBjOWVkNjYzZWEwYzAxZDZlNWY1MTRmYWQ3NThiZmNkYmIzZjpvcHRpb246Y21WeGRXVnpkSE06ZmllbGQ6WTI5dWRHVnVkQTpmaWVsZDpjR0Z5ZEhN.field.aW5saW5lX2RhdGE.display_name": {
+          "source": "Inline Data",
+          "message": "Inline Data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50UGFydERhdGFUeXBlOmhhc2g8YXV0bz4jYmYwNTVhZjllNTc4ZGYyMzY5ODVjZGIxMjc4MzBjOWVkNjYzZWEwYzAxZDZlNWY1MTRmYWQ3NThiZmNkYmIzZjpvcHRpb246Y21WeGRXVnpkSE06ZmllbGQ6WTI5dWRHVnVkQTpmaWVsZDpjR0Z5ZEhN.field.aW5saW5lX2RhdGE.short_desc": {
+          "source": "Inline media data",
+          "message": "Inline media data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50UGFydERhdGFUeXBlOmhhc2g8YXV0bz4jYmYwNTVhZjllNTc4ZGYyMzY5ODVjZGIxMjc4MzBjOWVkNjYzZWEwYzAxZDZlNWY1MTRmYWQ3NThiZmNkYmIzZjpvcHRpb246Y21WeGRXVnpkSE06ZmllbGQ6WTI5dWRHVnVkQTpmaWVsZDpjR0Z5ZEhN.field.aW5saW5lX2RhdGE.desc": {
+          "source": "Inline media data such as images, audio, or video; mutually exclusive with `text`",
+          "message": "Inline media data such as images, audio, or video; mutually exclusive with `text`"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlJbmxpbmVEYXRhRGF0YVR5cGU6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlIzY0ODIzYmQxNjQyMWFlZDZiNzBhMWZmMWY0NjIyYjFmOTc4ZGNmZjE4MjYyMTYyYmM5YzFmNWU4YmQ3YjNhZDE6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE6ZmllbGQ6Y0dGeWRITTpmaWVsZDphVzVzYVc1bFgyUmhkR0U.field.ZGF0YQ.display_name": {
+          "source": "Data",
+          "message": "Data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlJbmxpbmVEYXRhRGF0YVR5cGU6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlIzY0ODIzYmQxNjQyMWFlZDZiNzBhMWZmMWY0NjIyYjFmOTc4ZGNmZjE4MjYyMTYyYmM5YzFmNWU4YmQ3YjNhZDE6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE6ZmllbGQ6Y0dGeWRITTpmaWVsZDphVzVzYVc1bFgyUmhkR0U.field.ZGF0YQ.short_desc": {
+          "source": "Base64-encoded binary data",
+          "message": "Base64-encoded binary data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlJbmxpbmVEYXRhRGF0YVR5cGU6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlIzY0ODIzYmQxNjQyMWFlZDZiNzBhMWZmMWY0NjIyYjFmOTc4ZGNmZjE4MjYyMTYyYmM5YzFmNWU4YmQ3YjNhZDE6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE6ZmllbGQ6Y0dGeWRITTpmaWVsZDphVzVzYVc1bFgyUmhkR0U.field.ZGF0YQ.desc": {
+          "source": "Base64-encoded binary data (e.g., image, audio, video)",
+          "message": "Base64-encoded binary data (e.g., image, audio, video)"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlJbmxpbmVEYXRhRGF0YVR5cGU6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlIzY0ODIzYmQxNjQyMWFlZDZiNzBhMWZmMWY0NjIyYjFmOTc4ZGNmZjE4MjYyMTYyYmM5YzFmNWU4YmQ3YjNhZDE6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE6ZmllbGQ6Y0dGeWRITTpmaWVsZDphVzVzYVc1bFgyUmhkR0U.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME Type"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlJbmxpbmVEYXRhRGF0YVR5cGU6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlIzY0ODIzYmQxNjQyMWFlZDZiNzBhMWZmMWY0NjIyYjFmOTc4ZGNmZjE4MjYyMTYyYmM5YzFmNWU4YmQ3YjNhZDE6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE6ZmllbGQ6Y0dGeWRITTpmaWVsZDphVzVzYVc1bFgyUmhkR0U.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type of the inline data",
+          "message": "The MIME type of the inline data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlJbmxpbmVEYXRhRGF0YVR5cGU6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlIzY0ODIzYmQxNjQyMWFlZDZiNzBhMWZmMWY0NjIyYjFmOTc4ZGNmZjE4MjYyMTYyYmM5YzFmNWU4YmQ3YjNhZDE6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE6ZmllbGQ6Y0dGeWRITTpmaWVsZDphVzVzYVc1bFgyUmhkR0U.field.bWltZV90eXBl.desc": {
+          "source": "The IANA standard MIME type of the source data",
+          "message": "The IANA standard MIME type of the source data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50UGFydERhdGFUeXBlOmhhc2g8YXV0bz4jYmYwNTVhZjllNTc4ZGYyMzY5ODVjZGIxMjc4MzBjOWVkNjYzZWEwYzAxZDZlNWY1MTRmYWQ3NThiZmNkYmIzZjpvcHRpb246Y21WeGRXVnpkSE06ZmllbGQ6WTI5dWRHVnVkQTpmaWVsZDpjR0Z5ZEhN.field.dGV4dA.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50UGFydERhdGFUeXBlOmhhc2g8YXV0bz4jYmYwNTVhZjllNTc4ZGYyMzY5ODVjZGIxMjc4MzBjOWVkNjYzZWEwYzAxZDZlNWY1MTRmYWQ3NThiZmNkYmIzZjpvcHRpb246Y21WeGRXVnpkSE06ZmllbGQ6WTI5dWRHVnVkQTpmaWVsZDpjR0Z5ZEhN.field.dGV4dA.short_desc": {
+          "source": "The text content of the part",
+          "message": "The text content of the part"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50UGFydERhdGFUeXBlOmhhc2g8YXV0bz4jYmYwNTVhZjllNTc4ZGYyMzY5ODVjZGIxMjc4MzBjOWVkNjYzZWEwYzAxZDZlNWY1MTRmYWQ3NThiZmNkYmIzZjpvcHRpb246Y21WeGRXVnpkSE06ZmllbGQ6WTI5dWRHVnVkQTpmaWVsZDpjR0Z5ZEhN.field.dGV4dA.desc": {
+          "source": "The text content of the part; mutually exclusive with `inline_data`",
+          "message": "The text content of the part; mutually exclusive with `inline_data`"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50RGF0YVR5cGU6R2VtaW5pQ29udGVudERhdGFUeXBlIzU0NDllMzc0ZDcwZTkzZDMyNDdlOTkxODU0ZDk0YjkwZDE3MGZiY2JiM2YxNTkzOTNkYmEwZjFlZmU4Njg4YjQ6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50RGF0YVR5cGU6R2VtaW5pQ29udGVudERhdGFUeXBlIzU0NDllMzc0ZDcwZTkzZDMyNDdlOTkxODU0ZDk0YjkwZDE3MGZiY2JiM2YxNTkzOTNkYmEwZjFlZmU4Njg4YjQ6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE.field.cm9sZQ.short_desc": {
+          "source": "The role of the content author",
+          "message": "The role of the content author"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50RGF0YVR5cGU6R2VtaW5pQ29udGVudERhdGFUeXBlIzU0NDllMzc0ZDcwZTkzZDMyNDdlOTkxODU0ZDk0YjkwZDE3MGZiY2JiM2YxNTkzOTNkYmEwZjFlZmU4Njg4YjQ6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE.field.cm9sZQ.desc": {
+          "source": "The role of the content author: `user` or `model`",
+          "message": "The role of the content author: `user` or `model`"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50RGF0YVR5cGU6R2VtaW5pQ29udGVudERhdGFUeXBlIzU0NDllMzc0ZDcwZTkzZDMyNDdlOTkxODU0ZDk0YjkwZDE3MGZiY2JiM2YxNTkzOTNkYmEwZjFlZmU4Njg4YjQ6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "User"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50RGF0YVR5cGU6R2VtaW5pQ29udGVudERhdGFUeXBlIzU0NDllMzc0ZDcwZTkzZDMyNDdlOTkxODU0ZDk0YjkwZDE3MGZiY2JiM2YxNTkzOTNkYmEwZjFlZmU4Njg4YjQ6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.desc": {
+          "source": "Content from the user",
+          "message": "Content from the user"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50RGF0YVR5cGU6R2VtaW5pQ29udGVudERhdGFUeXBlIzU0NDllMzc0ZDcwZTkzZDMyNDdlOTkxODU0ZDk0YjkwZDE3MGZiY2JiM2YxNTkzOTNkYmEwZjFlZmU4Njg4YjQ6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE.field.cm9sZQ.allowed-value.c3RyaW5nOm1vZGVs.display_name": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlltRjBZMmd0WlcxaVpXUTpHZW1pbmlDb250ZW50RGF0YVR5cGU6R2VtaW5pQ29udGVudERhdGFUeXBlIzU0NDllMzc0ZDcwZTkzZDMyNDdlOTkxODU0ZDk0YjkwZDE3MGZiY2JiM2YxNTkzOTNkYmEwZjFlZmU4Njg4YjQ6b3B0aW9uOmNtVnhkV1Z6ZEhNOmZpZWxkOlkyOXVkR1Z1ZEE.field.cm9sZQ.allowed-value.c3RyaW5nOm1vZGVs.desc": {
+          "source": "Content from the model",
+          "message": "Content from the model"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.bW9kZWw.display_name": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.bW9kZWw.short_desc": {
+          "source": "The embedding model to use",
+          "message": "The embedding model to use"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.bW9kZWw.desc": {
+          "source": "The model name to use for embedding (e.g., `gemini-embedding-001`). Required for standalone requests; ignored in batch requests where the top-level model is used",
+          "message": "The model name to use for embedding (e.g., `gemini-embedding-001`). Required for standalone requests; ignored in batch requests where the top-level model is used"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.b3V0cHV0RGltZW5zaW9uYWxpdHk.display_name": {
+          "source": "Output Dimensionality",
+          "message": "Output Dimensionality"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.b3V0cHV0RGltZW5zaW9uYWxpdHk.short_desc": {
+          "source": "Optional reduced dimension for the output embedding",
+          "message": "Optional reduced dimension for the output embedding"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.b3V0cHV0RGltZW5zaW9uYWxpdHk.desc": {
+          "source": "Optional reduced dimension for the output embedding. If set, excessive values in the output embedding are truncated from the end",
+          "message": "Optional reduced dimension for the output embedding. If set, excessive values in the output embedding are truncated from the end"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGFza1R5cGU.display_name": {
+          "source": "Task Type",
+          "message": "Task Type"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGFza1R5cGU.short_desc": {
+          "source": "The intended task type for the embedding",
+          "message": "The intended task type for the embedding"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGFza1R5cGU.desc": {
+          "source": "Optional task type for which the embeddings will be used",
+          "message": "Optional task type for which the embeddings will be used"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGFza1R5cGU.allowed-value.c3RyaW5nOlJFVFJJRVZBTF9RVUVSWQ.display_name": {
+          "source": "Retrieval Query",
+          "message": "Retrieval Query"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGFza1R5cGU.allowed-value.c3RyaW5nOlJFVFJJRVZBTF9RVUVSWQ.desc": {
+          "source": "Specifies the given text is a query in a search/retrieval setting",
+          "message": "Specifies the given text is a query in a search/retrieval setting"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGFza1R5cGU.allowed-value.c3RyaW5nOlJFVFJJRVZBTF9ET0NVTUVOVA.display_name": {
+          "source": "Retrieval Document",
+          "message": "Retrieval Document"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGFza1R5cGU.allowed-value.c3RyaW5nOlJFVFJJRVZBTF9ET0NVTUVOVA.desc": {
+          "source": "Specifies the given text is a document from the corpus being searched",
+          "message": "Specifies the given text is a document from the corpus being searched"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGFza1R5cGU.allowed-value.c3RyaW5nOlNFTUFOVElDX1NJTUlMQVJJVFk.display_name": {
+          "source": "Semantic Similarity",
+          "message": "Semantic Similarity"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGFza1R5cGU.allowed-value.c3RyaW5nOlNFTUFOVElDX1NJTUlMQVJJVFk.desc": {
+          "source": "Specifies the given text will be used for semantic text similarity",
+          "message": "Specifies the given text will be used for semantic text similarity"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGFza1R5cGU.allowed-value.c3RyaW5nOkNMQVNTSUZJQ0FUSU9O.display_name": {
+          "source": "Classification",
+          "message": "Classification"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGFza1R5cGU.allowed-value.c3RyaW5nOkNMQVNTSUZJQ0FUSU9O.desc": {
+          "source": "Specifies that the given text will be classified",
+          "message": "Specifies that the given text will be classified"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGFza1R5cGU.allowed-value.c3RyaW5nOkNMVVNURVJJTkc.display_name": {
+          "source": "Clustering",
+          "message": "Clustering"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGFza1R5cGU.allowed-value.c3RyaW5nOkNMVVNURVJJTkc.desc": {
+          "source": "Specifies that the embeddings will be used for clustering",
+          "message": "Specifies that the embeddings will be used for clustering"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGV4dA.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGV4dA.short_desc": {
+          "source": "Simple text to embed",
+          "message": "Simple text to embed"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGV4dA.desc": {
+          "source": "A simple text string to generate an embedding for. The provider automatically wraps this into the `content` message format. Use `content` instead for multimodal input",
+          "message": "A simple text string to generate an embedding for. The provider automatically wraps this into the `content` message format. Use `content` instead for multimodal input"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGl0bGU.display_name": {
+          "source": "Title",
+          "message": "Title"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGl0bGU.short_desc": {
+          "source": "An optional title for the text",
+          "message": "An optional title for the text"
+        },
+        "app.R2VtaW5p.action.YmF0Y2gtZW1iZWQ.option.cmVxdWVzdHM.field.dGl0bGU.desc": {
+          "source": "An optional title for the text. Only applicable when `taskType` is `RETRIEVAL_DOCUMENT`",
+          "message": "An optional title for the text. Only applicable when `taskType` is `RETRIEVAL_DOCUMENT`"
         },
         "app.R2VtaW5p.action.Y291bnQtdG9rZW5z.display_name": {
           "source": "Count Tokens",
@@ -847,6 +1743,94 @@
           "source": "The content to count tokens for. For simple text, use the `prompt` field instead",
           "message": "The content to count tokens for. For simple text, use the `prompt` field instead"
         },
+        "app.R2VtaW5p.action.Y291bnQtdG9rZW5z.option.Y29udGVudHM.field.cGFydHM.display_name": {
+          "source": "Parts",
+          "message": "Parts"
+        },
+        "app.R2VtaW5p.action.Y291bnQtdG9rZW5z.option.Y29udGVudHM.field.cGFydHM.short_desc": {
+          "source": "The content parts",
+          "message": "The content parts"
+        },
+        "app.R2VtaW5p.action.Y291bnQtdG9rZW5z.option.Y29udGVudHM.field.cGFydHM.desc": {
+          "source": "Ordered list of content parts that make up this message",
+          "message": "Ordered list of content parts that make up this message"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkyOTFiblF0ZEc5clpXNXo6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.aW5saW5lX2RhdGE.display_name": {
+          "source": "Inline Data",
+          "message": "Inline Data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkyOTFiblF0ZEc5clpXNXo6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.aW5saW5lX2RhdGE.short_desc": {
+          "source": "Inline media data",
+          "message": "Inline media data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkyOTFiblF0ZEc5clpXNXo6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.aW5saW5lX2RhdGE.desc": {
+          "source": "Inline media data such as images, audio, or video; mutually exclusive with `text`",
+          "message": "Inline media data such as images, audio, or video; mutually exclusive with `text`"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkyOTFiblF0ZEc5clpXNXo6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.ZGF0YQ.display_name": {
+          "source": "Data",
+          "message": "Data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkyOTFiblF0ZEc5clpXNXo6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.ZGF0YQ.short_desc": {
+          "source": "Base64-encoded binary data",
+          "message": "Base64-encoded binary data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkyOTFiblF0ZEc5clpXNXo6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.ZGF0YQ.desc": {
+          "source": "Base64-encoded binary data (e.g., image, audio, video)",
+          "message": "Base64-encoded binary data (e.g., image, audio, video)"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkyOTFiblF0ZEc5clpXNXo6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME Type"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkyOTFiblF0ZEc5clpXNXo6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type of the inline data",
+          "message": "The MIME type of the inline data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkyOTFiblF0ZEc5clpXNXo6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.bWltZV90eXBl.desc": {
+          "source": "The IANA standard MIME type of the source data",
+          "message": "The IANA standard MIME type of the source data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkyOTFiblF0ZEc5clpXNXo6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.dGV4dA.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkyOTFiblF0ZEc5clpXNXo6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.dGV4dA.short_desc": {
+          "source": "The text content of the part",
+          "message": "The text content of the part"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkyOTFiblF0ZEc5clpXNXo6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.dGV4dA.desc": {
+          "source": "The text content of the part; mutually exclusive with `inline_data`",
+          "message": "The text content of the part; mutually exclusive with `inline_data`"
+        },
+        "app.R2VtaW5p.action.Y291bnQtdG9rZW5z.option.Y29udGVudHM.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.R2VtaW5p.action.Y291bnQtdG9rZW5z.option.Y29udGVudHM.field.cm9sZQ.short_desc": {
+          "source": "The role of the content author",
+          "message": "The role of the content author"
+        },
+        "app.R2VtaW5p.action.Y291bnQtdG9rZW5z.option.Y29udGVudHM.field.cm9sZQ.desc": {
+          "source": "The role of the content author: `user` or `model`",
+          "message": "The role of the content author: `user` or `model`"
+        },
+        "app.R2VtaW5p.action.Y291bnQtdG9rZW5z.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "User"
+        },
+        "app.R2VtaW5p.action.Y291bnQtdG9rZW5z.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.desc": {
+          "source": "Content from the user",
+          "message": "Content from the user"
+        },
+        "app.R2VtaW5p.action.Y291bnQtdG9rZW5z.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOm1vZGVs.display_name": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.R2VtaW5p.action.Y291bnQtdG9rZW5z.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOm1vZGVs.desc": {
+          "source": "Content from the model",
+          "message": "Content from the model"
+        },
         "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.display_name": {
           "source": "Upload File",
           "message": "Upload File"
@@ -870,6 +1854,126 @@
         "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.desc": {
           "source": "The file to upload to Google Gemini for use with multimodal content generation",
           "message": "The file to upload to Google Gemini for use with multimodal content generation"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "File Data"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME Type"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "Autodetect"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "MS Word docx document"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "MS Word `docx` document"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "MS PowerPoint pptx document"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "MS PowerPoint `pptx` document"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "MS Excel xlsx document"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "MS Excel `xlsx` document"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "Filename"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "The filename"
+        },
+        "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "The filename"
         },
         "app.R2VtaW5p.action.dXBsb2FkLWZpbGU.option.ZGlzcGxheV9uYW1l.display_name": {
           "source": "Display Name",
@@ -1002,6 +2106,94 @@
         "app.R2VtaW5p.action.Y3JlYXRlLWNhY2hlZC1jb250ZW50.option.Y29udGVudHM.desc": {
           "source": "The content to cache for future use. For simple text, use the `prompt` field instead",
           "message": "The content to cache for future use. For simple text, use the `prompt` field instead"
+        },
+        "app.R2VtaW5p.action.Y3JlYXRlLWNhY2hlZC1jb250ZW50.option.Y29udGVudHM.field.cGFydHM.display_name": {
+          "source": "Parts",
+          "message": "Parts"
+        },
+        "app.R2VtaW5p.action.Y3JlYXRlLWNhY2hlZC1jb250ZW50.option.Y29udGVudHM.field.cGFydHM.short_desc": {
+          "source": "The content parts",
+          "message": "The content parts"
+        },
+        "app.R2VtaW5p.action.Y3JlYXRlLWNhY2hlZC1jb250ZW50.option.Y29udGVudHM.field.cGFydHM.desc": {
+          "source": "Ordered list of content parts that make up this message",
+          "message": "Ordered list of content parts that make up this message"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkzSmxZWFJsTFdOaFkyaGxaQzFqYjI1MFpXNTA6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.aW5saW5lX2RhdGE.display_name": {
+          "source": "Inline Data",
+          "message": "Inline Data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkzSmxZWFJsTFdOaFkyaGxaQzFqYjI1MFpXNTA6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.aW5saW5lX2RhdGE.short_desc": {
+          "source": "Inline media data",
+          "message": "Inline media data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkzSmxZWFJsTFdOaFkyaGxaQzFqYjI1MFpXNTA6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.aW5saW5lX2RhdGE.desc": {
+          "source": "Inline media data such as images, audio, or video; mutually exclusive with `text`",
+          "message": "Inline media data such as images, audio, or video; mutually exclusive with `text`"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkzSmxZWFJsTFdOaFkyaGxaQzFqYjI1MFpXNTA6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.ZGF0YQ.display_name": {
+          "source": "Data",
+          "message": "Data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkzSmxZWFJsTFdOaFkyaGxaQzFqYjI1MFpXNTA6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.ZGF0YQ.short_desc": {
+          "source": "Base64-encoded binary data",
+          "message": "Base64-encoded binary data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkzSmxZWFJsTFdOaFkyaGxaQzFqYjI1MFpXNTA6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.ZGF0YQ.desc": {
+          "source": "Base64-encoded binary data (e.g., image, audio, video)",
+          "message": "Base64-encoded binary data (e.g., image, audio, video)"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkzSmxZWFJsTFdOaFkyaGxaQzFqYjI1MFpXNTA6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME Type"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkzSmxZWFJsTFdOaFkyaGxaQzFqYjI1MFpXNTA6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type of the inline data",
+          "message": "The MIME type of the inline data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkzSmxZWFJsTFdOaFkyaGxaQzFqYjI1MFpXNTA6R2VtaW5pSW5saW5lRGF0YURhdGFUeXBlOkdlbWluaUlubGluZURhdGFEYXRhVHlwZSM2NDgyM2JkMTY0MjFhZWQ2YjcwYTFmZjFmNDYyMmIxZjk3OGRjZmYxODI2MjE2MmJjOWMxZjVlOGJkN2IzYWQxOm9wdGlvbjpZMjl1ZEdWdWRITTpmaWVsZDpjR0Z5ZEhNOmZpZWxkOmFXNXNhVzVsWDJSaGRHRQ.field.bWltZV90eXBl.desc": {
+          "source": "The IANA standard MIME type of the source data",
+          "message": "The IANA standard MIME type of the source data"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkzSmxZWFJsTFdOaFkyaGxaQzFqYjI1MFpXNTA6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.dGV4dA.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkzSmxZWFJsTFdOaFkyaGxaQzFqYjI1MFpXNTA6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.dGV4dA.short_desc": {
+          "source": "The text content of the part",
+          "message": "The text content of the part"
+        },
+        "app.R2VtaW5p.type.YWN0aW9uOlkzSmxZWFJsTFdOaFkyaGxaQzFqYjI1MFpXNTA6R2VtaW5pQ29udGVudFBhcnREYXRhVHlwZTpoYXNoPGF1dG8-I2JmMDU1YWY5ZTU3OGRmMjM2OTg1Y2RiMTI3ODMwYzllZDY2M2VhMGMwMWQ2ZTVmNTE0ZmFkNzU4YmZjZGJiM2Y6b3B0aW9uOlkyOXVkR1Z1ZEhNOmZpZWxkOmNHRnlkSE0.field.dGV4dA.desc": {
+          "source": "The text content of the part; mutually exclusive with `inline_data`",
+          "message": "The text content of the part; mutually exclusive with `inline_data`"
+        },
+        "app.R2VtaW5p.action.Y3JlYXRlLWNhY2hlZC1jb250ZW50.option.Y29udGVudHM.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.R2VtaW5p.action.Y3JlYXRlLWNhY2hlZC1jb250ZW50.option.Y29udGVudHM.field.cm9sZQ.short_desc": {
+          "source": "The role of the content author",
+          "message": "The role of the content author"
+        },
+        "app.R2VtaW5p.action.Y3JlYXRlLWNhY2hlZC1jb250ZW50.option.Y29udGVudHM.field.cm9sZQ.desc": {
+          "source": "The role of the content author: `user` or `model`",
+          "message": "The role of the content author: `user` or `model`"
+        },
+        "app.R2VtaW5p.action.Y3JlYXRlLWNhY2hlZC1jb250ZW50.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "User"
+        },
+        "app.R2VtaW5p.action.Y3JlYXRlLWNhY2hlZC1jb250ZW50.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.desc": {
+          "source": "Content from the user",
+          "message": "Content from the user"
+        },
+        "app.R2VtaW5p.action.Y3JlYXRlLWNhY2hlZC1jb250ZW50.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOm1vZGVs.display_name": {
+          "source": "Model",
+          "message": "Model"
+        },
+        "app.R2VtaW5p.action.Y3JlYXRlLWNhY2hlZC1jb250ZW50.option.Y29udGVudHM.field.cm9sZQ.allowed-value.c3RyaW5nOm1vZGVs.desc": {
+          "source": "Content from the model",
+          "message": "Content from the model"
         },
         "app.R2VtaW5p.action.ZGVsZXRlLWNhY2hlZC1jb250ZW50.display_name": {
           "source": "Delete Cached Content",
@@ -1158,6 +2350,126 @@
         "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.desc": {
           "source": "Upload a new file and import it into the search store in one step. The provider uploads the file first, then imports it. Use this or `fileName` for an already-uploaded file",
           "message": "Upload a new file and import it into the search store in one step. The provider uploads the file first, then imports it. Use this or `fileName` for an already-uploaded file"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "File Data"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME Type"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "Autodetect"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "MS Word docx document"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "MS Word `docx` document"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "MS PowerPoint pptx document"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "MS PowerPoint `pptx` document"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "MS Excel xlsx document"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "MS Excel `xlsx` document"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "Filename"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "The filename"
+        },
+        "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZQ.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "The filename"
         },
         "app.R2VtaW5p.action.aW1wb3J0LWZpbGUtdG8tc3RvcmU.option.ZmlsZU5hbWU.display_name": {
           "source": "Existing File",

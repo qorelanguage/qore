@@ -3,245 +3,29 @@
   "locales": {
     "pl": {
       "messages": {
-        "app.TW9uZ29EQg.action.Y291bnQ.desc": {
-          "source": "Counts the documents in a MongoDB collection matching a filter, without returning any of them.\n\nThis takes the same filter as **Find Documents**, so it is the cheap way to ask how large a result would be before asking for the result itself.",
-          "message": "Liczy dokumenty kolekcji MongoDB pasujące do filtra, nie zwracając żadnego z nich.\n\nPrzyjmuje ten sam filtr co **Znajdź dokumenty**, jest więc tanim sposobem sprawdzenia, jak duży byłby wynik, zanim poprosi się o sam wynik."
+        "app.TW9uZ29EQg.display_name": {
+          "source": "MongoDB Server",
+          "message": "Serwer MongoDB"
         },
-        "app.TW9uZ29EQg.action.Y291bnQ.display_name": {
-          "source": "Count Documents",
-          "message": "Policz dokumenty"
+        "app.TW9uZ29EQg.short_desc": {
+          "source": "MongoDB NoSQL database",
+          "message": "Baza danych NoSQL MongoDB"
         },
-        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcja"
-        },
-        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Nazwa bazy danych MongoDB"
-        },
-        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.display_name": {
-          "source": "Database",
-          "message": "Baza danych"
-        },
-        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.short_desc": {
-          "source": "MongoDB database name",
-          "message": "Nazwa bazy danych MongoDB"
-        },
-        "app.TW9uZ29EQg.action.Y291bnQ.short_desc": {
-          "source": "Count the documents matching a filter",
-          "message": "Policz dokumenty pasujące do filtra"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.desc": {
-          "source": "Execute an aggregation pipeline on a MongoDB collection",
-          "message": "Wykonaj potok agregacji w kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.display_name": {
-          "source": "Aggregation Pipeline",
-          "message": "Potok agregacji"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcja"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Nazwa bazy danych MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.ZGF0YWJhc2U.display_name": {
-          "source": "Database",
-          "message": "Baza danych"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.ZGF0YWJhc2U.short_desc": {
-          "source": "MongoDB database name",
-          "message": "Nazwa bazy danych MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.short_desc": {
-          "source": "Run aggregation pipeline",
-          "message": "Uruchom potok agregacji"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.desc": {
-          "source": "Execute bulk insert, update, and delete operations on a MongoDB collection",
-          "message": "Wykonaj masowe operacje wstawiania, aktualizowania i usuwania w kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.display_name": {
-          "source": "Bulk Operations",
-          "message": "Operacje masowe"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcja"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Nazwa bazy danych MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.option.ZGF0YWJhc2U.display_name": {
-          "source": "Database",
-          "message": "Baza danych"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.option.ZGF0YWJhc2U.short_desc": {
-          "source": "MongoDB database name",
-          "message": "Nazwa bazy danych MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.short_desc": {
-          "source": "Execute bulk write operations",
-          "message": "Wykonaj masowe operacje zapisu"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.desc": {
-          "source": "Delete one or more documents from a MongoDB collection",
-          "message": "Usuń jeden lub więcej dokumentów z kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.display_name": {
-          "source": "Delete Documents",
-          "message": "Usuń dokumenty"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcja"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Nazwa bazy danych MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.option.ZGF0YWJhc2U.display_name": {
-          "source": "Database",
-          "message": "Baza danych"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.option.ZGF0YWJhc2U.short_desc": {
-          "source": "MongoDB database name",
-          "message": "Nazwa bazy danych MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.short_desc": {
-          "source": "Delete documents from a collection",
-          "message": "Usuń dokumenty z kolekcji"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.desc": {
-          "source": "Find documents in a MongoDB collection using query filters",
-          "message": "Wyszukaj dokumenty w kolekcji MongoDB za pomocą filtrów zapytań"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.display_name": {
-          "source": "Find Documents",
-          "message": "Wyszukaj dokumenty"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcja"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Nazwa bazy danych MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.option.ZGF0YWJhc2U.display_name": {
-          "source": "Database",
-          "message": "Baza danych"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.option.ZGF0YWJhc2U.short_desc": {
-          "source": "MongoDB database name",
-          "message": "Nazwa bazy danych MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.short_desc": {
-          "source": "Query documents in a collection",
-          "message": "Wyszukaj dokumenty w kolekcji"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.desc": {
-          "source": "Returns the first document in a MongoDB collection matching a filter, as the document itself rather than as a list holding it.\n\nUse this where at most one document is wanted - a lookup by `_id`, say - and **Find Documents** where several are.  The result reports `found` separately, so a flow can branch on whether anything matched without testing the document.",
-          "message": "Zwraca pierwszy dokument kolekcji MongoDB pasujący do filtra, jako sam dokument, a nie jako listę, która go zawiera.\n\nUżyj tego tam, gdzie oczekiwany jest najwyżej jeden dokument – na przykład wyszukanie po `_id` – a akcji **Znajdź dokumenty** tam, gdzie jest ich kilka.  Wynik podaje `found` osobno, więc przepływ może się na tym rozgałęzić bez badania samego dokumentu."
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.display_name": {
-          "source": "Find One Document",
-          "message": "Znajdź jeden dokument"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcja"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Nazwa bazy danych MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.display_name": {
-          "source": "Database",
-          "message": "Baza danych"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.short_desc": {
-          "source": "MongoDB database name",
-          "message": "Nazwa bazy danych MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.short_desc": {
-          "source": "Return the first document matching a filter",
-          "message": "Zwróć pierwszy dokument pasujący do filtra"
-        },
-        "app.TW9uZ29EQg.action.aW5zZXJ0.desc": {
-          "source": "Insert one or more documents into a MongoDB collection",
-          "message": "Wstaw jeden lub więcej dokumentów do kolekcji MongoDB"
+        "app.TW9uZ29EQg.desc": {
+          "source": "MongoDB is a document-oriented NoSQL database for high volume data storage",
+          "message": "MongoDB to zorientowana na dokumenty baza danych NoSQL przeznaczona do przechowywania dużych ilości danych"
         },
         "app.TW9uZ29EQg.action.aW5zZXJ0.display_name": {
           "source": "Insert Document",
           "message": "Wstaw dokument"
         },
-        "app.TW9uZ29EQg.action.aW5zZXJ0.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Nazwa kolekcji MongoDB"
+        "app.TW9uZ29EQg.action.aW5zZXJ0.short_desc": {
+          "source": "Insert a document into a collection",
+          "message": "Wstaw dokument do kolekcji"
         },
-        "app.TW9uZ29EQg.action.aW5zZXJ0.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcja"
-        },
-        "app.TW9uZ29EQg.action.aW5zZXJ0.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.aW5zZXJ0.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Nazwa bazy danych MongoDB"
+        "app.TW9uZ29EQg.action.aW5zZXJ0.desc": {
+          "source": "Insert one or more documents into a MongoDB collection",
+          "message": "Wstaw jeden lub więcej dokumentów do kolekcji MongoDB"
         },
         "app.TW9uZ29EQg.action.aW5zZXJ0.option.ZGF0YWJhc2U.display_name": {
           "source": "Database",
@@ -251,33 +35,69 @@
           "source": "MongoDB database name",
           "message": "Nazwa bazy danych MongoDB"
         },
-        "app.TW9uZ29EQg.action.aW5zZXJ0.short_desc": {
-          "source": "Insert a document into a collection",
-          "message": "Wstaw dokument do kolekcji"
+        "app.TW9uZ29EQg.action.aW5zZXJ0.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Nazwa bazy danych MongoDB"
         },
-        "app.TW9uZ29EQg.action.dXBkYXRl.desc": {
-          "source": "Update one or more documents in a MongoDB collection",
-          "message": "Zaktualizuj jeden lub więcej dokumentów w kolekcji MongoDB"
+        "app.TW9uZ29EQg.action.aW5zZXJ0.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcja"
+        },
+        "app.TW9uZ29EQg.action.aW5zZXJ0.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.aW5zZXJ0.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.display_name": {
+          "source": "Find Documents",
+          "message": "Wyszukaj dokumenty"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.short_desc": {
+          "source": "Query documents in a collection",
+          "message": "Wyszukaj dokumenty w kolekcji"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.desc": {
+          "source": "Find documents in a MongoDB collection using query filters",
+          "message": "Wyszukaj dokumenty w kolekcji MongoDB za pomocą filtrów zapytań"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Baza danych"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Nazwa bazy danych MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Nazwa bazy danych MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcja"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Nazwa kolekcji MongoDB"
         },
         "app.TW9uZ29EQg.action.dXBkYXRl.display_name": {
           "source": "Update Documents",
           "message": "Zaktualizuj dokumenty"
         },
-        "app.TW9uZ29EQg.action.dXBkYXRl.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Nazwa kolekcji MongoDB"
+        "app.TW9uZ29EQg.action.dXBkYXRl.short_desc": {
+          "source": "Update documents in a collection",
+          "message": "Zaktualizuj dokumenty w kolekcji"
         },
-        "app.TW9uZ29EQg.action.dXBkYXRl.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcja"
-        },
-        "app.TW9uZ29EQg.action.dXBkYXRl.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.dXBkYXRl.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Nazwa bazy danych MongoDB"
+        "app.TW9uZ29EQg.action.dXBkYXRl.desc": {
+          "source": "Update one or more documents in a MongoDB collection",
+          "message": "Zaktualizuj jeden lub więcej dokumentów w kolekcji MongoDB"
         },
         "app.TW9uZ29EQg.action.dXBkYXRl.option.ZGF0YWJhc2U.display_name": {
           "source": "Database",
@@ -287,33 +107,213 @@
           "source": "MongoDB database name",
           "message": "Nazwa bazy danych MongoDB"
         },
-        "app.TW9uZ29EQg.action.dXBkYXRl.short_desc": {
-          "source": "Update documents in a collection",
-          "message": "Zaktualizuj dokumenty w kolekcji"
+        "app.TW9uZ29EQg.action.dXBkYXRl.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Nazwa bazy danych MongoDB"
         },
-        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.desc": {
-          "source": "Runs an [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/) query: given a query vector, returns the documents whose stored embeddings are nearest to it, each with its similarity `score`.\n\nThis is the retrieval step of a RAG pipeline done in the database, so the documents and their embeddings stay in one place instead of being copied into a separate vector store.\n\n**Requires an Atlas vector search index** on the collection, naming the field that holds the embeddings; `index_name` and `path` must match it.  Available on Atlas clusters only, not on a self-managed server.",
-          "message": "Wykonuje zapytanie [wyszukiwania wektorowego Atlas](https://www.mongodb.com/docs/atlas/atlas-vector-search/): dla podanego wektora zapytania zwraca dokumenty, których zapisane osadzenia są mu najbliższe, każdy z jego miarą podobieństwa `score`.\n\nTo krok pozyskiwania w potoku RAG wykonany w samej bazie danych, dzięki czemu dokumenty i ich osadzenia pozostają w jednym miejscu, zamiast być kopiowane do osobnego magazynu wektorów.\n\n**Wymaga indeksu wyszukiwania wektorowego Atlas** na kolekcji, wskazującego pole z osadzeniami; `index_name` i `path` muszą do niego pasować.  Dostępne wyłącznie w klastrach Atlas, nie na serwerze zarządzanym samodzielnie."
+        "app.TW9uZ29EQg.action.dXBkYXRl.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcja"
+        },
+        "app.TW9uZ29EQg.action.dXBkYXRl.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.dXBkYXRl.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.display_name": {
+          "source": "Delete Documents",
+          "message": "Usuń dokumenty"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.short_desc": {
+          "source": "Delete documents from a collection",
+          "message": "Usuń dokumenty z kolekcji"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.desc": {
+          "source": "Delete one or more documents from a MongoDB collection",
+          "message": "Usuń jeden lub więcej dokumentów z kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Baza danych"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Nazwa bazy danych MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Nazwa bazy danych MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcja"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.display_name": {
+          "source": "Aggregation Pipeline",
+          "message": "Potok agregacji"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.short_desc": {
+          "source": "Run aggregation pipeline",
+          "message": "Uruchom potok agregacji"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.desc": {
+          "source": "Execute an aggregation pipeline on a MongoDB collection",
+          "message": "Wykonaj potok agregacji w kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Baza danych"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Nazwa bazy danych MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Nazwa bazy danych MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcja"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.display_name": {
+          "source": "Bulk Operations",
+          "message": "Operacje masowe"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.short_desc": {
+          "source": "Execute bulk write operations",
+          "message": "Wykonaj masowe operacje zapisu"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.desc": {
+          "source": "Execute bulk insert, update, and delete operations on a MongoDB collection",
+          "message": "Wykonaj masowe operacje wstawiania, aktualizowania i usuwania w kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Baza danych"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Nazwa bazy danych MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Nazwa bazy danych MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcja"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.display_name": {
+          "source": "Find One Document",
+          "message": "Znajdź jeden dokument"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.short_desc": {
+          "source": "Return the first document matching a filter",
+          "message": "Zwróć pierwszy dokument pasujący do filtra"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.desc": {
+          "source": "Returns the first document in a MongoDB collection matching a filter, as the document itself rather than as a list holding it.\n\nUse this where at most one document is wanted - a lookup by `_id`, say - and **Find Documents** where several are.  The result reports `found` separately, so a flow can branch on whether anything matched without testing the document.",
+          "message": "Zwraca pierwszy dokument kolekcji MongoDB pasujący do filtra, jako sam dokument, a nie jako listę, która go zawiera.\n\nUżyj tego tam, gdzie oczekiwany jest najwyżej jeden dokument – na przykład wyszukanie po `_id` – a akcji **Znajdź dokumenty** tam, gdzie jest ich kilka.  Wynik podaje `found` osobno, więc przepływ może się na tym rozgałęzić bez badania samego dokumentu."
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Baza danych"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Nazwa bazy danych MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Nazwa bazy danych MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcja"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.display_name": {
+          "source": "Count Documents",
+          "message": "Policz dokumenty"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.short_desc": {
+          "source": "Count the documents matching a filter",
+          "message": "Policz dokumenty pasujące do filtra"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.desc": {
+          "source": "Counts the documents in a MongoDB collection matching a filter, without returning any of them.\n\nThis takes the same filter as **Find Documents**, so it is the cheap way to ask how large a result would be before asking for the result itself.",
+          "message": "Liczy dokumenty kolekcji MongoDB pasujące do filtra, nie zwracając żadnego z nich.\n\nPrzyjmuje ten sam filtr co **Znajdź dokumenty**, jest więc tanim sposobem sprawdzenia, jak duży byłby wynik, zanim poprosi się o sam wynik."
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Baza danych"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Nazwa bazy danych MongoDB"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Nazwa bazy danych MongoDB"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcja"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Nazwa kolekcji MongoDB"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Nazwa kolekcji MongoDB"
         },
         "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.display_name": {
           "source": "Vector Search",
           "message": "Wyszukiwanie wektorowe"
         },
-        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Nazwa kolekcji MongoDB"
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.short_desc": {
+          "source": "Find the documents nearest a query vector",
+          "message": "Znajdź dokumenty najbliższe wektorowi zapytania"
         },
-        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcja"
-        },
-        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Nazwa kolekcji MongoDB"
-        },
-        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Nazwa bazy danych MongoDB"
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.desc": {
+          "source": "Runs an [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/) query: given a query vector, returns the documents whose stored embeddings are nearest to it, each with its similarity `score`.\n\nThis is the retrieval step of a RAG pipeline done in the database, so the documents and their embeddings stay in one place instead of being copied into a separate vector store.\n\n**Requires an Atlas vector search index** on the collection, naming the field that holds the embeddings; `index_name` and `path` must match it.  Available on Atlas clusters only, not on a self-managed server.",
+          "message": "Wykonuje zapytanie [wyszukiwania wektorowego Atlas](https://www.mongodb.com/docs/atlas/atlas-vector-search/): dla podanego wektora zapytania zwraca dokumenty, których zapisane osadzenia są mu najbliższe, każdy z jego miarą podobieństwa `score`.\n\nTo krok pozyskiwania w potoku RAG wykonany w samej bazie danych, dzięki czemu dokumenty i ich osadzenia pozostają w jednym miejscu, zamiast być kopiowane do osobnego magazynu wektorów.\n\n**Wymaga indeksu wyszukiwania wektorowego Atlas** na kolekcji, wskazującego pole z osadzeniami; `index_name` i `path` muszą do niego pasować.  Dostępne wyłącznie w klastrach Atlas, nie na serwerze zarządzanym samodzielnie."
         },
         "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.display_name": {
           "source": "Database",
@@ -323,21 +323,21 @@
           "source": "MongoDB database name",
           "message": "Nazwa bazy danych MongoDB"
         },
-        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.short_desc": {
-          "source": "Find the documents nearest a query vector",
-          "message": "Znajdź dokumenty najbliższe wektorowi zapytania"
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Nazwa bazy danych MongoDB"
         },
-        "app.TW9uZ29EQg.desc": {
-          "source": "MongoDB is a document-oriented NoSQL database for high volume data storage",
-          "message": "MongoDB to zorientowana na dokumenty baza danych NoSQL przeznaczona do przechowywania dużych ilości danych"
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcja"
         },
-        "app.TW9uZ29EQg.display_name": {
-          "source": "MongoDB Server",
-          "message": "Serwer MongoDB"
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Nazwa kolekcji MongoDB"
         },
-        "app.TW9uZ29EQg.short_desc": {
-          "source": "MongoDB NoSQL database",
-          "message": "Baza danych NoSQL MongoDB"
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Nazwa kolekcji MongoDB"
         }
       }
     }

@@ -555,6 +555,42 @@
           "source": "A list of custom field values for the contact",
           "message": "A list of custom field values for the contact"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.short_desc": {
+          "source": "The custom field identifier",
+          "message": "The custom field identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.desc": {
+          "source": "The system-generated identifier for the custom field",
+          "message": "The system-generated identifier for the custom field"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.display_name": {
+          "source": "Field Name",
+          "message": "Field Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.short_desc": {
+          "source": "The custom field name",
+          "message": "The custom field name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.desc": {
+          "source": "The name of the custom field (e.g., `MyCustomField__c`)",
+          "message": "The name of the custom field (e.g., `MyCustomField__c`)"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.desc": {
+          "source": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration",
+          "message": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration"
+        },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.display_name": {
           "source": "Addresses",
           "message": "Addresses"
@@ -566,6 +602,110 @@
         "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.desc": {
           "source": "A list of addresses for the contact",
           "message": "A list of addresses for the contact"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.display_name": {
+          "source": "Address Type",
+          "message": "Address Type"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.short_desc": {
+          "source": "The type of address",
+          "message": "The type of address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.desc": {
+          "source": "The type of address",
+          "message": "The type of address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOldvcms.display_name": {
+          "source": "Work",
+          "message": "Work"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOldvcms.desc": {
+          "source": "Work address",
+          "message": "Work address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOkhvbWU.display_name": {
+          "source": "Home",
+          "message": "Home"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOkhvbWU.desc": {
+          "source": "Home address",
+          "message": "Home address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOlBvc3RhbA.display_name": {
+          "source": "Postal",
+          "message": "Postal"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOlBvc3RhbA.desc": {
+          "source": "Postal address",
+          "message": "Postal address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOk90aGVy.display_name": {
+          "source": "Other",
+          "message": "Other"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOk90aGVy.desc": {
+          "source": "Other address",
+          "message": "Other address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.Q0lUWQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.Q0lUWQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.Q0lUWQ.desc": {
+          "source": "The city of the address",
+          "message": "The city of the address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.Q09VTlRSWQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.Q09VTlRSWQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.Q09VTlRSWQ.desc": {
+          "source": "The country of the address",
+          "message": "The country of the address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.UE9TVENPREU.display_name": {
+          "source": "Postcode",
+          "message": "Postcode"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.UE9TVENPREU.short_desc": {
+          "source": "Postal code",
+          "message": "Postal code"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.UE9TVENPREU.desc": {
+          "source": "The postal or ZIP code of the address",
+          "message": "The postal or ZIP code of the address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.U1RBVEU.display_name": {
+          "source": "State",
+          "message": "State"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.U1RBVEU.short_desc": {
+          "source": "State or province",
+          "message": "State or province"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.U1RBVEU.desc": {
+          "source": "The state or province of the address",
+          "message": "The state or province of the address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.U1RSRUVU.display_name": {
+          "source": "Street",
+          "message": "Street"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.U1RSRUVU.short_desc": {
+          "source": "Street address",
+          "message": "Street address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.U1RSRUVU.desc": {
+          "source": "The street address",
+          "message": "The street address"
         },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.display_name": {
           "source": "Contact Infos",
@@ -579,6 +719,86 @@
           "source": "A list of additional contact information entries",
           "message": "A list of additional contact information entries"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.REVUQUlM.display_name": {
+          "source": "Detail",
+          "message": "Detail"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.REVUQUlM.short_desc": {
+          "source": "The contact detail value",
+          "message": "The contact detail value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.REVUQUlM.desc": {
+          "source": "The actual value (phone number, email address, URL, etc.)",
+          "message": "The actual value (phone number, email address, URL, etc.)"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.TEFCRUw.display_name": {
+          "source": "Label",
+          "message": "Label"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.TEFCRUw.short_desc": {
+          "source": "Label for this entry",
+          "message": "Label for this entry"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.TEFCRUw.desc": {
+          "source": "A custom label for this contact information entry",
+          "message": "A custom label for this contact information entry"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.U1VCVFlQRQ.display_name": {
+          "source": "Subtype",
+          "message": "Subtype"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.U1VCVFlQRQ.short_desc": {
+          "source": "Contact info subtype",
+          "message": "Contact info subtype"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.U1VCVFlQRQ.desc": {
+          "source": "The subtype of the contact information (e.g., `Work`, `Home`, `Mobile`)",
+          "message": "The subtype of the contact information (e.g., `Work`, `Home`, `Mobile`)"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.short_desc": {
+          "source": "Contact info type",
+          "message": "Contact info type"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.desc": {
+          "source": "The type of contact information",
+          "message": "The type of contact information"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlBob25l.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlBob25l.desc": {
+          "source": "Phone number",
+          "message": "Phone number"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOkVtYWls.desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOldlYnNpdGU.display_name": {
+          "source": "Website",
+          "message": "Website"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOldlYnNpdGU.desc": {
+          "source": "Website URL",
+          "message": "Website URL"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlNvY2lhbA.display_name": {
+          "source": "Social",
+          "message": "Social"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlNvY2lhbA.desc": {
+          "source": "Social media profile",
+          "message": "Social media profile"
+        },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.display_name": {
           "source": "Links",
           "message": "Links"
@@ -590,6 +810,90 @@
         "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.desc": {
           "source": "A list of links to related objects",
           "message": "A list of links to related objects"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.TElOS19JRA.display_name": {
+          "source": "Link ID",
+          "message": "Link ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.TElOS19JRA.short_desc": {
+          "source": "The unique link identifier",
+          "message": "The unique link identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.TElOS19JRA.desc": {
+          "source": "The unique identifier of the link relationship",
+          "message": "The unique identifier of the link relationship"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX0lE.display_name": {
+          "source": "Object ID",
+          "message": "Object ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX0lE.short_desc": {
+          "source": "The linked object ID",
+          "message": "The linked object ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX0lE.desc": {
+          "source": "The unique identifier of the linked object",
+          "message": "The unique identifier of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.display_name": {
+          "source": "Object Name",
+          "message": "Object Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.short_desc": {
+          "source": "The linked object type",
+          "message": "The linked object type"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.desc": {
+          "source": "The type name of the linked object",
+          "message": "The type name of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkNvbnRhY3Q.display_name": {
+          "source": "Contact",
+          "message": "Contact"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkV2ZW50.display_name": {
+          "source": "Event",
+          "message": "Event"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkxlYWQ.display_name": {
+          "source": "Lead",
+          "message": "Lead"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk5vdGU.display_name": {
+          "source": "Note",
+          "message": "Note"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9wcG9ydHVuaXR5.display_name": {
+          "source": "Opportunity",
+          "message": "Opportunity"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9yZ2FuaXNhdGlvbg.display_name": {
+          "source": "Organisation",
+          "message": "Organisation"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Project"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlRhc2s.display_name": {
+          "source": "Task",
+          "message": "Task"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.Uk9MRQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.Uk9MRQ.short_desc": {
+          "source": "The link role",
+          "message": "The link role"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.TElOS1M.field.Uk9MRQ.desc": {
+          "source": "The role describing the relationship between the objects",
+          "message": "The role describing the relationship between the objects"
         },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.VEFHUw.display_name": {
           "source": "Tags",
@@ -603,6 +907,18 @@
           "source": "A list of tags to apply to the contact",
           "message": "A list of tags to apply to the contact"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.VEFHUw.field.VEFHX05BTUU.display_name": {
+          "source": "Tag Name",
+          "message": "Tag Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.VEFHUw.field.VEFHX05BTUU.short_desc": {
+          "source": "The tag name",
+          "message": "The tag name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.VEFHUw.field.VEFHX05BTUU.desc": {
+          "source": "The name of the tag",
+          "message": "The name of the tag"
+        },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.REFURVM.display_name": {
           "source": "Dates",
           "message": "Dates"
@@ -614,6 +930,42 @@
         "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.REFURVM.desc": {
           "source": "A list of important dates for the contact",
           "message": "A list of important dates for the contact"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.REFURVM.field.REFURV9JRA.display_name": {
+          "source": "Date ID",
+          "message": "Date ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.REFURVM.field.REFURV9JRA.short_desc": {
+          "source": "The unique date identifier",
+          "message": "The unique date identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.REFURVM.field.REFURV9JRA.desc": {
+          "source": "The unique identifier of the date entry",
+          "message": "The unique identifier of the date entry"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.REFURVM.field.T0NDQVNJT05fREFURQ.display_name": {
+          "source": "Occasion Date",
+          "message": "Occasion Date"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.REFURVM.field.T0NDQVNJT05fREFURQ.short_desc": {
+          "source": "The date of the occasion",
+          "message": "The date of the occasion"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.REFURVM.field.T0NDQVNJT05fREFURQ.desc": {
+          "source": "The date of the occasion",
+          "message": "The date of the occasion"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.REFURVM.field.T0NDQVNJT05fTkFNRQ.display_name": {
+          "source": "Occasion Name",
+          "message": "Occasion Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.REFURVM.field.T0NDQVNJT05fTkFNRQ.short_desc": {
+          "source": "Name of the occasion",
+          "message": "Name of the occasion"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWNvbnRhY3Q.option.REFURVM.field.T0NDQVNJT05fTkFNRQ.desc": {
+          "source": "The name of the occasion (e.g., `Birthday`, `Anniversary`)",
+          "message": "The name of the occasion (e.g., `Birthday`, `Anniversary`)"
         },
         "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.display_name": {
           "source": "Update Contact",
@@ -843,6 +1195,42 @@
           "source": "A list of custom field values for the contact",
           "message": "A list of custom field values for the contact"
         },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.short_desc": {
+          "source": "The custom field identifier",
+          "message": "The custom field identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.desc": {
+          "source": "The system-generated identifier for the custom field",
+          "message": "The system-generated identifier for the custom field"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.display_name": {
+          "source": "Field Name",
+          "message": "Field Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.short_desc": {
+          "source": "The custom field name",
+          "message": "The custom field name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.desc": {
+          "source": "The name of the custom field (e.g., `MyCustomField__c`)",
+          "message": "The name of the custom field (e.g., `MyCustomField__c`)"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.desc": {
+          "source": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration",
+          "message": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.display_name": {
           "source": "Addresses",
           "message": "Addresses"
@@ -854,6 +1242,110 @@
         "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.desc": {
           "source": "A list of addresses for the contact",
           "message": "A list of addresses for the contact"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.display_name": {
+          "source": "Address Type",
+          "message": "Address Type"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.short_desc": {
+          "source": "The type of address",
+          "message": "The type of address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.desc": {
+          "source": "The type of address",
+          "message": "The type of address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOldvcms.display_name": {
+          "source": "Work",
+          "message": "Work"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOldvcms.desc": {
+          "source": "Work address",
+          "message": "Work address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOkhvbWU.display_name": {
+          "source": "Home",
+          "message": "Home"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOkhvbWU.desc": {
+          "source": "Home address",
+          "message": "Home address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOlBvc3RhbA.display_name": {
+          "source": "Postal",
+          "message": "Postal"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOlBvc3RhbA.desc": {
+          "source": "Postal address",
+          "message": "Postal address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOk90aGVy.display_name": {
+          "source": "Other",
+          "message": "Other"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOk90aGVy.desc": {
+          "source": "Other address",
+          "message": "Other address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.Q0lUWQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.Q0lUWQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.Q0lUWQ.desc": {
+          "source": "The city of the address",
+          "message": "The city of the address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.Q09VTlRSWQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.Q09VTlRSWQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.Q09VTlRSWQ.desc": {
+          "source": "The country of the address",
+          "message": "The country of the address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.UE9TVENPREU.display_name": {
+          "source": "Postcode",
+          "message": "Postcode"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.UE9TVENPREU.short_desc": {
+          "source": "Postal code",
+          "message": "Postal code"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.UE9TVENPREU.desc": {
+          "source": "The postal or ZIP code of the address",
+          "message": "The postal or ZIP code of the address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.U1RBVEU.display_name": {
+          "source": "State",
+          "message": "State"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.U1RBVEU.short_desc": {
+          "source": "State or province",
+          "message": "State or province"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.U1RBVEU.desc": {
+          "source": "The state or province of the address",
+          "message": "The state or province of the address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.U1RSRUVU.display_name": {
+          "source": "Street",
+          "message": "Street"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.U1RSRUVU.short_desc": {
+          "source": "Street address",
+          "message": "Street address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.QUREUkVTU0VT.field.U1RSRUVU.desc": {
+          "source": "The street address",
+          "message": "The street address"
         },
         "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.display_name": {
           "source": "Contact Infos",
@@ -867,6 +1359,86 @@
           "source": "A list of additional contact information entries",
           "message": "A list of additional contact information entries"
         },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.REVUQUlM.display_name": {
+          "source": "Detail",
+          "message": "Detail"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.REVUQUlM.short_desc": {
+          "source": "The contact detail value",
+          "message": "The contact detail value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.REVUQUlM.desc": {
+          "source": "The actual value (phone number, email address, URL, etc.)",
+          "message": "The actual value (phone number, email address, URL, etc.)"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.TEFCRUw.display_name": {
+          "source": "Label",
+          "message": "Label"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.TEFCRUw.short_desc": {
+          "source": "Label for this entry",
+          "message": "Label for this entry"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.TEFCRUw.desc": {
+          "source": "A custom label for this contact information entry",
+          "message": "A custom label for this contact information entry"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.U1VCVFlQRQ.display_name": {
+          "source": "Subtype",
+          "message": "Subtype"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.U1VCVFlQRQ.short_desc": {
+          "source": "Contact info subtype",
+          "message": "Contact info subtype"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.U1VCVFlQRQ.desc": {
+          "source": "The subtype of the contact information (e.g., `Work`, `Home`, `Mobile`)",
+          "message": "The subtype of the contact information (e.g., `Work`, `Home`, `Mobile`)"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.short_desc": {
+          "source": "Contact info type",
+          "message": "Contact info type"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.desc": {
+          "source": "The type of contact information",
+          "message": "The type of contact information"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlBob25l.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlBob25l.desc": {
+          "source": "Phone number",
+          "message": "Phone number"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOkVtYWls.desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOldlYnNpdGU.display_name": {
+          "source": "Website",
+          "message": "Website"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOldlYnNpdGU.desc": {
+          "source": "Website URL",
+          "message": "Website URL"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlNvY2lhbA.display_name": {
+          "source": "Social",
+          "message": "Social"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlNvY2lhbA.desc": {
+          "source": "Social media profile",
+          "message": "Social media profile"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.display_name": {
           "source": "Links",
           "message": "Links"
@@ -878,6 +1450,90 @@
         "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.desc": {
           "source": "A list of links to related objects",
           "message": "A list of links to related objects"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.TElOS19JRA.display_name": {
+          "source": "Link ID",
+          "message": "Link ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.TElOS19JRA.short_desc": {
+          "source": "The unique link identifier",
+          "message": "The unique link identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.TElOS19JRA.desc": {
+          "source": "The unique identifier of the link relationship",
+          "message": "The unique identifier of the link relationship"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX0lE.display_name": {
+          "source": "Object ID",
+          "message": "Object ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX0lE.short_desc": {
+          "source": "The linked object ID",
+          "message": "The linked object ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX0lE.desc": {
+          "source": "The unique identifier of the linked object",
+          "message": "The unique identifier of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.display_name": {
+          "source": "Object Name",
+          "message": "Object Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.short_desc": {
+          "source": "The linked object type",
+          "message": "The linked object type"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.desc": {
+          "source": "The type name of the linked object",
+          "message": "The type name of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkNvbnRhY3Q.display_name": {
+          "source": "Contact",
+          "message": "Contact"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkV2ZW50.display_name": {
+          "source": "Event",
+          "message": "Event"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkxlYWQ.display_name": {
+          "source": "Lead",
+          "message": "Lead"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk5vdGU.display_name": {
+          "source": "Note",
+          "message": "Note"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9wcG9ydHVuaXR5.display_name": {
+          "source": "Opportunity",
+          "message": "Opportunity"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9yZ2FuaXNhdGlvbg.display_name": {
+          "source": "Organisation",
+          "message": "Organisation"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Project"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlRhc2s.display_name": {
+          "source": "Task",
+          "message": "Task"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.Uk9MRQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.Uk9MRQ.short_desc": {
+          "source": "The link role",
+          "message": "The link role"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.TElOS1M.field.Uk9MRQ.desc": {
+          "source": "The role describing the relationship between the objects",
+          "message": "The role describing the relationship between the objects"
         },
         "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.VEFHUw.display_name": {
           "source": "Tags",
@@ -891,6 +1547,18 @@
           "source": "A list of tags to apply to the contact",
           "message": "A list of tags to apply to the contact"
         },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.VEFHUw.field.VEFHX05BTUU.display_name": {
+          "source": "Tag Name",
+          "message": "Tag Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.VEFHUw.field.VEFHX05BTUU.short_desc": {
+          "source": "The tag name",
+          "message": "The tag name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.VEFHUw.field.VEFHX05BTUU.desc": {
+          "source": "The name of the tag",
+          "message": "The name of the tag"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.REFURVM.display_name": {
           "source": "Dates",
           "message": "Dates"
@@ -902,6 +1570,42 @@
         "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.REFURVM.desc": {
           "source": "A list of important dates for the contact",
           "message": "A list of important dates for the contact"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.REFURVM.field.REFURV9JRA.display_name": {
+          "source": "Date ID",
+          "message": "Date ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.REFURVM.field.REFURV9JRA.short_desc": {
+          "source": "The unique date identifier",
+          "message": "The unique date identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.REFURVM.field.REFURV9JRA.desc": {
+          "source": "The unique identifier of the date entry",
+          "message": "The unique identifier of the date entry"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.REFURVM.field.T0NDQVNJT05fREFURQ.display_name": {
+          "source": "Occasion Date",
+          "message": "Occasion Date"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.REFURVM.field.T0NDQVNJT05fREFURQ.short_desc": {
+          "source": "The date of the occasion",
+          "message": "The date of the occasion"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.REFURVM.field.T0NDQVNJT05fREFURQ.desc": {
+          "source": "The date of the occasion",
+          "message": "The date of the occasion"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.REFURVM.field.T0NDQVNJT05fTkFNRQ.display_name": {
+          "source": "Occasion Name",
+          "message": "Occasion Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.REFURVM.field.T0NDQVNJT05fTkFNRQ.short_desc": {
+          "source": "Name of the occasion",
+          "message": "Name of the occasion"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWNvbnRhY3Q.option.REFURVM.field.T0NDQVNJT05fTkFNRQ.desc": {
+          "source": "The name of the occasion (e.g., `Birthday`, `Anniversary`)",
+          "message": "The name of the occasion (e.g., `Birthday`, `Anniversary`)"
         },
         "app.SW5zaWdodGx5.action.ZGVsZXRlLWNvbnRhY3Q.display_name": {
           "source": "Delete Contact",
@@ -1159,6 +1863,42 @@
           "source": "A list of custom field values",
           "message": "A list of custom field values"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.short_desc": {
+          "source": "The custom field identifier",
+          "message": "The custom field identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.desc": {
+          "source": "The system-generated identifier for the custom field",
+          "message": "The system-generated identifier for the custom field"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.display_name": {
+          "source": "Field Name",
+          "message": "Field Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.short_desc": {
+          "source": "The custom field name",
+          "message": "The custom field name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.desc": {
+          "source": "The name of the custom field (e.g., `MyCustomField__c`)",
+          "message": "The name of the custom field (e.g., `MyCustomField__c`)"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.desc": {
+          "source": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration",
+          "message": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration"
+        },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.display_name": {
           "source": "Addresses",
           "message": "Addresses"
@@ -1170,6 +1910,110 @@
         "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.desc": {
           "source": "A list of addresses for the organisation",
           "message": "A list of addresses for the organisation"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.display_name": {
+          "source": "Address Type",
+          "message": "Address Type"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.short_desc": {
+          "source": "The type of address",
+          "message": "The type of address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.desc": {
+          "source": "The type of address",
+          "message": "The type of address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOldvcms.display_name": {
+          "source": "Work",
+          "message": "Work"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOldvcms.desc": {
+          "source": "Work address",
+          "message": "Work address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOkhvbWU.display_name": {
+          "source": "Home",
+          "message": "Home"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOkhvbWU.desc": {
+          "source": "Home address",
+          "message": "Home address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOlBvc3RhbA.display_name": {
+          "source": "Postal",
+          "message": "Postal"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOlBvc3RhbA.desc": {
+          "source": "Postal address",
+          "message": "Postal address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOk90aGVy.display_name": {
+          "source": "Other",
+          "message": "Other"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOk90aGVy.desc": {
+          "source": "Other address",
+          "message": "Other address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.Q0lUWQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.Q0lUWQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.Q0lUWQ.desc": {
+          "source": "The city of the address",
+          "message": "The city of the address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.Q09VTlRSWQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.Q09VTlRSWQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.Q09VTlRSWQ.desc": {
+          "source": "The country of the address",
+          "message": "The country of the address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.UE9TVENPREU.display_name": {
+          "source": "Postcode",
+          "message": "Postcode"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.UE9TVENPREU.short_desc": {
+          "source": "Postal code",
+          "message": "Postal code"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.UE9TVENPREU.desc": {
+          "source": "The postal or ZIP code of the address",
+          "message": "The postal or ZIP code of the address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.U1RBVEU.display_name": {
+          "source": "State",
+          "message": "State"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.U1RBVEU.short_desc": {
+          "source": "State or province",
+          "message": "State or province"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.U1RBVEU.desc": {
+          "source": "The state or province of the address",
+          "message": "The state or province of the address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.U1RSRUVU.display_name": {
+          "source": "Street",
+          "message": "Street"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.U1RSRUVU.short_desc": {
+          "source": "Street address",
+          "message": "Street address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.U1RSRUVU.desc": {
+          "source": "The street address",
+          "message": "The street address"
         },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.display_name": {
           "source": "Contact Infos",
@@ -1183,6 +2027,86 @@
           "source": "A list of additional contact information entries",
           "message": "A list of additional contact information entries"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.REVUQUlM.display_name": {
+          "source": "Detail",
+          "message": "Detail"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.REVUQUlM.short_desc": {
+          "source": "The contact detail value",
+          "message": "The contact detail value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.REVUQUlM.desc": {
+          "source": "The actual value (phone number, email address, URL, etc.)",
+          "message": "The actual value (phone number, email address, URL, etc.)"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.TEFCRUw.display_name": {
+          "source": "Label",
+          "message": "Label"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.TEFCRUw.short_desc": {
+          "source": "Label for this entry",
+          "message": "Label for this entry"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.TEFCRUw.desc": {
+          "source": "A custom label for this contact information entry",
+          "message": "A custom label for this contact information entry"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.U1VCVFlQRQ.display_name": {
+          "source": "Subtype",
+          "message": "Subtype"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.U1VCVFlQRQ.short_desc": {
+          "source": "Contact info subtype",
+          "message": "Contact info subtype"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.U1VCVFlQRQ.desc": {
+          "source": "The subtype of the contact information (e.g., `Work`, `Home`, `Mobile`)",
+          "message": "The subtype of the contact information (e.g., `Work`, `Home`, `Mobile`)"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.short_desc": {
+          "source": "Contact info type",
+          "message": "Contact info type"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.desc": {
+          "source": "The type of contact information",
+          "message": "The type of contact information"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlBob25l.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlBob25l.desc": {
+          "source": "Phone number",
+          "message": "Phone number"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOkVtYWls.desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOldlYnNpdGU.display_name": {
+          "source": "Website",
+          "message": "Website"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOldlYnNpdGU.desc": {
+          "source": "Website URL",
+          "message": "Website URL"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlNvY2lhbA.display_name": {
+          "source": "Social",
+          "message": "Social"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlNvY2lhbA.desc": {
+          "source": "Social media profile",
+          "message": "Social media profile"
+        },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.display_name": {
           "source": "Links",
           "message": "Links"
@@ -1194,6 +2118,90 @@
         "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.desc": {
           "source": "A list of links to related objects",
           "message": "A list of links to related objects"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.TElOS19JRA.display_name": {
+          "source": "Link ID",
+          "message": "Link ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.TElOS19JRA.short_desc": {
+          "source": "The unique link identifier",
+          "message": "The unique link identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.TElOS19JRA.desc": {
+          "source": "The unique identifier of the link relationship",
+          "message": "The unique identifier of the link relationship"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX0lE.display_name": {
+          "source": "Object ID",
+          "message": "Object ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX0lE.short_desc": {
+          "source": "The linked object ID",
+          "message": "The linked object ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX0lE.desc": {
+          "source": "The unique identifier of the linked object",
+          "message": "The unique identifier of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.display_name": {
+          "source": "Object Name",
+          "message": "Object Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.short_desc": {
+          "source": "The linked object type",
+          "message": "The linked object type"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.desc": {
+          "source": "The type name of the linked object",
+          "message": "The type name of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkNvbnRhY3Q.display_name": {
+          "source": "Contact",
+          "message": "Contact"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkV2ZW50.display_name": {
+          "source": "Event",
+          "message": "Event"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkxlYWQ.display_name": {
+          "source": "Lead",
+          "message": "Lead"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk5vdGU.display_name": {
+          "source": "Note",
+          "message": "Note"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9wcG9ydHVuaXR5.display_name": {
+          "source": "Opportunity",
+          "message": "Opportunity"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9yZ2FuaXNhdGlvbg.display_name": {
+          "source": "Organisation",
+          "message": "Organisation"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Project"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlRhc2s.display_name": {
+          "source": "Task",
+          "message": "Task"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.Uk9MRQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.Uk9MRQ.short_desc": {
+          "source": "The link role",
+          "message": "The link role"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.Uk9MRQ.desc": {
+          "source": "The role describing the relationship between the objects",
+          "message": "The role describing the relationship between the objects"
         },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.VEFHUw.display_name": {
           "source": "Tags",
@@ -1207,6 +2215,18 @@
           "source": "A list of tags to apply to the organisation",
           "message": "A list of tags to apply to the organisation"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.VEFHUw.field.VEFHX05BTUU.display_name": {
+          "source": "Tag Name",
+          "message": "Tag Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.VEFHUw.field.VEFHX05BTUU.short_desc": {
+          "source": "The tag name",
+          "message": "The tag name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.VEFHUw.field.VEFHX05BTUU.desc": {
+          "source": "The name of the tag",
+          "message": "The name of the tag"
+        },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.display_name": {
           "source": "Dates",
           "message": "Dates"
@@ -1218,6 +2238,42 @@
         "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.desc": {
           "source": "A list of important dates for the organisation",
           "message": "A list of important dates for the organisation"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.REFURV9JRA.display_name": {
+          "source": "Date ID",
+          "message": "Date ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.REFURV9JRA.short_desc": {
+          "source": "The unique date identifier",
+          "message": "The unique date identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.REFURV9JRA.desc": {
+          "source": "The unique identifier of the date entry",
+          "message": "The unique identifier of the date entry"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.T0NDQVNJT05fREFURQ.display_name": {
+          "source": "Occasion Date",
+          "message": "Occasion Date"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.T0NDQVNJT05fREFURQ.short_desc": {
+          "source": "The date of the occasion",
+          "message": "The date of the occasion"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.T0NDQVNJT05fREFURQ.desc": {
+          "source": "The date of the occasion",
+          "message": "The date of the occasion"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.T0NDQVNJT05fTkFNRQ.display_name": {
+          "source": "Occasion Name",
+          "message": "Occasion Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.T0NDQVNJT05fTkFNRQ.short_desc": {
+          "source": "Name of the occasion",
+          "message": "Name of the occasion"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.T0NDQVNJT05fTkFNRQ.desc": {
+          "source": "The name of the occasion (e.g., `Birthday`, `Anniversary`)",
+          "message": "The name of the occasion (e.g., `Birthday`, `Anniversary`)"
         },
         "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.display_name": {
           "source": "Update Organisation",
@@ -1339,6 +2395,42 @@
           "source": "A list of custom field values",
           "message": "A list of custom field values"
         },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.short_desc": {
+          "source": "The custom field identifier",
+          "message": "The custom field identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.desc": {
+          "source": "The system-generated identifier for the custom field",
+          "message": "The system-generated identifier for the custom field"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.display_name": {
+          "source": "Field Name",
+          "message": "Field Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.short_desc": {
+          "source": "The custom field name",
+          "message": "The custom field name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.desc": {
+          "source": "The name of the custom field (e.g., `MyCustomField__c`)",
+          "message": "The name of the custom field (e.g., `MyCustomField__c`)"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.desc": {
+          "source": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration",
+          "message": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.display_name": {
           "source": "Addresses",
           "message": "Addresses"
@@ -1350,6 +2442,110 @@
         "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.desc": {
           "source": "A list of addresses for the organisation",
           "message": "A list of addresses for the organisation"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.display_name": {
+          "source": "Address Type",
+          "message": "Address Type"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.short_desc": {
+          "source": "The type of address",
+          "message": "The type of address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.desc": {
+          "source": "The type of address",
+          "message": "The type of address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOldvcms.display_name": {
+          "source": "Work",
+          "message": "Work"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOldvcms.desc": {
+          "source": "Work address",
+          "message": "Work address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOkhvbWU.display_name": {
+          "source": "Home",
+          "message": "Home"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOkhvbWU.desc": {
+          "source": "Home address",
+          "message": "Home address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOlBvc3RhbA.display_name": {
+          "source": "Postal",
+          "message": "Postal"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOlBvc3RhbA.desc": {
+          "source": "Postal address",
+          "message": "Postal address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOk90aGVy.display_name": {
+          "source": "Other",
+          "message": "Other"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOk90aGVy.desc": {
+          "source": "Other address",
+          "message": "Other address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.Q0lUWQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.Q0lUWQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.Q0lUWQ.desc": {
+          "source": "The city of the address",
+          "message": "The city of the address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.Q09VTlRSWQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.Q09VTlRSWQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.Q09VTlRSWQ.desc": {
+          "source": "The country of the address",
+          "message": "The country of the address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.UE9TVENPREU.display_name": {
+          "source": "Postcode",
+          "message": "Postcode"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.UE9TVENPREU.short_desc": {
+          "source": "Postal code",
+          "message": "Postal code"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.UE9TVENPREU.desc": {
+          "source": "The postal or ZIP code of the address",
+          "message": "The postal or ZIP code of the address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.U1RBVEU.display_name": {
+          "source": "State",
+          "message": "State"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.U1RBVEU.short_desc": {
+          "source": "State or province",
+          "message": "State or province"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.U1RBVEU.desc": {
+          "source": "The state or province of the address",
+          "message": "The state or province of the address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.U1RSRUVU.display_name": {
+          "source": "Street",
+          "message": "Street"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.U1RSRUVU.short_desc": {
+          "source": "Street address",
+          "message": "Street address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.QUREUkVTU0VT.field.U1RSRUVU.desc": {
+          "source": "The street address",
+          "message": "The street address"
         },
         "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.display_name": {
           "source": "Contact Infos",
@@ -1363,6 +2559,86 @@
           "source": "A list of additional contact information entries",
           "message": "A list of additional contact information entries"
         },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.REVUQUlM.display_name": {
+          "source": "Detail",
+          "message": "Detail"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.REVUQUlM.short_desc": {
+          "source": "The contact detail value",
+          "message": "The contact detail value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.REVUQUlM.desc": {
+          "source": "The actual value (phone number, email address, URL, etc.)",
+          "message": "The actual value (phone number, email address, URL, etc.)"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.TEFCRUw.display_name": {
+          "source": "Label",
+          "message": "Label"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.TEFCRUw.short_desc": {
+          "source": "Label for this entry",
+          "message": "Label for this entry"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.TEFCRUw.desc": {
+          "source": "A custom label for this contact information entry",
+          "message": "A custom label for this contact information entry"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.U1VCVFlQRQ.display_name": {
+          "source": "Subtype",
+          "message": "Subtype"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.U1VCVFlQRQ.short_desc": {
+          "source": "Contact info subtype",
+          "message": "Contact info subtype"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.U1VCVFlQRQ.desc": {
+          "source": "The subtype of the contact information (e.g., `Work`, `Home`, `Mobile`)",
+          "message": "The subtype of the contact information (e.g., `Work`, `Home`, `Mobile`)"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.short_desc": {
+          "source": "Contact info type",
+          "message": "Contact info type"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.desc": {
+          "source": "The type of contact information",
+          "message": "The type of contact information"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlBob25l.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlBob25l.desc": {
+          "source": "Phone number",
+          "message": "Phone number"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOkVtYWls.desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOldlYnNpdGU.display_name": {
+          "source": "Website",
+          "message": "Website"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOldlYnNpdGU.desc": {
+          "source": "Website URL",
+          "message": "Website URL"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlNvY2lhbA.display_name": {
+          "source": "Social",
+          "message": "Social"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.Q09OVEFDVElORk9T.field.VFlQRQ.allowed-value.c3RyaW5nOlNvY2lhbA.desc": {
+          "source": "Social media profile",
+          "message": "Social media profile"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.display_name": {
           "source": "Links",
           "message": "Links"
@@ -1374,6 +2650,90 @@
         "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.desc": {
           "source": "A list of links to related objects",
           "message": "A list of links to related objects"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.TElOS19JRA.display_name": {
+          "source": "Link ID",
+          "message": "Link ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.TElOS19JRA.short_desc": {
+          "source": "The unique link identifier",
+          "message": "The unique link identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.TElOS19JRA.desc": {
+          "source": "The unique identifier of the link relationship",
+          "message": "The unique identifier of the link relationship"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX0lE.display_name": {
+          "source": "Object ID",
+          "message": "Object ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX0lE.short_desc": {
+          "source": "The linked object ID",
+          "message": "The linked object ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX0lE.desc": {
+          "source": "The unique identifier of the linked object",
+          "message": "The unique identifier of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.display_name": {
+          "source": "Object Name",
+          "message": "Object Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.short_desc": {
+          "source": "The linked object type",
+          "message": "The linked object type"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.desc": {
+          "source": "The type name of the linked object",
+          "message": "The type name of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkNvbnRhY3Q.display_name": {
+          "source": "Contact",
+          "message": "Contact"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkV2ZW50.display_name": {
+          "source": "Event",
+          "message": "Event"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkxlYWQ.display_name": {
+          "source": "Lead",
+          "message": "Lead"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk5vdGU.display_name": {
+          "source": "Note",
+          "message": "Note"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9wcG9ydHVuaXR5.display_name": {
+          "source": "Opportunity",
+          "message": "Opportunity"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9yZ2FuaXNhdGlvbg.display_name": {
+          "source": "Organisation",
+          "message": "Organisation"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Project"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlRhc2s.display_name": {
+          "source": "Task",
+          "message": "Task"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.Uk9MRQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.Uk9MRQ.short_desc": {
+          "source": "The link role",
+          "message": "The link role"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.TElOS1M.field.Uk9MRQ.desc": {
+          "source": "The role describing the relationship between the objects",
+          "message": "The role describing the relationship between the objects"
         },
         "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.VEFHUw.display_name": {
           "source": "Tags",
@@ -1387,6 +2747,18 @@
           "source": "A list of tags to apply to the organisation",
           "message": "A list of tags to apply to the organisation"
         },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.VEFHUw.field.VEFHX05BTUU.display_name": {
+          "source": "Tag Name",
+          "message": "Tag Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.VEFHUw.field.VEFHX05BTUU.short_desc": {
+          "source": "The tag name",
+          "message": "The tag name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.VEFHUw.field.VEFHX05BTUU.desc": {
+          "source": "The name of the tag",
+          "message": "The name of the tag"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.display_name": {
           "source": "Dates",
           "message": "Dates"
@@ -1398,6 +2770,42 @@
         "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.desc": {
           "source": "A list of important dates for the organisation",
           "message": "A list of important dates for the organisation"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.REFURV9JRA.display_name": {
+          "source": "Date ID",
+          "message": "Date ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.REFURV9JRA.short_desc": {
+          "source": "The unique date identifier",
+          "message": "The unique date identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.REFURV9JRA.desc": {
+          "source": "The unique identifier of the date entry",
+          "message": "The unique identifier of the date entry"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.T0NDQVNJT05fREFURQ.display_name": {
+          "source": "Occasion Date",
+          "message": "Occasion Date"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.T0NDQVNJT05fREFURQ.short_desc": {
+          "source": "The date of the occasion",
+          "message": "The date of the occasion"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.T0NDQVNJT05fREFURQ.desc": {
+          "source": "The date of the occasion",
+          "message": "The date of the occasion"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.T0NDQVNJT05fTkFNRQ.display_name": {
+          "source": "Occasion Name",
+          "message": "Occasion Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.T0NDQVNJT05fTkFNRQ.short_desc": {
+          "source": "Name of the occasion",
+          "message": "Name of the occasion"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9yZ2FuaXNhdGlvbg.option.REFURVM.field.T0NDQVNJT05fTkFNRQ.desc": {
+          "source": "The name of the occasion (e.g., `Birthday`, `Anniversary`)",
+          "message": "The name of the occasion (e.g., `Birthday`, `Anniversary`)"
         },
         "app.SW5zaWdodGx5.action.ZGVsZXRlLW9yZ2FuaXNhdGlvbg.display_name": {
           "source": "Delete Organisation",
@@ -1863,6 +3271,42 @@
           "source": "A list of custom field values for the lead",
           "message": "A list of custom field values for the lead"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.short_desc": {
+          "source": "The custom field identifier",
+          "message": "The custom field identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.desc": {
+          "source": "The system-generated identifier for the custom field",
+          "message": "The system-generated identifier for the custom field"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.display_name": {
+          "source": "Field Name",
+          "message": "Field Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.short_desc": {
+          "source": "The custom field name",
+          "message": "The custom field name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.desc": {
+          "source": "The name of the custom field (e.g., `MyCustomField__c`)",
+          "message": "The name of the custom field (e.g., `MyCustomField__c`)"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.desc": {
+          "source": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration",
+          "message": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration"
+        },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.display_name": {
           "source": "Addresses",
           "message": "Addresses"
@@ -1875,6 +3319,110 @@
           "source": "A list of addresses for the lead",
           "message": "A list of addresses for the lead"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.display_name": {
+          "source": "Address Type",
+          "message": "Address Type"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.short_desc": {
+          "source": "The type of address",
+          "message": "The type of address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.desc": {
+          "source": "The type of address",
+          "message": "The type of address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOldvcms.display_name": {
+          "source": "Work",
+          "message": "Work"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOldvcms.desc": {
+          "source": "Work address",
+          "message": "Work address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOkhvbWU.display_name": {
+          "source": "Home",
+          "message": "Home"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOkhvbWU.desc": {
+          "source": "Home address",
+          "message": "Home address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOlBvc3RhbA.display_name": {
+          "source": "Postal",
+          "message": "Postal"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOlBvc3RhbA.desc": {
+          "source": "Postal address",
+          "message": "Postal address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOk90aGVy.display_name": {
+          "source": "Other",
+          "message": "Other"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOk90aGVy.desc": {
+          "source": "Other address",
+          "message": "Other address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.Q0lUWQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.Q0lUWQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.Q0lUWQ.desc": {
+          "source": "The city of the address",
+          "message": "The city of the address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.Q09VTlRSWQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.Q09VTlRSWQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.Q09VTlRSWQ.desc": {
+          "source": "The country of the address",
+          "message": "The country of the address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.UE9TVENPREU.display_name": {
+          "source": "Postcode",
+          "message": "Postcode"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.UE9TVENPREU.short_desc": {
+          "source": "Postal code",
+          "message": "Postal code"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.UE9TVENPREU.desc": {
+          "source": "The postal or ZIP code of the address",
+          "message": "The postal or ZIP code of the address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.U1RBVEU.display_name": {
+          "source": "State",
+          "message": "State"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.U1RBVEU.short_desc": {
+          "source": "State or province",
+          "message": "State or province"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.U1RBVEU.desc": {
+          "source": "The state or province of the address",
+          "message": "The state or province of the address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.U1RSRUVU.display_name": {
+          "source": "Street",
+          "message": "Street"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.U1RSRUVU.short_desc": {
+          "source": "Street address",
+          "message": "Street address"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.QUREUkVTU0VT.field.U1RSRUVU.desc": {
+          "source": "The street address",
+          "message": "The street address"
+        },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.VEFHUw.display_name": {
           "source": "Tags",
           "message": "Tags"
@@ -1886,6 +3434,18 @@
         "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.VEFHUw.desc": {
           "source": "A list of tags to apply to the lead",
           "message": "A list of tags to apply to the lead"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.VEFHUw.field.VEFHX05BTUU.display_name": {
+          "source": "Tag Name",
+          "message": "Tag Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.VEFHUw.field.VEFHX05BTUU.short_desc": {
+          "source": "The tag name",
+          "message": "The tag name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLWxlYWQ.option.VEFHUw.field.VEFHX05BTUU.desc": {
+          "source": "The name of the tag",
+          "message": "The name of the tag"
         },
         "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.display_name": {
           "source": "Update Lead",
@@ -2215,6 +3775,42 @@
           "source": "A list of custom field values for the lead",
           "message": "A list of custom field values for the lead"
         },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.short_desc": {
+          "source": "The custom field identifier",
+          "message": "The custom field identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.desc": {
+          "source": "The system-generated identifier for the custom field",
+          "message": "The system-generated identifier for the custom field"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.display_name": {
+          "source": "Field Name",
+          "message": "Field Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.short_desc": {
+          "source": "The custom field name",
+          "message": "The custom field name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.desc": {
+          "source": "The name of the custom field (e.g., `MyCustomField__c`)",
+          "message": "The name of the custom field (e.g., `MyCustomField__c`)"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.desc": {
+          "source": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration",
+          "message": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.display_name": {
           "source": "Addresses",
           "message": "Addresses"
@@ -2227,6 +3823,110 @@
           "source": "A list of addresses for the lead",
           "message": "A list of addresses for the lead"
         },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.display_name": {
+          "source": "Address Type",
+          "message": "Address Type"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.short_desc": {
+          "source": "The type of address",
+          "message": "The type of address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.desc": {
+          "source": "The type of address",
+          "message": "The type of address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOldvcms.display_name": {
+          "source": "Work",
+          "message": "Work"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOldvcms.desc": {
+          "source": "Work address",
+          "message": "Work address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOkhvbWU.display_name": {
+          "source": "Home",
+          "message": "Home"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOkhvbWU.desc": {
+          "source": "Home address",
+          "message": "Home address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOlBvc3RhbA.display_name": {
+          "source": "Postal",
+          "message": "Postal"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOlBvc3RhbA.desc": {
+          "source": "Postal address",
+          "message": "Postal address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOk90aGVy.display_name": {
+          "source": "Other",
+          "message": "Other"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.QUREUkVTU19UWVBF.allowed-value.c3RyaW5nOk90aGVy.desc": {
+          "source": "Other address",
+          "message": "Other address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.Q0lUWQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.Q0lUWQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.Q0lUWQ.desc": {
+          "source": "The city of the address",
+          "message": "The city of the address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.Q09VTlRSWQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.Q09VTlRSWQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.Q09VTlRSWQ.desc": {
+          "source": "The country of the address",
+          "message": "The country of the address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.UE9TVENPREU.display_name": {
+          "source": "Postcode",
+          "message": "Postcode"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.UE9TVENPREU.short_desc": {
+          "source": "Postal code",
+          "message": "Postal code"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.UE9TVENPREU.desc": {
+          "source": "The postal or ZIP code of the address",
+          "message": "The postal or ZIP code of the address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.U1RBVEU.display_name": {
+          "source": "State",
+          "message": "State"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.U1RBVEU.short_desc": {
+          "source": "State or province",
+          "message": "State or province"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.U1RBVEU.desc": {
+          "source": "The state or province of the address",
+          "message": "The state or province of the address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.U1RSRUVU.display_name": {
+          "source": "Street",
+          "message": "Street"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.U1RSRUVU.short_desc": {
+          "source": "Street address",
+          "message": "Street address"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.QUREUkVTU0VT.field.U1RSRUVU.desc": {
+          "source": "The street address",
+          "message": "The street address"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.VEFHUw.display_name": {
           "source": "Tags",
           "message": "Tags"
@@ -2238,6 +3938,18 @@
         "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.VEFHUw.desc": {
           "source": "A list of tags to apply to the lead",
           "message": "A list of tags to apply to the lead"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.VEFHUw.field.VEFHX05BTUU.display_name": {
+          "source": "Tag Name",
+          "message": "Tag Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.VEFHUw.field.VEFHX05BTUU.short_desc": {
+          "source": "The tag name",
+          "message": "The tag name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLWxlYWQ.option.VEFHUw.field.VEFHX05BTUU.desc": {
+          "source": "The name of the tag",
+          "message": "The name of the tag"
         },
         "app.SW5zaWdodGx5.action.ZGVsZXRlLWxlYWQ.display_name": {
           "source": "Delete Lead",
@@ -2667,6 +4379,42 @@
           "source": "A list of custom field values",
           "message": "A list of custom field values"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.short_desc": {
+          "source": "The custom field identifier",
+          "message": "The custom field identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.desc": {
+          "source": "The system-generated identifier for the custom field",
+          "message": "The system-generated identifier for the custom field"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.display_name": {
+          "source": "Field Name",
+          "message": "Field Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.short_desc": {
+          "source": "The custom field name",
+          "message": "The custom field name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.desc": {
+          "source": "The name of the custom field (e.g., `MyCustomField__c`)",
+          "message": "The name of the custom field (e.g., `MyCustomField__c`)"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.desc": {
+          "source": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration",
+          "message": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration"
+        },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.VEFHUw.display_name": {
           "source": "Tags",
           "message": "Tags"
@@ -2679,6 +4427,18 @@
           "source": "A list of tags to apply to the opportunity",
           "message": "A list of tags to apply to the opportunity"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.VEFHUw.field.VEFHX05BTUU.display_name": {
+          "source": "Tag Name",
+          "message": "Tag Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.VEFHUw.field.VEFHX05BTUU.short_desc": {
+          "source": "The tag name",
+          "message": "The tag name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.VEFHUw.field.VEFHX05BTUU.desc": {
+          "source": "The name of the tag",
+          "message": "The name of the tag"
+        },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.display_name": {
           "source": "Links",
           "message": "Links"
@@ -2690,6 +4450,90 @@
         "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.desc": {
           "source": "A list of links to related objects",
           "message": "A list of links to related objects"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.TElOS19JRA.display_name": {
+          "source": "Link ID",
+          "message": "Link ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.TElOS19JRA.short_desc": {
+          "source": "The unique link identifier",
+          "message": "The unique link identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.TElOS19JRA.desc": {
+          "source": "The unique identifier of the link relationship",
+          "message": "The unique identifier of the link relationship"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX0lE.display_name": {
+          "source": "Object ID",
+          "message": "Object ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX0lE.short_desc": {
+          "source": "The linked object ID",
+          "message": "The linked object ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX0lE.desc": {
+          "source": "The unique identifier of the linked object",
+          "message": "The unique identifier of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.display_name": {
+          "source": "Object Name",
+          "message": "Object Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.short_desc": {
+          "source": "The linked object type",
+          "message": "The linked object type"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.desc": {
+          "source": "The type name of the linked object",
+          "message": "The type name of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkNvbnRhY3Q.display_name": {
+          "source": "Contact",
+          "message": "Contact"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkV2ZW50.display_name": {
+          "source": "Event",
+          "message": "Event"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkxlYWQ.display_name": {
+          "source": "Lead",
+          "message": "Lead"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk5vdGU.display_name": {
+          "source": "Note",
+          "message": "Note"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9wcG9ydHVuaXR5.display_name": {
+          "source": "Opportunity",
+          "message": "Opportunity"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9yZ2FuaXNhdGlvbg.display_name": {
+          "source": "Organisation",
+          "message": "Organisation"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Project"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlRhc2s.display_name": {
+          "source": "Task",
+          "message": "Task"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.Uk9MRQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.Uk9MRQ.short_desc": {
+          "source": "The link role",
+          "message": "The link role"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.Uk9MRQ.desc": {
+          "source": "The role describing the relationship between the objects",
+          "message": "The role describing the relationship between the objects"
         },
         "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.display_name": {
           "source": "Update Opportunity",
@@ -2983,6 +4827,42 @@
           "source": "A list of custom field values",
           "message": "A list of custom field values"
         },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.short_desc": {
+          "source": "The custom field identifier",
+          "message": "The custom field identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.desc": {
+          "source": "The system-generated identifier for the custom field",
+          "message": "The system-generated identifier for the custom field"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.display_name": {
+          "source": "Field Name",
+          "message": "Field Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.short_desc": {
+          "source": "The custom field name",
+          "message": "The custom field name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.desc": {
+          "source": "The name of the custom field (e.g., `MyCustomField__c`)",
+          "message": "The name of the custom field (e.g., `MyCustomField__c`)"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.desc": {
+          "source": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration",
+          "message": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.VEFHUw.display_name": {
           "source": "Tags",
           "message": "Tags"
@@ -2995,6 +4875,18 @@
           "source": "A list of tags to apply to the opportunity",
           "message": "A list of tags to apply to the opportunity"
         },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.VEFHUw.field.VEFHX05BTUU.display_name": {
+          "source": "Tag Name",
+          "message": "Tag Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.VEFHUw.field.VEFHX05BTUU.short_desc": {
+          "source": "The tag name",
+          "message": "The tag name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.VEFHUw.field.VEFHX05BTUU.desc": {
+          "source": "The name of the tag",
+          "message": "The name of the tag"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.display_name": {
           "source": "Links",
           "message": "Links"
@@ -3006,6 +4898,90 @@
         "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.desc": {
           "source": "A list of links to related objects",
           "message": "A list of links to related objects"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.TElOS19JRA.display_name": {
+          "source": "Link ID",
+          "message": "Link ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.TElOS19JRA.short_desc": {
+          "source": "The unique link identifier",
+          "message": "The unique link identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.TElOS19JRA.desc": {
+          "source": "The unique identifier of the link relationship",
+          "message": "The unique identifier of the link relationship"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX0lE.display_name": {
+          "source": "Object ID",
+          "message": "Object ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX0lE.short_desc": {
+          "source": "The linked object ID",
+          "message": "The linked object ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX0lE.desc": {
+          "source": "The unique identifier of the linked object",
+          "message": "The unique identifier of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.display_name": {
+          "source": "Object Name",
+          "message": "Object Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.short_desc": {
+          "source": "The linked object type",
+          "message": "The linked object type"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.desc": {
+          "source": "The type name of the linked object",
+          "message": "The type name of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkNvbnRhY3Q.display_name": {
+          "source": "Contact",
+          "message": "Contact"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkV2ZW50.display_name": {
+          "source": "Event",
+          "message": "Event"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkxlYWQ.display_name": {
+          "source": "Lead",
+          "message": "Lead"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk5vdGU.display_name": {
+          "source": "Note",
+          "message": "Note"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9wcG9ydHVuaXR5.display_name": {
+          "source": "Opportunity",
+          "message": "Opportunity"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9yZ2FuaXNhdGlvbg.display_name": {
+          "source": "Organisation",
+          "message": "Organisation"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Project"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlRhc2s.display_name": {
+          "source": "Task",
+          "message": "Task"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.Uk9MRQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.Uk9MRQ.short_desc": {
+          "source": "The link role",
+          "message": "The link role"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLW9wcG9ydHVuaXR5.option.TElOS1M.field.Uk9MRQ.desc": {
+          "source": "The role describing the relationship between the objects",
+          "message": "The role describing the relationship between the objects"
         },
         "app.SW5zaWdodGx5.action.ZGVsZXRlLW9wcG9ydHVuaXR5.display_name": {
           "source": "Delete Opportunity",
@@ -3375,6 +5351,42 @@
           "source": "A list of custom field values",
           "message": "A list of custom field values"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.short_desc": {
+          "source": "The custom field identifier",
+          "message": "The custom field identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.desc": {
+          "source": "The system-generated identifier for the custom field",
+          "message": "The system-generated identifier for the custom field"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.display_name": {
+          "source": "Field Name",
+          "message": "Field Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.short_desc": {
+          "source": "The custom field name",
+          "message": "The custom field name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.desc": {
+          "source": "The name of the custom field (e.g., `MyCustomField__c`)",
+          "message": "The name of the custom field (e.g., `MyCustomField__c`)"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.desc": {
+          "source": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration",
+          "message": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration"
+        },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.VEFHUw.display_name": {
           "source": "Tags",
           "message": "Tags"
@@ -3387,6 +5399,18 @@
           "source": "A list of tags to apply to the project",
           "message": "A list of tags to apply to the project"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.VEFHUw.field.VEFHX05BTUU.display_name": {
+          "source": "Tag Name",
+          "message": "Tag Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.VEFHUw.field.VEFHX05BTUU.short_desc": {
+          "source": "The tag name",
+          "message": "The tag name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.VEFHUw.field.VEFHX05BTUU.desc": {
+          "source": "The name of the tag",
+          "message": "The name of the tag"
+        },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.display_name": {
           "source": "Links",
           "message": "Links"
@@ -3398,6 +5422,90 @@
         "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.desc": {
           "source": "A list of links to related objects",
           "message": "A list of links to related objects"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.TElOS19JRA.display_name": {
+          "source": "Link ID",
+          "message": "Link ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.TElOS19JRA.short_desc": {
+          "source": "The unique link identifier",
+          "message": "The unique link identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.TElOS19JRA.desc": {
+          "source": "The unique identifier of the link relationship",
+          "message": "The unique identifier of the link relationship"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX0lE.display_name": {
+          "source": "Object ID",
+          "message": "Object ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX0lE.short_desc": {
+          "source": "The linked object ID",
+          "message": "The linked object ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX0lE.desc": {
+          "source": "The unique identifier of the linked object",
+          "message": "The unique identifier of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.display_name": {
+          "source": "Object Name",
+          "message": "Object Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.short_desc": {
+          "source": "The linked object type",
+          "message": "The linked object type"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.desc": {
+          "source": "The type name of the linked object",
+          "message": "The type name of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkNvbnRhY3Q.display_name": {
+          "source": "Contact",
+          "message": "Contact"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkV2ZW50.display_name": {
+          "source": "Event",
+          "message": "Event"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkxlYWQ.display_name": {
+          "source": "Lead",
+          "message": "Lead"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk5vdGU.display_name": {
+          "source": "Note",
+          "message": "Note"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9wcG9ydHVuaXR5.display_name": {
+          "source": "Opportunity",
+          "message": "Opportunity"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9yZ2FuaXNhdGlvbg.display_name": {
+          "source": "Organisation",
+          "message": "Organisation"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Project"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlRhc2s.display_name": {
+          "source": "Task",
+          "message": "Task"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.Uk9MRQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.Uk9MRQ.short_desc": {
+          "source": "The link role",
+          "message": "The link role"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2plY3Q.option.TElOS1M.field.Uk9MRQ.desc": {
+          "source": "The role describing the relationship between the objects",
+          "message": "The role describing the relationship between the objects"
         },
         "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.display_name": {
           "source": "Update Project",
@@ -3631,6 +5739,42 @@
           "source": "A list of custom field values",
           "message": "A list of custom field values"
         },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.short_desc": {
+          "source": "The custom field identifier",
+          "message": "The custom field identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.desc": {
+          "source": "The system-generated identifier for the custom field",
+          "message": "The system-generated identifier for the custom field"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.display_name": {
+          "source": "Field Name",
+          "message": "Field Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.short_desc": {
+          "source": "The custom field name",
+          "message": "The custom field name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.desc": {
+          "source": "The name of the custom field (e.g., `MyCustomField__c`)",
+          "message": "The name of the custom field (e.g., `MyCustomField__c`)"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.desc": {
+          "source": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration",
+          "message": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.VEFHUw.display_name": {
           "source": "Tags",
           "message": "Tags"
@@ -3643,6 +5787,18 @@
           "source": "A list of tags to apply to the project",
           "message": "A list of tags to apply to the project"
         },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.VEFHUw.field.VEFHX05BTUU.display_name": {
+          "source": "Tag Name",
+          "message": "Tag Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.VEFHUw.field.VEFHX05BTUU.short_desc": {
+          "source": "The tag name",
+          "message": "The tag name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.VEFHUw.field.VEFHX05BTUU.desc": {
+          "source": "The name of the tag",
+          "message": "The name of the tag"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.display_name": {
           "source": "Links",
           "message": "Links"
@@ -3654,6 +5810,90 @@
         "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.desc": {
           "source": "A list of links to related objects",
           "message": "A list of links to related objects"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.TElOS19JRA.display_name": {
+          "source": "Link ID",
+          "message": "Link ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.TElOS19JRA.short_desc": {
+          "source": "The unique link identifier",
+          "message": "The unique link identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.TElOS19JRA.desc": {
+          "source": "The unique identifier of the link relationship",
+          "message": "The unique identifier of the link relationship"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX0lE.display_name": {
+          "source": "Object ID",
+          "message": "Object ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX0lE.short_desc": {
+          "source": "The linked object ID",
+          "message": "The linked object ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX0lE.desc": {
+          "source": "The unique identifier of the linked object",
+          "message": "The unique identifier of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.display_name": {
+          "source": "Object Name",
+          "message": "Object Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.short_desc": {
+          "source": "The linked object type",
+          "message": "The linked object type"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.desc": {
+          "source": "The type name of the linked object",
+          "message": "The type name of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkNvbnRhY3Q.display_name": {
+          "source": "Contact",
+          "message": "Contact"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkV2ZW50.display_name": {
+          "source": "Event",
+          "message": "Event"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkxlYWQ.display_name": {
+          "source": "Lead",
+          "message": "Lead"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk5vdGU.display_name": {
+          "source": "Note",
+          "message": "Note"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9wcG9ydHVuaXR5.display_name": {
+          "source": "Opportunity",
+          "message": "Opportunity"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9yZ2FuaXNhdGlvbg.display_name": {
+          "source": "Organisation",
+          "message": "Organisation"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Project"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlRhc2s.display_name": {
+          "source": "Task",
+          "message": "Task"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.Uk9MRQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.Uk9MRQ.short_desc": {
+          "source": "The link role",
+          "message": "The link role"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2plY3Q.option.TElOS1M.field.Uk9MRQ.desc": {
+          "source": "The role describing the relationship between the objects",
+          "message": "The role describing the relationship between the objects"
         },
         "app.SW5zaWdodGx5.action.ZGVsZXRlLXByb2plY3Q.display_name": {
           "source": "Delete Project",
@@ -4079,6 +6319,90 @@
           "source": "A list of links to related objects",
           "message": "A list of links to related objects"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX0lE.display_name": {
+          "source": "Object ID",
+          "message": "Object ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX0lE.short_desc": {
+          "source": "The linked object ID",
+          "message": "The linked object ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX0lE.desc": {
+          "source": "The unique identifier of the linked object",
+          "message": "The unique identifier of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.display_name": {
+          "source": "Object Name",
+          "message": "Object Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.short_desc": {
+          "source": "The linked object type",
+          "message": "The linked object type"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.desc": {
+          "source": "The type name of the linked object",
+          "message": "The type name of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkNvbnRhY3Q.display_name": {
+          "source": "Contact",
+          "message": "Contact"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkV2ZW50.display_name": {
+          "source": "Event",
+          "message": "Event"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkxlYWQ.display_name": {
+          "source": "Lead",
+          "message": "Lead"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk5vdGU.display_name": {
+          "source": "Note",
+          "message": "Note"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9wcG9ydHVuaXR5.display_name": {
+          "source": "Opportunity",
+          "message": "Opportunity"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9yZ2FuaXNhdGlvbg.display_name": {
+          "source": "Organisation",
+          "message": "Organisation"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Project"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlRhc2s.display_name": {
+          "source": "Task",
+          "message": "Task"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.Uk9MRQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.Uk9MRQ.short_desc": {
+          "source": "The link role",
+          "message": "The link role"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.Uk9MRQ.desc": {
+          "source": "The role describing the relationship",
+          "message": "The role describing the relationship"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.VEFTS19MSU5LX0lE.display_name": {
+          "source": "Task Link ID",
+          "message": "Task Link ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.VEFTS19MSU5LX0lE.short_desc": {
+          "source": "The unique task link identifier",
+          "message": "The unique task link identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXRhc2s.option.VEFTS0xJTktT.field.VEFTS19MSU5LX0lE.desc": {
+          "source": "The unique identifier of the task link",
+          "message": "The unique identifier of the task link"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.display_name": {
           "source": "Update Task",
           "message": "Update Task"
@@ -4366,6 +6690,90 @@
         "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.desc": {
           "source": "A list of links to related objects",
           "message": "A list of links to related objects"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX0lE.display_name": {
+          "source": "Object ID",
+          "message": "Object ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX0lE.short_desc": {
+          "source": "The linked object ID",
+          "message": "The linked object ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX0lE.desc": {
+          "source": "The unique identifier of the linked object",
+          "message": "The unique identifier of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.display_name": {
+          "source": "Object Name",
+          "message": "Object Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.short_desc": {
+          "source": "The linked object type",
+          "message": "The linked object type"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.desc": {
+          "source": "The type name of the linked object",
+          "message": "The type name of the linked object"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkNvbnRhY3Q.display_name": {
+          "source": "Contact",
+          "message": "Contact"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkV2ZW50.display_name": {
+          "source": "Event",
+          "message": "Event"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOkxlYWQ.display_name": {
+          "source": "Lead",
+          "message": "Lead"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk5vdGU.display_name": {
+          "source": "Note",
+          "message": "Note"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9wcG9ydHVuaXR5.display_name": {
+          "source": "Opportunity",
+          "message": "Opportunity"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOk9yZ2FuaXNhdGlvbg.display_name": {
+          "source": "Organisation",
+          "message": "Organisation"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Project"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.T0JKRUNUX05BTUU.allowed-value.c3RyaW5nOlRhc2s.display_name": {
+          "source": "Task",
+          "message": "Task"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.Uk9MRQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.Uk9MRQ.short_desc": {
+          "source": "The link role",
+          "message": "The link role"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.Uk9MRQ.desc": {
+          "source": "The role describing the relationship",
+          "message": "The role describing the relationship"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.VEFTS19MSU5LX0lE.display_name": {
+          "source": "Task Link ID",
+          "message": "Task Link ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.VEFTS19MSU5LX0lE.short_desc": {
+          "source": "The unique task link identifier",
+          "message": "The unique task link identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXRhc2s.option.VEFTS0xJTktT.field.VEFTS19MSU5LX0lE.desc": {
+          "source": "The unique identifier of the task link",
+          "message": "The unique identifier of the task link"
         },
         "app.SW5zaWdodGx5.action.ZGVsZXRlLXRhc2s.display_name": {
           "source": "Delete Task",
@@ -5439,6 +7847,54 @@
           "source": "A list of pricebook entries for the product",
           "message": "A list of pricebook entries for the product"
         },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.QUNUSVZF.display_name": {
+          "source": "Active",
+          "message": "Active"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.QUNUSVZF.short_desc": {
+          "source": "Whether the pricebook entry is active",
+          "message": "Whether the pricebook entry is active"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.QUNUSVZF.desc": {
+          "source": "If `True`, the pricebook entry is active",
+          "message": "If `True`, the pricebook entry is active"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.Q1VSUkVOQ1lfQ09ERQ.display_name": {
+          "source": "Currency Code",
+          "message": "Currency Code"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.Q1VSUkVOQ1lfQ09ERQ.short_desc": {
+          "source": "The currency code",
+          "message": "The currency code"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.Q1VSUkVOQ1lfQ09ERQ.desc": {
+          "source": "The ISO 4217 currency code (e.g., `USD`, `EUR`, `GBP`)",
+          "message": "The ISO 4217 currency code (e.g., `USD`, `EUR`, `GBP`)"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.UFJJQ0U.display_name": {
+          "source": "Price",
+          "message": "Price"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.UFJJQ0U.short_desc": {
+          "source": "The price in the given currency",
+          "message": "The price in the given currency"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.UFJJQ0U.desc": {
+          "source": "The price of the product in the specified currency",
+          "message": "The price of the product in the specified currency"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.UFJJQ0VCT09LX0lE.display_name": {
+          "source": "Pricebook ID",
+          "message": "Pricebook ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.UFJJQ0VCT09LX0lE.short_desc": {
+          "source": "The pricebook identifier",
+          "message": "The pricebook identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.UFJJQ0VCT09LX0lE.desc": {
+          "source": "The unique identifier of the pricebook entry",
+          "message": "The unique identifier of the pricebook entry"
+        },
         "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.display_name": {
           "source": "Custom Fields",
           "message": "Custom Fields"
@@ -5450,6 +7906,42 @@
         "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.desc": {
           "source": "A list of custom field values",
           "message": "A list of custom field values"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.short_desc": {
+          "source": "The custom field identifier",
+          "message": "The custom field identifier"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.desc": {
+          "source": "The system-generated identifier for the custom field",
+          "message": "The system-generated identifier for the custom field"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.display_name": {
+          "source": "Field Name",
+          "message": "Field Name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.short_desc": {
+          "source": "The custom field name",
+          "message": "The custom field name"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.desc": {
+          "source": "The name of the custom field (e.g., `MyCustomField__c`)",
+          "message": "The name of the custom field (e.g., `MyCustomField__c`)"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.SW5zaWdodGx5.action.Y3JlYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.desc": {
+          "source": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration",
+          "message": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration"
         },
         "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.display_name": {
           "source": "Update Product",
@@ -5571,6 +8063,54 @@
           "source": "A list of pricebook entries for the product",
           "message": "A list of pricebook entries for the product"
         },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.QUNUSVZF.display_name": {
+          "source": "Active",
+          "message": "Active"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.QUNUSVZF.short_desc": {
+          "source": "Whether the pricebook entry is active",
+          "message": "Whether the pricebook entry is active"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.QUNUSVZF.desc": {
+          "source": "If `True`, the pricebook entry is active",
+          "message": "If `True`, the pricebook entry is active"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.Q1VSUkVOQ1lfQ09ERQ.display_name": {
+          "source": "Currency Code",
+          "message": "Currency Code"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.Q1VSUkVOQ1lfQ09ERQ.short_desc": {
+          "source": "The currency code",
+          "message": "The currency code"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.Q1VSUkVOQ1lfQ09ERQ.desc": {
+          "source": "The ISO 4217 currency code (e.g., `USD`, `EUR`, `GBP`)",
+          "message": "The ISO 4217 currency code (e.g., `USD`, `EUR`, `GBP`)"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.UFJJQ0U.display_name": {
+          "source": "Price",
+          "message": "Price"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.UFJJQ0U.short_desc": {
+          "source": "The price in the given currency",
+          "message": "The price in the given currency"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.UFJJQ0U.desc": {
+          "source": "The price of the product in the specified currency",
+          "message": "The price of the product in the specified currency"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.UFJJQ0VCT09LX0lE.display_name": {
+          "source": "Pricebook ID",
+          "message": "Pricebook ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.UFJJQ0VCT09LX0lE.short_desc": {
+          "source": "The pricebook identifier",
+          "message": "The pricebook identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.UFJPRFVDVF9QUklDRUJPT0tT.field.UFJJQ0VCT09LX0lE.desc": {
+          "source": "The unique identifier of the pricebook entry",
+          "message": "The unique identifier of the pricebook entry"
+        },
         "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.display_name": {
           "source": "Custom Fields",
           "message": "Custom Fields"
@@ -5582,6 +8122,42 @@
         "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.desc": {
           "source": "A list of custom field values",
           "message": "A list of custom field values"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.short_desc": {
+          "source": "The custom field identifier",
+          "message": "The custom field identifier"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.Q1VTVE9NX0ZJRUxEX0lE.desc": {
+          "source": "The system-generated identifier for the custom field",
+          "message": "The system-generated identifier for the custom field"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.display_name": {
+          "source": "Field Name",
+          "message": "Field Name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.short_desc": {
+          "source": "The custom field name",
+          "message": "The custom field name"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfTkFNRQ.desc": {
+          "source": "The name of the custom field (e.g., `MyCustomField__c`)",
+          "message": "The name of the custom field (e.g., `MyCustomField__c`)"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.SW5zaWdodGx5.action.dXBkYXRlLXByb2R1Y3Q.option.Q1VTVE9NRklFTERT.field.RklFTERfVkFMVUU.desc": {
+          "source": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration",
+          "message": "The value of the custom field. Can be a string, number, boolean, or date depending on the field configuration"
         },
         "app.SW5zaWdodGx5.action.ZGVsZXRlLXByb2R1Y3Q.display_name": {
           "source": "Delete Product",

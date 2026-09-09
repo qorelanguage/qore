@@ -507,6 +507,62 @@
           "source": "A list of subscribers to create, each containing at least an `email_address` field",
           "message": "A list of subscribers to create, each containing at least an `email_address` field"
         },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.ZW1haWxfYWRkcmVzcw.display_name": {
+          "source": "Email Address",
+          "message": "Email Address"
+        },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.ZW1haWxfYWRkcmVzcw.short_desc": {
+          "source": "The subscriber's email address",
+          "message": "The subscriber's email address"
+        },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.ZW1haWxfYWRkcmVzcw.desc": {
+          "source": "The email address of the subscriber",
+          "message": "The email address of the subscriber"
+        },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.Zmlyc3RfbmFtZQ.display_name": {
+          "source": "First Name",
+          "message": "First Name"
+        },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.Zmlyc3RfbmFtZQ.short_desc": {
+          "source": "The subscriber's first name",
+          "message": "The subscriber's first name"
+        },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.Zmlyc3RfbmFtZQ.desc": {
+          "source": "The first name of the subscriber",
+          "message": "The first name of the subscriber"
+        },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.c3RhdGU.display_name": {
+          "source": "State",
+          "message": "State"
+        },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.c3RhdGU.short_desc": {
+          "source": "The subscriber state",
+          "message": "The subscriber state"
+        },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.c3RhdGU.desc": {
+          "source": "The state of the subscriber",
+          "message": "The state of the subscriber"
+        },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.c3RhdGU.allowed-value.c3RyaW5nOmFjdGl2ZQ.desc": {
+          "source": "Active subscriber",
+          "message": "Active subscriber"
+        },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.c3RhdGU.allowed-value.c3RyaW5nOmNhbmNlbGxlZA.desc": {
+          "source": "Cancelled/unsubscribed subscriber",
+          "message": "Cancelled/unsubscribed subscriber"
+        },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.c3RhdGU.allowed-value.c3RyaW5nOmJvdW5jZWQ.desc": {
+          "source": "Bounced subscriber",
+          "message": "Bounced subscriber"
+        },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.c3RhdGU.allowed-value.c3RyaW5nOmNvbXBsYWluZWQ.desc": {
+          "source": "Subscriber who filed a complaint",
+          "message": "Subscriber who filed a complaint"
+        },
+        "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.c3Vic2NyaWJlcnM.field.c3RhdGU.allowed-value.c3RyaW5nOmluYWN0aXZl.desc": {
+          "source": "Inactive subscriber",
+          "message": "Inactive subscriber"
+        },
         "app.S2l0.action.YnVsay1jcmVhdGUtc3Vic2NyaWJlcnM.option.Y2FsbGJhY2tfdXJs.display_name": {
           "source": "Callback URL",
           "message": "Callback URL"
@@ -1646,6 +1702,78 @@
         "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.desc": {
           "source": "A list of products in the purchase, each containing product details such as `name`, `pid`, `lid`, `quantity`, and `unit_price`",
           "message": "A list of products in the purchase, each containing product details such as `name`, `pid`, `lid`, `quantity`, and `unit_price`"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.bGlk.display_name": {
+          "source": "Line Item ID",
+          "message": "Line Item ID"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.bGlk.short_desc": {
+          "source": "Unique line item identifier",
+          "message": "Unique line item identifier"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.bGlk.desc": {
+          "source": "Line item identifier (must be unique within the purchase)",
+          "message": "Line item identifier (must be unique within the purchase)"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.bmFtZQ.display_name": {
+          "source": "Product Name",
+          "message": "Product Name"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.bmFtZQ.short_desc": {
+          "source": "The product name",
+          "message": "The product name"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.bmFtZQ.desc": {
+          "source": "The name of the product",
+          "message": "The name of the product"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.cGlk.display_name": {
+          "source": "Product ID",
+          "message": "Product ID"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.cGlk.short_desc": {
+          "source": "Unique product identifier",
+          "message": "Unique product identifier"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.cGlk.desc": {
+          "source": "Your unique product identifier (must be unique within the purchase)",
+          "message": "Your unique product identifier (must be unique within the purchase)"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.cXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.cXVhbnRpdHk.short_desc": {
+          "source": "Product quantity",
+          "message": "Product quantity"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.cXVhbnRpdHk.desc": {
+          "source": "The quantity of the product purchased",
+          "message": "The quantity of the product purchased"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.c2t1.display_name": {
+          "source": "SKU",
+          "message": "SKU"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.c2t1.short_desc": {
+          "source": "Product SKU",
+          "message": "Product SKU"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.c2t1.desc": {
+          "source": "The stock keeping unit identifier for the product",
+          "message": "The stock keeping unit identifier for the product"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.dW5pdF9wcmljZQ.display_name": {
+          "source": "Unit Price",
+          "message": "Unit Price"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.dW5pdF9wcmljZQ.short_desc": {
+          "source": "Price per unit",
+          "message": "Price per unit"
+        },
+        "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.cHJvZHVjdHM.field.dW5pdF9wcmljZQ.desc": {
+          "source": "The price per unit of the product",
+          "message": "The price per unit of the product"
         },
         "app.S2l0.action.Y3JlYXRlLXB1cmNoYXNl.option.Y3VycmVuY3k.display_name": {
           "source": "Currency",

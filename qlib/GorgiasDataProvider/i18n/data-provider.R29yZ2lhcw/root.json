@@ -495,6 +495,42 @@
           "source": "The customer for this ticket. Provide `id` to reference an existing customer, or `email` to match or create by email address",
           "message": "The customer for this ticket. Provide `id` to reference an existing customer, or `email` to match or create by email address"
         },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.ZW1haWw.short_desc": {
+          "source": "Customer email address",
+          "message": "Customer email address"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.ZW1haWw.desc": {
+          "source": "The email address of the customer. If no customer exists with this email, a new customer will be created",
+          "message": "The email address of the customer. If no customer exists with this email, a new customer will be created"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.aWQ.display_name": {
+          "source": "Customer ID",
+          "message": "Customer ID"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.aWQ.short_desc": {
+          "source": "Existing customer ID",
+          "message": "Existing customer ID"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.aWQ.desc": {
+          "source": "The ID of an existing Gorgias customer to associate with the ticket",
+          "message": "The ID of an existing Gorgias customer to associate with the ticket"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.bmFtZQ.short_desc": {
+          "source": "Customer name",
+          "message": "Customer name"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.bmFtZQ.desc": {
+          "source": "The name of the customer (used when creating a new customer)",
+          "message": "The name of the customer (used when creating a new customer)"
+        },
         "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.display_name": {
           "source": "Messages",
           "message": "Messages"
@@ -506,6 +542,270 @@
         "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.desc": {
           "source": "List of initial messages for the ticket. Required field. Each message must have `channel`, `from_agent`, and `via`. Provide either `body_text` or `body_html` for message content. Up to 500 messages per ticket",
           "message": "List of initial messages for the ticket. Required field. Each message must have `channel`, `from_agent`, and `via`. Provide either `body_text` or `body_html` for message content. Up to 500 messages per ticket"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Ym9keV9odG1s.display_name": {
+          "source": "Body HTML",
+          "message": "Body HTML"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Ym9keV9odG1s.short_desc": {
+          "source": "HTML body",
+          "message": "HTML body"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Ym9keV9odG1s.desc": {
+          "source": "The HTML body of the message. Provide either `body_text` or `body_html`",
+          "message": "The HTML body of the message. Provide either `body_text` or `body_html`"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Ym9keV90ZXh0.display_name": {
+          "source": "Body Text",
+          "message": "Body Text"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Ym9keV90ZXh0.short_desc": {
+          "source": "Plain text body",
+          "message": "Plain text body"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Ym9keV90ZXh0.desc": {
+          "source": "The plain text body of the message. Provide either `body_text` or `body_html`",
+          "message": "The plain text body of the message. Provide either `body_text` or `body_html`"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.display_name": {
+          "source": "Channel",
+          "message": "Channel"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.short_desc": {
+          "source": "Message channel",
+          "message": "Message channel"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.desc": {
+          "source": "The communication channel for the message",
+          "message": "The communication channel for the message"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.allowed-value.c3RyaW5nOmVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.allowed-value.c3RyaW5nOmNoYXQ.display_name": {
+          "source": "Chat",
+          "message": "Chat"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.allowed-value.c3RyaW5nOmFwaQ.display_name": {
+          "source": "API",
+          "message": "API"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.allowed-value.c3RyaW5nOmludGVybmFsLW5vdGU.display_name": {
+          "source": "Internal Note",
+          "message": "Internal Note"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.allowed-value.c3RyaW5nOnBob25l.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.allowed-value.c3RyaW5nOnNtcw.display_name": {
+          "source": "SMS",
+          "message": "SMS"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.allowed-value.c3RyaW5nOmZhY2Vib29r.display_name": {
+          "source": "Facebook",
+          "message": "Facebook"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.allowed-value.c3RyaW5nOmluc3RhZ3JhbQ.display_name": {
+          "source": "Instagram",
+          "message": "Instagram"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.allowed-value.c3RyaW5nOnR3aXR0ZXI.display_name": {
+          "source": "Twitter",
+          "message": "Twitter"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.allowed-value.c3RyaW5nOndoYXRzYXBw.display_name": {
+          "source": "WhatsApp",
+          "message": "WhatsApp"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.allowed-value.c3RyaW5nOmNvbnRhY3RfZm9ybQ.display_name": {
+          "source": "Contact Form",
+          "message": "Contact Form"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.Y2hhbm5lbA.allowed-value.c3RyaW5nOmhlbHAtY2VudGVy.display_name": {
+          "source": "Help Center",
+          "message": "Help Center"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.ZXh0ZXJuYWxfaWQ.display_name": {
+          "source": "External ID",
+          "message": "External ID"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.ZXh0ZXJuYWxfaWQ.short_desc": {
+          "source": "External identifier",
+          "message": "External identifier"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.ZXh0ZXJuYWxfaWQ.desc": {
+          "source": "An external identifier for the message from an integrated system",
+          "message": "An external identifier for the message from an integrated system"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.ZnJvbV9hZ2VudA.display_name": {
+          "source": "From Agent",
+          "message": "From Agent"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.ZnJvbV9hZ2VudA.short_desc": {
+          "source": "Whether sent by agent",
+          "message": "Whether sent by agent"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.ZnJvbV9hZ2VudA.desc": {
+          "source": "Whether the message is from an agent (`True`) or a customer (`False`). Required field",
+          "message": "Whether the message is from an agent (`True`) or a customer (`False`). Required field"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.cHVibGlj.display_name": {
+          "source": "Public",
+          "message": "Public"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.cHVibGlj.short_desc": {
+          "source": "Whether publicly visible",
+          "message": "Whether publicly visible"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.cHVibGlj.desc": {
+          "source": "Whether the message is visible to the customer. Default: `True`. Set to `False` for internal notes",
+          "message": "Whether the message is visible to the customer. Default: `True`. Set to `False` for internal notes"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.cmVjZWl2ZXI.display_name": {
+          "source": "Receiver",
+          "message": "Receiver"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.cmVjZWl2ZXI.short_desc": {
+          "source": "Message receiver",
+          "message": "Message receiver"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.cmVjZWl2ZXI.desc": {
+          "source": "The receiver of the message. Provide `id` for an agent or `email` for a customer",
+          "message": "The receiver of the message. Provide `id` for an agent or `email` for a customer"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzU2VuZGVyUmVjZWl2ZXJEYXRhVHlwZToqaGFzaDxhdXRvPiNmMTk2MTkyZTEwYjU2MTQ3NjEyMWY3NTcyYTE2MTU1MTNmMjc4YmMyMTY2MmQ2ZTY2MDM3ZDVhODg3NjRkNDRjOm9wdGlvbjpiV1Z6YzJGblpYTTpmaWVsZDpjbVZqWldsMlpYSQ.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzU2VuZGVyUmVjZWl2ZXJEYXRhVHlwZToqaGFzaDxhdXRvPiNmMTk2MTkyZTEwYjU2MTQ3NjEyMWY3NTcyYTE2MTU1MTNmMjc4YmMyMTY2MmQ2ZTY2MDM3ZDVhODg3NjRkNDRjOm9wdGlvbjpiV1Z6YzJGblpYTTpmaWVsZDpjbVZqWldsMlpYSQ.field.ZW1haWw.short_desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzU2VuZGVyUmVjZWl2ZXJEYXRhVHlwZToqaGFzaDxhdXRvPiNmMTk2MTkyZTEwYjU2MTQ3NjEyMWY3NTcyYTE2MTU1MTNmMjc4YmMyMTY2MmQ2ZTY2MDM3ZDVhODg3NjRkNDRjOm9wdGlvbjpiV1Z6YzJGblpYTTpmaWVsZDpjbVZqWldsMlpYSQ.field.ZW1haWw.desc": {
+          "source": "The email address. Use this for customer senders/receivers",
+          "message": "The email address. Use this for customer senders/receivers"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzU2VuZGVyUmVjZWl2ZXJEYXRhVHlwZToqaGFzaDxhdXRvPiNmMTk2MTkyZTEwYjU2MTQ3NjEyMWY3NTcyYTE2MTU1MTNmMjc4YmMyMTY2MmQ2ZTY2MDM3ZDVhODg3NjRkNDRjOm9wdGlvbjpiV1Z6YzJGblpYTTpmaWVsZDpjbVZqWldsMlpYSQ.field.aWQ.display_name": {
+          "source": "User ID",
+          "message": "User ID"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzU2VuZGVyUmVjZWl2ZXJEYXRhVHlwZToqaGFzaDxhdXRvPiNmMTk2MTkyZTEwYjU2MTQ3NjEyMWY3NTcyYTE2MTU1MTNmMjc4YmMyMTY2MmQ2ZTY2MDM3ZDVhODg3NjRkNDRjOm9wdGlvbjpiV1Z6YzJGblpYTTpmaWVsZDpjbVZqWldsMlpYSQ.field.aWQ.short_desc": {
+          "source": "Gorgias user ID",
+          "message": "Gorgias user ID"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzU2VuZGVyUmVjZWl2ZXJEYXRhVHlwZToqaGFzaDxhdXRvPiNmMTk2MTkyZTEwYjU2MTQ3NjEyMWY3NTcyYTE2MTU1MTNmMjc4YmMyMTY2MmQ2ZTY2MDM3ZDVhODg3NjRkNDRjOm9wdGlvbjpiV1Z6YzJGblpYTTpmaWVsZDpjbVZqWldsMlpYSQ.field.aWQ.desc": {
+          "source": "The ID of a Gorgias user (agent). Use this for agent senders/receivers",
+          "message": "The ID of a Gorgias user (agent). Use this for agent senders/receivers"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.c2VuZGVy.display_name": {
+          "source": "Sender",
+          "message": "Sender"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.c2VuZGVy.short_desc": {
+          "source": "Message sender",
+          "message": "Message sender"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.c2VuZGVy.desc": {
+          "source": "The sender of the message. Provide `id` for agents or `email` for customers",
+          "message": "The sender of the message. Provide `id` for agents or `email` for customers"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzU2VuZGVyUmVjZWl2ZXJEYXRhVHlwZToqaGFzaDxhdXRvPiNmMTk2MTkyZTEwYjU2MTQ3NjEyMWY3NTcyYTE2MTU1MTNmMjc4YmMyMTY2MmQ2ZTY2MDM3ZDVhODg3NjRkNDRjOm9wdGlvbjpiV1Z6YzJGblpYTTpmaWVsZDpjMlZ1WkdWeQ.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzU2VuZGVyUmVjZWl2ZXJEYXRhVHlwZToqaGFzaDxhdXRvPiNmMTk2MTkyZTEwYjU2MTQ3NjEyMWY3NTcyYTE2MTU1MTNmMjc4YmMyMTY2MmQ2ZTY2MDM3ZDVhODg3NjRkNDRjOm9wdGlvbjpiV1Z6YzJGblpYTTpmaWVsZDpjMlZ1WkdWeQ.field.ZW1haWw.short_desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzU2VuZGVyUmVjZWl2ZXJEYXRhVHlwZToqaGFzaDxhdXRvPiNmMTk2MTkyZTEwYjU2MTQ3NjEyMWY3NTcyYTE2MTU1MTNmMjc4YmMyMTY2MmQ2ZTY2MDM3ZDVhODg3NjRkNDRjOm9wdGlvbjpiV1Z6YzJGblpYTTpmaWVsZDpjMlZ1WkdWeQ.field.ZW1haWw.desc": {
+          "source": "The email address. Use this for customer senders/receivers",
+          "message": "The email address. Use this for customer senders/receivers"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzU2VuZGVyUmVjZWl2ZXJEYXRhVHlwZToqaGFzaDxhdXRvPiNmMTk2MTkyZTEwYjU2MTQ3NjEyMWY3NTcyYTE2MTU1MTNmMjc4YmMyMTY2MmQ2ZTY2MDM3ZDVhODg3NjRkNDRjOm9wdGlvbjpiV1Z6YzJGblpYTTpmaWVsZDpjMlZ1WkdWeQ.field.aWQ.display_name": {
+          "source": "User ID",
+          "message": "User ID"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzU2VuZGVyUmVjZWl2ZXJEYXRhVHlwZToqaGFzaDxhdXRvPiNmMTk2MTkyZTEwYjU2MTQ3NjEyMWY3NTcyYTE2MTU1MTNmMjc4YmMyMTY2MmQ2ZTY2MDM3ZDVhODg3NjRkNDRjOm9wdGlvbjpiV1Z6YzJGblpYTTpmaWVsZDpjMlZ1WkdWeQ.field.aWQ.short_desc": {
+          "source": "Gorgias user ID",
+          "message": "Gorgias user ID"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzU2VuZGVyUmVjZWl2ZXJEYXRhVHlwZToqaGFzaDxhdXRvPiNmMTk2MTkyZTEwYjU2MTQ3NjEyMWY3NTcyYTE2MTU1MTNmMjc4YmMyMTY2MmQ2ZTY2MDM3ZDVhODg3NjRkNDRjOm9wdGlvbjpiV1Z6YzJGblpYTTpmaWVsZDpjMlZ1WkdWeQ.field.aWQ.desc": {
+          "source": "The ID of a Gorgias user (agent). Use this for agent senders/receivers",
+          "message": "The ID of a Gorgias user (agent). Use this for agent senders/receivers"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.c3ViamVjdA.display_name": {
+          "source": "Subject",
+          "message": "Subject"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.c3ViamVjdA.short_desc": {
+          "source": "Message subject",
+          "message": "Message subject"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.c3ViamVjdA.desc": {
+          "source": "The subject line of the message (for email channel)",
+          "message": "The subject line of the message (for email channel)"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.display_name": {
+          "source": "Via",
+          "message": "Via"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.short_desc": {
+          "source": "Message source",
+          "message": "Message source"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.desc": {
+          "source": "How the message was received or sent through Gorgias",
+          "message": "How the message was received or sent through Gorgias"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.allowed-value.c3RyaW5nOmhlbHBkZXNr.display_name": {
+          "source": "Helpdesk",
+          "message": "Helpdesk"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.allowed-value.c3RyaW5nOmFwaQ.display_name": {
+          "source": "API",
+          "message": "API"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.allowed-value.c3RyaW5nOmVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.allowed-value.c3RyaW5nOmNoYXQ.display_name": {
+          "source": "Chat",
+          "message": "Chat"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.allowed-value.c3RyaW5nOnBob25l.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.allowed-value.c3RyaW5nOnNtcw.display_name": {
+          "source": "SMS",
+          "message": "SMS"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.allowed-value.c3RyaW5nOmZhY2Vib29r.display_name": {
+          "source": "Facebook",
+          "message": "Facebook"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.allowed-value.c3RyaW5nOmluc3RhZ3JhbQ.display_name": {
+          "source": "Instagram",
+          "message": "Instagram"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.allowed-value.c3RyaW5nOnR3aXR0ZXI.display_name": {
+          "source": "Twitter",
+          "message": "Twitter"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.allowed-value.c3RyaW5nOndoYXRzYXBw.display_name": {
+          "source": "WhatsApp",
+          "message": "WhatsApp"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.allowed-value.c3RyaW5nOmNvbnRhY3RfZm9ybQ.display_name": {
+          "source": "Contact Form",
+          "message": "Contact Form"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.bWVzc2FnZXM.field.dmlh.allowed-value.c3RyaW5nOmhlbHAtY2VudGVy.display_name": {
+          "source": "Help Center",
+          "message": "Help Center"
         },
         "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.c3RhdHVz.display_name": {
           "source": "Status",
@@ -567,6 +867,18 @@
           "source": "The agent to assign to this ticket",
           "message": "The agent to assign to this ticket"
         },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.YXNzaWduZWVfdXNlcg.field.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.YXNzaWduZWVfdXNlcg.field.aWQ.short_desc": {
+          "source": "Assignee ID",
+          "message": "Assignee ID"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.YXNzaWduZWVfdXNlcg.field.aWQ.desc": {
+          "source": "The ID of the user or team to assign",
+          "message": "The ID of the user or team to assign"
+        },
         "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.YXNzaWduZWVfdGVhbQ.display_name": {
           "source": "Assignee Team",
           "message": "Assignee Team"
@@ -579,6 +891,18 @@
           "source": "The team to assign to this ticket",
           "message": "The team to assign to this ticket"
         },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.YXNzaWduZWVfdGVhbQ.field.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.YXNzaWduZWVfdGVhbQ.field.aWQ.short_desc": {
+          "source": "Assignee ID",
+          "message": "Assignee ID"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.YXNzaWduZWVfdGVhbQ.field.aWQ.desc": {
+          "source": "The ID of the user or team to assign",
+          "message": "The ID of the user or team to assign"
+        },
         "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.dGFncw.display_name": {
           "source": "Tags",
           "message": "Tags"
@@ -590,6 +914,42 @@
         "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.dGFncw.desc": {
           "source": "List of tags to apply to the ticket. Each tag must have a `name` field",
           "message": "List of tags to apply to the ticket. Each tag must have a `name` field"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.dGFncw.field.ZGVjb3JhdGlvbg.display_name": {
+          "source": "Decoration",
+          "message": "Decoration"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.dGFncw.field.ZGVjb3JhdGlvbg.short_desc": {
+          "source": "Visual decoration",
+          "message": "Visual decoration"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.dGFncw.field.ZGVjb3JhdGlvbg.desc": {
+          "source": "Optional visual decoration settings for the tag, including color",
+          "message": "Optional visual decoration settings for the tag, including color"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzVGFnRGVjb3JhdGlvbkRhdGFUeXBlOipoYXNoPGF1dG8-IzQzZjU4ZTM2YmUzMTUxMTE1MWQwOWFmODhjNTc3YThkZTgxODljZjQwMjYyMGVhOGJlMTY4MWM5NjljNjViNjM6b3B0aW9uOmRHRm5jdzpmaWVsZDpaR1ZqYjNKaGRHbHZiZw.field.Y29sb3I.display_name": {
+          "source": "Color",
+          "message": "Color"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzVGFnRGVjb3JhdGlvbkRhdGFUeXBlOipoYXNoPGF1dG8-IzQzZjU4ZTM2YmUzMTUxMTE1MWQwOWFmODhjNTc3YThkZTgxODljZjQwMjYyMGVhOGJlMTY4MWM5NjljNjViNjM6b3B0aW9uOmRHRm5jdzpmaWVsZDpaR1ZqYjNKaGRHbHZiZw.field.Y29sb3I.short_desc": {
+          "source": "Tag color",
+          "message": "Tag color"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOlkzSmxZWFJsTFhScFkydGxkQTpHb3JnaWFzVGFnRGVjb3JhdGlvbkRhdGFUeXBlOipoYXNoPGF1dG8-IzQzZjU4ZTM2YmUzMTUxMTE1MWQwOWFmODhjNTc3YThkZTgxODljZjQwMjYyMGVhOGJlMTY4MWM5NjljNjViNjM6b3B0aW9uOmRHRm5jdzpmaWVsZDpaR1ZqYjNKaGRHbHZiZw.field.Y29sb3I.desc": {
+          "source": "The hex color code for the tag (e.g., `#F58D86`)",
+          "message": "The hex color code for the tag (e.g., `#F58D86`)"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.dGFncw.field.bmFtZQ.display_name": {
+          "source": "Tag Name",
+          "message": "Tag Name"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.dGFncw.field.bmFtZQ.short_desc": {
+          "source": "The tag name",
+          "message": "The tag name"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.dGFncw.field.bmFtZQ.desc": {
+          "source": "The name of the tag to apply to the ticket",
+          "message": "The name of the tag to apply to the ticket"
         },
         "app.R29yZ2lhcw.action.Y3JlYXRlLXRpY2tldA.option.ZXh0ZXJuYWxfaWQ.display_name": {
           "source": "External ID",
@@ -723,6 +1083,18 @@
           "source": "The agent to assign, or `NOTHING` to unassign",
           "message": "The agent to assign, or `NOTHING` to unassign"
         },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.YXNzaWduZWVfdXNlcg.field.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.YXNzaWduZWVfdXNlcg.field.aWQ.short_desc": {
+          "source": "Assignee ID",
+          "message": "Assignee ID"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.YXNzaWduZWVfdXNlcg.field.aWQ.desc": {
+          "source": "The ID of the user or team to assign",
+          "message": "The ID of the user or team to assign"
+        },
         "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.YXNzaWduZWVfdGVhbQ.display_name": {
           "source": "Assignee Team",
           "message": "Assignee Team"
@@ -734,6 +1106,18 @@
         "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.YXNzaWduZWVfdGVhbQ.desc": {
           "source": "The team to assign, or `NOTHING` to unassign",
           "message": "The team to assign, or `NOTHING` to unassign"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.YXNzaWduZWVfdGVhbQ.field.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.YXNzaWduZWVfdGVhbQ.field.aWQ.short_desc": {
+          "source": "Assignee ID",
+          "message": "Assignee ID"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.YXNzaWduZWVfdGVhbQ.field.aWQ.desc": {
+          "source": "The ID of the user or team to assign",
+          "message": "The ID of the user or team to assign"
         },
         "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.dGFncw.display_name": {
           "source": "Tags",
@@ -747,6 +1131,42 @@
           "source": "List of tags to set on the ticket. Replaces existing tags. Each tag must have a `name` field",
           "message": "List of tags to set on the ticket. Replaces existing tags. Each tag must have a `name` field"
         },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.dGFncw.field.ZGVjb3JhdGlvbg.display_name": {
+          "source": "Decoration",
+          "message": "Decoration"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.dGFncw.field.ZGVjb3JhdGlvbg.short_desc": {
+          "source": "Visual decoration",
+          "message": "Visual decoration"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.dGFncw.field.ZGVjb3JhdGlvbg.desc": {
+          "source": "Optional visual decoration settings for the tag, including color",
+          "message": "Optional visual decoration settings for the tag, including color"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOmRYQmtZWFJsTFhScFkydGxkQTpHb3JnaWFzVGFnRGVjb3JhdGlvbkRhdGFUeXBlOipoYXNoPGF1dG8-IzQzZjU4ZTM2YmUzMTUxMTE1MWQwOWFmODhjNTc3YThkZTgxODljZjQwMjYyMGVhOGJlMTY4MWM5NjljNjViNjM6b3B0aW9uOmRHRm5jdzpmaWVsZDpaR1ZqYjNKaGRHbHZiZw.field.Y29sb3I.display_name": {
+          "source": "Color",
+          "message": "Color"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOmRYQmtZWFJsTFhScFkydGxkQTpHb3JnaWFzVGFnRGVjb3JhdGlvbkRhdGFUeXBlOipoYXNoPGF1dG8-IzQzZjU4ZTM2YmUzMTUxMTE1MWQwOWFmODhjNTc3YThkZTgxODljZjQwMjYyMGVhOGJlMTY4MWM5NjljNjViNjM6b3B0aW9uOmRHRm5jdzpmaWVsZDpaR1ZqYjNKaGRHbHZiZw.field.Y29sb3I.short_desc": {
+          "source": "Tag color",
+          "message": "Tag color"
+        },
+        "app.R29yZ2lhcw.type.YWN0aW9uOmRYQmtZWFJsTFhScFkydGxkQTpHb3JnaWFzVGFnRGVjb3JhdGlvbkRhdGFUeXBlOipoYXNoPGF1dG8-IzQzZjU4ZTM2YmUzMTUxMTE1MWQwOWFmODhjNTc3YThkZTgxODljZjQwMjYyMGVhOGJlMTY4MWM5NjljNjViNjM6b3B0aW9uOmRHRm5jdzpmaWVsZDpaR1ZqYjNKaGRHbHZiZw.field.Y29sb3I.desc": {
+          "source": "The hex color code for the tag (e.g., `#F58D86`)",
+          "message": "The hex color code for the tag (e.g., `#F58D86`)"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.dGFncw.field.bmFtZQ.display_name": {
+          "source": "Tag Name",
+          "message": "Tag Name"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.dGFncw.field.bmFtZQ.short_desc": {
+          "source": "The tag name",
+          "message": "The tag name"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.dGFncw.field.bmFtZQ.desc": {
+          "source": "The name of the tag to apply to the ticket",
+          "message": "The name of the tag to apply to the ticket"
+        },
         "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.Y3VzdG9tZXI.display_name": {
           "source": "Customer",
           "message": "Customer"
@@ -758,6 +1178,42 @@
         "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.Y3VzdG9tZXI.desc": {
           "source": "Update the customer associated with this ticket. Provide `id` to reference an existing customer, or `email` to match by email address",
           "message": "Update the customer associated with this ticket. Provide `id` to reference an existing customer, or `email` to match by email address"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.ZW1haWw.short_desc": {
+          "source": "Customer email address",
+          "message": "Customer email address"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.ZW1haWw.desc": {
+          "source": "The email address of the customer. If no customer exists with this email, a new customer will be created",
+          "message": "The email address of the customer. If no customer exists with this email, a new customer will be created"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.aWQ.display_name": {
+          "source": "Customer ID",
+          "message": "Customer ID"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.aWQ.short_desc": {
+          "source": "Existing customer ID",
+          "message": "Existing customer ID"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.aWQ.desc": {
+          "source": "The ID of an existing Gorgias customer to associate with the ticket",
+          "message": "The ID of an existing Gorgias customer to associate with the ticket"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.bmFtZQ.short_desc": {
+          "source": "Customer name",
+          "message": "Customer name"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.Y3VzdG9tZXI.field.bmFtZQ.desc": {
+          "source": "The name of the customer (used when creating a new customer)",
+          "message": "The name of the customer (used when creating a new customer)"
         },
         "app.R29yZ2lhcw.action.dXBkYXRlLXRpY2tldA.option.ZXh0ZXJuYWxfaWQ.display_name": {
           "source": "External ID",
@@ -1075,6 +1531,82 @@
           "source": "List of communication channels for the customer. Each channel has an `address`, `type`, and optional `preferred` flag",
           "message": "List of communication channels for the customer. Each channel has an `address`, `type`, and optional `preferred` flag"
         },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.YWRkcmVzcw.display_name": {
+          "source": "Address",
+          "message": "Address"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.YWRkcmVzcw.short_desc": {
+          "source": "Channel address",
+          "message": "Channel address"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.YWRkcmVzcw.desc": {
+          "source": "The channel address (email address, phone number, social media handle, etc.)",
+          "message": "The channel address (email address, phone number, social media handle, etc.)"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.aWQ.display_name": {
+          "source": "Channel ID",
+          "message": "Channel ID"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.aWQ.short_desc": {
+          "source": "The channel identifier",
+          "message": "The channel identifier"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.aWQ.desc": {
+          "source": "The unique identifier of the customer channel",
+          "message": "The unique identifier of the customer channel"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.cHJlZmVycmVk.display_name": {
+          "source": "Preferred",
+          "message": "Preferred"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.cHJlZmVycmVk.short_desc": {
+          "source": "Whether this is the preferred channel",
+          "message": "Whether this is the preferred channel"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.cHJlZmVycmVk.desc": {
+          "source": "Whether this is the customer's preferred communication channel",
+          "message": "Whether this is the customer's preferred communication channel"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.short_desc": {
+          "source": "Channel type",
+          "message": "Channel type"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.desc": {
+          "source": "The type of communication channel",
+          "message": "The type of communication channel"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOnBob25l.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmZhY2Vib29r.display_name": {
+          "source": "Facebook",
+          "message": "Facebook"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmNoYXQ.display_name": {
+          "source": "Chat",
+          "message": "Chat"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmluc3RhZ3JhbQ.display_name": {
+          "source": "Instagram",
+          "message": "Instagram"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOnR3aXR0ZXI.display_name": {
+          "source": "Twitter",
+          "message": "Twitter"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOndoYXRzYXBw.display_name": {
+          "source": "WhatsApp",
+          "message": "WhatsApp"
+        },
         "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.display_name": {
           "source": "Update a Customer",
           "message": "Update a Customer"
@@ -1207,6 +1739,82 @@
           "source": "List of communication channels for the customer. Each channel has an `address`, `type`, and optional `preferred` flag",
           "message": "List of communication channels for the customer. Each channel has an `address`, `type`, and optional `preferred` flag"
         },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.YWRkcmVzcw.display_name": {
+          "source": "Address",
+          "message": "Address"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.YWRkcmVzcw.short_desc": {
+          "source": "Channel address",
+          "message": "Channel address"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.YWRkcmVzcw.desc": {
+          "source": "The channel address (email address, phone number, social media handle, etc.)",
+          "message": "The channel address (email address, phone number, social media handle, etc.)"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.aWQ.display_name": {
+          "source": "Channel ID",
+          "message": "Channel ID"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.aWQ.short_desc": {
+          "source": "The channel identifier",
+          "message": "The channel identifier"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.aWQ.desc": {
+          "source": "The unique identifier of the customer channel",
+          "message": "The unique identifier of the customer channel"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.cHJlZmVycmVk.display_name": {
+          "source": "Preferred",
+          "message": "Preferred"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.cHJlZmVycmVk.short_desc": {
+          "source": "Whether this is the preferred channel",
+          "message": "Whether this is the preferred channel"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.cHJlZmVycmVk.desc": {
+          "source": "Whether this is the customer's preferred communication channel",
+          "message": "Whether this is the customer's preferred communication channel"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.short_desc": {
+          "source": "Channel type",
+          "message": "Channel type"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.desc": {
+          "source": "The type of communication channel",
+          "message": "The type of communication channel"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmVtYWls.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOnBob25l.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmZhY2Vib29r.display_name": {
+          "source": "Facebook",
+          "message": "Facebook"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmNoYXQ.display_name": {
+          "source": "Chat",
+          "message": "Chat"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmluc3RhZ3JhbQ.display_name": {
+          "source": "Instagram",
+          "message": "Instagram"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOnR3aXR0ZXI.display_name": {
+          "source": "Twitter",
+          "message": "Twitter"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLWN1c3RvbWVy.option.Y2hhbm5lbHM.field.dHlwZQ.allowed-value.c3RyaW5nOndoYXRzYXBw.display_name": {
+          "source": "WhatsApp",
+          "message": "WhatsApp"
+        },
         "app.R29yZ2lhcw.action.ZGVsZXRlLWN1c3RvbWVy.display_name": {
           "source": "Delete a Customer",
           "message": "Delete a Customer"
@@ -1335,6 +1943,18 @@
           "source": "Visual decoration settings for the tag",
           "message": "Visual decoration settings for the tag"
         },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRhZw.option.ZGVjb3JhdGlvbg.field.Y29sb3I.display_name": {
+          "source": "Color",
+          "message": "Color"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRhZw.option.ZGVjb3JhdGlvbg.field.Y29sb3I.short_desc": {
+          "source": "Tag color",
+          "message": "Tag color"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLXRhZw.option.ZGVjb3JhdGlvbg.field.Y29sb3I.desc": {
+          "source": "The hex color code for the tag (e.g., `#F58D86`)",
+          "message": "The hex color code for the tag (e.g., `#F58D86`)"
+        },
         "app.R29yZ2lhcw.action.dXBkYXRlLXRhZw.display_name": {
           "source": "Update a Tag",
           "message": "Update a Tag"
@@ -1394,6 +2014,18 @@
         "app.R29yZ2lhcw.action.dXBkYXRlLXRhZw.option.ZGVjb3JhdGlvbg.desc": {
           "source": "Visual decoration settings for the tag",
           "message": "Visual decoration settings for the tag"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRhZw.option.ZGVjb3JhdGlvbg.field.Y29sb3I.display_name": {
+          "source": "Color",
+          "message": "Color"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRhZw.option.ZGVjb3JhdGlvbg.field.Y29sb3I.short_desc": {
+          "source": "Tag color",
+          "message": "Tag color"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLXRhZw.option.ZGVjb3JhdGlvbg.field.Y29sb3I.desc": {
+          "source": "The hex color code for the tag (e.g., `#F58D86`)",
+          "message": "The hex color code for the tag (e.g., `#F58D86`)"
         },
         "app.R29yZ2lhcw.action.ZGVsZXRlLXRhZw.display_name": {
           "source": "Delete a Tag",
@@ -1671,6 +2303,30 @@
           "source": "The sender of the message. Provide `id` for agents or `email` for customers",
           "message": "The sender of the message. Provide `id` for agents or `email` for customers"
         },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.c2VuZGVy.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.c2VuZGVy.field.ZW1haWw.short_desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.c2VuZGVy.field.ZW1haWw.desc": {
+          "source": "The email address. Use this for customer senders/receivers",
+          "message": "The email address. Use this for customer senders/receivers"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.c2VuZGVy.field.aWQ.display_name": {
+          "source": "User ID",
+          "message": "User ID"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.c2VuZGVy.field.aWQ.short_desc": {
+          "source": "Gorgias user ID",
+          "message": "Gorgias user ID"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.c2VuZGVy.field.aWQ.desc": {
+          "source": "The ID of a Gorgias user (agent). Use this for agent senders/receivers",
+          "message": "The ID of a Gorgias user (agent). Use this for agent senders/receivers"
+        },
         "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.display_name": {
           "source": "Receiver",
           "message": "Receiver"
@@ -1683,6 +2339,30 @@
           "source": "The receiver of the message. Provide `id` for an agent or `email` for a customer",
           "message": "The receiver of the message. Provide `id` for an agent or `email` for a customer"
         },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.field.ZW1haWw.short_desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.field.ZW1haWw.desc": {
+          "source": "The email address. Use this for customer senders/receivers",
+          "message": "The email address. Use this for customer senders/receivers"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.field.aWQ.display_name": {
+          "source": "User ID",
+          "message": "User ID"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.field.aWQ.short_desc": {
+          "source": "Gorgias user ID",
+          "message": "Gorgias user ID"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.field.aWQ.desc": {
+          "source": "The ID of a Gorgias user (agent). Use this for agent senders/receivers",
+          "message": "The ID of a Gorgias user (agent). Use this for agent senders/receivers"
+        },
         "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.display_name": {
           "source": "Attachments",
           "message": "Attachments"
@@ -1694,6 +2374,66 @@
         "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.desc": {
           "source": "List of file attachments for the message. Each attachment requires a `url` pointing to the file location, and optionally `name`, `content_type`, `size`, and `public` fields",
           "message": "List of file attachments for the message. Each attachment requires a `url` pointing to the file location, and optionally `name`, `content_type`, `size`, and `public` fields"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.Y29udGVudF90eXBl.display_name": {
+          "source": "Content Type",
+          "message": "Content Type"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.Y29udGVudF90eXBl.short_desc": {
+          "source": "MIME type",
+          "message": "MIME type"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.Y29udGVudF90eXBl.desc": {
+          "source": "The MIME type of the attachment (e.g., `application/pdf`, `image/png`)",
+          "message": "The MIME type of the attachment (e.g., `application/pdf`, `image/png`)"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.bmFtZQ.short_desc": {
+          "source": "File name",
+          "message": "File name"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.bmFtZQ.desc": {
+          "source": "The display name of the attachment file",
+          "message": "The display name of the attachment file"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.cHVibGlj.display_name": {
+          "source": "Public",
+          "message": "Public"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.cHVibGlj.short_desc": {
+          "source": "Whether publicly accessible",
+          "message": "Whether publicly accessible"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.cHVibGlj.desc": {
+          "source": "Whether the attachment is publicly accessible. Default: `True`",
+          "message": "Whether the attachment is publicly accessible. Default: `True`"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.c2l6ZQ.display_name": {
+          "source": "Size",
+          "message": "Size"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.c2l6ZQ.short_desc": {
+          "source": "File size in bytes",
+          "message": "File size in bytes"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.c2l6ZQ.desc": {
+          "source": "The size of the attachment file in bytes",
+          "message": "The size of the attachment file in bytes"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.dXJs.display_name": {
+          "source": "URL",
+          "message": "URL"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.dXJs.short_desc": {
+          "source": "Attachment URL",
+          "message": "Attachment URL"
+        },
+        "app.R29yZ2lhcw.action.Y3JlYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.dXJs.desc": {
+          "source": "The URL of the attachment file",
+          "message": "The URL of the attachment file"
         },
         "app.R29yZ2lhcw.action.bGlzdC1tZXNzYWdlcw.display_name": {
           "source": "List Messages",
@@ -1975,6 +2715,30 @@
           "source": "The sender of the message. Provide `id` for agents or `email` for customers",
           "message": "The sender of the message. Provide `id` for agents or `email` for customers"
         },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.c2VuZGVy.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.c2VuZGVy.field.ZW1haWw.short_desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.c2VuZGVy.field.ZW1haWw.desc": {
+          "source": "The email address. Use this for customer senders/receivers",
+          "message": "The email address. Use this for customer senders/receivers"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.c2VuZGVy.field.aWQ.display_name": {
+          "source": "User ID",
+          "message": "User ID"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.c2VuZGVy.field.aWQ.short_desc": {
+          "source": "Gorgias user ID",
+          "message": "Gorgias user ID"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.c2VuZGVy.field.aWQ.desc": {
+          "source": "The ID of a Gorgias user (agent). Use this for agent senders/receivers",
+          "message": "The ID of a Gorgias user (agent). Use this for agent senders/receivers"
+        },
         "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.display_name": {
           "source": "Receiver",
           "message": "Receiver"
@@ -1986,6 +2750,30 @@
         "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.desc": {
           "source": "The receiver of the message. Provide `id` for an agent or `email` for a customer",
           "message": "The receiver of the message. Provide `id` for an agent or `email` for a customer"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.field.ZW1haWw.short_desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.field.ZW1haWw.desc": {
+          "source": "The email address. Use this for customer senders/receivers",
+          "message": "The email address. Use this for customer senders/receivers"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.field.aWQ.display_name": {
+          "source": "User ID",
+          "message": "User ID"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.field.aWQ.short_desc": {
+          "source": "Gorgias user ID",
+          "message": "Gorgias user ID"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.cmVjZWl2ZXI.field.aWQ.desc": {
+          "source": "The ID of a Gorgias user (agent). Use this for agent senders/receivers",
+          "message": "The ID of a Gorgias user (agent). Use this for agent senders/receivers"
         },
         "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.ZXh0ZXJuYWxfaWQ.display_name": {
           "source": "External ID",
@@ -2010,6 +2798,66 @@
         "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.desc": {
           "source": "Updated list of file attachments for the message",
           "message": "Updated list of file attachments for the message"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.Y29udGVudF90eXBl.display_name": {
+          "source": "Content Type",
+          "message": "Content Type"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.Y29udGVudF90eXBl.short_desc": {
+          "source": "MIME type",
+          "message": "MIME type"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.Y29udGVudF90eXBl.desc": {
+          "source": "The MIME type of the attachment (e.g., `application/pdf`, `image/png`)",
+          "message": "The MIME type of the attachment (e.g., `application/pdf`, `image/png`)"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.bmFtZQ.short_desc": {
+          "source": "File name",
+          "message": "File name"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.bmFtZQ.desc": {
+          "source": "The display name of the attachment file",
+          "message": "The display name of the attachment file"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.cHVibGlj.display_name": {
+          "source": "Public",
+          "message": "Public"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.cHVibGlj.short_desc": {
+          "source": "Whether publicly accessible",
+          "message": "Whether publicly accessible"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.cHVibGlj.desc": {
+          "source": "Whether the attachment is publicly accessible. Default: `True`",
+          "message": "Whether the attachment is publicly accessible. Default: `True`"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.c2l6ZQ.display_name": {
+          "source": "Size",
+          "message": "Size"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.c2l6ZQ.short_desc": {
+          "source": "File size in bytes",
+          "message": "File size in bytes"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.c2l6ZQ.desc": {
+          "source": "The size of the attachment file in bytes",
+          "message": "The size of the attachment file in bytes"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.dXJs.display_name": {
+          "source": "URL",
+          "message": "URL"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.dXJs.short_desc": {
+          "source": "Attachment URL",
+          "message": "Attachment URL"
+        },
+        "app.R29yZ2lhcw.action.dXBkYXRlLW1lc3NhZ2U.option.YXR0YWNobWVudHM.field.dXJs.desc": {
+          "source": "The URL of the attachment file",
+          "message": "The URL of the attachment file"
         },
         "app.R29yZ2lhcw.action.ZGVsZXRlLW1lc3NhZ2U.display_name": {
           "source": "Delete a Message",

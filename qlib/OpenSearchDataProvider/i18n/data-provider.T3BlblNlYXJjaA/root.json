@@ -2123,6 +2123,138 @@
           "source": "List of bulk operations to perform",
           "message": "List of bulk operations to perform"
         },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.X2lk.display_name": {
+          "source": "Document ID",
+          "message": "Document ID"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.X2lk.short_desc": {
+          "source": "Document identifier",
+          "message": "Document identifier"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.X2lk.desc": {
+          "source": "The document ID (optional for index/create, required for update/delete)",
+          "message": "The document ID (optional for index/create, required for update/delete)"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.X2luZGV4.display_name": {
+          "source": "Index",
+          "message": "Index"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.X2luZGV4.short_desc": {
+          "source": "Target index name",
+          "message": "Target index name"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.X2luZGV4.desc": {
+          "source": "The target index for this operation (optional if default index is set)",
+          "message": "The target index for this operation (optional if default index is set)"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.YWN0aW9u.display_name": {
+          "source": "Action",
+          "message": "Action"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.YWN0aW9u.short_desc": {
+          "source": "Operation type",
+          "message": "Operation type"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.YWN0aW9u.desc": {
+          "source": "The action type: 'index', 'create', 'update', or 'delete'",
+          "message": "The action type: 'index', 'create', 'update', or 'delete'"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.ZG9j.display_name": {
+          "source": "Document",
+          "message": "Document"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.ZG9j.short_desc": {
+          "source": "Document body",
+          "message": "Document body"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.ZG9j.desc": {
+          "source": "The document body for index/create operations, or the partial document for update operations",
+          "message": "The document body for index/create operations, or the partial document for update operations"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.ZG9jX2FzX3Vwc2VydA.display_name": {
+          "source": "Doc As Upsert?",
+          "message": "Doc As Upsert?"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.ZG9jX2FzX3Vwc2VydA.short_desc": {
+          "source": "Use doc as upsert",
+          "message": "Use doc as upsert"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.ZG9jX2FzX3Vwc2VydA.desc": {
+          "source": "For update: if true, use the doc as the upsert document if the document does not exist",
+          "message": "For update: if true, use the doc as the upsert document if the document does not exist"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.aWZfcHJpbWFyeV90ZXJt.display_name": {
+          "source": "If Primary Term",
+          "message": "If Primary Term"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.aWZfcHJpbWFyeV90ZXJt.short_desc": {
+          "source": "Optimistic concurrency term",
+          "message": "Optimistic concurrency term"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.aWZfcHJpbWFyeV90ZXJt.desc": {
+          "source": "Only perform the operation if the document has this primary term",
+          "message": "Only perform the operation if the document has this primary term"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.aWZfc2VxX25v.display_name": {
+          "source": "If Seq No",
+          "message": "If Seq No"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.aWZfc2VxX25v.short_desc": {
+          "source": "Optimistic concurrency seq no",
+          "message": "Optimistic concurrency seq no"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.aWZfc2VxX25v.desc": {
+          "source": "Only perform the operation if the document has this sequence number",
+          "message": "Only perform the operation if the document has this sequence number"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.cGlwZWxpbmU.display_name": {
+          "source": "Pipeline",
+          "message": "Pipeline"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.cGlwZWxpbmU.short_desc": {
+          "source": "Ingest pipeline name",
+          "message": "Ingest pipeline name"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.cGlwZWxpbmU.desc": {
+          "source": "The ingest pipeline to use for this operation",
+          "message": "The ingest pipeline to use for this operation"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.cm91dGluZw.display_name": {
+          "source": "Routing",
+          "message": "Routing"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.cm91dGluZw.short_desc": {
+          "source": "Custom routing value",
+          "message": "Custom routing value"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.cm91dGluZw.desc": {
+          "source": "Custom routing value for this operation",
+          "message": "Custom routing value for this operation"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.c2NyaXB0.display_name": {
+          "source": "Script",
+          "message": "Script"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.c2NyaXB0.short_desc": {
+          "source": "Update script",
+          "message": "Update script"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.c2NyaXB0.desc": {
+          "source": "For update: a script to run to update the document",
+          "message": "For update: a script to run to update the document"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.dXBzZXJ0.display_name": {
+          "source": "Upsert",
+          "message": "Upsert"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.dXBzZXJ0.short_desc": {
+          "source": "Upsert document",
+          "message": "Upsert document"
+        },
+        "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.b3BlcmF0aW9ucw.field.dXBzZXJ0.desc": {
+          "source": "For update: the document to insert if it does not exist",
+          "message": "For update: the document to insert if it does not exist"
+        },
         "app.T3BlblNlYXJjaA.action.YnVsay1vcGVyYXRpb25z.option.cGlwZWxpbmU.display_name": {
           "source": "Pipeline",
           "message": "Pipeline"

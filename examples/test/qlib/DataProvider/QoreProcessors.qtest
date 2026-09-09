@@ -1014,12 +1014,20 @@ class QoreProcessorsTest inherits QUnit::Test {
 
         # Use ProviderIndex to create a scoped data provider index (serializes to YAML).  This test validates Qore
         # expression serialization only; external provider discovery is intentionally disabled for deterministic runs.
-        ProviderIndex::createDataProviderIndex(<DataProviderIndexInfo>{}, dir, <ProviderIndexCreateOptions>{
+        hash<auto> write_info
+            = ProviderIndex::createDataProviderIndex(
+                <DataProviderIndexInfo>{}, dir, <ProviderIndexCreateOptions>{
             "load_known_factories": False,
             "load_environment": False,
             "load_typescript_actions": False,
             "apps": ("Qore",),
         });
+        hash<DataProviderDiscoveryReportInfo> qualification
+            = write_info.summary.qualification;
+        assertTrue(qualification.complete,
+            "the index result publishes its structured qualification report");
+        assertEq(("Qore",), map $1.app, qualification.expected,
+            "the returned report preserves the requested scope");
 
         # Read back using ProviderIndexUtil (deserializes from YAML)
         *hash<DataProviderIndexInfo> result = ProviderIndexUtil::readDataProviderIndex();

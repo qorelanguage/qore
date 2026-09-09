@@ -375,6 +375,234 @@
           "source": "A list of column definitions. Each column requires a `title` and `type`. The first column must be the primary column with `\"primary\": True`",
           "message": "A list of column definitions. Each column requires a `title` and `type`. The first column must be the primary column with `\"primary\": True`"
         },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "Description"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "Column description",
+          "message": "Column description"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.ZGVzY3JpcHRpb24.desc": {
+          "source": "Explanatory text about the column",
+          "message": "Explanatory text about the column"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.b3B0aW9ucw.display_name": {
+          "source": "Options",
+          "message": "Options"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.b3B0aW9ucw.short_desc": {
+          "source": "Picklist options",
+          "message": "Picklist options"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.b3B0aW9ucw.desc": {
+          "source": "A list of dropdown values for `PICKLIST` or `MULTI_PICKLIST` columns",
+          "message": "A list of dropdown values for `PICKLIST` or `MULTI_PICKLIST` columns"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.cHJpbWFyeQ.display_name": {
+          "source": "Primary",
+          "message": "Primary"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.cHJpbWFyeQ.short_desc": {
+          "source": "Whether this is the primary column",
+          "message": "Whether this is the primary column"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.cHJpbWFyeQ.desc": {
+          "source": "Set to `True` for the sheet's primary column. Exactly one column per sheet must be primary",
+          "message": "Set to `True` for the sheet's primary column. Exactly one column per sheet must be primary"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.display_name": {
+          "source": "Symbol",
+          "message": "Symbol"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.short_desc": {
+          "source": "Symbol type for checkbox/picklist",
+          "message": "Symbol type for checkbox/picklist"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.desc": {
+          "source": "Visual symbol for `CHECKBOX` columns (`FLAG`, `STAR`) or `PICKLIST` columns (symbol sets like `PRIORITY`, `RYG`, `HARVEY_BALLS`, etc.)",
+          "message": "Visual symbol for `CHECKBOX` columns (`FLAG`, `STAR`) or `PICKLIST` columns (symbol sets like `PRIORITY`, `RYG`, `HARVEY_BALLS`, etc.)"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOkZMQUc.display_name": {
+          "source": "Flag",
+          "message": "Flag"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOlNUQVI.display_name": {
+          "source": "Star",
+          "message": "Star"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOkFSUk9XU18zX1dBWQ.display_name": {
+          "source": "Arrows (3-way)",
+          "message": "Arrows (3-way)"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOkFSUk9XU180X1dBWQ.display_name": {
+          "source": "Arrows (4-way)",
+          "message": "Arrows (4-way)"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOkFSUk9XU181X1dBWQ.display_name": {
+          "source": "Arrows (5-way)",
+          "message": "Arrows (5-way)"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOkRFQ0lTSU9OX1NIQVBFUw.display_name": {
+          "source": "Decision Shapes",
+          "message": "Decision Shapes"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOkRFQ0lTSU9OX1NZTUJPTFM.display_name": {
+          "source": "Decision Symbols",
+          "message": "Decision Symbols"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOkRJUkVDVElPTlNfM19XQVk.display_name": {
+          "source": "Directions (3-way)",
+          "message": "Directions (3-way)"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOkRJUkVDVElPTlNfNF9XQVk.display_name": {
+          "source": "Directions (4-way)",
+          "message": "Directions (4-way)"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOkVGRk9SVA.display_name": {
+          "source": "Effort",
+          "message": "Effort"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOkhBUlZFWV9CQUxMUw.display_name": {
+          "source": "Harvey Balls",
+          "message": "Harvey Balls"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOkhFQVJUUw.display_name": {
+          "source": "Hearts",
+          "message": "Hearts"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOk1PTkVZ.display_name": {
+          "source": "Money",
+          "message": "Money"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOlBBSU4.display_name": {
+          "source": "Pain",
+          "message": "Pain"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOlBSSU9SSVRZ.display_name": {
+          "source": "Priority",
+          "message": "Priority"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOlBSSU9SSVRZX0hNTA.display_name": {
+          "source": "Priority (H/M/L)",
+          "message": "Priority (H/M/L)"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOlBST0dSRVNT.display_name": {
+          "source": "Progress",
+          "message": "Progress"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOlJZRw.display_name": {
+          "source": "RYG",
+          "message": "RYG"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOlJZR0I.display_name": {
+          "source": "RYGB",
+          "message": "RYGB"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOlJZR0c.display_name": {
+          "source": "RYGG",
+          "message": "RYGG"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOlNJR05BTA.display_name": {
+          "source": "Signal",
+          "message": "Signal"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOlNLSQ.display_name": {
+          "source": "Ski",
+          "message": "Ski"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOlNUQVJfUkFUSU5H.display_name": {
+          "source": "Star Rating",
+          "message": "Star Rating"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOlZDUg.display_name": {
+          "source": "VCR",
+          "message": "VCR"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.c3ltYm9s.allowed-value.c3RyaW5nOldFQVRIRVI.display_name": {
+          "source": "Weather",
+          "message": "Weather"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dGl0bGU.display_name": {
+          "source": "Title",
+          "message": "Title"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dGl0bGU.short_desc": {
+          "source": "Column name",
+          "message": "Column name"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dGl0bGU.desc": {
+          "source": "The display name/label for the column",
+          "message": "The display name/label for the column"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dHlwZQ.short_desc": {
+          "source": "Column type",
+          "message": "Column type"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dHlwZQ.desc": {
+          "source": "The column type",
+          "message": "The column type"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dHlwZQ.allowed-value.c3RyaW5nOlRFWFRfTlVNQkVS.display_name": {
+          "source": "Text/Number",
+          "message": "Text/Number"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dHlwZQ.allowed-value.c3RyaW5nOkRBVEU.display_name": {
+          "source": "Date",
+          "message": "Date"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dHlwZQ.allowed-value.c3RyaW5nOkRBVEVUSU1F.display_name": {
+          "source": "Date & Time",
+          "message": "Date & Time"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dHlwZQ.allowed-value.c3RyaW5nOkNPTlRBQ1RfTElTVA.display_name": {
+          "source": "Contact List",
+          "message": "Contact List"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dHlwZQ.allowed-value.c3RyaW5nOk1VTFRJX0NPTlRBQ1RfTElTVA.display_name": {
+          "source": "Multi Contact List",
+          "message": "Multi Contact List"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dHlwZQ.allowed-value.c3RyaW5nOkNIRUNLQk9Y.display_name": {
+          "source": "Checkbox",
+          "message": "Checkbox"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dHlwZQ.allowed-value.c3RyaW5nOlBJQ0tMSVNU.display_name": {
+          "source": "Dropdown",
+          "message": "Dropdown"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dHlwZQ.allowed-value.c3RyaW5nOk1VTFRJX1BJQ0tMSVNU.display_name": {
+          "source": "Multi Dropdown",
+          "message": "Multi Dropdown"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dmFsaWRhdGlvbg.display_name": {
+          "source": "Validation",
+          "message": "Validation"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dmFsaWRhdGlvbg.short_desc": {
+          "source": "Enable strict validation",
+          "message": "Enable strict validation"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.dmFsaWRhdGlvbg.desc": {
+          "source": "If `True`, restricts cell values to the column's `options` list (strict mode for `PICKLIST`/`MULTI_PICKLIST`)",
+          "message": "If `True`, restricts cell values to the column's `options` list (strict mode for `PICKLIST`/`MULTI_PICKLIST`)"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.d2lkdGg.display_name": {
+          "source": "Width",
+          "message": "Width"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.d2lkdGg.short_desc": {
+          "source": "Display width in pixels",
+          "message": "Display width in pixels"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLXNoZWV0.option.Y29sdW1ucw.field.d2lkdGg.desc": {
+          "source": "The display width of the column in pixels",
+          "message": "The display width of the column in pixels"
+        },
         "app.U21hcnRzaGVldA.action.dXBkYXRlLXNoZWV0.display_name": {
           "source": "Update a Sheet",
           "message": "Update a Sheet"
@@ -1010,6 +1238,18 @@
         "app.U21hcnRzaGVldA.action.Y3JlYXRlLWdyb3Vw.option.bWVtYmVycw.desc": {
           "source": "A list of members to add to the group. Each member requires an `email` address",
           "message": "A list of members to add to the group. Each member requires an `email` address"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLWdyb3Vw.option.bWVtYmVycw.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLWdyb3Vw.option.bWVtYmVycw.field.ZW1haWw.short_desc": {
+          "source": "Member's email address",
+          "message": "Member's email address"
+        },
+        "app.U21hcnRzaGVldA.action.Y3JlYXRlLWdyb3Vw.option.bWVtYmVycw.field.ZW1haWw.desc": {
+          "source": "The email address of the group member to add",
+          "message": "The email address of the group member to add"
         },
         "app.U21hcnRzaGVldA.action.dXBkYXRlLWdyb3Vw.display_name": {
           "source": "Update a Group",

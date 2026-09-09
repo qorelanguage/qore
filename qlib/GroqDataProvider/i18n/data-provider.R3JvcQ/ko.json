@@ -459,6 +459,190 @@
           "source": "Functions, built-in browser or code tools, and remote MCP servers. See the [Responses guide](https://console.groq.com/docs/responses-api).",
           "message": "함수, 내장 브라우저 또는 코드 도구, 그리고 원격 MCP 서버입니다. [응답 가이드](https://console.groq.com/docs/responses-api)를 참조하세요."
         },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.YWxsb3dlZF90b29scw.display_name": {
+          "source": "Allowed Tools",
+          "message": "허용되는 도구"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.YWxsb3dlZF90b29scw.short_desc": {
+          "source": "Allowed Tools",
+          "message": "허용되는 도구"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.YWxsb3dlZF90b29scw.desc": {
+          "source": "Restrict MCP execution to named tools from your server. Omit to expose all discovered tools.",
+          "message": "MCP 실행을 서버에서 발견된 도구 중 지정된 도구로 제한합니다. 생략 시 모든 도구를 노출합니다."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.Y29udGFpbmVy.display_name": {
+          "source": "Container",
+          "message": "컨테이너"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.Y29udGFpbmVy.short_desc": {
+          "source": "Container",
+          "message": "컨테이너"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.Y29udGFpbmVy.desc": {
+          "source": "Automatic container for the `code_interpreter` tool.",
+          "message": "`code_interpreter` 도구를 위한 자동 컨테이너."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FDb2RlQ29udGFpbmVyRGF0YVR5cGU6Kmhhc2g8YXV0bz4jYjFlZjBkMDMxNDFlNTRjNDcyMzVmNDcwNjA4N2U1NDU1MzM2YmQ4NzQ2MTJjZDkwNTc4YTZkNTRhNzEzZTNmYzpvcHRpb246ZEc5dmJITTpmaWVsZDpZMjl1ZEdGcGJtVnk.field.dHlwZQ.display_name": {
+          "source": "Container Type",
+          "message": "컨테이너 유형"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FDb2RlQ29udGFpbmVyRGF0YVR5cGU6Kmhhc2g8YXV0bz4jYjFlZjBkMDMxNDFlNTRjNDcyMzVmNDcwNjA4N2U1NDU1MzM2YmQ4NzQ2MTJjZDkwNTc4YTZkNTRhNzEzZTNmYzpvcHRpb246ZEc5dmJITTpmaWVsZDpZMjl1ZEdGcGJtVnk.field.dHlwZQ.short_desc": {
+          "source": "Container Type",
+          "message": "컨테이너 유형"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FDb2RlQ29udGFpbmVyRGF0YVR5cGU6Kmhhc2g8YXV0bz4jYjFlZjBkMDMxNDFlNTRjNDcyMzVmNDcwNjA4N2U1NDU1MzM2YmQ4NzQ2MTJjZDkwNTc4YTZkNTRhNzEzZTNmYzpvcHRpb246ZEc5dmJITTpmaWVsZDpZMjl1ZEdGcGJtVnk.field.dHlwZQ.desc": {
+          "source": "Groq creates the code execution container automatically.",
+          "message": "Groq는 코드 실행 컨테이너를 자동으로 생성합니다."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FDb2RlQ29udGFpbmVyRGF0YVR5cGU6Kmhhc2g8YXV0bz4jYjFlZjBkMDMxNDFlNTRjNDcyMzVmNDcwNjA4N2U1NDU1MzM2YmQ4NzQ2MTJjZDkwNTc4YTZkNTRhNzEzZTNmYzpvcHRpb246ZEc5dmJITTpmaWVsZDpZMjl1ZEdGcGJtVnk.field.dHlwZQ.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "자동"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "설명"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "Description",
+          "message": "설명"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.ZGVzY3JpcHRpb24.desc": {
+          "source": "Explain when to use the function.",
+          "message": "함수를 사용해야 할 때 설명하세요."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.aGVhZGVycw.display_name": {
+          "source": "Server Headers",
+          "message": "서버 헤더"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.aGVhZGVycw.short_desc": {
+          "source": "Server Headers",
+          "message": "서버 헤더"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.aGVhZGVycw.desc": {
+          "source": "Authentication and other HTTP headers sent by Groq to the MCP server.",
+          "message": "Groq가 MCP 서버에 전송하는 인증 및 기타 HTTP 헤더."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.bmFtZQ.display_name": {
+          "source": "Function Name",
+          "message": "함수 이름"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.bmFtZQ.short_desc": {
+          "source": "Function Name",
+          "message": "함수 이름"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.bmFtZQ.desc": {
+          "source": "Required for `function` tools.",
+          "message": "`function` 도구에 필수입니다."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cGFyYW1ldGVycw.display_name": {
+          "source": "Parameters",
+          "message": "매개변수"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cGFyYW1ldGVycw.short_desc": {
+          "source": "Parameters",
+          "message": "매개변수"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cGFyYW1ldGVycw.desc": {
+          "source": "JSON Schema describing function arguments.",
+          "message": "함수 인수를 설명하는 JSON 스키마입니다."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cmVxdWlyZV9hcHByb3ZhbA.display_name": {
+          "source": "Require Approval",
+          "message": "승인 필요"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cmVxdWlyZV9hcHByb3ZhbA.short_desc": {
+          "source": "Require Approval",
+          "message": "승인 필요"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cmVxdWlyZV9hcHByb3ZhbA.desc": {
+          "source": "Choose whether MCP calls need approval. With `always`, inspect the response and explicitly supply approval results in a later request.",
+          "message": "MCP 호출에 승인이 필요할지 여부를 선택하세요. `always`을 사용하면 응답을 검토하고 이후 요청에서 명시적으로 승인 결과를 제공해야 합니다."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cmVxdWlyZV9hcHByb3ZhbA.allowed-value.c3RyaW5nOm5ldmVy.display_name": {
+          "source": "Never",
+          "message": "절대 없음"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cmVxdWlyZV9hcHByb3ZhbA.allowed-value.c3RyaW5nOmFsd2F5cw.display_name": {
+          "source": "Always",
+          "message": "항상"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX2Rlc2NyaXB0aW9u.display_name": {
+          "source": "Server Description",
+          "message": "서버 설명"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX2Rlc2NyaXB0aW9u.short_desc": {
+          "source": "Server Description",
+          "message": "서버 설명"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX2Rlc2NyaXB0aW9u.desc": {
+          "source": "Help the model decide when to call this MCP server.",
+          "message": "모델이 이 MCP 서버를 언제 호출할지 결정하는 데 도움"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX2xhYmVs.display_name": {
+          "source": "Server Label",
+          "message": "서버 레이블"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX2xhYmVs.short_desc": {
+          "source": "Server Label",
+          "message": "서버 레이블"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX2xhYmVs.desc": {
+          "source": "Required for `mcp` tools; identifies the server in results.",
+          "message": "`mcp` 도구에 필수이며, 결과에서 서버를 식별합니다."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX3VybA.display_name": {
+          "source": "Server URL",
+          "message": "서버 URL"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX3VybA.short_desc": {
+          "source": "Server URL",
+          "message": "서버 URL"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX3VybA.desc": {
+          "source": "Required HTTPS MCP endpoint. Groq discovers and executes tools on this server.",
+          "message": "필수 HTTPS MCP 엔드포인트. Groq는 이 서버에서 도구를 발견하고 실행합니다."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c3RyaWN0.display_name": {
+          "source": "Strict",
+          "message": "엄격한"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c3RyaWN0.short_desc": {
+          "source": "Strict",
+          "message": "엄격한"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c3RyaWN0.desc": {
+          "source": "Require function arguments to follow the schema exactly.",
+          "message": "함수 인수를 스키마와 정확히 일치하도록 요구합니다."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.display_name": {
+          "source": "Tool Type",
+          "message": "도구 유형"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.short_desc": {
+          "source": "Tool Type",
+          "message": "도구 유형"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.desc": {
+          "source": "Choose a function, built-in tool, or remote MCP server.",
+          "message": "함수, 내장 도구 또는 원격 MCP 서버 중 하나를 선택하세요."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmZ1bmN0aW9u.display_name": {
+          "source": "Function",
+          "message": "함수"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmJyb3dzZXJfc2VhcmNo.display_name": {
+          "source": "Browser Search",
+          "message": "브라우저 검색"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmNvZGVfaW50ZXJwcmV0ZXI.display_name": {
+          "source": "Code Execution",
+          "message": "코드 실행"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOm1jcA.display_name": {
+          "source": "Remote MCP Server",
+          "message": "원격 MCP 서버"
+        },
         "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.display_name": {
           "source": "Tool Choice",
           "message": "도구 선택"
@@ -507,6 +691,34 @@
           "source": "Configure reasoning for a compatible model.",
           "message": "호환되는 모델에 대해 추론을 구성합니다."
         },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.display_name": {
+          "source": "Effort",
+          "message": "노력"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.short_desc": {
+          "source": "Effort",
+          "message": "노력"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.desc": {
+          "source": "Reasoning depth: `none` disables reasoning on Qwen3.8; GPT-OSS supports `low`, `medium`, and `high`.",
+          "message": "이유 분석 깊이: `none`은 Qwen3.8에서 이유 분석을 비활성화합니다. GPT-OSS는 `low`, `medium`, `high`을 지원합니다."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.allowed-value.c3RyaW5nOm5vbmU.display_name": {
+          "source": "None",
+          "message": "없음"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "Low",
+          "message": "낮음"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.allowed-value.c3RyaW5nOm1lZGl1bQ.display_name": {
+          "source": "Medium",
+          "message": "중간"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "High",
+          "message": "높음"
+        },
         "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.display_name": {
           "source": "Text",
           "message": "텍스트"
@@ -518,6 +730,78 @@
         "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.desc": {
           "source": "Choose text or JSON output.",
           "message": "텍스트 또는 JSON 출력을 선택하세요."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.field.Zm9ybWF0.display_name": {
+          "source": "Format",
+          "message": "형식"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.field.Zm9ybWF0.short_desc": {
+          "source": "Format",
+          "message": "형식"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.field.Zm9ybWF0.desc": {
+          "source": "Configure text or structured JSON output.",
+          "message": "텍스트 또는 구조화된 JSON 출력을 구성하세요."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.bmFtZQ.display_name": {
+          "source": "Schema Name",
+          "message": "스키마 이름"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.bmFtZQ.short_desc": {
+          "source": "Schema Name",
+          "message": "스키마 이름"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.bmFtZQ.desc": {
+          "source": "Schema name for Responses structured output.",
+          "message": "응답 구조화 출력용 스키마 이름."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.c2NoZW1h.display_name": {
+          "source": "Schema",
+          "message": "스키마"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.c2NoZW1h.short_desc": {
+          "source": "Schema",
+          "message": "스키마"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.c2NoZW1h.desc": {
+          "source": "JSON Schema describing the required Responses output.",
+          "message": "필수 Responses 출력을 설명하는 JSON 스키마입니다."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.c3RyaWN0.display_name": {
+          "source": "Strict",
+          "message": "엄격한"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.c3RyaWN0.short_desc": {
+          "source": "Strict",
+          "message": "엄격한"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.c3RyaWN0.desc": {
+          "source": "Whether to enforce the output schema exactly.",
+          "message": "출력 스키마를 정확히 강제할지 여부."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.dHlwZQ.display_name": {
+          "source": "Format",
+          "message": "형식"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.dHlwZQ.short_desc": {
+          "source": "Format",
+          "message": "형식"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.dHlwZQ.desc": {
+          "source": "Choose text, JSON mode, or strict JSON schema output.",
+          "message": "텍스트, JSON 모드 또는 엄격한 JSON 스키마 출력 중 하나를 선택하세요."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.dHlwZQ.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Text",
+          "message": "텍스트"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.dHlwZQ.allowed-value.c3RyaW5nOmpzb25fb2JqZWN0.display_name": {
+          "source": "JSON Object",
+          "message": "JSON 객체"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.dHlwZQ.allowed-value.c3RyaW5nOmpzb25fc2NoZW1h.display_name": {
+          "source": "JSON Schema",
+          "message": "JSON 스키마"
         },
         "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.bWV0YWRhdGE.display_name": {
           "source": "Metadata",
@@ -606,6 +890,126 @@
         "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.desc": {
           "source": "Named file with `name`, raw binary or base64 `content`, and optional `mime_type`.",
           "message": "`name`, 원시 바이너리 또는 base64 `content`, 그리고 선택적으로 `mime_type`을 포함하는 이름이 지정된 파일."
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "파일 데이터"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64 인코딩된 파일 데이터 또는 Base64로 인코딩할 원시 데이터"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64 인코딩된 파일 데이터 또는 Base64로 인코딩할 원시 데이터"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME 유형"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "파일에 대한 MIME 유형 문자열"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "파일에 대한 MIME 유형 문자열"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "자동 감지"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "파일 이름에서 자동 감지; 입력 시에만 유효"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "파일 이름에서 자동 감지; 입력 시에만 유효"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "일반 텍스트"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "일반 텍스트"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "HTML 텍스트"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "HTML 텍스트"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "PDF 파일"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "PDF 파일"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "MS Word docx 문서"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "MS Word `docx` 문서"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "MS PowerPoint pptx 문서"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "MS PowerPoint `pptx` 문서"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "MS Excel xlsx 문서"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "MS Excel `xlsx` 문서"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "파일 이름"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "파일 이름"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "파일 이름"
         },
         "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.dXJs.display_name": {
           "source": "Audio URL",
@@ -734,6 +1138,126 @@
         "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.desc": {
           "source": "Named file with `name`, raw binary or base64 `content`, and optional `mime_type`.",
           "message": "`name`, 원시 바이너리 또는 base64 `content`, 그리고 선택적 `mime_type`을 포함한 이름이 지정된 파일."
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "파일 데이터"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64 인코딩된 파일 데이터 또는 Base64로 인코딩할 원시 데이터"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64 인코딩된 파일 데이터 또는 Base64로 인코딩할 원시 데이터"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME 유형"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "파일에 대한 MIME 유형 문자열"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "파일에 대한 MIME 유형 문자열"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "자동 감지"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "파일 이름에서 자동 감지; 입력 시에만 유효"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "파일 이름에서 자동 감지; 입력 시에만 유효"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "일반 텍스트"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "일반 텍스트"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "HTML 텍스트"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "HTML 텍스트"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "PDF 파일"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "PDF 파일"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "MS Word docx 문서"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "MS Word `docx` 문서"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "MS PowerPoint pptx 문서"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "MS PowerPoint `pptx` 문서"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "MS Excel xlsx 문서"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "MS Excel `xlsx` 문서"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "파일 이름"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "파일 이름"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "파일 이름"
         },
         "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.dXJs.display_name": {
           "source": "Audio URL",
@@ -962,6 +1486,126 @@
         "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.desc": {
           "source": "Named file with `name`, raw binary or base64 `content`, and optional `mime_type`.",
           "message": "`name`, 원시 바이너리 또는 base64 `content`, 선택적 `mime_type`을 포함한 이름이 지정된 파일."
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "파일 데이터"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64 인코딩된 파일 데이터 또는 Base64로 인코딩할 원시 데이터"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64 인코딩된 파일 데이터 또는 Base64로 인코딩할 원시 데이터"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME 유형"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "파일에 대한 MIME 유형 문자열"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "파일에 대한 MIME 유형 문자열"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "자동 감지"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "파일 이름에서 자동 감지; 입력 시에만 유효"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "파일 이름에서 자동 감지; 입력 시에만 유효"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "일반 텍스트"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "일반 텍스트"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "HTML 텍스트"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "HTML 텍스트"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "PDF 파일"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "PDF 파일"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "MS Word docx 문서"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "MS Word `docx` 문서"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "MS PowerPoint pptx 문서"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "MS PowerPoint `pptx` 문서"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "MS Excel xlsx 문서"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "MS Excel `xlsx` 문서"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "파일 이름"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "파일 이름"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "파일 이름"
         },
         "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.display_name": {
           "source": "Purpose",
@@ -1347,6 +1991,122 @@
           "source": "The conversation history as a list of message objects.  Each message has a `role` (`system`, `user`, `assistant`, or `tool`) and `content` (text).",
           "message": "메시지 객체 목록 형태의 대화 기록입니다. 각 메시지에는 `role`(`system`, `user`, `assistant` 또는 `tool`) 및 `content`(텍스트)가 있습니다."
         },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.Y29udGVudA.display_name": {
+          "source": "Content",
+          "message": "내용"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.Y29udGVudA.short_desc": {
+          "source": "The text content of the message",
+          "message": "메시지의 텍스트 내용"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.Y29udGVudA.desc": {
+          "source": "The text content of the message.  May be `NOTHING` on assistant messages that only contain `tool_calls`.",
+          "message": "메시지의 텍스트 내용. `tool_calls`만 포함하는 보조 메시지의 경우 `NOTHING`일 수 있습니다."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.bmFtZQ.display_name": {
+          "source": "Author Name",
+          "message": "작성자 이름"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.bmFtZQ.short_desc": {
+          "source": "Optional name of the author",
+          "message": "작성자의 선택적 이름"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.bmFtZQ.desc": {
+          "source": "Optional name identifying the specific author of the message.",
+          "message": "메시지의 특정 작성자를 식별하는 선택적 이름."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "역할"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.short_desc": {
+          "source": "The role of the message author",
+          "message": "메시지 작성자의 역할"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.desc": {
+          "source": "The role of the author of this message.\n\n- `system` — high-level instructions and persona for the assistant\n- `user` — input from the end user\n- `assistant` — previous model output (used for multi-turn conversations)\n- `tool` — result returned by a tool invocation (paired with a `tool_call_id`)",
+          "message": "이 메시지의 작성자 역할.\n\n- `system` — 어시스턴트의 고수준 지침 및 성격\n- `user` — 최종 사용자로부터의 입력\n- `assistant` — 이전 모델 출력 (다중 대화에서 사용)\n- `tool` — 도구 호출에서 반환된 결과 (`tool_call_id`와 짝지어짐)"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnN5c3RlbQ.display_name": {
+          "source": "System - instructions and persona",
+          "message": "시스템 - 지침 및 패르소나"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User - end-user input",
+          "message": "사용자 - 최종 사용자 입력"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOmFzc2lzdGFudA.display_name": {
+          "source": "Assistant - previous model output",
+          "message": "보조 - 이전 모델 출력"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnRvb2w.display_name": {
+          "source": "Tool - tool invocation result",
+          "message": "도구 - 도구 호출 결과"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxsX2lk.display_name": {
+          "source": "Tool Call ID",
+          "message": "도구 호출 ID"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxsX2lk.short_desc": {
+          "source": "ID of the tool call this message responds to",
+          "message": "이 메시지가 응답하는 도구 호출 ID"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxsX2lk.desc": {
+          "source": "Required when `role` is `tool` — identifies which of the preceding assistant message's `tool_calls` this message is returning the result for.",
+          "message": "`role`가 `tool`인 경우 필수 — 이 메시지가 이전 보조 메시지의 `tool_calls` 중 어느 것의 결과를 반환하는지 식별합니다."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxscw.display_name": {
+          "source": "Tool Calls",
+          "message": "도구 호출"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxscw.short_desc": {
+          "source": "Tool invocations emitted by the assistant",
+          "message": "어시스턴트가 생성한 도구 호출"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxscw.desc": {
+          "source": "List of tool calls emitted by the assistant.  Present only on assistant messages that chose to invoke a tool.",
+          "message": "보조자가 도구를 호출했을 때만 존재하는 도구 호출 목록. 보조자 메시지에서만 나타남."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.ZnVuY3Rpb24.display_name": {
+          "source": "Function Call",
+          "message": "함수 호출"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.ZnVuY3Rpb24.short_desc": {
+          "source": "Function name and JSON-encoded arguments",
+          "message": "함수 이름과 JSON 인코딩된 인수"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.ZnVuY3Rpb24.desc": {
+          "source": "Hash with `name` (string) and `arguments` (JSON-encoded string) describing the function the model wants to invoke.",
+          "message": "`name` (문자열)과 `arguments` (JSON 인코딩된 문자열)을 포함한 해시로, 모델이 호출하고자 하는 함수를 설명합니다."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.aWQ.display_name": {
+          "source": "Tool Call ID",
+          "message": "도구 호출 ID"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.aWQ.short_desc": {
+          "source": "Unique identifier for the tool call",
+          "message": "도구 호출의 고유 식별자"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.aWQ.desc": {
+          "source": "Unique identifier for this tool call.  The same `id` must be echoed back in the corresponding `tool` role message that returns the tool's result.",
+          "message": "이 도구 호출의 고유 식별자. 도구 결과를 반환하는 해당 `tool` 역할 메시지에서 동일한 `id`를 반영해야 합니다."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.dHlwZQ.display_name": {
+          "source": "Tool Type",
+          "message": "도구 유형"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.dHlwZQ.short_desc": {
+          "source": "Type of tool invoked",
+          "message": "호출된 도구 유형"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.dHlwZQ.desc": {
+          "source": "Type of tool invoked.  `function` is the only supported type for OpenAI-compatible tool calling.",
+          "message": "호출된 도구 유형. `function`만 OpenAI 호환 도구 호출에 대해 지원됩니다."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.dHlwZQ.allowed-value.c3RyaW5nOmZ1bmN0aW9u.display_name": {
+          "source": "Function",
+          "message": "함수"
+        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.display_name": {
           "source": "Model",
           "message": "모델"
@@ -1527,6 +2287,106 @@
           "source": "Configure Compound models and built-in tools with `models` and `tools`.",
           "message": "복합 모델과 내장 도구를 `models` 및 `tools`로 구성하세요."
         },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.field.bW9kZWxz.display_name": {
+          "source": "Models",
+          "message": "모델"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.field.bW9kZWxz.short_desc": {
+          "source": "Models",
+          "message": "모델"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.field.bW9kZWxz.desc": {
+          "source": "Select models for answering and reasoning.",
+          "message": "답변 및 추론에 사용할 모델을 선택합니다."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZE1vZGVsc0RhdGFUeXBlOipoYXNoPGF1dG8-IzA1ZjkzMDFjOTczY2ViMDVhOGQ3ZThhOTc4ZDQxZWM0NjViNzMzODI4ZmJiZTBmMWM4N2YzYzIwYzQwZjIyNzQ6b3B0aW9uOlkyOXRjRzkxYm1SZlkzVnpkRzl0OmZpZWxkOmJXOWtaV3h6.field.YW5zd2VyaW5nX21vZGVs.display_name": {
+          "source": "Answering Model",
+          "message": "응답 모델"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZE1vZGVsc0RhdGFUeXBlOipoYXNoPGF1dG8-IzA1ZjkzMDFjOTczY2ViMDVhOGQ3ZThhOTc4ZDQxZWM0NjViNzMzODI4ZmJiZTBmMWM4N2YzYzIwYzQwZjIyNzQ6b3B0aW9uOlkyOXRjRzkxYm1SZlkzVnpkRzl0OmZpZWxkOmJXOWtaV3h6.field.YW5zd2VyaW5nX21vZGVs.short_desc": {
+          "source": "Answering Model",
+          "message": "응답 모델"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZE1vZGVsc0RhdGFUeXBlOipoYXNoPGF1dG8-IzA1ZjkzMDFjOTczY2ViMDVhOGQ3ZThhOTc4ZDQxZWM0NjViNzMzODI4ZmJiZTBmMWM4N2YzYzIwYzQwZjIyNzQ6b3B0aW9uOlkyOXRjRzkxYm1SZlkzVnpkRzl0OmZpZWxkOmJXOWtaV3h6.field.YW5zd2VyaW5nX21vZGVs.desc": {
+          "source": "Select a model for this role in Compound inference.",
+          "message": "복합 추론에서 이 역할에 대한 모델을 선택합니다."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZE1vZGVsc0RhdGFUeXBlOipoYXNoPGF1dG8-IzA1ZjkzMDFjOTczY2ViMDVhOGQ3ZThhOTc4ZDQxZWM0NjViNzMzODI4ZmJiZTBmMWM4N2YzYzIwYzQwZjIyNzQ6b3B0aW9uOlkyOXRjRzkxYm1SZlkzVnpkRzl0OmZpZWxkOmJXOWtaV3h6.field.cmVhc29uaW5nX21vZGVs.display_name": {
+          "source": "Reasoning Model",
+          "message": "이유 분석 모델"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZE1vZGVsc0RhdGFUeXBlOipoYXNoPGF1dG8-IzA1ZjkzMDFjOTczY2ViMDVhOGQ3ZThhOTc4ZDQxZWM0NjViNzMzODI4ZmJiZTBmMWM4N2YzYzIwYzQwZjIyNzQ6b3B0aW9uOlkyOXRjRzkxYm1SZlkzVnpkRzl0OmZpZWxkOmJXOWtaV3h6.field.cmVhc29uaW5nX21vZGVs.short_desc": {
+          "source": "Reasoning Model",
+          "message": "이유 분석 모델"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZE1vZGVsc0RhdGFUeXBlOipoYXNoPGF1dG8-IzA1ZjkzMDFjOTczY2ViMDVhOGQ3ZThhOTc4ZDQxZWM0NjViNzMzODI4ZmJiZTBmMWM4N2YzYzIwYzQwZjIyNzQ6b3B0aW9uOlkyOXRjRzkxYm1SZlkzVnpkRzl0OmZpZWxkOmJXOWtaV3h6.field.cmVhc29uaW5nX21vZGVs.desc": {
+          "source": "Select a model for this role in Compound inference.",
+          "message": "복합 추론에서 이 역할에 대한 모델을 선택합니다."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.field.dG9vbHM.display_name": {
+          "source": "Tools",
+          "message": "도구"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.field.dG9vbHM.short_desc": {
+          "source": "Tools",
+          "message": "도구"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.field.dG9vbHM.desc": {
+          "source": "Choose tools available to Compound inference.",
+          "message": "Compound 추론에 사용 가능한 도구를 선택하세요."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.display_name": {
+          "source": "Enabled Tools",
+          "message": "사용 중인 도구"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.short_desc": {
+          "source": "Enabled Tools",
+          "message": "사용 중인 도구"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.desc": {
+          "source": "Limit the tools Compound can execute. `visit_website` and `wolfram_alpha` require the `latest` Compound version; set `Groq-Model-Version` in connection headers.",
+          "message": "Compound가 실행할 수 있는 도구 수를 제한합니다. `visit_website` 및 `wolfram_alpha`은 `latest` 버전의 Compound가 필요하며, 연결 헤더에 `Groq-Model-Version`을 설정하세요."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.element-allowed-value.c3RyaW5nOndlYl9zZWFyY2g.display_name": {
+          "source": "Web Search",
+          "message": "웹 검색"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.element-allowed-value.c3RyaW5nOnZpc2l0X3dlYnNpdGU.display_name": {
+          "source": "Visit Website",
+          "message": "웹사이트 방문"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.element-allowed-value.c3RyaW5nOmNvZGVfaW50ZXJwcmV0ZXI.display_name": {
+          "source": "Code Execution",
+          "message": "코드 실행"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.element-allowed-value.c3RyaW5nOndvbGZyYW1fYWxwaGE.display_name": {
+          "source": "Wolfram Alpha",
+          "message": "Wolfram Alpha"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.d29sZnJhbV9zZXR0aW5ncw.display_name": {
+          "source": "Wolfram Settings",
+          "message": "Wolfram 설정"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.d29sZnJhbV9zZXR0aW5ncw.short_desc": {
+          "source": "Wolfram Settings",
+          "message": "Wolfram 설정"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.d29sZnJhbV9zZXR0aW5ncw.desc": {
+          "source": "Credentials for the Wolfram Alpha tool.",
+          "message": "Wolfram Alpha 도구용 자격 증명"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FXb2xmcmFtU2V0dGluZ3NEYXRhVHlwZToqaGFzaDxhdXRvPiNjNGRmNDhkMDJjYWE1OTExNzU2YWJkODA4ZTM4NTQ0ODFhZmIxOWU1ZjUyYTAyMjZhZGEzOWEwODAxYWY4ZmI5Om9wdGlvbjpZMjl0Y0c5MWJtUmZZM1Z6ZEc5dDpmaWVsZDpkRzl2YkhNOmZpZWxkOmQyOXNabkpoYlY5elpYUjBhVzVuY3c.field.YXV0aG9yaXphdGlvbg.display_name": {
+          "source": "Wolfram Authorization",
+          "message": "Wolfram 인증"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FXb2xmcmFtU2V0dGluZ3NEYXRhVHlwZToqaGFzaDxhdXRvPiNjNGRmNDhkMDJjYWE1OTExNzU2YWJkODA4ZTM4NTQ0ODFhZmIxOWU1ZjUyYTAyMjZhZGEzOWEwODAxYWY4ZmI5Om9wdGlvbjpZMjl0Y0c5MWJtUmZZM1Z6ZEc5dDpmaWVsZDpkRzl2YkhNOmZpZWxkOmQyOXNabkpoYlY5elpYUjBhVzVuY3c.field.YXV0aG9yaXphdGlvbg.short_desc": {
+          "source": "Wolfram Authorization",
+          "message": "Wolfram 인증"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FXb2xmcmFtU2V0dGluZ3NEYXRhVHlwZToqaGFzaDxhdXRvPiNjNGRmNDhkMDJjYWE1OTExNzU2YWJkODA4ZTM4NTQ0ODFhZmIxOWU1ZjUyYTAyMjZhZGEzOWEwODAxYWY4ZmI5Om9wdGlvbjpZMjl0Y0c5MWJtUmZZM1Z6ZEc5dDpmaWVsZDpkRzl2YkhNOmZpZWxkOmQyOXNabkpoYlY5elpYUjBhVzVuY3c.field.YXV0aG9yaXphdGlvbg.desc": {
+          "source": "Authorization credential for Wolfram Alpha computations.",
+          "message": "Wolfram Alpha 계산을 위한 인증 자격 증명."
+        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.display_name": {
           "source": "Documents",
           "message": "문서"
@@ -1539,6 +2399,86 @@
           "source": "Context documents with a text or JSON `source` and optional citation `id`.",
           "message": "텍스트 또는 JSON 형식의 `source`와 선택적 인용 `id`을 사용하여 컨텍스트 문서를 제공하세요."
         },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.field.aWQ.display_name": {
+          "source": "Document ID",
+          "message": "문서 ID"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.field.aWQ.short_desc": {
+          "source": "Document ID",
+          "message": "문서 ID"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.field.aWQ.desc": {
+          "source": "Your identifier for citations from this input document.",
+          "message": "이 입력 문서에서 인용한 데 대한 귀하의 식별자."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.field.c291cmNl.display_name": {
+          "source": "Source",
+          "message": "소스"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.field.c291cmNl.short_desc": {
+          "source": "Source",
+          "message": "소스"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.field.c291cmNl.desc": {
+          "source": "Inline text or JSON used to ground the response.",
+          "message": "응답을 기반화하는 데 사용되는 인라인 텍스트 또는 JSON."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dGV4dA.display_name": {
+          "source": "Text",
+          "message": "텍스트"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dGV4dA.short_desc": {
+          "source": "Text",
+          "message": "텍스트"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dGV4dA.desc": {
+          "source": "Document contents used to ground the answer.",
+          "message": "답변을 기반으로 하는 문서 내용."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.display_name": {
+          "source": "Source Type",
+          "message": "소스 유형"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.short_desc": {
+          "source": "Source Type",
+          "message": "소스 유형"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.desc": {
+          "source": "Inline text document.",
+          "message": "인라인 텍스트 문서."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Text",
+          "message": "텍스트"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.ZGF0YQ.display_name": {
+          "source": "Data",
+          "message": "데이터"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.ZGF0YQ.short_desc": {
+          "source": "Data",
+          "message": "데이터"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.ZGF0YQ.desc": {
+          "source": "Structured document contents.",
+          "message": "구조화된 문서 내용."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.display_name": {
+          "source": "Source Type",
+          "message": "소스 유형"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.short_desc": {
+          "source": "Source Type",
+          "message": "소스 유형"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.desc": {
+          "source": "Inline JSON document.",
+          "message": "인라인 JSON 문서."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "Json",
+          "message": "Json"
+        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.display_name": {
           "source": "Search Settings",
           "message": "검색 설정"
@@ -1550,6 +2490,54 @@
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.desc": {
           "source": "Configure web search with `include_domains`, `exclude_domains`, and `country`.",
           "message": "웹 검색을 `include_domains` , `exclude_domains` 및 `country`로 구성하세요."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.Y291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "국가"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.Y291bnRyeQ.short_desc": {
+          "source": "Country",
+          "message": "국가"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.Y291bnRyeQ.desc": {
+          "source": "Country code for localized web results.",
+          "message": "지역화된 웹 결과에 대한 국가 코드"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.ZXhjbHVkZV9kb21haW5z.display_name": {
+          "source": "Exclude Domains",
+          "message": "제외할 도메인"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.ZXhjbHVkZV9kb21haW5z.short_desc": {
+          "source": "Exclude Domains",
+          "message": "제외할 도메인"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.ZXhjbHVkZV9kb21haW5z.desc": {
+          "source": "Exclude these domains from web results.",
+          "message": "웹 결과에서 제외할 도메인."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.aW5jbHVkZV9kb21haW5z.display_name": {
+          "source": "Include Domains",
+          "message": "도메인 포함"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.aW5jbHVkZV9kb21haW5z.short_desc": {
+          "source": "Include Domains",
+          "message": "도메인 포함"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.aW5jbHVkZV9kb21haW5z.desc": {
+          "source": "Restrict web results to these domains.",
+          "message": "웹 결과를 이 도메인들로 제한합니다."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.aW5jbHVkZV9pbWFnZXM.display_name": {
+          "source": "Include Images",
+          "message": "이미지 포함"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.aW5jbHVkZV9pbWFnZXM.short_desc": {
+          "source": "Include Images",
+          "message": "이미지 포함"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.aW5jbHVkZV9pbWFnZXM.desc": {
+          "source": "Include image URLs in search results.",
+          "message": "검색 결과에 이미지 URL 포함."
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y2l0YXRpb25fb3B0aW9ucw.display_name": {
           "source": "Citation Options",
@@ -1619,6 +2607,90 @@
           "source": "Custom function definitions or supported built-in tools. Use `function` with a `function` definition, or select `browser_search` or `code_interpreter` for a compatible model.",
           "message": "사용자 정의 함수 또는 지원되는 기본 제공 도구입니다. `function` 정의와 함께 `function`을 사용하거나 호환 모델에서 `browser_search` 또는 `code_interpreter`를 선택하세요."
         },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.ZnVuY3Rpb24.display_name": {
+          "source": "Function",
+          "message": "함수"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.ZnVuY3Rpb24.short_desc": {
+          "source": "Function",
+          "message": "함수"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.ZnVuY3Rpb24.desc": {
+          "source": "Function definition; required for `function` tools.",
+          "message": "함수 정의; `function` 도구에 필수입니다."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "설명"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "Description",
+          "message": "설명"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.ZGVzY3JpcHRpb24.desc": {
+          "source": "Explain when the model should use this function.",
+          "message": "이 함수를 사용해야 할 때 설명하세요."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.bmFtZQ.display_name": {
+          "source": "Function Name",
+          "message": "함수 이름"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.bmFtZQ.short_desc": {
+          "source": "Function Name",
+          "message": "함수 이름"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.bmFtZQ.desc": {
+          "source": "The function to invoke in your application.",
+          "message": "애플리케이션에서 호출할 함수"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.cGFyYW1ldGVycw.display_name": {
+          "source": "Parameters",
+          "message": "매개변수"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.cGFyYW1ldGVycw.short_desc": {
+          "source": "Parameters",
+          "message": "매개변수"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.cGFyYW1ldGVycw.desc": {
+          "source": "JSON Schema describing the function arguments.",
+          "message": "함수 인수를 설명하는 JSON 스키마입니다."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.c3RyaWN0.display_name": {
+          "source": "Strict",
+          "message": "엄격한"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.c3RyaWN0.short_desc": {
+          "source": "Strict",
+          "message": "엄격한"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.c3RyaWN0.desc": {
+          "source": "Require arguments to follow the parameter schema exactly.",
+          "message": "매개변수 스키마와 정확히 일치하는 인수를 요구합니다."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.dHlwZQ.display_name": {
+          "source": "Tool Type",
+          "message": "도구 유형"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.dHlwZQ.short_desc": {
+          "source": "Tool Type",
+          "message": "도구 유형"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.dHlwZQ.desc": {
+          "source": "Choose a custom function or a built-in tool supported by the model.",
+          "message": "모델에서 지원하는 사용자 정의 함수 또는 내장 도구 중 하나를 선택하세요."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmZ1bmN0aW9u.display_name": {
+          "source": "Function",
+          "message": "함수"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmJyb3dzZXJfc2VhcmNo.display_name": {
+          "source": "Browser Search",
+          "message": "브라우저 검색"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmNvZGVfaW50ZXJwcmV0ZXI.display_name": {
+          "source": "Code Interpreter",
+          "message": "코드 인터프리터"
+        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.display_name": {
           "source": "Tool Choice",
           "message": "도구 선택"
@@ -1654,6 +2726,90 @@
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.desc": {
           "source": "Hash that forces a structured response shape.  The most common use is JSON mode: `{type: \"json_object\"}`.",
           "message": "구조화된 응답 형태를 강제하는 해시입니다. 가장 일반적인 용도는 JSON 모드(`{type: \"json_object\"}`)입니다."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.anNvbl9zY2hlbWE.display_name": {
+          "source": "JSON Schema",
+          "message": "JSON 스키마"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.anNvbl9zY2hlbWE.short_desc": {
+          "source": "JSON Schema",
+          "message": "JSON 스키마"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.anNvbl9zY2hlbWE.desc": {
+          "source": "Schema configuration; required when `type` is `json_schema`.",
+          "message": "`type`가 `json_schema`인 경우 필수입니다."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "설명"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "Description",
+          "message": "설명"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.ZGVzY3JpcHRpb24.desc": {
+          "source": "Explain the intended structured response.",
+          "message": "예상되는 구조화된 응답을 설명하세요."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.bmFtZQ.display_name": {
+          "source": "Schema Name",
+          "message": "스키마 이름"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.bmFtZQ.short_desc": {
+          "source": "Schema Name",
+          "message": "스키마 이름"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.bmFtZQ.desc": {
+          "source": "A name for the structured output contract.",
+          "message": "구조화된 출력 계약의 이름입니다."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.c2NoZW1h.display_name": {
+          "source": "Schema",
+          "message": "스키마"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.c2NoZW1h.short_desc": {
+          "source": "Schema",
+          "message": "스키마"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.c2NoZW1h.desc": {
+          "source": "JSON Schema defining the structured response.",
+          "message": "구조화된 응답을 정의하는 JSON 스키마입니다."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.c3RyaWN0.display_name": {
+          "source": "Strict",
+          "message": "엄격한"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.c3RyaWN0.short_desc": {
+          "source": "Strict",
+          "message": "엄격한"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.c3RyaWN0.desc": {
+          "source": "Require the result to follow the schema exactly.",
+          "message": "결과가 스키마와 정확히 일치하도록 요구합니다."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.display_name": {
+          "source": "Format",
+          "message": "형식"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.short_desc": {
+          "source": "Format",
+          "message": "형식"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.desc": {
+          "source": "Choose text, JSON mode, or structured output.",
+          "message": "텍스트, JSON 모드 또는 구조화된 출력 중 하나를 선택하세요."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Text",
+          "message": "텍스트"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.allowed-value.c3RyaW5nOmpzb25fb2JqZWN0.display_name": {
+          "source": "JSON Object",
+          "message": "JSON 객체"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.allowed-value.c3RyaW5nOmpzb25fc2NoZW1h.display_name": {
+          "source": "JSON Schema",
+          "message": "JSON 스키마"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.display_name": {
           "source": "Seed",

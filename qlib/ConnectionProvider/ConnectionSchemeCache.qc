@@ -413,6 +413,9 @@ public class ConnectionSchemeCache {
         #! Connection provider cache lock
         static Mutex lck();
 
+        #! Monotonically increasing revision of pending and registered scheme state
+        static int registry_revision = 0;
+
         #! Load all flag
         static bool load_all;
     }
@@ -438,6 +441,8 @@ public class ConnectionSchemeCache {
         }
 
         initmap{scheme} = init;
+        load_all = False;
+        ++registry_revision;
     }
 
     #! Register a new connection provider in the cache
@@ -467,6 +472,7 @@ public class ConnectionSchemeCache {
         cache{scheme} = entry;
         # sort connection options when caching
         cache{scheme}.options = cache{scheme}.options{sort(keys cache{scheme}.options)};
+        ++registry_revision;
 
         # deregister the scheme automatically if module initialization fails
         ImplicitModuleTransaction::add(sub () { ConnectionSchemeCache::deregisterSchemeIntern(scheme); });
@@ -497,44 +503,21 @@ public class ConnectionSchemeCache {
             lck.unlock();
         }
 
+        bool had_pending = exists initmap{scheme};
         remove initmap{scheme};
-
-        return remove cache{scheme};
+        *hash<ConnectionSchemeInfo> removed = remove cache{scheme};
+        if (had_pending || removed) {
+            ++registry_revision;
+        }
+        return removed;
     }
 
-    #! Loads all possible schemes and returns the entire cache
-    static hash<string, hash<ConnectionSchemeInfo>> getLoadAll() {
-        if (load_all) {
-            return cache;
-        }
+    #! Returns the current pending/registered connection-scheme revision
+    /** @return the monotonically increasing registry revision
 
-        # Take a snapshot of what needs loading while holding the lock, then release the lock
-        # before calling load_module() to avoid an ABBA deadlock with registerScheme().
-        # See getSchemeImpl() for a detailed explanation of the lock ordering issue.
-        *list<code> init_list;
-        {
-            bool needs_lock = !lck.lockOwner();
-            if (needs_lock) {
-                lck.lock();
-            }
-            on_exit if (needs_lock) {
-                lck.unlock();
-            }
-            # check again in the lock
-            if (load_all) {
-                return cache;
-            }
-            # snapshot and clear pending init closures atomically under the lock
-            init_list = initmap.values();
-            initmap = {};
-        }
-
-        # Load all pending modules without holding the lock.
-        # getSchemeImpl() acquires lck itself (needs_lock = True) when the caller does not hold it.
-        # The init closures also register via registerScheme() which acquires lck.
-        map $1(), init_list;
-        map ConnectionSchemeCache::getSchemeImpl($1, False), keys SchemeMap;
-
+        @since ConnectionProvider 3.1
+    */
+    static int getRegistryRevision() {
         bool needs_lock = !lck.lockOwner();
         if (needs_lock) {
             lck.lock();
@@ -542,22 +525,121 @@ public class ConnectionSchemeCache {
         on_exit if (needs_lock) {
             lck.unlock();
         }
-        load_all = True;
-        return cache;
+        return registry_revision;
+    }
+
+    #! Publishes a candidate while the connection-scheme snapshot remains stable
+    /** The callback runs with scheme registration excluded. ProviderIndex nests its catalog-qualified publication
+        inside this boundary, following the established scheme-registry to data-provider-catalog lock order.
+
+        @param revision exact revision captured immediately before copying scheme state
+        @param publisher publication callback
+
+        @return the callback result
+
+        @throw CONNECTION-SCHEME-SNAPSHOT-STALE if the registry changed after \a revision was captured
+
+        @since ConnectionProvider 3.1
+    */
+    static auto publishStableRegistrySnapshot(int revision,
+            code<auto()> publisher) {
+        bool needs_lock = !lck.lockOwner();
+        if (needs_lock) {
+            lck.lock();
+        }
+        on_exit if (needs_lock) {
+            lck.unlock();
+        }
+        if (revision != registry_revision) {
+            throw "CONNECTION-SCHEME-SNAPSHOT-STALE", sprintf(
+                "connection scheme registry changed from revision %d to %d while the authoritative snapshot was "
+                    "copied", revision, registry_revision), {
+                "snapshot_revision": revision,
+                "current_revision": registry_revision,
+            };
+        }
+        return publisher();
+    }
+
+    #! Loads all possible schemes and returns the entire cache
+    static hash<string, hash<ConnectionSchemeInfo>> getLoadAll() {
+        # Drain pending initializers outside the lock. A pending registration resets load_all, and the final locked
+        # check refuses to certify the cache while another initializer is pending. This closes the race where a
+        # registration arriving during an earlier drain could otherwise be skipped forever.
+        bool checked_known_schemes = False;
+        while (True) {
+            *list<code> init_list;
+            {
+                bool needs_lock = !lck.lockOwner();
+                if (needs_lock) {
+                    lck.lock();
+                }
+                on_exit if (needs_lock) {
+                    lck.unlock();
+                }
+                # check again in the lock
+                if (load_all) {
+                    return cache;
+                }
+                if (initmap) {
+                    # Snapshot and clear pending init closures atomically. Removing pending registry entries is itself
+                    # a visible state transition, even if an initializer fails to register a replacement.
+                    init_list = initmap.values();
+                    initmap = {};
+                    ++registry_revision;
+                } else if (checked_known_schemes) {
+                    load_all = True;
+                    return cache;
+                }
+            }
+
+            if (init_list) {
+                # Invoke callbacks without the lock. They can register schemes and can add more pending callbacks,
+                # which the next iteration observes.
+                map $1(), init_list;
+            } else {
+                # Check the immutable built-in scheme map once. Module initialization can add pending callbacks, so
+                # loop once more before marking the registry fully loaded.
+                map ConnectionSchemeCache::getSchemeImpl($1, False),
+                    keys SchemeMap;
+                checked_known_schemes = True;
+            }
+        }
     }
 
     #! Returns the entire cache
     static hash<string, hash<ConnectionSchemeInfo>> get() {
+        bool needs_lock = !lck.lockOwner();
+        if (needs_lock) {
+            lck.lock();
+        }
+        on_exit if (needs_lock) {
+            lck.unlock();
+        }
         return cache;
     }
 
     #! Returns the number of types in the cache
     static int size() {
+        bool needs_lock = !lck.lockOwner();
+        if (needs_lock) {
+            lck.lock();
+        }
+        on_exit if (needs_lock) {
+            lck.unlock();
+        }
         return cache.size();
     }
 
     #! Returns True if the cache is empty, False if not
     static bool empty() {
+        bool needs_lock = !lck.lockOwner();
+        if (needs_lock) {
+            lck.lock();
+        }
+        on_exit if (needs_lock) {
+            lck.unlock();
+        }
         return cache.empty();
     }
 
@@ -565,6 +647,13 @@ public class ConnectionSchemeCache {
     /**
     */
     static *list<string> listSchemes() {
+        bool needs_lock = !lck.lockOwner();
+        if (needs_lock) {
+            lck.lock();
+        }
+        on_exit if (needs_lock) {
+            lck.unlock();
+        }
         return keys cache;
     }
 
@@ -629,6 +718,7 @@ public class ConnectionSchemeCache {
             lck.unlock();
         }
         if (*code init = remove initmap{scheme}) {
+            ++registry_revision;
             init();
         }
 
@@ -672,13 +762,16 @@ public class ConnectionSchemeCache {
             # is loaded. Run any pending init that appeared during the load so the scheme is
             # resolved within this same call instead of being reported as an unknown scheme.
             if (*code init = remove initmap{scheme}) {
+                ++registry_revision;
                 init();
             }
             if (rv = cache{scheme}) {
                 return rv;
             }
         }
-        if (scheme_loader && (rv = cache{scheme} = scheme_loader(scheme))) {
+        if (scheme_loader && (rv = scheme_loader(scheme))) {
+            cache{scheme} = rv;
+            ++registry_revision;
             return rv;
         }
         if (throw_exception) {
@@ -893,7 +986,10 @@ public class ConnectionSchemeCache {
         lck.lock();
         on_exit lck.unlock();
 
-        remove cache{scheme};
+        if (exists cache{scheme}) {
+            remove cache{scheme};
+            ++registry_revision;
+        }
     }
 }
 }

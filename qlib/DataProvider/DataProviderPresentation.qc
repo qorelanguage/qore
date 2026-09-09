@@ -254,6 +254,212 @@ public class DataProviderPresentation {
             + identitySegment(option) + "." + field;
     }
 
+    #! Returns a stable presentation message id for a field nested in an action option's type
+    /** Every field name is an exact technical identity. Repeated \c field segments describe the semantic data path;
+        lists do not add a segment, while each union contributes the stable technical identity of its alternative.
+        This lets repeated appearances of the same union branch coalesce while distinct branch semantics remain
+        translatable and preserves every existing top-level option id.
+
+        @param app exact technical app identifier
+        @param action exact technical action identifier
+        @param option exact technical option identifier
+        @param field_path non-empty exact technical field path
+        @param field presentation field name
+        @param union_path ordered stable technical identities of union alternatives crossed on the way to the field;
+            omitted when the path crosses no union
+        @return stable symbolic message id
+
+        @throw DATA-PROVIDER-PRESENTATION-ERROR if an identity is empty or \a field is unsupported
+
+        @since %DataProvider 3.8
+    */
+    static string nestedFieldMessageId(string app, string action,
+            string option, list<string> field_path, string field,
+            list<string> union_path = ()) {
+        checkPresentationField(field);
+        if (!field_path) {
+            throw "DATA-PROVIDER-PRESENTATION-ERROR",
+                "a nested option field path cannot be empty";
+        }
+        string rv = "app." + identitySegment(app) + ".action."
+            + identitySegment(action) + ".option."
+            + identitySegment(option);
+        foreach string union_type in (union_path) {
+            rv += ".union." + identitySegment(union_type);
+        }
+        foreach string field_name in (field_path) {
+            rv += ".field." + identitySegment(field_name);
+        }
+        return rv + "." + field;
+    }
+
+    #! Returns a stable allowed-value message id for a field nested in an action option's type
+    /** @param app exact technical app identifier
+        @param action exact technical action identifier
+        @param option exact technical option identifier
+        @param field_path non-empty exact technical field path
+        @param value exact technical allowed value
+        @param field presentation field name
+        @param element_value if @ref True, identify an \c element_allowed_values entry; otherwise identify an
+            \c allowed_values entry
+        @param union_path ordered stable technical identities of union alternatives crossed on the way to the field
+        @return stable symbolic message id, or @ref nothing for a complex value
+
+        @throw DATA-PROVIDER-PRESENTATION-ERROR if an identity is empty or \a field is unsupported
+
+        @since %DataProvider 3.8
+    */
+    static *string nestedAllowedValueMessageId(string app, string action,
+            string option, list<string> field_path, auto value, string field,
+            bool element_value = False, list<string> union_path = ()) {
+        *string value_identity = scalarValueIdentity(value);
+        if (!value_identity) {
+            return NOTHING;
+        }
+        string field_id = nestedFieldMessageId(app, action, option,
+            field_path, field, union_path);
+        # Replace the presentation-field suffix with the allowed-value path.
+        return field_id.substr(0, field_id.length() - field.length())
+            + (element_value ? "element-allowed-value." : "allowed-value.")
+            + identitySegment(value_identity) + "." + field;
+    }
+
+    #! Returns the stable presentation identity for a provider type
+    /** Provider type names can intentionally expose only their underlying Qore type (for example several generated
+        schema types can all be named \c hash<auto> or \c *data). The identity therefore combines class and type
+        name with a deterministic digest of the producer's stable technical schema path, when available, and the
+        immediate technical field/type shape. Presentation text is deliberately excluded, so changing a label does
+        not change its message ID. Distinct objects with the same complete technical identity are still compared for
+        conflicting source text during extraction.
+
+        @param type provider type to identify
+        @return stable class, type-name, and technical-shape identity
+
+        @since %DataProvider 3.8
+    */
+    static string typePresentationIdentity(AbstractDataProviderType type) {
+        string base_identity = type.className() + ":" + type.getName();
+        list<string> technical_shape = (base_identity,);
+        if (*string type_path = type.getPath()) {
+            technical_shape += "path:" + identitySegment(type_path);
+        }
+        if (*hash<string, AbstractDataField> fields = type.getFields()) {
+            foreach string field_name in (sort(keys fields)) {
+                AbstractDataProviderType field_type
+                    = fields{field_name}.getDeclaredType();
+                technical_shape += sprintf("field:%s:%s",
+                    identitySegment(field_name), identitySegment(
+                        field_type.className() + ":" + field_type.getName()));
+            }
+        }
+        if (*AbstractDataProviderType element_type = type.getElementType()) {
+            technical_shape += "element:" + identitySegment(
+                element_type.className() + ":" + element_type.getName());
+        }
+        return base_identity + "#" + digest("sha256",
+            technical_shape.join("|")).toHex();
+    }
+
+    #! Returns the stable action-scoped presentation identity for a reusable provider type
+    /** Type names and shapes are not globally semantic: two actions can legitimately use equal-shaped anonymous
+        objects for unrelated concepts. Scoping the reusable identity to the exact technical action prevents those
+        objects from sharing translations while still coalescing a type DAG within one action.
+
+        @param action exact technical action identifier
+        @param type provider type to identify
+        @return stable action and provider-type identity
+
+        @throw DATA-PROVIDER-PRESENTATION-ERROR if \a action is empty
+
+        @since %DataProvider 3.8
+    */
+    static string actionTypePresentationIdentity(string action,
+            AbstractDataProviderType type) {
+        return "action:" + identitySegment(action) + ":"
+            + typePresentationIdentity(type);
+    }
+
+    #! Returns the stable occurrence identity for a reusable type below an action option
+    /** The exact technical option, field, and union paths distinguish separate concrete type objects that happen to
+        share a name and field shape. The identity remains independent of all presentation prose.
+
+        @param action exact technical action identifier
+        @param option exact technical option identifier
+        @param type provider type to identify
+        @param field_path exact technical field path leading to the type
+        @param union_path ordered technical union-alternative identities crossed on the way to the type
+        @return stable action-option occurrence and provider-type identity
+
+        @throw DATA-PROVIDER-PRESENTATION-ERROR if an identity is empty
+
+        @since %DataProvider 3.8
+    */
+    static string occurrenceTypePresentationIdentity(string action,
+            string option, AbstractDataProviderType type,
+            list<string> field_path, list<string> union_path = ()) {
+        string rv = actionTypePresentationIdentity(action, type)
+            + ":option:" + identitySegment(option);
+        foreach string union_type in (union_path) {
+            rv += ":union:" + identitySegment(union_type);
+        }
+        foreach string field_name in (field_path) {
+            rv += ":field:" + identitySegment(field_name);
+        }
+        return rv;
+    }
+
+    #! Returns a stable presentation message id for a field in a reusable provider-type occurrence
+    /** Deeper schema traversal uses an occurrence identity that includes action, option, technical field/union path,
+        and type identity. The traversal assigns one canonical occurrence to each concrete type object per
+        action/option, keeping work proportional to distinct schema objects rather than the potentially exponential
+        number of paths through a shared type DAG.
+
+        @param app exact technical app identifier
+        @param type_identity stable identity returned by @ref occurrenceTypePresentationIdentity()
+        @param field_name exact technical field identifier
+        @param field presentation field name
+        @return stable symbolic message id
+
+        @throw DATA-PROVIDER-PRESENTATION-ERROR if an identity is empty or \a field is unsupported
+
+        @since %DataProvider 3.8
+    */
+    static string typeFieldMessageId(string app, string type_identity,
+            string field_name, string field) {
+        checkPresentationField(field);
+        return "app." + identitySegment(app) + ".type."
+            + identitySegment(type_identity) + ".field."
+            + identitySegment(field_name) + "." + field;
+    }
+
+    #! Returns a stable allowed-value message id for a field in a reusable provider-type occurrence
+    /** @param app exact technical app identifier
+        @param type_identity stable identity returned by @ref occurrenceTypePresentationIdentity()
+        @param field_name exact technical field identifier
+        @param value exact technical allowed value
+        @param field presentation field name
+        @param element_value if @ref True, identify an \c element_allowed_values entry; otherwise identify an
+            \c allowed_values entry
+        @return stable symbolic message id, or @ref nothing for a complex value
+
+        @throw DATA-PROVIDER-PRESENTATION-ERROR if an identity is empty or \a field is unsupported
+
+        @since %DataProvider 3.8
+    */
+    static *string typeAllowedValueMessageId(string app,
+            string type_identity, string field_name, auto value,
+            string field, bool element_value = False) {
+        *string value_identity = scalarValueIdentity(value);
+        if (!value_identity) {
+            return NOTHING;
+        }
+        string field_id = typeFieldMessageId(app, type_identity,
+            field_name, field);
+        return field_id.substr(0, field_id.length() - field.length())
+            + (element_value ? "element-allowed-value." : "allowed-value.")
+            + identitySegment(value_identity) + "." + field;
+    }
+
     #! Returns a stable presentation identity for a scalar technical value
     /** The type prefix prevents collisions such as integer \c 1 versus string \c "1". Complex values return
         @ref nothing because they have no general, source-independent technical identity; providers should expose a
@@ -328,6 +534,12 @@ public class DataProviderPresentation {
     static hash<string, hash<auto>> buildSourceCatalogs(hash<auto> app,
             list<hash<auto>> actions, bool include_app = True) {
         hash<string, hash<auto>> domain_messages = {};
+        # domain -> action/option scope -> concrete type object -> seen
+        #
+        # Repeated paths to the same object are bounded, while distinct objects
+        # claiming the same stable presentation identity are still traversed so
+        # addRecordMessages() can reject conflicting source text.
+        hash<string, hash<string, hash<string, bool>>> domain_type_seen = {};
         string app_domain = appCatalogDomain(app);
         if (include_app) {
             addRecordMessages(\domain_messages{app_domain}, app,
@@ -348,11 +560,9 @@ public class DataProviderPresentation {
                     return actionMessageId(catalog_app, action.action, field);
                 });
             addOptionMapMessages(\domain_messages{domain}, catalog_app,
-                action,
-                action.path_vars);
+                action, action.path_vars, \domain_type_seen{domain});
             addOptionMapMessages(\domain_messages{domain}, catalog_app,
-                action,
-                action.options);
+                action, action.options, \domain_type_seen{domain});
         }
 
         hash<string, hash<auto>> rv = {};
@@ -654,7 +864,8 @@ public class DataProviderPresentation {
     }
 
     private static addOptionMapMessages(reference<hash<auto>> messages,
-            string catalog_app, hash<auto> action, auto option_map) {
+            string catalog_app, hash<auto> action, auto option_map,
+            reference<hash<string, hash<string, bool>>> type_seen) {
         if (option_map.typeCode() != NT_HASH) {
             return;
         }
@@ -699,6 +910,119 @@ public class DataProviderPresentation {
                         });
                 }
             }
+            if (option.type instanceof AbstractDataProviderType) {
+                addTypeMessages(\messages, catalog_app, action.action,
+                    option_name, option.type, (), (), {}, True, \type_seen);
+            } else if (option.type.typeCode() == NT_LIST) {
+                # DataProviderOptionInfo supports a list of alternative types.
+                # ActionOptionInfo normally contains one type, but accepting
+                # both shapes keeps extraction at the canonical metadata
+                # boundary rather than in each producer.
+                foreach auto option_type in (option.type) {
+                    if (option_type instanceof AbstractDataProviderType) {
+                        addTypeMessages(\messages, catalog_app,
+                            action.action, option_name, option_type, (), (),
+                            {}, True, \type_seen);
+                    }
+                }
+            }
+        }
+    }
+
+    #! Adds presentation reachable through one option type
+    /** \a type_path is passed by value deliberately and cuts a genuinely recursive root edge. Below the first
+        field layer, \a type_seen makes traversal proportional to distinct type objects rather than paths through the
+        type DAG. Distinct objects sharing a stable presentation identity are compared so conflicting source text
+        remains a hard extraction error.
+    */
+    private static addTypeMessages(reference<hash<auto>> messages,
+            string catalog_app, string action, string option,
+            AbstractDataProviderType type, list<string> field_path,
+            list<string> union_path, hash<string, bool> type_path,
+            bool option_scoped,
+            reference<hash<string, hash<string, bool>>> type_seen) {
+        string object_identity = type.uniqueHash();
+        if (type_path{object_identity}) {
+            return;
+        }
+        type_path{object_identity} = True;
+
+        if (type instanceof QoreUnionDataType) {
+            foreach AbstractDataProviderType alternative in (
+                    cast<QoreUnionDataType>(type).getUnionTypes()) {
+                addTypeMessages(\messages, catalog_app, action, option,
+                    alternative, field_path,
+                    union_path + (typePresentationIdentity(alternative),),
+                    type_path, option_scoped, \type_seen);
+            }
+            return;
+        }
+
+        string presentation_type = option_scoped
+            ? typePresentationIdentity(type)
+            : occurrenceTypePresentationIdentity(action, option, type,
+                field_path, union_path);
+        if (!option_scoped) {
+            string seen_key = identitySegment(catalog_app) + ":"
+                + identitySegment(action) + ":" + identitySegment(option);
+            if (type_seen{seen_key}{object_identity}) {
+                return;
+            }
+            type_seen{seen_key}{object_identity} = True;
+        }
+
+        if (*hash<string, AbstractDataField> fields = type.getFields()) {
+            foreach string field_name in (sort(keys fields)) {
+                AbstractDataField data_field = fields{field_name};
+                list<string> nested_path = field_path + (field_name,);
+                hash<auto> field_info = data_field.getPresentationInfo();
+                addRecordMessages(\messages, field_info,
+                    *string sub (string presentation_field) {
+                        return option_scoped
+                            ? nestedFieldMessageId(catalog_app, action,
+                                option, nested_path, presentation_field,
+                                union_path)
+                            : typeFieldMessageId(catalog_app,
+                                presentation_type, field_name,
+                                presentation_field);
+                    });
+                foreach string values_key in (
+                        ("allowed_values", "element_allowed_values")) {
+                    if (field_info{values_key}.typeCode() != NT_LIST) {
+                        continue;
+                    }
+                    bool element_value = values_key ==
+                        "element_allowed_values";
+                    foreach auto allowed_value in (field_info{values_key}) {
+                        if (allowed_value.typeCode() != NT_HASH
+                                || !exists allowed_value.value) {
+                            continue;
+                        }
+                        hash<auto> value = allowed_value;
+                        addRecordMessages(\messages, value,
+                            *string sub (string presentation_field) {
+                                return option_scoped
+                                    ? nestedAllowedValueMessageId(catalog_app,
+                                        action, option, nested_path,
+                                        value.value, presentation_field,
+                                        element_value, union_path)
+                                    : typeAllowedValueMessageId(catalog_app,
+                                        presentation_type, field_name,
+                                        value.value, presentation_field,
+                                        element_value);
+                            });
+                    }
+                }
+                addTypeMessages(\messages, catalog_app, action, option,
+                    data_field.getDeclaredType(), nested_path, union_path,
+                    type_path,
+                    False, \type_seen);
+            }
+        }
+        if (*AbstractDataProviderType element_type = type.getElementType()) {
+            addTypeMessages(\messages, catalog_app, action, option,
+                element_type, field_path, union_path, type_path,
+                option_scoped, \type_seen);
         }
     }
 
@@ -975,6 +1299,63 @@ public class DataProviderPresentationCatalog {
             });
     }
 
+    #! Projects a localized field nested directly below an action option
+    /** The caller supplies the same exact technical field and union paths used during source extraction.
+
+        @param app provider application metadata
+        @param action provider action metadata
+        @param option_name exact technical option identifier
+        @param field_path non-empty exact technical field path
+        @param union_path ordered stable technical union-alternative identities
+        @param field_info static field presentation metadata
+        @return a copy with available localized presentation fields
+
+        @throw DATA-PROVIDER-PRESENTATION-ERROR if \a field_path is empty
+
+        @since %DataProvider 3.8
+    */
+    hash<auto> projectNestedField(hash<auto> app, hash<auto> action,
+            string option_name, list<string> field_path,
+            list<string> union_path, hash<auto> field_info) {
+        if (!field_path) {
+            throw "DATA-PROVIDER-PRESENTATION-ERROR",
+                "a nested option field path cannot be empty";
+        }
+        string catalog_app =
+            DataProviderPresentation::actionCatalogApp(app, action);
+        return project(field_info, field_path.last(),
+            DataProviderPresentation::actionSourceLocale(app, action),
+            string sub (string field) {
+                return DataProviderPresentation::nestedFieldMessageId(
+                    catalog_app, action.action, option_name, field_path,
+                    field, union_path);
+            });
+    }
+
+    #! Projects a localized field belonging to a stable reusable provider-type occurrence
+    /** @param app provider application metadata
+        @param action provider action metadata
+        @param type_identity stable identity returned by
+            @ref DataProviderPresentation::occurrenceTypePresentationIdentity()
+        @param field_name exact technical field identifier
+        @param field_info static field presentation metadata
+        @return a copy with available localized presentation fields
+
+        @since %DataProvider 3.8
+    */
+    hash<auto> projectTypeField(hash<auto> app, hash<auto> action,
+            string type_identity, string field_name,
+            hash<auto> field_info) {
+        string catalog_app =
+            DataProviderPresentation::actionCatalogApp(app, action);
+        return project(field_info, field_name,
+            DataProviderPresentation::actionSourceLocale(app, action),
+            string sub (string field) {
+                return DataProviderPresentation::typeFieldMessageId(
+                    catalog_app, type_identity, field_name, field);
+            });
+    }
+
     #! Projects localized allowed-value presentation without changing its technical value
     /** @param app provider application metadata
         @param action provider action metadata
@@ -1006,6 +1387,79 @@ public class DataProviderPresentationCatalog {
                 return DataProviderPresentation::allowedValueMessageId(
                     catalog_app, action.action, option_name,
                     allowed_value.value, field);
+            });
+    }
+
+    #! Projects an allowed value on a field nested directly below an action option
+    /** @param app provider application metadata
+        @param action provider action metadata
+        @param option_name exact technical option identifier
+        @param field_path non-empty exact technical field path
+        @param union_path ordered stable technical union-alternative identities
+        @param allowed_value allowed-value metadata to project
+        @param element_value if @ref True, use the element-allowed-value identity
+        @return a copy with available localized presentation fields; complex technical values preserve producer text
+
+        @since %DataProvider 3.8
+    */
+    hash<auto> projectNestedAllowedValue(hash<auto> app,
+            hash<auto> action, string option_name,
+            list<string> field_path, list<string> union_path,
+            hash<auto> allowed_value, bool element_value = False) {
+        if (!exists allowed_value.value) {
+            return allowed_value;
+        }
+        *string value_identity =
+            DataProviderPresentation::scalarValueIdentity(
+                allowed_value.value);
+        string source_locale =
+            DataProviderPresentation::actionSourceLocale(app, action);
+        if (!value_identity) {
+            return projectUntranslatableValue(allowed_value, source_locale);
+        }
+        string catalog_app =
+            DataProviderPresentation::actionCatalogApp(app, action);
+        return project(allowed_value, allowed_value.value.toString(),
+            source_locale, string sub (string field) {
+                return DataProviderPresentation::nestedAllowedValueMessageId(
+                    catalog_app, action.action, option_name, field_path,
+                    allowed_value.value, field, element_value, union_path);
+            });
+    }
+
+    #! Projects an allowed value on a field in a stable reusable provider-type occurrence
+    /** @param app provider application metadata
+        @param action provider action metadata
+        @param type_identity stable identity returned by
+            @ref DataProviderPresentation::occurrenceTypePresentationIdentity()
+        @param field_name exact technical field identifier
+        @param allowed_value allowed-value metadata to project
+        @param element_value if @ref True, use the element-allowed-value identity
+        @return a copy with available localized presentation fields; complex technical values preserve producer text
+
+        @since %DataProvider 3.8
+    */
+    hash<auto> projectTypeAllowedValue(hash<auto> app, hash<auto> action,
+            string type_identity, string field_name,
+            hash<auto> allowed_value, bool element_value = False) {
+        if (!exists allowed_value.value) {
+            return allowed_value;
+        }
+        *string value_identity =
+            DataProviderPresentation::scalarValueIdentity(
+                allowed_value.value);
+        string source_locale =
+            DataProviderPresentation::actionSourceLocale(app, action);
+        if (!value_identity) {
+            return projectUntranslatableValue(allowed_value, source_locale);
+        }
+        string catalog_app =
+            DataProviderPresentation::actionCatalogApp(app, action);
+        return project(allowed_value, allowed_value.value.toString(),
+            source_locale, string sub (string field) {
+                return DataProviderPresentation::typeAllowedValueMessageId(
+                    catalog_app, type_identity, field_name,
+                    allowed_value.value, field, element_value);
             });
     }
 

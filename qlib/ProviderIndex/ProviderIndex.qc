@@ -37,6 +37,10 @@ public hashdecl ProviderIndexCreateOptions {
 
     #! Optional list of application names to index; if unset, all registered apps are indexed
     *list<string> apps;
+
+    #! Optional exact application/action inventory fragments required for a complete discovery generation
+    /** @since %ProviderIndex 1.1 */
+    *list<hash<DataProviderDiscoveryExpectedIdentityInfo>> expected_inventory;
 }
 
 #! The main API class
@@ -47,11 +51,12 @@ public class ProviderIndex inherits ProviderIndexUtil {
     /** @param index optional seeded factory, application and scheme dependencies; logical module names are
             preferred, and explicit artifact paths must match the loaded module registry
         @param dir optional output directory; otherwise the configured provider-index directory is used
-        @param opts discovery sources and optional application selection
-        @return the published index path, size, elapsed generation time and summary
+        @param opts discovery sources, optional exact application/action inventory, and optional application selection
+        @return the published index path, size, elapsed generation time, and summary whose \c qualification member is
+            the complete @ref DataProvider::DataProviderDiscoveryReportInfo used to authorize publication
         @throw PROVIDER-INDEX-MODULE-ERROR an explicit dependency has no authoritative loaded module identity
-        @throw DATA-PROVIDER-INITIALIZATION-ERROR selected provider initialization failed
-        @throw APP-ERROR a requested application is not registered
+        @throw DATA-PROVIDER-DISCOVERY-ERROR if discovery qualification is incomplete
+        @throw DATA-PROVIDER-DISCOVERY-STALE if registration changes after qualification
         @throw PROVIDER-INDEX-ERROR the output directory is unavailable
         @note Existing explicit-path indexes remain readable. Rebuilding persists module names so the runtime
             can select source or compiled representations through its normal search path. This is a semantic
@@ -59,6 +64,7 @@ public class ProviderIndex inherits ProviderIndexUtil {
         @par Example
         Rebuild after installing order-processing providers; equivalent source and AOT packaging retains the
         same dependencies, while a changed order-line action or option remains part of the new index content.
+        @since %ProviderIndex 1.0
     */
     public static hash<auto> createDataProviderIndex(hash<DataProviderIndexInfo> index = <DataProviderIndexInfo>{},
             *string dir, hash<ProviderIndexCreateOptions> opts = <ProviderIndexCreateOptions>{}) {
@@ -73,31 +79,97 @@ public class ProviderIndex inherits ProviderIndexUtil {
         # index has been written completely (index files are written atomically)
         getWritableIndexDir();
 
+        list<hash<DataProviderDiscoveryExpectedIdentityInfo>> expected
+            = opts.expected_inventory ?? ();
+        foreach string app in (opts.apps) {
+            expected += <DataProviderDiscoveryExpectedIdentityInfo>{
+                "app": app,
+            };
+        }
+        *DataProviderDiscoverySession discovery
+            = DataProviderActionCatalog::beginDiscovery(expected, opts.apps);
+        *DataProviderQualifiedDiscovery qualification;
+        on_exit if (discovery) {
+            DataProviderActionCatalog::abortDiscovery(discovery);
+        }
+        on_exit if (qualification) {
+            DataProviderActionCatalog::discardQualifiedDiscovery(
+                qualification);
+        }
+
         # make sure that all data providers are initialized immediately
         DataProvider::setOptions(DPO_DisableOnDemandInitialization | DPO_EnableOnDemandActions);
 
         if (opts.load_known_factories) {
-            # load all known data provider factories
-            DataProvider::registerKnownFactories();
+            # Load all known data provider factories. A missing optional module
+            # is tolerated by the legacy registration API, but not by an
+            # authoritative index build that explicitly requested this set.
+            foreach hash<DataProviderFactoryModuleLoadFailureInfo> failure in
+                    (DataProvider::registerKnownFactoriesWithReport()) {
+                DataProviderActionCatalog::reportDiscoveryFailure(discovery,
+                    "factory", "load-known-factory", failure.module,
+                    failure.error, failure.description, failure.argument,
+                    NOTHING, NOTHING, failure.module);
+            }
         }
 
         # start with the default factory map
         index.factorymap += DataProvider::FactoryMap;
 
-        if (opts.load_environment && ENV.QORE_DATA_PROVIDERS) {
+        # Read the process environment at discovery time. The global ENV
+        # snapshot can legitimately lack a variable added after startup (for
+        # example by an embedding host or a qualification test), while the
+        # environment loader itself uses getenv(). Gating both paths on the
+        # same live source prevents a silent no-op discovery attempt.
+        if (opts.load_environment && getenv("QORE_DATA_PROVIDERS")) {
             # load all data providers from the QORE_DATA_PROVIDERS environment variable
-            DataProvider::loadProvidersFromEnvironment();
+            try {
+                foreach hash<DataProviderEnvironmentLoadFailureInfo> failure in
+                        (DataProvider::loadProvidersFromEnvironmentWithReport()) {
+                    DataProviderActionCatalog::reportDiscoveryFailure(discovery,
+                        "source", failure.phase, failure.module,
+                        failure.error, failure.description, failure.argument,
+                        NOTHING, NOTHING, failure.module);
+                }
+            } catch (hash<ExceptionInfo> ex) {
+                DataProviderActionCatalog::reportDiscoveryFailure(discovery,
+                    "source", "load-environment", "QORE_DATA_PROVIDERS",
+                    ex.err, ex.desc, ex.arg);
+            }
 
-            addDataProviderFactories(\index);
+            addDataProviderFactories(\index, discovery);
         }
 
         if (opts.load_typescript_actions) {
             # try to load and initialize TypeScriptActionInterface manually
-            tryLoadTypeScriptActionInterface();
+            tryLoadTypeScriptActionInterface(discovery);
         }
 
-        # Finish deferred registration before taking one authoritative module snapshot.
+        # Collect producer-owned lightweight inventories only after optional
+        # discovery sources have loaded and registered their callbacks.
+        DataProviderActionCatalog::collectDiscoveryExpectedInventory(
+            discovery);
+
+        # Finish deferred registration, output-type resolution, and scheme loading before starting the authoritative
+        # snapshot. These calls are allowed to advance the revision; the second getIndexApps() below is the actual
+        # checked-point read.
         list<hash<DataProviderAppInfo>> apps = getIndexApps(opts.apps);
+        DataProviderActionCatalog::getAllActions();
+        apps = getIndexApps(opts.apps);
+        foreach hash<DataProviderAppInfo> app in (apps) {
+            if (app.scheme) {
+                ConnectionSchemeCache::getScheme(app.scheme);
+            }
+        }
+        DataProviderActionCatalog::getAllActions();
+
+        # The warm-up above materializes every selected pending app/action and resolves deferred output types. Mark
+        # the exact revision immediately before copying the authoritative index candidate. A concurrent registration
+        # (including a DataProvider factory mutation) then makes sealDiscovery() reject this attempt.
+        DataProviderActionCatalog::checkpointDiscoverySnapshot(discovery);
+        int scheme_registry_revision
+            = ConnectionSchemeCache::getRegistryRevision();
+        apps = getIndexApps(opts.apps);
         hash<string, string> module_names;
         foreach hash<auto> mod in (get_module_hash().values()) {
             module_names{mod.name} = mod.name;
@@ -119,7 +191,11 @@ public class ProviderIndex inherits ProviderIndexUtil {
         foreach hash<DataProviderAppInfo> app in (apps) {
             *list<string> paths = DataProviderActionCatalog::getModulePathsForApp(app.name);
             if (!paths) {
-                log(LoggerLevel::LevelError, "Data provider app %y has no module path", app.name);
+                DataProviderActionCatalog::reportDiscoveryFailure(discovery,
+                    "app", "publication", app.name,
+                    "DATA-PROVIDER-MODULE-PATH-MISSING",
+                    sprintf("data provider app %y has no module path",
+                        app.name), NOTHING, app.name);
                 continue;
             }
             list<string> dependencies = map moduleDependency($1, module_names), paths;
@@ -136,7 +212,11 @@ public class ProviderIndex inherits ProviderIndexUtil {
             if (app.scheme) {
                 *hash<ConnectionSchemeInfo> info = ConnectionSchemeCache::getScheme(app.scheme);
                 if (!info) {
-                    log(LoggerLevel::LevelError, "Data provider app %y has unregistered scheme %y", app.name, app.scheme);
+                    DataProviderActionCatalog::reportDiscoveryFailure(
+                        discovery, "scheme", "publication", app.scheme,
+                        "DATA-PROVIDER-SCHEME-UNREGISTERED", sprintf(
+                            "data provider app %y has unregistered scheme %y",
+                            app.name, app.scheme), NOTHING, app.name);
                     continue;
                 }
                 foreach string dependency in (dependencies) {
@@ -146,11 +226,40 @@ public class ProviderIndex inherits ProviderIndexUtil {
             }
         }
 
-        return writeDataProviderIndex(index, now_us() - start, {
-            "factories": index.factorymap.size(),
-            "apps": index.appmap.size(),
-            "schemes": index.schememap.size(),
-        });
+        int current_scheme_registry_revision
+            = ConnectionSchemeCache::getRegistryRevision();
+        if (current_scheme_registry_revision != scheme_registry_revision) {
+            DataProviderActionCatalog::reportDiscoveryFailure(discovery,
+                "scheme", "catalog-snapshot-stale",
+                "connection-scheme-registry",
+                "CONNECTION-SCHEME-SNAPSHOT-STALE", sprintf(
+                    "connection scheme registry changed from revision %d to %d while the authoritative snapshot "
+                        "was copied", scheme_registry_revision,
+                    current_scheme_registry_revision), {
+                    "snapshot_revision": scheme_registry_revision,
+                    "current_revision": current_scheme_registry_revision,
+                });
+        }
+
+        qualification = DataProviderActionCatalog::sealDiscovery(discovery);
+        discovery = NOTHING;
+        hash<DataProviderDiscoveryReportInfo> qualification_report
+            = qualification.getReport();
+        # The scheme registry and data-provider catalog hold their registration locks across the O(1) revision
+        # checks and atomic file replacement, so neither can invalidate qualification between check and write.
+        return ConnectionSchemeCache::publishStableRegistrySnapshot(
+            scheme_registry_revision, hash<auto> sub () {
+                return DataProviderActionCatalog::publishQualifiedDiscovery(
+                    qualification, hash<auto> sub () {
+                        return writeDataProviderIndex(index,
+                            now_us() - start, {
+                                "factories": index.factorymap.size(),
+                                "apps": index.appmap.size(),
+                                "schemes": index.schememap.size(),
+                                "qualification": qualification_report,
+                            });
+                    });
+                });
     }
 
     #! Resolves exact runtime ownership; never infers a module name from an artifact filename
@@ -182,14 +291,6 @@ public class ProviderIndex inherits ProviderIndexUtil {
     #! Return apps to include in the index
     private static list<hash<DataProviderAppInfo>> getIndexApps(*list<string> apps) {
         list<hash<DataProviderAppInfo>> all_apps = DataProviderActionCatalog::getAllApps();
-        list<hash<DataProviderInitializationFailureInfo>> failures
-            = DataProviderActionCatalog::getInitializationFailures(apps);
-        if (failures) {
-            throw "DATA-PROVIDER-INITIALIZATION-ERROR",
-                sprintf("cannot create a complete provider index: %d application or action initialization "
-                    "failure(s)", failures.size()), failures;
-        }
-
         if (!apps) {
             return all_apps;
         }
@@ -200,9 +301,6 @@ public class ProviderIndex inherits ProviderIndexUtil {
             if (remove app_filter{app.name}) {
                 push rv, app;
             }
-        }
-        if (app_filter.size()) {
-            throw "APP-ERROR", sprintf("application(s) not registered for provider index: %y", keys app_filter);
         }
         return rv;
     }
@@ -255,23 +353,32 @@ public class ProviderIndex inherits ProviderIndexUtil {
     }
 
     #! Try to load and initialize TypeScriptActionInterface
-    private static tryLoadTypeScriptActionInterface() {
+    private static tryLoadTypeScriptActionInterface(
+            DataProviderDiscoverySession discovery) {
         try {
             load_module("TypeScriptActionInterface");
         } catch (hash<ExceptionInfo> ex) {
-            log(LoggerLevel::LevelDebug, "Failed to load and initialize TypeScriptActionInterface: %s: %s", ex.err,
-                ex.desc);
+            DataProviderActionCatalog::reportDiscoveryFailure(discovery,
+                "source", "load-typescript-actions",
+                "TypeScriptActionInterface", ex.err, ex.desc, ex.arg,
+                NOTHING, NOTHING, "TypeScriptActionInterface");
         }
     }
 
     #! Iterate all data provider factories and add them to the index
-    private static addDataProviderFactories(reference<hash<DataProviderIndexInfo>> index) {
+    private static addDataProviderFactories(
+            reference<hash<DataProviderIndexInfo>> index,
+            DataProviderDiscoverySession discovery) {
          # Iterate all factories and add any new data providers
         foreach string factory in (DataProvider::listFactories()) {
             # get the factory object
             AbstractDataProviderFactory f = DataProvider::getFactory(factory);
             if (!f) {
-                log(LoggerLevel::LevelError, "Data provider factory %y registered but cannot be returned", factory);
+                DataProviderActionCatalog::reportDiscoveryFailure(discovery,
+                    "factory", "lookup", factory,
+                    "DATA-PROVIDER-FACTORY-LOOKUP-ERROR", sprintf(
+                        "data provider factory %y is registered but cannot be returned",
+                        factory));
                 continue;
             }
 
@@ -284,7 +391,10 @@ public class ProviderIndex inherits ProviderIndexUtil {
             # get the module name for the factory
             *string mod = Class::getClass(f).getModuleName();
             if (!mod) {
-                log(LoggerLevel::LevelError, "Data provider factory %y has no module name", factory);
+                DataProviderActionCatalog::reportDiscoveryFailure(discovery,
+                    "factory", "publication", factory,
+                    "DATA-PROVIDER-FACTORY-MODULE-MISSING", sprintf(
+                        "data provider factory %y has no module name", factory));
                 continue;
             }
 

@@ -459,6 +459,190 @@
           "source": "Functions, built-in browser or code tools, and remote MCP servers. See the [Responses guide](https://console.groq.com/docs/responses-api).",
           "message": "Funciones, herramientas integradas de navegador o de código, y servidores remotos MCP. Vea la [guía de Respuestas](https://console.groq.com/docs/responses-api)."
         },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.YWxsb3dlZF90b29scw.display_name": {
+          "source": "Allowed Tools",
+          "message": "Herramientas permitidas"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.YWxsb3dlZF90b29scw.short_desc": {
+          "source": "Allowed Tools",
+          "message": "Herramientas permitidas"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.YWxsb3dlZF90b29scw.desc": {
+          "source": "Restrict MCP execution to named tools from your server. Omit to expose all discovered tools.",
+          "message": "Restringir la ejecución de MCP a herramientas con nombre de su servidor. Omítalo para exponer todas las herramientas descubiertas."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.Y29udGFpbmVy.display_name": {
+          "source": "Container",
+          "message": "Contenedor"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.Y29udGFpbmVy.short_desc": {
+          "source": "Container",
+          "message": "Contenedor"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.Y29udGFpbmVy.desc": {
+          "source": "Automatic container for the `code_interpreter` tool.",
+          "message": "Contenedor automático para la herramienta `code_interpreter`."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FDb2RlQ29udGFpbmVyRGF0YVR5cGU6Kmhhc2g8YXV0bz4jYjFlZjBkMDMxNDFlNTRjNDcyMzVmNDcwNjA4N2U1NDU1MzM2YmQ4NzQ2MTJjZDkwNTc4YTZkNTRhNzEzZTNmYzpvcHRpb246ZEc5dmJITTpmaWVsZDpZMjl1ZEdGcGJtVnk.field.dHlwZQ.display_name": {
+          "source": "Container Type",
+          "message": "Tipo de contenedor"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FDb2RlQ29udGFpbmVyRGF0YVR5cGU6Kmhhc2g8YXV0bz4jYjFlZjBkMDMxNDFlNTRjNDcyMzVmNDcwNjA4N2U1NDU1MzM2YmQ4NzQ2MTJjZDkwNTc4YTZkNTRhNzEzZTNmYzpvcHRpb246ZEc5dmJITTpmaWVsZDpZMjl1ZEdGcGJtVnk.field.dHlwZQ.short_desc": {
+          "source": "Container Type",
+          "message": "Tipo de contenedor"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FDb2RlQ29udGFpbmVyRGF0YVR5cGU6Kmhhc2g8YXV0bz4jYjFlZjBkMDMxNDFlNTRjNDcyMzVmNDcwNjA4N2U1NDU1MzM2YmQ4NzQ2MTJjZDkwNTc4YTZkNTRhNzEzZTNmYzpvcHRpb246ZEc5dmJITTpmaWVsZDpZMjl1ZEdGcGJtVnk.field.dHlwZQ.desc": {
+          "source": "Groq creates the code execution container automatically.",
+          "message": "Groq crea automáticamente el contenedor de ejecución de código."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FDb2RlQ29udGFpbmVyRGF0YVR5cGU6Kmhhc2g8YXV0bz4jYjFlZjBkMDMxNDFlNTRjNDcyMzVmNDcwNjA4N2U1NDU1MzM2YmQ4NzQ2MTJjZDkwNTc4YTZkNTRhNzEzZTNmYzpvcHRpb246ZEc5dmJITTpmaWVsZDpZMjl1ZEdGcGJtVnk.field.dHlwZQ.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Automático"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "Descripción"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "Description",
+          "message": "Descripción"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.ZGVzY3JpcHRpb24.desc": {
+          "source": "Explain when to use the function.",
+          "message": "Explique cuándo usar la función."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.aGVhZGVycw.display_name": {
+          "source": "Server Headers",
+          "message": "Encabezados del servidor"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.aGVhZGVycw.short_desc": {
+          "source": "Server Headers",
+          "message": "Encabezados del servidor"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.aGVhZGVycw.desc": {
+          "source": "Authentication and other HTTP headers sent by Groq to the MCP server.",
+          "message": "Autenticación y otras cabeceras HTTP enviadas por Groq al servidor MCP."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.bmFtZQ.display_name": {
+          "source": "Function Name",
+          "message": "Nombre de función"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.bmFtZQ.short_desc": {
+          "source": "Function Name",
+          "message": "Nombre de función"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.bmFtZQ.desc": {
+          "source": "Required for `function` tools.",
+          "message": "Requerido para herramientas `function`."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cGFyYW1ldGVycw.display_name": {
+          "source": "Parameters",
+          "message": "Parámetros"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cGFyYW1ldGVycw.short_desc": {
+          "source": "Parameters",
+          "message": "Parámetros"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cGFyYW1ldGVycw.desc": {
+          "source": "JSON Schema describing function arguments.",
+          "message": "Esquema JSON que describe los argumentos de la función."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cmVxdWlyZV9hcHByb3ZhbA.display_name": {
+          "source": "Require Approval",
+          "message": "Requiere aprobación"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cmVxdWlyZV9hcHByb3ZhbA.short_desc": {
+          "source": "Require Approval",
+          "message": "Requiere aprobación"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cmVxdWlyZV9hcHByb3ZhbA.desc": {
+          "source": "Choose whether MCP calls need approval. With `always`, inspect the response and explicitly supply approval results in a later request.",
+          "message": "Elija si las llamadas MCP requieren aprobación. Con `always`, inspeccione la respuesta y proporcione explícitamente los resultados de aprobación en una solicitud posterior."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cmVxdWlyZV9hcHByb3ZhbA.allowed-value.c3RyaW5nOm5ldmVy.display_name": {
+          "source": "Never",
+          "message": "Nunca"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.cmVxdWlyZV9hcHByb3ZhbA.allowed-value.c3RyaW5nOmFsd2F5cw.display_name": {
+          "source": "Always",
+          "message": "Siempre"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX2Rlc2NyaXB0aW9u.display_name": {
+          "source": "Server Description",
+          "message": "Descripción del servidor"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX2Rlc2NyaXB0aW9u.short_desc": {
+          "source": "Server Description",
+          "message": "Descripción del servidor"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX2Rlc2NyaXB0aW9u.desc": {
+          "source": "Help the model decide when to call this MCP server.",
+          "message": "Ayuda al modelo a decidir cuándo llamar a este servidor MCP."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX2xhYmVs.display_name": {
+          "source": "Server Label",
+          "message": "Etiqueta del servidor"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX2xhYmVs.short_desc": {
+          "source": "Server Label",
+          "message": "Etiqueta del servidor"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX2xhYmVs.desc": {
+          "source": "Required for `mcp` tools; identifies the server in results.",
+          "message": "Requerido para herramientas `mcp`; identifica el servidor en los resultados."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX3VybA.display_name": {
+          "source": "Server URL",
+          "message": "URL del servidor"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX3VybA.short_desc": {
+          "source": "Server URL",
+          "message": "URL del servidor"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c2VydmVyX3VybA.desc": {
+          "source": "Required HTTPS MCP endpoint. Groq discovers and executes tools on this server.",
+          "message": "Endpoint HTTPS requerido para MCP. Groq descubre y ejecuta herramientas en este servidor."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c3RyaWN0.display_name": {
+          "source": "Strict",
+          "message": "estricto"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c3RyaWN0.short_desc": {
+          "source": "Strict",
+          "message": "estricto"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.c3RyaWN0.desc": {
+          "source": "Require function arguments to follow the schema exactly.",
+          "message": "Requiere que los argumentos de la función sigan exactamente el esquema."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.display_name": {
+          "source": "Tool Type",
+          "message": "Tipo de herramienta"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.short_desc": {
+          "source": "Tool Type",
+          "message": "Tipo de herramienta"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.desc": {
+          "source": "Choose a function, built-in tool, or remote MCP server.",
+          "message": "Elija una función, herramienta integrada o servidor MCP remoto."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmZ1bmN0aW9u.display_name": {
+          "source": "Function",
+          "message": "Función"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmJyb3dzZXJfc2VhcmNo.display_name": {
+          "source": "Browser Search",
+          "message": "Búsqueda en navegador"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmNvZGVfaW50ZXJwcmV0ZXI.display_name": {
+          "source": "Code Execution",
+          "message": "Ejecución de código"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOm1jcA.display_name": {
+          "source": "Remote MCP Server",
+          "message": "Servidor MCP remoto"
+        },
         "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dG9vbF9jaG9pY2U.display_name": {
           "source": "Tool Choice",
           "message": "Elección de herramienta"
@@ -507,6 +691,34 @@
           "source": "Configure reasoning for a compatible model.",
           "message": "Configure el razonamiento para un modelo compatible."
         },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.display_name": {
+          "source": "Effort",
+          "message": "Esfuerzo"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.short_desc": {
+          "source": "Effort",
+          "message": "Esfuerzo"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.desc": {
+          "source": "Reasoning depth: `none` disables reasoning on Qwen3.8; GPT-OSS supports `low`, `medium`, and `high`.",
+          "message": "Profundidad de razonamiento: `none` desactiva el razonamiento en Qwen3.8; GPT-OSS admite `low`, `medium` y `high`."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.allowed-value.c3RyaW5nOm5vbmU.display_name": {
+          "source": "None",
+          "message": "Ninguno"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "Low",
+          "message": "Bajo"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.allowed-value.c3RyaW5nOm1lZGl1bQ.display_name": {
+          "source": "Medium",
+          "message": "Medio"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.cmVhc29uaW5n.field.ZWZmb3J0.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "High",
+          "message": "Alto"
+        },
         "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.display_name": {
           "source": "Text",
           "message": "Texto"
@@ -518,6 +730,78 @@
         "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.desc": {
           "source": "Choose text or JSON output.",
           "message": "Elija salida de texto o JSON."
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.field.Zm9ybWF0.display_name": {
+          "source": "Format",
+          "message": "Formato"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.field.Zm9ybWF0.short_desc": {
+          "source": "Format",
+          "message": "Formato"
+        },
+        "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.dGV4dA.field.Zm9ybWF0.desc": {
+          "source": "Configure text or structured JSON output.",
+          "message": "Configure salida de texto o JSON estructurado."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.bmFtZQ.display_name": {
+          "source": "Schema Name",
+          "message": "Nombre del esquema"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.bmFtZQ.short_desc": {
+          "source": "Schema Name",
+          "message": "Nombre del esquema"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.bmFtZQ.desc": {
+          "source": "Schema name for Responses structured output.",
+          "message": "Nombre del esquema para la salida estructurada de Respuestas."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.c2NoZW1h.display_name": {
+          "source": "Schema",
+          "message": "Schema"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.c2NoZW1h.short_desc": {
+          "source": "Schema",
+          "message": "Schema"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.c2NoZW1h.desc": {
+          "source": "JSON Schema describing the required Responses output.",
+          "message": "Esquema JSON para la salida requerida de Respuestas."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.c3RyaWN0.display_name": {
+          "source": "Strict",
+          "message": "estricto"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.c3RyaWN0.short_desc": {
+          "source": "Strict",
+          "message": "estricto"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.c3RyaWN0.desc": {
+          "source": "Whether to enforce the output schema exactly.",
+          "message": "Si forzar el esquema de salida exactamente."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.dHlwZQ.display_name": {
+          "source": "Format",
+          "message": "Formato"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.dHlwZQ.short_desc": {
+          "source": "Format",
+          "message": "Formato"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.dHlwZQ.desc": {
+          "source": "Choose text, JSON mode, or strict JSON schema output.",
+          "message": "Elija texto, modo JSON o salida con esquema JSON estricto."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.dHlwZQ.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Text",
+          "message": "Texto"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.dHlwZQ.allowed-value.c3RyaW5nOmpzb25fb2JqZWN0.display_name": {
+          "source": "JSON Object",
+          "message": "Objeto JSON"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkzSmxZWFJsTFhKbGMzQnZibk5sOkdyb3FSZXNwb25zZUZvcm1hdERhdGFUeXBlOipoYXNoPGF1dG8-IzM3YWQyNzA1Yzc5MTEyYWU4OTJjNWM1ODM3YmZiZmE3M2NmMTE2NTY3YTQyOThhNjdhYjA4Y2FkYTNlNzRlZTA6b3B0aW9uOmRHVjRkQTpmaWVsZDpabTl5YldGMA.field.dHlwZQ.allowed-value.c3RyaW5nOmpzb25fc2NoZW1h.display_name": {
+          "source": "JSON Schema",
+          "message": "Esquema JSON"
         },
         "app.R3JvcQ.action.Y3JlYXRlLXJlc3BvbnNl.option.bWV0YWRhdGE.display_name": {
           "source": "Metadata",
@@ -606,6 +890,126 @@
         "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.desc": {
           "source": "Named file with `name`, raw binary or base64 `content`, and optional `mime_type`.",
           "message": "Archivo con `name`, contenido binario o base64 `content`, y opcionalmente `mime_type`."
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "Datos del archivo"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Datos de archivo codificados en Base64 o datos brutos para codificar con codificación Base64"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Datos de archivo codificados en Base64 o datos brutos para codificar con codificación Base64"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "Tipo MIME"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "La cadena MIME para el archivo"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "La cadena MIME para el archivo"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "Detección automática"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Detectar automáticamente del nombre de archivo; válido solo en entrada"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Detectar automáticamente del nombre de archivo; válido solo en entrada"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "Texto sin formato"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "Texto sin formato"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "Texto HTML"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "Texto HTML"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "Archivo PDF"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "Archivo PDF"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "Documento MS Word docx"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "Documento de MS Word `docx`"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "Documento MS PowerPoint pptx"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "Documento de MS PowerPoint `pptx`"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "Documento MS Excel xlsx"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "Documento de MS Excel `xlsx`"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "Nombre de archivo"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "El nombre del archivo"
+        },
+        "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.ZmlsZQ.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "El nombre del archivo"
         },
         "app.R3JvcQ.action.dHJhbnNjcmliZS1hdWRpbw.option.dXJs.display_name": {
           "source": "Audio URL",
@@ -734,6 +1138,126 @@
         "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.desc": {
           "source": "Named file with `name`, raw binary or base64 `content`, and optional `mime_type`.",
           "message": "Archivo con `name`, contenido binario o base64 `content`, y opcional `mime_type`."
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "Datos del archivo"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Datos de archivo codificados en Base64 o datos brutos para codificar con codificación Base64"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Datos de archivo codificados en Base64 o datos brutos para codificar con codificación Base64"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "Tipo MIME"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "La cadena MIME para el archivo"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "La cadena MIME para el archivo"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "Detección automática"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Detectar automáticamente del nombre de archivo; válido solo en entrada"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Detectar automáticamente del nombre de archivo; válido solo en entrada"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "Texto sin formato"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "Texto sin formato"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "Texto HTML"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "Texto HTML"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "Archivo PDF"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "Archivo PDF"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "Documento MS Word docx"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "Documento de MS Word `docx`"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "Documento MS PowerPoint pptx"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "Documento de MS PowerPoint `pptx`"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "Documento MS Excel xlsx"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "Documento de MS Excel `xlsx`"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "Nombre de archivo"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "El nombre del archivo"
+        },
+        "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.ZmlsZQ.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "El nombre del archivo"
         },
         "app.R3JvcQ.action.dHJhbnNsYXRlLWF1ZGlv.option.dXJs.display_name": {
           "source": "Audio URL",
@@ -962,6 +1486,126 @@
         "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.desc": {
           "source": "Named file with `name`, raw binary or base64 `content`, and optional `mime_type`.",
           "message": "Archivo con nombre `name`, contenido binario sin procesar o en base64 `content`, y opcionalmente `mime_type`."
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "Datos del archivo"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Datos de archivo codificados en Base64 o datos brutos para codificar con codificación Base64"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Datos de archivo codificados en Base64 o datos brutos para codificar con codificación Base64"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "Tipo MIME"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "La cadena MIME para el archivo"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "La cadena MIME para el archivo"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "Detección automática"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Detectar automáticamente del nombre de archivo; válido solo en entrada"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Detectar automáticamente del nombre de archivo; válido solo en entrada"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "Texto sin formato"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "Texto sin formato"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "Texto HTML"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "Texto HTML"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "Archivo PDF"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "Archivo PDF"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "Documento MS Word docx"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "Documento de MS Word `docx`"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "Documento MS PowerPoint pptx"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "Documento de MS PowerPoint `pptx`"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "Documento MS Excel xlsx"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "Documento de MS Excel `xlsx`"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "Nombre de archivo"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "El nombre del archivo"
+        },
+        "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.ZmlsZQ.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "El nombre del archivo"
         },
         "app.R3JvcQ.action.dXBsb2FkLWZpbGU.option.cHVycG9zZQ.display_name": {
           "source": "Purpose",
@@ -1347,6 +1991,122 @@
           "source": "The conversation history as a list of message objects.  Each message has a `role` (`system`, `user`, `assistant`, or `tool`) and `content` (text).",
           "message": "El historial de conversación como una lista de objetos de mensaje. Cada mensaje tiene un `role` (`system`, `user`, `assistant` o `tool`) y `content` (texto)."
         },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.Y29udGVudA.display_name": {
+          "source": "Content",
+          "message": "Contenido"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.Y29udGVudA.short_desc": {
+          "source": "The text content of the message",
+          "message": "El contenido de texto del mensaje"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.Y29udGVudA.desc": {
+          "source": "The text content of the message.  May be `NOTHING` on assistant messages that only contain `tool_calls`.",
+          "message": "El contenido de texto del mensaje. Puede ser `NOTHING` en mensajes del asistente que solo contienen `tool_calls`."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.bmFtZQ.display_name": {
+          "source": "Author Name",
+          "message": "Nombre del autor"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.bmFtZQ.short_desc": {
+          "source": "Optional name of the author",
+          "message": "Nombre opcional del autor"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.bmFtZQ.desc": {
+          "source": "Optional name identifying the specific author of the message.",
+          "message": "Nombre opcional que identifica al autor específico del mensaje."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Rol"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.short_desc": {
+          "source": "The role of the message author",
+          "message": "El rol del autor del mensaje"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.desc": {
+          "source": "The role of the author of this message.\n\n- `system` — high-level instructions and persona for the assistant\n- `user` — input from the end user\n- `assistant` — previous model output (used for multi-turn conversations)\n- `tool` — result returned by a tool invocation (paired with a `tool_call_id`)",
+          "message": "El rol del autor de este mensaje.\n\n- `system` — instrucciones de alto nivel y personalidad para el asistente\n- `user` — entrada del usuario final\n- `assistant` — salida previa del modelo (usada para conversaciones de múltiples turnos)\n- `tool` — resultado devuelto por una invocación de herramienta (emparejado con un `tool_call_id`)"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnN5c3RlbQ.display_name": {
+          "source": "System - instructions and persona",
+          "message": "Sistema - instrucciones y persona"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User - end-user input",
+          "message": "Usuario - entrada del usuario final"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOmFzc2lzdGFudA.display_name": {
+          "source": "Assistant - previous model output",
+          "message": "Asistente - salida del modelo anterior"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnRvb2w.display_name": {
+          "source": "Tool - tool invocation result",
+          "message": "Herramienta - resultado de invocación de herramienta"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxsX2lk.display_name": {
+          "source": "Tool Call ID",
+          "message": "ID de llamada a herramienta"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxsX2lk.short_desc": {
+          "source": "ID of the tool call this message responds to",
+          "message": "ID de la llamada a herramienta a la que responde este mensaje"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxsX2lk.desc": {
+          "source": "Required when `role` is `tool` — identifies which of the preceding assistant message's `tool_calls` this message is returning the result for.",
+          "message": "Requerido cuando `role` es `tool` — identifica cuál de los `tool_calls` anteriores del mensaje del asistente es el resultado que se está devolviendo."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxscw.display_name": {
+          "source": "Tool Calls",
+          "message": "Llamadas a herramientas"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxscw.short_desc": {
+          "source": "Tool invocations emitted by the assistant",
+          "message": "Invocaciones de herramientas emitidas por el asistente"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxscw.desc": {
+          "source": "List of tool calls emitted by the assistant.  Present only on assistant messages that chose to invoke a tool.",
+          "message": "Lista de llamadas a herramientas emitidas por el asistente. Presente solo en mensajes del asistente que eligieron invocar una herramienta."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.ZnVuY3Rpb24.display_name": {
+          "source": "Function Call",
+          "message": "Llamada a función"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.ZnVuY3Rpb24.short_desc": {
+          "source": "Function name and JSON-encoded arguments",
+          "message": "Nombre de función y argumentos codificados en JSON"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.ZnVuY3Rpb24.desc": {
+          "source": "Hash with `name` (string) and `arguments` (JSON-encoded string) describing the function the model wants to invoke.",
+          "message": "Hash con `name` (cadena) y `arguments` (cadena codificada en JSON) que describen la función que el modelo desea invocar."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.aWQ.display_name": {
+          "source": "Tool Call ID",
+          "message": "ID de llamada a herramienta"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.aWQ.short_desc": {
+          "source": "Unique identifier for the tool call",
+          "message": "Identificador único para la llamada de herramienta"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.aWQ.desc": {
+          "source": "Unique identifier for this tool call.  The same `id` must be echoed back in the corresponding `tool` role message that returns the tool's result.",
+          "message": "Identificador único para esta llamada de herramienta. El mismo `id` debe devolverse en el mensaje correspondiente con rol `tool` que devuelve el resultado de la herramienta."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.dHlwZQ.display_name": {
+          "source": "Tool Type",
+          "message": "Tipo de herramienta"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.dHlwZQ.short_desc": {
+          "source": "Type of tool invoked",
+          "message": "Tipo de herramienta invocada"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.dHlwZQ.desc": {
+          "source": "Type of tool invoked.  `function` is the only supported type for OpenAI-compatible tool calling.",
+          "message": "Tipo de herramienta invocada. `function` es el único tipo soportado para llamadas de herramientas compatibles con OpenAI."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDaGF0VG9vbENhbGxEYXRhVHlwZTpoYXNoPGF1dG8-IzM2YmM3ZGE0NWE3NDlmZWIwNzVjYmEyYzFlYTBmZjM0YWFlNjA4NWJkMGY4YTA0Y2RkOTJiZGJjMmY2MTAwYTM6b3B0aW9uOmJXVnpjMkZuWlhNOmZpZWxkOmRHOXZiRjlqWVd4c2N3.field.dHlwZQ.allowed-value.c3RyaW5nOmZ1bmN0aW9u.display_name": {
+          "source": "Function",
+          "message": "Función"
+        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.display_name": {
           "source": "Model",
           "message": "Modelo"
@@ -1527,6 +2287,106 @@
           "source": "Configure Compound models and built-in tools with `models` and `tools`.",
           "message": "Configure modelos de Compound y herramientas integradas con `models` y `tools`."
         },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.field.bW9kZWxz.display_name": {
+          "source": "Models",
+          "message": "Modelos"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.field.bW9kZWxz.short_desc": {
+          "source": "Models",
+          "message": "Modelos"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.field.bW9kZWxz.desc": {
+          "source": "Select models for answering and reasoning.",
+          "message": "Seleccionar modelos para responder y razonar."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZE1vZGVsc0RhdGFUeXBlOipoYXNoPGF1dG8-IzA1ZjkzMDFjOTczY2ViMDVhOGQ3ZThhOTc4ZDQxZWM0NjViNzMzODI4ZmJiZTBmMWM4N2YzYzIwYzQwZjIyNzQ6b3B0aW9uOlkyOXRjRzkxYm1SZlkzVnpkRzl0OmZpZWxkOmJXOWtaV3h6.field.YW5zd2VyaW5nX21vZGVs.display_name": {
+          "source": "Answering Model",
+          "message": "Modelo de respuesta"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZE1vZGVsc0RhdGFUeXBlOipoYXNoPGF1dG8-IzA1ZjkzMDFjOTczY2ViMDVhOGQ3ZThhOTc4ZDQxZWM0NjViNzMzODI4ZmJiZTBmMWM4N2YzYzIwYzQwZjIyNzQ6b3B0aW9uOlkyOXRjRzkxYm1SZlkzVnpkRzl0OmZpZWxkOmJXOWtaV3h6.field.YW5zd2VyaW5nX21vZGVs.short_desc": {
+          "source": "Answering Model",
+          "message": "Modelo de respuesta"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZE1vZGVsc0RhdGFUeXBlOipoYXNoPGF1dG8-IzA1ZjkzMDFjOTczY2ViMDVhOGQ3ZThhOTc4ZDQxZWM0NjViNzMzODI4ZmJiZTBmMWM4N2YzYzIwYzQwZjIyNzQ6b3B0aW9uOlkyOXRjRzkxYm1SZlkzVnpkRzl0OmZpZWxkOmJXOWtaV3h6.field.YW5zd2VyaW5nX21vZGVs.desc": {
+          "source": "Select a model for this role in Compound inference.",
+          "message": "Seleccionar un modelo para este rol en la inferencia compuesta."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZE1vZGVsc0RhdGFUeXBlOipoYXNoPGF1dG8-IzA1ZjkzMDFjOTczY2ViMDVhOGQ3ZThhOTc4ZDQxZWM0NjViNzMzODI4ZmJiZTBmMWM4N2YzYzIwYzQwZjIyNzQ6b3B0aW9uOlkyOXRjRzkxYm1SZlkzVnpkRzl0OmZpZWxkOmJXOWtaV3h6.field.cmVhc29uaW5nX21vZGVs.display_name": {
+          "source": "Reasoning Model",
+          "message": "Modelo de razonamiento"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZE1vZGVsc0RhdGFUeXBlOipoYXNoPGF1dG8-IzA1ZjkzMDFjOTczY2ViMDVhOGQ3ZThhOTc4ZDQxZWM0NjViNzMzODI4ZmJiZTBmMWM4N2YzYzIwYzQwZjIyNzQ6b3B0aW9uOlkyOXRjRzkxYm1SZlkzVnpkRzl0OmZpZWxkOmJXOWtaV3h6.field.cmVhc29uaW5nX21vZGVs.short_desc": {
+          "source": "Reasoning Model",
+          "message": "Modelo de razonamiento"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZE1vZGVsc0RhdGFUeXBlOipoYXNoPGF1dG8-IzA1ZjkzMDFjOTczY2ViMDVhOGQ3ZThhOTc4ZDQxZWM0NjViNzMzODI4ZmJiZTBmMWM4N2YzYzIwYzQwZjIyNzQ6b3B0aW9uOlkyOXRjRzkxYm1SZlkzVnpkRzl0OmZpZWxkOmJXOWtaV3h6.field.cmVhc29uaW5nX21vZGVs.desc": {
+          "source": "Select a model for this role in Compound inference.",
+          "message": "Seleccionar un modelo para este rol en la inferencia compuesta."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.field.dG9vbHM.display_name": {
+          "source": "Tools",
+          "message": "Herramientas"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.field.dG9vbHM.short_desc": {
+          "source": "Tools",
+          "message": "Herramientas"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y29tcG91bmRfY3VzdG9t.field.dG9vbHM.desc": {
+          "source": "Choose tools available to Compound inference.",
+          "message": "Elija herramientas disponibles para la inferencia de Compound."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.display_name": {
+          "source": "Enabled Tools",
+          "message": "Herramientas habilitadas"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.short_desc": {
+          "source": "Enabled Tools",
+          "message": "Herramientas habilitadas"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.desc": {
+          "source": "Limit the tools Compound can execute. `visit_website` and `wolfram_alpha` require the `latest` Compound version; set `Groq-Model-Version` in connection headers.",
+          "message": "Limitar las herramientas que puede ejecutar Compound. `visit_website` y `wolfram_alpha` requieren la versión `latest` de Compound; establezca `Groq-Model-Version` en los encabezados de conexión."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.element-allowed-value.c3RyaW5nOndlYl9zZWFyY2g.display_name": {
+          "source": "Web Search",
+          "message": "Búsqueda web"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.element-allowed-value.c3RyaW5nOnZpc2l0X3dlYnNpdGU.display_name": {
+          "source": "Visit Website",
+          "message": "Visitar sitio web"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.element-allowed-value.c3RyaW5nOmNvZGVfaW50ZXJwcmV0ZXI.display_name": {
+          "source": "Code Execution",
+          "message": "Ejecución de código"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.ZW5hYmxlZF90b29scw.element-allowed-value.c3RyaW5nOndvbGZyYW1fYWxwaGE.display_name": {
+          "source": "Wolfram Alpha",
+          "message": "Wolfram Alpha"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.d29sZnJhbV9zZXR0aW5ncw.display_name": {
+          "source": "Wolfram Settings",
+          "message": "Configuración Wolfram"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.d29sZnJhbV9zZXR0aW5ncw.short_desc": {
+          "source": "Wolfram Settings",
+          "message": "Configuración Wolfram"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FDb21wb3VuZFRvb2xzRGF0YVR5cGU6Kmhhc2g8YXV0bz4jNTI0MGI3MDBiM2I1YmFjMWVkODRmZDhhZTQwMDA2NTBiYzZhNzNhZDEzNzlhZWE2NWU3MGIyZTI1NmJmOGRlODpvcHRpb246WTI5dGNHOTFibVJmWTNWemRHOXQ6ZmllbGQ6ZEc5dmJITQ.field.d29sZnJhbV9zZXR0aW5ncw.desc": {
+          "source": "Credentials for the Wolfram Alpha tool.",
+          "message": "Credenciales para la herramienta Wolfram Alpha."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FXb2xmcmFtU2V0dGluZ3NEYXRhVHlwZToqaGFzaDxhdXRvPiNjNGRmNDhkMDJjYWE1OTExNzU2YWJkODA4ZTM4NTQ0ODFhZmIxOWU1ZjUyYTAyMjZhZGEzOWEwODAxYWY4ZmI5Om9wdGlvbjpZMjl0Y0c5MWJtUmZZM1Z6ZEc5dDpmaWVsZDpkRzl2YkhNOmZpZWxkOmQyOXNabkpoYlY5elpYUjBhVzVuY3c.field.YXV0aG9yaXphdGlvbg.display_name": {
+          "source": "Wolfram Authorization",
+          "message": "Autorización Wolfram"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FXb2xmcmFtU2V0dGluZ3NEYXRhVHlwZToqaGFzaDxhdXRvPiNjNGRmNDhkMDJjYWE1OTExNzU2YWJkODA4ZTM4NTQ0ODFhZmIxOWU1ZjUyYTAyMjZhZGEzOWEwODAxYWY4ZmI5Om9wdGlvbjpZMjl0Y0c5MWJtUmZZM1Z6ZEc5dDpmaWVsZDpkRzl2YkhNOmZpZWxkOmQyOXNabkpoYlY5elpYUjBhVzVuY3c.field.YXV0aG9yaXphdGlvbg.short_desc": {
+          "source": "Wolfram Authorization",
+          "message": "Autorización Wolfram"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FXb2xmcmFtU2V0dGluZ3NEYXRhVHlwZToqaGFzaDxhdXRvPiNjNGRmNDhkMDJjYWE1OTExNzU2YWJkODA4ZTM4NTQ0ODFhZmIxOWU1ZjUyYTAyMjZhZGEzOWEwODAxYWY4ZmI5Om9wdGlvbjpZMjl0Y0c5MWJtUmZZM1Z6ZEc5dDpmaWVsZDpkRzl2YkhNOmZpZWxkOmQyOXNabkpoYlY5elpYUjBhVzVuY3c.field.YXV0aG9yaXphdGlvbg.desc": {
+          "source": "Authorization credential for Wolfram Alpha computations.",
+          "message": "Credencial de autorización para cálculos de Wolfram Alpha."
+        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.display_name": {
           "source": "Documents",
           "message": "Documentos"
@@ -1539,6 +2399,86 @@
           "source": "Context documents with a text or JSON `source` and optional citation `id`.",
           "message": "Documentos de contexto con un `source` de texto o JSON y una cita opcional `id`."
         },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.field.aWQ.display_name": {
+          "source": "Document ID",
+          "message": "ID del Documento"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.field.aWQ.short_desc": {
+          "source": "Document ID",
+          "message": "ID del Documento"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.field.aWQ.desc": {
+          "source": "Your identifier for citations from this input document.",
+          "message": "Su identificador para las citas de este documento de entrada."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.field.c291cmNl.display_name": {
+          "source": "Source",
+          "message": "Origen"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.field.c291cmNl.short_desc": {
+          "source": "Source",
+          "message": "Origen"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.ZG9jdW1lbnRz.field.c291cmNl.desc": {
+          "source": "Inline text or JSON used to ground the response.",
+          "message": "Texto o JSON en línea utilizado para fundamentar la respuesta."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dGV4dA.display_name": {
+          "source": "Text",
+          "message": "Texto"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dGV4dA.short_desc": {
+          "source": "Text",
+          "message": "Texto"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dGV4dA.desc": {
+          "source": "Document contents used to ground the answer.",
+          "message": "Contenido del documento usado para fundamentar la respuesta."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.display_name": {
+          "source": "Source Type",
+          "message": "Tipo de origen"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.short_desc": {
+          "source": "Source Type",
+          "message": "Tipo de origen"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.desc": {
+          "source": "Inline text document.",
+          "message": "Documento de texto en línea."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FUZXh0RG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzNiOWE4ZTEyNmEyMDhjNTY4NTBlZDkxOGIzNGI3MTRiYTdkNzQ5ZjRiZjEyNjMzOTkwODM0YzAyMGI4N2ZiYWQ6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1ZSbGVIUkViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak0ySTVZVGhsTVRJMllUSXdPR00xTmpnMU1HVmtPVEU0WWpNMFlqY3hOR0poTjJRM05EbG1OR0ptTVRJMk16TTVPVEE0TXpSak1ESXdZamczWm1KaFpBOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Text",
+          "message": "Texto"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.ZGF0YQ.display_name": {
+          "source": "Data",
+          "message": "Datos"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.ZGF0YQ.short_desc": {
+          "source": "Data",
+          "message": "Datos"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.ZGF0YQ.desc": {
+          "source": "Structured document contents.",
+          "message": "Contenido del documento estructurado."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.display_name": {
+          "source": "Source Type",
+          "message": "Tipo de origen"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.short_desc": {
+          "source": "Source Type",
+          "message": "Tipo de origen"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.desc": {
+          "source": "Inline JSON document.",
+          "message": "Documento JSON en línea."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uRG9jdW1lbnRTb3VyY2VEYXRhVHlwZTpoYXNoPGF1dG8-IzE1NTExNWViMWRkYWQ2ZjUzNTc2ZjRlMDQ5ZWMyZGU3MDQ0Nzc4OGE4NGU3ZGQ5MjYwZWQxMDA3ZjE4NTg1N2I6b3B0aW9uOlpHOWpkVzFsYm5Sejp1bmlvbjpSM0p2Y1VwemIyNUViMk4xYldWdWRGTnZkWEpqWlVSaGRHRlVlWEJsT21oaGMyZzhZWFYwYno0ak1UVTFNVEUxWldJeFpHUmhaRFptTlRNMU56Wm1OR1V3TkRsbFl6SmtaVGN3TkRRM056ZzRZVGcwWlRka1pEa3lOakJsWkRFd01EZG1NVGcxT0RVM1lnOmZpZWxkOmMyOTFjbU5s.field.dHlwZQ.allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "Json",
+          "message": "JSON"
+        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.display_name": {
           "source": "Search Settings",
           "message": "Configuración de búsqueda"
@@ -1550,6 +2490,54 @@
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.desc": {
           "source": "Configure web search with `include_domains`, `exclude_domains`, and `country`.",
           "message": "Configure la búsqueda web con `include_domains`, `exclude_domains` y `country`."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.Y291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "País"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.Y291bnRyeQ.short_desc": {
+          "source": "Country",
+          "message": "País"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.Y291bnRyeQ.desc": {
+          "source": "Country code for localized web results.",
+          "message": "Código de país para resultados web localizados."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.ZXhjbHVkZV9kb21haW5z.display_name": {
+          "source": "Exclude Domains",
+          "message": "Excluir dominios"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.ZXhjbHVkZV9kb21haW5z.short_desc": {
+          "source": "Exclude Domains",
+          "message": "Excluir dominios"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.ZXhjbHVkZV9kb21haW5z.desc": {
+          "source": "Exclude these domains from web results.",
+          "message": "Excluir estos dominios de los resultados web."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.aW5jbHVkZV9kb21haW5z.display_name": {
+          "source": "Include Domains",
+          "message": "Incluir dominios"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.aW5jbHVkZV9kb21haW5z.short_desc": {
+          "source": "Include Domains",
+          "message": "Incluir dominios"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.aW5jbHVkZV9kb21haW5z.desc": {
+          "source": "Restrict web results to these domains.",
+          "message": "Restringir los resultados web a estos dominios."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.aW5jbHVkZV9pbWFnZXM.display_name": {
+          "source": "Include Images",
+          "message": "Incluir imágenes"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.aW5jbHVkZV9pbWFnZXM.short_desc": {
+          "source": "Include Images",
+          "message": "Incluir imágenes"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VhcmNoX3NldHRpbmdz.field.aW5jbHVkZV9pbWFnZXM.desc": {
+          "source": "Include image URLs in search results.",
+          "message": "Incluir URLs de imágenes en los resultados de búsqueda."
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.Y2l0YXRpb25fb3B0aW9ucw.display_name": {
           "source": "Citation Options",
@@ -1619,6 +2607,90 @@
           "source": "Custom function definitions or supported built-in tools. Use `function` with a `function` definition, or select `browser_search` or `code_interpreter` for a compatible model.",
           "message": "Definiciones de funciones personalizadas o herramientas integradas compatibles. Use `function` con una definición `function`, o seleccione `browser_search` o `code_interpreter` para un modelo compatible."
         },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.ZnVuY3Rpb24.display_name": {
+          "source": "Function",
+          "message": "Función"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.ZnVuY3Rpb24.short_desc": {
+          "source": "Function",
+          "message": "Función"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.ZnVuY3Rpb24.desc": {
+          "source": "Function definition; required for `function` tools.",
+          "message": "Definición de función; obligatoria para herramientas `function`."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "Descripción"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "Description",
+          "message": "Descripción"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.ZGVzY3JpcHRpb24.desc": {
+          "source": "Explain when the model should use this function.",
+          "message": "Explique cuándo debe usar esta función el modelo."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.bmFtZQ.display_name": {
+          "source": "Function Name",
+          "message": "Nombre de función"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.bmFtZQ.short_desc": {
+          "source": "Function Name",
+          "message": "Nombre de función"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.bmFtZQ.desc": {
+          "source": "The function to invoke in your application.",
+          "message": "La función que se debe invocar en su aplicación."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.cGFyYW1ldGVycw.display_name": {
+          "source": "Parameters",
+          "message": "Parámetros"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.cGFyYW1ldGVycw.short_desc": {
+          "source": "Parameters",
+          "message": "Parámetros"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.cGFyYW1ldGVycw.desc": {
+          "source": "JSON Schema describing the function arguments.",
+          "message": "Esquema JSON que describe los argumentos de la función."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.c3RyaWN0.display_name": {
+          "source": "Strict",
+          "message": "estricto"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.c3RyaWN0.short_desc": {
+          "source": "Strict",
+          "message": "estricto"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FGdW5jdGlvbkRlZmluaXRpb25EYXRhVHlwZToqaGFzaDxhdXRvPiMwNGI5MzdhZjc2YmVjYzIzYTBiMTE0MDVhNDMxNWI4MzIyN2IyZDIzYzBkNmE4NzllZmZkZWZiMWNhZWU2YjliOm9wdGlvbjpkRzl2YkhNOmZpZWxkOlpuVnVZM1JwYjI0.field.c3RyaWN0.desc": {
+          "source": "Require arguments to follow the parameter schema exactly.",
+          "message": "Requiere que los argumentos sigan exactamente el esquema de parámetros."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.dHlwZQ.display_name": {
+          "source": "Tool Type",
+          "message": "Tipo de herramienta"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.dHlwZQ.short_desc": {
+          "source": "Tool Type",
+          "message": "Tipo de herramienta"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.dHlwZQ.desc": {
+          "source": "Choose a custom function or a built-in tool supported by the model.",
+          "message": "Elija una función personalizada o una herramienta integrada compatible con el modelo."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmZ1bmN0aW9u.display_name": {
+          "source": "Function",
+          "message": "Función"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmJyb3dzZXJfc2VhcmNo.display_name": {
+          "source": "Browser Search",
+          "message": "Búsqueda en navegador"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbHM.field.dHlwZQ.allowed-value.c3RyaW5nOmNvZGVfaW50ZXJwcmV0ZXI.display_name": {
+          "source": "Code Interpreter",
+          "message": "Interprete de código"
+        },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.dG9vbF9jaG9pY2U.display_name": {
           "source": "Tool Choice",
           "message": "Elección de herramienta"
@@ -1654,6 +2726,90 @@
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.desc": {
           "source": "Hash that forces a structured response shape.  The most common use is JSON mode: `{type: \"json_object\"}`.",
           "message": "Hash que fuerza una forma de respuesta estructurada. El uso más común es el modo JSON: `{type: \"json_object\"}`."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.anNvbl9zY2hlbWE.display_name": {
+          "source": "JSON Schema",
+          "message": "Esquema JSON"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.anNvbl9zY2hlbWE.short_desc": {
+          "source": "JSON Schema",
+          "message": "Esquema JSON"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.anNvbl9zY2hlbWE.desc": {
+          "source": "Schema configuration; required when `type` is `json_schema`.",
+          "message": "Configuración de esquema; requerida cuando `type` es `json_schema`."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "Descripción"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "Description",
+          "message": "Descripción"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.ZGVzY3JpcHRpb24.desc": {
+          "source": "Explain the intended structured response.",
+          "message": "Explique la respuesta estructurada prevista."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.bmFtZQ.display_name": {
+          "source": "Schema Name",
+          "message": "Nombre del esquema"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.bmFtZQ.short_desc": {
+          "source": "Schema Name",
+          "message": "Nombre del esquema"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.bmFtZQ.desc": {
+          "source": "A name for the structured output contract.",
+          "message": "Un nombre para el contrato de salida estructurada."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.c2NoZW1h.display_name": {
+          "source": "Schema",
+          "message": "Schema"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.c2NoZW1h.short_desc": {
+          "source": "Schema",
+          "message": "Schema"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.c2NoZW1h.desc": {
+          "source": "JSON Schema defining the structured response.",
+          "message": "Esquema JSON que describe la respuesta estructurada."
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.c3RyaWN0.display_name": {
+          "source": "Strict",
+          "message": "estricto"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.c3RyaWN0.short_desc": {
+          "source": "Strict",
+          "message": "estricto"
+        },
+        "app.R3JvcQ.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1Okdyb3FKc29uU2NoZW1hRGF0YVR5cGU6Kmhhc2g8YXV0bz4jMTY3M2U4ZjhkMjVjZWRhMThkMzNkMGEwNjkzZjRkYjU1OTI1M2FhNTQ2ZDRkYjU3YTJhNzM2MzUxNzlkZjM2MDpvcHRpb246Y21WemNHOXVjMlZmWm05eWJXRjA6ZmllbGQ6YW5OdmJsOXpZMmhsYldF.field.c3RyaWN0.desc": {
+          "source": "Require the result to follow the schema exactly.",
+          "message": "Requiere que el resultado siga exactamente el esquema."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.display_name": {
+          "source": "Format",
+          "message": "Formato"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.short_desc": {
+          "source": "Format",
+          "message": "Formato"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.desc": {
+          "source": "Choose text, JSON mode, or structured output.",
+          "message": "Elija texto, modo JSON o salida estructurada."
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Text",
+          "message": "Texto"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.allowed-value.c3RyaW5nOmpzb25fb2JqZWN0.display_name": {
+          "source": "JSON Object",
+          "message": "Objeto JSON"
+        },
+        "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.allowed-value.c3RyaW5nOmpzb25fc2NoZW1h.display_name": {
+          "source": "JSON Schema",
+          "message": "Esquema JSON"
         },
         "app.R3JvcQ.action.Y2hhdC1jb21wbGV0aW9u.option.c2VlZA.display_name": {
           "source": "Seed",

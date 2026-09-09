@@ -515,6 +515,274 @@
           "source": "Specify which security and analysis features to enable or disable for the repository.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nFor example, to enable GitHub Advanced Security, use this data in the body of the `PATCH` request:\n`{ \"security_and_analysis\": {\"advanced_security\": { \"status\": \"enabled\" } } }`.\n\nYou can check which security and analysis features are currently enabled by using a `GET /repos/{owner}/{repo}` request.",
           "message": "Specify which security and analysis features to enable or disable for the repository.\n\nTo use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n\nFor example, to enable GitHub Advanced Security, use this data in the body of the `PATCH` request:\n`{ \"security_and_analysis\": {\"advanced_security\": { \"status\": \"enabled\" } } }`.\n\nYou can check which security and analysis features are currently enabled by using a `GET /repos/{owner}/{repo}` request."
         },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.YWR2YW5jZWRfc2VjdXJpdHk.display_name": {
+          "source": "Advanced Security",
+          "message": "Advanced Security"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.YWR2YW5jZWRfc2VjdXJpdHk.short_desc": {
+          "source": "Use the 'status' property to enable or disable GitHub Advanced Security for…",
+          "message": "Use the 'status' property to enable or disable GitHub Advanced Security for…"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.YWR2YW5jZWRfc2VjdXJpdHk.desc": {
+          "source": "Use the `status` property to enable or disable GitHub Advanced Security for this repository.\nFor more information, see \"[About GitHub Advanced\nSecurity](/github/getting-started-with-github/learning-about-github/about-github-advanced-security).\"\n\nFor standalone Code Scanning or Secret Protection products, this parameter cannot be used.",
+          "message": "Use the `status` property to enable or disable GitHub Advanced Security for this repository.\nFor more information, see \"[About GitHub Advanced\nSecurity](/github/getting-started-with-github/learning-about-github/about-github-advanced-security).\"\n\nFor standalone Code Scanning or Secret Protection products, this parameter cannot be used."
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOiphZHZhbmNlZF9zZWN1cml0eSNhNzQ2OWRlZjY1MjgwOTlhZDcxN2VlMTAzNTM4YWRkMTIxZDM3ZTU5ZjcxNTc5Y2M3MDQwNDIxMTgzYzI3YmQ4Om9wdGlvbjpjMlZqZFhKcGRIbGZZVzVrWDJGdVlXeDVjMmx6OmZpZWxkOllXUjJZVzVqWldSZmMyVmpkWEpwZEhr.field.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Status"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOiphZHZhbmNlZF9zZWN1cml0eSNhNzQ2OWRlZjY1MjgwOTlhZDcxN2VlMTAzNTM4YWRkMTIxZDM3ZTU5ZjcxNTc5Y2M3MDQwNDIxMTgzYzI3YmQ4Om9wdGlvbjpjMlZqZFhKcGRIbGZZVzVrWDJGdVlXeDVjMmx6OmZpZWxkOllXUjJZVzVqWldSZmMyVmpkWEpwZEhr.field.c3RhdHVz.short_desc": {
+          "source": "Can be 'enabled' or 'disabled'",
+          "message": "Can be 'enabled' or 'disabled'"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOiphZHZhbmNlZF9zZWN1cml0eSNhNzQ2OWRlZjY1MjgwOTlhZDcxN2VlMTAzNTM4YWRkMTIxZDM3ZTU5ZjcxNTc5Y2M3MDQwNDIxMTgzYzI3YmQ4Om9wdGlvbjpjMlZqZFhKcGRIbGZZVzVrWDJGdVlXeDVjMmx6OmZpZWxkOllXUjJZVzVqWldSZmMyVmpkWEpwZEhr.field.c3RhdHVz.desc": {
+          "source": "Can be `enabled` or `disabled`.",
+          "message": "Can be `enabled` or `disabled`."
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.Y29kZV9zZWN1cml0eQ.display_name": {
+          "source": "Code Security",
+          "message": "Code Security"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.Y29kZV9zZWN1cml0eQ.short_desc": {
+          "source": "Use the 'status' property to enable or disable GitHub Code Security for this…",
+          "message": "Use the 'status' property to enable or disable GitHub Code Security for this…"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.Y29kZV9zZWN1cml0eQ.desc": {
+          "source": "Use the `status` property to enable or disable GitHub Code Security for this repository.",
+          "message": "Use the `status` property to enable or disable GitHub Code Security for this repository."
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipjb2RlX3NlY3VyaXR5IzMzYWVmOGE4YTA4MWY0Y2I2MjY0ODVhMTY1ZDUyYzBkMWJmOTEwMDkyMjY2YzhlNzE4MDU3YTQ0N2FhMDgzODc6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6WTI5a1pWOXpaV04xY21sMGVR.field.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Status"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipjb2RlX3NlY3VyaXR5IzMzYWVmOGE4YTA4MWY0Y2I2MjY0ODVhMTY1ZDUyYzBkMWJmOTEwMDkyMjY2YzhlNzE4MDU3YTQ0N2FhMDgzODc6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6WTI5a1pWOXpaV04xY21sMGVR.field.c3RhdHVz.short_desc": {
+          "source": "Can be 'enabled' or 'disabled'",
+          "message": "Can be 'enabled' or 'disabled'"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipjb2RlX3NlY3VyaXR5IzMzYWVmOGE4YTA4MWY0Y2I2MjY0ODVhMTY1ZDUyYzBkMWJmOTEwMDkyMjY2YzhlNzE4MDU3YTQ0N2FhMDgzODc6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6WTI5a1pWOXpaV04xY21sMGVR.field.c3RhdHVz.desc": {
+          "source": "Can be `enabled` or `disabled`.",
+          "message": "Can be `enabled` or `disabled`."
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5n.display_name": {
+          "source": "Secret Scanning",
+          "message": "Secret Scanning"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5n.short_desc": {
+          "source": "Use the 'status' property to enable or disable secret scanning for this…",
+          "message": "Use the 'status' property to enable or disable secret scanning for this…"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5n.desc": {
+          "source": "Use the `status` property to enable or disable secret scanning for this repository. For more information, see \"[About secret scanning](/code-security/secret-security/about-secret-scanning).\"",
+          "message": "Use the `status` property to enable or disable secret scanning for this repository. For more information, see \"[About secret scanning](/code-security/secret-security/about-secret-scanning).\""
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmcjOTRjZTE5OWE0MjU1MjU2YjdlYWRhNjZjZDQ2YmMwNTg0MTgxYzc2NzhkMjAxYTlhOTg4YWU3OTdlNzM4OTBhMTpvcHRpb246YzJWamRYSnBkSGxmWVc1a1gyRnVZV3g1YzJsejpmaWVsZDpjMlZqY21WMFgzTmpZVzV1YVc1bg.field.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Status"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmcjOTRjZTE5OWE0MjU1MjU2YjdlYWRhNjZjZDQ2YmMwNTg0MTgxYzc2NzhkMjAxYTlhOTg4YWU3OTdlNzM4OTBhMTpvcHRpb246YzJWamRYSnBkSGxmWVc1a1gyRnVZV3g1YzJsejpmaWVsZDpjMlZqY21WMFgzTmpZVzV1YVc1bg.field.c3RhdHVz.short_desc": {
+          "source": "Can be 'enabled' or 'disabled'",
+          "message": "Can be 'enabled' or 'disabled'"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmcjOTRjZTE5OWE0MjU1MjU2YjdlYWRhNjZjZDQ2YmMwNTg0MTgxYzc2NzhkMjAxYTlhOTg4YWU3OTdlNzM4OTBhMTpvcHRpb246YzJWamRYSnBkSGxmWVc1a1gyRnVZV3g1YzJsejpmaWVsZDpjMlZqY21WMFgzTmpZVzV1YVc1bg.field.c3RhdHVz.desc": {
+          "source": "Can be `enabled` or `disabled`.",
+          "message": "Can be `enabled` or `disabled`."
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX2FpX2RldGVjdGlvbg.display_name": {
+          "source": "Secret Scanning AI Detection",
+          "message": "Secret Scanning AI Detection"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX2FpX2RldGVjdGlvbg.short_desc": {
+          "source": "Use the 'status' property to enable or disable secret scanning AI detection…",
+          "message": "Use the 'status' property to enable or disable secret scanning AI detection…"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX2FpX2RldGVjdGlvbg.desc": {
+          "source": "Use the `status` property to enable or disable secret scanning AI detection for this repository. For more information, see \"[Responsible detection of generic secrets with AI](https://docs.github.com/code-security/secret-scanning/using-advanced-secret-scanning-and-push-protection-features/generic-secret-detection/responsible-ai-generic-secrets).\"",
+          "message": "Use the `status` property to enable or disable secret scanning AI detection for this repository. For more information, see \"[Responsible detection of generic secrets with AI](https://docs.github.com/code-security/secret-scanning/using-advanced-secret-scanning-and-push-protection-features/generic-secret-detection/responsible-ai-generic-secrets).\""
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfYWlfZGV0ZWN0aW9uIzQyYTY5Y2ZiMTQxMWI0MTE3MDgxN2ZiZDhiZDRjZDliM2EzNzlkZTBjZmI4ODIwMTNkY2FjMjg5ZDJjNTMyZGE6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMkZwWDJSbGRHVmpkR2x2Ymc.field.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Status"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfYWlfZGV0ZWN0aW9uIzQyYTY5Y2ZiMTQxMWI0MTE3MDgxN2ZiZDhiZDRjZDliM2EzNzlkZTBjZmI4ODIwMTNkY2FjMjg5ZDJjNTMyZGE6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMkZwWDJSbGRHVmpkR2x2Ymc.field.c3RhdHVz.short_desc": {
+          "source": "Can be 'enabled' or 'disabled'",
+          "message": "Can be 'enabled' or 'disabled'"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfYWlfZGV0ZWN0aW9uIzQyYTY5Y2ZiMTQxMWI0MTE3MDgxN2ZiZDhiZDRjZDliM2EzNzlkZTBjZmI4ODIwMTNkY2FjMjg5ZDJjNTMyZGE6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMkZwWDJSbGRHVmpkR2x2Ymc.field.c3RhdHVz.desc": {
+          "source": "Can be `enabled` or `disabled`.",
+          "message": "Can be `enabled` or `disabled`."
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX2RlbGVnYXRlZF9hbGVydF9kaXNtaXNzYWw.display_name": {
+          "source": "Secret Scanning Delegated Alert Dismissal",
+          "message": "Secret Scanning Delegated Alert Dismissal"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX2RlbGVnYXRlZF9hbGVydF9kaXNtaXNzYWw.short_desc": {
+          "source": "Use the 'status' property to enable or disable secret scanning delegated alert…",
+          "message": "Use the 'status' property to enable or disable secret scanning delegated alert…"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX2RlbGVnYXRlZF9hbGVydF9kaXNtaXNzYWw.desc": {
+          "source": "Use the `status` property to enable or disable secret scanning delegated alert dismissal for this repository.",
+          "message": "Use the `status` property to enable or disable secret scanning delegated alert dismissal for this repository."
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfZGVsZWdhdGVkX2FsZXJ0X2Rpc21pc3NhbCM3NDE4Njg4ZjQ3ZGUzNWFiZGNhNTA3NDE2Y2YxNjc3ODczMzAyMDU5NDY0N2FlNmExYzI1N2FiNTI4MDg1Y2NlOm9wdGlvbjpjMlZqZFhKcGRIbGZZVzVrWDJGdVlXeDVjMmx6OmZpZWxkOmMyVmpjbVYwWDNOallXNXVhVzVuWDJSbGJHVm5ZWFJsWkY5aGJHVnlkRjlrYVhOdGFYTnpZV3c.field.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Status"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfZGVsZWdhdGVkX2FsZXJ0X2Rpc21pc3NhbCM3NDE4Njg4ZjQ3ZGUzNWFiZGNhNTA3NDE2Y2YxNjc3ODczMzAyMDU5NDY0N2FlNmExYzI1N2FiNTI4MDg1Y2NlOm9wdGlvbjpjMlZqZFhKcGRIbGZZVzVrWDJGdVlXeDVjMmx6OmZpZWxkOmMyVmpjbVYwWDNOallXNXVhVzVuWDJSbGJHVm5ZWFJsWkY5aGJHVnlkRjlrYVhOdGFYTnpZV3c.field.c3RhdHVz.short_desc": {
+          "source": "Can be 'enabled' or 'disabled'",
+          "message": "Can be 'enabled' or 'disabled'"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfZGVsZWdhdGVkX2FsZXJ0X2Rpc21pc3NhbCM3NDE4Njg4ZjQ3ZGUzNWFiZGNhNTA3NDE2Y2YxNjc3ODczMzAyMDU5NDY0N2FlNmExYzI1N2FiNTI4MDg1Y2NlOm9wdGlvbjpjMlZqZFhKcGRIbGZZVzVrWDJGdVlXeDVjMmx6OmZpZWxkOmMyVmpjbVYwWDNOallXNXVhVzVuWDJSbGJHVm5ZWFJsWkY5aGJHVnlkRjlrYVhOdGFYTnpZV3c.field.c3RhdHVz.desc": {
+          "source": "Can be `enabled` or `disabled`.",
+          "message": "Can be `enabled` or `disabled`."
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX2RlbGVnYXRlZF9ieXBhc3M.display_name": {
+          "source": "Secret Scanning Delegated Bypass",
+          "message": "Secret Scanning Delegated Bypass"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX2RlbGVnYXRlZF9ieXBhc3M.short_desc": {
+          "source": "Use the 'status' property to enable or disable secret scanning delegated…",
+          "message": "Use the 'status' property to enable or disable secret scanning delegated…"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX2RlbGVnYXRlZF9ieXBhc3M.desc": {
+          "source": "Use the `status` property to enable or disable secret scanning delegated bypass for this repository.",
+          "message": "Use the `status` property to enable or disable secret scanning delegated bypass for this repository."
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfZGVsZWdhdGVkX2J5cGFzcyNkN2VhMjcyNTdmNTJmZGIwNzRlYjUxMDdlOWE2YjE2ZGExYzY5NmMxNjMzYTk0NzZhMDE3N2Q1OGFlNDYwMGM5Om9wdGlvbjpjMlZqZFhKcGRIbGZZVzVrWDJGdVlXeDVjMmx6OmZpZWxkOmMyVmpjbVYwWDNOallXNXVhVzVuWDJSbGJHVm5ZWFJsWkY5aWVYQmhjM00.field.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Status"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfZGVsZWdhdGVkX2J5cGFzcyNkN2VhMjcyNTdmNTJmZGIwNzRlYjUxMDdlOWE2YjE2ZGExYzY5NmMxNjMzYTk0NzZhMDE3N2Q1OGFlNDYwMGM5Om9wdGlvbjpjMlZqZFhKcGRIbGZZVzVrWDJGdVlXeDVjMmx6OmZpZWxkOmMyVmpjbVYwWDNOallXNXVhVzVuWDJSbGJHVm5ZWFJsWkY5aWVYQmhjM00.field.c3RhdHVz.short_desc": {
+          "source": "Can be 'enabled' or 'disabled'",
+          "message": "Can be 'enabled' or 'disabled'"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfZGVsZWdhdGVkX2J5cGFzcyNkN2VhMjcyNTdmNTJmZGIwNzRlYjUxMDdlOWE2YjE2ZGExYzY5NmMxNjMzYTk0NzZhMDE3N2Q1OGFlNDYwMGM5Om9wdGlvbjpjMlZqZFhKcGRIbGZZVzVrWDJGdVlXeDVjMmx6OmZpZWxkOmMyVmpjbVYwWDNOallXNXVhVzVuWDJSbGJHVm5ZWFJsWkY5aWVYQmhjM00.field.c3RhdHVz.desc": {
+          "source": "Can be `enabled` or `disabled`.",
+          "message": "Can be `enabled` or `disabled`."
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX2RlbGVnYXRlZF9ieXBhc3Nfb3B0aW9ucw.display_name": {
+          "source": "Secret Scanning Delegated Bypass Options",
+          "message": "Secret Scanning Delegated Bypass Options"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX2RlbGVnYXRlZF9ieXBhc3Nfb3B0aW9ucw.short_desc": {
+          "source": "Feature options for secret scanning delegated bypass",
+          "message": "Feature options for secret scanning delegated bypass"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX2RlbGVnYXRlZF9ieXBhc3Nfb3B0aW9ucw.desc": {
+          "source": "Feature options for secret scanning delegated bypass.\nThis object is only honored when `security_and_analysis.secret_scanning_delegated_bypass.status` is set to `enabled`.\nYou can send this object in the same request as `secret_scanning_delegated_bypass`, or update just the options in a separate request.",
+          "message": "Feature options for secret scanning delegated bypass.\nThis object is only honored when `security_and_analysis.secret_scanning_delegated_bypass.status` is set to `enabled`.\nYou can send this object in the same request as `secret_scanning_delegated_bypass`, or update just the options in a separate request."
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfZGVsZWdhdGVkX2J5cGFzc19vcHRpb25zIzhlNjYxMDVlODI1NjZjYjYxOWRmODg0OWFkY2MyZTgwMGIwY2Y4ODM1NjdjNTBmOTQ3NzQ1ZjRlOGM5NTJlZDY6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3.field.cmV2aWV3ZXJz.display_name": {
+          "source": "Reviewers",
+          "message": "Reviewers"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfZGVsZWdhdGVkX2J5cGFzc19vcHRpb25zIzhlNjYxMDVlODI1NjZjYjYxOWRmODg0OWFkY2MyZTgwMGIwY2Y4ODM1NjdjNTBmOTQ3NzQ1ZjRlOGM5NTJlZDY6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3.field.cmV2aWV3ZXJz.short_desc": {
+          "source": "The bypass reviewers for secret scanning delegated bypass",
+          "message": "The bypass reviewers for secret scanning delegated bypass"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfZGVsZWdhdGVkX2J5cGFzc19vcHRpb25zIzhlNjYxMDVlODI1NjZjYjYxOWRmODg0OWFkY2MyZTgwMGIwY2Y4ODM1NjdjNTBmOTQ3NzQ1ZjRlOGM5NTJlZDY6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3.field.cmV2aWV3ZXJz.desc": {
+          "source": "The bypass reviewers for secret scanning delegated bypass.\nIf you omit this field, the existing set of reviewers is unchanged.",
+          "message": "The bypass reviewers for secret scanning delegated bypass.\nIf you omit this field, the existing set of reviewers is unchanged."
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOml0ZW1zIzA0MzUyZThlMjQ0Y2EzYmVkODY3YjUxZjAyMmY4MjNiNzNkNGY3ZTQyMmVjZjU3ZDUzYWI0OTA0ZGFmODAzODg6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3OmZpZWxkOmNtVjJhV1YzWlhKeg.field.bW9kZQ.display_name": {
+          "source": "Mode",
+          "message": "Mode"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOml0ZW1zIzA0MzUyZThlMjQ0Y2EzYmVkODY3YjUxZjAyMmY4MjNiNzNkNGY3ZTQyMmVjZjU3ZDUzYWI0OTA0ZGFmODAzODg6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3OmZpZWxkOmNtVjJhV1YzWlhKeg.field.bW9kZQ.short_desc": {
+          "source": "The bypass mode for the reviewer",
+          "message": "The bypass mode for the reviewer"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOml0ZW1zIzA0MzUyZThlMjQ0Y2EzYmVkODY3YjUxZjAyMmY4MjNiNzNkNGY3ZTQyMmVjZjU3ZDUzYWI0OTA0ZGFmODAzODg6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3OmZpZWxkOmNtVjJhV1YzWlhKeg.field.bW9kZQ.desc": {
+          "source": "The bypass mode for the reviewer",
+          "message": "The bypass mode for the reviewer"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOml0ZW1zIzA0MzUyZThlMjQ0Y2EzYmVkODY3YjUxZjAyMmY4MjNiNzNkNGY3ZTQyMmVjZjU3ZDUzYWI0OTA0ZGFmODAzODg6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3OmZpZWxkOmNtVjJhV1YzWlhKeg.field.bW9kZQ.allowed-value.c3RyaW5nOkFMV0FZUw.display_name": {
+          "source": "ALWAYS",
+          "message": "ALWAYS"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOml0ZW1zIzA0MzUyZThlMjQ0Y2EzYmVkODY3YjUxZjAyMmY4MjNiNzNkNGY3ZTQyMmVjZjU3ZDUzYWI0OTA0ZGFmODAzODg6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3OmZpZWxkOmNtVjJhV1YzWlhKeg.field.bW9kZQ.allowed-value.c3RyaW5nOkVYRU1QVA.display_name": {
+          "source": "EXEMPT",
+          "message": "EXEMPT"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOml0ZW1zIzA0MzUyZThlMjQ0Y2EzYmVkODY3YjUxZjAyMmY4MjNiNzNkNGY3ZTQyMmVjZjU3ZDUzYWI0OTA0ZGFmODAzODg6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3OmZpZWxkOmNtVjJhV1YzWlhKeg.field.cmV2aWV3ZXJfaWQ.display_name": {
+          "source": "Reviewer ID",
+          "message": "Reviewer ID"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOml0ZW1zIzA0MzUyZThlMjQ0Y2EzYmVkODY3YjUxZjAyMmY4MjNiNzNkNGY3ZTQyMmVjZjU3ZDUzYWI0OTA0ZGFmODAzODg6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3OmZpZWxkOmNtVjJhV1YzWlhKeg.field.cmV2aWV3ZXJfaWQ.short_desc": {
+          "source": "The ID of the team or role selected as a bypass reviewer",
+          "message": "The ID of the team or role selected as a bypass reviewer"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOml0ZW1zIzA0MzUyZThlMjQ0Y2EzYmVkODY3YjUxZjAyMmY4MjNiNzNkNGY3ZTQyMmVjZjU3ZDUzYWI0OTA0ZGFmODAzODg6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3OmZpZWxkOmNtVjJhV1YzWlhKeg.field.cmV2aWV3ZXJfaWQ.desc": {
+          "source": "The ID of the team or role selected as a bypass reviewer",
+          "message": "The ID of the team or role selected as a bypass reviewer"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOml0ZW1zIzA0MzUyZThlMjQ0Y2EzYmVkODY3YjUxZjAyMmY4MjNiNzNkNGY3ZTQyMmVjZjU3ZDUzYWI0OTA0ZGFmODAzODg6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3OmZpZWxkOmNtVjJhV1YzWlhKeg.field.cmV2aWV3ZXJfdHlwZQ.display_name": {
+          "source": "Reviewer Type",
+          "message": "Reviewer Type"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOml0ZW1zIzA0MzUyZThlMjQ0Y2EzYmVkODY3YjUxZjAyMmY4MjNiNzNkNGY3ZTQyMmVjZjU3ZDUzYWI0OTA0ZGFmODAzODg6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3OmZpZWxkOmNtVjJhV1YzWlhKeg.field.cmV2aWV3ZXJfdHlwZQ.short_desc": {
+          "source": "The type of the bypass reviewer",
+          "message": "The type of the bypass reviewer"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOml0ZW1zIzA0MzUyZThlMjQ0Y2EzYmVkODY3YjUxZjAyMmY4MjNiNzNkNGY3ZTQyMmVjZjU3ZDUzYWI0OTA0ZGFmODAzODg6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3OmZpZWxkOmNtVjJhV1YzWlhKeg.field.cmV2aWV3ZXJfdHlwZQ.desc": {
+          "source": "The type of the bypass reviewer",
+          "message": "The type of the bypass reviewer"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOml0ZW1zIzA0MzUyZThlMjQ0Y2EzYmVkODY3YjUxZjAyMmY4MjNiNzNkNGY3ZTQyMmVjZjU3ZDUzYWI0OTA0ZGFmODAzODg6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3OmZpZWxkOmNtVjJhV1YzWlhKeg.field.cmV2aWV3ZXJfdHlwZQ.allowed-value.c3RyaW5nOlRFQU0.display_name": {
+          "source": "TEAM",
+          "message": "TEAM"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOml0ZW1zIzA0MzUyZThlMjQ0Y2EzYmVkODY3YjUxZjAyMmY4MjNiNzNkNGY3ZTQyMmVjZjU3ZDUzYWI0OTA0ZGFmODAzODg6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMlJsYkdWbllYUmxaRjlpZVhCaGMzTmZiM0IwYVc5dWN3OmZpZWxkOmNtVjJhV1YzWlhKeg.field.cmV2aWV3ZXJfdHlwZQ.allowed-value.c3RyaW5nOlJPTEU.display_name": {
+          "source": "ROLE",
+          "message": "ROLE"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX25vbl9wcm92aWRlcl9wYXR0ZXJucw.display_name": {
+          "source": "Secret Scanning Non Provider Patterns",
+          "message": "Secret Scanning Non Provider Patterns"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX25vbl9wcm92aWRlcl9wYXR0ZXJucw.short_desc": {
+          "source": "Use the 'status' property to enable or disable secret scanning non-provider…",
+          "message": "Use the 'status' property to enable or disable secret scanning non-provider…"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX25vbl9wcm92aWRlcl9wYXR0ZXJucw.desc": {
+          "source": "Use the `status` property to enable or disable secret scanning non-provider patterns for this repository. For more information, see \"[Supported secret scanning patterns](/code-security/secret-scanning/introduction/supported-secret-scanning-patterns#supported-secrets).\"",
+          "message": "Use the `status` property to enable or disable secret scanning non-provider patterns for this repository. For more information, see \"[Supported secret scanning patterns](/code-security/secret-scanning/introduction/supported-secret-scanning-patterns#supported-secrets).\""
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfbm9uX3Byb3ZpZGVyX3BhdHRlcm5zIzgwYTc2YmM4MDFjMGFlM2ZiMTNhNTdiZDhhNmU2NGNhMjQ0MGI4ODQ1YjU3MTZhYTM1NjIyYTAyNWIzMzQyNjY6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMjV2Ymw5d2NtOTJhV1JsY2w5d1lYUjBaWEp1Y3c.field.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Status"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfbm9uX3Byb3ZpZGVyX3BhdHRlcm5zIzgwYTc2YmM4MDFjMGFlM2ZiMTNhNTdiZDhhNmU2NGNhMjQ0MGI4ODQ1YjU3MTZhYTM1NjIyYTAyNWIzMzQyNjY6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMjV2Ymw5d2NtOTJhV1JsY2w5d1lYUjBaWEp1Y3c.field.c3RhdHVz.short_desc": {
+          "source": "Can be 'enabled' or 'disabled'",
+          "message": "Can be 'enabled' or 'disabled'"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfbm9uX3Byb3ZpZGVyX3BhdHRlcm5zIzgwYTc2YmM4MDFjMGFlM2ZiMTNhNTdiZDhhNmU2NGNhMjQ0MGI4ODQ1YjU3MTZhYTM1NjIyYTAyNWIzMzQyNjY6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YMjV2Ymw5d2NtOTJhV1JsY2w5d1lYUjBaWEp1Y3c.field.c3RhdHVz.desc": {
+          "source": "Can be `enabled` or `disabled`.",
+          "message": "Can be `enabled` or `disabled`."
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX3B1c2hfcHJvdGVjdGlvbg.display_name": {
+          "source": "Secret Scanning Push Protection",
+          "message": "Secret Scanning Push Protection"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX3B1c2hfcHJvdGVjdGlvbg.short_desc": {
+          "source": "Use the 'status' property to enable or disable secret scanning push protection…",
+          "message": "Use the 'status' property to enable or disable secret scanning push protection…"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.c2VjdXJpdHlfYW5kX2FuYWx5c2lz.field.c2VjcmV0X3NjYW5uaW5nX3B1c2hfcHJvdGVjdGlvbg.desc": {
+          "source": "Use the `status` property to enable or disable secret scanning push protection for this repository. For more information, see \"[Protecting pushes with secret scanning](/code-security/secret-scanning/protecting-pushes-with-secret-scanning).\"",
+          "message": "Use the `status` property to enable or disable secret scanning push protection for this repository. For more information, see \"[Protecting pushes with secret scanning](/code-security/secret-scanning/protecting-pushes-with-secret-scanning).\""
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfcHVzaF9wcm90ZWN0aW9uIzRlNTEwYTI2MDgwNzc2MTU4ZjhhYmY0NThkODdjODJjYTM4OGQ4YWZmOTUwZDNjNDBkNDg4Y2E4ODA2ZDMyMjM6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YM0IxYzJoZmNISnZkR1ZqZEdsdmJn.field.c3RhdHVz.display_name": {
+          "source": "Status",
+          "message": "Status"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfcHVzaF9wcm90ZWN0aW9uIzRlNTEwYTI2MDgwNzc2MTU4ZjhhYmY0NThkODdjODJjYTM4OGQ4YWZmOTUwZDNjNDBkNDg4Y2E4ODA2ZDMyMjM6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YM0IxYzJoZmNISnZkR1ZqZEdsdmJn.field.c3RhdHVz.short_desc": {
+          "source": "Can be 'enabled' or 'disabled'",
+          "message": "Can be 'enabled' or 'disabled'"
+        },
+        "app.R2l0aHVi.type.YWN0aW9uOmNtVndiM010ZFhCa1lYUmw6SGFzaERhdGFUeXBlOipzZWNyZXRfc2Nhbm5pbmdfcHVzaF9wcm90ZWN0aW9uIzRlNTEwYTI2MDgwNzc2MTU4ZjhhYmY0NThkODdjODJjYTM4OGQ4YWZmOTUwZDNjNDBkNDg4Y2E4ODA2ZDMyMjM6b3B0aW9uOmMyVmpkWEpwZEhsZllXNWtYMkZ1WVd4NWMybHo6ZmllbGQ6YzJWamNtVjBYM05qWVc1dWFXNW5YM0IxYzJoZmNISnZkR1ZqZEdsdmJn.field.c3RhdHVz.desc": {
+          "source": "Can be `enabled` or `disabled`.",
+          "message": "Can be `enabled` or `disabled`."
+        },
         "app.R2l0aHVi.action.cmVwb3MtdXBkYXRl.option.aGFzX2lzc3Vlcw.display_name": {
           "source": "Has Issues",
           "message": "Has Issues"
@@ -2311,6 +2579,34 @@
           "source": "The person that committed the file. Default: the authenticated user.",
           "message": "The person that committed the file. Default: the authenticated user."
         },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.Y29tbWl0dGVy.field.ZGF0ZQ.display_name": {
+          "source": "Date",
+          "message": "Date"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.Y29tbWl0dGVy.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.Y29tbWl0dGVy.field.ZW1haWw.short_desc": {
+          "source": "The email of the author or committer of the commit",
+          "message": "The email of the author or committer of the commit"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.Y29tbWl0dGVy.field.ZW1haWw.desc": {
+          "source": "The email of the author or committer of the commit. You'll receive a `422` status code if `email` is omitted.",
+          "message": "The email of the author or committer of the commit. You'll receive a `422` status code if `email` is omitted."
+        },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.Y29tbWl0dGVy.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.Y29tbWl0dGVy.field.bmFtZQ.short_desc": {
+          "source": "The name of the author or committer of the commit",
+          "message": "The name of the author or committer of the commit"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.Y29tbWl0dGVy.field.bmFtZQ.desc": {
+          "source": "The name of the author or committer of the commit. You'll receive a `422` status code if `name` is omitted.",
+          "message": "The name of the author or committer of the commit. You'll receive a `422` status code if `name` is omitted."
+        },
         "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.YXV0aG9y.display_name": {
           "source": "Author",
           "message": "Author"
@@ -2322,6 +2618,34 @@
         "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.YXV0aG9y.desc": {
           "source": "The author of the file. Default: The `committer` or the authenticated user if you omit `committer`.",
           "message": "The author of the file. Default: The `committer` or the authenticated user if you omit `committer`."
+        },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.YXV0aG9y.field.ZGF0ZQ.display_name": {
+          "source": "Date",
+          "message": "Date"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.YXV0aG9y.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.YXV0aG9y.field.ZW1haWw.short_desc": {
+          "source": "The email of the author or committer of the commit",
+          "message": "The email of the author or committer of the commit"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.YXV0aG9y.field.ZW1haWw.desc": {
+          "source": "The email of the author or committer of the commit. You'll receive a `422` status code if `email` is omitted.",
+          "message": "The email of the author or committer of the commit. You'll receive a `422` status code if `email` is omitted."
+        },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.YXV0aG9y.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.YXV0aG9y.field.bmFtZQ.short_desc": {
+          "source": "The name of the author or committer of the commit",
+          "message": "The name of the author or committer of the commit"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtY3JlYXRlLW9yLXVwZGF0ZS1maWxlLWNvbnRlbnRz.option.YXV0aG9y.field.bmFtZQ.desc": {
+          "source": "The name of the author or committer of the commit. You'll receive a `422` status code if `name` is omitted.",
+          "message": "The name of the author or committer of the commit. You'll receive a `422` status code if `name` is omitted."
         },
         "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.display_name": {
           "source": "Delete File",
@@ -2419,6 +2743,30 @@
           "source": "object containing information about the committer.",
           "message": "object containing information about the committer."
         },
+        "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.Y29tbWl0dGVy.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.Y29tbWl0dGVy.field.ZW1haWw.short_desc": {
+          "source": "The email of the author (or committer) of the commit",
+          "message": "The email of the author (or committer) of the commit"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.Y29tbWl0dGVy.field.ZW1haWw.desc": {
+          "source": "The email of the author (or committer) of the commit",
+          "message": "The email of the author (or committer) of the commit"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.Y29tbWl0dGVy.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.Y29tbWl0dGVy.field.bmFtZQ.short_desc": {
+          "source": "The name of the author (or committer) of the commit",
+          "message": "The name of the author (or committer) of the commit"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.Y29tbWl0dGVy.field.bmFtZQ.desc": {
+          "source": "The name of the author (or committer) of the commit",
+          "message": "The name of the author (or committer) of the commit"
+        },
         "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.YXV0aG9y.display_name": {
           "source": "Author",
           "message": "Author"
@@ -2430,6 +2778,30 @@
         "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.YXV0aG9y.desc": {
           "source": "object containing information about the author.",
           "message": "object containing information about the author."
+        },
+        "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.YXV0aG9y.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.YXV0aG9y.field.ZW1haWw.short_desc": {
+          "source": "The email of the author (or committer) of the commit",
+          "message": "The email of the author (or committer) of the commit"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.YXV0aG9y.field.ZW1haWw.desc": {
+          "source": "The email of the author (or committer) of the commit",
+          "message": "The email of the author (or committer) of the commit"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.YXV0aG9y.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.YXV0aG9y.field.bmFtZQ.short_desc": {
+          "source": "The name of the author (or committer) of the commit",
+          "message": "The name of the author (or committer) of the commit"
+        },
+        "app.R2l0aHVi.action.cmVwb3MtZGVsZXRlLWZpbGU.option.YXV0aG9y.field.bmFtZQ.desc": {
+          "source": "The name of the author (or committer) of the commit",
+          "message": "The name of the author (or committer) of the commit"
         },
         "app.R2l0aHVi.action.aXNzdWVzLWxpc3QtZm9yLXJlcG8.display_name": {
           "source": "List Issues",
@@ -2967,6 +3339,22 @@
           "source": "Label names. A label that does not exist in the repository is created by GitHub when it is applied.",
           "message": "Label names. A label that does not exist in the repository is created by GitHub when it is applied."
         },
+        "app.R2l0aHVi.action.aXNzdWVzLWNyZWF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjNiYzA4NmViODg0ODFmNWJiYjljZDZmM2JmNGU4M2JhNzdkYjRjZjgzZTNiZjNiOGRlZTc4ZWZhZGI1MWZjOA.field.Y29sb3I.display_name": {
+          "source": "Color",
+          "message": "Color"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWNyZWF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjNiYzA4NmViODg0ODFmNWJiYjljZDZmM2JmNGU4M2JhNzdkYjRjZjgzZTNiZjNiOGRlZTc4ZWZhZGI1MWZjOA.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "Description"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWNyZWF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjNiYzA4NmViODg0ODFmNWJiYjljZDZmM2JmNGU4M2JhNzdkYjRjZjgzZTNiZjNiOGRlZTc4ZWZhZGI1MWZjOA.field.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWNyZWF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjNiYzA4NmViODg0ODFmNWJiYjljZDZmM2JmNGU4M2JhNzdkYjRjZjgzZTNiZjNiOGRlZTc4ZWZhZGI1MWZjOA.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
         "app.R2l0aHVi.action.aXNzdWVzLWNyZWF0ZQ.option.bWlsZXN0b25l.display_name": {
           "source": "Milestone",
           "message": "Milestone"
@@ -2994,6 +3382,30 @@
         "app.R2l0aHVi.action.aXNzdWVzLWNyZWF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.desc": {
           "source": "An array of issue field values to set on this issue. Each field value must include the field ID and the value to set. Issue fields are only available for organization-owned repositories with the feature enabled. Field values are silently dropped otherwise.",
           "message": "An array of issue field values to set on this issue. Each field value must include the field ID and the value to set. Issue fields are only available for organization-owned repositories with the feature enabled. Field values are silently dropped otherwise."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWNyZWF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.ZmllbGRfaWQ.display_name": {
+          "source": "Field ID",
+          "message": "Field ID"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWNyZWF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.ZmllbGRfaWQ.short_desc": {
+          "source": "The ID of the issue field to set",
+          "message": "The ID of the issue field to set"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWNyZWF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.ZmllbGRfaWQ.desc": {
+          "source": "The ID of the issue field to set",
+          "message": "The ID of the issue field to set"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWNyZWF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWNyZWF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.dmFsdWU.short_desc": {
+          "source": "The value to set for the field",
+          "message": "The value to set for the field"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWNyZWF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.dmFsdWU.desc": {
+          "source": "The value to set for the field. For multi-select fields, provide an array of option names.",
+          "message": "The value to set for the field. For multi-select fields, provide an array of option names."
         },
         "app.R2l0aHVi.action.aXNzdWVzLWNyZWF0ZQ.option.dHlwZQ.display_name": {
           "source": "Type",
@@ -3139,6 +3551,58 @@
           "source": "GitHub only accepts assignees with **push access** to the repository and silently ignores the rest, so this dropdown lists the repository's collaborators.",
           "message": "GitHub only accepts assignees with **push access** to the repository and silently ignores the rest, so this dropdown lists the repository's collaborators."
         },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjY1ZmU1M2M0MzA3ZDczMWY5ZDNiMjdjZWJhMWM5NTNjNmRhM2NkNTI3N2FkZTJkZmFhZmM5NzdjNjIyMDc3ZA.field.Y29uZmlkZW5jZQ.display_name": {
+          "source": "Confidence",
+          "message": "Confidence"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjY1ZmU1M2M0MzA3ZDczMWY5ZDNiMjdjZWJhMWM5NTNjNmRhM2NkNTI3N2FkZTJkZmFhZmM5NzdjNjIyMDc3ZA.field.Y29uZmlkZW5jZQ.short_desc": {
+          "source": "The confidence level for this assignee choice",
+          "message": "The confidence level for this assignee choice"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjY1ZmU1M2M0MzA3ZDczMWY5ZDNiMjdjZWJhMWM5NTNjNmRhM2NkNTI3N2FkZTJkZmFhZmM5NzdjNjIyMDc3ZA.field.Y29uZmlkZW5jZQ.desc": {
+          "source": "The confidence level for this assignee choice.",
+          "message": "The confidence level for this assignee choice."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjY1ZmU1M2M0MzA3ZDczMWY5ZDNiMjdjZWJhMWM5NTNjNmRhM2NkNTI3N2FkZTJkZmFhZmM5NzdjNjIyMDc3ZA.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "low",
+          "message": "low"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjY1ZmU1M2M0MzA3ZDczMWY5ZDNiMjdjZWJhMWM5NTNjNmRhM2NkNTI3N2FkZTJkZmFhZmM5NzdjNjIyMDc3ZA.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOm1lZGl1bQ.display_name": {
+          "source": "medium",
+          "message": "medium"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjY1ZmU1M2M0MzA3ZDczMWY5ZDNiMjdjZWJhMWM5NTNjNmRhM2NkNTI3N2FkZTJkZmFhZmM5NzdjNjIyMDc3ZA.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "high",
+          "message": "high"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjY1ZmU1M2M0MzA3ZDczMWY5ZDNiMjdjZWJhMWM5NTNjNmRhM2NkNTI3N2FkZTJkZmFhZmM5NzdjNjIyMDc3ZA.field.bG9naW4.display_name": {
+          "source": "Login",
+          "message": "Login"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjY1ZmU1M2M0MzA3ZDczMWY5ZDNiMjdjZWJhMWM5NTNjNmRhM2NkNTI3N2FkZTJkZmFhZmM5NzdjNjIyMDc3ZA.field.cmF0aW9uYWxl.display_name": {
+          "source": "Rationale",
+          "message": "Rationale"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjY1ZmU1M2M0MzA3ZDczMWY5ZDNiMjdjZWJhMWM5NTNjNmRhM2NkNTI3N2FkZTJkZmFhZmM5NzdjNjIyMDc3ZA.field.cmF0aW9uYWxl.short_desc": {
+          "source": "Optional reasoning for selecting this assignee",
+          "message": "Optional reasoning for selecting this assignee"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjY1ZmU1M2M0MzA3ZDczMWY5ZDNiMjdjZWJhMWM5NTNjNmRhM2NkNTI3N2FkZTJkZmFhZmM5NzdjNjIyMDc3ZA.field.cmF0aW9uYWxl.desc": {
+          "source": "Optional reasoning for selecting this assignee.",
+          "message": "Optional reasoning for selecting this assignee."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjY1ZmU1M2M0MzA3ZDczMWY5ZDNiMjdjZWJhMWM5NTNjNmRhM2NkNTI3N2FkZTJkZmFhZmM5NzdjNjIyMDc3ZA.field.c3VnZ2VzdA.display_name": {
+          "source": "Suggest",
+          "message": "Suggest"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjY1ZmU1M2M0MzA3ZDczMWY5ZDNiMjdjZWJhMWM5NTNjNmRhM2NkNTI3N2FkZTJkZmFhZmM5NzdjNjIyMDc3ZA.field.c3VnZ2VzdA.short_desc": {
+          "source": "If 'true', the change is stored as a pending suggestion for human review…",
+          "message": "If 'true', the change is stored as a pending suggestion for human review…"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjYjY1ZmU1M2M0MzA3ZDczMWY5ZDNiMjdjZWJhMWM5NTNjNmRhM2NkNTI3N2FkZTJkZmFhZmM5NzdjNjIyMDc3ZA.field.c3VnZ2VzdA.desc": {
+          "source": "If `true`, the change is stored as a pending suggestion for human review rather than applied directly.",
+          "message": "If `true`, the change is stored as a pending suggestion for human review rather than applied directly."
+        },
         "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.display_name": {
           "source": "Labels",
           "message": "Labels"
@@ -3150,6 +3614,70 @@
         "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.desc": {
           "source": "Label names. A label that does not exist in the repository is created by GitHub when it is applied.",
           "message": "Label names. A label that does not exist in the repository is created by GitHub when it is applied."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.Y29sb3I.display_name": {
+          "source": "Color",
+          "message": "Color"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.Y29uZmlkZW5jZQ.display_name": {
+          "source": "Confidence",
+          "message": "Confidence"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.Y29uZmlkZW5jZQ.short_desc": {
+          "source": "The confidence level for this label choice",
+          "message": "The confidence level for this label choice"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.Y29uZmlkZW5jZQ.desc": {
+          "source": "The confidence level for this label choice.",
+          "message": "The confidence level for this label choice."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "low",
+          "message": "low"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOm1lZGl1bQ.display_name": {
+          "source": "medium",
+          "message": "medium"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "high",
+          "message": "high"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "Description"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.cmF0aW9uYWxl.display_name": {
+          "source": "Rationale",
+          "message": "Rationale"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.cmF0aW9uYWxl.short_desc": {
+          "source": "Optional reasoning for selecting this label",
+          "message": "Optional reasoning for selecting this label"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.cmF0aW9uYWxl.desc": {
+          "source": "Optional reasoning for selecting this label.",
+          "message": "Optional reasoning for selecting this label."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.c3VnZ2VzdA.display_name": {
+          "source": "Suggest",
+          "message": "Suggest"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.c3VnZ2VzdA.short_desc": {
+          "source": "If 'true', the change is stored as a pending suggestion for human review…",
+          "message": "If 'true', the change is stored as a pending suggestion for human review…"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bGFiZWxz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjNGJlNDgxMDZhNzZiZDcxMDM5ZTg2N2E3ZmUzNmM0MzM0OWU2YjdkZGQ5YzJkYWU5NGU0NjllYTRiOWUwNTBmMA.field.c3VnZ2VzdA.desc": {
+          "source": "If `true`, the change is stored as a pending suggestion for human review rather than applied directly.",
+          "message": "If `true`, the change is stored as a pending suggestion for human review rather than applied directly."
         },
         "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.bWlsZXN0b25l.display_name": {
           "source": "Milestone",
@@ -3191,6 +3719,78 @@
           "source": "An array of issue field values to set on this issue. Each field value must include the field ID and the value to set. Only users with push access can set field values for issues",
           "message": "An array of issue field values to set on this issue. Each field value must include the field ID and the value to set. Only users with push access can set field values for issues"
         },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.Y29uZmlkZW5jZQ.display_name": {
+          "source": "Confidence",
+          "message": "Confidence"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.Y29uZmlkZW5jZQ.short_desc": {
+          "source": "The confidence level for this field value choice",
+          "message": "The confidence level for this field value choice"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.Y29uZmlkZW5jZQ.desc": {
+          "source": "The confidence level for this field value choice.",
+          "message": "The confidence level for this field value choice."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "low",
+          "message": "low"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOm1lZGl1bQ.display_name": {
+          "source": "medium",
+          "message": "medium"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "high",
+          "message": "high"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.ZmllbGRfaWQ.display_name": {
+          "source": "Field ID",
+          "message": "Field ID"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.ZmllbGRfaWQ.short_desc": {
+          "source": "The ID of the issue field to set",
+          "message": "The ID of the issue field to set"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.ZmllbGRfaWQ.desc": {
+          "source": "The ID of the issue field to set",
+          "message": "The ID of the issue field to set"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.cmF0aW9uYWxl.display_name": {
+          "source": "Rationale",
+          "message": "Rationale"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.cmF0aW9uYWxl.short_desc": {
+          "source": "Optional reasoning for setting this field value",
+          "message": "Optional reasoning for setting this field value"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.cmF0aW9uYWxl.desc": {
+          "source": "Optional reasoning for setting this field value.",
+          "message": "Optional reasoning for setting this field value."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.c3VnZ2VzdA.display_name": {
+          "source": "Suggest",
+          "message": "Suggest"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.c3VnZ2VzdA.short_desc": {
+          "source": "If 'true', the change is stored as a pending suggestion for human review…",
+          "message": "If 'true', the change is stored as a pending suggestion for human review…"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.c3VnZ2VzdA.desc": {
+          "source": "If `true`, the change is stored as a pending suggestion for human review rather than applied directly.",
+          "message": "If `true`, the change is stored as a pending suggestion for human review rather than applied directly."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.dmFsdWU.short_desc": {
+          "source": "The value to set for the field",
+          "message": "The value to set for the field"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.aXNzdWVfZmllbGRfdmFsdWVz.field.dmFsdWU.desc": {
+          "source": "The value to set for the field. For multi-select fields, provide an array of option names.",
+          "message": "The value to set for the field. For multi-select fields, provide an array of option names."
+        },
         "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.display_name": {
           "source": "Type",
           "message": "Type"
@@ -3202,6 +3802,66 @@
         "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.desc": {
           "source": "The issue type to associate with this issue. Only users with push access can set the type for issues. Without push access to the repository, type changes are silently dropped.",
           "message": "The issue type to associate with this issue. Only users with push access can set the type for issues. Without push access to the repository, type changes are silently dropped."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.Y29uZmlkZW5jZQ.display_name": {
+          "source": "Confidence",
+          "message": "Confidence"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.Y29uZmlkZW5jZQ.short_desc": {
+          "source": "The confidence level for this type choice",
+          "message": "The confidence level for this type choice"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.Y29uZmlkZW5jZQ.desc": {
+          "source": "The confidence level for this type choice.",
+          "message": "The confidence level for this type choice."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "low",
+          "message": "low"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOm1lZGl1bQ.display_name": {
+          "source": "medium",
+          "message": "medium"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "high",
+          "message": "high"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.cmF0aW9uYWxl.display_name": {
+          "source": "Rationale",
+          "message": "Rationale"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.cmF0aW9uYWxl.short_desc": {
+          "source": "Optional reasoning for selecting this type",
+          "message": "Optional reasoning for selecting this type"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.cmF0aW9uYWxl.desc": {
+          "source": "Optional reasoning for selecting this type.",
+          "message": "Optional reasoning for selecting this type."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.c3VnZ2VzdA.display_name": {
+          "source": "Suggest",
+          "message": "Suggest"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.c3VnZ2VzdA.short_desc": {
+          "source": "If 'true', the change is stored as a pending suggestion for human review…",
+          "message": "If 'true', the change is stored as a pending suggestion for human review…"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.c3VnZ2VzdA.desc": {
+          "source": "If `true`, the change is stored as a pending suggestion for human review rather than applied directly.",
+          "message": "If `true`, the change is stored as a pending suggestion for human review rather than applied directly."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.dmFsdWU.short_desc": {
+          "source": "The name of the issue type to associate with this issue, or 'null' to remove…",
+          "message": "The name of the issue type to associate with this issue, or 'null' to remove…"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLXVwZGF0ZQ.option.dHlwZQ.union.SGFzaERhdGFUeXBlOip0eXBlT25lT2YjYTNkY2RmNDkwNTIxYTc3ZmIzNDBiM2EyNWU5NTQ1ZDQwZTkwYjMzMWYzZTQwYmRhYzY4Mzc0ZTdlYTkzNjgwYg.field.dmFsdWU.desc": {
+          "source": "The name of the issue type to associate with this issue, or `null` to remove the current issue type.",
+          "message": "The name of the issue type to associate with this issue, or `null` to remove the current issue type."
         },
         "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.display_name": {
           "source": "Add Assignees",
@@ -3262,6 +3922,66 @@
         "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.desc": {
           "source": "GitHub only accepts assignees with **push access** to the repository and silently ignores the rest, so this dropdown lists the repository's collaborators.",
           "message": "GitHub only accepts assignees with **push access** to the repository and silently ignores the rest, so this dropdown lists the repository's collaborators."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.Y29uZmlkZW5jZQ.display_name": {
+          "source": "Confidence",
+          "message": "Confidence"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.Y29uZmlkZW5jZQ.short_desc": {
+          "source": "The confidence level for this assignee choice",
+          "message": "The confidence level for this assignee choice"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.Y29uZmlkZW5jZQ.desc": {
+          "source": "The confidence level for this assignee choice.",
+          "message": "The confidence level for this assignee choice."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOmxvdw.display_name": {
+          "source": "low",
+          "message": "low"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOm1lZGl1bQ.display_name": {
+          "source": "medium",
+          "message": "medium"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.Y29uZmlkZW5jZQ.allowed-value.c3RyaW5nOmhpZ2g.display_name": {
+          "source": "high",
+          "message": "high"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.bG9naW4.display_name": {
+          "source": "Login",
+          "message": "Login"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.bG9naW4.short_desc": {
+          "source": "The login of the user to assign",
+          "message": "The login of the user to assign"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.bG9naW4.desc": {
+          "source": "The login of the user to assign.",
+          "message": "The login of the user to assign."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.cmF0aW9uYWxl.display_name": {
+          "source": "Rationale",
+          "message": "Rationale"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.cmF0aW9uYWxl.short_desc": {
+          "source": "Optional reasoning for adding this assignee",
+          "message": "Optional reasoning for adding this assignee"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.cmF0aW9uYWxl.desc": {
+          "source": "Optional reasoning for adding this assignee.",
+          "message": "Optional reasoning for adding this assignee."
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.c3VnZ2VzdA.display_name": {
+          "source": "Suggest",
+          "message": "Suggest"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.c3VnZ2VzdA.short_desc": {
+          "source": "If 'true', the assignee is stored as a pending suggestion for human review…",
+          "message": "If 'true', the assignee is stored as a pending suggestion for human review…"
+        },
+        "app.R2l0aHVi.action.aXNzdWVzLWFkZC1hc3NpZ25lZXM.option.YXNzaWduZWVz.union.SGFzaERhdGFUeXBlOml0ZW1zT25lT2YjMmM3Mjg1YTgzZjg4NzRjY2MzNDAxMWNmMGQyYTBiOWZjZDk5YTZlMjFhMGI3NGJmYjczNDg4NjhkNTA4MDAyNw.field.c3VnZ2VzdA.desc": {
+          "source": "If `true`, the assignee is stored as a pending suggestion for human review rather than applied directly.",
+          "message": "If `true`, the assignee is stored as a pending suggestion for human review rather than applied directly."
         },
         "app.R2l0aHVi.action.aXNzdWVzLXJlbW92ZS1hc3NpZ25lZXM.display_name": {
           "source": "Remove Assignees",

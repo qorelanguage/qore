@@ -3,245 +3,29 @@
   "locales": {
     "sk": {
       "messages": {
-        "app.TW9uZ29EQg.action.Y291bnQ.desc": {
-          "source": "Counts the documents in a MongoDB collection matching a filter, without returning any of them.\n\nThis takes the same filter as **Find Documents**, so it is the cheap way to ask how large a result would be before asking for the result itself.",
-          "message": "Spočíta dokumenty kolekcie MongoDB zodpovedajúce filtru bez toho, aby niektorý z nich vrátil.\n\nPrijíma ten istý filter ako akcia **Nájsť dokumenty**, takže je to lacný spôsob, ako zistiť veľkosť výsledku skôr, než si o samotný výsledok poviete."
+        "app.TW9uZ29EQg.display_name": {
+          "source": "MongoDB Server",
+          "message": "MongoDB Server"
         },
-        "app.TW9uZ29EQg.action.Y291bnQ.display_name": {
-          "source": "Count Documents",
-          "message": "Spočítať dokumenty"
+        "app.TW9uZ29EQg.short_desc": {
+          "source": "MongoDB NoSQL database",
+          "message": "NoSQL databáza MongoDB"
         },
-        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcia"
-        },
-        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Názov databázy MongoDB"
-        },
-        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.display_name": {
-          "source": "Database",
-          "message": "Databáza"
-        },
-        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.short_desc": {
-          "source": "MongoDB database name",
-          "message": "Názov databázy MongoDB"
-        },
-        "app.TW9uZ29EQg.action.Y291bnQ.short_desc": {
-          "source": "Count the documents matching a filter",
-          "message": "Spočítať dokumenty zodpovedajúce filtru"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.desc": {
-          "source": "Execute an aggregation pipeline on a MongoDB collection",
-          "message": "Vykonať agregačnú pipeline na kolekcii MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.display_name": {
-          "source": "Aggregation Pipeline",
-          "message": "Agregačná pipeline"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcia"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Názov databázy MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.ZGF0YWJhc2U.display_name": {
-          "source": "Database",
-          "message": "Databáza"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.ZGF0YWJhc2U.short_desc": {
-          "source": "MongoDB database name",
-          "message": "Názov databázy MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YWdncmVnYXRl.short_desc": {
-          "source": "Run aggregation pipeline",
-          "message": "Spustiť agregačnú pipeline"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.desc": {
-          "source": "Execute bulk insert, update, and delete operations on a MongoDB collection",
-          "message": "Vykonať hromadné operácie vkladania, aktualizácie a mazania na kolekcii MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.display_name": {
-          "source": "Bulk Operations",
-          "message": "Hromadné operácie"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcia"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Názov databázy MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.option.ZGF0YWJhc2U.display_name": {
-          "source": "Database",
-          "message": "Databáza"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.option.ZGF0YWJhc2U.short_desc": {
-          "source": "MongoDB database name",
-          "message": "Názov databázy MongoDB"
-        },
-        "app.TW9uZ29EQg.action.YnVsaw.short_desc": {
-          "source": "Execute bulk write operations",
-          "message": "Vykonať hromadné operácie zápisu"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.desc": {
-          "source": "Delete one or more documents from a MongoDB collection",
-          "message": "Odstrániť jeden alebo viac dokumentov z kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.display_name": {
-          "source": "Delete Documents",
-          "message": "Odstrániť dokumenty"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcia"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Názov databázy MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.option.ZGF0YWJhc2U.display_name": {
-          "source": "Database",
-          "message": "Databáza"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.option.ZGF0YWJhc2U.short_desc": {
-          "source": "MongoDB database name",
-          "message": "Názov databázy MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZGVsZXRl.short_desc": {
-          "source": "Delete documents from a collection",
-          "message": "Odstrániť dokumenty z kolekcie"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.desc": {
-          "source": "Find documents in a MongoDB collection using query filters",
-          "message": "Nájsť dokumenty v kolekcii MongoDB pomocou filtrov dotazu"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.display_name": {
-          "source": "Find Documents",
-          "message": "Nájsť dokumenty"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcia"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Názov databázy MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.option.ZGF0YWJhc2U.display_name": {
-          "source": "Database",
-          "message": "Databáza"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.option.ZGF0YWJhc2U.short_desc": {
-          "source": "MongoDB database name",
-          "message": "Názov databázy MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZA.short_desc": {
-          "source": "Query documents in a collection",
-          "message": "Vyhľadať dokumenty v kolekcii"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.desc": {
-          "source": "Returns the first document in a MongoDB collection matching a filter, as the document itself rather than as a list holding it.\n\nUse this where at most one document is wanted - a lookup by `_id`, say - and **Find Documents** where several are.  The result reports `found` separately, so a flow can branch on whether anything matched without testing the document.",
-          "message": "Vráti prvý dokument kolekcie MongoDB, ktorý zodpovedá filtru, a to samotný dokument namiesto zoznamu, ktorý ho obsahuje.\n\nPoužite to tam, kde sa čaká nanajvýš jeden dokument – napríklad vyhľadanie podľa `_id` – a akciu **Nájsť dokumenty** tam, kde je ich viac.  Výsledok uvádza `found` zvlášť, takže sa podľa neho postup môže vetviť bez toho, aby musel dokument skúmať."
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.display_name": {
-          "source": "Find One Document",
-          "message": "Nájsť jeden dokument"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcia"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Názov databázy MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.display_name": {
-          "source": "Database",
-          "message": "Databáza"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.short_desc": {
-          "source": "MongoDB database name",
-          "message": "Názov databázy MongoDB"
-        },
-        "app.TW9uZ29EQg.action.ZmluZC1vbmU.short_desc": {
-          "source": "Return the first document matching a filter",
-          "message": "Vrátiť prvý dokument zodpovedajúci filtru"
-        },
-        "app.TW9uZ29EQg.action.aW5zZXJ0.desc": {
-          "source": "Insert one or more documents into a MongoDB collection",
-          "message": "Vložiť jeden alebo viac dokumentov do kolekcie MongoDB"
+        "app.TW9uZ29EQg.desc": {
+          "source": "MongoDB is a document-oriented NoSQL database for high volume data storage",
+          "message": "MongoDB je dokumentovo orientovaná databáza NoSQL pre ukladanie veľkých objemov dát"
         },
         "app.TW9uZ29EQg.action.aW5zZXJ0.display_name": {
           "source": "Insert Document",
           "message": "Vložiť dokument"
         },
-        "app.TW9uZ29EQg.action.aW5zZXJ0.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Názov kolekcie MongoDB"
+        "app.TW9uZ29EQg.action.aW5zZXJ0.short_desc": {
+          "source": "Insert a document into a collection",
+          "message": "Vložiť dokument do kolekcie"
         },
-        "app.TW9uZ29EQg.action.aW5zZXJ0.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcia"
-        },
-        "app.TW9uZ29EQg.action.aW5zZXJ0.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.aW5zZXJ0.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Názov databázy MongoDB"
+        "app.TW9uZ29EQg.action.aW5zZXJ0.desc": {
+          "source": "Insert one or more documents into a MongoDB collection",
+          "message": "Vložiť jeden alebo viac dokumentov do kolekcie MongoDB"
         },
         "app.TW9uZ29EQg.action.aW5zZXJ0.option.ZGF0YWJhc2U.display_name": {
           "source": "Database",
@@ -251,33 +35,69 @@
           "source": "MongoDB database name",
           "message": "Názov databázy MongoDB"
         },
-        "app.TW9uZ29EQg.action.aW5zZXJ0.short_desc": {
-          "source": "Insert a document into a collection",
-          "message": "Vložiť dokument do kolekcie"
+        "app.TW9uZ29EQg.action.aW5zZXJ0.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Názov databázy MongoDB"
         },
-        "app.TW9uZ29EQg.action.dXBkYXRl.desc": {
-          "source": "Update one or more documents in a MongoDB collection",
-          "message": "Aktualizovať jeden alebo viac dokumentov v kolekcii MongoDB"
+        "app.TW9uZ29EQg.action.aW5zZXJ0.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcia"
+        },
+        "app.TW9uZ29EQg.action.aW5zZXJ0.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.aW5zZXJ0.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.display_name": {
+          "source": "Find Documents",
+          "message": "Nájsť dokumenty"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.short_desc": {
+          "source": "Query documents in a collection",
+          "message": "Vyhľadať dokumenty v kolekcii"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.desc": {
+          "source": "Find documents in a MongoDB collection using query filters",
+          "message": "Nájsť dokumenty v kolekcii MongoDB pomocou filtrov dotazu"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Databáza"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Názov databázy MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Názov databázy MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcia"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZA.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Názov kolekcie MongoDB"
         },
         "app.TW9uZ29EQg.action.dXBkYXRl.display_name": {
           "source": "Update Documents",
           "message": "Aktualizovať dokumenty"
         },
-        "app.TW9uZ29EQg.action.dXBkYXRl.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Názov kolekcie MongoDB"
+        "app.TW9uZ29EQg.action.dXBkYXRl.short_desc": {
+          "source": "Update documents in a collection",
+          "message": "Aktualizovať dokumenty v kolekcii"
         },
-        "app.TW9uZ29EQg.action.dXBkYXRl.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcia"
-        },
-        "app.TW9uZ29EQg.action.dXBkYXRl.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.dXBkYXRl.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Názov databázy MongoDB"
+        "app.TW9uZ29EQg.action.dXBkYXRl.desc": {
+          "source": "Update one or more documents in a MongoDB collection",
+          "message": "Aktualizovať jeden alebo viac dokumentov v kolekcii MongoDB"
         },
         "app.TW9uZ29EQg.action.dXBkYXRl.option.ZGF0YWJhc2U.display_name": {
           "source": "Database",
@@ -287,33 +107,213 @@
           "source": "MongoDB database name",
           "message": "Názov databázy MongoDB"
         },
-        "app.TW9uZ29EQg.action.dXBkYXRl.short_desc": {
-          "source": "Update documents in a collection",
-          "message": "Aktualizovať dokumenty v kolekcii"
+        "app.TW9uZ29EQg.action.dXBkYXRl.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Názov databázy MongoDB"
         },
-        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.desc": {
-          "source": "Runs an [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/) query: given a query vector, returns the documents whose stored embeddings are nearest to it, each with its similarity `score`.\n\nThis is the retrieval step of a RAG pipeline done in the database, so the documents and their embeddings stay in one place instead of being copied into a separate vector store.\n\n**Requires an Atlas vector search index** on the collection, naming the field that holds the embeddings; `index_name` and `path` must match it.  Available on Atlas clusters only, not on a self-managed server.",
-          "message": "Vykoná dotaz [vektorového vyhľadávania Atlas](https://www.mongodb.com/docs/atlas/atlas-vector-search/): pre zadaný dotazovací vektor vráti dokumenty, ktorých uložené vnorenia sú mu najbližšie, každý s jeho mierou podobnosti `score`.\n\nJe to krok získavania v RAG pipeline vykonaný priamo v databáze, takže dokumenty aj ich vnorenia zostávajú na jednom mieste namiesto toho, aby sa kopírovali do samostatného vektorového úložiska.\n\n**Vyžaduje index vektorového vyhľadávania Atlas** nad kolekciou, ktorý určuje pole s vnoreniami; `index_name` a `path` mu musia zodpovedať.  Dostupné iba na clusteroch Atlas, nie na vlastnoručne prevádzkovanom serveri."
+        "app.TW9uZ29EQg.action.dXBkYXRl.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcia"
+        },
+        "app.TW9uZ29EQg.action.dXBkYXRl.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.dXBkYXRl.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.display_name": {
+          "source": "Delete Documents",
+          "message": "Odstrániť dokumenty"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.short_desc": {
+          "source": "Delete documents from a collection",
+          "message": "Odstrániť dokumenty z kolekcie"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.desc": {
+          "source": "Delete one or more documents from a MongoDB collection",
+          "message": "Odstrániť jeden alebo viac dokumentov z kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Databáza"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Názov databázy MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Názov databázy MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcia"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZGVsZXRl.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.display_name": {
+          "source": "Aggregation Pipeline",
+          "message": "Agregačná pipeline"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.short_desc": {
+          "source": "Run aggregation pipeline",
+          "message": "Spustiť agregačnú pipeline"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.desc": {
+          "source": "Execute an aggregation pipeline on a MongoDB collection",
+          "message": "Vykonať agregačnú pipeline na kolekcii MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Databáza"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Názov databázy MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Názov databázy MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcia"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YWdncmVnYXRl.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.display_name": {
+          "source": "Bulk Operations",
+          "message": "Hromadné operácie"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.short_desc": {
+          "source": "Execute bulk write operations",
+          "message": "Vykonať hromadné operácie zápisu"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.desc": {
+          "source": "Execute bulk insert, update, and delete operations on a MongoDB collection",
+          "message": "Vykonať hromadné operácie vkladania, aktualizácie a mazania na kolekcii MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Databáza"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Názov databázy MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Názov databázy MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcia"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.YnVsaw.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.display_name": {
+          "source": "Find One Document",
+          "message": "Nájsť jeden dokument"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.short_desc": {
+          "source": "Return the first document matching a filter",
+          "message": "Vrátiť prvý dokument zodpovedajúci filtru"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.desc": {
+          "source": "Returns the first document in a MongoDB collection matching a filter, as the document itself rather than as a list holding it.\n\nUse this where at most one document is wanted - a lookup by `_id`, say - and **Find Documents** where several are.  The result reports `found` separately, so a flow can branch on whether anything matched without testing the document.",
+          "message": "Vráti prvý dokument kolekcie MongoDB, ktorý zodpovedá filtru, a to samotný dokument namiesto zoznamu, ktorý ho obsahuje.\n\nPoužite to tam, kde sa čaká nanajvýš jeden dokument – napríklad vyhľadanie podľa `_id` – a akciu **Nájsť dokumenty** tam, kde je ich viac.  Výsledok uvádza `found` zvlášť, takže sa podľa neho postup môže vetviť bez toho, aby musel dokument skúmať."
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Databáza"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Názov databázy MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Názov databázy MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcia"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.ZmluZC1vbmU.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.display_name": {
+          "source": "Count Documents",
+          "message": "Spočítať dokumenty"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.short_desc": {
+          "source": "Count the documents matching a filter",
+          "message": "Spočítať dokumenty zodpovedajúce filtru"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.desc": {
+          "source": "Counts the documents in a MongoDB collection matching a filter, without returning any of them.\n\nThis takes the same filter as **Find Documents**, so it is the cheap way to ask how large a result would be before asking for the result itself.",
+          "message": "Spočíta dokumenty kolekcie MongoDB zodpovedajúce filtru bez toho, aby niektorý z nich vrátil.\n\nPrijíma ten istý filter ako akcia **Nájsť dokumenty**, takže je to lacný spôsob, ako zistiť veľkosť výsledku skôr, než si o samotný výsledok poviete."
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.display_name": {
+          "source": "Database",
+          "message": "Databáza"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.short_desc": {
+          "source": "MongoDB database name",
+          "message": "Názov databázy MongoDB"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Názov databázy MongoDB"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcia"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Názov kolekcie MongoDB"
+        },
+        "app.TW9uZ29EQg.action.Y291bnQ.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Názov kolekcie MongoDB"
         },
         "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.display_name": {
           "source": "Vector Search",
           "message": "Vektorové vyhľadávanie"
         },
-        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.desc": {
-          "source": "The name of the MongoDB collection",
-          "message": "Názov kolekcie MongoDB"
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.short_desc": {
+          "source": "Find the documents nearest a query vector",
+          "message": "Nájsť dokumenty najbližšie k dotazovaciemu vektoru"
         },
-        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.display_name": {
-          "source": "Collection",
-          "message": "Kolekcia"
-        },
-        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.short_desc": {
-          "source": "MongoDB collection name",
-          "message": "Názov kolekcie MongoDB"
-        },
-        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.desc": {
-          "source": "The name of the MongoDB database",
-          "message": "Názov databázy MongoDB"
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.desc": {
+          "source": "Runs an [Atlas Vector Search](https://www.mongodb.com/docs/atlas/atlas-vector-search/) query: given a query vector, returns the documents whose stored embeddings are nearest to it, each with its similarity `score`.\n\nThis is the retrieval step of a RAG pipeline done in the database, so the documents and their embeddings stay in one place instead of being copied into a separate vector store.\n\n**Requires an Atlas vector search index** on the collection, naming the field that holds the embeddings; `index_name` and `path` must match it.  Available on Atlas clusters only, not on a self-managed server.",
+          "message": "Vykoná dotaz [vektorového vyhľadávania Atlas](https://www.mongodb.com/docs/atlas/atlas-vector-search/): pre zadaný dotazovací vektor vráti dokumenty, ktorých uložené vnorenia sú mu najbližšie, každý s jeho mierou podobnosti `score`.\n\nJe to krok získavania v RAG pipeline vykonaný priamo v databáze, takže dokumenty aj ich vnorenia zostávajú na jednom mieste namiesto toho, aby sa kopírovali do samostatného vektorového úložiska.\n\n**Vyžaduje index vektorového vyhľadávania Atlas** nad kolekciou, ktorý určuje pole s vnoreniami; `index_name` a `path` mu musia zodpovedať.  Dostupné iba na clusteroch Atlas, nie na vlastnoručne prevádzkovanom serveri."
         },
         "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.display_name": {
           "source": "Database",
@@ -323,21 +323,21 @@
           "source": "MongoDB database name",
           "message": "Názov databázy MongoDB"
         },
-        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.short_desc": {
-          "source": "Find the documents nearest a query vector",
-          "message": "Nájsť dokumenty najbližšie k dotazovaciemu vektoru"
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.ZGF0YWJhc2U.desc": {
+          "source": "The name of the MongoDB database",
+          "message": "Názov databázy MongoDB"
         },
-        "app.TW9uZ29EQg.desc": {
-          "source": "MongoDB is a document-oriented NoSQL database for high volume data storage",
-          "message": "MongoDB je dokumentovo orientovaná databáza NoSQL pre ukladanie veľkých objemov dát"
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.display_name": {
+          "source": "Collection",
+          "message": "Kolekcia"
         },
-        "app.TW9uZ29EQg.display_name": {
-          "source": "MongoDB Server",
-          "message": "MongoDB Server"
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.short_desc": {
+          "source": "MongoDB collection name",
+          "message": "Názov kolekcie MongoDB"
         },
-        "app.TW9uZ29EQg.short_desc": {
-          "source": "MongoDB NoSQL database",
-          "message": "NoSQL databáza MongoDB"
+        "app.TW9uZ29EQg.action.dmVjdG9yLXNlYXJjaA.option.Y29sbGVjdGlvbg.desc": {
+          "source": "The name of the MongoDB collection",
+          "message": "Názov kolekcie MongoDB"
         }
       }
     }

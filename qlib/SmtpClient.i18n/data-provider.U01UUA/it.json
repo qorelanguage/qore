@@ -3,105 +3,29 @@
   "locales": {
     "it": {
       "messages": {
-        "app.U01UUA.action.c2VuZC1lbWFpbA.desc": {
-          "source": "Send an email through a generic SMTP server",
-          "message": "Invia un'e-mail tramite un server SMTP generico"
+        "app.U01UUA.display_name": {
+          "source": "SMTP Server",
+          "message": "Server SMTP"
+        },
+        "app.U01UUA.short_desc": {
+          "source": "Generic SMTP server for sending emails",
+          "message": "Server SMTP generico per l'invio di e-mail"
+        },
+        "app.U01UUA.desc": {
+          "source": "Generic SMTP server for sending emails",
+          "message": "Server SMTP generico per l'invio di e-mail"
         },
         "app.U01UUA.action.c2VuZC1lbWFpbA.display_name": {
           "source": "Send an Email With SMTP",
           "message": "Invia un'e-mail con SMTP"
         },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Y2M.desc": {
-          "source": "One or more `Cc:` addresses for the email",
-          "message": "Uno o più indirizzi `Cc:` per l'e-mail"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.short_desc": {
+          "source": "Send an email through a generic SMTP server",
+          "message": "Invia un'e-mail tramite un server SMTP generico"
         },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Y2M.display_name": {
-          "source": "CC",
-          "message": "CC"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Y2M.short_desc": {
-          "source": "Carbon copy addresses",
-          "message": "Indirizzi in copia conoscenza (Cc)"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.desc": {
-          "source": "Any attachments for the message",
-          "message": "Eventuali allegati per il messaggio"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.display_name": {
-          "source": "Attachments",
-          "message": "Allegati"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.short_desc": {
-          "source": "Message attachments",
-          "message": "Allegati del messaggio"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keQ.desc": {
-          "source": "The message body",
-          "message": "Il corpo del messaggio"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keQ.display_name": {
-          "source": "Message Body",
-          "message": "Corpo del messaggio"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keQ.short_desc": {
-          "source": "The message body",
-          "message": "Il corpo del messaggio"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOm5vbmU.desc": {
-          "source": "No content encoding (not recommended)",
-          "message": "Nessuna codifica dei contenuti (non consigliato)"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOmJhc2U2NA.desc": {
-          "source": "Base64 encoding",
-          "message": "Codifica Base64"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOmRlZmF1bHQ.desc": {
-          "source": "`quoted-printable` for string data, `base64` for binary data",
-          "message": "`quoted-printable` per dati stringa, `base64` per dati binari"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOnF1b3RlZC1wcmludGFibGU.desc": {
-          "source": "Quoted printable encoding",
-          "message": "Codifica Quoted-Printable"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.desc": {
-          "source": "The encoding to use for the message body",
-          "message": "La codifica da utilizzare per il corpo del messaggio"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.display_name": {
-          "source": "Body Encoding",
-          "message": "Codifica corpo"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.short_desc": {
-          "source": "The encoding to use for the body",
-          "message": "La codifica da utilizzare per il corpo"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1taW1lLXR5cGU.desc": {
-          "source": "The MIME type of the message body",
-          "message": "Il tipo MIME del corpo del messaggio"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1taW1lLXR5cGU.display_name": {
-          "source": "Body Mime Type",
-          "message": "Tipo MIME del corpo"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1taW1lLXR5cGU.short_desc": {
-          "source": "The MIME type of the message body",
-          "message": "Il tipo MIME del corpo del messaggio"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YmNj.desc": {
-          "source": "One or more `Bcc:` addresses for the email",
-          "message": "Uno o più indirizzi `Bcc:` per l'email"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YmNj.display_name": {
-          "source": "BCC",
-          "message": "CCN"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YmNj.short_desc": {
-          "source": "Blind carbon copy addresses",
-          "message": "Indirizzi in copia conoscenza nascosta"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c2VuZGVy.desc": {
-          "source": "The sender's address for the email",
-          "message": "L'indirizzo del mittente per l'email"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.desc": {
+          "source": "Send an email through a generic SMTP server",
+          "message": "Invia un'e-mail tramite un server SMTP generico"
         },
         "app.U01UUA.action.c2VuZC1lbWFpbA.option.c2VuZGVy.display_name": {
           "source": "Sender",
@@ -111,21 +35,9 @@
           "source": "The sender's address for the email",
           "message": "L'indirizzo del mittente per l'email"
         },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c3ViamVjdA.desc": {
-          "source": "The subject for the email",
-          "message": "L'oggetto dell'email"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c3ViamVjdA.display_name": {
-          "source": "Subject",
-          "message": "Oggetto"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c3ViamVjdA.short_desc": {
-          "source": "The subject for the email",
-          "message": "L'oggetto dell'email"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.dG8.desc": {
-          "source": "One or more `To:` addresses for the email",
-          "message": "Uno o più indirizzi `To:` per l'email"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c2VuZGVy.desc": {
+          "source": "The sender's address for the email",
+          "message": "L'indirizzo del mittente per l'email"
         },
         "app.U01UUA.action.c2VuZC1lbWFpbA.option.dG8.display_name": {
           "source": "To",
@@ -135,21 +47,197 @@
           "source": "Message recipient addresses",
           "message": "Indirizzi dei destinatari del messaggio"
         },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.short_desc": {
-          "source": "Send an email through a generic SMTP server",
-          "message": "Invia un'e-mail tramite un server SMTP generico"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.dG8.desc": {
+          "source": "One or more `To:` addresses for the email",
+          "message": "Uno o più indirizzi `To:` per l'email"
         },
-        "app.U01UUA.desc": {
-          "source": "Generic SMTP server for sending emails",
-          "message": "Server SMTP generico per l'invio di e-mail"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c3ViamVjdA.display_name": {
+          "source": "Subject",
+          "message": "Oggetto"
         },
-        "app.U01UUA.display_name": {
-          "source": "SMTP Server",
-          "message": "Server SMTP"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c3ViamVjdA.short_desc": {
+          "source": "The subject for the email",
+          "message": "L'oggetto dell'email"
         },
-        "app.U01UUA.short_desc": {
-          "source": "Generic SMTP server for sending emails",
-          "message": "Server SMTP generico per l'invio di e-mail"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c3ViamVjdA.desc": {
+          "source": "The subject for the email",
+          "message": "L'oggetto dell'email"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keQ.display_name": {
+          "source": "Message Body",
+          "message": "Corpo del messaggio"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keQ.short_desc": {
+          "source": "The message body",
+          "message": "Il corpo del messaggio"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keQ.desc": {
+          "source": "The message body",
+          "message": "Il corpo del messaggio"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.display_name": {
+          "source": "Attachments",
+          "message": "Allegati"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.short_desc": {
+          "source": "Message attachments",
+          "message": "Allegati del messaggio"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.desc": {
+          "source": "Any attachments for the message",
+          "message": "Eventuali allegati per il messaggio"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.Y29udGVudC1pZA.display_name": {
+          "source": "Content-ID",
+          "message": "Content-ID"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.Y29udGVudC1pZA.short_desc": {
+          "source": "Content-ID for inline attachments",
+          "message": "Content-ID per allegati inline"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.Y29udGVudC1pZA.desc": {
+          "source": "Content-ID for inline attachments (without angle brackets). Use this for images embedded in HTML emails that are referenced as `cid:content-id` in the HTML body. When set, the attachment will be marked as inline rather than a regular attachment.",
+          "message": "Content-ID per allegati inline (senza parentesi angolari). Usare questo per immagini incorporate in email HTML riferite come `cid:content-id` nel corpo HTML. Quando impostato, l'allegato verrà contrassegnato come inline invece che come allegato normale."
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZGF0YQ.display_name": {
+          "source": "Attachment Data",
+          "message": "Dati allegato"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZGF0YQ.short_desc": {
+          "source": "The data for the attachment",
+          "message": "I dati per l'allegato"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZGF0YQ.desc": {
+          "source": "The data for the attachment",
+          "message": "I dati per l'allegato"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.display_name": {
+          "source": "Attachment Encoding",
+          "message": "Codifica allegato"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.short_desc": {
+          "source": "The encoding to use for the attachment",
+          "message": "La codifica da utilizzare per l'allegato"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.desc": {
+          "source": "The encoding to use for the attachment",
+          "message": "La codifica da utilizzare per l'allegato"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOmRlZmF1bHQ.desc": {
+          "source": "`quoted-printable` for string data, `base64` for binary data",
+          "message": "`quoted-printable` per dati stringa, `base64` per dati binari"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOm5vbmU.desc": {
+          "source": "No content encoding (not recommended)",
+          "message": "Nessuna codifica dei contenuti (non consigliato)"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOnF1b3RlZC1wcmludGFibGU.desc": {
+          "source": "Quoted printable encoding",
+          "message": "Codifica Quoted-Printable"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOmJhc2U2NA.desc": {
+          "source": "Base64 encoding",
+          "message": "Codifica Base64"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.aGRy.display_name": {
+          "source": "Headers",
+          "message": "Intestazioni"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.aGRy.short_desc": {
+          "source": "Optional headers to send with the attachment",
+          "message": "Intestazioni opzionali da inviare con l'allegato"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.aGRy.desc": {
+          "source": "Optional headers to send with the attachment",
+          "message": "Intestazioni opzionali da inviare con l'allegato"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bWltZS10eXBl.display_name": {
+          "source": "Mime Type",
+          "message": "Tipo MIME"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bWltZS10eXBl.short_desc": {
+          "source": "The MIME type of the attachment",
+          "message": "Tipo MIME dell'allegato"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bWltZS10eXBl.desc": {
+          "source": "The MIME type of the attachment",
+          "message": "Tipo MIME dell'allegato"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Nome"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bmFtZQ.short_desc": {
+          "source": "The name or filename of the attachment",
+          "message": "Il nome o il nome del file dell'allegato"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bmFtZQ.desc": {
+          "source": "The name or filename of the attachment",
+          "message": "Il nome o il nome del file dell'allegato"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YmNj.display_name": {
+          "source": "BCC",
+          "message": "CCN"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YmNj.short_desc": {
+          "source": "Blind carbon copy addresses",
+          "message": "Indirizzi in copia conoscenza nascosta"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YmNj.desc": {
+          "source": "One or more `Bcc:` addresses for the email",
+          "message": "Uno o più indirizzi `Bcc:` per l'email"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.display_name": {
+          "source": "Body Encoding",
+          "message": "Codifica corpo"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.short_desc": {
+          "source": "The encoding to use for the body",
+          "message": "La codifica da utilizzare per il corpo"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.desc": {
+          "source": "The encoding to use for the message body",
+          "message": "La codifica da utilizzare per il corpo del messaggio"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOmRlZmF1bHQ.desc": {
+          "source": "`quoted-printable` for string data, `base64` for binary data",
+          "message": "`quoted-printable` per dati stringa, `base64` per dati binari"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOm5vbmU.desc": {
+          "source": "No content encoding (not recommended)",
+          "message": "Nessuna codifica dei contenuti (non consigliato)"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOnF1b3RlZC1wcmludGFibGU.desc": {
+          "source": "Quoted printable encoding",
+          "message": "Codifica Quoted-Printable"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOmJhc2U2NA.desc": {
+          "source": "Base64 encoding",
+          "message": "Codifica Base64"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1taW1lLXR5cGU.display_name": {
+          "source": "Body Mime Type",
+          "message": "Tipo MIME del corpo"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1taW1lLXR5cGU.short_desc": {
+          "source": "The MIME type of the message body",
+          "message": "Il tipo MIME del corpo del messaggio"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1taW1lLXR5cGU.desc": {
+          "source": "The MIME type of the message body",
+          "message": "Il tipo MIME del corpo del messaggio"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Y2M.display_name": {
+          "source": "CC",
+          "message": "CC"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Y2M.short_desc": {
+          "source": "Carbon copy addresses",
+          "message": "Indirizzi in copia conoscenza (Cc)"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Y2M.desc": {
+          "source": "One or more `Cc:` addresses for the email",
+          "message": "Uno o più indirizzi `Cc:` per l'e-mail"
         }
       }
     }

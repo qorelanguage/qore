@@ -539,6 +539,30 @@
           "source": "Geolocation settings for the scrape request",
           "message": "Geolocation settings for the scrape request"
         },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.bG9jYXRpb24.field.Y291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.bG9jYXRpb24.field.Y291bnRyeQ.short_desc": {
+          "source": "Country code",
+          "message": "Country code"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.bG9jYXRpb24.field.Y291bnRyeQ.desc": {
+          "source": "ISO 3166-1 alpha-2 country code (e.g., `US`, `AU`, `DE`, `JP`). Defaults to `US`",
+          "message": "ISO 3166-1 alpha-2 country code (e.g., `US`, `AU`, `DE`, `JP`). Defaults to `US`"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.bG9jYXRpb24.field.bGFuZ3VhZ2Vz.display_name": {
+          "source": "Languages",
+          "message": "Languages"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.bG9jYXRpb24.field.bGFuZ3VhZ2Vz.short_desc": {
+          "source": "Preferred languages",
+          "message": "Preferred languages"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.bG9jYXRpb24.field.bGFuZ3VhZ2Vz.desc": {
+          "source": "List of preferred languages/locales in priority order. Defaults to the language of the specified location",
+          "message": "List of preferred languages/locales in priority order. Defaults to the language of the specified location"
+        },
         "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.display_name": {
           "source": "Actions",
           "message": "Actions"
@@ -550,6 +574,286 @@
         "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.desc": {
           "source": "List of browser actions to perform before scraping. Each action is a hash with a `type` key and action-specific parameters.\n\n**Available actions**:\n- `wait` — wait for duration (`milliseconds`) or element (`selector`)\n- `click` — click an element (`selector`, `all`)\n- `write` — type text into the focused element (`text`)\n- `press` — press a keyboard key (`key`)\n- `scroll` — scroll the page (`direction`: `up`/`down`; optional `selector`)\n- `screenshot` — take a screenshot (`fullPage`, `quality`, `viewport`)\n- `scrape` — capture the page content at its current state\n- `executeJavascript` — run JavaScript code (`script`)\n- `pdf` — generate a PDF (`format`, `landscape`, `scale`)",
           "message": "List of browser actions to perform before scraping. Each action is a hash with a `type` key and action-specific parameters.\n\n**Available actions**:\n- `wait` — wait for duration (`milliseconds`) or element (`selector`)\n- `click` — click an element (`selector`, `all`)\n- `write` — type text into the focused element (`text`)\n- `press` — press a keyboard key (`key`)\n- `scroll` — scroll the page (`direction`: `up`/`down`; optional `selector`)\n- `screenshot` — take a screenshot (`fullPage`, `quality`, `viewport`)\n- `scrape` — capture the page content at its current state\n- `executeJavascript` — run JavaScript code (`script`)\n- `pdf` — generate a PDF (`format`, `landscape`, `scale`)"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.YWxs.display_name": {
+          "source": "All Matches",
+          "message": "All Matches"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.YWxs.short_desc": {
+          "source": "Click all matching elements",
+          "message": "Click all matching elements"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.YWxs.desc": {
+          "source": "If `True`, all elements matching the `selector` are clicked instead of just the first match. Used by the `click` action. Defaults to `False`",
+          "message": "If `True`, all elements matching the `selector` are clicked instead of just the first match. Used by the `click` action. Defaults to `False`"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.ZGlyZWN0aW9u.display_name": {
+          "source": "Direction",
+          "message": "Direction"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.ZGlyZWN0aW9u.short_desc": {
+          "source": "Scroll direction",
+          "message": "Scroll direction"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.ZGlyZWN0aW9u.desc": {
+          "source": "Scroll direction. Used by the `scroll` action. Defaults to `down`",
+          "message": "Scroll direction. Used by the `scroll` action. Defaults to `down`"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.ZGlyZWN0aW9u.allowed-value.c3RyaW5nOnVw.display_name": {
+          "source": "Up",
+          "message": "Up"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.ZGlyZWN0aW9u.allowed-value.c3RyaW5nOmRvd24.display_name": {
+          "source": "Down",
+          "message": "Down"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.display_name": {
+          "source": "Format",
+          "message": "Format"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.short_desc": {
+          "source": "PDF page format",
+          "message": "PDF page format"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.desc": {
+          "source": "Page format for the generated PDF. Used by the `pdf` action. Defaults to `Letter`",
+          "message": "Page format for the generated PDF. Used by the `pdf` action. Defaults to `Letter`"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkEw.display_name": {
+          "source": "A0",
+          "message": "A0"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkEx.display_name": {
+          "source": "A1",
+          "message": "A1"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkEy.display_name": {
+          "source": "A2",
+          "message": "A2"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkEz.display_name": {
+          "source": "A3",
+          "message": "A3"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkE0.display_name": {
+          "source": "A4",
+          "message": "A4"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkE1.display_name": {
+          "source": "A5",
+          "message": "A5"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkE2.display_name": {
+          "source": "A6",
+          "message": "A6"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkxldHRlcg.display_name": {
+          "source": "Letter",
+          "message": "Letter"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkxlZ2Fs.display_name": {
+          "source": "Legal",
+          "message": "Legal"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOlRhYmxvaWQ.display_name": {
+          "source": "Tabloid",
+          "message": "Tabloid"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkxlZGdlcg.display_name": {
+          "source": "Ledger",
+          "message": "Ledger"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.ZnVsbFBhZ2U.display_name": {
+          "source": "Full Page",
+          "message": "Full Page"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.ZnVsbFBhZ2U.short_desc": {
+          "source": "Capture the full page",
+          "message": "Capture the full page"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.ZnVsbFBhZ2U.desc": {
+          "source": "If `True`, captures the full scrollable page. Used by the `screenshot` action. Defaults to `False`",
+          "message": "If `True`, captures the full scrollable page. Used by the `screenshot` action. Defaults to `False`"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.a2V5.display_name": {
+          "source": "Key",
+          "message": "Key"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.a2V5.short_desc": {
+          "source": "Keyboard key to press",
+          "message": "Keyboard key to press"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.a2V5.desc": {
+          "source": "Keyboard key to press (e.g., `Enter`, `Tab`, `Escape`). Used by the `press` action",
+          "message": "Keyboard key to press (e.g., `Enter`, `Tab`, `Escape`). Used by the `press` action"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.bGFuZHNjYXBl.display_name": {
+          "source": "Landscape",
+          "message": "Landscape"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.bGFuZHNjYXBl.short_desc": {
+          "source": "Use landscape orientation",
+          "message": "Use landscape orientation"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.bGFuZHNjYXBl.desc": {
+          "source": "If `True`, the PDF is generated in landscape orientation. Used by the `pdf` action. Defaults to `False`",
+          "message": "If `True`, the PDF is generated in landscape orientation. Used by the `pdf` action. Defaults to `False`"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.bWlsbGlzZWNvbmRz.display_name": {
+          "source": "Milliseconds",
+          "message": "Milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.bWlsbGlzZWNvbmRz.short_desc": {
+          "source": "Wait duration in milliseconds",
+          "message": "Wait duration in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.bWlsbGlzZWNvbmRz.desc": {
+          "source": "Duration to wait in milliseconds. Used by the `wait` action when waiting for a fixed duration instead of a selector",
+          "message": "Duration to wait in milliseconds. Used by the `wait` action when waiting for a fixed duration instead of a selector"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.cXVhbGl0eQ.display_name": {
+          "source": "Quality",
+          "message": "Quality"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.cXVhbGl0eQ.short_desc": {
+          "source": "Screenshot quality (1-100)",
+          "message": "Screenshot quality (1-100)"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.cXVhbGl0eQ.desc": {
+          "source": "Image quality for the screenshot, in the range `1`-`100`. Used by the `screenshot` action",
+          "message": "Image quality for the screenshot, in the range `1`-`100`. Used by the `screenshot` action"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.c2NhbGU.display_name": {
+          "source": "Scale",
+          "message": "Scale"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.c2NhbGU.short_desc": {
+          "source": "PDF rendering scale",
+          "message": "PDF rendering scale"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.c2NhbGU.desc": {
+          "source": "Scale factor for PDF rendering. Used by the `pdf` action. Defaults to `1`",
+          "message": "Scale factor for PDF rendering. Used by the `pdf` action. Defaults to `1`"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.c2NyaXB0.display_name": {
+          "source": "Script",
+          "message": "Script"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.c2NyaXB0.short_desc": {
+          "source": "JavaScript code to execute",
+          "message": "JavaScript code to execute"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.c2NyaXB0.desc": {
+          "source": "JavaScript code to execute in the page context. Used by the `executeJavascript` action",
+          "message": "JavaScript code to execute in the page context. Used by the `executeJavascript` action"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.c2VsZWN0b3I.display_name": {
+          "source": "Selector",
+          "message": "Selector"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.c2VsZWN0b3I.short_desc": {
+          "source": "CSS selector for the target element",
+          "message": "CSS selector for the target element"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.c2VsZWN0b3I.desc": {
+          "source": "CSS selector for the target element. Used by `wait`, `click`, and `scroll` actions",
+          "message": "CSS selector for the target element. Used by `wait`, `click`, and `scroll` actions"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dGV4dA.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dGV4dA.short_desc": {
+          "source": "Text to type",
+          "message": "Text to type"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dGV4dA.desc": {
+          "source": "Text to type into the currently focused element. Used by the `write` action",
+          "message": "Text to type into the currently focused element. Used by the `write` action"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.display_name": {
+          "source": "Action Type",
+          "message": "Action Type"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.short_desc": {
+          "source": "The type of browser action to perform",
+          "message": "The type of browser action to perform"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.desc": {
+          "source": "The type of browser action to perform.\n\n**Available actions**:\n- `wait` — wait for duration (`milliseconds`) or element (`selector`)\n- `click` — click an element (`selector`; set `all` for all matches)\n- `write` — type text into the focused element (`text`)\n- `press` — press a keyboard key (`key`)\n- `scroll` — scroll the page (`direction`: `up`/`down`; optional `selector`)\n- `screenshot` — take a screenshot (`fullPage`, `quality`)\n- `scrape` — capture the page content at its current state\n- `executeJavascript` — run JavaScript code (`script`)\n- `pdf` — generate a PDF (`format`, `landscape`, `scale`)",
+          "message": "The type of browser action to perform.\n\n**Available actions**:\n- `wait` — wait for duration (`milliseconds`) or element (`selector`)\n- `click` — click an element (`selector`; set `all` for all matches)\n- `write` — type text into the focused element (`text`)\n- `press` — press a keyboard key (`key`)\n- `scroll` — scroll the page (`direction`: `up`/`down`; optional `selector`)\n- `screenshot` — take a screenshot (`fullPage`, `quality`)\n- `scrape` — capture the page content at its current state\n- `executeJavascript` — run JavaScript code (`script`)\n- `pdf` — generate a PDF (`format`, `landscape`, `scale`)"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOndhaXQ.display_name": {
+          "source": "Wait",
+          "message": "Wait"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOmNsaWNr.display_name": {
+          "source": "Click",
+          "message": "Click"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOndyaXRl.display_name": {
+          "source": "Write",
+          "message": "Write"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOnByZXNz.display_name": {
+          "source": "Press Key",
+          "message": "Press Key"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOnNjcm9sbA.display_name": {
+          "source": "Scroll",
+          "message": "Scroll"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOnNjcmVlbnNob3Q.display_name": {
+          "source": "Screenshot",
+          "message": "Screenshot"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOnNjcmFwZQ.display_name": {
+          "source": "Scrape",
+          "message": "Scrape"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOmV4ZWN1dGVKYXZhc2NyaXB0.display_name": {
+          "source": "Execute JavaScript",
+          "message": "Execute JavaScript"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOnBkZg.display_name": {
+          "source": "PDF",
+          "message": "PDF"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dmlld3BvcnQ.display_name": {
+          "source": "Viewport",
+          "message": "Viewport"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dmlld3BvcnQ.short_desc": {
+          "source": "Viewport dimensions for the screenshot",
+          "message": "Viewport dimensions for the screenshot"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.YWN0aW9ucw.field.dmlld3BvcnQ.desc": {
+          "source": "Viewport dimensions for the screenshot, with `width` and `height` keys (both integers, in pixels). Used by the `screenshot` action",
+          "message": "Viewport dimensions for the screenshot, with `width` and `height` keys (both integers, in pixels). Used by the `screenshot` action"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyTnlZWEJsOkZpcmVjcmF3bFZpZXdwb3J0RGF0YVR5cGU6Kmhhc2g8YXV0bz4jNzgyNmUzOWE5NTFmZTliYmM1NTNkMjRlZjQxMjcyNzVlOGQwMmE3ZWMxMjg5YmVhYjZkZmYzZmI0OTBiMzdhYjpvcHRpb246WVdOMGFXOXVjdzpmaWVsZDpkbWxsZDNCdmNuUQ.field.aGVpZ2h0.display_name": {
+          "source": "Height",
+          "message": "Height"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyTnlZWEJsOkZpcmVjcmF3bFZpZXdwb3J0RGF0YVR5cGU6Kmhhc2g8YXV0bz4jNzgyNmUzOWE5NTFmZTliYmM1NTNkMjRlZjQxMjcyNzVlOGQwMmE3ZWMxMjg5YmVhYjZkZmYzZmI0OTBiMzdhYjpvcHRpb246WVdOMGFXOXVjdzpmaWVsZDpkbWxsZDNCdmNuUQ.field.aGVpZ2h0.short_desc": {
+          "source": "Viewport height in pixels",
+          "message": "Viewport height in pixels"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyTnlZWEJsOkZpcmVjcmF3bFZpZXdwb3J0RGF0YVR5cGU6Kmhhc2g8YXV0bz4jNzgyNmUzOWE5NTFmZTliYmM1NTNkMjRlZjQxMjcyNzVlOGQwMmE3ZWMxMjg5YmVhYjZkZmYzZmI0OTBiMzdhYjpvcHRpb246WVdOMGFXOXVjdzpmaWVsZDpkbWxsZDNCdmNuUQ.field.aGVpZ2h0.desc": {
+          "source": "Viewport height in pixels",
+          "message": "Viewport height in pixels"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyTnlZWEJsOkZpcmVjcmF3bFZpZXdwb3J0RGF0YVR5cGU6Kmhhc2g8YXV0bz4jNzgyNmUzOWE5NTFmZTliYmM1NTNkMjRlZjQxMjcyNzVlOGQwMmE3ZWMxMjg5YmVhYjZkZmYzZmI0OTBiMzdhYjpvcHRpb246WVdOMGFXOXVjdzpmaWVsZDpkbWxsZDNCdmNuUQ.field.d2lkdGg.display_name": {
+          "source": "Width",
+          "message": "Width"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyTnlZWEJsOkZpcmVjcmF3bFZpZXdwb3J0RGF0YVR5cGU6Kmhhc2g8YXV0bz4jNzgyNmUzOWE5NTFmZTliYmM1NTNkMjRlZjQxMjcyNzVlOGQwMmE3ZWMxMjg5YmVhYjZkZmYzZmI0OTBiMzdhYjpvcHRpb246WVdOMGFXOXVjdzpmaWVsZDpkbWxsZDNCdmNuUQ.field.d2lkdGg.short_desc": {
+          "source": "Viewport width in pixels",
+          "message": "Viewport width in pixels"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyTnlZWEJsOkZpcmVjcmF3bFZpZXdwb3J0RGF0YVR5cGU6Kmhhc2g8YXV0bz4jNzgyNmUzOWE5NTFmZTliYmM1NTNkMjRlZjQxMjcyNzVlOGQwMmE3ZWMxMjg5YmVhYjZkZmYzZmI0OTBiMzdhYjpvcHRpb246WVdOMGFXOXVjdzpmaWVsZDpkbWxsZDNCdmNuUQ.field.d2lkdGg.desc": {
+          "source": "Viewport width in pixels",
+          "message": "Viewport width in pixels"
         },
         "app.RmlyZWNyYXds.action.c2NyYXBl.option.aGVhZGVycw.display_name": {
           "source": "Headers",
@@ -635,6 +939,58 @@
           "source": "List of parser configurations for PDF processing. Each entry specifies a parser type and processing options",
           "message": "List of parser configurations for PDF processing. Each entry specifies a parser type and processing options"
         },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cGFyc2Vycw.field.bWF4UGFnZXM.display_name": {
+          "source": "Max Pages",
+          "message": "Max Pages"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cGFyc2Vycw.field.bWF4UGFnZXM.short_desc": {
+          "source": "Maximum number of pages to parse",
+          "message": "Maximum number of pages to parse"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cGFyc2Vycw.field.bWF4UGFnZXM.desc": {
+          "source": "Maximum number of PDF pages to parse. Range: `1`-`10000`",
+          "message": "Maximum number of PDF pages to parse. Range: `1`-`10000`"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cGFyc2Vycw.field.bW9kZQ.display_name": {
+          "source": "Mode",
+          "message": "Mode"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cGFyc2Vycw.field.bW9kZQ.short_desc": {
+          "source": "PDF processing mode",
+          "message": "PDF processing mode"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cGFyc2Vycw.field.bW9kZQ.desc": {
+          "source": "The PDF processing strategy to use.\n\n- `fast` — text extraction only, no OCR\n- `auto` — fast extraction with OCR fallback for scanned pages\n- `ocr` — force OCR on all pages",
+          "message": "The PDF processing strategy to use.\n\n- `fast` — text extraction only, no OCR\n- `auto` — fast extraction with OCR fallback for scanned pages\n- `ocr` — force OCR on all pages"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cGFyc2Vycw.field.bW9kZQ.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "Fast"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cGFyc2Vycw.field.bW9kZQ.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Auto"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cGFyc2Vycw.field.bW9kZQ.allowed-value.c3RyaW5nOm9jcg.display_name": {
+          "source": "OCR",
+          "message": "OCR"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cGFyc2Vycw.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cGFyc2Vycw.field.dHlwZQ.short_desc": {
+          "source": "Parser type",
+          "message": "Parser type"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cGFyc2Vycw.field.dHlwZQ.desc": {
+          "source": "The parser type. Currently only `pdf` is supported",
+          "message": "The parser type. Currently only `pdf` is supported"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cGFyc2Vycw.field.dHlwZQ.allowed-value.c3RyaW5nOnBkZg.display_name": {
+          "source": "PDF",
+          "message": "PDF"
+        },
         "app.RmlyZWNyYXds.action.c2NyYXBl.option.c3RvcmVJbkNhY2hl.display_name": {
           "source": "Store In Cache",
           "message": "Store In Cache"
@@ -670,6 +1026,30 @@
         "app.RmlyZWNyYXds.action.c2NyYXBl.option.cHJvZmlsZQ.desc": {
           "source": "Named browser profile to reuse session state (cookies, local storage) across scrape requests. Set `saveChanges` to `True` to persist changes back to the profile",
           "message": "Named browser profile to reuse session state (cookies, local storage) across scrape requests. Set `saveChanges` to `True` to persist changes back to the profile"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cHJvZmlsZQ.field.bmFtZQ.display_name": {
+          "source": "Profile Name",
+          "message": "Profile Name"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cHJvZmlsZQ.field.bmFtZQ.short_desc": {
+          "source": "Name of the browser profile",
+          "message": "Name of the browser profile"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cHJvZmlsZQ.field.bmFtZQ.desc": {
+          "source": "Name of the browser profile to use. The first scrape with a given name creates the profile; subsequent scrapes reuse its session state",
+          "message": "Name of the browser profile to use. The first scrape with a given name creates the profile; subsequent scrapes reuse its session state"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cHJvZmlsZQ.field.c2F2ZUNoYW5nZXM.display_name": {
+          "source": "Save Changes",
+          "message": "Save Changes"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cHJvZmlsZQ.field.c2F2ZUNoYW5nZXM.short_desc": {
+          "source": "Persist changes back to the profile",
+          "message": "Persist changes back to the profile"
+        },
+        "app.RmlyZWNyYXds.action.c2NyYXBl.option.cHJvZmlsZQ.field.c2F2ZUNoYW5nZXM.desc": {
+          "source": "If `True`, changes made during the scrape (cookies, local storage, etc.) are saved back to the named profile. Defaults to `False`",
+          "message": "If `True`, changes made during the scrape (cookies, local storage, etc.) are saved back to the named profile. Defaults to `False`"
         },
         "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.display_name": {
           "source": "Batch Scrape Web Pages",
@@ -871,6 +1251,30 @@
           "source": "Geolocation settings for the scrape requests",
           "message": "Geolocation settings for the scrape requests"
         },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.bG9jYXRpb24.field.Y291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.bG9jYXRpb24.field.Y291bnRyeQ.short_desc": {
+          "source": "Country code",
+          "message": "Country code"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.bG9jYXRpb24.field.Y291bnRyeQ.desc": {
+          "source": "ISO 3166-1 alpha-2 country code (e.g., `US`, `AU`, `DE`, `JP`). Defaults to `US`",
+          "message": "ISO 3166-1 alpha-2 country code (e.g., `US`, `AU`, `DE`, `JP`). Defaults to `US`"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.bG9jYXRpb24.field.bGFuZ3VhZ2Vz.display_name": {
+          "source": "Languages",
+          "message": "Languages"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.bG9jYXRpb24.field.bGFuZ3VhZ2Vz.short_desc": {
+          "source": "Preferred languages",
+          "message": "Preferred languages"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.bG9jYXRpb24.field.bGFuZ3VhZ2Vz.desc": {
+          "source": "List of preferred languages/locales in priority order. Defaults to the language of the specified location",
+          "message": "List of preferred languages/locales in priority order. Defaults to the language of the specified location"
+        },
         "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.aGVhZGVycw.display_name": {
           "source": "Headers",
           "message": "Headers"
@@ -894,6 +1298,286 @@
         "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.desc": {
           "source": "List of browser actions to perform before scraping each page. Each action is a hash with a `type` key and action-specific parameters.\n\n**Available actions**:\n- `wait` — wait for duration (`milliseconds`) or element (`selector`)\n- `click` — click an element (`selector`, `all`)\n- `write` — type text into the focused element (`text`)\n- `press` — press a keyboard key (`key`)\n- `scroll` — scroll the page (`direction`: `up`/`down`; optional `selector`)\n- `screenshot` — take a screenshot (`fullPage`, `quality`, `viewport`)\n- `scrape` — capture the page content at its current state\n- `executeJavascript` — run JavaScript code (`script`)\n- `pdf` — generate a PDF (`format`, `landscape`, `scale`)",
           "message": "List of browser actions to perform before scraping each page. Each action is a hash with a `type` key and action-specific parameters.\n\n**Available actions**:\n- `wait` — wait for duration (`milliseconds`) or element (`selector`)\n- `click` — click an element (`selector`, `all`)\n- `write` — type text into the focused element (`text`)\n- `press` — press a keyboard key (`key`)\n- `scroll` — scroll the page (`direction`: `up`/`down`; optional `selector`)\n- `screenshot` — take a screenshot (`fullPage`, `quality`, `viewport`)\n- `scrape` — capture the page content at its current state\n- `executeJavascript` — run JavaScript code (`script`)\n- `pdf` — generate a PDF (`format`, `landscape`, `scale`)"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.YWxs.display_name": {
+          "source": "All Matches",
+          "message": "All Matches"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.YWxs.short_desc": {
+          "source": "Click all matching elements",
+          "message": "Click all matching elements"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.YWxs.desc": {
+          "source": "If `True`, all elements matching the `selector` are clicked instead of just the first match. Used by the `click` action. Defaults to `False`",
+          "message": "If `True`, all elements matching the `selector` are clicked instead of just the first match. Used by the `click` action. Defaults to `False`"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.ZGlyZWN0aW9u.display_name": {
+          "source": "Direction",
+          "message": "Direction"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.ZGlyZWN0aW9u.short_desc": {
+          "source": "Scroll direction",
+          "message": "Scroll direction"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.ZGlyZWN0aW9u.desc": {
+          "source": "Scroll direction. Used by the `scroll` action. Defaults to `down`",
+          "message": "Scroll direction. Used by the `scroll` action. Defaults to `down`"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.ZGlyZWN0aW9u.allowed-value.c3RyaW5nOnVw.display_name": {
+          "source": "Up",
+          "message": "Up"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.ZGlyZWN0aW9u.allowed-value.c3RyaW5nOmRvd24.display_name": {
+          "source": "Down",
+          "message": "Down"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.display_name": {
+          "source": "Format",
+          "message": "Format"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.short_desc": {
+          "source": "PDF page format",
+          "message": "PDF page format"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.desc": {
+          "source": "Page format for the generated PDF. Used by the `pdf` action. Defaults to `Letter`",
+          "message": "Page format for the generated PDF. Used by the `pdf` action. Defaults to `Letter`"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkEw.display_name": {
+          "source": "A0",
+          "message": "A0"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkEx.display_name": {
+          "source": "A1",
+          "message": "A1"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkEy.display_name": {
+          "source": "A2",
+          "message": "A2"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkEz.display_name": {
+          "source": "A3",
+          "message": "A3"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkE0.display_name": {
+          "source": "A4",
+          "message": "A4"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkE1.display_name": {
+          "source": "A5",
+          "message": "A5"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkE2.display_name": {
+          "source": "A6",
+          "message": "A6"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkxldHRlcg.display_name": {
+          "source": "Letter",
+          "message": "Letter"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkxlZ2Fs.display_name": {
+          "source": "Legal",
+          "message": "Legal"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOlRhYmxvaWQ.display_name": {
+          "source": "Tabloid",
+          "message": "Tabloid"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.Zm9ybWF0.allowed-value.c3RyaW5nOkxlZGdlcg.display_name": {
+          "source": "Ledger",
+          "message": "Ledger"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.ZnVsbFBhZ2U.display_name": {
+          "source": "Full Page",
+          "message": "Full Page"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.ZnVsbFBhZ2U.short_desc": {
+          "source": "Capture the full page",
+          "message": "Capture the full page"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.ZnVsbFBhZ2U.desc": {
+          "source": "If `True`, captures the full scrollable page. Used by the `screenshot` action. Defaults to `False`",
+          "message": "If `True`, captures the full scrollable page. Used by the `screenshot` action. Defaults to `False`"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.a2V5.display_name": {
+          "source": "Key",
+          "message": "Key"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.a2V5.short_desc": {
+          "source": "Keyboard key to press",
+          "message": "Keyboard key to press"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.a2V5.desc": {
+          "source": "Keyboard key to press (e.g., `Enter`, `Tab`, `Escape`). Used by the `press` action",
+          "message": "Keyboard key to press (e.g., `Enter`, `Tab`, `Escape`). Used by the `press` action"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.bGFuZHNjYXBl.display_name": {
+          "source": "Landscape",
+          "message": "Landscape"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.bGFuZHNjYXBl.short_desc": {
+          "source": "Use landscape orientation",
+          "message": "Use landscape orientation"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.bGFuZHNjYXBl.desc": {
+          "source": "If `True`, the PDF is generated in landscape orientation. Used by the `pdf` action. Defaults to `False`",
+          "message": "If `True`, the PDF is generated in landscape orientation. Used by the `pdf` action. Defaults to `False`"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.bWlsbGlzZWNvbmRz.display_name": {
+          "source": "Milliseconds",
+          "message": "Milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.bWlsbGlzZWNvbmRz.short_desc": {
+          "source": "Wait duration in milliseconds",
+          "message": "Wait duration in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.bWlsbGlzZWNvbmRz.desc": {
+          "source": "Duration to wait in milliseconds. Used by the `wait` action when waiting for a fixed duration instead of a selector",
+          "message": "Duration to wait in milliseconds. Used by the `wait` action when waiting for a fixed duration instead of a selector"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.cXVhbGl0eQ.display_name": {
+          "source": "Quality",
+          "message": "Quality"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.cXVhbGl0eQ.short_desc": {
+          "source": "Screenshot quality (1-100)",
+          "message": "Screenshot quality (1-100)"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.cXVhbGl0eQ.desc": {
+          "source": "Image quality for the screenshot, in the range `1`-`100`. Used by the `screenshot` action",
+          "message": "Image quality for the screenshot, in the range `1`-`100`. Used by the `screenshot` action"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.c2NhbGU.display_name": {
+          "source": "Scale",
+          "message": "Scale"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.c2NhbGU.short_desc": {
+          "source": "PDF rendering scale",
+          "message": "PDF rendering scale"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.c2NhbGU.desc": {
+          "source": "Scale factor for PDF rendering. Used by the `pdf` action. Defaults to `1`",
+          "message": "Scale factor for PDF rendering. Used by the `pdf` action. Defaults to `1`"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.c2NyaXB0.display_name": {
+          "source": "Script",
+          "message": "Script"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.c2NyaXB0.short_desc": {
+          "source": "JavaScript code to execute",
+          "message": "JavaScript code to execute"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.c2NyaXB0.desc": {
+          "source": "JavaScript code to execute in the page context. Used by the `executeJavascript` action",
+          "message": "JavaScript code to execute in the page context. Used by the `executeJavascript` action"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.c2VsZWN0b3I.display_name": {
+          "source": "Selector",
+          "message": "Selector"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.c2VsZWN0b3I.short_desc": {
+          "source": "CSS selector for the target element",
+          "message": "CSS selector for the target element"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.c2VsZWN0b3I.desc": {
+          "source": "CSS selector for the target element. Used by `wait`, `click`, and `scroll` actions",
+          "message": "CSS selector for the target element. Used by `wait`, `click`, and `scroll` actions"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dGV4dA.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dGV4dA.short_desc": {
+          "source": "Text to type",
+          "message": "Text to type"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dGV4dA.desc": {
+          "source": "Text to type into the currently focused element. Used by the `write` action",
+          "message": "Text to type into the currently focused element. Used by the `write` action"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.display_name": {
+          "source": "Action Type",
+          "message": "Action Type"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.short_desc": {
+          "source": "The type of browser action to perform",
+          "message": "The type of browser action to perform"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.desc": {
+          "source": "The type of browser action to perform.\n\n**Available actions**:\n- `wait` — wait for duration (`milliseconds`) or element (`selector`)\n- `click` — click an element (`selector`; set `all` for all matches)\n- `write` — type text into the focused element (`text`)\n- `press` — press a keyboard key (`key`)\n- `scroll` — scroll the page (`direction`: `up`/`down`; optional `selector`)\n- `screenshot` — take a screenshot (`fullPage`, `quality`)\n- `scrape` — capture the page content at its current state\n- `executeJavascript` — run JavaScript code (`script`)\n- `pdf` — generate a PDF (`format`, `landscape`, `scale`)",
+          "message": "The type of browser action to perform.\n\n**Available actions**:\n- `wait` — wait for duration (`milliseconds`) or element (`selector`)\n- `click` — click an element (`selector`; set `all` for all matches)\n- `write` — type text into the focused element (`text`)\n- `press` — press a keyboard key (`key`)\n- `scroll` — scroll the page (`direction`: `up`/`down`; optional `selector`)\n- `screenshot` — take a screenshot (`fullPage`, `quality`)\n- `scrape` — capture the page content at its current state\n- `executeJavascript` — run JavaScript code (`script`)\n- `pdf` — generate a PDF (`format`, `landscape`, `scale`)"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOndhaXQ.display_name": {
+          "source": "Wait",
+          "message": "Wait"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOmNsaWNr.display_name": {
+          "source": "Click",
+          "message": "Click"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOndyaXRl.display_name": {
+          "source": "Write",
+          "message": "Write"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOnByZXNz.display_name": {
+          "source": "Press Key",
+          "message": "Press Key"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOnNjcm9sbA.display_name": {
+          "source": "Scroll",
+          "message": "Scroll"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOnNjcmVlbnNob3Q.display_name": {
+          "source": "Screenshot",
+          "message": "Screenshot"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOnNjcmFwZQ.display_name": {
+          "source": "Scrape",
+          "message": "Scrape"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOmV4ZWN1dGVKYXZhc2NyaXB0.display_name": {
+          "source": "Execute JavaScript",
+          "message": "Execute JavaScript"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dHlwZQ.allowed-value.c3RyaW5nOnBkZg.display_name": {
+          "source": "PDF",
+          "message": "PDF"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dmlld3BvcnQ.display_name": {
+          "source": "Viewport",
+          "message": "Viewport"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dmlld3BvcnQ.short_desc": {
+          "source": "Viewport dimensions for the screenshot",
+          "message": "Viewport dimensions for the screenshot"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.YWN0aW9ucw.field.dmlld3BvcnQ.desc": {
+          "source": "Viewport dimensions for the screenshot, with `width` and `height` keys (both integers, in pixels). Used by the `screenshot` action",
+          "message": "Viewport dimensions for the screenshot, with `width` and `height` keys (both integers, in pixels). Used by the `screenshot` action"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlltRjBZMmd0YzJOeVlYQmw6RmlyZWNyYXdsVmlld3BvcnREYXRhVHlwZToqaGFzaDxhdXRvPiM3ODI2ZTM5YTk1MWZlOWJiYzU1M2QyNGVmNDEyNzI3NWU4ZDAyYTdlYzEyODliZWFiNmRmZjNmYjQ5MGIzN2FiOm9wdGlvbjpZV04wYVc5dWN3OmZpZWxkOmRtbGxkM0J2Y25R.field.aGVpZ2h0.display_name": {
+          "source": "Height",
+          "message": "Height"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlltRjBZMmd0YzJOeVlYQmw6RmlyZWNyYXdsVmlld3BvcnREYXRhVHlwZToqaGFzaDxhdXRvPiM3ODI2ZTM5YTk1MWZlOWJiYzU1M2QyNGVmNDEyNzI3NWU4ZDAyYTdlYzEyODliZWFiNmRmZjNmYjQ5MGIzN2FiOm9wdGlvbjpZV04wYVc5dWN3OmZpZWxkOmRtbGxkM0J2Y25R.field.aGVpZ2h0.short_desc": {
+          "source": "Viewport height in pixels",
+          "message": "Viewport height in pixels"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlltRjBZMmd0YzJOeVlYQmw6RmlyZWNyYXdsVmlld3BvcnREYXRhVHlwZToqaGFzaDxhdXRvPiM3ODI2ZTM5YTk1MWZlOWJiYzU1M2QyNGVmNDEyNzI3NWU4ZDAyYTdlYzEyODliZWFiNmRmZjNmYjQ5MGIzN2FiOm9wdGlvbjpZV04wYVc5dWN3OmZpZWxkOmRtbGxkM0J2Y25R.field.aGVpZ2h0.desc": {
+          "source": "Viewport height in pixels",
+          "message": "Viewport height in pixels"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlltRjBZMmd0YzJOeVlYQmw6RmlyZWNyYXdsVmlld3BvcnREYXRhVHlwZToqaGFzaDxhdXRvPiM3ODI2ZTM5YTk1MWZlOWJiYzU1M2QyNGVmNDEyNzI3NWU4ZDAyYTdlYzEyODliZWFiNmRmZjNmYjQ5MGIzN2FiOm9wdGlvbjpZV04wYVc5dWN3OmZpZWxkOmRtbGxkM0J2Y25R.field.d2lkdGg.display_name": {
+          "source": "Width",
+          "message": "Width"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlltRjBZMmd0YzJOeVlYQmw6RmlyZWNyYXdsVmlld3BvcnREYXRhVHlwZToqaGFzaDxhdXRvPiM3ODI2ZTM5YTk1MWZlOWJiYzU1M2QyNGVmNDEyNzI3NWU4ZDAyYTdlYzEyODliZWFiNmRmZjNmYjQ5MGIzN2FiOm9wdGlvbjpZV04wYVc5dWN3OmZpZWxkOmRtbGxkM0J2Y25R.field.d2lkdGg.short_desc": {
+          "source": "Viewport width in pixels",
+          "message": "Viewport width in pixels"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlltRjBZMmd0YzJOeVlYQmw6RmlyZWNyYXdsVmlld3BvcnREYXRhVHlwZToqaGFzaDxhdXRvPiM3ODI2ZTM5YTk1MWZlOWJiYzU1M2QyNGVmNDEyNzI3NWU4ZDAyYTdlYzEyODliZWFiNmRmZjNmYjQ5MGIzN2FiOm9wdGlvbjpZV04wYVc5dWN3OmZpZWxkOmRtbGxkM0J2Y25R.field.d2lkdGg.desc": {
+          "source": "Viewport width in pixels",
+          "message": "Viewport width in pixels"
         },
         "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cmVtb3ZlQmFzZTY0SW1hZ2Vz.display_name": {
           "source": "Remove Base64 Images",
@@ -991,6 +1675,70 @@
           "source": "Webhook configuration to receive notifications during the batch scrape",
           "message": "Webhook configuration to receive notifications during the batch scrape"
         },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.ZXZlbnRz.display_name": {
+          "source": "Events",
+          "message": "Events"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.ZXZlbnRz.short_desc": {
+          "source": "Event types to receive",
+          "message": "Event types to receive"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.ZXZlbnRz.desc": {
+          "source": "List of event types to receive notifications for. Defaults to all events if not specified",
+          "message": "List of event types to receive notifications for. Defaults to all events if not specified"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.ZXZlbnRz.element-allowed-value.c3RyaW5nOmNvbXBsZXRlZA.display_name": {
+          "source": "Completed",
+          "message": "Completed"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.ZXZlbnRz.element-allowed-value.c3RyaW5nOnBhZ2U.display_name": {
+          "source": "Page",
+          "message": "Page"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.ZXZlbnRz.element-allowed-value.c3RyaW5nOmZhaWxlZA.display_name": {
+          "source": "Failed",
+          "message": "Failed"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.ZXZlbnRz.element-allowed-value.c3RyaW5nOnN0YXJ0ZWQ.display_name": {
+          "source": "Started",
+          "message": "Started"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.aGVhZGVycw.display_name": {
+          "source": "Headers",
+          "message": "Headers"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.aGVhZGVycw.short_desc": {
+          "source": "Custom webhook headers",
+          "message": "Custom webhook headers"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.aGVhZGVycw.desc": {
+          "source": "Custom HTTP headers sent with each webhook request",
+          "message": "Custom HTTP headers sent with each webhook request"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metadata"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.bWV0YWRhdGE.short_desc": {
+          "source": "Custom metadata",
+          "message": "Custom metadata"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.bWV0YWRhdGE.desc": {
+          "source": "Custom metadata included in all webhook payloads",
+          "message": "Custom metadata included in all webhook payloads"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.dXJs.display_name": {
+          "source": "URL",
+          "message": "URL"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.dXJs.short_desc": {
+          "source": "Webhook endpoint URL",
+          "message": "Webhook endpoint URL"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.d2ViaG9vaw.field.dXJs.desc": {
+          "source": "The URL to send webhook notifications to. Receives events for operation lifecycle (started, page scraped, completed, failed)",
+          "message": "The URL to send webhook notifications to. Receives events for operation lifecycle (started, page scraped, completed, failed)"
+        },
         "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.display_name": {
           "source": "Parsers",
           "message": "Parsers"
@@ -1002,6 +1750,58 @@
         "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.desc": {
           "source": "List of parser configurations for PDF processing. Each entry specifies a parser type and processing options",
           "message": "List of parser configurations for PDF processing. Each entry specifies a parser type and processing options"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.field.bWF4UGFnZXM.display_name": {
+          "source": "Max Pages",
+          "message": "Max Pages"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.field.bWF4UGFnZXM.short_desc": {
+          "source": "Maximum number of pages to parse",
+          "message": "Maximum number of pages to parse"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.field.bWF4UGFnZXM.desc": {
+          "source": "Maximum number of PDF pages to parse. Range: `1`-`10000`",
+          "message": "Maximum number of PDF pages to parse. Range: `1`-`10000`"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.field.bW9kZQ.display_name": {
+          "source": "Mode",
+          "message": "Mode"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.field.bW9kZQ.short_desc": {
+          "source": "PDF processing mode",
+          "message": "PDF processing mode"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.field.bW9kZQ.desc": {
+          "source": "The PDF processing strategy to use.\n\n- `fast` — text extraction only, no OCR\n- `auto` — fast extraction with OCR fallback for scanned pages\n- `ocr` — force OCR on all pages",
+          "message": "The PDF processing strategy to use.\n\n- `fast` — text extraction only, no OCR\n- `auto` — fast extraction with OCR fallback for scanned pages\n- `ocr` — force OCR on all pages"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.field.bW9kZQ.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "Fast"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.field.bW9kZQ.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Auto"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.field.bW9kZQ.allowed-value.c3RyaW5nOm9jcg.display_name": {
+          "source": "OCR",
+          "message": "OCR"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.field.dHlwZQ.short_desc": {
+          "source": "Parser type",
+          "message": "Parser type"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.field.dHlwZQ.desc": {
+          "source": "The parser type. Currently only `pdf` is supported",
+          "message": "The parser type. Currently only `pdf` is supported"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cGFyc2Vycw.field.dHlwZQ.allowed-value.c3RyaW5nOnBkZg.display_name": {
+          "source": "PDF",
+          "message": "PDF"
         },
         "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.c3RvcmVJbkNhY2hl.display_name": {
           "source": "Store In Cache",
@@ -1038,6 +1838,30 @@
         "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cHJvZmlsZQ.desc": {
           "source": "Named browser profile to reuse session state (cookies, local storage) across scrape requests. Set `saveChanges` to `True` to persist changes back to the profile",
           "message": "Named browser profile to reuse session state (cookies, local storage) across scrape requests. Set `saveChanges` to `True` to persist changes back to the profile"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cHJvZmlsZQ.field.bmFtZQ.display_name": {
+          "source": "Profile Name",
+          "message": "Profile Name"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cHJvZmlsZQ.field.bmFtZQ.short_desc": {
+          "source": "Name of the browser profile",
+          "message": "Name of the browser profile"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cHJvZmlsZQ.field.bmFtZQ.desc": {
+          "source": "Name of the browser profile to use. The first scrape with a given name creates the profile; subsequent scrapes reuse its session state",
+          "message": "Name of the browser profile to use. The first scrape with a given name creates the profile; subsequent scrapes reuse its session state"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cHJvZmlsZQ.field.c2F2ZUNoYW5nZXM.display_name": {
+          "source": "Save Changes",
+          "message": "Save Changes"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cHJvZmlsZQ.field.c2F2ZUNoYW5nZXM.short_desc": {
+          "source": "Persist changes back to the profile",
+          "message": "Persist changes back to the profile"
+        },
+        "app.RmlyZWNyYXds.action.YmF0Y2gtc2NyYXBl.option.cHJvZmlsZQ.field.c2F2ZUNoYW5nZXM.desc": {
+          "source": "If `True`, changes made during the scrape (cookies, local storage, etc.) are saved back to the named profile. Defaults to `False`",
+          "message": "If `True`, changes made during the scrape (cookies, local storage, etc.) are saved back to the named profile. Defaults to `False`"
         },
         "app.RmlyZWNyYXds.action.Y2FuY2VsLWJhdGNoLXNjcmFwZQ.display_name": {
           "source": "Cancel a Batch Scrape",
@@ -1291,6 +2115,70 @@
           "source": "Webhook configuration to receive notifications during the crawl",
           "message": "Webhook configuration to receive notifications during the crawl"
         },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.ZXZlbnRz.display_name": {
+          "source": "Events",
+          "message": "Events"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.ZXZlbnRz.short_desc": {
+          "source": "Event types to receive",
+          "message": "Event types to receive"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.ZXZlbnRz.desc": {
+          "source": "List of event types to receive notifications for. Defaults to all events if not specified",
+          "message": "List of event types to receive notifications for. Defaults to all events if not specified"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.ZXZlbnRz.element-allowed-value.c3RyaW5nOmNvbXBsZXRlZA.display_name": {
+          "source": "Completed",
+          "message": "Completed"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.ZXZlbnRz.element-allowed-value.c3RyaW5nOnBhZ2U.display_name": {
+          "source": "Page",
+          "message": "Page"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.ZXZlbnRz.element-allowed-value.c3RyaW5nOmZhaWxlZA.display_name": {
+          "source": "Failed",
+          "message": "Failed"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.ZXZlbnRz.element-allowed-value.c3RyaW5nOnN0YXJ0ZWQ.display_name": {
+          "source": "Started",
+          "message": "Started"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.aGVhZGVycw.display_name": {
+          "source": "Headers",
+          "message": "Headers"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.aGVhZGVycw.short_desc": {
+          "source": "Custom webhook headers",
+          "message": "Custom webhook headers"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.aGVhZGVycw.desc": {
+          "source": "Custom HTTP headers sent with each webhook request",
+          "message": "Custom HTTP headers sent with each webhook request"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.bWV0YWRhdGE.display_name": {
+          "source": "Metadata",
+          "message": "Metadata"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.bWV0YWRhdGE.short_desc": {
+          "source": "Custom metadata",
+          "message": "Custom metadata"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.bWV0YWRhdGE.desc": {
+          "source": "Custom metadata included in all webhook payloads",
+          "message": "Custom metadata included in all webhook payloads"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.dXJs.display_name": {
+          "source": "URL",
+          "message": "URL"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.dXJs.short_desc": {
+          "source": "Webhook endpoint URL",
+          "message": "Webhook endpoint URL"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.d2ViaG9vaw.field.dXJs.desc": {
+          "source": "The URL to send webhook notifications to. Receives events for operation lifecycle (started, page scraped, completed, failed)",
+          "message": "The URL to send webhook notifications to. Receives events for operation lifecycle (started, page scraped, completed, failed)"
+        },
         "app.RmlyZWNyYXds.action.Y3Jhd2w.option.cmVnZXhPbkZ1bGxVUkw.display_name": {
           "source": "Regex on Full URL",
           "message": "Regex on Full URL"
@@ -1314,6 +2202,366 @@
         "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.desc": {
           "source": "Options applied when scraping each crawled page, such as `formats`, `onlyMainContent`, `includeTags`, `excludeTags`",
           "message": "Options applied when scraping each crawled page, such as `formats`, `onlyMainContent`, `includeTags`, `excludeTags`"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.YmxvY2tBZHM.display_name": {
+          "source": "Block Ads",
+          "message": "Block Ads"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.YmxvY2tBZHM.short_desc": {
+          "source": "Block advertisements",
+          "message": "Block advertisements"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.YmxvY2tBZHM.desc": {
+          "source": "If `True`, advertisements are blocked during scraping",
+          "message": "If `True`, advertisements are blocked during scraping"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.ZXhjbHVkZVRhZ3M.display_name": {
+          "source": "Exclude Tags",
+          "message": "Exclude Tags"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.ZXhjbHVkZVRhZ3M.short_desc": {
+          "source": "HTML tags to exclude",
+          "message": "HTML tags to exclude"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.ZXhjbHVkZVRhZ3M.desc": {
+          "source": "List of HTML tags to exclude from the output (e.g., `nav`, `footer`)",
+          "message": "List of HTML tags to exclude from the output (e.g., `nav`, `footer`)"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.display_name": {
+          "source": "Formats",
+          "message": "Formats"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.short_desc": {
+          "source": "Output formats to return",
+          "message": "Output formats to return"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.desc": {
+          "source": "List of output formats to return from each scraped page",
+          "message": "List of output formats to return from each scraped page"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmh0bWw.display_name": {
+          "source": "HTML",
+          "message": "HTML"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOnJhd0h0bWw.display_name": {
+          "source": "Raw HTML",
+          "message": "Raw HTML"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmxpbmtz.display_name": {
+          "source": "Links",
+          "message": "Links"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmltYWdlcw.display_name": {
+          "source": "Images",
+          "message": "Images"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOnNjcmVlbnNob3Q.display_name": {
+          "source": "Screenshot",
+          "message": "Screenshot"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOnN1bW1hcnk.display_name": {
+          "source": "Summary",
+          "message": "Summary"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmF1ZGlv.display_name": {
+          "source": "Audio",
+          "message": "Audio"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmNoYW5nZVRyYWNraW5n.display_name": {
+          "source": "Change Tracking",
+          "message": "Change Tracking"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmJyYW5kaW5n.display_name": {
+          "source": "Branding",
+          "message": "Branding"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.aGVhZGVycw.display_name": {
+          "source": "Headers",
+          "message": "Headers"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.aGVhZGVycw.short_desc": {
+          "source": "Custom HTTP headers",
+          "message": "Custom HTTP headers"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.aGVhZGVycw.desc": {
+          "source": "Custom HTTP headers to send with each scrape request",
+          "message": "Custom HTTP headers to send with each scrape request"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.aW5jbHVkZVRhZ3M.display_name": {
+          "source": "Include Tags",
+          "message": "Include Tags"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.aW5jbHVkZVRhZ3M.short_desc": {
+          "source": "HTML tags to include",
+          "message": "HTML tags to include"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.aW5jbHVkZVRhZ3M.desc": {
+          "source": "List of HTML tags to include in the output (e.g., `article`, `main`)",
+          "message": "List of HTML tags to include in the output (e.g., `article`, `main`)"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.bWF4QWdl.display_name": {
+          "source": "Max Age",
+          "message": "Max Age"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.bWF4QWdl.short_desc": {
+          "source": "Cache freshness threshold in milliseconds",
+          "message": "Cache freshness threshold in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.bWF4QWdl.desc": {
+          "source": "Maximum age in milliseconds for cached content. Defaults to `172800000` (48 hours)",
+          "message": "Maximum age in milliseconds for cached content. Defaults to `172800000` (48 hours)"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.bWluQWdl.display_name": {
+          "source": "Min Age",
+          "message": "Min Age"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.bWluQWdl.short_desc": {
+          "source": "Minimum cache age in milliseconds",
+          "message": "Minimum cache age in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.bWluQWdl.desc": {
+          "source": "Minimum age in milliseconds for a cache-only lookup",
+          "message": "Minimum age in milliseconds for a cache-only lookup"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.bW9iaWxl.display_name": {
+          "source": "Mobile",
+          "message": "Mobile"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.bW9iaWxl.short_desc": {
+          "source": "Use mobile user agent",
+          "message": "Use mobile user agent"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.bW9iaWxl.desc": {
+          "source": "If `True`, pages are scraped using a mobile user agent",
+          "message": "If `True`, pages are scraped using a mobile user agent"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.b25seUNsZWFuQ29udGVudA.display_name": {
+          "source": "Only Clean Content",
+          "message": "Only Clean Content"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.b25seUNsZWFuQ29udGVudA.short_desc": {
+          "source": "Apply LLM-based content cleanup",
+          "message": "Apply LLM-based content cleanup"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.b25seUNsZWFuQ29udGVudA.desc": {
+          "source": "If `True`, an LLM-based cleanup pass is applied to each page to remove navigation, ads, and boilerplate. Defaults to `False`",
+          "message": "If `True`, an LLM-based cleanup pass is applied to each page to remove navigation, ads, and boilerplate. Defaults to `False`"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.b25seU1haW5Db250ZW50.display_name": {
+          "source": "Only Main Content",
+          "message": "Only Main Content"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.b25seU1haW5Db250ZW50.short_desc": {
+          "source": "Extract only the main content",
+          "message": "Extract only the main content"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.b25seU1haW5Db250ZW50.desc": {
+          "source": "If `True`, only the main content of each page is returned, excluding headers, navigation, footers, etc. Defaults to `True`",
+          "message": "If `True`, only the main content of each page is returned, excluding headers, navigation, footers, etc. Defaults to `True`"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cGFyc2Vycw.display_name": {
+          "source": "Parsers",
+          "message": "Parsers"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cGFyc2Vycw.short_desc": {
+          "source": "PDF parser configuration",
+          "message": "PDF parser configuration"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cGFyc2Vycw.desc": {
+          "source": "List of parser configurations for PDF processing. Each entry specifies a parser type and processing options",
+          "message": "List of parser configurations for PDF processing. Each entry specifies a parser type and processing options"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bWF4UGFnZXM.display_name": {
+          "source": "Max Pages",
+          "message": "Max Pages"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bWF4UGFnZXM.short_desc": {
+          "source": "Maximum number of pages to parse",
+          "message": "Maximum number of pages to parse"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bWF4UGFnZXM.desc": {
+          "source": "Maximum number of PDF pages to parse. Range: `1`-`10000`",
+          "message": "Maximum number of PDF pages to parse. Range: `1`-`10000`"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bW9kZQ.display_name": {
+          "source": "Mode",
+          "message": "Mode"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bW9kZQ.short_desc": {
+          "source": "PDF processing mode",
+          "message": "PDF processing mode"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bW9kZQ.desc": {
+          "source": "The PDF processing strategy to use.\n\n- `fast` — text extraction only, no OCR\n- `auto` — fast extraction with OCR fallback for scanned pages\n- `ocr` — force OCR on all pages",
+          "message": "The PDF processing strategy to use.\n\n- `fast` — text extraction only, no OCR\n- `auto` — fast extraction with OCR fallback for scanned pages\n- `ocr` — force OCR on all pages"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bW9kZQ.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "Fast"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bW9kZQ.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Auto"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bW9kZQ.allowed-value.c3RyaW5nOm9jcg.display_name": {
+          "source": "OCR",
+          "message": "OCR"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.dHlwZQ.short_desc": {
+          "source": "Parser type",
+          "message": "Parser type"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.dHlwZQ.desc": {
+          "source": "The parser type. Currently only `pdf` is supported",
+          "message": "The parser type. Currently only `pdf` is supported"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.dHlwZQ.allowed-value.c3RyaW5nOnBkZg.display_name": {
+          "source": "PDF",
+          "message": "PDF"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cHJvZmlsZQ.display_name": {
+          "source": "Profile",
+          "message": "Profile"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cHJvZmlsZQ.short_desc": {
+          "source": "Persistent browser profile",
+          "message": "Persistent browser profile"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cHJvZmlsZQ.desc": {
+          "source": "Named browser profile to reuse session state (cookies, local storage) across scrape requests",
+          "message": "Named browser profile to reuse session state (cookies, local storage) across scrape requests"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUHJvZmlsZURhdGFUeXBlOipoYXNoPGF1dG8-IzA2MjQ3ODEzMDMzMjBhZjg0MmZjMTA5NWRlOTU3NzQyOTI0YTEzZWFiZmQ4NTBiZTExMDdiOTY0Y2RhZTA4NGI6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjSEp2Wm1sc1pR.field.bmFtZQ.display_name": {
+          "source": "Profile Name",
+          "message": "Profile Name"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUHJvZmlsZURhdGFUeXBlOipoYXNoPGF1dG8-IzA2MjQ3ODEzMDMzMjBhZjg0MmZjMTA5NWRlOTU3NzQyOTI0YTEzZWFiZmQ4NTBiZTExMDdiOTY0Y2RhZTA4NGI6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjSEp2Wm1sc1pR.field.bmFtZQ.short_desc": {
+          "source": "Name of the browser profile",
+          "message": "Name of the browser profile"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUHJvZmlsZURhdGFUeXBlOipoYXNoPGF1dG8-IzA2MjQ3ODEzMDMzMjBhZjg0MmZjMTA5NWRlOTU3NzQyOTI0YTEzZWFiZmQ4NTBiZTExMDdiOTY0Y2RhZTA4NGI6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjSEp2Wm1sc1pR.field.bmFtZQ.desc": {
+          "source": "Name of the browser profile to use. The first scrape with a given name creates the profile; subsequent scrapes reuse its session state",
+          "message": "Name of the browser profile to use. The first scrape with a given name creates the profile; subsequent scrapes reuse its session state"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUHJvZmlsZURhdGFUeXBlOipoYXNoPGF1dG8-IzA2MjQ3ODEzMDMzMjBhZjg0MmZjMTA5NWRlOTU3NzQyOTI0YTEzZWFiZmQ4NTBiZTExMDdiOTY0Y2RhZTA4NGI6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjSEp2Wm1sc1pR.field.c2F2ZUNoYW5nZXM.display_name": {
+          "source": "Save Changes",
+          "message": "Save Changes"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUHJvZmlsZURhdGFUeXBlOipoYXNoPGF1dG8-IzA2MjQ3ODEzMDMzMjBhZjg0MmZjMTA5NWRlOTU3NzQyOTI0YTEzZWFiZmQ4NTBiZTExMDdiOTY0Y2RhZTA4NGI6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjSEp2Wm1sc1pR.field.c2F2ZUNoYW5nZXM.short_desc": {
+          "source": "Persist changes back to the profile",
+          "message": "Persist changes back to the profile"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlkzSmhkMnc6RmlyZWNyYXdsUHJvZmlsZURhdGFUeXBlOipoYXNoPGF1dG8-IzA2MjQ3ODEzMDMzMjBhZjg0MmZjMTA5NWRlOTU3NzQyOTI0YTEzZWFiZmQ4NTBiZTExMDdiOTY0Y2RhZTA4NGI6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjSEp2Wm1sc1pR.field.c2F2ZUNoYW5nZXM.desc": {
+          "source": "If `True`, changes made during the scrape (cookies, local storage, etc.) are saved back to the named profile. Defaults to `False`",
+          "message": "If `True`, changes made during the scrape (cookies, local storage, etc.) are saved back to the named profile. Defaults to `False`"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.display_name": {
+          "source": "Proxy",
+          "message": "Proxy"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.short_desc": {
+          "source": "Proxy configuration",
+          "message": "Proxy configuration"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.desc": {
+          "source": "The proxy configuration to use for scrape requests",
+          "message": "The proxy configuration to use for scrape requests"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "Basic"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.allowed-value.c3RyaW5nOmVuaGFuY2Vk.display_name": {
+          "source": "Enhanced",
+          "message": "Enhanced"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Auto"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cmVtb3ZlQmFzZTY0SW1hZ2Vz.display_name": {
+          "source": "Remove Base64 Images",
+          "message": "Remove Base64 Images"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cmVtb3ZlQmFzZTY0SW1hZ2Vz.short_desc": {
+          "source": "Remove base64-encoded images",
+          "message": "Remove base64-encoded images"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.cmVtb3ZlQmFzZTY0SW1hZ2Vz.desc": {
+          "source": "If `True`, base64-encoded images are removed from the output",
+          "message": "If `True`, base64-encoded images are removed from the output"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.c2tpcFRsc1ZlcmlmaWNhdGlvbg.display_name": {
+          "source": "Skip TLS Verification",
+          "message": "Skip TLS Verification"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.c2tpcFRsc1ZlcmlmaWNhdGlvbg.short_desc": {
+          "source": "Skip TLS certificate verification",
+          "message": "Skip TLS certificate verification"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.c2tpcFRsc1ZlcmlmaWNhdGlvbg.desc": {
+          "source": "If `True`, TLS certificate verification is skipped",
+          "message": "If `True`, TLS certificate verification is skipped"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.c3RvcmVJbkNhY2hl.display_name": {
+          "source": "Store In Cache",
+          "message": "Store In Cache"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.c3RvcmVJbkNhY2hl.short_desc": {
+          "source": "Cache the scraped content",
+          "message": "Cache the scraped content"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.c3RvcmVJbkNhY2hl.desc": {
+          "source": "If `True`, the scraped content is stored in the Firecrawl cache so that subsequent scrapes within `maxAge` can reuse it. Defaults to `True`",
+          "message": "If `True`, the scraped content is stored in the Firecrawl cache so that subsequent scrapes within `maxAge` can reuse it. Defaults to `True`"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.dGltZW91dA.display_name": {
+          "source": "Timeout",
+          "message": "Timeout"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.dGltZW91dA.short_desc": {
+          "source": "Timeout in milliseconds",
+          "message": "Timeout in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.dGltZW91dA.desc": {
+          "source": "Maximum time in milliseconds to wait for each scrape to complete. Range: `1000`-`300000`",
+          "message": "Maximum time in milliseconds to wait for each scrape to complete. Range: `1000`-`300000`"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.d2FpdEZvcg.display_name": {
+          "source": "Wait For",
+          "message": "Wait For"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.d2FpdEZvcg.short_desc": {
+          "source": "Wait time in milliseconds",
+          "message": "Wait time in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.d2FpdEZvcg.desc": {
+          "source": "Time to wait in milliseconds for each page to load before scraping",
+          "message": "Time to wait in milliseconds for each page to load before scraping"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.emVyb0RhdGFSZXRlbnRpb24.display_name": {
+          "source": "Zero Data Retention",
+          "message": "Zero Data Retention"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.emVyb0RhdGFSZXRlbnRpb24.short_desc": {
+          "source": "Disable Firecrawl-side data retention",
+          "message": "Disable Firecrawl-side data retention"
+        },
+        "app.RmlyZWNyYXds.action.Y3Jhd2w.option.c2NyYXBlT3B0aW9ucw.field.emVyb0RhdGFSZXRlbnRpb24.desc": {
+          "source": "If `True`, Firecrawl does not retain any scraped data on its servers after returning the response. Enterprise feature — contact Firecrawl support to enable",
+          "message": "If `True`, Firecrawl does not retain any scraped data on its servers after returning the response. Enterprise feature — contact Firecrawl support to enable"
         },
         "app.RmlyZWNyYXds.action.Y3Jhd2w.option.aWdub3JlUm9ib3RzVHh0.display_name": {
           "source": "Ignore robots.txt",
@@ -1531,6 +2779,30 @@
           "source": "Geolocation settings for the map request",
           "message": "Geolocation settings for the map request"
         },
+        "app.RmlyZWNyYXds.action.bWFw.option.bG9jYXRpb24.field.Y291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.RmlyZWNyYXds.action.bWFw.option.bG9jYXRpb24.field.Y291bnRyeQ.short_desc": {
+          "source": "Country code",
+          "message": "Country code"
+        },
+        "app.RmlyZWNyYXds.action.bWFw.option.bG9jYXRpb24.field.Y291bnRyeQ.desc": {
+          "source": "ISO 3166-1 alpha-2 country code (e.g., `US`, `AU`, `DE`, `JP`). Defaults to `US`",
+          "message": "ISO 3166-1 alpha-2 country code (e.g., `US`, `AU`, `DE`, `JP`). Defaults to `US`"
+        },
+        "app.RmlyZWNyYXds.action.bWFw.option.bG9jYXRpb24.field.bGFuZ3VhZ2Vz.display_name": {
+          "source": "Languages",
+          "message": "Languages"
+        },
+        "app.RmlyZWNyYXds.action.bWFw.option.bG9jYXRpb24.field.bGFuZ3VhZ2Vz.short_desc": {
+          "source": "Preferred languages",
+          "message": "Preferred languages"
+        },
+        "app.RmlyZWNyYXds.action.bWFw.option.bG9jYXRpb24.field.bGFuZ3VhZ2Vz.desc": {
+          "source": "List of preferred languages/locales in priority order. Defaults to the language of the specified location",
+          "message": "List of preferred languages/locales in priority order. Defaults to the language of the specified location"
+        },
         "app.RmlyZWNyYXds.action.c2VhcmNo.display_name": {
           "source": "Search the Web",
           "message": "Search the Web"
@@ -1687,6 +2959,366 @@
           "source": "Options applied when scraping each search result page, such as `formats`, `onlyMainContent`, `includeTags`, `excludeTags`",
           "message": "Options applied when scraping each search result page, such as `formats`, `onlyMainContent`, `includeTags`, `excludeTags`"
         },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.YmxvY2tBZHM.display_name": {
+          "source": "Block Ads",
+          "message": "Block Ads"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.YmxvY2tBZHM.short_desc": {
+          "source": "Block advertisements",
+          "message": "Block advertisements"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.YmxvY2tBZHM.desc": {
+          "source": "If `True`, advertisements are blocked during scraping",
+          "message": "If `True`, advertisements are blocked during scraping"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.ZXhjbHVkZVRhZ3M.display_name": {
+          "source": "Exclude Tags",
+          "message": "Exclude Tags"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.ZXhjbHVkZVRhZ3M.short_desc": {
+          "source": "HTML tags to exclude",
+          "message": "HTML tags to exclude"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.ZXhjbHVkZVRhZ3M.desc": {
+          "source": "List of HTML tags to exclude from the output (e.g., `nav`, `footer`)",
+          "message": "List of HTML tags to exclude from the output (e.g., `nav`, `footer`)"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.display_name": {
+          "source": "Formats",
+          "message": "Formats"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.short_desc": {
+          "source": "Output formats to return",
+          "message": "Output formats to return"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.desc": {
+          "source": "List of output formats to return from each scraped page",
+          "message": "List of output formats to return from each scraped page"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmh0bWw.display_name": {
+          "source": "HTML",
+          "message": "HTML"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOnJhd0h0bWw.display_name": {
+          "source": "Raw HTML",
+          "message": "Raw HTML"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmxpbmtz.display_name": {
+          "source": "Links",
+          "message": "Links"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmltYWdlcw.display_name": {
+          "source": "Images",
+          "message": "Images"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOnNjcmVlbnNob3Q.display_name": {
+          "source": "Screenshot",
+          "message": "Screenshot"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOnN1bW1hcnk.display_name": {
+          "source": "Summary",
+          "message": "Summary"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmF1ZGlv.display_name": {
+          "source": "Audio",
+          "message": "Audio"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmNoYW5nZVRyYWNraW5n.display_name": {
+          "source": "Change Tracking",
+          "message": "Change Tracking"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmJyYW5kaW5n.display_name": {
+          "source": "Branding",
+          "message": "Branding"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.aGVhZGVycw.display_name": {
+          "source": "Headers",
+          "message": "Headers"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.aGVhZGVycw.short_desc": {
+          "source": "Custom HTTP headers",
+          "message": "Custom HTTP headers"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.aGVhZGVycw.desc": {
+          "source": "Custom HTTP headers to send with each scrape request",
+          "message": "Custom HTTP headers to send with each scrape request"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.aW5jbHVkZVRhZ3M.display_name": {
+          "source": "Include Tags",
+          "message": "Include Tags"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.aW5jbHVkZVRhZ3M.short_desc": {
+          "source": "HTML tags to include",
+          "message": "HTML tags to include"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.aW5jbHVkZVRhZ3M.desc": {
+          "source": "List of HTML tags to include in the output (e.g., `article`, `main`)",
+          "message": "List of HTML tags to include in the output (e.g., `article`, `main`)"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.bWF4QWdl.display_name": {
+          "source": "Max Age",
+          "message": "Max Age"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.bWF4QWdl.short_desc": {
+          "source": "Cache freshness threshold in milliseconds",
+          "message": "Cache freshness threshold in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.bWF4QWdl.desc": {
+          "source": "Maximum age in milliseconds for cached content. Defaults to `172800000` (48 hours)",
+          "message": "Maximum age in milliseconds for cached content. Defaults to `172800000` (48 hours)"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.bWluQWdl.display_name": {
+          "source": "Min Age",
+          "message": "Min Age"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.bWluQWdl.short_desc": {
+          "source": "Minimum cache age in milliseconds",
+          "message": "Minimum cache age in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.bWluQWdl.desc": {
+          "source": "Minimum age in milliseconds for a cache-only lookup",
+          "message": "Minimum age in milliseconds for a cache-only lookup"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.bW9iaWxl.display_name": {
+          "source": "Mobile",
+          "message": "Mobile"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.bW9iaWxl.short_desc": {
+          "source": "Use mobile user agent",
+          "message": "Use mobile user agent"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.bW9iaWxl.desc": {
+          "source": "If `True`, pages are scraped using a mobile user agent",
+          "message": "If `True`, pages are scraped using a mobile user agent"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.b25seUNsZWFuQ29udGVudA.display_name": {
+          "source": "Only Clean Content",
+          "message": "Only Clean Content"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.b25seUNsZWFuQ29udGVudA.short_desc": {
+          "source": "Apply LLM-based content cleanup",
+          "message": "Apply LLM-based content cleanup"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.b25seUNsZWFuQ29udGVudA.desc": {
+          "source": "If `True`, an LLM-based cleanup pass is applied to each page to remove navigation, ads, and boilerplate. Defaults to `False`",
+          "message": "If `True`, an LLM-based cleanup pass is applied to each page to remove navigation, ads, and boilerplate. Defaults to `False`"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.b25seU1haW5Db250ZW50.display_name": {
+          "source": "Only Main Content",
+          "message": "Only Main Content"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.b25seU1haW5Db250ZW50.short_desc": {
+          "source": "Extract only the main content",
+          "message": "Extract only the main content"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.b25seU1haW5Db250ZW50.desc": {
+          "source": "If `True`, only the main content of each page is returned, excluding headers, navigation, footers, etc. Defaults to `True`",
+          "message": "If `True`, only the main content of each page is returned, excluding headers, navigation, footers, etc. Defaults to `True`"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cGFyc2Vycw.display_name": {
+          "source": "Parsers",
+          "message": "Parsers"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cGFyc2Vycw.short_desc": {
+          "source": "PDF parser configuration",
+          "message": "PDF parser configuration"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cGFyc2Vycw.desc": {
+          "source": "List of parser configurations for PDF processing. Each entry specifies a parser type and processing options",
+          "message": "List of parser configurations for PDF processing. Each entry specifies a parser type and processing options"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFBhcnNlcnNEYXRhVHlwZToqaGFzaDxhdXRvPiM4ZjBkMzMwM2M2N2Q5NTY3YzJlMDgxZWU0Y2RmYTUyMzg1YzM5NmQ2MGIyYzE4MjFhMGYwYWNlODViY2JhNGQzOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0dGeWMyVnljdw.field.bWF4UGFnZXM.display_name": {
+          "source": "Max Pages",
+          "message": "Max Pages"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFBhcnNlcnNEYXRhVHlwZToqaGFzaDxhdXRvPiM4ZjBkMzMwM2M2N2Q5NTY3YzJlMDgxZWU0Y2RmYTUyMzg1YzM5NmQ2MGIyYzE4MjFhMGYwYWNlODViY2JhNGQzOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0dGeWMyVnljdw.field.bWF4UGFnZXM.short_desc": {
+          "source": "Maximum number of pages to parse",
+          "message": "Maximum number of pages to parse"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFBhcnNlcnNEYXRhVHlwZToqaGFzaDxhdXRvPiM4ZjBkMzMwM2M2N2Q5NTY3YzJlMDgxZWU0Y2RmYTUyMzg1YzM5NmQ2MGIyYzE4MjFhMGYwYWNlODViY2JhNGQzOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0dGeWMyVnljdw.field.bWF4UGFnZXM.desc": {
+          "source": "Maximum number of PDF pages to parse. Range: `1`-`10000`",
+          "message": "Maximum number of PDF pages to parse. Range: `1`-`10000`"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFBhcnNlcnNEYXRhVHlwZToqaGFzaDxhdXRvPiM4ZjBkMzMwM2M2N2Q5NTY3YzJlMDgxZWU0Y2RmYTUyMzg1YzM5NmQ2MGIyYzE4MjFhMGYwYWNlODViY2JhNGQzOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0dGeWMyVnljdw.field.bW9kZQ.display_name": {
+          "source": "Mode",
+          "message": "Mode"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFBhcnNlcnNEYXRhVHlwZToqaGFzaDxhdXRvPiM4ZjBkMzMwM2M2N2Q5NTY3YzJlMDgxZWU0Y2RmYTUyMzg1YzM5NmQ2MGIyYzE4MjFhMGYwYWNlODViY2JhNGQzOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0dGeWMyVnljdw.field.bW9kZQ.short_desc": {
+          "source": "PDF processing mode",
+          "message": "PDF processing mode"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFBhcnNlcnNEYXRhVHlwZToqaGFzaDxhdXRvPiM4ZjBkMzMwM2M2N2Q5NTY3YzJlMDgxZWU0Y2RmYTUyMzg1YzM5NmQ2MGIyYzE4MjFhMGYwYWNlODViY2JhNGQzOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0dGeWMyVnljdw.field.bW9kZQ.desc": {
+          "source": "The PDF processing strategy to use.\n\n- `fast` — text extraction only, no OCR\n- `auto` — fast extraction with OCR fallback for scanned pages\n- `ocr` — force OCR on all pages",
+          "message": "The PDF processing strategy to use.\n\n- `fast` — text extraction only, no OCR\n- `auto` — fast extraction with OCR fallback for scanned pages\n- `ocr` — force OCR on all pages"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFBhcnNlcnNEYXRhVHlwZToqaGFzaDxhdXRvPiM4ZjBkMzMwM2M2N2Q5NTY3YzJlMDgxZWU0Y2RmYTUyMzg1YzM5NmQ2MGIyYzE4MjFhMGYwYWNlODViY2JhNGQzOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0dGeWMyVnljdw.field.bW9kZQ.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "Fast"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFBhcnNlcnNEYXRhVHlwZToqaGFzaDxhdXRvPiM4ZjBkMzMwM2M2N2Q5NTY3YzJlMDgxZWU0Y2RmYTUyMzg1YzM5NmQ2MGIyYzE4MjFhMGYwYWNlODViY2JhNGQzOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0dGeWMyVnljdw.field.bW9kZQ.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Auto"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFBhcnNlcnNEYXRhVHlwZToqaGFzaDxhdXRvPiM4ZjBkMzMwM2M2N2Q5NTY3YzJlMDgxZWU0Y2RmYTUyMzg1YzM5NmQ2MGIyYzE4MjFhMGYwYWNlODViY2JhNGQzOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0dGeWMyVnljdw.field.bW9kZQ.allowed-value.c3RyaW5nOm9jcg.display_name": {
+          "source": "OCR",
+          "message": "OCR"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFBhcnNlcnNEYXRhVHlwZToqaGFzaDxhdXRvPiM4ZjBkMzMwM2M2N2Q5NTY3YzJlMDgxZWU0Y2RmYTUyMzg1YzM5NmQ2MGIyYzE4MjFhMGYwYWNlODViY2JhNGQzOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0dGeWMyVnljdw.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFBhcnNlcnNEYXRhVHlwZToqaGFzaDxhdXRvPiM4ZjBkMzMwM2M2N2Q5NTY3YzJlMDgxZWU0Y2RmYTUyMzg1YzM5NmQ2MGIyYzE4MjFhMGYwYWNlODViY2JhNGQzOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0dGeWMyVnljdw.field.dHlwZQ.short_desc": {
+          "source": "Parser type",
+          "message": "Parser type"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFBhcnNlcnNEYXRhVHlwZToqaGFzaDxhdXRvPiM4ZjBkMzMwM2M2N2Q5NTY3YzJlMDgxZWU0Y2RmYTUyMzg1YzM5NmQ2MGIyYzE4MjFhMGYwYWNlODViY2JhNGQzOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0dGeWMyVnljdw.field.dHlwZQ.desc": {
+          "source": "The parser type. Currently only `pdf` is supported",
+          "message": "The parser type. Currently only `pdf` is supported"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFBhcnNlcnNEYXRhVHlwZToqaGFzaDxhdXRvPiM4ZjBkMzMwM2M2N2Q5NTY3YzJlMDgxZWU0Y2RmYTUyMzg1YzM5NmQ2MGIyYzE4MjFhMGYwYWNlODViY2JhNGQzOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0dGeWMyVnljdw.field.dHlwZQ.allowed-value.c3RyaW5nOnBkZg.display_name": {
+          "source": "PDF",
+          "message": "PDF"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cHJvZmlsZQ.display_name": {
+          "source": "Profile",
+          "message": "Profile"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cHJvZmlsZQ.short_desc": {
+          "source": "Persistent browser profile",
+          "message": "Persistent browser profile"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cHJvZmlsZQ.desc": {
+          "source": "Named browser profile to reuse session state (cookies, local storage) across scrape requests",
+          "message": "Named browser profile to reuse session state (cookies, local storage) across scrape requests"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFByb2ZpbGVEYXRhVHlwZToqaGFzaDxhdXRvPiMwNjI0NzgxMzAzMzIwYWY4NDJmYzEwOTVkZTk1Nzc0MjkyNGExM2VhYmZkODUwYmUxMTA3Yjk2NGNkYWUwODRiOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0hKdlptbHNaUQ.field.bmFtZQ.display_name": {
+          "source": "Profile Name",
+          "message": "Profile Name"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFByb2ZpbGVEYXRhVHlwZToqaGFzaDxhdXRvPiMwNjI0NzgxMzAzMzIwYWY4NDJmYzEwOTVkZTk1Nzc0MjkyNGExM2VhYmZkODUwYmUxMTA3Yjk2NGNkYWUwODRiOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0hKdlptbHNaUQ.field.bmFtZQ.short_desc": {
+          "source": "Name of the browser profile",
+          "message": "Name of the browser profile"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFByb2ZpbGVEYXRhVHlwZToqaGFzaDxhdXRvPiMwNjI0NzgxMzAzMzIwYWY4NDJmYzEwOTVkZTk1Nzc0MjkyNGExM2VhYmZkODUwYmUxMTA3Yjk2NGNkYWUwODRiOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0hKdlptbHNaUQ.field.bmFtZQ.desc": {
+          "source": "Name of the browser profile to use. The first scrape with a given name creates the profile; subsequent scrapes reuse its session state",
+          "message": "Name of the browser profile to use. The first scrape with a given name creates the profile; subsequent scrapes reuse its session state"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFByb2ZpbGVEYXRhVHlwZToqaGFzaDxhdXRvPiMwNjI0NzgxMzAzMzIwYWY4NDJmYzEwOTVkZTk1Nzc0MjkyNGExM2VhYmZkODUwYmUxMTA3Yjk2NGNkYWUwODRiOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0hKdlptbHNaUQ.field.c2F2ZUNoYW5nZXM.display_name": {
+          "source": "Save Changes",
+          "message": "Save Changes"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFByb2ZpbGVEYXRhVHlwZToqaGFzaDxhdXRvPiMwNjI0NzgxMzAzMzIwYWY4NDJmYzEwOTVkZTk1Nzc0MjkyNGExM2VhYmZkODUwYmUxMTA3Yjk2NGNkYWUwODRiOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0hKdlptbHNaUQ.field.c2F2ZUNoYW5nZXM.short_desc": {
+          "source": "Persist changes back to the profile",
+          "message": "Persist changes back to the profile"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOmMyVmhjbU5vOkZpcmVjcmF3bFByb2ZpbGVEYXRhVHlwZToqaGFzaDxhdXRvPiMwNjI0NzgxMzAzMzIwYWY4NDJmYzEwOTVkZTk1Nzc0MjkyNGExM2VhYmZkODUwYmUxMTA3Yjk2NGNkYWUwODRiOm9wdGlvbjpjMk55WVhCbFQzQjBhVzl1Y3c6ZmllbGQ6Y0hKdlptbHNaUQ.field.c2F2ZUNoYW5nZXM.desc": {
+          "source": "If `True`, changes made during the scrape (cookies, local storage, etc.) are saved back to the named profile. Defaults to `False`",
+          "message": "If `True`, changes made during the scrape (cookies, local storage, etc.) are saved back to the named profile. Defaults to `False`"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.display_name": {
+          "source": "Proxy",
+          "message": "Proxy"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.short_desc": {
+          "source": "Proxy configuration",
+          "message": "Proxy configuration"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.desc": {
+          "source": "The proxy configuration to use for scrape requests",
+          "message": "The proxy configuration to use for scrape requests"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "Basic"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.allowed-value.c3RyaW5nOmVuaGFuY2Vk.display_name": {
+          "source": "Enhanced",
+          "message": "Enhanced"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Auto"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cmVtb3ZlQmFzZTY0SW1hZ2Vz.display_name": {
+          "source": "Remove Base64 Images",
+          "message": "Remove Base64 Images"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cmVtb3ZlQmFzZTY0SW1hZ2Vz.short_desc": {
+          "source": "Remove base64-encoded images",
+          "message": "Remove base64-encoded images"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.cmVtb3ZlQmFzZTY0SW1hZ2Vz.desc": {
+          "source": "If `True`, base64-encoded images are removed from the output",
+          "message": "If `True`, base64-encoded images are removed from the output"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.c2tpcFRsc1ZlcmlmaWNhdGlvbg.display_name": {
+          "source": "Skip TLS Verification",
+          "message": "Skip TLS Verification"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.c2tpcFRsc1ZlcmlmaWNhdGlvbg.short_desc": {
+          "source": "Skip TLS certificate verification",
+          "message": "Skip TLS certificate verification"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.c2tpcFRsc1ZlcmlmaWNhdGlvbg.desc": {
+          "source": "If `True`, TLS certificate verification is skipped",
+          "message": "If `True`, TLS certificate verification is skipped"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.c3RvcmVJbkNhY2hl.display_name": {
+          "source": "Store In Cache",
+          "message": "Store In Cache"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.c3RvcmVJbkNhY2hl.short_desc": {
+          "source": "Cache the scraped content",
+          "message": "Cache the scraped content"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.c3RvcmVJbkNhY2hl.desc": {
+          "source": "If `True`, the scraped content is stored in the Firecrawl cache so that subsequent scrapes within `maxAge` can reuse it. Defaults to `True`",
+          "message": "If `True`, the scraped content is stored in the Firecrawl cache so that subsequent scrapes within `maxAge` can reuse it. Defaults to `True`"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.dGltZW91dA.display_name": {
+          "source": "Timeout",
+          "message": "Timeout"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.dGltZW91dA.short_desc": {
+          "source": "Timeout in milliseconds",
+          "message": "Timeout in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.dGltZW91dA.desc": {
+          "source": "Maximum time in milliseconds to wait for each scrape to complete. Range: `1000`-`300000`",
+          "message": "Maximum time in milliseconds to wait for each scrape to complete. Range: `1000`-`300000`"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.d2FpdEZvcg.display_name": {
+          "source": "Wait For",
+          "message": "Wait For"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.d2FpdEZvcg.short_desc": {
+          "source": "Wait time in milliseconds",
+          "message": "Wait time in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.d2FpdEZvcg.desc": {
+          "source": "Time to wait in milliseconds for each page to load before scraping",
+          "message": "Time to wait in milliseconds for each page to load before scraping"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.emVyb0RhdGFSZXRlbnRpb24.display_name": {
+          "source": "Zero Data Retention",
+          "message": "Zero Data Retention"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.emVyb0RhdGFSZXRlbnRpb24.short_desc": {
+          "source": "Disable Firecrawl-side data retention",
+          "message": "Disable Firecrawl-side data retention"
+        },
+        "app.RmlyZWNyYXds.action.c2VhcmNo.option.c2NyYXBlT3B0aW9ucw.field.emVyb0RhdGFSZXRlbnRpb24.desc": {
+          "source": "If `True`, Firecrawl does not retain any scraped data on its servers after returning the response. Enterprise feature — contact Firecrawl support to enable",
+          "message": "If `True`, Firecrawl does not retain any scraped data on its servers after returning the response. Enterprise feature — contact Firecrawl support to enable"
+        },
         "app.RmlyZWNyYXds.action.c2VhcmNo.option.ZW50ZXJwcmlzZQ.display_name": {
           "source": "Enterprise",
           "message": "Enterprise"
@@ -1826,6 +3458,366 @@
         "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.desc": {
           "source": "Options applied when scraping each page during extraction, such as `formats`, `onlyMainContent`, `includeTags`, `excludeTags`",
           "message": "Options applied when scraping each page during extraction, such as `formats`, `onlyMainContent`, `includeTags`, `excludeTags`"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.YmxvY2tBZHM.display_name": {
+          "source": "Block Ads",
+          "message": "Block Ads"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.YmxvY2tBZHM.short_desc": {
+          "source": "Block advertisements",
+          "message": "Block advertisements"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.YmxvY2tBZHM.desc": {
+          "source": "If `True`, advertisements are blocked during scraping",
+          "message": "If `True`, advertisements are blocked during scraping"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.ZXhjbHVkZVRhZ3M.display_name": {
+          "source": "Exclude Tags",
+          "message": "Exclude Tags"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.ZXhjbHVkZVRhZ3M.short_desc": {
+          "source": "HTML tags to exclude",
+          "message": "HTML tags to exclude"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.ZXhjbHVkZVRhZ3M.desc": {
+          "source": "List of HTML tags to exclude from the output (e.g., `nav`, `footer`)",
+          "message": "List of HTML tags to exclude from the output (e.g., `nav`, `footer`)"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.display_name": {
+          "source": "Formats",
+          "message": "Formats"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.short_desc": {
+          "source": "Output formats to return",
+          "message": "Output formats to return"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.desc": {
+          "source": "List of output formats to return from each scraped page",
+          "message": "List of output formats to return from each scraped page"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOm1hcmtkb3du.display_name": {
+          "source": "Markdown",
+          "message": "Markdown"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmh0bWw.display_name": {
+          "source": "HTML",
+          "message": "HTML"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOnJhd0h0bWw.display_name": {
+          "source": "Raw HTML",
+          "message": "Raw HTML"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmxpbmtz.display_name": {
+          "source": "Links",
+          "message": "Links"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmltYWdlcw.display_name": {
+          "source": "Images",
+          "message": "Images"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOnNjcmVlbnNob3Q.display_name": {
+          "source": "Screenshot",
+          "message": "Screenshot"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOnN1bW1hcnk.display_name": {
+          "source": "Summary",
+          "message": "Summary"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmF1ZGlv.display_name": {
+          "source": "Audio",
+          "message": "Audio"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmNoYW5nZVRyYWNraW5n.display_name": {
+          "source": "Change Tracking",
+          "message": "Change Tracking"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.Zm9ybWF0cw.element-allowed-value.c3RyaW5nOmJyYW5kaW5n.display_name": {
+          "source": "Branding",
+          "message": "Branding"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.aGVhZGVycw.display_name": {
+          "source": "Headers",
+          "message": "Headers"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.aGVhZGVycw.short_desc": {
+          "source": "Custom HTTP headers",
+          "message": "Custom HTTP headers"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.aGVhZGVycw.desc": {
+          "source": "Custom HTTP headers to send with each scrape request",
+          "message": "Custom HTTP headers to send with each scrape request"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.aW5jbHVkZVRhZ3M.display_name": {
+          "source": "Include Tags",
+          "message": "Include Tags"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.aW5jbHVkZVRhZ3M.short_desc": {
+          "source": "HTML tags to include",
+          "message": "HTML tags to include"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.aW5jbHVkZVRhZ3M.desc": {
+          "source": "List of HTML tags to include in the output (e.g., `article`, `main`)",
+          "message": "List of HTML tags to include in the output (e.g., `article`, `main`)"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.bWF4QWdl.display_name": {
+          "source": "Max Age",
+          "message": "Max Age"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.bWF4QWdl.short_desc": {
+          "source": "Cache freshness threshold in milliseconds",
+          "message": "Cache freshness threshold in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.bWF4QWdl.desc": {
+          "source": "Maximum age in milliseconds for cached content. Defaults to `172800000` (48 hours)",
+          "message": "Maximum age in milliseconds for cached content. Defaults to `172800000` (48 hours)"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.bWluQWdl.display_name": {
+          "source": "Min Age",
+          "message": "Min Age"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.bWluQWdl.short_desc": {
+          "source": "Minimum cache age in milliseconds",
+          "message": "Minimum cache age in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.bWluQWdl.desc": {
+          "source": "Minimum age in milliseconds for a cache-only lookup",
+          "message": "Minimum age in milliseconds for a cache-only lookup"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.bW9iaWxl.display_name": {
+          "source": "Mobile",
+          "message": "Mobile"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.bW9iaWxl.short_desc": {
+          "source": "Use mobile user agent",
+          "message": "Use mobile user agent"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.bW9iaWxl.desc": {
+          "source": "If `True`, pages are scraped using a mobile user agent",
+          "message": "If `True`, pages are scraped using a mobile user agent"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.b25seUNsZWFuQ29udGVudA.display_name": {
+          "source": "Only Clean Content",
+          "message": "Only Clean Content"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.b25seUNsZWFuQ29udGVudA.short_desc": {
+          "source": "Apply LLM-based content cleanup",
+          "message": "Apply LLM-based content cleanup"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.b25seUNsZWFuQ29udGVudA.desc": {
+          "source": "If `True`, an LLM-based cleanup pass is applied to each page to remove navigation, ads, and boilerplate. Defaults to `False`",
+          "message": "If `True`, an LLM-based cleanup pass is applied to each page to remove navigation, ads, and boilerplate. Defaults to `False`"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.b25seU1haW5Db250ZW50.display_name": {
+          "source": "Only Main Content",
+          "message": "Only Main Content"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.b25seU1haW5Db250ZW50.short_desc": {
+          "source": "Extract only the main content",
+          "message": "Extract only the main content"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.b25seU1haW5Db250ZW50.desc": {
+          "source": "If `True`, only the main content of each page is returned, excluding headers, navigation, footers, etc. Defaults to `True`",
+          "message": "If `True`, only the main content of each page is returned, excluding headers, navigation, footers, etc. Defaults to `True`"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cGFyc2Vycw.display_name": {
+          "source": "Parsers",
+          "message": "Parsers"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cGFyc2Vycw.short_desc": {
+          "source": "PDF parser configuration",
+          "message": "PDF parser configuration"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cGFyc2Vycw.desc": {
+          "source": "List of parser configurations for PDF processing. Each entry specifies a parser type and processing options",
+          "message": "List of parser configurations for PDF processing. Each entry specifies a parser type and processing options"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bWF4UGFnZXM.display_name": {
+          "source": "Max Pages",
+          "message": "Max Pages"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bWF4UGFnZXM.short_desc": {
+          "source": "Maximum number of pages to parse",
+          "message": "Maximum number of pages to parse"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bWF4UGFnZXM.desc": {
+          "source": "Maximum number of PDF pages to parse. Range: `1`-`10000`",
+          "message": "Maximum number of PDF pages to parse. Range: `1`-`10000`"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bW9kZQ.display_name": {
+          "source": "Mode",
+          "message": "Mode"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bW9kZQ.short_desc": {
+          "source": "PDF processing mode",
+          "message": "PDF processing mode"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bW9kZQ.desc": {
+          "source": "The PDF processing strategy to use.\n\n- `fast` — text extraction only, no OCR\n- `auto` — fast extraction with OCR fallback for scanned pages\n- `ocr` — force OCR on all pages",
+          "message": "The PDF processing strategy to use.\n\n- `fast` — text extraction only, no OCR\n- `auto` — fast extraction with OCR fallback for scanned pages\n- `ocr` — force OCR on all pages"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bW9kZQ.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "Fast"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bW9kZQ.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Auto"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.bW9kZQ.allowed-value.c3RyaW5nOm9jcg.display_name": {
+          "source": "OCR",
+          "message": "OCR"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.dHlwZQ.short_desc": {
+          "source": "Parser type",
+          "message": "Parser type"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.dHlwZQ.desc": {
+          "source": "The parser type. Currently only `pdf` is supported",
+          "message": "The parser type. Currently only `pdf` is supported"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUGFyc2Vyc0RhdGFUeXBlOipoYXNoPGF1dG8-IzhmMGQzMzAzYzY3ZDk1NjdjMmUwODFlZTRjZGZhNTIzODVjMzk2ZDYwYjJjMTgyMWEwZjBhY2U4NWJjYmE0ZDM6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjR0Z5YzJWeWN3.field.dHlwZQ.allowed-value.c3RyaW5nOnBkZg.display_name": {
+          "source": "PDF",
+          "message": "PDF"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cHJvZmlsZQ.display_name": {
+          "source": "Profile",
+          "message": "Profile"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cHJvZmlsZQ.short_desc": {
+          "source": "Persistent browser profile",
+          "message": "Persistent browser profile"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cHJvZmlsZQ.desc": {
+          "source": "Named browser profile to reuse session state (cookies, local storage) across scrape requests",
+          "message": "Named browser profile to reuse session state (cookies, local storage) across scrape requests"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUHJvZmlsZURhdGFUeXBlOipoYXNoPGF1dG8-IzA2MjQ3ODEzMDMzMjBhZjg0MmZjMTA5NWRlOTU3NzQyOTI0YTEzZWFiZmQ4NTBiZTExMDdiOTY0Y2RhZTA4NGI6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjSEp2Wm1sc1pR.field.bmFtZQ.display_name": {
+          "source": "Profile Name",
+          "message": "Profile Name"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUHJvZmlsZURhdGFUeXBlOipoYXNoPGF1dG8-IzA2MjQ3ODEzMDMzMjBhZjg0MmZjMTA5NWRlOTU3NzQyOTI0YTEzZWFiZmQ4NTBiZTExMDdiOTY0Y2RhZTA4NGI6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjSEp2Wm1sc1pR.field.bmFtZQ.short_desc": {
+          "source": "Name of the browser profile",
+          "message": "Name of the browser profile"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUHJvZmlsZURhdGFUeXBlOipoYXNoPGF1dG8-IzA2MjQ3ODEzMDMzMjBhZjg0MmZjMTA5NWRlOTU3NzQyOTI0YTEzZWFiZmQ4NTBiZTExMDdiOTY0Y2RhZTA4NGI6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjSEp2Wm1sc1pR.field.bmFtZQ.desc": {
+          "source": "Name of the browser profile to use. The first scrape with a given name creates the profile; subsequent scrapes reuse its session state",
+          "message": "Name of the browser profile to use. The first scrape with a given name creates the profile; subsequent scrapes reuse its session state"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUHJvZmlsZURhdGFUeXBlOipoYXNoPGF1dG8-IzA2MjQ3ODEzMDMzMjBhZjg0MmZjMTA5NWRlOTU3NzQyOTI0YTEzZWFiZmQ4NTBiZTExMDdiOTY0Y2RhZTA4NGI6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjSEp2Wm1sc1pR.field.c2F2ZUNoYW5nZXM.display_name": {
+          "source": "Save Changes",
+          "message": "Save Changes"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUHJvZmlsZURhdGFUeXBlOipoYXNoPGF1dG8-IzA2MjQ3ODEzMDMzMjBhZjg0MmZjMTA5NWRlOTU3NzQyOTI0YTEzZWFiZmQ4NTBiZTExMDdiOTY0Y2RhZTA4NGI6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjSEp2Wm1sc1pR.field.c2F2ZUNoYW5nZXM.short_desc": {
+          "source": "Persist changes back to the profile",
+          "message": "Persist changes back to the profile"
+        },
+        "app.RmlyZWNyYXds.type.YWN0aW9uOlpYaDBjbUZqZEE6RmlyZWNyYXdsUHJvZmlsZURhdGFUeXBlOipoYXNoPGF1dG8-IzA2MjQ3ODEzMDMzMjBhZjg0MmZjMTA5NWRlOTU3NzQyOTI0YTEzZWFiZmQ4NTBiZTExMDdiOTY0Y2RhZTA4NGI6b3B0aW9uOmMyTnlZWEJsVDNCMGFXOXVjdzpmaWVsZDpjSEp2Wm1sc1pR.field.c2F2ZUNoYW5nZXM.desc": {
+          "source": "If `True`, changes made during the scrape (cookies, local storage, etc.) are saved back to the named profile. Defaults to `False`",
+          "message": "If `True`, changes made during the scrape (cookies, local storage, etc.) are saved back to the named profile. Defaults to `False`"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.display_name": {
+          "source": "Proxy",
+          "message": "Proxy"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.short_desc": {
+          "source": "Proxy configuration",
+          "message": "Proxy configuration"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.desc": {
+          "source": "The proxy configuration to use for scrape requests",
+          "message": "The proxy configuration to use for scrape requests"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.allowed-value.c3RyaW5nOmJhc2lj.display_name": {
+          "source": "Basic",
+          "message": "Basic"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.allowed-value.c3RyaW5nOmVuaGFuY2Vk.display_name": {
+          "source": "Enhanced",
+          "message": "Enhanced"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cHJveHk.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Auto"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cmVtb3ZlQmFzZTY0SW1hZ2Vz.display_name": {
+          "source": "Remove Base64 Images",
+          "message": "Remove Base64 Images"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cmVtb3ZlQmFzZTY0SW1hZ2Vz.short_desc": {
+          "source": "Remove base64-encoded images",
+          "message": "Remove base64-encoded images"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.cmVtb3ZlQmFzZTY0SW1hZ2Vz.desc": {
+          "source": "If `True`, base64-encoded images are removed from the output",
+          "message": "If `True`, base64-encoded images are removed from the output"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.c2tpcFRsc1ZlcmlmaWNhdGlvbg.display_name": {
+          "source": "Skip TLS Verification",
+          "message": "Skip TLS Verification"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.c2tpcFRsc1ZlcmlmaWNhdGlvbg.short_desc": {
+          "source": "Skip TLS certificate verification",
+          "message": "Skip TLS certificate verification"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.c2tpcFRsc1ZlcmlmaWNhdGlvbg.desc": {
+          "source": "If `True`, TLS certificate verification is skipped",
+          "message": "If `True`, TLS certificate verification is skipped"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.c3RvcmVJbkNhY2hl.display_name": {
+          "source": "Store In Cache",
+          "message": "Store In Cache"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.c3RvcmVJbkNhY2hl.short_desc": {
+          "source": "Cache the scraped content",
+          "message": "Cache the scraped content"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.c3RvcmVJbkNhY2hl.desc": {
+          "source": "If `True`, the scraped content is stored in the Firecrawl cache so that subsequent scrapes within `maxAge` can reuse it. Defaults to `True`",
+          "message": "If `True`, the scraped content is stored in the Firecrawl cache so that subsequent scrapes within `maxAge` can reuse it. Defaults to `True`"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.dGltZW91dA.display_name": {
+          "source": "Timeout",
+          "message": "Timeout"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.dGltZW91dA.short_desc": {
+          "source": "Timeout in milliseconds",
+          "message": "Timeout in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.dGltZW91dA.desc": {
+          "source": "Maximum time in milliseconds to wait for each scrape to complete. Range: `1000`-`300000`",
+          "message": "Maximum time in milliseconds to wait for each scrape to complete. Range: `1000`-`300000`"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.d2FpdEZvcg.display_name": {
+          "source": "Wait For",
+          "message": "Wait For"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.d2FpdEZvcg.short_desc": {
+          "source": "Wait time in milliseconds",
+          "message": "Wait time in milliseconds"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.d2FpdEZvcg.desc": {
+          "source": "Time to wait in milliseconds for each page to load before scraping",
+          "message": "Time to wait in milliseconds for each page to load before scraping"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.emVyb0RhdGFSZXRlbnRpb24.display_name": {
+          "source": "Zero Data Retention",
+          "message": "Zero Data Retention"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.emVyb0RhdGFSZXRlbnRpb24.short_desc": {
+          "source": "Disable Firecrawl-side data retention",
+          "message": "Disable Firecrawl-side data retention"
+        },
+        "app.RmlyZWNyYXds.action.ZXh0cmFjdA.option.c2NyYXBlT3B0aW9ucw.field.emVyb0RhdGFSZXRlbnRpb24.desc": {
+          "source": "If `True`, Firecrawl does not retain any scraped data on its servers after returning the response. Enterprise feature — contact Firecrawl support to enable",
+          "message": "If `True`, Firecrawl does not retain any scraped data on its servers after returning the response. Enterprise feature — contact Firecrawl support to enable"
         },
         "app.RmlyZWNyYXds.action.Z2V0LWV4dHJhY3Qtc3RhdHVz.display_name": {
           "source": "Get Extraction Status",
@@ -2015,6 +4007,126 @@
           "source": "The document to upload and parse. Supported file types: `.html`, `.htm`, `.pdf`, `.docx`, `.doc`, `.odt`, `.rtf`, `.xlsx`, `.xls`. Maximum size: 50 MB",
           "message": "The document to upload and parse. Supported file types: `.html`, `.htm`, `.pdf`, `.docx`, `.doc`, `.odt`, `.rtf`, `.xlsx`, `.xls`. Maximum size: 50 MB"
         },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "File Data"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME Type"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "Autodetect"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "MS Word docx document"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "MS Word `docx` document"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "MS PowerPoint pptx document"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "MS PowerPoint `pptx` document"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "MS Excel xlsx document"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "MS Excel `xlsx` document"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "Filename"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "The filename"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.ZmlsZQ.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "The filename"
+        },
         "app.RmlyZWNyYXds.action.cGFyc2U.option.Zm9ybWF0cw.display_name": {
           "source": "Formats",
           "message": "Formats"
@@ -2126,6 +4238,58 @@
         "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.desc": {
           "source": "List of parser configurations for PDF processing. Each entry specifies a parser type and processing options",
           "message": "List of parser configurations for PDF processing. Each entry specifies a parser type and processing options"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.field.bWF4UGFnZXM.display_name": {
+          "source": "Max Pages",
+          "message": "Max Pages"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.field.bWF4UGFnZXM.short_desc": {
+          "source": "Maximum number of pages to parse",
+          "message": "Maximum number of pages to parse"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.field.bWF4UGFnZXM.desc": {
+          "source": "Maximum number of PDF pages to parse. Range: `1`-`10000`",
+          "message": "Maximum number of PDF pages to parse. Range: `1`-`10000`"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.field.bW9kZQ.display_name": {
+          "source": "Mode",
+          "message": "Mode"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.field.bW9kZQ.short_desc": {
+          "source": "PDF processing mode",
+          "message": "PDF processing mode"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.field.bW9kZQ.desc": {
+          "source": "The PDF processing strategy to use.\n\n- `fast` — text extraction only, no OCR\n- `auto` — fast extraction with OCR fallback for scanned pages\n- `ocr` — force OCR on all pages",
+          "message": "The PDF processing strategy to use.\n\n- `fast` — text extraction only, no OCR\n- `auto` — fast extraction with OCR fallback for scanned pages\n- `ocr` — force OCR on all pages"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.field.bW9kZQ.allowed-value.c3RyaW5nOmZhc3Q.display_name": {
+          "source": "Fast",
+          "message": "Fast"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.field.bW9kZQ.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Auto"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.field.bW9kZQ.allowed-value.c3RyaW5nOm9jcg.display_name": {
+          "source": "OCR",
+          "message": "OCR"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.field.dHlwZQ.short_desc": {
+          "source": "Parser type",
+          "message": "Parser type"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.field.dHlwZQ.desc": {
+          "source": "The parser type. Currently only `pdf` is supported",
+          "message": "The parser type. Currently only `pdf` is supported"
+        },
+        "app.RmlyZWNyYXds.action.cGFyc2U.option.cGFyc2Vycw.field.dHlwZQ.allowed-value.c3RyaW5nOnBkZg.display_name": {
+          "source": "PDF",
+          "message": "PDF"
         },
         "app.RmlyZWNyYXds.action.cGFyc2U.option.c2tpcFRsc1ZlcmlmaWNhdGlvbg.display_name": {
           "source": "Skip TLS Verification",

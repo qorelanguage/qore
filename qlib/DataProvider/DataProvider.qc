@@ -69,6 +69,47 @@ public const DPO_AllOptions = (
 );
 #/@}
 
+#! One failure encountered while loading data provider modules declared by the environment
+/** Returned by @ref DataProvider::loadProvidersFromEnvironmentWithReport().
+
+    @since DataProvider 3.8
+*/
+public hashdecl DataProviderEnvironmentLoadFailureInfo {
+    #! Qualification phase: registration-module, registration-map, or provider-module
+    string phase;
+
+    #! Exact module identity that failed
+    string module;
+
+    #! Original exception error code
+    string error;
+
+    #! Original exception description
+    string description;
+
+    #! Original exception argument
+    auto argument;
+}
+
+#! One failure encountered while loading a built-in data provider factory module
+/** Returned by @ref DataProvider::registerKnownFactoriesWithReport().
+
+    @since DataProvider 3.8
+*/
+public hashdecl DataProviderFactoryModuleLoadFailureInfo {
+    #! Exact factory module identity that failed
+    string module;
+
+    #! Original exception error code
+    string error;
+
+    #! Original exception description
+    string description;
+
+    #! Original exception argument
+    auto argument;
+}
+
 #! Data provider class
 public class DataProvider {
     public {
@@ -418,6 +459,18 @@ public class DataProvider {
         #! set of module already loaded
         static hash<string, bool> mod_map;
 
+        #! Successfully completed environment registration maps
+        /** Kept separate from provider-module loading so a module loaded for another purpose cannot cause its
+            environment registration function to be skipped.
+        */
+        static hash<string, bool> env_registration_module_map;
+
+        #! Leaf lock protecting environment-loader success caches
+        /** The lock is held only while reading or updating the maps; module loads and registration callbacks always
+            run outside it so nested provider initialization cannot deadlock.
+        */
+        static Mutex env_load_state_lock();
+
         #! Static initializer list
         static list<code> ilist;
 
@@ -525,48 +578,61 @@ public class DataProvider {
         string new_class_name = factory.className();
         *string new_module_name = Class::getClass(factory).getModuleName();
 
-        factory_cache_lock.enter();
-        on_exit factory_cache_lock.exit();
-
-        *AbstractDataProviderFactory previous_factory = factory_cache{name};
+        *AbstractDataProviderFactory previous_factory;
         *string previous_class_name;
         *string previous_module_name;
-        if (previous_factory) {
-            # check if factory is being re-registered after module injection
-            if (!(new_module_name && factory_module_map{new_class_name} == new_module_name)) {
-                throw "PROVIDER-ERROR", sprintf("provider %y has already been registered", name);
+        DataProviderActionCatalog::commitDiscoveryCatalogMutation(bool sub () {
+            factory_cache_lock.enter();
+            on_exit factory_cache_lock.exit();
+
+            previous_factory = factory_cache{name};
+            if (previous_factory) {
+                # check if factory is being re-registered after module injection
+                if (!(new_module_name && factory_module_map{new_class_name} == new_module_name)) {
+                    throw "PROVIDER-ERROR", sprintf("provider %y has already been registered", name);
+                }
+                previous_class_name = previous_factory.className();
+                previous_module_name = factory_module_map{previous_class_name};
             }
-            previous_class_name = previous_factory.className();
-            previous_module_name = factory_module_map{previous_class_name};
-        }
-        if (exists new_module_name) {
-            factory_module_map{new_class_name} = new_module_name;
-        }
-        factory_cache{name} = factory;
+            if (exists new_module_name) {
+                factory_module_map{new_class_name} = new_module_name;
+            }
+            factory_cache{name} = factory;
+            return True;
+        });
 
         # Roll back exactly this registration if module initialization fails.
         # Re-registration during module injection must restore the previous factory
         # rather than deregistering a factory that was already valid before the load.
         ImplicitModuleTransaction::add(sub () {
-            factory_cache_lock.enter();
-            on_exit factory_cache_lock.exit();
+            DataProviderActionCatalog::commitDiscoveryCatalogMutation(bool sub () {
+                factory_cache_lock.enter();
+                on_exit factory_cache_lock.exit();
 
-            remove factory_module_map{new_class_name};
-            if (previous_factory) {
-                factory_cache{name} = previous_factory;
-                if (exists previous_module_name) {
-                    factory_module_map{previous_class_name} = previous_module_name;
+                remove factory_module_map{new_class_name};
+                if (previous_factory) {
+                    factory_cache{name} = previous_factory;
+                    if (exists previous_module_name) {
+                        factory_module_map{previous_class_name} = previous_module_name;
+                    }
+                } else {
+                    remove factory_cache{name};
                 }
-            } else {
-                remove factory_cache{name};
-            }
+                return True;
+            });
         });
     }
 
     #! Returns the given data provider factory or @ref nothing if not present
     static *AbstractDataProviderFactory getFactory(string name) {
         DataProvider::checkRequest();
-        if (!factory_cache{name} && !ProviderIndexUtil::checkFactoryModule(name)) {
+        *AbstractDataProviderFactory factory;
+        {
+            factory_cache_lock.enter();
+            on_exit factory_cache_lock.exit();
+            factory = factory_cache{name};
+        }
+        if (!factory && !ProviderIndexUtil::checkFactoryModule(name)) {
             *string module_name = FactoryMap{name} ?? DataProvider::tryGetFactoryModuleName(name);
             if (!module_name) {
                 return;
@@ -575,6 +641,8 @@ public class DataProvider {
                 return;
             }
         }
+        factory_cache_lock.enter();
+        on_exit factory_cache_lock.exit();
         return factory_cache{name};
     }
 
@@ -589,7 +657,7 @@ public class DataProvider {
         *AbstractDataProviderFactory factory = DataProvider::getFactory(name);
         if (!factory) {
             throw "PROVIDER-ERROR", sprintf("data provider factory %y is unknown; known data provider factories: %y",
-                name, keys factory_cache);
+                name, DataProvider::listFactories());
         }
         return factory;
     }
@@ -754,6 +822,8 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{datasourc
 
     #! Returns a list of registered data provider factories
     static *list<string> listFactories() {
+        factory_cache_lock.enter();
+        on_exit factory_cache_lock.exit();
         return keys factory_cache;
     }
 
@@ -844,6 +914,35 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{datasourc
     static registerKnownFactories() {
         # load known modules
         map DataProvider::tryLoad($1, True), FactoryModuleList;
+    }
+
+    #! Registers all known data provider factories and returns every structured module-loading failure
+    /** Unlike @ref registerKnownFactories(), this API does not reduce failures to optional debug logging. Healthy
+        factory modules remain registered, while callers deciding whether a discovery result is authoritative can
+        reject the complete attempt if this result is nonempty.
+
+        @return every failed built-in factory module in stable module-name order; an empty list means that all known
+            factory modules loaded successfully
+
+        @since DataProvider 3.8
+    */
+    static list<hash<DataProviderFactoryModuleLoadFailureInfo>>
+            registerKnownFactoriesWithReport() {
+        list<hash<DataProviderFactoryModuleLoadFailureInfo>> failures
+            = new list<hash<DataProviderFactoryModuleLoadFailureInfo>>();
+        foreach string module_name in (sort(FactoryModuleList)) {
+            try {
+                DataProvider::tryLoad(module_name, True, True);
+            } catch (hash<ExceptionInfo> ex) {
+                failures += <DataProviderFactoryModuleLoadFailureInfo>{
+                    "module": module_name,
+                    "error": ex.err,
+                    "description": ex.desc,
+                    "argument": ex.arg,
+                };
+            }
+        }
+        return failures;
     }
 
     #! Returns a descriptive string for the given expression
@@ -1360,6 +1459,29 @@ if (errors) {
         DataProvider::loadFromEnvironment("get_data_provider_map", "data provider", NOTHING, logger);
     }
 
+    #! Loads data providers from the environment and returns every structured loading failure
+    /** Unlike @ref loadProvidersFromEnvironment(), failures are returned to the caller instead of being written to
+        standard error. Failed modules are not recorded as loaded, so a later call can retry them and cannot silently
+        certify a partial discovery result.
+
+        @param logger optional logger for successful loading activity
+
+        @return every module loading failure in environment declaration order; an empty list means that all declared
+            modules loaded successfully
+
+        @since DataProvider 3.8
+    */
+    static list<hash<DataProviderEnvironmentLoadFailureInfo>> loadProvidersFromEnvironmentWithReport(
+            *LoggerInterface logger) {
+        list<hash<DataProviderEnvironmentLoadFailureInfo>> failures
+            = new list<hash<DataProviderEnvironmentLoadFailureInfo>>();
+        DataProvider::loadFromEnvironment("get_data_provider_map", "data provider", NOTHING, logger,
+            sub (hash<DataProviderEnvironmentLoadFailureInfo> failure) {
+                failures += failure;
+            });
+        return failures;
+    }
+
     #! Tries to load a data provider from the environment from the connection name
     static *AbstractDataProvider tryLoadProviderForConnectionFromEnv(string name, *string subtype,
             *LoggerInterface logger) {
@@ -1612,7 +1734,7 @@ if (errors) {
     }
 
     #! Try to load the given module
-    private static bool tryLoad(string module_str, *bool init) {
+    private static bool tryLoad(string module_str, *bool init, *bool rethrow_exception) {
         int sp = ImplicitModuleTransaction::savepoint();
         try {
             if (logger) {
@@ -1624,6 +1746,9 @@ if (errors) {
         } catch (hash<ExceptionInfo> ex) {
             # roll back any partial registrations from the failed module
             ImplicitModuleTransaction::rollback(sp);
+            if (rethrow_exception) {
+                rethrow;
+            }
             string err = sprintf("DataProvider load module %y: %s", module_str, get_exception_string(ex));
             if (logger) {
                 if (init) {
@@ -1640,16 +1765,22 @@ if (errors) {
 
     #! Loads modules from the QORE_DATA_PROVIDERS environment variable
     private static *object loadFromEnvironment(string func, string type, *hash<SymbolInfo> info,
-            *LoggerInterface logger) {
+            *LoggerInterface logger,
+            *code<nothing(hash<DataProviderEnvironmentLoadFailureInfo>)> failure_callback) {
         # load modules from the QORE_DATA_PROVIDERS environment variable
         *string prov = getenv("QORE_DATA_PROVIDERS");
         if (prov) {
             list<string> pl = prov.split(PathSep);
             foreach string mod in (pl) {
-                if (mod_map{mod}) {
+                bool registration_module_loaded;
+                {
+                    AutoLock al(env_load_state_lock);
+                    registration_module_loaded
+                        = env_registration_module_map{mod} ?? False;
+                }
+                if (registration_module_loaded) {
                     continue;
                 }
-                mod_map{mod} = True;
                 Program p(PO_NO_USER_API);
                 try {
                     p.loadModule(mod);
@@ -1657,8 +1788,19 @@ if (errors) {
                         return rv;
                     }
                 } catch (hash<ExceptionInfo> ex) {
-                    stderr.printf("ERROR: invalid QORE_DATA_PROVIDERS module %y %s: %s: %s\n", mod, get_ex_pos(ex),
-                        ex.err, ex.desc);
+                    if (failure_callback) {
+                        failure_callback(<DataProviderEnvironmentLoadFailureInfo>{
+                            "phase": "registration-module",
+                            "module": mod,
+                            "error": ex.err,
+                            "description": ex.desc,
+                            "argument": ex.arg,
+                        });
+                    } else {
+                        stderr.printf("ERROR: invalid QORE_DATA_PROVIDERS module %y %s: %s: %s\n", mod,
+                            get_ex_pos(ex), ex.err, ex.desc);
+                    }
+                    continue;
                 }
                 hash<string, string> dmap;
                 try {
@@ -1666,20 +1808,62 @@ if (errors) {
                 } catch (hash<ExceptionInfo> ex) {
                     # ignore NO-FUNCTION error
                     if (ex.err != "NO-FUNCTION") {
-                        stderr.printf("ERROR: error in QORE_DATA_PROVIDERS module %y %s registration function: %s: "
-                            "%s\n", mod, type, ex.err, ex.desc);
-                    }
-                }
-                foreach string mod_str in (dmap.iterator()) {
-                    if (mod_map{mod_str}) {
+                        if (failure_callback) {
+                            failure_callback(<DataProviderEnvironmentLoadFailureInfo>{
+                                "phase": "registration-map",
+                                "module": mod,
+                                "error": ex.err,
+                                "description": ex.desc,
+                                "argument": ex.arg,
+                            });
+                        } else {
+                            stderr.printf("ERROR: error in QORE_DATA_PROVIDERS module %y %s registration function: "
+                                "%s: %s\n", mod, type, ex.err, ex.desc);
+                        }
                         continue;
                     }
-                    mod_map{mod_str} = True;
-                    if (DataProvider::tryLoad(mod_str)) {
+                }
+                bool registration_complete = True;
+                foreach string mod_str in (dmap.iterator()) {
+                    bool provider_module_loaded;
+                    {
+                        AutoLock al(env_load_state_lock);
+                        provider_module_loaded = mod_map{mod_str} ?? False;
+                    }
+                    if (provider_module_loaded) {
+                        continue;
+                    }
+                    bool loaded = False;
+                    try {
+                        loaded = DataProvider::tryLoad(mod_str, NOTHING, True);
+                    } catch (hash<ExceptionInfo> ex) {
+                        registration_complete = False;
+                        if (failure_callback) {
+                            failure_callback(<DataProviderEnvironmentLoadFailureInfo>{
+                                "phase": "provider-module",
+                                "module": mod_str,
+                                "error": ex.err,
+                                "description": ex.desc,
+                                "argument": ex.arg,
+                            });
+                        } else {
+                            stderr.printf("ERROR: invalid QORE_DATA_PROVIDERS provider module %y %s: %s: %s\n",
+                                mod_str, get_ex_pos(ex), ex.err, ex.desc);
+                        }
+                    }
+                    if (loaded) {
+                        {
+                            AutoLock al(env_load_state_lock);
+                            mod_map{mod_str} = True;
+                        }
                         if (info && (*object rv = DataProvider::checkSymbol(info, logger))) {
                             return rv;
                         }
                     }
+                }
+                if (registration_complete) {
+                    AutoLock al(env_load_state_lock);
+                    env_registration_module_map{mod} = True;
                 }
             }
         }
@@ -1848,25 +2032,28 @@ if (errors) {
 
     #! Deregisters a factory if an exception occurs during the other module's initialization
     private static deregisterFactory(string name) {
-        factory_cache_lock.enter();
-        on_exit factory_cache_lock.exit();
+        DataProviderActionCatalog::commitDiscoveryCatalogMutation(bool sub () {
+            factory_cache_lock.enter();
+            on_exit factory_cache_lock.exit();
 
-        *AbstractDataProviderFactory factory = remove factory_cache{name};
-        if (!factory) {
-            return;
-        }
-        # the factory's QoreProgram may already be destroyed if module init failed;
-        # handle PROGRAM-ERROR gracefully during rollback cleanup
-        try {
-            *string module_name = Class::getClass(factory).getModuleName();
-            if (exists module_name) {
-                remove factory_module_map{factory.className()};
+            *AbstractDataProviderFactory factory = remove factory_cache{name};
+            if (!factory) {
+                return False;
             }
-        } catch (hash<ExceptionInfo> ex) {
-            if (ex.err != "PROGRAM-ERROR") {
-                rethrow;
+            # the factory's QoreProgram may already be destroyed if module init failed;
+            # handle PROGRAM-ERROR gracefully during rollback cleanup
+            try {
+                *string module_name = Class::getClass(factory).getModuleName();
+                if (exists module_name) {
+                    remove factory_module_map{factory.className()};
+                }
+            } catch (hash<ExceptionInfo> ex) {
+                if (ex.err != "PROGRAM-ERROR") {
+                    rethrow;
+                }
             }
-        }
+            return True;
+        });
     }
 }
 

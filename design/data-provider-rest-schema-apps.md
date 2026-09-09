@@ -97,6 +97,15 @@ Both `doxygen/lang/` lists are maintained in **alphabetical order**; insert in p
 appending. The presentation catalog is generated, never hand-written - see the checklist for the
 command, and regenerate it whenever a display name or description changes.
 
+Catalog extraction follows the complete reachable option-type graph. Existing flat option IDs remain stable;
+first-layer nested fields are option scoped and union-branch qualified, while deeper reusable fields use stable
+app/action/option/occurrence/type/field IDs. The occurrence carries its canonical technical field path and any union
+context above that occurrence; the type identity includes a digest of immediate technical field/type shape and an
+explicit producer schema path when available, but never label text. This distinguishes anonymous generated schemas
+without changing IDs when labels change. Extraction remains proportional to distinct concrete type objects per
+action/option rather than paths through a shared schema DAG. Nested `allowed_values` and `element_allowed_values` are
+included, and every shipped locale must have exact root ID/source parity after regeneration.
+
 The two failures compound in a way worth knowing about: the presentation check reaches an app only
 once its factory is in `FactoryMap`, so a module missing both is reported as missing *neither*.
 Adding the factory is what made the catalogs' absence visible.
@@ -105,6 +114,12 @@ Adding the factory is what made the catalogs' absence visible.
 everything else a module owes the platform - its sections 1, 2 and 9-11 apply to a schema-driven
 application unchanged; only sections 3-8 and 12 are taken over by the manifest and its overlay.
 **Run it before calling a port finished.**
+
+The schema adapter is also a versioned producer boundary. It preserves absent, empty, and null structures, rejects
+unsupported provider-schema versions, and converts choices to `AllowedValueInfo` only at a structurally declared
+choice position. An arbitrary raw hash containing a `value` member remains a raw value. Producers emit a lightweight
+exact app/action inventory before expensive action materialization so qualified discovery can detect omissions
+without reading logs. See [data-provider-discovery-qualification.md](data-provider-discovery-qualification.md).
 
 ## Vendoring the schema
 

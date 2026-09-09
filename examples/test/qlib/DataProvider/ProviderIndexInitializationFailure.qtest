@@ -6,6 +6,7 @@
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%prepend-module-path "${SCRIPT_DIR}"
 %requires Util
 %requires QUnit
 %requires FsUtil
@@ -25,6 +26,9 @@ public class ProviderIndexInitializationFailureTest inherits QUnit::Test {
     constructor() : Test("ProviderIndex initialization failures", "1.0") {
         addTestCase("structured deferred failure blocks repeated discovery", \deferredFailureTest());
         addTestCase("reported eager failure is filtered and retained", \eagerFailureTest());
+        addTestCase("environment source failures remain visible and retryable", \environmentFailureTest());
+        addTestCase("environment provider failures remain visible and retryable",
+            \environmentProviderFailureTest());
         set_return_value(main());
     }
 
@@ -58,7 +62,8 @@ public class ProviderIndexInitializationFailureTest inherits QUnit::Test {
             });
             fail("provider index creation must reject an incomplete catalog");
         } catch (hash<ExceptionInfo> ex) {
-            assertEq("DATA-PROVIDER-INITIALIZATION-ERROR", ex.err);
+            assertEq("DATA-PROVIDER-DISCOVERY-ERROR", ex.err,
+                sprintf("provider index exception: %y", ex));
             return ex;
         }
         throw "TEST-ERROR", "provider index creation unexpectedly succeeded";
@@ -66,15 +71,29 @@ public class ProviderIndexInitializationFailureTest inherits QUnit::Test {
 
     private checkFailure(hash<ExceptionInfo> ex, string kind, string app, *string action, string error,
             string description, auto argument) {
-        list<hash<DataProviderInitializationFailureInfo>> failures = ex.arg;
-        assertEq(1, failures.size(), "one selected initialization failure is reported");
-        hash<DataProviderInitializationFailureInfo> failure = failures[0];
+        hash<DataProviderDiscoveryReportInfo> report = ex.arg;
+        assertFalse(report.complete, "failed discovery report is not complete");
+        hash<string, bool> expected_apps = map {$1.app: True},
+            report.expected.iterator();
+        assertEq((app,), sort(keys expected_apps),
+            "the report preserves only the selected expected app scope");
+        list<hash<DataProviderDiscoveryFailureInfo>> selected = map $1,
+            report.failures, $1.kind == kind && $1.app == app
+                && $1.action == action && $1.error == error;
+        assertEq(1, selected.size(),
+            "the selected structured failure is reported once");
+        hash<DataProviderDiscoveryFailureInfo> failure = selected[0];
         assertEq(kind, failure.kind);
         assertEq(app, failure.app);
         assertEq(action, failure.action);
         assertEq(error, failure.error);
         assertEq(description, failure.description);
         assertEq(argument, failure.argument);
+        list<hash<DataProviderDiscoveryFailureInfo>> publication_failures
+            = map $1, report.failures,
+                $1.error == "DATA-PROVIDER-MODULE-PATH-MISSING";
+        assertEq(1, publication_failures.size(),
+            "publication qualification also reports the missing owner path");
     }
 
     private deferredFailureTest() {
@@ -145,5 +164,157 @@ public class ProviderIndexInitializationFailureTest inherits QUnit::Test {
             = DataProviderActionCatalog::getInitializationFailures((app,));
         assertEq("/test/eager-provider.qm", failures[0].module_context,
             "the provider module identity is retained");
+    }
+
+    private environmentFailureTest() {
+        checkModules();
+
+        string env_name = "QORE_DATA_PROVIDERS";
+        *string old_value = getenv(env_name);
+        auto old_env_value = ENV{env_name};
+        string module_name = "MissingDiscoveryModule_" + get_random_string(8);
+        setenv(env_name, module_name);
+        ENV{env_name} = module_name;
+        on_exit {
+            if (old_value) {
+                setenv(env_name, old_value);
+            } else {
+                unsetenv(env_name);
+            }
+            if (exists old_env_value) {
+                ENV{env_name} = old_env_value;
+            } else {
+                remove ENV{env_name};
+            }
+        }
+
+        string dir = make_tmp_dir();
+        on_exit remove_tree(dir);
+        for (int i = 0; i < 2; ++i) {
+            try {
+                ProviderIndex::createDataProviderIndex(<DataProviderIndexInfo>{}, dir,
+                    <ProviderIndexCreateOptions>{
+                        "load_known_factories": False,
+                        "load_environment": True,
+                        "load_typescript_actions": False,
+                    });
+                fail("provider index creation must reject a failed environment source");
+            } catch (hash<ExceptionInfo> ex) {
+                assertEq("DATA-PROVIDER-DISCOVERY-ERROR", ex.err,
+                    sprintf("provider index exception: %y", ex));
+                hash<DataProviderDiscoveryReportInfo> report = ex.arg;
+                list<hash<DataProviderDiscoveryFailureInfo>> failures = map $1,
+                    report.failures, $1.kind == "source"
+                        && $1.phase == "registration-module"
+                        && $1.identity == module_name;
+                assertEq(1, failures.size(),
+                    "the failed environment registration module is reported once on attempt " + (i + 1));
+                assertEq(module_name, failures[0].module_context,
+                    "the exact failing module is retained as source context");
+                assertTrue(failures[0].error.val(),
+                    "the original loader error code is retained");
+                assertTrue(failures[0].description.val(),
+                    "the original loader description is retained");
+            }
+            assertFalse(is_readable(join_paths(dir, "qore-data-index.yaml")),
+                "a source failure cannot publish an index on attempt " + (i + 1));
+        }
+    }
+
+    private environmentProviderFailureTest() {
+        checkModules();
+
+        string env_name = "QORE_DATA_PROVIDERS";
+        *string old_value = getenv(env_name);
+        auto old_env_value = ENV{env_name};
+        string fixture_env_name = "QORE_PROVIDER_INDEX_FIXTURE_MODULE";
+        *string old_fixture_value = getenv(fixture_env_name);
+        auto old_fixture_env_value = ENV{fixture_env_name};
+        string registration_module = "ProviderIndexEnvironmentMapFixture";
+        string provider_root = make_tmp_dir();
+        on_exit remove_tree(provider_root);
+        string provider_module = join_paths(provider_root,
+            "ProviderIndexRecoveredProviderFixture.qm");
+        setenv(env_name, registration_module);
+        ENV{env_name} = registration_module;
+        setenv(fixture_env_name, provider_module);
+        ENV{fixture_env_name} = provider_module;
+        on_exit {
+            if (old_value) {
+                setenv(env_name, old_value);
+            } else {
+                unsetenv(env_name);
+            }
+            if (exists old_env_value) {
+                ENV{env_name} = old_env_value;
+            } else {
+                remove ENV{env_name};
+            }
+            if (old_fixture_value) {
+                setenv(fixture_env_name, old_fixture_value);
+            } else {
+                unsetenv(fixture_env_name);
+            }
+            if (exists old_fixture_env_value) {
+                ENV{fixture_env_name} = old_fixture_env_value;
+            } else {
+                remove ENV{fixture_env_name};
+            }
+        }
+
+        string dir = make_tmp_dir();
+        on_exit remove_tree(dir);
+        for (int i = 0; i < 2; ++i) {
+            try {
+                ProviderIndex::createDataProviderIndex(
+                    <DataProviderIndexInfo>{}, dir,
+                    <ProviderIndexCreateOptions>{
+                        "load_known_factories": False,
+                        "load_environment": True,
+                        "load_typescript_actions": False,
+                    });
+                fail("provider index creation must reject a failed environment provider module");
+            } catch (hash<ExceptionInfo> ex) {
+                assertEq("DATA-PROVIDER-DISCOVERY-ERROR", ex.err,
+                    sprintf("provider index exception: %y", ex));
+                hash<DataProviderDiscoveryReportInfo> report = ex.arg;
+                list<hash<DataProviderDiscoveryFailureInfo>> failures
+                    = map $1, report.failures,
+                        $1.kind == "source"
+                            && $1.phase == "provider-module"
+                            && $1.identity == provider_module;
+                assertEq(1, failures.size(),
+                    "the failed provider child is retried and reported once on attempt "
+                        + (i + 1));
+                assertEq(provider_module, failures[0].module_context);
+            }
+            assertFalse(is_readable(join_paths(dir,
+                "qore-data-index.yaml")),
+                "a provider-module failure cannot publish an index on attempt "
+                    + (i + 1));
+        }
+
+        File recovered_module();
+        recovered_module.open2(provider_module,
+            O_CREAT | O_EXCL | O_WRONLY, 0644);
+        recovered_module.write("%modern\n\nmodule ProviderIndexRecoveredProviderFixture {\n"
+            "    version = \"1.0\";\n"
+            "    desc = \"provider discovery retry fixture\";\n"
+            "    author = \"Qore Technologies\";\n"
+            "    url = \"http://qore.org\";\n"
+            "    license = \"MIT\";\n"
+            "}\n");
+        recovered_module.close();
+        hash<auto> recovered = ProviderIndex::createDataProviderIndex(
+            <DataProviderIndexInfo>{}, dir,
+            <ProviderIndexCreateOptions>{
+                "load_known_factories": False,
+                "load_environment": True,
+                "load_typescript_actions": False,
+            });
+        assertTrue(recovered.summary.qualification.complete,
+            "the same failed environment provider is retried successfully after its dependency appears");
+        assertTrue(is_readable(join_paths(dir, "qore-data-index.yaml")),
+            "the recovered discovery attempt can publish its qualified index");
     }
 }

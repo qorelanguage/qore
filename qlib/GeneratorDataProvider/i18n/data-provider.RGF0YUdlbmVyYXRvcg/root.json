@@ -71,6 +71,62 @@
           "source": "A list of field definition hashes, each with keys: `name` (string, the field name), `type` (string, one of: `string`, `int`, `float`, `bool`, `date`), and optionally `desc` (string, field description).\n\nIf not provided, a default schema is used with fields: `id` (int), `name` (string), `value` (float), `active` (bool), `created` (date)",
           "message": "A list of field definition hashes, each with keys: `name` (string, the field name), `type` (string, one of: `string`, `int`, `float`, `bool`, `date`), and optionally `desc` (string, field description).\n\nIf not provided, a default schema is used with fields: `id` (int), `name` (string), `value` (float), `active` (bool), `created` (date)"
         },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.ZGVzYw.display_name": {
+          "source": "Description",
+          "message": "Description"
+        },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.ZGVzYw.short_desc": {
+          "source": "An optional description of the field",
+          "message": "An optional description of the field"
+        },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.ZGVzYw.desc": {
+          "source": "An optional human-readable description of the field",
+          "message": "An optional human-readable description of the field"
+        },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.bmFtZQ.display_name": {
+          "source": "Field Name",
+          "message": "Field Name"
+        },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.bmFtZQ.short_desc": {
+          "source": "The name of the field",
+          "message": "The name of the field"
+        },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.bmFtZQ.desc": {
+          "source": "The name of the field in the generated record",
+          "message": "The name of the field in the generated record"
+        },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.dHlwZQ.display_name": {
+          "source": "Field Type",
+          "message": "Field Type"
+        },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.dHlwZQ.short_desc": {
+          "source": "The data type of the field",
+          "message": "The data type of the field"
+        },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.dHlwZQ.desc": {
+          "source": "The data type of the field; determines the kind of values generated",
+          "message": "The data type of the field; determines the kind of values generated"
+        },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.dHlwZQ.allowed-value.c3RyaW5nOnN0cmluZw.desc": {
+          "source": "String values",
+          "message": "String values"
+        },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.dHlwZQ.allowed-value.c3RyaW5nOmludA.desc": {
+          "source": "Integer values",
+          "message": "Integer values"
+        },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.dHlwZQ.allowed-value.c3RyaW5nOmZsb2F0.desc": {
+          "source": "Floating-point values",
+          "message": "Floating-point values"
+        },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.dHlwZQ.allowed-value.c3RyaW5nOmJvb2w.desc": {
+          "source": "Boolean values",
+          "message": "Boolean values"
+        },
+        "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.ZmllbGRz.field.dHlwZQ.allowed-value.c3RyaW5nOmRhdGU.desc": {
+          "source": "Date/time values",
+          "message": "Date/time values"
+        },
         "app.RGF0YUdlbmVyYXRvcg.action.Z2VuZXJhdGUtcmVjb3Jkcw.option.aW5jbHVkZV9udWxscw.display_name": {
           "source": "Include Nulls",
           "message": "Include Nulls"

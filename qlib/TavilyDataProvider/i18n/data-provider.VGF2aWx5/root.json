@@ -2047,6 +2047,42 @@
           "source": "Documents of your own for the agent to read alongside what it finds on the web - up to 5 files and 80,000 words in total.  This is how a research task is grounded in something the web does not have.",
           "message": "Documents of your own for the agent to read alongside what it finds on the web - up to 5 files and 80,000 words in total.  This is how a research task is grounded in something the web does not have."
         },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.field.ZGF0YQ.display_name": {
+          "source": "Contents",
+          "message": "Contents"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.field.ZGF0YQ.short_desc": {
+          "source": "The file contents, base64-encoded",
+          "message": "The file contents, base64-encoded"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.field.ZGF0YQ.desc": {
+          "source": "The file contents, base64-encoded.",
+          "message": "The file contents, base64-encoded."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.field.bmFtZQ.display_name": {
+          "source": "File Name",
+          "message": "File Name"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.field.bmFtZQ.short_desc": {
+          "source": "The file name, including its extension",
+          "message": "The file name, including its extension"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.field.bmFtZQ.desc": {
+          "source": "The file name, including its extension.  Tavily accepts `.txt`, `.md` and `.json`.",
+          "message": "The file name, including its extension.  Tavily accepts `.txt`, `.md` and `.json`."
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.field.dHlwZQ.display_name": {
+          "source": "Encoding",
+          "message": "Encoding"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.field.dHlwZQ.short_desc": {
+          "source": "How the contents are encoded",
+          "message": "How the contents are encoded"
+        },
+        "app.VGF2aWx5.action.cmVzZWFyY2g.option.ZmlsZXM.field.dHlwZQ.desc": {
+          "source": "How the contents are encoded.  Defaults to `base64`, which is the only encoding Tavily documents.",
+          "message": "How the contents are encoded.  Defaults to `base64`, which is the only encoding Tavily documents."
+        },
         "app.VGF2aWx5.action.Z2V0LXJlc2VhcmNo.display_name": {
           "source": "Get Research Report",
           "message": "Get Research Report"

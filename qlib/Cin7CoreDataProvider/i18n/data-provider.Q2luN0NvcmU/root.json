@@ -515,6 +515,114 @@
           "source": "List of contacts to create for this customer",
           "message": "List of contacts to create for this customer"
         },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.Q29tbWVudA.display_name": {
+          "source": "Comment",
+          "message": "Comment"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.Q29tbWVudA.short_desc": {
+          "source": "Additional notes",
+          "message": "Additional notes"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.Q29tbWVudA.desc": {
+          "source": "Additional notes or comments about the contact",
+          "message": "Additional notes or comments about the contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RGVmYXVsdA.display_name": {
+          "source": "Is Default",
+          "message": "Is Default"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RGVmYXVsdA.short_desc": {
+          "source": "Default contact flag",
+          "message": "Default contact flag"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RGVmYXVsdA.desc": {
+          "source": "Whether this is the default contact",
+          "message": "Whether this is the default contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RW1haWw.short_desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RW1haWw.desc": {
+          "source": "The email address of the contact",
+          "message": "The email address of the contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RmF4.display_name": {
+          "source": "Fax",
+          "message": "Fax"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RmF4.short_desc": {
+          "source": "Fax number",
+          "message": "Fax number"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RmF4.desc": {
+          "source": "The fax number of the contact",
+          "message": "The fax number of the contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.SUQ.display_name": {
+          "source": "Contact ID",
+          "message": "Contact ID"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.SUQ.short_desc": {
+          "source": "Unique contact identifier",
+          "message": "Unique contact identifier"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.SUQ.desc": {
+          "source": "The unique identifier of the contact",
+          "message": "The unique identifier of the contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.SW5jbHVkZUluRW1haWw.display_name": {
+          "source": "Include in Email",
+          "message": "Include in Email"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.SW5jbHVkZUluRW1haWw.short_desc": {
+          "source": "Email notification flag",
+          "message": "Email notification flag"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.SW5jbHVkZUluRW1haWw.desc": {
+          "source": "Whether to include this contact in email notifications",
+          "message": "Whether to include this contact in email notifications"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.TmFtZQ.display_name": {
+          "source": "Contact Name",
+          "message": "Contact Name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.TmFtZQ.short_desc": {
+          "source": "Full name",
+          "message": "Full name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.TmFtZQ.desc": {
+          "source": "The full name of the contact",
+          "message": "The full name of the contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.UGhvbmU.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.UGhvbmU.short_desc": {
+          "source": "Phone number",
+          "message": "Phone number"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.UGhvbmU.desc": {
+          "source": "The phone number of the contact",
+          "message": "The phone number of the contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.V2Vic2l0ZQ.display_name": {
+          "source": "Website",
+          "message": "Website"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.V2Vic2l0ZQ.short_desc": {
+          "source": "Website URL",
+          "message": "Website URL"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.V2Vic2l0ZQ.desc": {
+          "source": "The website URL of the contact",
+          "message": "The website URL of the contact"
+        },
         "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.display_name": {
           "source": "Addresses",
           "message": "Addresses"
@@ -526,6 +634,78 @@
         "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.desc": {
           "source": "List of addresses to create for this customer",
           "message": "List of addresses to create for this customer"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.desc": {
+          "source": "The city name",
+          "message": "The city name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.desc": {
+          "source": "The country name",
+          "message": "The country name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.TGluZTE.display_name": {
+          "source": "Address Line 1",
+          "message": "Address Line 1"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.TGluZTE.short_desc": {
+          "source": "First line of address",
+          "message": "First line of address"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.TGluZTE.desc": {
+          "source": "The first line of the address (street address)",
+          "message": "The first line of the address (street address)"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.TGluZTI.display_name": {
+          "source": "Address Line 2",
+          "message": "Address Line 2"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.TGluZTI.short_desc": {
+          "source": "Second line of address",
+          "message": "Second line of address"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.TGluZTI.desc": {
+          "source": "The second line of the address (apt, suite, etc.)",
+          "message": "The second line of the address (apt, suite, etc.)"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.UG9zdGNvZGU.display_name": {
+          "source": "Postal Code",
+          "message": "Postal Code"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.UG9zdGNvZGU.short_desc": {
+          "source": "Postal/ZIP code",
+          "message": "Postal/ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.UG9zdGNvZGU.desc": {
+          "source": "The postal or ZIP code",
+          "message": "The postal or ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.U3RhdGU.display_name": {
+          "source": "State/Region",
+          "message": "State/Region"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.U3RhdGU.short_desc": {
+          "source": "State or region",
+          "message": "State or region"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.U3RhdGU.desc": {
+          "source": "The state, province, or region",
+          "message": "The state, province, or region"
         },
         "app.Q2luN0NvcmU.action.Y3JlYXRlLWN1c3RvbWVy.option.VGFncw.display_name": {
           "source": "Tags",
@@ -739,6 +919,114 @@
           "source": "List of contacts for this customer",
           "message": "List of contacts for this customer"
         },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.Q29tbWVudA.display_name": {
+          "source": "Comment",
+          "message": "Comment"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.Q29tbWVudA.short_desc": {
+          "source": "Additional notes",
+          "message": "Additional notes"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.Q29tbWVudA.desc": {
+          "source": "Additional notes or comments about the contact",
+          "message": "Additional notes or comments about the contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RGVmYXVsdA.display_name": {
+          "source": "Is Default",
+          "message": "Is Default"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RGVmYXVsdA.short_desc": {
+          "source": "Default contact flag",
+          "message": "Default contact flag"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RGVmYXVsdA.desc": {
+          "source": "Whether this is the default contact",
+          "message": "Whether this is the default contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RW1haWw.short_desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RW1haWw.desc": {
+          "source": "The email address of the contact",
+          "message": "The email address of the contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RmF4.display_name": {
+          "source": "Fax",
+          "message": "Fax"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RmF4.short_desc": {
+          "source": "Fax number",
+          "message": "Fax number"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.RmF4.desc": {
+          "source": "The fax number of the contact",
+          "message": "The fax number of the contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.SUQ.display_name": {
+          "source": "Contact ID",
+          "message": "Contact ID"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.SUQ.short_desc": {
+          "source": "Unique contact identifier",
+          "message": "Unique contact identifier"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.SUQ.desc": {
+          "source": "The unique identifier of the contact",
+          "message": "The unique identifier of the contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.SW5jbHVkZUluRW1haWw.display_name": {
+          "source": "Include in Email",
+          "message": "Include in Email"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.SW5jbHVkZUluRW1haWw.short_desc": {
+          "source": "Email notification flag",
+          "message": "Email notification flag"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.SW5jbHVkZUluRW1haWw.desc": {
+          "source": "Whether to include this contact in email notifications",
+          "message": "Whether to include this contact in email notifications"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.TmFtZQ.display_name": {
+          "source": "Contact Name",
+          "message": "Contact Name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.TmFtZQ.short_desc": {
+          "source": "Full name",
+          "message": "Full name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.TmFtZQ.desc": {
+          "source": "The full name of the contact",
+          "message": "The full name of the contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.UGhvbmU.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.UGhvbmU.short_desc": {
+          "source": "Phone number",
+          "message": "Phone number"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.UGhvbmU.desc": {
+          "source": "The phone number of the contact",
+          "message": "The phone number of the contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.V2Vic2l0ZQ.display_name": {
+          "source": "Website",
+          "message": "Website"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.V2Vic2l0ZQ.short_desc": {
+          "source": "Website URL",
+          "message": "Website URL"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.Q29udGFjdHM.field.V2Vic2l0ZQ.desc": {
+          "source": "The website URL of the contact",
+          "message": "The website URL of the contact"
+        },
         "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.display_name": {
           "source": "Addresses",
           "message": "Addresses"
@@ -750,6 +1038,78 @@
         "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.desc": {
           "source": "List of addresses for this customer",
           "message": "List of addresses for this customer"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.desc": {
+          "source": "The city name",
+          "message": "The city name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.desc": {
+          "source": "The country name",
+          "message": "The country name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.TGluZTE.display_name": {
+          "source": "Address Line 1",
+          "message": "Address Line 1"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.TGluZTE.short_desc": {
+          "source": "First line of address",
+          "message": "First line of address"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.TGluZTE.desc": {
+          "source": "The first line of the address (street address)",
+          "message": "The first line of the address (street address)"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.TGluZTI.display_name": {
+          "source": "Address Line 2",
+          "message": "Address Line 2"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.TGluZTI.short_desc": {
+          "source": "Second line of address",
+          "message": "Second line of address"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.TGluZTI.desc": {
+          "source": "The second line of the address (apt, suite, etc.)",
+          "message": "The second line of the address (apt, suite, etc.)"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.UG9zdGNvZGU.display_name": {
+          "source": "Postal Code",
+          "message": "Postal Code"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.UG9zdGNvZGU.short_desc": {
+          "source": "Postal/ZIP code",
+          "message": "Postal/ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.UG9zdGNvZGU.desc": {
+          "source": "The postal or ZIP code",
+          "message": "The postal or ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.U3RhdGU.display_name": {
+          "source": "State/Region",
+          "message": "State/Region"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.U3RhdGU.short_desc": {
+          "source": "State or region",
+          "message": "State or region"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.QWRkcmVzc2Vz.field.U3RhdGU.desc": {
+          "source": "The state, province, or region",
+          "message": "The state, province, or region"
         },
         "app.Q2luN0NvcmU.action.dXBkYXRlLWN1c3RvbWVy.option.VGFncw.display_name": {
           "source": "Tags",
@@ -915,6 +1275,114 @@
           "source": "List of contacts to create for this supplier",
           "message": "List of contacts to create for this supplier"
         },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.Q29tbWVudA.display_name": {
+          "source": "Comment",
+          "message": "Comment"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.Q29tbWVudA.short_desc": {
+          "source": "Additional notes",
+          "message": "Additional notes"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.Q29tbWVudA.desc": {
+          "source": "Additional notes or comments about the contact",
+          "message": "Additional notes or comments about the contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RGVmYXVsdA.display_name": {
+          "source": "Is Default",
+          "message": "Is Default"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RGVmYXVsdA.short_desc": {
+          "source": "Default contact flag",
+          "message": "Default contact flag"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RGVmYXVsdA.desc": {
+          "source": "Whether this is the default contact",
+          "message": "Whether this is the default contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RW1haWw.short_desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RW1haWw.desc": {
+          "source": "The email address of the contact",
+          "message": "The email address of the contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RmF4.display_name": {
+          "source": "Fax",
+          "message": "Fax"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RmF4.short_desc": {
+          "source": "Fax number",
+          "message": "Fax number"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RmF4.desc": {
+          "source": "The fax number of the contact",
+          "message": "The fax number of the contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.SUQ.display_name": {
+          "source": "Contact ID",
+          "message": "Contact ID"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.SUQ.short_desc": {
+          "source": "Unique contact identifier",
+          "message": "Unique contact identifier"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.SUQ.desc": {
+          "source": "The unique identifier of the contact",
+          "message": "The unique identifier of the contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.SW5jbHVkZUluRW1haWw.display_name": {
+          "source": "Include in Email",
+          "message": "Include in Email"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.SW5jbHVkZUluRW1haWw.short_desc": {
+          "source": "Email notification flag",
+          "message": "Email notification flag"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.SW5jbHVkZUluRW1haWw.desc": {
+          "source": "Whether to include this contact in email notifications",
+          "message": "Whether to include this contact in email notifications"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.TmFtZQ.display_name": {
+          "source": "Contact Name",
+          "message": "Contact Name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.TmFtZQ.short_desc": {
+          "source": "Full name",
+          "message": "Full name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.TmFtZQ.desc": {
+          "source": "The full name of the contact",
+          "message": "The full name of the contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.UGhvbmU.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.UGhvbmU.short_desc": {
+          "source": "Phone number",
+          "message": "Phone number"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.UGhvbmU.desc": {
+          "source": "The phone number of the contact",
+          "message": "The phone number of the contact"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.V2Vic2l0ZQ.display_name": {
+          "source": "Website",
+          "message": "Website"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.V2Vic2l0ZQ.short_desc": {
+          "source": "Website URL",
+          "message": "Website URL"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.V2Vic2l0ZQ.desc": {
+          "source": "The website URL of the contact",
+          "message": "The website URL of the contact"
+        },
         "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.display_name": {
           "source": "Addresses",
           "message": "Addresses"
@@ -926,6 +1394,78 @@
         "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.desc": {
           "source": "List of addresses to create for this supplier",
           "message": "List of addresses to create for this supplier"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.desc": {
+          "source": "The city name",
+          "message": "The city name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.desc": {
+          "source": "The country name",
+          "message": "The country name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.TGluZTE.display_name": {
+          "source": "Address Line 1",
+          "message": "Address Line 1"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.TGluZTE.short_desc": {
+          "source": "First line of address",
+          "message": "First line of address"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.TGluZTE.desc": {
+          "source": "The first line of the address (street address)",
+          "message": "The first line of the address (street address)"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.TGluZTI.display_name": {
+          "source": "Address Line 2",
+          "message": "Address Line 2"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.TGluZTI.short_desc": {
+          "source": "Second line of address",
+          "message": "Second line of address"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.TGluZTI.desc": {
+          "source": "The second line of the address (apt, suite, etc.)",
+          "message": "The second line of the address (apt, suite, etc.)"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.UG9zdGNvZGU.display_name": {
+          "source": "Postal Code",
+          "message": "Postal Code"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.UG9zdGNvZGU.short_desc": {
+          "source": "Postal/ZIP code",
+          "message": "Postal/ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.UG9zdGNvZGU.desc": {
+          "source": "The postal or ZIP code",
+          "message": "The postal or ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.U3RhdGU.display_name": {
+          "source": "State/Region",
+          "message": "State/Region"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.U3RhdGU.short_desc": {
+          "source": "State or region",
+          "message": "State or region"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.U3RhdGU.desc": {
+          "source": "The state, province, or region",
+          "message": "The state, province, or region"
         },
         "app.Q2luN0NvcmU.action.Y3JlYXRlLXN1cHBsaWVy.option.VGFncw.display_name": {
           "source": "Tags",
@@ -1107,6 +1647,114 @@
           "source": "List of contacts for this supplier",
           "message": "List of contacts for this supplier"
         },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.Q29tbWVudA.display_name": {
+          "source": "Comment",
+          "message": "Comment"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.Q29tbWVudA.short_desc": {
+          "source": "Additional notes",
+          "message": "Additional notes"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.Q29tbWVudA.desc": {
+          "source": "Additional notes or comments about the contact",
+          "message": "Additional notes or comments about the contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RGVmYXVsdA.display_name": {
+          "source": "Is Default",
+          "message": "Is Default"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RGVmYXVsdA.short_desc": {
+          "source": "Default contact flag",
+          "message": "Default contact flag"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RGVmYXVsdA.desc": {
+          "source": "Whether this is the default contact",
+          "message": "Whether this is the default contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RW1haWw.short_desc": {
+          "source": "Email address",
+          "message": "Email address"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RW1haWw.desc": {
+          "source": "The email address of the contact",
+          "message": "The email address of the contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RmF4.display_name": {
+          "source": "Fax",
+          "message": "Fax"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RmF4.short_desc": {
+          "source": "Fax number",
+          "message": "Fax number"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.RmF4.desc": {
+          "source": "The fax number of the contact",
+          "message": "The fax number of the contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.SUQ.display_name": {
+          "source": "Contact ID",
+          "message": "Contact ID"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.SUQ.short_desc": {
+          "source": "Unique contact identifier",
+          "message": "Unique contact identifier"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.SUQ.desc": {
+          "source": "The unique identifier of the contact",
+          "message": "The unique identifier of the contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.SW5jbHVkZUluRW1haWw.display_name": {
+          "source": "Include in Email",
+          "message": "Include in Email"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.SW5jbHVkZUluRW1haWw.short_desc": {
+          "source": "Email notification flag",
+          "message": "Email notification flag"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.SW5jbHVkZUluRW1haWw.desc": {
+          "source": "Whether to include this contact in email notifications",
+          "message": "Whether to include this contact in email notifications"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.TmFtZQ.display_name": {
+          "source": "Contact Name",
+          "message": "Contact Name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.TmFtZQ.short_desc": {
+          "source": "Full name",
+          "message": "Full name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.TmFtZQ.desc": {
+          "source": "The full name of the contact",
+          "message": "The full name of the contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.UGhvbmU.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.UGhvbmU.short_desc": {
+          "source": "Phone number",
+          "message": "Phone number"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.UGhvbmU.desc": {
+          "source": "The phone number of the contact",
+          "message": "The phone number of the contact"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.V2Vic2l0ZQ.display_name": {
+          "source": "Website",
+          "message": "Website"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.V2Vic2l0ZQ.short_desc": {
+          "source": "Website URL",
+          "message": "Website URL"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.Q29udGFjdHM.field.V2Vic2l0ZQ.desc": {
+          "source": "The website URL of the contact",
+          "message": "The website URL of the contact"
+        },
         "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.display_name": {
           "source": "Addresses",
           "message": "Addresses"
@@ -1118,6 +1766,78 @@
         "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.desc": {
           "source": "List of addresses for this supplier",
           "message": "List of addresses for this supplier"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.Q2l0eQ.desc": {
+          "source": "The city name",
+          "message": "The city name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.Q291bnRyeQ.desc": {
+          "source": "The country name",
+          "message": "The country name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.TGluZTE.display_name": {
+          "source": "Address Line 1",
+          "message": "Address Line 1"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.TGluZTE.short_desc": {
+          "source": "First line of address",
+          "message": "First line of address"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.TGluZTE.desc": {
+          "source": "The first line of the address (street address)",
+          "message": "The first line of the address (street address)"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.TGluZTI.display_name": {
+          "source": "Address Line 2",
+          "message": "Address Line 2"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.TGluZTI.short_desc": {
+          "source": "Second line of address",
+          "message": "Second line of address"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.TGluZTI.desc": {
+          "source": "The second line of the address (apt, suite, etc.)",
+          "message": "The second line of the address (apt, suite, etc.)"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.UG9zdGNvZGU.display_name": {
+          "source": "Postal Code",
+          "message": "Postal Code"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.UG9zdGNvZGU.short_desc": {
+          "source": "Postal/ZIP code",
+          "message": "Postal/ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.UG9zdGNvZGU.desc": {
+          "source": "The postal or ZIP code",
+          "message": "The postal or ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.U3RhdGU.display_name": {
+          "source": "State/Region",
+          "message": "State/Region"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.U3RhdGU.short_desc": {
+          "source": "State or region",
+          "message": "State or region"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.QWRkcmVzc2Vz.field.U3RhdGU.desc": {
+          "source": "The state, province, or region",
+          "message": "The state, province, or region"
         },
         "app.Q2luN0NvcmU.action.dXBkYXRlLXN1cHBsaWVy.option.VGFncw.display_name": {
           "source": "Tags",
@@ -1263,6 +1983,78 @@
           "source": "The billing address for the sale",
           "message": "The billing address for the sale"
         },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.Q2l0eQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.Q2l0eQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.Q2l0eQ.desc": {
+          "source": "The city name",
+          "message": "The city name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.Q291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.Q291bnRyeQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.Q291bnRyeQ.desc": {
+          "source": "The country name",
+          "message": "The country name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.TGluZTE.display_name": {
+          "source": "Address Line 1",
+          "message": "Address Line 1"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.TGluZTE.short_desc": {
+          "source": "First line of address",
+          "message": "First line of address"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.TGluZTE.desc": {
+          "source": "The first line of the address (street address)",
+          "message": "The first line of the address (street address)"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.TGluZTI.display_name": {
+          "source": "Address Line 2",
+          "message": "Address Line 2"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.TGluZTI.short_desc": {
+          "source": "Second line of address",
+          "message": "Second line of address"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.TGluZTI.desc": {
+          "source": "The second line of the address (apt, suite, etc.)",
+          "message": "The second line of the address (apt, suite, etc.)"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.UG9zdGNvZGU.display_name": {
+          "source": "Postal Code",
+          "message": "Postal Code"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.UG9zdGNvZGU.short_desc": {
+          "source": "Postal/ZIP code",
+          "message": "Postal/ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.UG9zdGNvZGU.desc": {
+          "source": "The postal or ZIP code",
+          "message": "The postal or ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.U3RhdGU.display_name": {
+          "source": "State/Region",
+          "message": "State/Region"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.U3RhdGU.short_desc": {
+          "source": "State or region",
+          "message": "State or region"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.U3RhdGU.desc": {
+          "source": "The state, province, or region",
+          "message": "The state, province, or region"
+        },
         "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.display_name": {
           "source": "Shipping Address",
           "message": "Shipping Address"
@@ -1274,6 +2066,78 @@
         "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.desc": {
           "source": "The shipping address for the sale",
           "message": "The shipping address for the sale"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.Q2l0eQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.Q2l0eQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.Q2l0eQ.desc": {
+          "source": "The city name",
+          "message": "The city name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.Q291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.Q291bnRyeQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.Q291bnRyeQ.desc": {
+          "source": "The country name",
+          "message": "The country name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.TGluZTE.display_name": {
+          "source": "Address Line 1",
+          "message": "Address Line 1"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.TGluZTE.short_desc": {
+          "source": "First line of address",
+          "message": "First line of address"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.TGluZTE.desc": {
+          "source": "The first line of the address (street address)",
+          "message": "The first line of the address (street address)"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.TGluZTI.display_name": {
+          "source": "Address Line 2",
+          "message": "Address Line 2"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.TGluZTI.short_desc": {
+          "source": "Second line of address",
+          "message": "Second line of address"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.TGluZTI.desc": {
+          "source": "The second line of the address (apt, suite, etc.)",
+          "message": "The second line of the address (apt, suite, etc.)"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.UG9zdGNvZGU.display_name": {
+          "source": "Postal Code",
+          "message": "Postal Code"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.UG9zdGNvZGU.short_desc": {
+          "source": "Postal/ZIP code",
+          "message": "Postal/ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.UG9zdGNvZGU.desc": {
+          "source": "The postal or ZIP code",
+          "message": "The postal or ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.U3RhdGU.display_name": {
+          "source": "State/Region",
+          "message": "State/Region"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.U3RhdGU.short_desc": {
+          "source": "State or region",
+          "message": "State or region"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.U3RhdGU.desc": {
+          "source": "The state, province, or region",
+          "message": "The state, province, or region"
         },
         "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.U2FsZU9yZGVyRGF0ZQ.display_name": {
           "source": "Order Date",
@@ -1394,6 +2258,114 @@
         "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.desc": {
           "source": "List of line items to add to the order",
           "message": "List of line items to add to the order"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.Q29tbWVudA.display_name": {
+          "source": "Comment",
+          "message": "Comment"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.Q29tbWVudA.short_desc": {
+          "source": "Line comment",
+          "message": "Line comment"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.Q29tbWVudA.desc": {
+          "source": "Comment for this line item",
+          "message": "Comment for this line item"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.RGlzY291bnQ.display_name": {
+          "source": "Discount",
+          "message": "Discount"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.RGlzY291bnQ.short_desc": {
+          "source": "Discount %",
+          "message": "Discount %"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.RGlzY291bnQ.desc": {
+          "source": "Line discount percentage",
+          "message": "Line discount percentage"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.TmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.TmFtZQ.short_desc": {
+          "source": "Product name",
+          "message": "Product name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.TmFtZQ.desc": {
+          "source": "The product name",
+          "message": "The product name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.UHJpY2U.display_name": {
+          "source": "Price",
+          "message": "Price"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.UHJpY2U.short_desc": {
+          "source": "Unit price",
+          "message": "Unit price"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.UHJpY2U.desc": {
+          "source": "The unit price",
+          "message": "The unit price"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.UHJvZHVjdElE.display_name": {
+          "source": "Product ID",
+          "message": "Product ID"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.UHJvZHVjdElE.short_desc": {
+          "source": "Product identifier",
+          "message": "Product identifier"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.UHJvZHVjdElE.desc": {
+          "source": "The product GUID",
+          "message": "The product GUID"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.UXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.UXVhbnRpdHk.short_desc": {
+          "source": "Order quantity",
+          "message": "Order quantity"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.UXVhbnRpdHk.desc": {
+          "source": "The quantity ordered",
+          "message": "The quantity ordered"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.U0tV.display_name": {
+          "source": "SKU",
+          "message": "SKU"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.U0tV.short_desc": {
+          "source": "Stock keeping unit",
+          "message": "Stock keeping unit"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.U0tV.desc": {
+          "source": "The product SKU",
+          "message": "The product SKU"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.VGF4.display_name": {
+          "source": "Tax",
+          "message": "Tax"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.VGF4.short_desc": {
+          "source": "Tax amount",
+          "message": "Tax amount"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.VGF4.desc": {
+          "source": "Tax amount for this line",
+          "message": "Tax amount for this line"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.VG90YWw.display_name": {
+          "source": "Total",
+          "message": "Total"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.VG90YWw.short_desc": {
+          "source": "Line total",
+          "message": "Line total"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXNhbGU.option.TGluZXM.field.VG90YWw.desc": {
+          "source": "Total for this line",
+          "message": "Total for this line"
         },
         "app.Q2luN0NvcmU.action.Z2V0LXNhbGU.display_name": {
           "source": "Get Sale",
@@ -1599,6 +2571,78 @@
           "source": "The shipping address for this sale",
           "message": "The shipping address for this sale"
         },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.Q2l0eQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.Q2l0eQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.Q2l0eQ.desc": {
+          "source": "The city name",
+          "message": "The city name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.Q291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.Q291bnRyeQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.Q291bnRyeQ.desc": {
+          "source": "The country name",
+          "message": "The country name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.TGluZTE.display_name": {
+          "source": "Address Line 1",
+          "message": "Address Line 1"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.TGluZTE.short_desc": {
+          "source": "First line of address",
+          "message": "First line of address"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.TGluZTE.desc": {
+          "source": "The first line of the address (street address)",
+          "message": "The first line of the address (street address)"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.TGluZTI.display_name": {
+          "source": "Address Line 2",
+          "message": "Address Line 2"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.TGluZTI.short_desc": {
+          "source": "Second line of address",
+          "message": "Second line of address"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.TGluZTI.desc": {
+          "source": "The second line of the address (apt, suite, etc.)",
+          "message": "The second line of the address (apt, suite, etc.)"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.UG9zdGNvZGU.display_name": {
+          "source": "Postal Code",
+          "message": "Postal Code"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.UG9zdGNvZGU.short_desc": {
+          "source": "Postal/ZIP code",
+          "message": "Postal/ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.UG9zdGNvZGU.desc": {
+          "source": "The postal or ZIP code",
+          "message": "The postal or ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.U3RhdGU.display_name": {
+          "source": "State/Region",
+          "message": "State/Region"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.U3RhdGU.short_desc": {
+          "source": "State or region",
+          "message": "State or region"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdBZGRyZXNz.field.U3RhdGU.desc": {
+          "source": "The state, province, or region",
+          "message": "The state, province, or region"
+        },
         "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.display_name": {
           "source": "Billing Address",
           "message": "Billing Address"
@@ -1610,6 +2654,78 @@
         "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.desc": {
           "source": "The billing address for this sale",
           "message": "The billing address for this sale"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.Q2l0eQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.Q2l0eQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.Q2l0eQ.desc": {
+          "source": "The city name",
+          "message": "The city name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.Q291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.Q291bnRyeQ.short_desc": {
+          "source": "Country name",
+          "message": "Country name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.Q291bnRyeQ.desc": {
+          "source": "The country name",
+          "message": "The country name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.TGluZTE.display_name": {
+          "source": "Address Line 1",
+          "message": "Address Line 1"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.TGluZTE.short_desc": {
+          "source": "First line of address",
+          "message": "First line of address"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.TGluZTE.desc": {
+          "source": "The first line of the address (street address)",
+          "message": "The first line of the address (street address)"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.TGluZTI.display_name": {
+          "source": "Address Line 2",
+          "message": "Address Line 2"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.TGluZTI.short_desc": {
+          "source": "Second line of address",
+          "message": "Second line of address"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.TGluZTI.desc": {
+          "source": "The second line of the address (apt, suite, etc.)",
+          "message": "The second line of the address (apt, suite, etc.)"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.UG9zdGNvZGU.display_name": {
+          "source": "Postal Code",
+          "message": "Postal Code"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.UG9zdGNvZGU.short_desc": {
+          "source": "Postal/ZIP code",
+          "message": "Postal/ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.UG9zdGNvZGU.desc": {
+          "source": "The postal or ZIP code",
+          "message": "The postal or ZIP code"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.U3RhdGU.display_name": {
+          "source": "State/Region",
+          "message": "State/Region"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.U3RhdGU.short_desc": {
+          "source": "State or region",
+          "message": "State or region"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QmlsbGluZ0FkZHJlc3M.field.U3RhdGU.desc": {
+          "source": "The state, province, or region",
+          "message": "The state, province, or region"
         },
         "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.U2hpcHBpbmdOb3Rlcw.display_name": {
           "source": "Shipping Notes",
@@ -1695,6 +2811,114 @@
           "source": "The line items for this sale",
           "message": "The line items for this sale"
         },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.Q29tbWVudA.display_name": {
+          "source": "Comment",
+          "message": "Comment"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.Q29tbWVudA.short_desc": {
+          "source": "Line comment",
+          "message": "Line comment"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.Q29tbWVudA.desc": {
+          "source": "Comment for this line item",
+          "message": "Comment for this line item"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.RGlzY291bnQ.display_name": {
+          "source": "Discount",
+          "message": "Discount"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.RGlzY291bnQ.short_desc": {
+          "source": "Discount %",
+          "message": "Discount %"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.RGlzY291bnQ.desc": {
+          "source": "Line discount percentage",
+          "message": "Line discount percentage"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.TmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.TmFtZQ.short_desc": {
+          "source": "Product name",
+          "message": "Product name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.TmFtZQ.desc": {
+          "source": "The product name",
+          "message": "The product name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.UHJpY2U.display_name": {
+          "source": "Price",
+          "message": "Price"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.UHJpY2U.short_desc": {
+          "source": "Unit price",
+          "message": "Unit price"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.UHJpY2U.desc": {
+          "source": "The unit price",
+          "message": "The unit price"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.UHJvZHVjdElE.display_name": {
+          "source": "Product ID",
+          "message": "Product ID"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.UHJvZHVjdElE.short_desc": {
+          "source": "Product identifier",
+          "message": "Product identifier"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.UHJvZHVjdElE.desc": {
+          "source": "The product GUID",
+          "message": "The product GUID"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.UXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.UXVhbnRpdHk.short_desc": {
+          "source": "Order quantity",
+          "message": "Order quantity"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.UXVhbnRpdHk.desc": {
+          "source": "The quantity ordered",
+          "message": "The quantity ordered"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.U0tV.display_name": {
+          "source": "SKU",
+          "message": "SKU"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.U0tV.short_desc": {
+          "source": "Stock keeping unit",
+          "message": "Stock keeping unit"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.U0tV.desc": {
+          "source": "The product SKU",
+          "message": "The product SKU"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.VGF4.display_name": {
+          "source": "Tax",
+          "message": "Tax"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.VGF4.short_desc": {
+          "source": "Tax amount",
+          "message": "Tax amount"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.VGF4.desc": {
+          "source": "Tax amount for this line",
+          "message": "Tax amount for this line"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.VG90YWw.display_name": {
+          "source": "Total",
+          "message": "Total"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.VG90YWw.short_desc": {
+          "source": "Line total",
+          "message": "Line total"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.TGluZXM.field.VG90YWw.desc": {
+          "source": "Total for this line",
+          "message": "Total for this line"
+        },
         "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.display_name": {
           "source": "Additional Charges",
           "message": "Additional Charges"
@@ -1706,6 +2930,66 @@
         "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.desc": {
           "source": "Additional charges for this sale",
           "message": "Additional charges for this sale"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.RGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "Description"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.RGVzY3JpcHRpb24.short_desc": {
+          "source": "Charge description",
+          "message": "Charge description"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.RGVzY3JpcHRpb24.desc": {
+          "source": "Description of the additional charge",
+          "message": "Description of the additional charge"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.UHJpY2U.display_name": {
+          "source": "Price",
+          "message": "Price"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.UHJpY2U.short_desc": {
+          "source": "Charge amount",
+          "message": "Charge amount"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.UHJpY2U.desc": {
+          "source": "The price of the additional charge",
+          "message": "The price of the additional charge"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.UXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.UXVhbnRpdHk.short_desc": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.UXVhbnRpdHk.desc": {
+          "source": "The quantity for this charge",
+          "message": "The quantity for this charge"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.VGF4.display_name": {
+          "source": "Tax",
+          "message": "Tax"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.VGF4.short_desc": {
+          "source": "Tax amount",
+          "message": "Tax amount"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.VGF4.desc": {
+          "source": "The tax amount for this charge",
+          "message": "The tax amount for this charge"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.VG90YWw.display_name": {
+          "source": "Total",
+          "message": "Total"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.VG90YWw.short_desc": {
+          "source": "Total amount",
+          "message": "Total amount"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXNhbGU.option.QWRkaXRpb25hbENoYXJnZXM.field.VG90YWw.desc": {
+          "source": "The total amount for this charge",
+          "message": "The total amount for this charge"
         },
         "app.Q2luN0NvcmU.action.ZGVsZXRlLXNhbGU.display_name": {
           "source": "Delete Sale",
@@ -2079,6 +3363,102 @@
           "source": "List of lines to pack with quantities",
           "message": "List of lines to pack with quantities"
         },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.QmF0Y2g.display_name": {
+          "source": "Batch",
+          "message": "Batch"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.QmF0Y2g.short_desc": {
+          "source": "Batch number",
+          "message": "Batch number"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.QmF0Y2g.desc": {
+          "source": "The batch number",
+          "message": "The batch number"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.Qmlu.display_name": {
+          "source": "Bin",
+          "message": "Bin"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.Qmlu.short_desc": {
+          "source": "Bin location",
+          "message": "Bin location"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.Qmlu.desc": {
+          "source": "The bin location within the warehouse",
+          "message": "The bin location within the warehouse"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.Qm94.display_name": {
+          "source": "Box",
+          "message": "Box"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.Qm94.short_desc": {
+          "source": "Box reference",
+          "message": "Box reference"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.Qm94.desc": {
+          "source": "The box or carton reference for shipping",
+          "message": "The box or carton reference for shipping"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.RXhwaXJ5RGF0ZQ.display_name": {
+          "source": "Expiry Date",
+          "message": "Expiry Date"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.RXhwaXJ5RGF0ZQ.short_desc": {
+          "source": "Expiration date",
+          "message": "Expiration date"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.RXhwaXJ5RGF0ZQ.desc": {
+          "source": "The product's expiry date",
+          "message": "The product's expiry date"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.TmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.TmFtZQ.short_desc": {
+          "source": "Product name",
+          "message": "Product name"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.TmFtZQ.desc": {
+          "source": "The product name",
+          "message": "The product name"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.UHJvZHVjdElE.display_name": {
+          "source": "Product ID",
+          "message": "Product ID"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.UHJvZHVjdElE.short_desc": {
+          "source": "Product identifier",
+          "message": "Product identifier"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.UHJvZHVjdElE.desc": {
+          "source": "The unique identifier of the product",
+          "message": "The unique identifier of the product"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.UXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.UXVhbnRpdHk.short_desc": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.UXVhbnRpdHk.desc": {
+          "source": "The quantity for this line",
+          "message": "The quantity for this line"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.U0tV.display_name": {
+          "source": "SKU",
+          "message": "SKU"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.U0tV.short_desc": {
+          "source": "Stock keeping unit",
+          "message": "Stock keeping unit"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TGluZXM.field.U0tV.desc": {
+          "source": "The product SKU",
+          "message": "The product SKU"
+        },
         "app.Q2luN0NvcmU.action.YWRkLXNhbGUtcGFjaw.option.TWVtbw.display_name": {
           "source": "Memo",
           "message": "Memo"
@@ -2198,6 +3578,102 @@
         "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.desc": {
           "source": "List of lines to ship with quantities",
           "message": "List of lines to ship with quantities"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.QmF0Y2g.display_name": {
+          "source": "Batch",
+          "message": "Batch"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.QmF0Y2g.short_desc": {
+          "source": "Batch number",
+          "message": "Batch number"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.QmF0Y2g.desc": {
+          "source": "The batch number",
+          "message": "The batch number"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.Qmlu.display_name": {
+          "source": "Bin",
+          "message": "Bin"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.Qmlu.short_desc": {
+          "source": "Bin location",
+          "message": "Bin location"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.Qmlu.desc": {
+          "source": "The bin location within the warehouse",
+          "message": "The bin location within the warehouse"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.Qm94.display_name": {
+          "source": "Box",
+          "message": "Box"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.Qm94.short_desc": {
+          "source": "Box reference",
+          "message": "Box reference"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.Qm94.desc": {
+          "source": "The box or carton reference for shipping",
+          "message": "The box or carton reference for shipping"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.RXhwaXJ5RGF0ZQ.display_name": {
+          "source": "Expiry Date",
+          "message": "Expiry Date"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.RXhwaXJ5RGF0ZQ.short_desc": {
+          "source": "Expiration date",
+          "message": "Expiration date"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.RXhwaXJ5RGF0ZQ.desc": {
+          "source": "The product's expiry date",
+          "message": "The product's expiry date"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.TmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.TmFtZQ.short_desc": {
+          "source": "Product name",
+          "message": "Product name"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.TmFtZQ.desc": {
+          "source": "The product name",
+          "message": "The product name"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.UHJvZHVjdElE.display_name": {
+          "source": "Product ID",
+          "message": "Product ID"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.UHJvZHVjdElE.short_desc": {
+          "source": "Product identifier",
+          "message": "Product identifier"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.UHJvZHVjdElE.desc": {
+          "source": "The unique identifier of the product",
+          "message": "The unique identifier of the product"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.UXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.UXVhbnRpdHk.short_desc": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.UXVhbnRpdHk.desc": {
+          "source": "The quantity for this line",
+          "message": "The quantity for this line"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.U0tV.display_name": {
+          "source": "SKU",
+          "message": "SKU"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.U0tV.short_desc": {
+          "source": "Stock keeping unit",
+          "message": "Stock keeping unit"
+        },
+        "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.TGluZXM.field.U0tV.desc": {
+          "source": "The product SKU",
+          "message": "The product SKU"
         },
         "app.Q2luN0NvcmU.action.YWRkLXNhbGUtc2hpcG1lbnQ.option.U2hpcERhdGU.display_name": {
           "source": "Ship Date",
@@ -2391,6 +3867,102 @@
           "source": "List of stock adjustment line items (required)",
           "message": "List of stock adjustment line items (required)"
         },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.QmF0Y2g.display_name": {
+          "source": "Batch",
+          "message": "Batch"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.QmF0Y2g.short_desc": {
+          "source": "Batch number",
+          "message": "Batch number"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.QmF0Y2g.desc": {
+          "source": "The batch number",
+          "message": "The batch number"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.Qmlu.display_name": {
+          "source": "Bin",
+          "message": "Bin"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.Qmlu.short_desc": {
+          "source": "Bin location",
+          "message": "Bin location"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.Qmlu.desc": {
+          "source": "The bin location within the warehouse",
+          "message": "The bin location within the warehouse"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.RXhwaXJ5RGF0ZQ.display_name": {
+          "source": "Expiry Date",
+          "message": "Expiry Date"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.RXhwaXJ5RGF0ZQ.short_desc": {
+          "source": "Expiration date",
+          "message": "Expiration date"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.RXhwaXJ5RGF0ZQ.desc": {
+          "source": "The product's expiry date",
+          "message": "The product's expiry date"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.TmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.TmFtZQ.short_desc": {
+          "source": "Product name",
+          "message": "Product name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.TmFtZQ.desc": {
+          "source": "The product name",
+          "message": "The product name"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.UHJvZHVjdElE.display_name": {
+          "source": "Product ID",
+          "message": "Product ID"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.UHJvZHVjdElE.short_desc": {
+          "source": "Product identifier",
+          "message": "Product identifier"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.UHJvZHVjdElE.desc": {
+          "source": "The product GUID",
+          "message": "The product GUID"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.UXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.UXVhbnRpdHk.short_desc": {
+          "source": "Adjustment quantity",
+          "message": "Adjustment quantity"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.UXVhbnRpdHk.desc": {
+          "source": "The quantity to adjust (positive to add, negative to remove)",
+          "message": "The quantity to adjust (positive to add, negative to remove)"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.U0tV.display_name": {
+          "source": "SKU",
+          "message": "SKU"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.U0tV.short_desc": {
+          "source": "Stock keeping unit",
+          "message": "Stock keeping unit"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.U0tV.desc": {
+          "source": "The product SKU",
+          "message": "The product SKU"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.VW5pdENvc3Q.display_name": {
+          "source": "Unit Cost",
+          "message": "Unit Cost"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.VW5pdENvc3Q.short_desc": {
+          "source": "Cost per unit",
+          "message": "Cost per unit"
+        },
+        "app.Q2luN0NvcmU.action.Y3JlYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.VW5pdENvc3Q.desc": {
+          "source": "The unit cost for the adjustment",
+          "message": "The unit cost for the adjustment"
+        },
         "app.Q2luN0NvcmU.action.Z2V0LXN0b2NrLWFkanVzdG1lbnQ.display_name": {
           "source": "Get Stock Adjustment",
           "message": "Get Stock Adjustment"
@@ -2462,6 +4034,102 @@
         "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.desc": {
           "source": "List of products and quantities to adjust",
           "message": "List of products and quantities to adjust"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.QmF0Y2g.display_name": {
+          "source": "Batch",
+          "message": "Batch"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.QmF0Y2g.short_desc": {
+          "source": "Batch number",
+          "message": "Batch number"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.QmF0Y2g.desc": {
+          "source": "The batch number",
+          "message": "The batch number"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.Qmlu.display_name": {
+          "source": "Bin",
+          "message": "Bin"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.Qmlu.short_desc": {
+          "source": "Bin location",
+          "message": "Bin location"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.Qmlu.desc": {
+          "source": "The bin location within the warehouse",
+          "message": "The bin location within the warehouse"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.RXhwaXJ5RGF0ZQ.display_name": {
+          "source": "Expiry Date",
+          "message": "Expiry Date"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.RXhwaXJ5RGF0ZQ.short_desc": {
+          "source": "Expiration date",
+          "message": "Expiration date"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.RXhwaXJ5RGF0ZQ.desc": {
+          "source": "The product's expiry date",
+          "message": "The product's expiry date"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.TmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.TmFtZQ.short_desc": {
+          "source": "Product name",
+          "message": "Product name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.TmFtZQ.desc": {
+          "source": "The product name",
+          "message": "The product name"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.UHJvZHVjdElE.display_name": {
+          "source": "Product ID",
+          "message": "Product ID"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.UHJvZHVjdElE.short_desc": {
+          "source": "Product identifier",
+          "message": "Product identifier"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.UHJvZHVjdElE.desc": {
+          "source": "The product GUID",
+          "message": "The product GUID"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.UXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.UXVhbnRpdHk.short_desc": {
+          "source": "Adjustment quantity",
+          "message": "Adjustment quantity"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.UXVhbnRpdHk.desc": {
+          "source": "The quantity to adjust (positive to add, negative to remove)",
+          "message": "The quantity to adjust (positive to add, negative to remove)"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.U0tV.display_name": {
+          "source": "SKU",
+          "message": "SKU"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.U0tV.short_desc": {
+          "source": "Stock keeping unit",
+          "message": "Stock keeping unit"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.U0tV.desc": {
+          "source": "The product SKU",
+          "message": "The product SKU"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.VW5pdENvc3Q.display_name": {
+          "source": "Unit Cost",
+          "message": "Unit Cost"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.VW5pdENvc3Q.short_desc": {
+          "source": "Cost per unit",
+          "message": "Cost per unit"
+        },
+        "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.TGluZXM.field.VW5pdENvc3Q.desc": {
+          "source": "The unit cost for the adjustment",
+          "message": "The unit cost for the adjustment"
         },
         "app.Q2luN0NvcmU.action.dXBkYXRlLXN0b2NrLWFkanVzdG1lbnQ.option.QWRqdXN0bWVudERhdGU.display_name": {
           "source": "Adjustment Date",

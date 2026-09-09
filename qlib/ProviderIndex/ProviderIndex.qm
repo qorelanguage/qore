@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file ProviderIndex.qm module for indexing data providers
 
-/*  ProviderIndex.qm Copyright 2025 Qore Technologies, s.r.o.
+/*  ProviderIndex.qm Copyright 2025 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,7 @@
 %endtry
 
 %requires(reexport) ProviderIndexUtil >= 1.1
-%requires DataProvider
+%requires DataProvider >= 3.8
 %requires ConnectionProvider
 %requires reflection
 
@@ -62,6 +62,9 @@ module ProviderIndex {
     - index dependencies now use exact registered module names rather than source or compiled artifact paths,
       so installing an equivalent compiled module does not change its dependency identity
     - explicit seeded paths are resolved against loaded module metadata; unresolved paths fail before publication
+    - authoritative index publication now requires a complete generation-scoped DataProvider discovery report and a
+      current single-use qualification token; requested factory, environment, TypeScript, scheme, module-path, and
+      expected-inventory failures remain structured and leave the previous index untouched
 
     @subsection providerindex_v1_0 ProviderIndex v1.0
     - initial release of the module

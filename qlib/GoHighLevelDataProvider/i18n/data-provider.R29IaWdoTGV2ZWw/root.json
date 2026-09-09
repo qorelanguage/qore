@@ -635,6 +635,30 @@
           "source": "Custom field values for the contact; each entry has an `id` (custom field ID) and `field_value`",
           "message": "Custom field values for the contact; each entry has an `id` (custom field ID) and `field_value`"
         },
+        "app.R29IaWdoTGV2ZWw.action.Y3JlYXRlLWNvbnRhY3Q.option.Y3VzdG9tRmllbGRz.field.ZmllbGRfdmFsdWU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.R29IaWdoTGV2ZWw.action.Y3JlYXRlLWNvbnRhY3Q.option.Y3VzdG9tRmllbGRz.field.ZmllbGRfdmFsdWU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.R29IaWdoTGV2ZWw.action.Y3JlYXRlLWNvbnRhY3Q.option.Y3VzdG9tRmllbGRz.field.ZmllbGRfdmFsdWU.desc": {
+          "source": "The value of the custom field (can be a string, number, or other type depending on the field definition)",
+          "message": "The value of the custom field (can be a string, number, or other type depending on the field definition)"
+        },
+        "app.R29IaWdoTGV2ZWw.action.Y3JlYXRlLWNvbnRhY3Q.option.Y3VzdG9tRmllbGRz.field.aWQ.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.R29IaWdoTGV2ZWw.action.Y3JlYXRlLWNvbnRhY3Q.option.Y3VzdG9tRmllbGRz.field.aWQ.short_desc": {
+          "source": "The custom field ID",
+          "message": "The custom field ID"
+        },
+        "app.R29IaWdoTGV2ZWw.action.Y3JlYXRlLWNvbnRhY3Q.option.Y3VzdG9tRmllbGRz.field.aWQ.desc": {
+          "source": "The unique identifier of the custom field",
+          "message": "The unique identifier of the custom field"
+        },
         "app.R29IaWdoTGV2ZWw.action.dXBkYXRlLWNvbnRhY3Q.display_name": {
           "source": "Update a Contact",
           "message": "Update a Contact"
@@ -870,6 +894,30 @@
         "app.R29IaWdoTGV2ZWw.action.dXBkYXRlLWNvbnRhY3Q.option.Y3VzdG9tRmllbGRz.desc": {
           "source": "Custom field values for the contact; each entry has an `id` (custom field ID) and `field_value`",
           "message": "Custom field values for the contact; each entry has an `id` (custom field ID) and `field_value`"
+        },
+        "app.R29IaWdoTGV2ZWw.action.dXBkYXRlLWNvbnRhY3Q.option.Y3VzdG9tRmllbGRz.field.ZmllbGRfdmFsdWU.display_name": {
+          "source": "Field Value",
+          "message": "Field Value"
+        },
+        "app.R29IaWdoTGV2ZWw.action.dXBkYXRlLWNvbnRhY3Q.option.Y3VzdG9tRmllbGRz.field.ZmllbGRfdmFsdWU.short_desc": {
+          "source": "The custom field value",
+          "message": "The custom field value"
+        },
+        "app.R29IaWdoTGV2ZWw.action.dXBkYXRlLWNvbnRhY3Q.option.Y3VzdG9tRmllbGRz.field.ZmllbGRfdmFsdWU.desc": {
+          "source": "The value of the custom field (can be a string, number, or other type depending on the field definition)",
+          "message": "The value of the custom field (can be a string, number, or other type depending on the field definition)"
+        },
+        "app.R29IaWdoTGV2ZWw.action.dXBkYXRlLWNvbnRhY3Q.option.Y3VzdG9tRmllbGRz.field.aWQ.display_name": {
+          "source": "Custom Field ID",
+          "message": "Custom Field ID"
+        },
+        "app.R29IaWdoTGV2ZWw.action.dXBkYXRlLWNvbnRhY3Q.option.Y3VzdG9tRmllbGRz.field.aWQ.short_desc": {
+          "source": "The custom field ID",
+          "message": "The custom field ID"
+        },
+        "app.R29IaWdoTGV2ZWw.action.dXBkYXRlLWNvbnRhY3Q.option.Y3VzdG9tRmllbGRz.field.aWQ.desc": {
+          "source": "The unique identifier of the custom field",
+          "message": "The unique identifier of the custom field"
         },
         "app.R29IaWdoTGV2ZWw.action.ZGVsZXRlLWNvbnRhY3Q.display_name": {
           "source": "Delete a Contact",

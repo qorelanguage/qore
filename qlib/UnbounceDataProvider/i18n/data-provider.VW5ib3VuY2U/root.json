@@ -1023,6 +1023,42 @@
           "source": "The form submission data including variant ID, submitter IP, and form field values",
           "message": "The form submission data including variant ID, submitter IP, and form field values"
         },
+        "app.VW5ib3VuY2U.action.Y3JlYXRlLWxlYWQ.option.Zm9ybV9zdWJtaXNzaW9u.field.Zm9ybV9kYXRh.display_name": {
+          "source": "Form Data",
+          "message": "Form Data"
+        },
+        "app.VW5ib3VuY2U.action.Y3JlYXRlLWxlYWQ.option.Zm9ybV9zdWJtaXNzaW9u.field.Zm9ybV9kYXRh.short_desc": {
+          "source": "Submitted form data",
+          "message": "Submitted form data"
+        },
+        "app.VW5ib3VuY2U.action.Y3JlYXRlLWxlYWQ.option.Zm9ybV9zdWJtaXNzaW9u.field.Zm9ybV9kYXRh.desc": {
+          "source": "The form data as key-value pairs. Keys correspond to form field names defined on the page",
+          "message": "The form data as key-value pairs. Keys correspond to form field names defined on the page"
+        },
+        "app.VW5ib3VuY2U.action.Y3JlYXRlLWxlYWQ.option.Zm9ybV9zdWJtaXNzaW9u.field.c3VibWl0dGVyX2lw.display_name": {
+          "source": "Submitter IP",
+          "message": "Submitter IP"
+        },
+        "app.VW5ib3VuY2U.action.Y3JlYXRlLWxlYWQ.option.Zm9ybV9zdWJtaXNzaW9u.field.c3VibWl0dGVyX2lw.short_desc": {
+          "source": "IP address of submitter",
+          "message": "IP address of submitter"
+        },
+        "app.VW5ib3VuY2U.action.Y3JlYXRlLWxlYWQ.option.Zm9ybV9zdWJtaXNzaW9u.field.c3VibWl0dGVyX2lw.desc": {
+          "source": "The IP address of the form submitter",
+          "message": "The IP address of the form submitter"
+        },
+        "app.VW5ib3VuY2U.action.Y3JlYXRlLWxlYWQ.option.Zm9ybV9zdWJtaXNzaW9u.field.dmFyaWFudF9pZA.display_name": {
+          "source": "Variant ID",
+          "message": "Variant ID"
+        },
+        "app.VW5ib3VuY2U.action.Y3JlYXRlLWxlYWQ.option.Zm9ybV9zdWJtaXNzaW9u.field.dmFyaWFudF9pZA.short_desc": {
+          "source": "Page variant ID",
+          "message": "Page variant ID"
+        },
+        "app.VW5ib3VuY2U.action.Y3JlYXRlLWxlYWQ.option.Zm9ybV9zdWJtaXNzaW9u.field.dmFyaWFudF9pZA.desc": {
+          "source": "The ID of the page variant where the form was submitted",
+          "message": "The ID of the page variant where the form was submitted"
+        },
         "app.VW5ib3VuY2U.action.Y3JlYXRlLWxlYWQ.option.Y29udmVyc2lvbg.display_name": {
           "source": "Conversion",
           "message": "Conversion"

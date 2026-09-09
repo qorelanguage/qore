@@ -6,6 +6,18 @@ This guide explains how to generate OpenAPI 3.0.3 schemas from Qore source code 
 
 The OpenAPI 3 schema generator allows you to document your REST APIs directly in your Qore source code using special `@SCHEMA` comment blocks. The generator parses these blocks and produces a complete OpenAPI 3.0.3 specification in YAML or JSON format.
 
+OpenAPI input and output are versioned producer boundaries. Consumers must reject an unsupported
+schema version and normalize each external shape once before downstream use. In particular, preserve
+the distinction between absent members, empty maps/lists, and explicit null; do not infer semantics
+from English descriptions; and convert finite values to a canonical choice record only where the
+OpenAPI structure declares an enum or equivalent extension. A raw object with a member named `value`
+remains a raw object. Round-trip fixtures for these cases must pass in normal, AST, and AOT modes.
+
+When generated metadata feeds data-provider discovery, emit an exact app/action identity inventory
+without materializing all action schemas. The inventory qualifies completeness; presentation
+catalog traversal separately proves that every reachable user-visible nested label is catalogued.
+See [data-provider-discovery-qualification.md](data-provider-discovery-qualification.md).
+
 ## @SCHEMA Block Format
 
 Document REST endpoints using the `@SCHEMA` block format within Qore comments:

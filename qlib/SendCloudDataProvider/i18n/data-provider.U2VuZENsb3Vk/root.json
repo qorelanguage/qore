@@ -971,6 +971,150 @@
           "source": "List of parcel items; required for international shipments that need a customs declaration",
           "message": "List of parcel items; required for international shipments that need a customs declaration"
         },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "Description"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "Item description",
+          "message": "Item description"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.ZGVzY3JpcHRpb24.desc": {
+          "source": "Description of the item as it will appear on the customs declaration",
+          "message": "Description of the item as it will appear on the customs declaration"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.aHNfY29kZQ.display_name": {
+          "source": "HS Code",
+          "message": "HS Code"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.aHNfY29kZQ.short_desc": {
+          "source": "Harmonized System code",
+          "message": "Harmonized System code"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.aHNfY29kZQ.desc": {
+          "source": "Harmonized System (customs tariff) code of the item",
+          "message": "Harmonized System (customs tariff) code of the item"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.bWlkX2NvZGU.display_name": {
+          "source": "MID Code",
+          "message": "MID Code"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.bWlkX2NvZGU.short_desc": {
+          "source": "Manufacturer identification code",
+          "message": "Manufacturer identification code"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.bWlkX2NvZGU.desc": {
+          "source": "Manufacturer identification code (used for US customs)",
+          "message": "Manufacturer identification code (used for US customs)"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.b3JpZ2luX2NvdW50cnk.display_name": {
+          "source": "Origin Country",
+          "message": "Origin Country"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.b3JpZ2luX2NvdW50cnk.short_desc": {
+          "source": "Country of manufacture",
+          "message": "Country of manufacture"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.b3JpZ2luX2NvdW50cnk.desc": {
+          "source": "ISO 3166-1 alpha-2 code of the country where the item was produced",
+          "message": "ISO 3166-1 alpha-2 code of the country where the item was produced"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cHJvZHVjdF9pZA.display_name": {
+          "source": "Product ID",
+          "message": "Product ID"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cHJvZHVjdF9pZA.short_desc": {
+          "source": "Internal product ID",
+          "message": "Internal product ID"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cHJvZHVjdF9pZA.desc": {
+          "source": "Internal identifier of the product (maps to SendCloud's product catalog)",
+          "message": "Internal identifier of the product (maps to SendCloud's product catalog)"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cHJvcGVydGllcw.display_name": {
+          "source": "Properties",
+          "message": "Properties"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cHJvcGVydGllcw.short_desc": {
+          "source": "Arbitrary item properties",
+          "message": "Arbitrary item properties"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cHJvcGVydGllcw.desc": {
+          "source": "Free-form key/value metadata about the item",
+          "message": "Free-form key/value metadata about the item"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cXVhbnRpdHk.short_desc": {
+          "source": "Number of units",
+          "message": "Number of units"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cXVhbnRpdHk.desc": {
+          "source": "Number of units of this item included in the parcel",
+          "message": "Number of units of this item included in the parcel"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cmV0dXJuX21lc3NhZ2U.display_name": {
+          "source": "Return Message",
+          "message": "Return Message"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cmV0dXJuX21lc3NhZ2U.short_desc": {
+          "source": "Return message",
+          "message": "Return message"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cmV0dXJuX21lc3NhZ2U.desc": {
+          "source": "Customer-supplied message explaining the return reason",
+          "message": "Customer-supplied message explaining the return reason"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cmV0dXJuX3JlYXNvbg.display_name": {
+          "source": "Return Reason",
+          "message": "Return Reason"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cmV0dXJuX3JlYXNvbg.short_desc": {
+          "source": "Return reason code",
+          "message": "Return reason code"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.cmV0dXJuX3JlYXNvbg.desc": {
+          "source": "Return-specific reason code (only used for return items)",
+          "message": "Return-specific reason code (only used for return items)"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.c2t1.display_name": {
+          "source": "SKU",
+          "message": "SKU"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.c2t1.short_desc": {
+          "source": "Stock keeping unit",
+          "message": "Stock keeping unit"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.c2t1.desc": {
+          "source": "SKU of the item",
+          "message": "SKU of the item"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.dmFsdWU.display_name": {
+          "source": "Unit Value",
+          "message": "Unit Value"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.dmFsdWU.short_desc": {
+          "source": "Unit declared value",
+          "message": "Unit declared value"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.dmFsdWU.desc": {
+          "source": "Declared value per unit (string-encoded decimal) in the parcel currency",
+          "message": "Declared value per unit (string-encoded decimal) in the parcel currency"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.d2VpZ2h0.display_name": {
+          "source": "Unit Weight",
+          "message": "Unit Weight"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.d2VpZ2h0.short_desc": {
+          "source": "Weight per unit (kg)",
+          "message": "Weight per unit (kg)"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.cGFyY2VsX2l0ZW1z.field.d2VpZ2h0.desc": {
+          "source": "Weight of a single unit (string-encoded decimal in kilograms)",
+          "message": "Weight of a single unit (string-encoded decimal in kilograms)"
+        },
         "app.U2VuZENsb3Vk.action.Y3JlYXRlLXBhcmNlbA.option.dG90YWxfaW5zdXJlZF92YWx1ZQ.display_name": {
           "source": "Total Insured Value",
           "message": "Total Insured Value"
@@ -1186,6 +1330,30 @@
         "app.U2VuZENsb3Vk.action.dXBkYXRlLXBhcmNlbA.option.c2hpcG1lbnQ.desc": {
           "source": "Shipping method to assign to the parcel before announcing — a hash with `id` (required) and optional `name`. Required when `request_label` is `True`",
           "message": "Shipping method to assign to the parcel before announcing — a hash with `id` (required) and optional `name`. Required when `request_label` is `True`"
+        },
+        "app.U2VuZENsb3Vk.action.dXBkYXRlLXBhcmNlbA.option.c2hpcG1lbnQ.field.aWQ.display_name": {
+          "source": "Shipping Method ID",
+          "message": "Shipping Method ID"
+        },
+        "app.U2VuZENsb3Vk.action.dXBkYXRlLXBhcmNlbA.option.c2hpcG1lbnQ.field.aWQ.short_desc": {
+          "source": "Numeric ID of the shipping method",
+          "message": "Numeric ID of the shipping method"
+        },
+        "app.U2VuZENsb3Vk.action.dXBkYXRlLXBhcmNlbA.option.c2hpcG1lbnQ.field.aWQ.desc": {
+          "source": "Numeric ID of the shipping method used for the parcel",
+          "message": "Numeric ID of the shipping method used for the parcel"
+        },
+        "app.U2VuZENsb3Vk.action.dXBkYXRlLXBhcmNlbA.option.c2hpcG1lbnQ.field.bmFtZQ.display_name": {
+          "source": "Shipping Method Name",
+          "message": "Shipping Method Name"
+        },
+        "app.U2VuZENsb3Vk.action.dXBkYXRlLXBhcmNlbA.option.c2hpcG1lbnQ.field.bmFtZQ.short_desc": {
+          "source": "Human-readable name",
+          "message": "Human-readable name"
+        },
+        "app.U2VuZENsb3Vk.action.dXBkYXRlLXBhcmNlbA.option.c2hpcG1lbnQ.field.bmFtZQ.desc": {
+          "source": "Display name of the shipping method (e.g., 'Unstamped letter')",
+          "message": "Display name of the shipping method (e.g., 'Unstamped letter')"
         },
         "app.U2VuZENsb3Vk.action.Y2FuY2VsLXBhcmNlbA.display_name": {
           "source": "Cancel Parcel",
@@ -1919,6 +2087,54 @@
           "source": "Optional refund hash describing the refund type and amount",
           "message": "Optional refund hash describing the refund type and amount"
         },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cmVmdW5k.field.cmVmdW5kX3R5cGU.display_name": {
+          "source": "Refund Type",
+          "message": "Refund Type"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cmVmdW5k.field.cmVmdW5kX3R5cGU.short_desc": {
+          "source": "Type of refund",
+          "message": "Type of refund"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cmVmdW5k.field.cmVmdW5kX3R5cGU.desc": {
+          "source": "Type of refund offered (`money`, `store_credit`, `exchange`)",
+          "message": "Type of refund offered (`money`, `store_credit`, `exchange`)"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cmVmdW5k.field.cmVmdW5kX3R5cGU.allowed-value.c3RyaW5nOm1vbmV5.display_name": {
+          "source": "Money",
+          "message": "Money"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cmVmdW5k.field.cmVmdW5kX3R5cGU.allowed-value.c3RyaW5nOm1vbmV5.desc": {
+          "source": "Monetary refund",
+          "message": "Monetary refund"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cmVmdW5k.field.cmVmdW5kX3R5cGU.allowed-value.c3RyaW5nOnN0b3JlX2NyZWRpdA.display_name": {
+          "source": "Store Credit",
+          "message": "Store Credit"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cmVmdW5k.field.cmVmdW5kX3R5cGU.allowed-value.c3RyaW5nOnN0b3JlX2NyZWRpdA.desc": {
+          "source": "Store credit",
+          "message": "Store credit"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cmVmdW5k.field.cmVmdW5kX3R5cGU.allowed-value.c3RyaW5nOmV4Y2hhbmdl.display_name": {
+          "source": "Exchange",
+          "message": "Exchange"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cmVmdW5k.field.cmVmdW5kX3R5cGU.allowed-value.c3RyaW5nOmV4Y2hhbmdl.desc": {
+          "source": "Exchange for another product",
+          "message": "Exchange for another product"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cmVmdW5k.field.dG90YWxfcmVmdW5k.display_name": {
+          "source": "Total Refund",
+          "message": "Total Refund"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cmVmdW5k.field.dG90YWxfcmVmdW5k.short_desc": {
+          "source": "Total refund amount",
+          "message": "Total refund amount"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cmVmdW5k.field.dG90YWxfcmVmdW5k.desc": {
+          "source": "Total refund amount (string-encoded decimal)",
+          "message": "Total refund amount (string-encoded decimal)"
+        },
         "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.display_name": {
           "source": "Products",
           "message": "Products"
@@ -1930,6 +2146,90 @@
         "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.desc": {
           "source": "List of product lines being returned (at least one entry required)",
           "message": "List of product lines being returned (at least one entry required)"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "Description"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "Line item description",
+          "message": "Line item description"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.ZGVzY3JpcHRpb24.desc": {
+          "source": "Description of the returned item",
+          "message": "Description of the returned item"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.cHJvZHVjdF9pZA.display_name": {
+          "source": "Product ID",
+          "message": "Product ID"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.cHJvZHVjdF9pZA.short_desc": {
+          "source": "Product identifier",
+          "message": "Product identifier"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.cHJvZHVjdF9pZA.desc": {
+          "source": "Merchant-provided product ID for this returned line item",
+          "message": "Merchant-provided product ID for this returned line item"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.cXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.cXVhbnRpdHk.short_desc": {
+          "source": "Number of units returned",
+          "message": "Number of units returned"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.cXVhbnRpdHk.desc": {
+          "source": "Number of units of this product being returned",
+          "message": "Number of units of this product being returned"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.cmV0dXJuX21lc3NhZ2U.display_name": {
+          "source": "Return Message",
+          "message": "Return Message"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.cmV0dXJuX21lc3NhZ2U.short_desc": {
+          "source": "Customer message",
+          "message": "Customer message"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.cmV0dXJuX21lc3NhZ2U.desc": {
+          "source": "Customer-supplied message describing the return reason",
+          "message": "Customer-supplied message describing the return reason"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.cmV0dXJuX3JlYXNvbg.display_name": {
+          "source": "Return Reason",
+          "message": "Return Reason"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.cmV0dXJuX3JlYXNvbg.short_desc": {
+          "source": "Return reason code",
+          "message": "Return reason code"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.cmV0dXJuX3JlYXNvbg.desc": {
+          "source": "Numeric code identifying the return reason",
+          "message": "Numeric code identifying the return reason"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.c2t1.display_name": {
+          "source": "SKU",
+          "message": "SKU"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.c2t1.short_desc": {
+          "source": "Stock keeping unit",
+          "message": "Stock keeping unit"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.c2t1.desc": {
+          "source": "SKU of the returned item",
+          "message": "SKU of the returned item"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.dmFsdWU.short_desc": {
+          "source": "Per-unit value (string-encoded)",
+          "message": "Per-unit value (string-encoded)"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cHJvZHVjdHM.field.dmFsdWU.desc": {
+          "source": "Value per unit (string-encoded decimal)",
+          "message": "Value per unit (string-encoded decimal)"
         },
         "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.cmVhc29u.display_name": {
           "source": "Reason",
@@ -2014,6 +2314,138 @@
         "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.desc": {
           "source": "Pickup address for the return (if different from the original shipping address)",
           "message": "Pickup address for the return (if different from the original shipping address)"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.YWRkcmVzcw.display_name": {
+          "source": "Street Address",
+          "message": "Street Address"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.YWRkcmVzcw.short_desc": {
+          "source": "Primary street address line",
+          "message": "Primary street address line"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.YWRkcmVzcw.desc": {
+          "source": "The street name (and optionally number, if house_number is not used)",
+          "message": "The street name (and optionally number, if house_number is not used)"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.YWRkcmVzc18y.display_name": {
+          "source": "Address Line 2",
+          "message": "Address Line 2"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.YWRkcmVzc18y.short_desc": {
+          "source": "Secondary address line",
+          "message": "Secondary address line"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.YWRkcmVzc18y.desc": {
+          "source": "Apartment, suite, or other secondary address information",
+          "message": "Apartment, suite, or other secondary address information"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.Y2l0eQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.Y2l0eQ.short_desc": {
+          "source": "City name",
+          "message": "City name"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.Y2l0eQ.desc": {
+          "source": "The city of the recipient",
+          "message": "The city of the recipient"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.Y29tcGFueV9uYW1l.display_name": {
+          "source": "Company Name",
+          "message": "Company Name"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.Y29tcGFueV9uYW1l.short_desc": {
+          "source": "Recipient company",
+          "message": "Recipient company"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.Y29tcGFueV9uYW1l.desc": {
+          "source": "Optional recipient company name",
+          "message": "Optional recipient company name"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.Y291bnRyeQ.display_name": {
+          "source": "Country",
+          "message": "Country"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.Y291bnRyeQ.short_desc": {
+          "source": "ISO 3166-1 alpha-2 country code",
+          "message": "ISO 3166-1 alpha-2 country code"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.Y291bnRyeQ.desc": {
+          "source": "Two-letter ISO country code of the recipient address",
+          "message": "Two-letter ISO country code of the recipient address"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.Y291bnRyeV9zdGF0ZQ.display_name": {
+          "source": "State / Region",
+          "message": "State / Region"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.Y291bnRyeV9zdGF0ZQ.short_desc": {
+          "source": "Country state or region code",
+          "message": "Country state or region code"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.Y291bnRyeV9zdGF0ZQ.desc": {
+          "source": "State or region code (required for countries that use them, e.g., US, CA)",
+          "message": "State or region code (required for countries that use them, e.g., US, CA)"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.ZW1haWw.short_desc": {
+          "source": "Recipient email address",
+          "message": "Recipient email address"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.ZW1haWw.desc": {
+          "source": "Email of the recipient (used for tracking notifications)",
+          "message": "Email of the recipient (used for tracking notifications)"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.aG91c2VfbnVtYmVy.display_name": {
+          "source": "House Number",
+          "message": "House Number"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.aG91c2VfbnVtYmVy.short_desc": {
+          "source": "Street number",
+          "message": "Street number"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.aG91c2VfbnVtYmVy.desc": {
+          "source": "The house or street number",
+          "message": "The house or street number"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.bmFtZQ.short_desc": {
+          "source": "Recipient full name",
+          "message": "Recipient full name"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.bmFtZQ.desc": {
+          "source": "The full name of the recipient",
+          "message": "The full name of the recipient"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.cG9zdGFsX2NvZGU.display_name": {
+          "source": "Postal Code",
+          "message": "Postal Code"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.cG9zdGFsX2NvZGU.short_desc": {
+          "source": "Postal / ZIP code",
+          "message": "Postal / ZIP code"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.cG9zdGFsX2NvZGU.desc": {
+          "source": "The postal code of the recipient",
+          "message": "The postal code of the recipient"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.dGVsZXBob25l.display_name": {
+          "source": "Telephone",
+          "message": "Telephone"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.dGVsZXBob25l.short_desc": {
+          "source": "Recipient phone number",
+          "message": "Recipient phone number"
+        },
+        "app.U2VuZENsb3Vk.action.Y3JlYXRlLXJldHVybg.option.YWRkcmVzcw.field.dGVsZXBob25l.desc": {
+          "source": "Phone number of the recipient (required by some carriers)",
+          "message": "Phone number of the recipient (required by some carriers)"
         },
         "app.U2VuZENsb3Vk.action.dXBkYXRlLXJldHVybg.display_name": {
           "source": "Update Return",

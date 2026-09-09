@@ -32,6 +32,21 @@
 
 %exec-class DataProviderPresentationTest
 
+#! Fixture proving that presentation extraction does not resolve a dynamic/contextual type
+class StaticPresentationDataField inherits QoreDataField {
+    constructor(hash<auto> info) : QoreDataField(info) {
+    }
+
+    AbstractDataProviderType getType() {
+        throw "DYNAMIC-TYPE-RESOLUTION-ERROR",
+            "presentation extraction must not resolve dynamic types";
+    }
+
+    AbstractDataProviderType getDeclaredType() {
+        return QoreDataField::getType();
+    }
+}
+
 class DataProviderPresentationTest inherits QUnit::Test {
     private {
         const App = "メール";
@@ -62,6 +77,8 @@ class DataProviderPresentationTest inherits QUnit::Test {
             \catalogDiscoveryIndexTest());
         addTestCase("source catalogs cover provider presentation metadata",
             \sourceCatalogTest());
+        addTestCase("source catalogs recursively cover nested option types",
+            \nestedSourceCatalogTest());
         addTestCase("producer locale validation is metadata-only and comprehensive",
             \sourceLocaleInspectionTest());
         addTestCase("the checked-in Qore source catalog is synchronized",
@@ -826,6 +843,242 @@ class DataProviderPresentationTest inherits QUnit::Test {
         }, NOTHING, "source extraction rejects cross-app action metadata");
     }
 
+    nestedSourceCatalogTest() {
+        QoreDataField choice(<auto>{
+            "name": "mode",
+            "display_name": "Režim",
+            "short_desc": "Režim zpracování",
+            "desc": "Určuje režim zpracování.",
+            "type": new QoreStringDataType(),
+            "allowed_values": (<AllowedValueInfo>{
+                "value": "fast",
+                "display_name": "Rychlý",
+                "short_desc": "Rychlé zpracování",
+                "desc": "Použije rychlý režim.",
+            },),
+        });
+        StaticPresentationDataField dynamic_leaf(<auto>{
+            "name": "dynamic_leaf",
+            "display_name": "Statický popisek",
+            "short_desc": "Popisek bez dynamického typu",
+            "desc": "Katalog čte deklarovaný typ bez kontextu.",
+            "type": new QoreStringDataType(),
+        });
+        HashDataType item("NestedItem", {
+            "mode": choice,
+            "dynamic_leaf": dynamic_leaf,
+        });
+        ListDataType items(item);
+        QoreDataField items_field(<auto>{
+            "name": "items",
+            "display_name": "Položky",
+            "short_desc": "Položky požadavku",
+            "desc": "Položky, které se zpracují.",
+            "type": items,
+        });
+        HashDataType body("NestedBody", {"items": items_field});
+        string body_identity
+            = DataProviderPresentation::typePresentationIdentity(body);
+        string item_identity
+            = DataProviderPresentation::occurrenceTypePresentationIdentity(
+                Action, Option, item, ("items",), (body_identity,));
+        # The same branch is deliberately present twice. Identical union paths
+        # must coalesce rather than acquire order-dependent branch ids.
+        QoreUnionDataType union((body, body));
+        hash<auto> source_action = action() + {
+            "options": {
+                Option: option() + {"type": union},
+            },
+        };
+        hash<auto> source_messages =
+            DataProviderPresentation::buildSourceCatalogs(app(),
+                (source_action,)){Domain}.locales.root.messages;
+        assertEq("Položky", source_messages{
+                DataProviderPresentation::nestedFieldMessageId(App, Action,
+                    Option, ("items",), "display_name",
+                    (body_identity,))}.source,
+            "a field nested directly in an option type is extracted");
+        assertEq("Režim zpracování", source_messages{
+                DataProviderPresentation::typeFieldMessageId(App,
+                    item_identity, "mode", "short_desc")}.source,
+            "fields in reusable deeper types use a bounded occurrence-scoped id");
+        assertEq("Rychlý", source_messages{
+                DataProviderPresentation::typeAllowedValueMessageId(App,
+                    item_identity, "mode", "fast",
+                    "display_name")}.source,
+            "allowed values on nested fields are extracted");
+        assertEq("Statický popisek", source_messages{
+                DataProviderPresentation::typeFieldMessageId(App,
+                    item_identity, "dynamic_leaf",
+                    "display_name")}.source,
+            "catalog extraction uses the declared type without resolving a dynamic type");
+
+        string nested_id = DataProviderPresentation::nestedFieldMessageId(
+            App, Action, Option, ("items",), "display_name",
+            (body_identity,));
+        string type_id = DataProviderPresentation::typeFieldMessageId(App,
+            item_identity, "mode", "short_desc");
+        string value_id =
+            DataProviderPresentation::typeAllowedValueMessageId(App,
+                item_identity, "mode", "fast",
+                "display_name");
+        string root = make_tmp_dir("data-provider-nested-presentation-");
+        on_exit remove_tree(root);
+        mkdir(root + DirSep + Domain);
+        writeJson(root + DirSep + Domain + DirSep + "ja.json", {
+            "schema_version": I18n::get_catalog_schema_version(),
+            "locales": {"ja": {"messages": {
+                nested_id: {
+                    "source": "Položky",
+                    "message": "項目",
+                },
+                type_id: {
+                    "source": "Režim zpracování",
+                    "message": "処理モード",
+                },
+                value_id: {
+                    "source": "Rychlý",
+                    "message": "高速",
+                },
+            }}},
+        });
+        DataProviderPresentationCatalog nested_catalog(Domain, "ja", {
+            "search_path": (root,),
+        });
+        hash<auto> projected_nested = nested_catalog.projectNestedField(
+            app(), source_action, Option, ("items",),
+            (body_identity,),
+            items_field.getPresentationInfo());
+        assertEq("項目", projected_nested.display_name,
+            "a translated first-layer nested field is projected");
+        hash<auto> projected_type = nested_catalog.projectTypeField(app(),
+            source_action, item_identity, "mode",
+            choice.getPresentationInfo());
+        assertEq("処理モード", projected_type.short_desc,
+            "a translated reusable-type field is projected");
+        hash<auto> projected_value = nested_catalog.projectTypeAllowedValue(
+            app(), source_action, item_identity, "mode",
+            choice.getAllowedValues()[0], False);
+        assertEq("高速", projected_value.display_name,
+            "a translated nested allowed value is projected");
+        assertEq(DataProviderPresentation::optionMessageId(App, Action,
+                Option, "display_name"),
+            "app.44Oh44O844Or.action.6YCB5L-h.option.5a6b5YWI.display_name",
+            "existing top-level option ids remain unchanged");
+
+        HashDataType recursive("RecursivePresentationType");
+        recursive.addField(new QoreDataField("self", "Rekurzivní větev",
+            recursive));
+        source_action.options{Option}.type = recursive;
+        source_messages = DataProviderPresentation::buildSourceCatalogs(
+            app(), (source_action,)){Domain}.locales.root.messages;
+        assertTrue(exists source_messages{
+                DataProviderPresentation::nestedFieldMessageId(App, Action,
+                    Option, ("self",), "display_name")},
+            "the field closing a recursive edge remains visible");
+        assertFalse(exists source_messages{
+                DataProviderPresentation::nestedFieldMessageId(App, Action,
+                    Option, ("self", "self"), "display_name")},
+            "path-local cycle detection stops the recursive edge");
+
+        HashDataType deep_left_child("DeepUnionChild", {
+            "value": new QoreDataField(<auto>{
+                "name": "value",
+                "display_name": "Hodnota vlevo",
+                "type": new QoreStringDataType(),
+            }),
+        });
+        HashDataType deep_right_child("DeepUnionChild", {
+            "value": new QoreDataField(<auto>{
+                "name": "value",
+                "display_name": "Hodnota vpravo",
+                "type": new QoreStringDataType(),
+            }),
+        });
+        HashDataType deep_left_branch("DeepUnionLeft", {
+            "child": new QoreDataField("child", "Levý potomek",
+                deep_left_child),
+        });
+        HashDataType deep_right_branch("DeepUnionRight", {
+            "child": new QoreDataField("child", "Pravý potomek",
+                deep_right_child),
+        });
+        HashDataType deep_union_container("DeepUnionContainer", {
+            "branch": new QoreDataField("branch", "Větev",
+                new QoreUnionDataType((deep_left_branch,
+                    deep_right_branch))),
+        });
+        source_action.options{Option}.type = deep_union_container;
+        source_messages = DataProviderPresentation::buildSourceCatalogs(
+            app(), (source_action,)){Domain}.locales.root.messages;
+        string deep_left_identity
+            = DataProviderPresentation::occurrenceTypePresentationIdentity(
+                Action, Option, deep_left_child, ("branch", "child"),
+                (DataProviderPresentation::typePresentationIdentity(
+                    deep_left_branch),));
+        string deep_right_identity
+            = DataProviderPresentation::occurrenceTypePresentationIdentity(
+                Action, Option, deep_right_child, ("branch", "child"),
+                (DataProviderPresentation::typePresentationIdentity(
+                    deep_right_branch),));
+        assertNeq(deep_left_identity, deep_right_identity,
+            "a deeper union branch remains part of descendant occurrence identity");
+        assertEq("Hodnota vlevo", source_messages{
+                DataProviderPresentation::typeFieldMessageId(App,
+                    deep_left_identity, "value", "display_name")}.source,
+            "a deeper left union branch keeps its descendant presentation");
+        assertEq("Hodnota vpravo", source_messages{
+                DataProviderPresentation::typeFieldMessageId(App,
+                    deep_right_identity, "value", "display_name")}.source,
+            "a deeper right union branch keeps its descendant presentation");
+
+        HashDataType conflicting_left("ConflictingReusable", {
+            "mode": new QoreDataField("mode", "První režim",
+                new QoreStringDataType()),
+        });
+        HashDataType conflicting_right("ConflictingReusable", {
+            "mode": new QoreDataField("mode", "Druhý režim",
+                new QoreStringDataType()),
+        });
+        HashDataType left("ConflictBranch", {
+            "child": new QoreDataField("child", "Potomek",
+                conflicting_left),
+        });
+        HashDataType right("ConflictBranch", {
+            "child": new QoreDataField("child", "Potomek",
+                conflicting_right),
+        });
+        source_action.options{Option}.type = new QoreUnionDataType(
+            (left, right));
+        assertNeq(conflicting_left.uniqueHash(),
+            conflicting_right.uniqueHash(),
+            "conflict fixtures are distinct concrete type objects");
+        assertEq(DataProviderPresentation::occurrenceTypePresentationIdentity(
+                Action, Option, conflicting_left, ("child",),
+                (DataProviderPresentation::typePresentationIdentity(left),)),
+            DataProviderPresentation::occurrenceTypePresentationIdentity(
+                Action, Option, conflicting_right, ("child",),
+                (DataProviderPresentation::typePresentationIdentity(right),)),
+            "equal technical occurrences deliberately claim the same presentation identity");
+        assertThrows("DATA-PROVIDER-PRESENTATION-CATALOG-ERROR",
+            "conflicting source strings", sub () {
+                DataProviderPresentation::buildSourceCatalogs(app(),
+                    (source_action,));
+            }, NOTHING,
+            "distinct types sharing one stable identity cannot hide conflicting presentation");
+
+        conflicting_left.setPath("request/left/child");
+        conflicting_right.setPath("request/right/child");
+        assertNeq(DataProviderPresentation::typePresentationIdentity(
+                conflicting_left),
+            DataProviderPresentation::typePresentationIdentity(
+                conflicting_right),
+            "equal-shaped anonymous types at distinct technical schema paths have distinct identities");
+        assertTrue(DataProviderPresentation::buildSourceCatalogs(app(),
+                (source_action,)).hasKey(Domain),
+            "technical schema paths disambiguate equal-shaped anonymous types without presentation text");
+    }
+
     sourceCatalogSyncTest() {
         string root = sourceRoot();
         string qore_bin = root + DirSep + "build/qore";
@@ -886,6 +1139,42 @@ class DataProviderPresentationTest inherits QUnit::Test {
         mkdir(output + DirSep + domain);
         writeJson(output + DirSep + domain + DirSep + "root.json",
             catalogs{domain});
+        hash<auto> stale_root = catalogs{domain};
+        stale_root.locales.root.messages{
+            DataProviderPresentation::appMessageId("Qore",
+                "display_name")}.source = "outdated";
+        writeJson(output + DirSep + domain + DirSep + "root.json",
+            stale_root);
+        assertEq(0, runSourceCatalogTreeUpdate(root, qore_bin, output,
+                ("DataProvider",)),
+            "source-tree update deterministically repairs every owned root catalog");
+        assertEq(catalogs{domain}, parse_json(ReadOnlyFile::readTextFile(
+                output + DirSep + domain + DirSep + "root.json")),
+            "source-tree update writes the complete generated catalog");
+
+        stale_root.locales.root.messages{
+            DataProviderPresentation::appMessageId("Qore",
+                "display_name")}.source = "still-outdated";
+        writeJson(output + DirSep + domain + DirSep + "root.json",
+            stale_root);
+        string duplicate_dir = output + DirSep + "duplicate";
+        mkdir(duplicate_dir);
+        mkdir(duplicate_dir + DirSep + domain);
+        writeJson(duplicate_dir + DirSep + domain + DirSep + "root.json",
+            catalogs{domain});
+        assertEq(1, runSourceCatalogTreeUpdate(root, qore_bin, output,
+                ("DataProvider",)),
+            "source-tree update rejects a duplicate before writing any root");
+        assertEq("still-outdated", parse_json(ReadOnlyFile::readTextFile(
+                output + DirSep + domain + DirSep + "root.json"))
+                .locales.root.messages{
+                    DataProviderPresentation::appMessageId("Qore",
+                        "display_name")}.source,
+            "a failed source-tree preflight leaves every existing root untouched");
+        remove_tree(duplicate_dir);
+        assertEq(0, runSourceCatalogTreeUpdate(root, qore_bin, output,
+                ("DataProvider",)),
+            "source-tree update succeeds after the duplicate is removed");
         assertEq(1, runSourceCatalogTreeCheck(root, qore_bin, output, ()),
             "a noncanonical source tree requires an explicit technical owner module");
         assertEq(0, runSourceCatalogTreeCheck(root, qore_bin, output,
@@ -1196,6 +1485,28 @@ class DataProviderPresentationTest inherits QUnit::Test {
             require_standard_locales ? "--require-standard-locales" : "",
             require_complete_locales
                 ? "--require-complete-locales" : ""));
+    }
+
+    private int runSourceCatalogTreeUpdate(string root, string qore_bin,
+            string output, list<string> modules) {
+        list<string> module_path = (
+            root + DirSep + "qlib",
+            output,
+            root + DirSep + "build/modules/i18n",
+            root + DirSep + "build/modules/json"
+        );
+        if (exists ENV.QORE_MODULE_DIR) {
+            module_path += ENV.QORE_MODULE_DIR;
+        }
+        list<string> owner_args = map "--owner " + shellQuote($1),
+            modules;
+        return system(sprintf(
+            "QORE_MODULE_DIR=%s LD_LIBRARY_PATH=%s %s %s -C --update-source-tree -o %s %s >/dev/null",
+            shellQuote(module_path.join(PathSep)),
+            shellQuote(ENV.LD_LIBRARY_PATH ?? (root + DirSep + "build")),
+            shellQuote(qore_bin),
+            shellQuote(root + DirSep + "bin/qore-data-provider-i18n"),
+            shellQuote(output), owner_args.join(" ")));
     }
 
     checkedInLocaleCatalogTest() {

@@ -1859,6 +1859,158 @@
           "source": "List of items to return with quantities, reasons, and resolutions",
           "message": "List of items to return with quantities, reasons, and resolutions"
         },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.ZXh0ZXJuYWxfb3JkZXJfaXRlbV9pZA.display_name": {
+          "source": "External Order Item ID",
+          "message": "External Order Item ID"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.ZXh0ZXJuYWxfb3JkZXJfaXRlbV9pZA.short_desc": {
+          "source": "Item ID from e-commerce platform",
+          "message": "Item ID from e-commerce platform"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.ZXh0ZXJuYWxfb3JkZXJfaXRlbV9pZA.desc": {
+          "source": "ID of the item on the e-commerce platform",
+          "message": "ID of the item on the e-commerce platform"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.aW50ZW5kZWRfcmV0dXJuX3F1YW50aXR5.display_name": {
+          "source": "Return Quantity",
+          "message": "Return Quantity"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.aW50ZW5kZWRfcmV0dXJuX3F1YW50aXR5.short_desc": {
+          "source": "Number of items to return",
+          "message": "Number of items to return"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.aW50ZW5kZWRfcmV0dXJuX3F1YW50aXR5.desc": {
+          "source": "Number of items to return (must be >= `1`)",
+          "message": "Number of items to return (must be >= `1`)"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmVmdW5kX2Rlc3RpbmF0aW9u.display_name": {
+          "source": "Refund Destination",
+          "message": "Refund Destination"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmVmdW5kX2Rlc3RpbmF0aW9u.short_desc": {
+          "source": "Where to send the refund",
+          "message": "Where to send the refund"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmVmdW5kX2Rlc3RpbmF0aW9u.desc": {
+          "source": "Where to send the refund",
+          "message": "Where to send the refund"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmVmdW5kX2Rlc3RpbmF0aW9u.allowed-value.c3RyaW5nOm9yaWdpbmFsX3BheW1lbnQ.display_name": {
+          "source": "Original Payment",
+          "message": "Original Payment"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmVmdW5kX2Rlc3RpbmF0aW9u.allowed-value.c3RyaW5nOnN0b3JlX2NyZWRpdA.display_name": {
+          "source": "Store Credit",
+          "message": "Store Credit"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmVzb2x1dGlvbg.display_name": {
+          "source": "Resolution",
+          "message": "Resolution"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmVzb2x1dGlvbg.short_desc": {
+          "source": "Resolution type",
+          "message": "Resolution type"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmVzb2x1dGlvbg.desc": {
+          "source": "Resolution type for the return",
+          "message": "Resolution type for the return"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmVzb2x1dGlvbg.allowed-value.c3RyaW5nOnJlZnVuZA.display_name": {
+          "source": "Refund",
+          "message": "Refund"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmV0dXJuX21ldGhvZA.display_name": {
+          "source": "Return Method",
+          "message": "Return Method"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmV0dXJuX21ldGhvZA.short_desc": {
+          "source": "Shipping method for the return",
+          "message": "Shipping method for the return"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmV0dXJuX21ldGhvZA.desc": {
+          "source": "Shipping method for the return",
+          "message": "Shipping method for the return"
+        },
+        "app.QWZ0ZXJzaGlw.type.YWN0aW9uOlkzSmxZWFJsTFhKbGRIVnliZzpBZnRlcnNoaXBSZXR1cm5NZXRob2REYXRhVHlwZToqaGFzaDxhdXRvPiM0ZmQ0NGM3MWUwNjFjYzJlMmRiZTE0NmQ4YTc3MjQxMDJkNmE1M2VkZmMwNGI3MDRmYmYzMmQxMTlmM2RkNDA2Om9wdGlvbjpjbVYwZFhKdVgybDBaVzF6OmZpZWxkOmNtVjBkWEp1WDIxbGRHaHZaQQ.field.dHlwZQ.display_name": {
+          "source": "Return Method Type",
+          "message": "Return Method Type"
+        },
+        "app.QWZ0ZXJzaGlw.type.YWN0aW9uOlkzSmxZWFJsTFhKbGRIVnliZzpBZnRlcnNoaXBSZXR1cm5NZXRob2REYXRhVHlwZToqaGFzaDxhdXRvPiM0ZmQ0NGM3MWUwNjFjYzJlMmRiZTE0NmQ4YTc3MjQxMDJkNmE1M2VkZmMwNGI3MDRmYmYzMmQxMTlmM2RkNDA2Om9wdGlvbjpjbVYwZFhKdVgybDBaVzF6OmZpZWxkOmNtVjBkWEp1WDIxbGRHaHZaQQ.field.dHlwZQ.short_desc": {
+          "source": "Type of return shipping method",
+          "message": "Type of return shipping method"
+        },
+        "app.QWZ0ZXJzaGlw.type.YWN0aW9uOlkzSmxZWFJsTFhKbGRIVnliZzpBZnRlcnNoaXBSZXR1cm5NZXRob2REYXRhVHlwZToqaGFzaDxhdXRvPiM0ZmQ0NGM3MWUwNjFjYzJlMmRiZTE0NmQ4YTc3MjQxMDJkNmE1M2VkZmMwNGI3MDRmYmYzMmQxMTlmM2RkNDA2Om9wdGlvbjpjbVYwZFhKdVgybDBaVzF6OmZpZWxkOmNtVjBkWEp1WDIxbGRHaHZaQQ.field.dHlwZQ.desc": {
+          "source": "Return shipping method type",
+          "message": "Return shipping method type"
+        },
+        "app.QWZ0ZXJzaGlw.type.YWN0aW9uOlkzSmxZWFJsTFhKbGRIVnliZzpBZnRlcnNoaXBSZXR1cm5NZXRob2REYXRhVHlwZToqaGFzaDxhdXRvPiM0ZmQ0NGM3MWUwNjFjYzJlMmRiZTE0NmQ4YTc3MjQxMDJkNmE1M2VkZmMwNGI3MDRmYmYzMmQxMTlmM2RkNDA2Om9wdGlvbjpjbVYwZFhKdVgybDBaVzF6OmZpZWxkOmNtVjBkWEp1WDIxbGRHaHZaQQ.field.dHlwZQ.allowed-value.c3RyaW5nOnJldGFpbGVyX2xhYmVs.display_name": {
+          "source": "Retailer Label",
+          "message": "Retailer Label"
+        },
+        "app.QWZ0ZXJzaGlw.type.YWN0aW9uOlkzSmxZWFJsTFhKbGRIVnliZzpBZnRlcnNoaXBSZXR1cm5NZXRob2REYXRhVHlwZToqaGFzaDxhdXRvPiM0ZmQ0NGM3MWUwNjFjYzJlMmRiZTE0NmQ4YTc3MjQxMDJkNmE1M2VkZmMwNGI3MDRmYmYzMmQxMTlmM2RkNDA2Om9wdGlvbjpjbVYwZFhKdVgybDBaVzF6OmZpZWxkOmNtVjBkWEp1WDIxbGRHaHZaQQ.field.dHlwZQ.allowed-value.c3RyaW5nOmN1c3RvbWVyX2NvdXJpZXI.display_name": {
+          "source": "Customer Courier",
+          "message": "Customer Courier"
+        },
+        "app.QWZ0ZXJzaGlw.type.YWN0aW9uOlkzSmxZWFJsTFhKbGRIVnliZzpBZnRlcnNoaXBSZXR1cm5NZXRob2REYXRhVHlwZToqaGFzaDxhdXRvPiM0ZmQ0NGM3MWUwNjFjYzJlMmRiZTE0NmQ4YTc3MjQxMDJkNmE1M2VkZmMwNGI3MDRmYmYzMmQxMTlmM2RkNDA2Om9wdGlvbjpjbVYwZFhKdVgybDBaVzF6OmZpZWxkOmNtVjBkWEp1WDIxbGRHaHZaQQ.field.dHlwZQ.allowed-value.c3RyaW5nOmhhcHB5X3JldHVybnM.display_name": {
+          "source": "Happy Returns",
+          "message": "Happy Returns"
+        },
+        "app.QWZ0ZXJzaGlw.type.YWN0aW9uOlkzSmxZWFJsTFhKbGRIVnliZzpBZnRlcnNoaXBSZXR1cm5NZXRob2REYXRhVHlwZToqaGFzaDxhdXRvPiM0ZmQ0NGM3MWUwNjFjYzJlMmRiZTE0NmQ4YTc3MjQxMDJkNmE1M2VkZmMwNGI3MDRmYmYzMmQxMTlmM2RkNDA2Om9wdGlvbjpjbVYwZFhKdVgybDBaVzF6OmZpZWxkOmNtVjBkWEp1WDIxbGRHaHZaQQ.field.dHlwZQ.allowed-value.c3RyaW5nOmluX3N0b3Jl.display_name": {
+          "source": "In Store",
+          "message": "In Store"
+        },
+        "app.QWZ0ZXJzaGlw.type.YWN0aW9uOlkzSmxZWFJsTFhKbGRIVnliZzpBZnRlcnNoaXBSZXR1cm5NZXRob2REYXRhVHlwZToqaGFzaDxhdXRvPiM0ZmQ0NGM3MWUwNjFjYzJlMmRiZTE0NmQ4YTc3MjQxMDJkNmE1M2VkZmMwNGI3MDRmYmYzMmQxMTlmM2RkNDA2Om9wdGlvbjpjbVYwZFhKdVgybDBaVzF6OmZpZWxkOmNtVjBkWEp1WDIxbGRHaHZaQQ.field.dHlwZQ.allowed-value.c3RyaW5nOmdyZWVuX3JldHVybg.display_name": {
+          "source": "Green Return",
+          "message": "Green Return"
+        },
+        "app.QWZ0ZXJzaGlw.type.YWN0aW9uOlkzSmxZWFJsTFhKbGRIVnliZzpBZnRlcnNoaXBSZXR1cm5NZXRob2REYXRhVHlwZToqaGFzaDxhdXRvPiM0ZmQ0NGM3MWUwNjFjYzJlMmRiZTE0NmQ4YTc3MjQxMDJkNmE1M2VkZmMwNGI3MDRmYmYzMmQxMTlmM2RkNDA2Om9wdGlvbjpjbVYwZFhKdVgybDBaVzF6OmZpZWxkOmNtVjBkWEp1WDIxbGRHaHZaQQ.field.dHlwZQ.allowed-value.c3RyaW5nOnJldGFpbF9yZXdvcmtz.display_name": {
+          "source": "Retail Reworks",
+          "message": "Retail Reworks"
+        },
+        "app.QWZ0ZXJzaGlw.type.YWN0aW9uOlkzSmxZWFJsTFhKbGRIVnliZzpBZnRlcnNoaXBSZXR1cm5NZXRob2REYXRhVHlwZToqaGFzaDxhdXRvPiM0ZmQ0NGM3MWUwNjFjYzJlMmRiZTE0NmQ4YTc3MjQxMDJkNmE1M2VkZmMwNGI3MDRmYmYzMmQxMTlmM2RkNDA2Om9wdGlvbjpjbVYwZFhKdVgybDBaVzF6OmZpZWxkOmNtVjBkWEp1WDIxbGRHaHZaQQ.field.dHlwZQ.allowed-value.c3RyaW5nOmNhcnJpZXJfcGlja3Vw.display_name": {
+          "source": "Carrier Pickup",
+          "message": "Carrier Pickup"
+        },
+        "app.QWZ0ZXJzaGlw.type.YWN0aW9uOlkzSmxZWFJsTFhKbGRIVnliZzpBZnRlcnNoaXBSZXR1cm5NZXRob2REYXRhVHlwZToqaGFzaDxhdXRvPiM0ZmQ0NGM3MWUwNjFjYzJlMmRiZTE0NmQ4YTc3MjQxMDJkNmE1M2VkZmMwNGI3MDRmYmYzMmQxMTlmM2RkNDA2Om9wdGlvbjpjbVYwZFhKdVgybDBaVzF6OmZpZWxkOmNtVjBkWEp1WDIxbGRHaHZaQQ.field.dHlwZQ.allowed-value.c3RyaW5nOmNhcnJpZXJfZHJvcG9mZg.display_name": {
+          "source": "Carrier Dropoff",
+          "message": "Carrier Dropoff"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmV0dXJuX3JlYXNvbg.display_name": {
+          "source": "Return Reason",
+          "message": "Return Reason"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmV0dXJuX3JlYXNvbg.short_desc": {
+          "source": "Reason for the return",
+          "message": "Reason for the return"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmV0dXJuX3JlYXNvbg.desc": {
+          "source": "Reason for returning the item",
+          "message": "Reason for returning the item"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmV0dXJuX3JlYXNvbl9jb21tZW50.display_name": {
+          "source": "Return Reason Comment",
+          "message": "Return Reason Comment"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmV0dXJuX3JlYXNvbl9jb21tZW50.short_desc": {
+          "source": "Additional customer comments",
+          "message": "Additional customer comments"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmV0dXJuX3JlYXNvbl9jb21tZW50.desc": {
+          "source": "Additional customer comments on the return reason",
+          "message": "Additional customer comments on the return reason"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmV0dXJuX3N1YnJlYXNvbg.display_name": {
+          "source": "Return Sub-Reason",
+          "message": "Return Sub-Reason"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmV0dXJuX3N1YnJlYXNvbg.short_desc": {
+          "source": "Sub-reason for the return",
+          "message": "Sub-reason for the return"
+        },
+        "app.QWZ0ZXJzaGlw.action.Y3JlYXRlLXJldHVybg.option.cmV0dXJuX2l0ZW1z.field.cmV0dXJuX3N1YnJlYXNvbg.desc": {
+          "source": "Sub-reason if the reason supports it",
+          "message": "Sub-reason if the reason supports it"
+        },
         "app.QWZ0ZXJzaGlw.action.Z2V0LXJldHVybg.display_name": {
           "source": "Get Return",
           "message": "Get Return"

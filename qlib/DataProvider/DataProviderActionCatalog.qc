@@ -713,6 +713,163 @@ public hashdecl DataProviderInitializationFailureInfo {
     *string module_context;
 }
 
+#! One exact app or app/action identity expected during a discovery generation
+/** @since %DataProvider 3.8 */
+public hashdecl DataProviderDiscoveryExpectedIdentityInfo {
+    #! Exact technical application identifier
+    string app;
+
+    #! Exact technical action identifier; omit to require only the application
+    *string action;
+}
+
+#! One structured discovery qualification failure
+/** @since %DataProvider 3.8 */
+public hashdecl DataProviderDiscoveryFailureInfo {
+    #! Discovery generation
+    int generation;
+
+    #! Failing boundary: source, factory, app, action, or scheme
+    string kind;
+
+    #! Qualification phase
+    string phase;
+
+    #! Exact technical failure identity
+    string identity;
+
+    #! Exact technical application identifier, when applicable
+    *string app;
+
+    #! Exact technical action identifier, when applicable
+    *string action;
+
+    #! Original error code
+    string error;
+
+    #! Original error description
+    string description;
+
+    #! Original exception argument
+    auto argument;
+
+    #! Owner module path, when known
+    *string module_context;
+}
+
+#! Immutable report for one sealed discovery generation
+/** @since %DataProvider 3.8 */
+public hashdecl DataProviderDiscoveryReportInfo {
+    #! Discovery generation
+    int generation;
+
+    #! Catalog revision when discovery began
+    int start_revision;
+
+    #! Catalog revision when discovery was sealed
+    int sealed_revision;
+
+    #! Whether the generation is complete and qualified
+    bool complete;
+
+    #! Exact expected identities supplied by discovery sources
+    list<hash<DataProviderDiscoveryExpectedIdentityInfo>> expected;
+
+    #! Exact application identities present when the generation was sealed
+    list<string> apps;
+
+    #! Exact app/action identities present when the generation was sealed
+    list<string> actions;
+
+    #! Structured failures; empty only for a qualified generation
+    list<hash<DataProviderDiscoveryFailureInfo>> failures;
+}
+
+#! Opaque handle for one open discovery generation
+/** Instances can only be created by @ref DataProviderActionCatalog::beginDiscovery().
+    @since %DataProvider 3.8
+*/
+public class DataProviderDiscoverySession {
+    private {
+        int generation;
+    }
+
+    #! Constructor used by DataProviderActionCatalog; externally constructed handles are rejected by identity
+    /** @param generation discovery generation number */
+    constructor(int generation) {
+        self.generation = generation;
+    }
+
+    #! Returns the generation number
+    /** @return the discovery generation number */
+    int getGeneration() {
+        return generation;
+    }
+}
+
+#! Opaque proof that one discovery generation was complete at a catalog revision
+/** Instances can only be created by @ref DataProviderActionCatalog::sealDiscovery(). A token becomes invalid after
+    any catalog or retained-qualification mutation.
+
+    @since %DataProvider 3.8
+*/
+public class DataProviderQualifiedDiscovery {
+    private {
+        int generation;
+        int revision;
+        hash<DataProviderDiscoveryReportInfo> report;
+    }
+
+    #! Constructor used by DataProviderActionCatalog; externally constructed handles are rejected by identity
+    /** @param generation discovery generation number
+        @param revision exact qualified catalog revision
+        @param report immutable qualification report
+    */
+    constructor(int generation, int revision,
+            hash<DataProviderDiscoveryReportInfo> report) {
+        self.generation = generation;
+        self.revision = revision;
+        self.report = report;
+    }
+
+    #! Returns the qualified generation
+    /** @return the qualified discovery generation */
+    int getGeneration() {
+        return generation;
+    }
+
+    #! Returns the exact qualified catalog revision
+    /** @return the exact qualified catalog revision */
+    int getRevision() {
+        return revision;
+    }
+
+    #! Returns the immutable qualification report
+    /** @return the immutable qualification report */
+    hash<DataProviderDiscoveryReportInfo> getReport() {
+        return report;
+    }
+}
+
+#! Internal, strongly typed state for one open discovery generation
+/** Keeping every collection strongly typed prevents empty-list values stored in
+    an untyped hash from degrading to \c list<nothing> at a later merge.
+*/
+hashdecl DataProviderDiscoveryStateInfo {
+    int start_revision;
+    *int snapshot_revision;
+    list<hash<DataProviderDiscoveryExpectedIdentityInfo>> expected;
+    list<hash<DataProviderDiscoveryExpectedIdentityInfo>> base_expected;
+    list<hash<DataProviderDiscoveryExpectedIdentityInfo>> producer_expected;
+    list<hash<DataProviderDiscoveryFailureInfo>> failures;
+    list<hash<DataProviderDiscoveryFailureInfo>> inventory_failures;
+    DataProviderDiscoverySession session;
+    *int inventory_revision;
+    hash<string, bool> base_expected_keys;
+    hash<string, bool> expected_keys;
+    *hash<string, bool> app_scope;
+}
+
 #! DataProvider action and application catalog class
 public class DataProviderActionCatalog {
     public {
@@ -817,8 +974,33 @@ public class DataProviderActionCatalog {
         #! Pending application action init handler map: app -> action -> init metadata
         static hash<string, hash<string, hash<auto>>> initactionmap;
 
+        #! Declared pending identities retained until the exact identity succeeds or is explicitly deregistered
+        /** An empty action key represents the app itself. This registry makes a pending initializer that returns
+            without registering or throwing remain visible to later discovery generations.
+        */
+        static hash<string, hash<string, bool>> expected_initialization_map;
+
         #! Retained initialization failures: app -> action (or an empty key for the app) -> failure
         static hash<string, hash<string, hash<DataProviderInitializationFailureInfo>>> initialization_failure_map;
+
+        #! Monotonically increasing revision of catalog and qualification state
+        static int catalog_revision = 0;
+
+        #! Last allocated discovery generation
+        static int discovery_generation = 0;
+
+        #! Open discovery state keyed by generation
+        static hash<string, hash<DataProviderDiscoveryStateInfo>> discovery_map;
+
+        #! Issued qualified-discovery handle keyed by generation
+        static hash<string, DataProviderQualifiedDiscovery> qualified_discovery_map;
+
+        #! Lazy expected-inventory providers keyed by a stable technical owner name
+        static hash<string, code<list<hash<DataProviderDiscoveryExpectedIdentityInfo>>()>>
+            discovery_inventory_provider_map;
+
+        #! Revision of registered inventory callbacks and their producer-owned identity content
+        static int discovery_inventory_revision = 0;
 
         #! Maps apps to the modules that define them: app -> module path -> True
         static hash<string, hash<string, bool>> appmodmap;
@@ -874,6 +1056,10 @@ public class DataProviderActionCatalog {
             "module_context": module_context
                 ?? DataProviderActionCatalog::registrationModulePath(),
         };
+        expected_initialization_map{app}{""} = True;
+        DataProviderActionCatalog::addOpenDiscoveryExpectedIdentity(app,
+            NOTHING);
+        ++catalog_revision;
     }
 
     #! Registers an app action for deferred initialization / initialization on demand
@@ -906,6 +1092,10 @@ public class DataProviderActionCatalog {
             "action": action,
             "module_context": DataProviderActionCatalog::registrationModulePath(),
         };
+        expected_initialization_map{app}{action} = True;
+        DataProviderActionCatalog::addOpenDiscoveryExpectedIdentity(app,
+            action);
+        ++catalog_revision;
     }
 
     #! Retains a structured application or action initialization failure
@@ -950,6 +1140,7 @@ public class DataProviderActionCatalog {
             "argument": ex.arg,
             "module_context": module_context ?? DataProviderActionCatalog::registrationModulePath(),
         };
+        ++catalog_revision;
     }
 
     #! Returns retained application and action initialization failures
@@ -964,13 +1155,696 @@ public class DataProviderActionCatalog {
         AutoLock al(lck);
         hash<string, bool> filter = apps ? map {$1: True}, apps.iterator() : {};
         list<hash<DataProviderInitializationFailureInfo>> rv = ();
-        foreach hash<auto> app_info in (initialization_failure_map.pairIterator()) {
-            if (apps && !filter{app_info.key}) {
+        foreach string app in (sort(keys initialization_failure_map)) {
+            if (apps && !filter{app}) {
                 continue;
             }
-            rv += app_info.value.values();
+            foreach string failure_key in (sort(keys
+                    initialization_failure_map{app})) {
+                rv += initialization_failure_map{app}{failure_key};
+            }
         }
         return rv;
+    }
+
+    #! Returns the current catalog/qualification revision
+    /** Reading the revision is O(1). Ordinary action execution does not read or update it; only discovery and
+        registration lifecycle operations use it.
+
+        @return the current monotonically increasing catalog revision
+
+        @since %DataProvider 3.8
+    */
+    static int getCatalogRevision() {
+        AutoLock al(lck);
+        return catalog_revision;
+    }
+
+    #! Runs a registry mutation in the same critical section as discovery sealing and publication
+    /** Registry owners outside this class use this boundary when their state contributes to an authoritative
+        provider index. The mutation and revision increment are one linearizable operation, so a collector cannot
+        observe the new registry state with the old catalog revision (or vice versa).
+
+        This API is for registry implementations whose state is serialized with the data-provider catalog. Ordinary
+        action execution does not use it; application code should use the typed registration APIs instead.
+
+        @param mutation mutation callback returning whether registry state changed; the revision advances only after
+            a successful callback returning @ref True
+
+        @return the callback result
+
+        @since %DataProvider 3.8
+    */
+    static bool commitDiscoveryCatalogMutation(
+            code<bool()> mutation) {
+        bool needs_lock = !lck.lockOwner();
+        if (needs_lock) {
+            lck.lock();
+        }
+        on_exit if (needs_lock) {
+            lck.unlock();
+        }
+        bool changed = mutation();
+        if (changed) {
+            ++catalog_revision;
+        }
+        return changed;
+    }
+
+    #! Registers a lazy expected-inventory provider for discovery qualification
+    /** The callback must return the exact application and action identities owned by the producer without
+        materializing action schemas. Callbacks are invoked without the catalog lock held.
+
+        Registering or replacing a provider invalidates previously issued qualification tokens.
+
+        @param name stable technical name for the inventory source
+        @param provider typed callback returning the source's expected inventory
+
+        @throw INVALID-ARGUMENT-ERROR if \a name is empty
+
+        @since %DataProvider 3.8
+    */
+    static registerDiscoveryInventoryProvider(string name,
+            code<list<hash<DataProviderDiscoveryExpectedIdentityInfo>>()> provider) {
+        if (!name.val()) {
+            throw "INVALID-ARGUMENT-ERROR",
+                "a discovery inventory provider name cannot be empty";
+        }
+        *code<list<hash<DataProviderDiscoveryExpectedIdentityInfo>>()> previous_provider;
+        {
+            AutoLock al(lck);
+            previous_provider = discovery_inventory_provider_map{name};
+            discovery_inventory_provider_map{name} = provider;
+            ++discovery_inventory_revision;
+            ++catalog_revision;
+        }
+
+        # A provider registered from module init must not survive a failed
+        # module load. Restore the exact previous callback (if any) through
+        # the same transaction used by apps, types, schemes, and factories.
+        ImplicitModuleTransaction::add(sub () {
+            AutoLock al(lck);
+            if (discovery_inventory_provider_map{name} !== provider) {
+                return;
+            }
+            if (previous_provider) {
+                discovery_inventory_provider_map{name} = previous_provider;
+            } else {
+                remove discovery_inventory_provider_map{name};
+            }
+            ++discovery_inventory_revision;
+            ++catalog_revision;
+        });
+    }
+
+    #! Marks one registered producer's lightweight identity inventory as changed
+    /** Producers call this only when an exact app/action identity is added or removed. It invalidates inventory
+        snapshots and qualified publication tokens without adding work to provider action execution.
+
+        @param name stable technical name passed to @ref registerDiscoveryInventoryProvider()
+
+        @throw INVALID-ARGUMENT-ERROR if the inventory provider is not registered
+
+        @since %DataProvider 3.8
+    */
+    static markDiscoveryInventoryChanged(string name) {
+        AutoLock al(lck);
+        if (!exists discovery_inventory_provider_map{name}) {
+            throw "INVALID-ARGUMENT-ERROR", sprintf(
+                "data provider discovery inventory source %y is not registered",
+                name);
+        }
+        ++discovery_inventory_revision;
+        ++catalog_revision;
+    }
+
+    #! Deregisters a producer inventory callback
+    /** Existing discovery snapshots and qualified publication tokens are invalidated only when the named callback
+        existed.
+
+        @param name stable technical inventory-source name
+
+        @since %DataProvider 3.8
+    */
+    static deregisterDiscoveryInventoryProvider(string name) {
+        AutoLock al(lck);
+        if (!exists discovery_inventory_provider_map{name}) {
+            return;
+        }
+        remove discovery_inventory_provider_map{name};
+        ++discovery_inventory_revision;
+        ++catalog_revision;
+    }
+
+    #! Adds expected identities to an open discovery generation
+    /** Duplicate identities are coalesced by their exact technical app/action key.
+
+        @param session open discovery generation
+        @param expected exact app/action identities to add
+
+        @throw INVALID-ARGUMENT-ERROR if an identity is empty or malformed
+        @throw DATA-PROVIDER-DISCOVERY-SESSION-ERROR if the session is not open
+
+        @since %DataProvider 3.8
+    */
+    static addDiscoveryExpectedInventory(DataProviderDiscoverySession session,
+            list<hash<DataProviderDiscoveryExpectedIdentityInfo>> expected) {
+        list<hash<DataProviderDiscoveryExpectedIdentityInfo>> normalized
+            = DataProviderActionCatalog::normalizeDiscoveryExpectedInventory(
+                expected);
+        AutoLock al(lck);
+        string generation_key = session.getGeneration().toString();
+        *hash<DataProviderDiscoveryStateInfo> state
+            = discovery_map{generation_key};
+        if (!state || state.session !== session) {
+            throw "DATA-PROVIDER-DISCOVERY-SESSION-ERROR", sprintf(
+                "data provider discovery generation %d is not open",
+                session.getGeneration());
+        }
+        foreach hash<DataProviderDiscoveryExpectedIdentityInfo> identity in (
+                normalized) {
+            string key = identity.app + "/" + (identity.action ?? "");
+            if (!state.base_expected_keys{key}) {
+                state.base_expected_keys{key} = True;
+                state.base_expected += identity;
+                if (!state.expected_keys{key}) {
+                    state.expected_keys{key} = True;
+                    state.expected += identity;
+                }
+            }
+        }
+        discovery_map{generation_key} = state;
+    }
+
+    #! Collects all registered producer inventories into an open discovery generation
+    /** A provider exception becomes a structured source/inventory failure in the generation; remaining providers
+        are still collected.
+
+        @param session open discovery generation; its scope filters unselected producer identities
+
+        @throw DATA-PROVIDER-DISCOVERY-SESSION-ERROR if the session is not open
+
+        @since %DataProvider 3.8
+    */
+    static collectDiscoveryExpectedInventory(
+            DataProviderDiscoverySession session) {
+        hash<string, code<list<hash<DataProviderDiscoveryExpectedIdentityInfo>>()>>
+            providers;
+        int inventory_revision;
+        *hash<string, bool> app_scope;
+        int generation = session.getGeneration();
+        {
+            AutoLock al(lck);
+            *hash<DataProviderDiscoveryStateInfo> state
+                = discovery_map{generation.toString()};
+            if (!state || state.session !== session) {
+                throw "DATA-PROVIDER-DISCOVERY-SESSION-ERROR", sprintf(
+                    "data provider discovery generation %d is not open",
+                    generation);
+            }
+            providers = discovery_inventory_provider_map;
+            inventory_revision = discovery_inventory_revision;
+            app_scope = state.app_scope;
+        }
+        list<hash<DataProviderDiscoveryExpectedIdentityInfo>> collected
+            = new list<hash<DataProviderDiscoveryExpectedIdentityInfo>>();
+        list<hash<DataProviderDiscoveryFailureInfo>> failures
+            = new list<hash<DataProviderDiscoveryFailureInfo>>();
+        foreach string name in (sort(keys providers)) {
+            try {
+                code<list<hash<DataProviderDiscoveryExpectedIdentityInfo>>()>
+                    provider = providers{name};
+                list<hash<DataProviderDiscoveryExpectedIdentityInfo>> inventory
+                    = DataProviderActionCatalog::normalizeDiscoveryExpectedInventory(
+                        provider());
+                if (app_scope) {
+                    inventory = map $1, inventory, app_scope{$1.app};
+                }
+                collected += inventory;
+            } catch (hash<ExceptionInfo> ex) {
+                failures += <DataProviderDiscoveryFailureInfo>{
+                    "generation": generation,
+                    "kind": "source",
+                    "phase": "inventory",
+                    "identity": name,
+                    "error": ex.err,
+                    "description": ex.desc,
+                    "argument": ex.arg,
+                    "module_context": name,
+                };
+            }
+        }
+        AutoLock al(lck);
+        string generation_key = generation.toString();
+        *hash<DataProviderDiscoveryStateInfo> state
+            = discovery_map{generation_key};
+        if (!state || state.session !== session) {
+            throw "DATA-PROVIDER-DISCOVERY-SESSION-ERROR", sprintf(
+                "data provider discovery generation %d is not open",
+                generation);
+        }
+        # Do not certify a callback snapshot that changed while callbacks ran.
+        # The caller can start a new generation and collect the new exact state.
+        # Preserve callback failures even for a stale snapshot: staleness is an
+        # additional qualification failure, not a reason to discard the
+        # machine-readable producer error that occurred in the same attempt.
+        state.inventory_failures = failures;
+        if (inventory_revision != discovery_inventory_revision) {
+            state.inventory_revision = NOTHING;
+        } else {
+            state.producer_expected = collected;
+            state.expected = DataProviderActionCatalog::normalizeDiscoveryExpectedInventory(
+                state.base_expected + state.producer_expected);
+            state.expected_keys = map {
+                $1.app + "/" + ($1.action ?? ""): True
+            }, state.expected.iterator();
+            state.inventory_revision = inventory_revision;
+        }
+        discovery_map{generation_key} = state;
+    }
+
+    #! Starts one generation-scoped discovery qualification session
+    /** @param expected optional exact app/action inventory fragments
+        @param apps optional exact application scope for pending identities registered while the session is open
+        @return an opaque open-session handle
+
+        @throw INVALID-ARGUMENT-ERROR if an expected identity is empty or malformed
+
+        @since %DataProvider 3.8
+    */
+    static DataProviderDiscoverySession beginDiscovery(
+            list<hash<DataProviderDiscoveryExpectedIdentityInfo>> expected
+                = (), *list<string> apps = NOTHING) {
+        list<hash<DataProviderDiscoveryExpectedIdentityInfo>> normalized
+            = DataProviderActionCatalog::normalizeDiscoveryExpectedInventory(
+                expected);
+        if (exists apps && !apps) {
+            throw "INVALID-ARGUMENT-ERROR",
+                "a discovery application scope cannot be empty";
+        }
+        foreach string app in (apps) {
+            if (!app.val()) {
+                throw "INVALID-ARGUMENT-ERROR",
+                    "a discovery application scope cannot contain an empty identity";
+            }
+        }
+        hash<string, bool> expected_keys = map {
+            $1.app + "/" + ($1.action ?? ""): True
+        }, normalized.iterator();
+        *hash<string, bool> app_scope = apps
+            ? map {$1: True}, apps.iterator() : NOTHING;
+        AutoLock al(lck);
+        foreach string declared_app in (sort(keys
+                expected_initialization_map)) {
+            if (app_scope && !app_scope{declared_app}) {
+                continue;
+            }
+            foreach string declared_action in (sort(keys
+                    expected_initialization_map{declared_app})) {
+                string key = declared_app + "/" + declared_action;
+                if (!expected_keys{key}) {
+                    expected_keys{key} = True;
+                    hash<DataProviderDiscoveryExpectedIdentityInfo> identity
+                        = <DataProviderDiscoveryExpectedIdentityInfo>{
+                            "app": declared_app,
+                        };
+                    if (declared_action.val()) {
+                        identity.action = declared_action;
+                    }
+                    normalized += identity;
+                }
+            }
+        }
+        int generation = ++discovery_generation;
+        DataProviderDiscoverySession session
+            = new DataProviderDiscoverySession(generation);
+        discovery_map{generation.toString()}
+            = <DataProviderDiscoveryStateInfo>{
+            "start_revision": catalog_revision,
+            "snapshot_revision": NOTHING,
+            "expected": normalized,
+            "base_expected": normalized,
+            "producer_expected": new list<hash<DataProviderDiscoveryExpectedIdentityInfo>>(),
+            "failures": new list<hash<DataProviderDiscoveryFailureInfo>>(),
+            "inventory_failures": new list<hash<DataProviderDiscoveryFailureInfo>>(),
+            "session": session,
+            "inventory_revision": discovery_inventory_provider_map
+                ? NOTHING : discovery_inventory_revision,
+            "base_expected_keys": expected_keys,
+            "expected_keys": expected_keys,
+            "app_scope": app_scope,
+        };
+        return session;
+    }
+
+    #! Records the revision at which an authoritative consumer starts copying registry state
+    /** Source loading, deferred initialization, and producer-inventory collection must finish before this call.
+        The consumer then copies its candidate output and calls @ref sealDiscovery(). Any catalog or participating
+        registry mutation between this checkpoint and sealing is reported as a structured stale-snapshot failure.
+
+        @param session open discovery generation
+
+        @throw DATA-PROVIDER-DISCOVERY-SESSION-ERROR if the session is not open
+
+        @since %DataProvider 3.8
+    */
+    static checkpointDiscoverySnapshot(DataProviderDiscoverySession session) {
+        AutoLock al(lck);
+        string generation_key = session.getGeneration().toString();
+        *hash<DataProviderDiscoveryStateInfo> state
+            = discovery_map{generation_key};
+        if (!state || state.session !== session) {
+            throw "DATA-PROVIDER-DISCOVERY-SESSION-ERROR", sprintf(
+                "data provider discovery generation %d is not open",
+                session.getGeneration());
+        }
+        state.snapshot_revision = catalog_revision;
+        discovery_map{generation_key} = state;
+    }
+
+    #! Adds one pending registration identity to every applicable open discovery session
+    private static addOpenDiscoveryExpectedIdentity(string app,
+            *string action) {
+        string identity_key = app + "/" + (action ?? "");
+        foreach hash<auto> entry in (discovery_map.pairIterator()) {
+            hash<DataProviderDiscoveryStateInfo> state = entry.value;
+            if ((state.app_scope && !state.app_scope{app})
+                    || state.base_expected_keys{identity_key}) {
+                continue;
+            }
+            state.base_expected_keys{identity_key} = True;
+            hash<DataProviderDiscoveryExpectedIdentityInfo> identity
+                = <DataProviderDiscoveryExpectedIdentityInfo>{
+                    "app": app,
+                };
+            if (action) {
+                identity.action = action;
+            }
+            state.base_expected += identity;
+            if (!state.expected_keys{identity_key}) {
+                state.expected_keys{identity_key} = True;
+                state.expected += identity;
+            }
+            discovery_map{entry.key} = state;
+        }
+    }
+
+    #! Validates and coalesces exact discovery identities
+    private static list<hash<DataProviderDiscoveryExpectedIdentityInfo>>
+            normalizeDiscoveryExpectedInventory(
+                list<hash<DataProviderDiscoveryExpectedIdentityInfo>> expected) {
+        hash<string, bool> seen;
+        list<hash<DataProviderDiscoveryExpectedIdentityInfo>> normalized
+            = new list<hash<DataProviderDiscoveryExpectedIdentityInfo>>();
+        foreach hash<DataProviderDiscoveryExpectedIdentityInfo> identity in (
+                expected) {
+            if (!identity.app.val() || (exists identity.action
+                    && !identity.action.val())) {
+                throw "INVALID-ARGUMENT-ERROR", sprintf(
+                    "invalid expected data provider identity: %y", identity);
+            }
+            string key = identity.app + "/" + (identity.action ?? "");
+            if (!seen{key}) {
+                seen{key} = True;
+                normalized += identity;
+            }
+        }
+        return normalized;
+    }
+
+    #! Adds a structured failure to an open discovery generation
+    /** This API is for discovery-source and publication-boundary failures that do not originate in a deferred
+        app/action initializer. Such initializer failures are retained by @ref reportInitializationFailure() and
+        merged automatically when the session is sealed.
+
+        @param session open discovery generation
+        @param kind failing boundary: source, factory, app, action, or scheme
+        @param phase qualification phase
+        @param identity exact technical failure identity
+        @param error original error code
+        @param description original error description
+        @param argument original exception argument
+        @param app exact technical application identifier, when applicable
+        @param action exact technical action identifier, when applicable
+        @param module_context owner module path, when known
+
+        @throw INVALID-ARGUMENT-ERROR if a required failure field is empty
+        @throw DATA-PROVIDER-DISCOVERY-SESSION-ERROR if the session is not open
+
+        @since %DataProvider 3.8
+    */
+    static reportDiscoveryFailure(DataProviderDiscoverySession session,
+            string kind, string phase, string identity, string error,
+            string description, auto argument = NOTHING,
+            *string app = NOTHING, *string action = NOTHING,
+            *string module_context = NOTHING) {
+        if (!kind.val() || !phase.val() || !identity.val()
+                || !error.val()) {
+            throw "INVALID-ARGUMENT-ERROR", sprintf(
+                "invalid data provider discovery failure: kind=%y phase=%y identity=%y error=%y",
+                kind, phase, identity, error);
+        }
+        AutoLock al(lck);
+        string generation_key = session.getGeneration().toString();
+        *hash<DataProviderDiscoveryStateInfo> state
+            = discovery_map{generation_key};
+        if (!state || state.session !== session) {
+            throw "DATA-PROVIDER-DISCOVERY-SESSION-ERROR", sprintf(
+                "data provider discovery generation %d is not open",
+                session.getGeneration());
+        }
+        state.failures += <DataProviderDiscoveryFailureInfo>{
+            "generation": session.getGeneration(),
+            "kind": kind,
+            "phase": phase,
+            "identity": identity,
+            "app": app,
+            "action": action,
+            "error": error,
+            "description": description,
+            "argument": argument,
+            "module_context": module_context,
+        };
+        discovery_map{generation_key} = state;
+    }
+
+    #! Aborts an open discovery generation
+    /** Safe to call after sealing or after an earlier abort.
+
+        @param session discovery generation to abort
+
+        @since %DataProvider 3.8
+    */
+    static abortDiscovery(DataProviderDiscoverySession session) {
+        AutoLock al(lck);
+        string generation_key = session.getGeneration().toString();
+        if (discovery_map{generation_key}.session === session) {
+            remove discovery_map{generation_key};
+        }
+    }
+
+    #! Seals and qualifies one discovery generation
+    /** @param session open discovery generation
+
+        @return an opaque qualification token bound to the current catalog revision
+
+        @throw DATA-PROVIDER-DISCOVERY-ERROR if an expected identity is missing or any applicable structured failure
+            remains; the exception argument is a @ref DataProviderDiscoveryReportInfo record
+        @throw DATA-PROVIDER-DISCOVERY-SESSION-ERROR if the session is not open
+
+        @since %DataProvider 3.8
+    */
+    static DataProviderQualifiedDiscovery sealDiscovery(
+            DataProviderDiscoverySession session) {
+        AutoLock al(lck);
+        int generation = session.getGeneration();
+        string generation_key = generation.toString();
+        *hash<DataProviderDiscoveryStateInfo> state
+            = discovery_map{generation_key};
+        if (!state || state.session !== session) {
+            throw "DATA-PROVIDER-DISCOVERY-SESSION-ERROR", sprintf(
+                "data provider discovery generation %d is not open",
+                generation);
+        }
+        remove discovery_map{generation_key};
+
+        list<hash<DataProviderDiscoveryExpectedIdentityInfo>> expected
+            = state.expected;
+        list<hash<DataProviderDiscoveryFailureInfo>> failures
+            = state.failures + state.inventory_failures;
+        if (exists state.snapshot_revision
+                && state.snapshot_revision != catalog_revision) {
+            failures += <DataProviderDiscoveryFailureInfo>{
+                "generation": generation,
+                "kind": "source",
+                "phase": "catalog-snapshot-stale",
+                "identity": "data-provider-catalog",
+                "error": "DATA-PROVIDER-DISCOVERY-SNAPSHOT-STALE",
+                "description": sprintf(
+                    "data provider catalog changed from revision %d to %d while the authoritative snapshot was "
+                        "copied", state.snapshot_revision, catalog_revision),
+            };
+        }
+        if (state.inventory_revision != discovery_inventory_revision) {
+            failures += <DataProviderDiscoveryFailureInfo>{
+                "generation": generation,
+                "kind": "source",
+                "phase": "inventory-stale",
+                "identity": "discovery-inventory",
+                "error": "DATA-PROVIDER-DISCOVERY-INVENTORY-STALE",
+                "description": "data provider discovery inventory changed after its stable snapshot was collected",
+            };
+        }
+        foreach string app in (sort(keys initialization_failure_map)) {
+            # Expected-inventory fragments do not imply a selection scope:
+            # a full discovery can combine inventories from several producers.
+            # Only the caller's explicit app scope may exclude another app's
+            # retained failure.
+            if (state.app_scope && !state.app_scope{app}) {
+                continue;
+            }
+            foreach string failure_key in (sort(keys
+                    initialization_failure_map{app})) {
+                hash<DataProviderInitializationFailureInfo> failure
+                    = initialization_failure_map{app}{failure_key};
+                failures += <DataProviderDiscoveryFailureInfo>{
+                    "generation": generation,
+                    "kind": failure.kind,
+                    "phase": "registration",
+                    "identity": failure.action
+                        ? failure.app + "/" + failure.action
+                        : failure.app,
+                    "app": failure.app,
+                    "action": failure.action,
+                    "error": failure.error,
+                    "description": failure.description,
+                    "argument": failure.argument,
+                    "module_context": failure.module_context,
+                };
+            }
+        }
+        foreach hash<DataProviderDiscoveryExpectedIdentityInfo> identity in (
+                expected) {
+            bool present = identity.action
+                ? exists app_actionmap{identity.app}{identity.action}
+                : exists appcache{identity.app};
+            if (!present) {
+                string technical_identity = identity.action
+                    ? identity.app + "/" + identity.action : identity.app;
+                failures += <DataProviderDiscoveryFailureInfo>{
+                    "generation": generation,
+                    "kind": identity.action ? "action" : "app",
+                    "phase": "expected-inventory",
+                    "identity": technical_identity,
+                    "app": identity.app,
+                    "action": identity.action,
+                    "error": "DATA-PROVIDER-EXPECTED-IDENTITY-MISSING",
+                    "description": sprintf(
+                        "expected data provider identity %y is not registered",
+                        technical_identity),
+                };
+            }
+        }
+        hash<DataProviderDiscoveryReportInfo> report
+            = <DataProviderDiscoveryReportInfo>{
+                "generation": generation,
+                "start_revision": state.start_revision,
+                "sealed_revision": catalog_revision,
+                "complete": !failures,
+                "expected": expected,
+                "apps": sort(keys appcache),
+                "actions": sort(keys top_actionmap),
+                "failures": failures,
+            };
+        if (failures) {
+            throw "DATA-PROVIDER-DISCOVERY-ERROR", sprintf(
+                "data provider discovery generation %d has %d failure(s)",
+                generation, failures.size()), report;
+        }
+        DataProviderQualifiedDiscovery qualification
+            = new DataProviderQualifiedDiscovery(generation,
+                catalog_revision, report);
+        qualified_discovery_map{generation_key} = qualification;
+        return qualification;
+    }
+
+    #! Verifies that a qualification token still describes the current catalog
+    /** @param qualification token returned by @ref sealDiscovery()
+
+        @throw DATA-PROVIDER-DISCOVERY-TOKEN-ERROR if the token is forged, discarded, or already used
+        @throw DATA-PROVIDER-DISCOVERY-STALE if registration or qualification state changed after sealing
+
+        @since %DataProvider 3.8
+    */
+    static assertQualifiedDiscovery(
+            DataProviderQualifiedDiscovery qualification) {
+        AutoLock al(lck);
+        string generation_key = qualification.getGeneration().toString();
+        if (qualified_discovery_map{generation_key} !== qualification) {
+            throw "DATA-PROVIDER-DISCOVERY-TOKEN-ERROR", sprintf(
+                "data provider discovery generation %d has no active qualification token",
+                qualification.getGeneration());
+        }
+        if (qualification.getRevision() != catalog_revision) {
+            remove qualified_discovery_map{generation_key};
+            throw "DATA-PROVIDER-DISCOVERY-STALE", sprintf(
+                "qualified data provider discovery generation %d describes revision %d, but the catalog is now at "
+                    "revision %d", qualification.getGeneration(),
+                qualification.getRevision(), catalog_revision),
+                qualification.getReport();
+        }
+    }
+
+    #! Discards an unused qualification token
+    /** The operation is idempotent and does not change the catalog revision.
+
+        @param qualification token returned by @ref sealDiscovery()
+
+        @since %DataProvider 3.8
+    */
+    static discardQualifiedDiscovery(
+            DataProviderQualifiedDiscovery qualification) {
+        AutoLock al(lck);
+        string generation_key = qualification.getGeneration().toString();
+        if (qualified_discovery_map{generation_key} === qualification) {
+            remove qualified_discovery_map{generation_key};
+        }
+    }
+
+    #! Publishes a result while its qualified catalog revision remains stable
+    /** The qualification token is single-use. The publisher runs while registration is excluded, closing the
+        revision-check/publication race without adding work to ordinary provider execution.
+
+        @param qualification token returned by @ref sealDiscovery()
+        @param publisher zero-argument publication callback
+
+        @return the publisher's result
+
+        @throw DATA-PROVIDER-DISCOVERY-TOKEN-ERROR if the token is forged, discarded, or already used
+        @throw DATA-PROVIDER-DISCOVERY-STALE if catalog or inventory state changed after sealing
+
+        @since %DataProvider 3.8
+    */
+    static auto publishQualifiedDiscovery(
+            DataProviderQualifiedDiscovery qualification,
+            code<auto()> publisher) {
+        AutoLock al(lck);
+        string generation_key = qualification.getGeneration().toString();
+        if (qualified_discovery_map{generation_key} !== qualification) {
+            throw "DATA-PROVIDER-DISCOVERY-TOKEN-ERROR", sprintf(
+                "data provider discovery generation %d has no active qualification token",
+                qualification.getGeneration());
+        }
+        if (qualification.getRevision() != catalog_revision) {
+            remove qualified_discovery_map{generation_key};
+            throw "DATA-PROVIDER-DISCOVERY-STALE", sprintf(
+                "qualified data provider discovery generation %d describes revision %d, but the catalog is now at "
+                    "revision %d", qualification.getGeneration(),
+                qualification.getRevision(), catalog_revision),
+                qualification.getReport();
+        }
+        remove qualified_discovery_map{generation_key};
+        return publisher();
     }
 
     #! Registers a data provider application
@@ -1021,10 +1895,14 @@ public class DataProviderActionCatalog {
                 hash<auto> incoming_cmp = app - AppActionFlags - ("disable_generic_api_call",);
                 if (existing_cmp == incoming_cmp) {
                     if (module_path) {
+                        bool new_owner = !appmodmap{app.name}{module_path};
                         appmodmap{app.name}{module_path} = True;
                         string mac_name = AbstractDataProvider::GenericApiCallActionName;
                         if (app_actionmap{app.name}{mac_name}) {
                             actionmodmap{app.name}{mac_name}{module_path} = True;
+                        }
+                        if (new_owner) {
+                            ++catalog_revision;
                         }
                     }
                     # OR-merge the disable_generic_api_call opt-out: if EITHER caller sets the
@@ -1036,6 +1914,7 @@ public class DataProviderActionCatalog {
                     bool incoming_disable = app.disable_generic_api_call ?? False;
                     bool existing_disable = existing_app.disable_generic_api_call ?? False;
                     if (incoming_disable && !existing_disable) {
+                        ++catalog_revision;
                         appcache{app.name}.disable_generic_api_call = True;
                         remove pending_generic_api_call_apps{app.name};
                         # if the make-api-call action was already auto-registered against the
@@ -1071,7 +1950,8 @@ public class DataProviderActionCatalog {
                             }
                         }
                     }
-                    DataProviderActionCatalog::clearInitializationFailure(app.name, NOTHING);
+                    DataProviderActionCatalog::clearSuccessfulInitializationState(
+                        app.name, NOTHING);
                     return;
                 }
                 throw "APP-ERROR", sprintf("Application %y already registered: %y", app.name, existing_app);
@@ -1084,7 +1964,9 @@ public class DataProviderActionCatalog {
 
             # add to cache
             appcache{app.name} = app;
-            DataProviderActionCatalog::clearInitializationFailure(app.name, NOTHING);
+            ++catalog_revision;
+            DataProviderActionCatalog::clearSuccessfulInitializationState(
+                app.name, NOTHING);
             if (module_path) {
                 appmodmap{app.name}{module_path} = True;
             }
@@ -1478,8 +2360,8 @@ public class DataProviderActionCatalog {
 
         The caller must not be restricted with @ref Qore::PO_NO_PROCESS_CONTROL
 
-        @throw APP-ERROR app not dynamic
-        @throw PERMISSION-DENIED Caller is restricted with @ref Qore::PO_NO_PROCESS_CONTROL
+        @throw PERMISSION-DENIED if the app is not dynamic or the caller is restricted with
+            @ref Qore::PO_NO_PROCESS_CONTROL
     */
     static *hash<DataProviderAppInfo> deregisterDynamicApp(string name) {
         if (Program::getCallerCapabilityMask() & PO_NO_PROCESS_CONTROL) {
@@ -1495,23 +2377,36 @@ public class DataProviderActionCatalog {
             lck.unlock();
         }
 
+        *hash<DataProviderAppInfo> app = appcache{name};
+        if (app && !app.dynamic) {
+            throw "PERMISSION-DENIED", sprintf(
+                "Cannot remove non-dynamic app %y", name);
+        }
+        bool had_unmaterialized_state = exists initmap{name}
+            || exists initialization_failure_map{name}
+            || exists app_actionmap{name} || exists initactionmap{name}
+            || exists expected_initialization_map{name}
+            || exists resolve_output_types{name} || exists appmodmap{name}
+            || exists actionmodmap{name}
+            || exists pending_generic_api_call_apps{name};
         remove initmap{name};
         remove initialization_failure_map{name};
+        remove expected_initialization_map{name};
         # remove the app's actions from both maps together; removing app_actionmap{name} on its
         # own here (and leaving the top_actionmap cleanup to deregisterAppIntern below) left the
         # top_actionmap entries - and their option/data-type graphs - leaked in the static map
         *hash<string, hash<DataProviderActionInfo>> dactions = remove app_actionmap{name};
         map remove top_actionmap{name + "/" + $1.action}, dactions.values();
         remove initactionmap{name};
-        if (exists (*string path = DataProviderActionCatalog::registrationModulePath())) {
-            remove appmodmap{name}{path};
-        }
-        *hash<DataProviderAppInfo> app = appcache{name};
+        remove resolve_output_types{name};
+        remove appmodmap{name};
+        remove actionmodmap{name};
+        remove pending_generic_api_call_apps{name};
         if (!app) {
+            if (had_unmaterialized_state) {
+                ++catalog_revision;
+            }
             return;
-        }
-        if (!app.dynamic) {
-            throw "PERMISSION-DENIED", sprintf("Cannot remove non-dynamic app %y", name);
         }
         deregisterAppIntern(name);
         return app;
@@ -1690,9 +2585,14 @@ public class DataProviderActionCatalog {
             # ignore duplicates to cover injection scenarios
             if (!DataProviderActionCatalog::compareActions(action, act)) {
                 if (module_path) {
+                    bool new_owner = !actionmodmap{action.app}{action.action}{module_path};
                     actionmodmap{action.app}{action.action}{module_path} = True;
+                    if (new_owner) {
+                        ++catalog_revision;
+                    }
                 }
-                DataProviderActionCatalog::clearInitializationFailure(action.app, action.action);
+                DataProviderActionCatalog::clearSuccessfulInitializationState(
+                    action.app, action.action);
                 return;
             }
             list<string> diff = ();
@@ -1707,6 +2607,7 @@ public class DataProviderActionCatalog {
         # add to caches
         top_actionmap{key} = action;
         app_actionmap{action.app}{action.action} = action;
+        ++catalog_revision;
         if (module_path) {
             actionmodmap{action.app}{action.action}{module_path} = True;
         }
@@ -1720,7 +2621,8 @@ public class DataProviderActionCatalog {
         if (has_get_output_type) {
             resolve_output_types{action.app}{action.action} = True;
         }
-        DataProviderActionCatalog::clearInitializationFailure(action.app, action.action);
+        DataProviderActionCatalog::clearSuccessfulInitializationState(
+            action.app, action.action);
     }
 
     #! Checks for a valid name
@@ -2841,6 +3743,7 @@ public class DataProviderActionCatalog {
                 remove app_action.get_output_type;
                 top_actionmap{key} = top_action;
                 app_actionmap{item.app}{item.action} = app_action;
+                ++catalog_revision;
                 if (*string scheme = appcache{item.app}.scheme) {
                     *list<hash<DataProviderActionInfo>> actions = smap{scheme};
                     if (actions) {
@@ -2867,6 +3770,13 @@ public class DataProviderActionCatalog {
 
     #! Deregisters an app and all its actions if an exception occurs during the other module's initialization
     private:internal static *bool deregisterAppIntern(string name) {
+        bool had_state = exists appcache{name} || exists app_actionmap{name}
+            || exists initactionmap{name}
+            || exists initialization_failure_map{name}
+            || exists expected_initialization_map{name}
+            || exists resolve_output_types{name} || exists appmodmap{name}
+            || exists actionmodmap{name}
+            || exists pending_generic_api_call_apps{name};
         *hash<DataProviderAppInfo> app = remove appcache{name};
         # capture the app's actions BEFORE dropping the map entry; the top_actionmap cleanup must
         # iterate the captured actions. Previously app_actionmap{name} was removed first and then
@@ -2876,11 +3786,16 @@ public class DataProviderActionCatalog {
         *hash<string, hash<DataProviderActionInfo>> actions = remove app_actionmap{name};
         remove initactionmap{name};
         remove initialization_failure_map{name};
+        remove expected_initialization_map{name};
         remove resolve_output_types{name};
         remove appmodmap{name};
         remove actionmodmap{name};
+        remove pending_generic_api_call_apps{name};
         if (actions) {
             map remove top_actionmap{name + "/" + $1.action}, actions.values();
+        }
+        if (had_state) {
+            ++catalog_revision;
         }
         if (!app) {
             return;
@@ -2955,8 +3870,9 @@ public class DataProviderActionCatalog {
             = owners;
     }
 
-    #! Clears a retained initialization failure after the same identity is registered successfully
-    private static clearInitializationFailure(string app, *string action) {
+    #! Clears retained failure and pending-declaration state after the same identity succeeds
+    private static clearSuccessfulInitializationState(string app,
+            *string action) {
         bool needs_lock = !lck.lockOwner();
         if (needs_lock) {
             lck.lock();
@@ -2964,10 +3880,26 @@ public class DataProviderActionCatalog {
         on_exit if (needs_lock) {
             lck.unlock();
         }
-        remove initialization_failure_map{app}{action ?? ""};
-        if (!initialization_failure_map{app}) {
-            remove initialization_failure_map{app};
+        string failure_key = action ?? "";
+        bool changed;
+        if (exists expected_initialization_map{app}{failure_key}) {
+            remove expected_initialization_map{app}{failure_key};
+            if (!expected_initialization_map{app}) {
+                remove expected_initialization_map{app};
+            }
+            changed = True;
         }
+        if (exists initialization_failure_map{app}{failure_key}) {
+            remove initialization_failure_map{app}{failure_key};
+            if (!initialization_failure_map{app}) {
+                remove initialization_failure_map{app};
+            }
+            changed = True;
+        }
+        if (!changed) {
+            return;
+        }
+        ++catalog_revision;
     }
 
     #! Runs initialization and catches exceptions

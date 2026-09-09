@@ -3,105 +3,29 @@
   "locales": {
     "ja": {
       "messages": {
-        "app.U01UUA.action.c2VuZC1lbWFpbA.desc": {
-          "source": "Send an email through a generic SMTP server",
-          "message": "汎用 SMTP サーバー経由でメールを送信します"
+        "app.U01UUA.display_name": {
+          "source": "SMTP Server",
+          "message": "SMTP サーバー"
+        },
+        "app.U01UUA.short_desc": {
+          "source": "Generic SMTP server for sending emails",
+          "message": "メール送信用の汎用 SMTP サーバー"
+        },
+        "app.U01UUA.desc": {
+          "source": "Generic SMTP server for sending emails",
+          "message": "メール送信用の汎用 SMTP サーバー"
         },
         "app.U01UUA.action.c2VuZC1lbWFpbA.display_name": {
           "source": "Send an Email With SMTP",
           "message": "SMTP でメールを送信"
         },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Y2M.desc": {
-          "source": "One or more `Cc:` addresses for the email",
-          "message": "メールの1つ以上の `Cc:` アドレス"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.short_desc": {
+          "source": "Send an email through a generic SMTP server",
+          "message": "汎用 SMTP サーバー経由でメールを送信します"
         },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Y2M.display_name": {
-          "source": "CC",
-          "message": "CC"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Y2M.short_desc": {
-          "source": "Carbon copy addresses",
-          "message": "CCアドレス"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.desc": {
-          "source": "Any attachments for the message",
-          "message": "メッセージの添付ファイル"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.display_name": {
-          "source": "Attachments",
-          "message": "添付ファイル"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.short_desc": {
-          "source": "Message attachments",
-          "message": "メッセージの添付ファイル"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keQ.desc": {
-          "source": "The message body",
-          "message": "メッセージ本文"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keQ.display_name": {
-          "source": "Message Body",
-          "message": "メッセージボディ"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keQ.short_desc": {
-          "source": "The message body",
-          "message": "メッセージ本文"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOm5vbmU.desc": {
-          "source": "No content encoding (not recommended)",
-          "message": "コンテンツエンコーディングなし（非推奨）"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOmJhc2U2NA.desc": {
-          "source": "Base64 encoding",
-          "message": "Base64 エンコーディング"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOmRlZmF1bHQ.desc": {
-          "source": "`quoted-printable` for string data, `base64` for binary data",
-          "message": "文字列データには `quoted-printable`、バイナリデータには `base64`"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOnF1b3RlZC1wcmludGFibGU.desc": {
-          "source": "Quoted printable encoding",
-          "message": "Quoted-printable エンコーディング"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.desc": {
-          "source": "The encoding to use for the message body",
-          "message": "メッセージ本文に使用するエンコーディング"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.display_name": {
-          "source": "Body Encoding",
-          "message": "本文のエンコーディング"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.short_desc": {
-          "source": "The encoding to use for the body",
-          "message": "本文に使用するエンコーディング"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1taW1lLXR5cGU.desc": {
-          "source": "The MIME type of the message body",
-          "message": "メッセージ本文のMIMEタイプ"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1taW1lLXR5cGU.display_name": {
-          "source": "Body Mime Type",
-          "message": "本文のMIMEタイプ"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1taW1lLXR5cGU.short_desc": {
-          "source": "The MIME type of the message body",
-          "message": "メッセージ本文のMIMEタイプ"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YmNj.desc": {
-          "source": "One or more `Bcc:` addresses for the email",
-          "message": "メール用の1つ以上の `Bcc:` アドレス"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YmNj.display_name": {
-          "source": "BCC",
-          "message": "BCC"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YmNj.short_desc": {
-          "source": "Blind carbon copy addresses",
-          "message": "BCCアドレス"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c2VuZGVy.desc": {
-          "source": "The sender's address for the email",
-          "message": "メールの送信者アドレス"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.desc": {
+          "source": "Send an email through a generic SMTP server",
+          "message": "汎用 SMTP サーバー経由でメールを送信します"
         },
         "app.U01UUA.action.c2VuZC1lbWFpbA.option.c2VuZGVy.display_name": {
           "source": "Sender",
@@ -111,21 +35,9 @@
           "source": "The sender's address for the email",
           "message": "メールの送信者アドレス"
         },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c3ViamVjdA.desc": {
-          "source": "The subject for the email",
-          "message": "メールの件名"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c3ViamVjdA.display_name": {
-          "source": "Subject",
-          "message": "サブジェクト"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c3ViamVjdA.short_desc": {
-          "source": "The subject for the email",
-          "message": "メールの件名"
-        },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.option.dG8.desc": {
-          "source": "One or more `To:` addresses for the email",
-          "message": "メール用の1つ以上の `To:` アドレス"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c2VuZGVy.desc": {
+          "source": "The sender's address for the email",
+          "message": "メールの送信者アドレス"
         },
         "app.U01UUA.action.c2VuZC1lbWFpbA.option.dG8.display_name": {
           "source": "To",
@@ -135,21 +47,197 @@
           "source": "Message recipient addresses",
           "message": "メッセージの受信者アドレス"
         },
-        "app.U01UUA.action.c2VuZC1lbWFpbA.short_desc": {
-          "source": "Send an email through a generic SMTP server",
-          "message": "汎用 SMTP サーバー経由でメールを送信します"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.dG8.desc": {
+          "source": "One or more `To:` addresses for the email",
+          "message": "メール用の1つ以上の `To:` アドレス"
         },
-        "app.U01UUA.desc": {
-          "source": "Generic SMTP server for sending emails",
-          "message": "メール送信用の汎用 SMTP サーバー"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c3ViamVjdA.display_name": {
+          "source": "Subject",
+          "message": "サブジェクト"
         },
-        "app.U01UUA.display_name": {
-          "source": "SMTP Server",
-          "message": "SMTP サーバー"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c3ViamVjdA.short_desc": {
+          "source": "The subject for the email",
+          "message": "メールの件名"
         },
-        "app.U01UUA.short_desc": {
-          "source": "Generic SMTP server for sending emails",
-          "message": "メール送信用の汎用 SMTP サーバー"
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.c3ViamVjdA.desc": {
+          "source": "The subject for the email",
+          "message": "メールの件名"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keQ.display_name": {
+          "source": "Message Body",
+          "message": "メッセージボディ"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keQ.short_desc": {
+          "source": "The message body",
+          "message": "メッセージ本文"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keQ.desc": {
+          "source": "The message body",
+          "message": "メッセージ本文"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.display_name": {
+          "source": "Attachments",
+          "message": "添付ファイル"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.short_desc": {
+          "source": "Message attachments",
+          "message": "メッセージの添付ファイル"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.desc": {
+          "source": "Any attachments for the message",
+          "message": "メッセージの添付ファイル"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.Y29udGVudC1pZA.display_name": {
+          "source": "Content-ID",
+          "message": "Content-ID"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.Y29udGVudC1pZA.short_desc": {
+          "source": "Content-ID for inline attachments",
+          "message": "インライン添付ファイル用のContent-ID"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.Y29udGVudC1pZA.desc": {
+          "source": "Content-ID for inline attachments (without angle brackets). Use this for images embedded in HTML emails that are referenced as `cid:content-id` in the HTML body. When set, the attachment will be marked as inline rather than a regular attachment.",
+          "message": "インライン添付ファイル用のContent-ID（角括弧なし）。HTMLメール内に`cid:content-id`として参照される画像に使用します。設定すると、添付ファイルは通常の添付ファイルではなくインライン添付としてマークされます。"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZGF0YQ.display_name": {
+          "source": "Attachment Data",
+          "message": "添付データ"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZGF0YQ.short_desc": {
+          "source": "The data for the attachment",
+          "message": "添付ファイルのデータ"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZGF0YQ.desc": {
+          "source": "The data for the attachment",
+          "message": "添付ファイルのデータ"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.display_name": {
+          "source": "Attachment Encoding",
+          "message": "添付エンコーディング"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.short_desc": {
+          "source": "The encoding to use for the attachment",
+          "message": "添付ファイルに使用するエンコーディング"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.desc": {
+          "source": "The encoding to use for the attachment",
+          "message": "添付ファイルに使用するエンコーディング"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOmRlZmF1bHQ.desc": {
+          "source": "`quoted-printable` for string data, `base64` for binary data",
+          "message": "文字列データには `quoted-printable`、バイナリデータには `base64`"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOm5vbmU.desc": {
+          "source": "No content encoding (not recommended)",
+          "message": "コンテンツエンコーディングなし（非推奨）"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOnF1b3RlZC1wcmludGFibGU.desc": {
+          "source": "Quoted printable encoding",
+          "message": "Quoted-printable エンコーディング"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOmJhc2U2NA.desc": {
+          "source": "Base64 encoding",
+          "message": "Base64 エンコーディング"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.aGRy.display_name": {
+          "source": "Headers",
+          "message": "ヘッダー"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.aGRy.short_desc": {
+          "source": "Optional headers to send with the attachment",
+          "message": "添付ファイルに送信するオプションのヘッダー"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.aGRy.desc": {
+          "source": "Optional headers to send with the attachment",
+          "message": "添付ファイルに送信するオプションのヘッダー"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bWltZS10eXBl.display_name": {
+          "source": "Mime Type",
+          "message": "MIME タイプ"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bWltZS10eXBl.short_desc": {
+          "source": "The MIME type of the attachment",
+          "message": "添付ファイルのMIMEタイプ"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bWltZS10eXBl.desc": {
+          "source": "The MIME type of the attachment",
+          "message": "添付ファイルのMIMEタイプ"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "名前"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bmFtZQ.short_desc": {
+          "source": "The name or filename of the attachment",
+          "message": "添付ファイルの名前またはファイル名"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YXR0YWNobWVudHM.field.bmFtZQ.desc": {
+          "source": "The name or filename of the attachment",
+          "message": "添付ファイルの名前またはファイル名"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YmNj.display_name": {
+          "source": "BCC",
+          "message": "BCC"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YmNj.short_desc": {
+          "source": "Blind carbon copy addresses",
+          "message": "BCCアドレス"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.YmNj.desc": {
+          "source": "One or more `Bcc:` addresses for the email",
+          "message": "メール用の1つ以上の `Bcc:` アドレス"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.display_name": {
+          "source": "Body Encoding",
+          "message": "本文のエンコーディング"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.short_desc": {
+          "source": "The encoding to use for the body",
+          "message": "本文に使用するエンコーディング"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.desc": {
+          "source": "The encoding to use for the message body",
+          "message": "メッセージ本文に使用するエンコーディング"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOmRlZmF1bHQ.desc": {
+          "source": "`quoted-printable` for string data, `base64` for binary data",
+          "message": "文字列データには `quoted-printable`、バイナリデータには `base64`"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOm5vbmU.desc": {
+          "source": "No content encoding (not recommended)",
+          "message": "コンテンツエンコーディングなし（非推奨）"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOnF1b3RlZC1wcmludGFibGU.desc": {
+          "source": "Quoted printable encoding",
+          "message": "Quoted-printable エンコーディング"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1lbmNvZGluZw.allowed-value.c3RyaW5nOmJhc2U2NA.desc": {
+          "source": "Base64 encoding",
+          "message": "Base64 エンコーディング"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1taW1lLXR5cGU.display_name": {
+          "source": "Body Mime Type",
+          "message": "本文のMIMEタイプ"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1taW1lLXR5cGU.short_desc": {
+          "source": "The MIME type of the message body",
+          "message": "メッセージ本文のMIMEタイプ"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Ym9keS1taW1lLXR5cGU.desc": {
+          "source": "The MIME type of the message body",
+          "message": "メッセージ本文のMIMEタイプ"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Y2M.display_name": {
+          "source": "CC",
+          "message": "CC"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Y2M.short_desc": {
+          "source": "Carbon copy addresses",
+          "message": "CCアドレス"
+        },
+        "app.U01UUA.action.c2VuZC1lbWFpbA.option.Y2M.desc": {
+          "source": "One or more `Cc:` addresses for the email",
+          "message": "メールの1つ以上の `Cc:` アドレス"
         }
       }
     }

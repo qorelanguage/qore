@@ -1443,6 +1443,42 @@
           "source": "A list of messages comprising the conversation so far",
           "message": "A list of messages comprising the conversation so far"
         },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.bWVzc2FnZXM.field.Y29udGVudA.display_name": {
+          "source": "Content",
+          "message": "Content"
+        },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.bWVzc2FnZXM.field.Y29udGVudA.short_desc": {
+          "source": "Message content",
+          "message": "Message content"
+        },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.bWVzc2FnZXM.field.Y29udGVudA.desc": {
+          "source": "The content of the message",
+          "message": "The content of the message"
+        },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.bWVzc2FnZXM.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.bWVzc2FnZXM.field.cm9sZQ.short_desc": {
+          "source": "Message role",
+          "message": "Message role"
+        },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.bWVzc2FnZXM.field.cm9sZQ.desc": {
+          "source": "The role of the message sender",
+          "message": "The role of the message sender"
+        },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnN5c3RlbQ.display_name": {
+          "source": "System",
+          "message": "System"
+        },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "User"
+        },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOmFzc2lzdGFudA.display_name": {
+          "source": "Assistant",
+          "message": "Assistant"
+        },
         "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.bWF4X3Rva2Vucw.display_name": {
           "source": "Max Tokens",
           "message": "Max Tokens"
@@ -1502,6 +1538,26 @@
         "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.cmVzcG9uc2VfZm9ybWF0.desc": {
           "source": "Specifies the output format. Use `json_object` to force the model to output valid JSON. The model must be instructed via the prompt to produce JSON output",
           "message": "Specifies the output format. Use `json_object` to force the model to output valid JSON. The model must be instructed via the prompt to produce JSON output"
+        },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.display_name": {
+          "source": "Type",
+          "message": "Type"
+        },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.short_desc": {
+          "source": "Response format type",
+          "message": "Response format type"
+        },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.desc": {
+          "source": "The type of response format to use. Required when `response_format` is provided",
+          "message": "The type of response format to use. Required when `response_format` is provided"
+        },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Text",
+          "message": "Text"
+        },
+        "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.cmVzcG9uc2VfZm9ybWF0.field.dHlwZQ.allowed-value.c3RyaW5nOmpzb25fb2JqZWN0.display_name": {
+          "source": "JSON Object",
+          "message": "JSON Object"
         },
         "app.SHVnZ2luZ0ZhY2U.action.Y2hhdC1jb21wbGV0aW9ucw.option.dG9wX3A.display_name": {
           "source": "Top P",

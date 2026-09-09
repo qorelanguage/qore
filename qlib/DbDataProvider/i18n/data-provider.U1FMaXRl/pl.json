@@ -3,10 +3,6 @@
   "locales": {
     "pl": {
       "messages": {
-        "app.U1FMaXRl.desc": {
-          "source": "Create and manage connections to a SQLite embedded database",
-          "message": "Twórz połączenia i zarządzaj nimi z osadzoną bazą danych SQLite"
-        },
         "app.U1FMaXRl.display_name": {
           "source": "SQLite",
           "message": "SQLite"
@@ -14,6 +10,10 @@
         "app.U1FMaXRl.short_desc": {
           "source": "SQLite embedded database",
           "message": "Osadzona baza danych SQLite"
+        },
+        "app.U1FMaXRl.desc": {
+          "source": "Create and manage connections to a SQLite embedded database",
+          "message": "Twórz połączenia i zarządzaj nimi z osadzoną bazą danych SQLite"
         }
       }
     }

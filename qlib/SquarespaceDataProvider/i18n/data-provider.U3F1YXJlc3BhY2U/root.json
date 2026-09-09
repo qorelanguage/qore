@@ -419,6 +419,30 @@
           "source": "Order grand total with `currency` and `value`",
           "message": "Order grand total with `currency` and `value`"
         },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.Z3JhbmRUb3RhbA.field.Y3VycmVuY3k.display_name": {
+          "source": "Currency",
+          "message": "Currency"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.Z3JhbmRUb3RhbA.field.Y3VycmVuY3k.short_desc": {
+          "source": "ISO currency code",
+          "message": "ISO currency code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.Z3JhbmRUb3RhbA.field.Y3VycmVuY3k.desc": {
+          "source": "The ISO 4217 currency code (e.g., USD, EUR)",
+          "message": "The ISO 4217 currency code (e.g., USD, EUR)"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.Z3JhbmRUb3RhbA.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.Z3JhbmRUb3RhbA.field.dmFsdWU.short_desc": {
+          "source": "Monetary amount",
+          "message": "Monetary amount"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.Z3JhbmRUb3RhbA.field.dmFsdWU.desc": {
+          "source": "The monetary amount as a string (e.g., \"9.99\")",
+          "message": "The monetary amount as a string (e.g., \"9.99\")"
+        },
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.bGluZUl0ZW1z.display_name": {
           "source": "Line Items",
           "message": "Line Items"
@@ -430,6 +454,66 @@
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.bGluZUl0ZW1z.desc": {
           "source": "The list of line items for the order",
           "message": "The list of line items for the order"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.bGluZUl0ZW1z.field.bGluZUl0ZW1UeXBl.display_name": {
+          "source": "Line Item Type",
+          "message": "Line Item Type"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.bGluZUl0ZW1z.field.bGluZUl0ZW1UeXBl.short_desc": {
+          "source": "The type of line item",
+          "message": "The type of line item"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.bGluZUl0ZW1z.field.bGluZUl0ZW1UeXBl.desc": {
+          "source": "The type of line item (e.g., `PHYSICAL`, `DIGITAL`, `SERVICE`, `GIFT_CARD`)",
+          "message": "The type of line item (e.g., `PHYSICAL`, `DIGITAL`, `SERVICE`, `GIFT_CARD`)"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.bGluZUl0ZW1z.field.cXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.bGluZUl0ZW1z.field.cXVhbnRpdHk.short_desc": {
+          "source": "The quantity ordered",
+          "message": "The quantity ordered"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.bGluZUl0ZW1z.field.cXVhbnRpdHk.desc": {
+          "source": "The quantity of this line item",
+          "message": "The quantity of this line item"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.bGluZUl0ZW1z.field.dW5pdFByaWNlUGFpZA.display_name": {
+          "source": "Unit Price Paid",
+          "message": "Unit Price Paid"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.bGluZUl0ZW1z.field.dW5pdFByaWNlUGFpZA.short_desc": {
+          "source": "The unit price paid",
+          "message": "The unit price paid"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.bGluZUl0ZW1z.field.dW5pdFByaWNlUGFpZA.desc": {
+          "source": "The unit price paid for this line item",
+          "message": "The unit price paid for this line item"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFc5eVpHVnk6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmJHbHVaVWwwWlcxejpmaWVsZDpkVzVwZEZCeWFXTmxVR0ZwWkE.field.Y3VycmVuY3k.display_name": {
+          "source": "Currency",
+          "message": "Currency"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFc5eVpHVnk6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmJHbHVaVWwwWlcxejpmaWVsZDpkVzVwZEZCeWFXTmxVR0ZwWkE.field.Y3VycmVuY3k.short_desc": {
+          "source": "ISO currency code",
+          "message": "ISO currency code"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFc5eVpHVnk6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmJHbHVaVWwwWlcxejpmaWVsZDpkVzVwZEZCeWFXTmxVR0ZwWkE.field.Y3VycmVuY3k.desc": {
+          "source": "The ISO 4217 currency code (e.g., USD, EUR)",
+          "message": "The ISO 4217 currency code (e.g., USD, EUR)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFc5eVpHVnk6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmJHbHVaVWwwWlcxejpmaWVsZDpkVzVwZEZCeWFXTmxVR0ZwWkE.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFc5eVpHVnk6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmJHbHVaVWwwWlcxejpmaWVsZDpkVzVwZEZCeWFXTmxVR0ZwWkE.field.dmFsdWU.short_desc": {
+          "source": "Monetary amount",
+          "message": "Monetary amount"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFc5eVpHVnk6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmJHbHVaVWwwWlcxejpmaWVsZDpkVzVwZEZCeWFXTmxVR0ZwWkE.field.dmFsdWU.desc": {
+          "source": "The monetary amount as a string (e.g., \"9.99\")",
+          "message": "The monetary amount as a string (e.g., \"9.99\")"
         },
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.Y3VzdG9tZXJFbWFpbA.display_name": {
           "source": "Customer Email",
@@ -455,6 +539,114 @@
           "source": "Billing address for the order",
           "message": "Billing address for the order"
         },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.YWRkcmVzczE.display_name": {
+          "source": "Address Line 1",
+          "message": "Address Line 1"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.YWRkcmVzczE.short_desc": {
+          "source": "Street address line 1",
+          "message": "Street address line 1"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.YWRkcmVzczE.desc": {
+          "source": "The first line of the street address",
+          "message": "The first line of the street address"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.YWRkcmVzczI.display_name": {
+          "source": "Address Line 2",
+          "message": "Address Line 2"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.YWRkcmVzczI.short_desc": {
+          "source": "Street address line 2",
+          "message": "Street address line 2"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.YWRkcmVzczI.desc": {
+          "source": "The second line of the street address",
+          "message": "The second line of the street address"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.Y2l0eQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.Y2l0eQ.short_desc": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.Y2l0eQ.desc": {
+          "source": "The city",
+          "message": "The city"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.Y291bnRyeUNvZGU.display_name": {
+          "source": "Country Code",
+          "message": "Country Code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.Y291bnRyeUNvZGU.short_desc": {
+          "source": "ISO country code",
+          "message": "ISO country code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.Y291bnRyeUNvZGU.desc": {
+          "source": "The ISO country code",
+          "message": "The ISO country code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.Zmlyc3ROYW1l.display_name": {
+          "source": "First Name",
+          "message": "First Name"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.Zmlyc3ROYW1l.short_desc": {
+          "source": "First name",
+          "message": "First name"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.Zmlyc3ROYW1l.desc": {
+          "source": "The first name of the recipient",
+          "message": "The first name of the recipient"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.bGFzdE5hbWU.display_name": {
+          "source": "Last Name",
+          "message": "Last Name"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.bGFzdE5hbWU.short_desc": {
+          "source": "Last name",
+          "message": "Last name"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.bGFzdE5hbWU.desc": {
+          "source": "The last name of the recipient",
+          "message": "The last name of the recipient"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.cGhvbmU.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.cGhvbmU.short_desc": {
+          "source": "Phone number",
+          "message": "Phone number"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.cGhvbmU.desc": {
+          "source": "The phone number",
+          "message": "The phone number"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.cG9zdGFsQ29kZQ.display_name": {
+          "source": "Postal Code",
+          "message": "Postal Code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.cG9zdGFsQ29kZQ.short_desc": {
+          "source": "Postal or ZIP code",
+          "message": "Postal or ZIP code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.cG9zdGFsQ29kZQ.desc": {
+          "source": "The postal or ZIP code",
+          "message": "The postal or ZIP code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.c3RhdGU.display_name": {
+          "source": "State",
+          "message": "State"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.c3RhdGU.short_desc": {
+          "source": "State or province",
+          "message": "State or province"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.YmlsbGluZ0FkZHJlc3M.field.c3RhdGU.desc": {
+          "source": "The state or province",
+          "message": "The state or province"
+        },
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.display_name": {
           "source": "Shipping Address",
           "message": "Shipping Address"
@@ -466,6 +658,114 @@
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.desc": {
           "source": "Shipping address for the order",
           "message": "Shipping address for the order"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.YWRkcmVzczE.display_name": {
+          "source": "Address Line 1",
+          "message": "Address Line 1"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.YWRkcmVzczE.short_desc": {
+          "source": "Street address line 1",
+          "message": "Street address line 1"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.YWRkcmVzczE.desc": {
+          "source": "The first line of the street address",
+          "message": "The first line of the street address"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.YWRkcmVzczI.display_name": {
+          "source": "Address Line 2",
+          "message": "Address Line 2"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.YWRkcmVzczI.short_desc": {
+          "source": "Street address line 2",
+          "message": "Street address line 2"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.YWRkcmVzczI.desc": {
+          "source": "The second line of the street address",
+          "message": "The second line of the street address"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.Y2l0eQ.display_name": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.Y2l0eQ.short_desc": {
+          "source": "City",
+          "message": "City"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.Y2l0eQ.desc": {
+          "source": "The city",
+          "message": "The city"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.Y291bnRyeUNvZGU.display_name": {
+          "source": "Country Code",
+          "message": "Country Code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.Y291bnRyeUNvZGU.short_desc": {
+          "source": "ISO country code",
+          "message": "ISO country code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.Y291bnRyeUNvZGU.desc": {
+          "source": "The ISO country code",
+          "message": "The ISO country code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.Zmlyc3ROYW1l.display_name": {
+          "source": "First Name",
+          "message": "First Name"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.Zmlyc3ROYW1l.short_desc": {
+          "source": "First name",
+          "message": "First name"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.Zmlyc3ROYW1l.desc": {
+          "source": "The first name of the recipient",
+          "message": "The first name of the recipient"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.bGFzdE5hbWU.display_name": {
+          "source": "Last Name",
+          "message": "Last Name"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.bGFzdE5hbWU.short_desc": {
+          "source": "Last name",
+          "message": "Last name"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.bGFzdE5hbWU.desc": {
+          "source": "The last name of the recipient",
+          "message": "The last name of the recipient"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.cGhvbmU.display_name": {
+          "source": "Phone",
+          "message": "Phone"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.cGhvbmU.short_desc": {
+          "source": "Phone number",
+          "message": "Phone number"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.cGhvbmU.desc": {
+          "source": "The phone number",
+          "message": "The phone number"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.cG9zdGFsQ29kZQ.display_name": {
+          "source": "Postal Code",
+          "message": "Postal Code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.cG9zdGFsQ29kZQ.short_desc": {
+          "source": "Postal or ZIP code",
+          "message": "Postal or ZIP code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.cG9zdGFsQ29kZQ.desc": {
+          "source": "The postal or ZIP code",
+          "message": "The postal or ZIP code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.c3RhdGU.display_name": {
+          "source": "State",
+          "message": "State"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.c3RhdGU.short_desc": {
+          "source": "State or province",
+          "message": "State or province"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdBZGRyZXNz.field.c3RhdGU.desc": {
+          "source": "The state or province",
+          "message": "The state or province"
         },
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.ZnVsZmlsbG1lbnRTdGF0dXM.display_name": {
           "source": "Fulfillment Status",
@@ -519,6 +819,30 @@
           "source": "Order subtotal with `currency` and `value`",
           "message": "Order subtotal with `currency` and `value`"
         },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c3VidG90YWw.field.Y3VycmVuY3k.display_name": {
+          "source": "Currency",
+          "message": "Currency"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c3VidG90YWw.field.Y3VycmVuY3k.short_desc": {
+          "source": "ISO currency code",
+          "message": "ISO currency code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c3VidG90YWw.field.Y3VycmVuY3k.desc": {
+          "source": "The ISO 4217 currency code (e.g., USD, EUR)",
+          "message": "The ISO 4217 currency code (e.g., USD, EUR)"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c3VidG90YWw.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c3VidG90YWw.field.dmFsdWU.short_desc": {
+          "source": "Monetary amount",
+          "message": "Monetary amount"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c3VidG90YWw.field.dmFsdWU.desc": {
+          "source": "The monetary amount as a string (e.g., \"9.99\")",
+          "message": "The monetary amount as a string (e.g., \"9.99\")"
+        },
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdUb3RhbA.display_name": {
           "source": "Shipping Total",
           "message": "Shipping Total"
@@ -530,6 +854,30 @@
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdUb3RhbA.desc": {
           "source": "Shipping total with `currency` and `value`",
           "message": "Shipping total with `currency` and `value`"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdUb3RhbA.field.Y3VycmVuY3k.display_name": {
+          "source": "Currency",
+          "message": "Currency"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdUb3RhbA.field.Y3VycmVuY3k.short_desc": {
+          "source": "ISO currency code",
+          "message": "ISO currency code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdUb3RhbA.field.Y3VycmVuY3k.desc": {
+          "source": "The ISO 4217 currency code (e.g., USD, EUR)",
+          "message": "The ISO 4217 currency code (e.g., USD, EUR)"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdUb3RhbA.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdUb3RhbA.field.dmFsdWU.short_desc": {
+          "source": "Monetary amount",
+          "message": "Monetary amount"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.c2hpcHBpbmdUb3RhbA.field.dmFsdWU.desc": {
+          "source": "The monetary amount as a string (e.g., \"9.99\")",
+          "message": "The monetary amount as a string (e.g., \"9.99\")"
         },
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.ZGlzY291bnRUb3RhbA.display_name": {
           "source": "Discount Total",
@@ -543,6 +891,30 @@
           "source": "Discount total with `currency` and `value`",
           "message": "Discount total with `currency` and `value`"
         },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.ZGlzY291bnRUb3RhbA.field.Y3VycmVuY3k.display_name": {
+          "source": "Currency",
+          "message": "Currency"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.ZGlzY291bnRUb3RhbA.field.Y3VycmVuY3k.short_desc": {
+          "source": "ISO currency code",
+          "message": "ISO currency code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.ZGlzY291bnRUb3RhbA.field.Y3VycmVuY3k.desc": {
+          "source": "The ISO 4217 currency code (e.g., USD, EUR)",
+          "message": "The ISO 4217 currency code (e.g., USD, EUR)"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.ZGlzY291bnRUb3RhbA.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.ZGlzY291bnRUb3RhbA.field.dmFsdWU.short_desc": {
+          "source": "Monetary amount",
+          "message": "Monetary amount"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.ZGlzY291bnRUb3RhbA.field.dmFsdWU.desc": {
+          "source": "The monetary amount as a string (e.g., \"9.99\")",
+          "message": "The monetary amount as a string (e.g., \"9.99\")"
+        },
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.dGF4VG90YWw.display_name": {
           "source": "Tax Total",
           "message": "Tax Total"
@@ -554,6 +926,30 @@
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.dGF4VG90YWw.desc": {
           "source": "Tax total with `currency` and `value`",
           "message": "Tax total with `currency` and `value`"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.dGF4VG90YWw.field.Y3VycmVuY3k.display_name": {
+          "source": "Currency",
+          "message": "Currency"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.dGF4VG90YWw.field.Y3VycmVuY3k.short_desc": {
+          "source": "ISO currency code",
+          "message": "ISO currency code"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.dGF4VG90YWw.field.Y3VycmVuY3k.desc": {
+          "source": "The ISO 4217 currency code (e.g., USD, EUR)",
+          "message": "The ISO 4217 currency code (e.g., USD, EUR)"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.dGF4VG90YWw.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.dGF4VG90YWw.field.dmFsdWU.short_desc": {
+          "source": "Monetary amount",
+          "message": "Monetary amount"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLW9yZGVy.option.dGF4VG90YWw.field.dmFsdWU.desc": {
+          "source": "The monetary amount as a string (e.g., \"9.99\")",
+          "message": "The monetary amount as a string (e.g., \"9.99\")"
         },
         "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.display_name": {
           "source": "Fulfill an Order",
@@ -602,6 +998,66 @@
         "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.desc": {
           "source": "The list of shipment tracking details for the fulfillment",
           "message": "The list of shipment tracking details for the fulfillment"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.Y2Fycmllck5hbWU.display_name": {
+          "source": "Carrier Name",
+          "message": "Carrier Name"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.Y2Fycmllck5hbWU.short_desc": {
+          "source": "The shipping carrier name",
+          "message": "The shipping carrier name"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.Y2Fycmllck5hbWU.desc": {
+          "source": "The name of the shipping carrier",
+          "message": "The name of the shipping carrier"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.c2VydmljZQ.display_name": {
+          "source": "Service",
+          "message": "Service"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.c2VydmljZQ.short_desc": {
+          "source": "The shipping service",
+          "message": "The shipping service"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.c2VydmljZQ.desc": {
+          "source": "The shipping service used",
+          "message": "The shipping service used"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.c2hpcERhdGU.display_name": {
+          "source": "Ship Date",
+          "message": "Ship Date"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.c2hpcERhdGU.short_desc": {
+          "source": "The shipment date",
+          "message": "The shipment date"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.c2hpcERhdGU.desc": {
+          "source": "The date the shipment was sent",
+          "message": "The date the shipment was sent"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.dHJhY2tpbmdOdW1iZXI.display_name": {
+          "source": "Tracking Number",
+          "message": "Tracking Number"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.dHJhY2tpbmdOdW1iZXI.short_desc": {
+          "source": "The tracking number",
+          "message": "The tracking number"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.dHJhY2tpbmdOdW1iZXI.desc": {
+          "source": "The shipment tracking number",
+          "message": "The shipment tracking number"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.dHJhY2tpbmdVcmw.display_name": {
+          "source": "Tracking URL",
+          "message": "Tracking URL"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.dHJhY2tpbmdVcmw.short_desc": {
+          "source": "The tracking URL",
+          "message": "The tracking URL"
+        },
+        "app.U3F1YXJlc3BhY2U.action.ZnVsZmlsbC1vcmRlcg.option.c2hpcG1lbnRz.field.dHJhY2tpbmdVcmw.desc": {
+          "source": "The URL for tracking the shipment",
+          "message": "The URL for tracking the shipment"
         },
         "app.U3F1YXJlc3BhY2U.action.bGlzdC1vcmRlcnM.display_name": {
           "source": "List Orders",
@@ -839,6 +1295,286 @@
           "source": "List of product variants (1-100 items); fields depend on product type",
           "message": "List of product variants (1-100 items); fields depend on product type"
         },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.YXR0cmlidXRlcw.display_name": {
+          "source": "Attributes",
+          "message": "Attributes"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.YXR0cmlidXRlcw.short_desc": {
+          "source": "The variant attributes",
+          "message": "The variant attributes"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.YXR0cmlidXRlcw.desc": {
+          "source": "Key-value pairs matching the product's variantAttributes (e.g., {\"Size\": \"Large\", \"Color\": \"Red\"})",
+          "message": "Key-value pairs matching the product's variantAttributes (e.g., {\"Size\": \"Large\", \"Color\": \"Red\"})"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.cHJpY2luZw.display_name": {
+          "source": "Pricing",
+          "message": "Pricing"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.cHJpY2luZw.short_desc": {
+          "source": "The variant pricing",
+          "message": "The variant pricing"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.cHJpY2luZw.desc": {
+          "source": "The variant pricing (basePrice, onSale, salePrice)",
+          "message": "The variant pricing (basePrice, onSale, salePrice)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VGdWxsUHJpY2luZ0RhdGFUeXBlOkZ1bGxQcmljaW5nIzdkMjZmMzM0NjNlMzFiNjhkNTAyYzVmYzlkMjQwZWNiZDliZDZkODI2YjBiMzZjZTQ5ZDhiY2E2NzBkNDJhMDk6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc.field.YmFzZVByaWNl.display_name": {
+          "source": "Base Price",
+          "message": "Base Price"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VGdWxsUHJpY2luZ0RhdGFUeXBlOkZ1bGxQcmljaW5nIzdkMjZmMzM0NjNlMzFiNjhkNTAyYzVmYzlkMjQwZWNiZDliZDZkODI2YjBiMzZjZTQ5ZDhiY2E2NzBkNDJhMDk6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc.field.YmFzZVByaWNl.short_desc": {
+          "source": "The base price of the variant",
+          "message": "The base price of the variant"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VGdWxsUHJpY2luZ0RhdGFUeXBlOkZ1bGxQcmljaW5nIzdkMjZmMzM0NjNlMzFiNjhkNTAyYzVmYzlkMjQwZWNiZDliZDZkODI2YjBiMzZjZTQ5ZDhiY2E2NzBkNDJhMDk6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc.field.YmFzZVByaWNl.desc": {
+          "source": "The base price of the variant (currency + value)",
+          "message": "The base price of the variant (currency + value)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc6ZmllbGQ6WW1GelpWQnlhV05s.field.Y3VycmVuY3k.display_name": {
+          "source": "Currency",
+          "message": "Currency"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc6ZmllbGQ6WW1GelpWQnlhV05s.field.Y3VycmVuY3k.short_desc": {
+          "source": "ISO currency code",
+          "message": "ISO currency code"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc6ZmllbGQ6WW1GelpWQnlhV05s.field.Y3VycmVuY3k.desc": {
+          "source": "The ISO 4217 currency code (e.g., USD, EUR)",
+          "message": "The ISO 4217 currency code (e.g., USD, EUR)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc6ZmllbGQ6WW1GelpWQnlhV05s.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc6ZmllbGQ6WW1GelpWQnlhV05s.field.dmFsdWU.short_desc": {
+          "source": "Monetary amount",
+          "message": "Monetary amount"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc6ZmllbGQ6WW1GelpWQnlhV05s.field.dmFsdWU.desc": {
+          "source": "The monetary amount as a string (e.g., \"9.99\")",
+          "message": "The monetary amount as a string (e.g., \"9.99\")"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VGdWxsUHJpY2luZ0RhdGFUeXBlOkZ1bGxQcmljaW5nIzdkMjZmMzM0NjNlMzFiNjhkNTAyYzVmYzlkMjQwZWNiZDliZDZkODI2YjBiMzZjZTQ5ZDhiY2E2NzBkNDJhMDk6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc.field.b25TYWxl.display_name": {
+          "source": "On Sale",
+          "message": "On Sale"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VGdWxsUHJpY2luZ0RhdGFUeXBlOkZ1bGxQcmljaW5nIzdkMjZmMzM0NjNlMzFiNjhkNTAyYzVmYzlkMjQwZWNiZDliZDZkODI2YjBiMzZjZTQ5ZDhiY2E2NzBkNDJhMDk6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc.field.b25TYWxl.short_desc": {
+          "source": "Whether the variant is on sale",
+          "message": "Whether the variant is on sale"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VGdWxsUHJpY2luZ0RhdGFUeXBlOkZ1bGxQcmljaW5nIzdkMjZmMzM0NjNlMzFiNjhkNTAyYzVmYzlkMjQwZWNiZDliZDZkODI2YjBiMzZjZTQ5ZDhiY2E2NzBkNDJhMDk6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc.field.b25TYWxl.desc": {
+          "source": "Whether the variant is on sale; if `true`, `salePrice` is required",
+          "message": "Whether the variant is on sale; if `true`, `salePrice` is required"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VGdWxsUHJpY2luZ0RhdGFUeXBlOkZ1bGxQcmljaW5nIzdkMjZmMzM0NjNlMzFiNjhkNTAyYzVmYzlkMjQwZWNiZDliZDZkODI2YjBiMzZjZTQ5ZDhiY2E2NzBkNDJhMDk6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc.field.c2FsZVByaWNl.display_name": {
+          "source": "Sale Price",
+          "message": "Sale Price"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VGdWxsUHJpY2luZ0RhdGFUeXBlOkZ1bGxQcmljaW5nIzdkMjZmMzM0NjNlMzFiNjhkNTAyYzVmYzlkMjQwZWNiZDliZDZkODI2YjBiMzZjZTQ5ZDhiY2E2NzBkNDJhMDk6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc.field.c2FsZVByaWNl.short_desc": {
+          "source": "The sale price of the variant",
+          "message": "The sale price of the variant"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VGdWxsUHJpY2luZ0RhdGFUeXBlOkZ1bGxQcmljaW5nIzdkMjZmMzM0NjNlMzFiNjhkNTAyYzVmYzlkMjQwZWNiZDliZDZkODI2YjBiMzZjZTQ5ZDhiY2E2NzBkNDJhMDk6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc.field.c2FsZVByaWNl.desc": {
+          "source": "The sale price of the variant (currency + value); required if `onSale` is `true`",
+          "message": "The sale price of the variant (currency + value); required if `onSale` is `true`"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc6ZmllbGQ6YzJGc1pWQnlhV05s.field.Y3VycmVuY3k.display_name": {
+          "source": "Currency",
+          "message": "Currency"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc6ZmllbGQ6YzJGc1pWQnlhV05s.field.Y3VycmVuY3k.short_desc": {
+          "source": "ISO currency code",
+          "message": "ISO currency code"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc6ZmllbGQ6YzJGc1pWQnlhV05s.field.Y3VycmVuY3k.desc": {
+          "source": "The ISO 4217 currency code (e.g., USD, EUR)",
+          "message": "The ISO 4217 currency code (e.g., USD, EUR)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc6ZmllbGQ6YzJGc1pWQnlhV05s.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc6ZmllbGQ6YzJGc1pWQnlhV05s.field.dmFsdWU.short_desc": {
+          "source": "Monetary amount",
+          "message": "Monetary amount"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VNb25leURhdGFUeXBlOk1vbmV5IzJjNjNkYWJjNzZmYWU0MmE3MGE4MjczNTRlMTg4MjY0MDdmZDY1ZjZmODY2N2UwYzc3MDIwMDYyYTFmYWRlMGQ6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmNISnBZMmx1Wnc6ZmllbGQ6YzJGc1pWQnlhV05s.field.dmFsdWU.desc": {
+          "source": "The monetary amount as a string (e.g., \"9.99\")",
+          "message": "The monetary amount as a string (e.g., \"9.99\")"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.c2hpcHBpbmdNZWFzdXJlbWVudHM.display_name": {
+          "source": "Shipping Measurements",
+          "message": "Shipping Measurements"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.c2hpcHBpbmdNZWFzdXJlbWVudHM.short_desc": {
+          "source": "The shipping measurements",
+          "message": "The shipping measurements"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.c2hpcHBpbmdNZWFzdXJlbWVudHM.desc": {
+          "source": "The shipping measurements (weight + dimensions)",
+          "message": "The shipping measurements (weight + dimensions)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VTaGlwcGluZ01lYXN1cmVtZW50c0RhdGFUeXBlOlNoaXBwaW5nTWVhc3VyZW1lbnRzIzIzMmUwN2JhMWRkOThmOWQ3MGQ2NDJmNWE1MTUyMTNjODZiZjFiMzRjZWUzZDQyZjg0NmY2NGJiNGRmMzY1ZTA6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITQ.field.ZGltZW5zaW9ucw.display_name": {
+          "source": "Dimensions",
+          "message": "Dimensions"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VTaGlwcGluZ01lYXN1cmVtZW50c0RhdGFUeXBlOlNoaXBwaW5nTWVhc3VyZW1lbnRzIzIzMmUwN2JhMWRkOThmOWQ3MGQ2NDJmNWE1MTUyMTNjODZiZjFiMzRjZWUzZDQyZjg0NmY2NGJiNGRmMzY1ZTA6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITQ.field.ZGltZW5zaW9ucw.short_desc": {
+          "source": "The shipping dimensions",
+          "message": "The shipping dimensions"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VTaGlwcGluZ01lYXN1cmVtZW50c0RhdGFUeXBlOlNoaXBwaW5nTWVhc3VyZW1lbnRzIzIzMmUwN2JhMWRkOThmOWQ3MGQ2NDJmNWE1MTUyMTNjODZiZjFiMzRjZWUzZDQyZjg0NmY2NGJiNGRmMzY1ZTA6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITQ.field.ZGltZW5zaW9ucw.desc": {
+          "source": "The shipping dimensions (unit, length, width, height)",
+          "message": "The shipping dimensions (unit, length, width, height)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.aGVpZ2h0.display_name": {
+          "source": "Height",
+          "message": "Height"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.aGVpZ2h0.short_desc": {
+          "source": "The height",
+          "message": "The height"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.aGVpZ2h0.desc": {
+          "source": "The height dimension",
+          "message": "The height dimension"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.bGVuZ3Ro.display_name": {
+          "source": "Length",
+          "message": "Length"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.bGVuZ3Ro.short_desc": {
+          "source": "The length",
+          "message": "The length"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.bGVuZ3Ro.desc": {
+          "source": "The length dimension",
+          "message": "The length dimension"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.dW5pdA.display_name": {
+          "source": "Unit",
+          "message": "Unit"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.dW5pdA.short_desc": {
+          "source": "Dimension unit (INCH or CENTIMETER)",
+          "message": "Dimension unit (INCH or CENTIMETER)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.dW5pdA.desc": {
+          "source": "The dimension unit: INCH or CENTIMETER",
+          "message": "The dimension unit: INCH or CENTIMETER"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.dW5pdA.allowed-value.c3RyaW5nOklOQ0g.desc": {
+          "source": "Inches",
+          "message": "Inches"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.dW5pdA.allowed-value.c3RyaW5nOkNFTlRJTUVURVI.desc": {
+          "source": "Centimeters",
+          "message": "Centimeters"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.d2lkdGg.display_name": {
+          "source": "Width",
+          "message": "Width"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.d2lkdGg.short_desc": {
+          "source": "The width",
+          "message": "The width"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VEaW1lbnNpb25zRGF0YVR5cGU6RGltZW5zaW9ucyM1MjQxZDQ4N2Y2N2Y0NzFjYmI1MDI1OGYzYzA0ZTBlZTM1ZDhlZDhhMjQ2MGY3ZGEwNzYyOWNhZTQwMzJmNzViOm9wdGlvbjpkbUZ5YVdGdWRITTpmaWVsZDpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6WkdsdFpXNXphVzl1Y3c.field.d2lkdGg.desc": {
+          "source": "The width dimension",
+          "message": "The width dimension"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VTaGlwcGluZ01lYXN1cmVtZW50c0RhdGFUeXBlOlNoaXBwaW5nTWVhc3VyZW1lbnRzIzIzMmUwN2JhMWRkOThmOWQ3MGQ2NDJmNWE1MTUyMTNjODZiZjFiMzRjZWUzZDQyZjg0NmY2NGJiNGRmMzY1ZTA6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITQ.field.d2VpZ2h0.display_name": {
+          "source": "Weight",
+          "message": "Weight"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VTaGlwcGluZ01lYXN1cmVtZW50c0RhdGFUeXBlOlNoaXBwaW5nTWVhc3VyZW1lbnRzIzIzMmUwN2JhMWRkOThmOWQ3MGQ2NDJmNWE1MTUyMTNjODZiZjFiMzRjZWUzZDQyZjg0NmY2NGJiNGRmMzY1ZTA6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITQ.field.d2VpZ2h0.short_desc": {
+          "source": "The shipping weight",
+          "message": "The shipping weight"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VTaGlwcGluZ01lYXN1cmVtZW50c0RhdGFUeXBlOlNoaXBwaW5nTWVhc3VyZW1lbnRzIzIzMmUwN2JhMWRkOThmOWQ3MGQ2NDJmNWE1MTUyMTNjODZiZjFiMzRjZWUzZDQyZjg0NmY2NGJiNGRmMzY1ZTA6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITQ.field.d2VpZ2h0.desc": {
+          "source": "The shipping weight (unit + value)",
+          "message": "The shipping weight (unit + value)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VXZWlnaHREYXRhVHlwZTpXZWlnaHQjYjEzNjg1MTRiNDQ3ZDNlMWNlNTQ3ZGRmNWQxMGI0NmI5ZDRiZDEwOTEyOTZhNjA1Mzg3MThkNDg1Y2IzMDgwODpvcHRpb246ZG1GeWFXRnVkSE06ZmllbGQ6YzJocGNIQnBibWROWldGemRYSmxiV1Z1ZEhNOmZpZWxkOmQyVnBaMmgw.field.dW5pdA.display_name": {
+          "source": "Unit",
+          "message": "Unit"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VXZWlnaHREYXRhVHlwZTpXZWlnaHQjYjEzNjg1MTRiNDQ3ZDNlMWNlNTQ3ZGRmNWQxMGI0NmI5ZDRiZDEwOTEyOTZhNjA1Mzg3MThkNDg1Y2IzMDgwODpvcHRpb246ZG1GeWFXRnVkSE06ZmllbGQ6YzJocGNIQnBibWROWldGemRYSmxiV1Z1ZEhNOmZpZWxkOmQyVnBaMmgw.field.dW5pdA.short_desc": {
+          "source": "Weight unit (POUND or KILOGRAM)",
+          "message": "Weight unit (POUND or KILOGRAM)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VXZWlnaHREYXRhVHlwZTpXZWlnaHQjYjEzNjg1MTRiNDQ3ZDNlMWNlNTQ3ZGRmNWQxMGI0NmI5ZDRiZDEwOTEyOTZhNjA1Mzg3MThkNDg1Y2IzMDgwODpvcHRpb246ZG1GeWFXRnVkSE06ZmllbGQ6YzJocGNIQnBibWROWldGemRYSmxiV1Z1ZEhNOmZpZWxkOmQyVnBaMmgw.field.dW5pdA.desc": {
+          "source": "The weight unit: POUND or KILOGRAM",
+          "message": "The weight unit: POUND or KILOGRAM"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VXZWlnaHREYXRhVHlwZTpXZWlnaHQjYjEzNjg1MTRiNDQ3ZDNlMWNlNTQ3ZGRmNWQxMGI0NmI5ZDRiZDEwOTEyOTZhNjA1Mzg3MThkNDg1Y2IzMDgwODpvcHRpb246ZG1GeWFXRnVkSE06ZmllbGQ6YzJocGNIQnBibWROWldGemRYSmxiV1Z1ZEhNOmZpZWxkOmQyVnBaMmgw.field.dW5pdA.allowed-value.c3RyaW5nOlBPVU5E.desc": {
+          "source": "Pounds",
+          "message": "Pounds"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VXZWlnaHREYXRhVHlwZTpXZWlnaHQjYjEzNjg1MTRiNDQ3ZDNlMWNlNTQ3ZGRmNWQxMGI0NmI5ZDRiZDEwOTEyOTZhNjA1Mzg3MThkNDg1Y2IzMDgwODpvcHRpb246ZG1GeWFXRnVkSE06ZmllbGQ6YzJocGNIQnBibWROWldGemRYSmxiV1Z1ZEhNOmZpZWxkOmQyVnBaMmgw.field.dW5pdA.allowed-value.c3RyaW5nOktJTE9HUkFN.desc": {
+          "source": "Kilograms",
+          "message": "Kilograms"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VXZWlnaHREYXRhVHlwZTpXZWlnaHQjYjEzNjg1MTRiNDQ3ZDNlMWNlNTQ3ZGRmNWQxMGI0NmI5ZDRiZDEwOTEyOTZhNjA1Mzg3MThkNDg1Y2IzMDgwODpvcHRpb246ZG1GeWFXRnVkSE06ZmllbGQ6YzJocGNIQnBibWROWldGemRYSmxiV1Z1ZEhNOmZpZWxkOmQyVnBaMmgw.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VXZWlnaHREYXRhVHlwZTpXZWlnaHQjYjEzNjg1MTRiNDQ3ZDNlMWNlNTQ3ZGRmNWQxMGI0NmI5ZDRiZDEwOTEyOTZhNjA1Mzg3MThkNDg1Y2IzMDgwODpvcHRpb246ZG1GeWFXRnVkSE06ZmllbGQ6YzJocGNIQnBibWROWldGemRYSmxiV1Z1ZEhNOmZpZWxkOmQyVnBaMmgw.field.dmFsdWU.short_desc": {
+          "source": "The weight value",
+          "message": "The weight value"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VXZWlnaHREYXRhVHlwZTpXZWlnaHQjYjEzNjg1MTRiNDQ3ZDNlMWNlNTQ3ZGRmNWQxMGI0NmI5ZDRiZDEwOTEyOTZhNjA1Mzg3MThkNDg1Y2IzMDgwODpvcHRpb246ZG1GeWFXRnVkSE06ZmllbGQ6YzJocGNIQnBibWROWldGemRYSmxiV1Z1ZEhNOmZpZWxkOmQyVnBaMmgw.field.dmFsdWU.desc": {
+          "source": "The weight value",
+          "message": "The weight value"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.c2t1.display_name": {
+          "source": "SKU",
+          "message": "SKU"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.c2t1.short_desc": {
+          "source": "The variant SKU",
+          "message": "The variant SKU"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.c2t1.desc": {
+          "source": "The stock keeping unit identifier (max 60 chars, must be unique)",
+          "message": "The stock keeping unit identifier (max 60 chars, must be unique)"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.c3RvY2s.display_name": {
+          "source": "Stock",
+          "message": "Stock"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.c3RvY2s.short_desc": {
+          "source": "The stock information",
+          "message": "The stock information"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3Q.option.dmFyaWFudHM.field.c3RvY2s.desc": {
+          "source": "The stock information (quantity, unlimited)",
+          "message": "The stock information (quantity, unlimited)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VTdG9ja0RhdGFUeXBlOlN0b2NrIzFiZmNkNzc2M2U5NTFhODUyYzZkZTM0NDI5ZGRmMGIyMjczNDljNzNmMTY2Yjk4YThmOTIxMmNhOTExN2ZiNjI6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmMzUnZZMnM.field.cXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VTdG9ja0RhdGFUeXBlOlN0b2NrIzFiZmNkNzc2M2U5NTFhODUyYzZkZTM0NDI5ZGRmMGIyMjczNDljNzNmMTY2Yjk4YThmOTIxMmNhOTExN2ZiNjI6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmMzUnZZMnM.field.cXVhbnRpdHk.short_desc": {
+          "source": "The stock quantity",
+          "message": "The stock quantity"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VTdG9ja0RhdGFUeXBlOlN0b2NrIzFiZmNkNzc2M2U5NTFhODUyYzZkZTM0NDI5ZGRmMGIyMjczNDljNzNmMTY2Yjk4YThmOTIxMmNhOTExN2ZiNjI6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmMzUnZZMnM.field.cXVhbnRpdHk.desc": {
+          "source": "The available stock quantity for the variant",
+          "message": "The available stock quantity for the variant"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VTdG9ja0RhdGFUeXBlOlN0b2NrIzFiZmNkNzc2M2U5NTFhODUyYzZkZTM0NDI5ZGRmMGIyMjczNDljNzNmMTY2Yjk4YThmOTIxMmNhOTExN2ZiNjI6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmMzUnZZMnM.field.dW5saW1pdGVk.display_name": {
+          "source": "Unlimited",
+          "message": "Unlimited"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VTdG9ja0RhdGFUeXBlOlN0b2NrIzFiZmNkNzc2M2U5NTFhODUyYzZkZTM0NDI5ZGRmMGIyMjczNDljNzNmMTY2Yjk4YThmOTIxMmNhOTExN2ZiNjI6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmMzUnZZMnM.field.dW5saW1pdGVk.short_desc": {
+          "source": "Whether stock is unlimited",
+          "message": "Whether stock is unlimited"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1E6U3F1YXJlc3BhY2VTdG9ja0RhdGFUeXBlOlN0b2NrIzFiZmNkNzc2M2U5NTFhODUyYzZkZTM0NDI5ZGRmMGIyMjczNDljNzNmMTY2Yjk4YThmOTIxMmNhOTExN2ZiNjI6b3B0aW9uOmRtRnlhV0Z1ZEhNOmZpZWxkOmMzUnZZMnM.field.dW5saW1pdGVk.desc": {
+          "source": "Whether the variant has unlimited stock",
+          "message": "Whether the variant has unlimited stock"
+        },
         "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3Q.display_name": {
           "source": "Update a Product",
           "message": "Update a Product"
@@ -934,6 +1670,30 @@
         "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3Q.option.c2VvT3B0aW9ucw.desc": {
           "source": "SEO configuration (`title`, `description`)",
           "message": "SEO configuration (`title`, `description`)"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3Q.option.c2VvT3B0aW9ucw.field.ZGVzY3JpcHRpb24.display_name": {
+          "source": "Description",
+          "message": "Description"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3Q.option.c2VvT3B0aW9ucw.field.ZGVzY3JpcHRpb24.short_desc": {
+          "source": "SEO description",
+          "message": "SEO description"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3Q.option.c2VvT3B0aW9ucw.field.ZGVzY3JpcHRpb24.desc": {
+          "source": "The SEO meta description for the product",
+          "message": "The SEO meta description for the product"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3Q.option.c2VvT3B0aW9ucw.field.dGl0bGU.display_name": {
+          "source": "Title",
+          "message": "Title"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3Q.option.c2VvT3B0aW9ucw.field.dGl0bGU.short_desc": {
+          "source": "SEO title",
+          "message": "SEO title"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3Q.option.c2VvT3B0aW9ucw.field.dGl0bGU.desc": {
+          "source": "The SEO title for the product",
+          "message": "The SEO title for the product"
         },
         "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3Q.option.dmFyaWFudEF0dHJpYnV0ZXM.display_name": {
           "source": "Variant Attributes",
@@ -1111,6 +1871,90 @@
           "source": "The variant pricing including `basePrice`, `salePrice`, and `onSale`",
           "message": "The variant pricing including `basePrice`, `salePrice`, and `onSale`"
         },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.YmFzZVByaWNl.display_name": {
+          "source": "Base Price",
+          "message": "Base Price"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.YmFzZVByaWNl.short_desc": {
+          "source": "The base price of the variant",
+          "message": "The base price of the variant"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.YmFzZVByaWNl.desc": {
+          "source": "The base price of the variant (currency + value)",
+          "message": "The base price of the variant (currency + value)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpZbUZ6WlZCeWFXTmw.field.Y3VycmVuY3k.display_name": {
+          "source": "Currency",
+          "message": "Currency"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpZbUZ6WlZCeWFXTmw.field.Y3VycmVuY3k.short_desc": {
+          "source": "ISO currency code",
+          "message": "ISO currency code"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpZbUZ6WlZCeWFXTmw.field.Y3VycmVuY3k.desc": {
+          "source": "The ISO 4217 currency code (e.g., USD, EUR)",
+          "message": "The ISO 4217 currency code (e.g., USD, EUR)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpZbUZ6WlZCeWFXTmw.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpZbUZ6WlZCeWFXTmw.field.dmFsdWU.short_desc": {
+          "source": "Monetary amount",
+          "message": "Monetary amount"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpZbUZ6WlZCeWFXTmw.field.dmFsdWU.desc": {
+          "source": "The monetary amount as a string (e.g., \"9.99\")",
+          "message": "The monetary amount as a string (e.g., \"9.99\")"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.b25TYWxl.display_name": {
+          "source": "On Sale",
+          "message": "On Sale"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.b25TYWxl.short_desc": {
+          "source": "Whether the variant is on sale",
+          "message": "Whether the variant is on sale"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.b25TYWxl.desc": {
+          "source": "Whether the variant is on sale; if `true`, `salePrice` is required",
+          "message": "Whether the variant is on sale; if `true`, `salePrice` is required"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.c2FsZVByaWNl.display_name": {
+          "source": "Sale Price",
+          "message": "Sale Price"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.c2FsZVByaWNl.short_desc": {
+          "source": "The sale price of the variant",
+          "message": "The sale price of the variant"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.c2FsZVByaWNl.desc": {
+          "source": "The sale price of the variant (currency + value); required if `onSale` is `true`",
+          "message": "The sale price of the variant (currency + value); required if `onSale` is `true`"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpjMkZzWlZCeWFXTmw.field.Y3VycmVuY3k.display_name": {
+          "source": "Currency",
+          "message": "Currency"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpjMkZzWlZCeWFXTmw.field.Y3VycmVuY3k.short_desc": {
+          "source": "ISO currency code",
+          "message": "ISO currency code"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpjMkZzWlZCeWFXTmw.field.Y3VycmVuY3k.desc": {
+          "source": "The ISO 4217 currency code (e.g., USD, EUR)",
+          "message": "The ISO 4217 currency code (e.g., USD, EUR)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpjMkZzWlZCeWFXTmw.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpjMkZzWlZCeWFXTmw.field.dmFsdWU.short_desc": {
+          "source": "Monetary amount",
+          "message": "Monetary amount"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpjMkZzWlZCeWFXTmw.field.dmFsdWU.desc": {
+          "source": "The monetary amount as a string (e.g., \"9.99\")",
+          "message": "The monetary amount as a string (e.g., \"9.99\")"
+        },
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.display_name": {
           "source": "Stock",
           "message": "Stock"
@@ -1122,6 +1966,30 @@
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.desc": {
           "source": "The stock information including `quantity` and `unlimited`",
           "message": "The stock information including `quantity` and `unlimited`"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.field.cXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.field.cXVhbnRpdHk.short_desc": {
+          "source": "The stock quantity",
+          "message": "The stock quantity"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.field.cXVhbnRpdHk.desc": {
+          "source": "The available stock quantity for the variant",
+          "message": "The available stock quantity for the variant"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.field.dW5saW1pdGVk.display_name": {
+          "source": "Unlimited",
+          "message": "Unlimited"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.field.dW5saW1pdGVk.short_desc": {
+          "source": "Whether stock is unlimited",
+          "message": "Whether stock is unlimited"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.field.dW5saW1pdGVk.desc": {
+          "source": "Whether the variant has unlimited stock",
+          "message": "Whether the variant has unlimited stock"
         },
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.YXR0cmlidXRlcw.display_name": {
           "source": "Attributes",
@@ -1146,6 +2014,118 @@
         "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.desc": {
           "source": "The shipping measurements including `weight` and `dimensions`",
           "message": "The shipping measurements including `weight` and `dimensions`"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.field.ZGltZW5zaW9ucw.display_name": {
+          "source": "Dimensions",
+          "message": "Dimensions"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.field.ZGltZW5zaW9ucw.short_desc": {
+          "source": "The shipping dimensions",
+          "message": "The shipping dimensions"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.field.ZGltZW5zaW9ucw.desc": {
+          "source": "The shipping dimensions (unit, length, width, height)",
+          "message": "The shipping dimensions (unit, length, width, height)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.aGVpZ2h0.display_name": {
+          "source": "Height",
+          "message": "Height"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.aGVpZ2h0.short_desc": {
+          "source": "The height",
+          "message": "The height"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.aGVpZ2h0.desc": {
+          "source": "The height dimension",
+          "message": "The height dimension"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.bGVuZ3Ro.display_name": {
+          "source": "Length",
+          "message": "Length"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.bGVuZ3Ro.short_desc": {
+          "source": "The length",
+          "message": "The length"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.bGVuZ3Ro.desc": {
+          "source": "The length dimension",
+          "message": "The length dimension"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.dW5pdA.display_name": {
+          "source": "Unit",
+          "message": "Unit"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.dW5pdA.short_desc": {
+          "source": "Dimension unit (INCH or CENTIMETER)",
+          "message": "Dimension unit (INCH or CENTIMETER)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.dW5pdA.desc": {
+          "source": "The dimension unit: INCH or CENTIMETER",
+          "message": "The dimension unit: INCH or CENTIMETER"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.dW5pdA.allowed-value.c3RyaW5nOklOQ0g.desc": {
+          "source": "Inches",
+          "message": "Inches"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.dW5pdA.allowed-value.c3RyaW5nOkNFTlRJTUVURVI.desc": {
+          "source": "Centimeters",
+          "message": "Centimeters"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.d2lkdGg.display_name": {
+          "source": "Width",
+          "message": "Width"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.d2lkdGg.short_desc": {
+          "source": "The width",
+          "message": "The width"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.d2lkdGg.desc": {
+          "source": "The width dimension",
+          "message": "The width dimension"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.field.d2VpZ2h0.display_name": {
+          "source": "Weight",
+          "message": "Weight"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.field.d2VpZ2h0.short_desc": {
+          "source": "The shipping weight",
+          "message": "The shipping weight"
+        },
+        "app.U3F1YXJlc3BhY2U.action.Y3JlYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.field.d2VpZ2h0.desc": {
+          "source": "The shipping weight (unit + value)",
+          "message": "The shipping weight (unit + value)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dW5pdA.display_name": {
+          "source": "Unit",
+          "message": "Unit"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dW5pdA.short_desc": {
+          "source": "Weight unit (POUND or KILOGRAM)",
+          "message": "Weight unit (POUND or KILOGRAM)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dW5pdA.desc": {
+          "source": "The weight unit: POUND or KILOGRAM",
+          "message": "The weight unit: POUND or KILOGRAM"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dW5pdA.allowed-value.c3RyaW5nOlBPVU5E.desc": {
+          "source": "Pounds",
+          "message": "Pounds"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dW5pdA.allowed-value.c3RyaW5nOktJTE9HUkFN.desc": {
+          "source": "Kilograms",
+          "message": "Kilograms"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dmFsdWU.short_desc": {
+          "source": "The weight value",
+          "message": "The weight value"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOlkzSmxZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dmFsdWU.desc": {
+          "source": "The weight value",
+          "message": "The weight value"
         },
         "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.display_name": {
           "source": "Update a Product Variant",
@@ -1207,6 +2187,90 @@
           "source": "The variant pricing including `basePrice`, `salePrice`, and `onSale`",
           "message": "The variant pricing including `basePrice`, `salePrice`, and `onSale`"
         },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.YmFzZVByaWNl.display_name": {
+          "source": "Base Price",
+          "message": "Base Price"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.YmFzZVByaWNl.short_desc": {
+          "source": "The base price of the variant",
+          "message": "The base price of the variant"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.YmFzZVByaWNl.desc": {
+          "source": "The base price of the variant (currency + value)",
+          "message": "The base price of the variant (currency + value)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpZbUZ6WlZCeWFXTmw.field.Y3VycmVuY3k.display_name": {
+          "source": "Currency",
+          "message": "Currency"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpZbUZ6WlZCeWFXTmw.field.Y3VycmVuY3k.short_desc": {
+          "source": "ISO currency code",
+          "message": "ISO currency code"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpZbUZ6WlZCeWFXTmw.field.Y3VycmVuY3k.desc": {
+          "source": "The ISO 4217 currency code (e.g., USD, EUR)",
+          "message": "The ISO 4217 currency code (e.g., USD, EUR)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpZbUZ6WlZCeWFXTmw.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpZbUZ6WlZCeWFXTmw.field.dmFsdWU.short_desc": {
+          "source": "Monetary amount",
+          "message": "Monetary amount"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpZbUZ6WlZCeWFXTmw.field.dmFsdWU.desc": {
+          "source": "The monetary amount as a string (e.g., \"9.99\")",
+          "message": "The monetary amount as a string (e.g., \"9.99\")"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.b25TYWxl.display_name": {
+          "source": "On Sale",
+          "message": "On Sale"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.b25TYWxl.short_desc": {
+          "source": "Whether the variant is on sale",
+          "message": "Whether the variant is on sale"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.b25TYWxl.desc": {
+          "source": "Whether the variant is on sale; if `true`, `salePrice` is required",
+          "message": "Whether the variant is on sale; if `true`, `salePrice` is required"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.c2FsZVByaWNl.display_name": {
+          "source": "Sale Price",
+          "message": "Sale Price"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.c2FsZVByaWNl.short_desc": {
+          "source": "The sale price of the variant",
+          "message": "The sale price of the variant"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.cHJpY2luZw.field.c2FsZVByaWNl.desc": {
+          "source": "The sale price of the variant (currency + value); required if `onSale` is `true`",
+          "message": "The sale price of the variant (currency + value); required if `onSale` is `true`"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpjMkZzWlZCeWFXTmw.field.Y3VycmVuY3k.display_name": {
+          "source": "Currency",
+          "message": "Currency"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpjMkZzWlZCeWFXTmw.field.Y3VycmVuY3k.short_desc": {
+          "source": "ISO currency code",
+          "message": "ISO currency code"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpjMkZzWlZCeWFXTmw.field.Y3VycmVuY3k.desc": {
+          "source": "The ISO 4217 currency code (e.g., USD, EUR)",
+          "message": "The ISO 4217 currency code (e.g., USD, EUR)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpjMkZzWlZCeWFXTmw.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpjMkZzWlZCeWFXTmw.field.dmFsdWU.short_desc": {
+          "source": "Monetary amount",
+          "message": "Monetary amount"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZU1vbmV5RGF0YVR5cGU6TW9uZXkjMmM2M2RhYmM3NmZhZTQyYTcwYTgyNzM1NGUxODgyNjQwN2ZkNjVmNmY4NjY3ZTBjNzcwMjAwNjJhMWZhZGUwZDpvcHRpb246Y0hKcFkybHVadzpmaWVsZDpjMkZzWlZCeWFXTmw.field.dmFsdWU.desc": {
+          "source": "The monetary amount as a string (e.g., \"9.99\")",
+          "message": "The monetary amount as a string (e.g., \"9.99\")"
+        },
         "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.display_name": {
           "source": "Stock",
           "message": "Stock"
@@ -1218,6 +2282,30 @@
         "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.desc": {
           "source": "The stock information including `quantity` and `unlimited`",
           "message": "The stock information including `quantity` and `unlimited`"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.field.cXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.field.cXVhbnRpdHk.short_desc": {
+          "source": "The stock quantity",
+          "message": "The stock quantity"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.field.cXVhbnRpdHk.desc": {
+          "source": "The available stock quantity for the variant",
+          "message": "The available stock quantity for the variant"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.field.dW5saW1pdGVk.display_name": {
+          "source": "Unlimited",
+          "message": "Unlimited"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.field.dW5saW1pdGVk.short_desc": {
+          "source": "Whether stock is unlimited",
+          "message": "Whether stock is unlimited"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c3RvY2s.field.dW5saW1pdGVk.desc": {
+          "source": "Whether the variant has unlimited stock",
+          "message": "Whether the variant has unlimited stock"
         },
         "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.YXR0cmlidXRlcw.display_name": {
           "source": "Attributes",
@@ -1242,6 +2330,118 @@
         "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.desc": {
           "source": "The shipping measurements including `weight` and `dimensions`",
           "message": "The shipping measurements including `weight` and `dimensions`"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.field.ZGltZW5zaW9ucw.display_name": {
+          "source": "Dimensions",
+          "message": "Dimensions"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.field.ZGltZW5zaW9ucw.short_desc": {
+          "source": "The shipping dimensions",
+          "message": "The shipping dimensions"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.field.ZGltZW5zaW9ucw.desc": {
+          "source": "The shipping dimensions (unit, length, width, height)",
+          "message": "The shipping dimensions (unit, length, width, height)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.aGVpZ2h0.display_name": {
+          "source": "Height",
+          "message": "Height"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.aGVpZ2h0.short_desc": {
+          "source": "The height",
+          "message": "The height"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.aGVpZ2h0.desc": {
+          "source": "The height dimension",
+          "message": "The height dimension"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.bGVuZ3Ro.display_name": {
+          "source": "Length",
+          "message": "Length"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.bGVuZ3Ro.short_desc": {
+          "source": "The length",
+          "message": "The length"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.bGVuZ3Ro.desc": {
+          "source": "The length dimension",
+          "message": "The length dimension"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.dW5pdA.display_name": {
+          "source": "Unit",
+          "message": "Unit"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.dW5pdA.short_desc": {
+          "source": "Dimension unit (INCH or CENTIMETER)",
+          "message": "Dimension unit (INCH or CENTIMETER)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.dW5pdA.desc": {
+          "source": "The dimension unit: INCH or CENTIMETER",
+          "message": "The dimension unit: INCH or CENTIMETER"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.dW5pdA.allowed-value.c3RyaW5nOklOQ0g.desc": {
+          "source": "Inches",
+          "message": "Inches"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.dW5pdA.allowed-value.c3RyaW5nOkNFTlRJTUVURVI.desc": {
+          "source": "Centimeters",
+          "message": "Centimeters"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.d2lkdGg.display_name": {
+          "source": "Width",
+          "message": "Width"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.d2lkdGg.short_desc": {
+          "source": "The width",
+          "message": "The width"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZURpbWVuc2lvbnNEYXRhVHlwZTpEaW1lbnNpb25zIzUyNDFkNDg3ZjY3ZjQ3MWNiYjUwMjU4ZjNjMDRlMGVlMzVkOGVkOGEyNDYwZjdkYTA3NjI5Y2FlNDAzMmY3NWI6b3B0aW9uOmMyaHBjSEJwYm1kTlpXRnpkWEpsYldWdWRITTpmaWVsZDpaR2x0Wlc1emFXOXVjdw.field.d2lkdGg.desc": {
+          "source": "The width dimension",
+          "message": "The width dimension"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.field.d2VpZ2h0.display_name": {
+          "source": "Weight",
+          "message": "Weight"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.field.d2VpZ2h0.short_desc": {
+          "source": "The shipping weight",
+          "message": "The shipping weight"
+        },
+        "app.U3F1YXJlc3BhY2U.action.dXBkYXRlLXByb2R1Y3QtdmFyaWFudA.option.c2hpcHBpbmdNZWFzdXJlbWVudHM.field.d2VpZ2h0.desc": {
+          "source": "The shipping weight (unit + value)",
+          "message": "The shipping weight (unit + value)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dW5pdA.display_name": {
+          "source": "Unit",
+          "message": "Unit"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dW5pdA.short_desc": {
+          "source": "Weight unit (POUND or KILOGRAM)",
+          "message": "Weight unit (POUND or KILOGRAM)"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dW5pdA.desc": {
+          "source": "The weight unit: POUND or KILOGRAM",
+          "message": "The weight unit: POUND or KILOGRAM"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dW5pdA.allowed-value.c3RyaW5nOlBPVU5E.desc": {
+          "source": "Pounds",
+          "message": "Pounds"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dW5pdA.allowed-value.c3RyaW5nOktJTE9HUkFN.desc": {
+          "source": "Kilograms",
+          "message": "Kilograms"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dmFsdWU.display_name": {
+          "source": "Value",
+          "message": "Value"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dmFsdWU.short_desc": {
+          "source": "The weight value",
+          "message": "The weight value"
+        },
+        "app.U3F1YXJlc3BhY2U.type.YWN0aW9uOmRYQmtZWFJsTFhCeWIyUjFZM1F0ZG1GeWFXRnVkQTpTcXVhcmVzcGFjZVdlaWdodERhdGFUeXBlOldlaWdodCNiMTM2ODUxNGI0NDdkM2UxY2U1NDdkZGY1ZDEwYjQ2YjlkNGJkMTA5MTI5NmE2MDUzODcxOGQ0ODVjYjMwODA4Om9wdGlvbjpjMmhwY0hCcGJtZE5aV0Z6ZFhKbGJXVnVkSE06ZmllbGQ6ZDJWcFoyaDA.field.dmFsdWU.desc": {
+          "source": "The weight value",
+          "message": "The weight value"
         },
         "app.U3F1YXJlc3BhY2U.action.ZGVsZXRlLXByb2R1Y3QtdmFyaWFudA.display_name": {
           "source": "Delete a Product Variant",

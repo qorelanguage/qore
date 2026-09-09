@@ -4,8 +4,8 @@
 %modern
 %no-child-restrictions
 
-%requires QUnit
 %prepend-module-path "${SCRIPT_DIR}/../../../qlib"
+%requires QUnit
 %requires Util
 %requires FsUtil
 
@@ -25,7 +25,7 @@ class AOTNestedConstantRefTest inherits QUnit::Test {
         repo_dir = normalize_dir(get_script_dir() + "/../../..");
         qjar_path = repo_dir + "/doxygen/qjar";
 
-        addTestCase("AOT module constants supplied to JNI resolve nested runtime constant references",
+        addTestCase("qjar resolves nested constants and non-reexported binary dependency types",
             \testAotJniNestedConstantRefs());
 
         set_return_value(main());
@@ -33,6 +33,8 @@ class AOTNestedConstantRefTest inherits QUnit::Test {
 
     private string moduleCode() {
         return "%modern
+
+%requires i18n
 
 module AOTNestedConstantRefMod {
     version = \"1.0\";
@@ -51,6 +53,10 @@ public namespace AOTNestedConstantRefMod {
                 \"nested\": {\"args\": AuthArgs},
                 \"list\": (AuthArgs, {\"header\": HeaderName}),
             };
+        }
+
+        public I18n::CatalogDiscoveryIndex makeCatalogIndex() {
+            return new I18n::CatalogDiscoveryIndex();
         }
     }
 }
@@ -90,7 +96,7 @@ public namespace AOTNestedConstantRefMod {
         string qjar_out = backquote(sprintf("LD_LIBRARY_PATH=%s:$LD_LIBRARY_PATH QORE_MODULE_DIR=%s:$QORE_MODULE_DIR %s -b %s -i=%s -m=AOTNestedConstantRefMod -v 2>&1",
             libqore_dir, qmod_dir, qore_bin, qjar_path, java_dir));
         assertFalse(qjar_out =~ /NT_RTCONSTREF|JNI-ERROR|don't know how to convert/,
-            "qjar must not expose nested runtime constant references to JNI: " + qjar_out);
+            "qjar must resolve nested constants and binary dependency types: " + qjar_out);
         assertTrue(is_file(java_dir + "/qoremod/AOTNestedConstantRefMod/AOTNestedConstantRefClass.class"),
             "qjar generated Java class from AOT qmod: " + qjar_out);
     }

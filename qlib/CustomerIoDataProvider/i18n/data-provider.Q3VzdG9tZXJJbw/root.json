@@ -951,6 +951,54 @@
           "source": "Recipients filter for the broadcast",
           "message": "Recipients filter for the broadcast"
         },
+        "app.Q3VzdG9tZXJJbw.action.dHJpZ2dlci1icm9hZGNhc3Q.option.cmVjaXBpZW50cw.field.ZW1haWxz.display_name": {
+          "source": "Email Addresses",
+          "message": "Email Addresses"
+        },
+        "app.Q3VzdG9tZXJJbw.action.dHJpZ2dlci1icm9hZGNhc3Q.option.cmVjaXBpZW50cw.field.ZW1haWxz.short_desc": {
+          "source": "List of email addresses",
+          "message": "List of email addresses"
+        },
+        "app.Q3VzdG9tZXJJbw.action.dHJpZ2dlci1icm9hZGNhc3Q.option.cmVjaXBpZW50cw.field.ZW1haWxz.desc": {
+          "source": "A list of email addresses to send the broadcast to",
+          "message": "A list of email addresses to send the broadcast to"
+        },
+        "app.Q3VzdG9tZXJJbw.action.dHJpZ2dlci1icm9hZGNhc3Q.option.cmVjaXBpZW50cw.field.aWRz.display_name": {
+          "source": "Customer IDs",
+          "message": "Customer IDs"
+        },
+        "app.Q3VzdG9tZXJJbw.action.dHJpZ2dlci1icm9hZGNhc3Q.option.cmVjaXBpZW50cw.field.aWRz.short_desc": {
+          "source": "List of customer IDs",
+          "message": "List of customer IDs"
+        },
+        "app.Q3VzdG9tZXJJbw.action.dHJpZ2dlci1icm9hZGNhc3Q.option.cmVjaXBpZW50cw.field.aWRz.desc": {
+          "source": "A list of customer IDs to send the broadcast to",
+          "message": "A list of customer IDs to send the broadcast to"
+        },
+        "app.Q3VzdG9tZXJJbw.action.dHJpZ2dlci1icm9hZGNhc3Q.option.cmVjaXBpZW50cw.field.cGVyX3VzZXJfZGF0YQ.display_name": {
+          "source": "Per-User Data",
+          "message": "Per-User Data"
+        },
+        "app.Q3VzdG9tZXJJbw.action.dHJpZ2dlci1icm9hZGNhc3Q.option.cmVjaXBpZW50cw.field.cGVyX3VzZXJfZGF0YQ.short_desc": {
+          "source": "Per-user data array",
+          "message": "Per-user data array"
+        },
+        "app.Q3VzdG9tZXJJbw.action.dHJpZ2dlci1icm9hZGNhc3Q.option.cmVjaXBpZW50cw.field.cGVyX3VzZXJfZGF0YQ.desc": {
+          "source": "An array of per-user data hashes, each containing `id` or `email` and custom data",
+          "message": "An array of per-user data hashes, each containing `id` or `email` and custom data"
+        },
+        "app.Q3VzdG9tZXJJbw.action.dHJpZ2dlci1icm9hZGNhc3Q.option.cmVjaXBpZW50cw.field.c2VnbWVudA.display_name": {
+          "source": "Segment",
+          "message": "Segment"
+        },
+        "app.Q3VzdG9tZXJJbw.action.dHJpZ2dlci1icm9hZGNhc3Q.option.cmVjaXBpZW50cw.field.c2VnbWVudA.short_desc": {
+          "source": "Segment filter for recipients",
+          "message": "Segment filter for recipients"
+        },
+        "app.Q3VzdG9tZXJJbw.action.dHJpZ2dlci1icm9hZGNhc3Q.option.cmVjaXBpZW50cw.field.c2VnbWVudA.desc": {
+          "source": "A segment filter hash with `id` key to target a specific segment",
+          "message": "A segment filter hash with `id` key to target a specific segment"
+        },
         "app.Q3VzdG9tZXJJbw.action.dHJpZ2dlci1icm9hZGNhc3Q.option.ZW1haWxz.display_name": {
           "source": "Emails",
           "message": "Emails"
@@ -1047,6 +1095,42 @@
           "source": "Customer identifiers such as id, email, or cio_id",
           "message": "Customer identifiers such as id, email, or cio_id"
         },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLWVtYWls.option.aWRlbnRpZmllcnM.field.Y2lvX2lk.display_name": {
+          "source": "Customer.io ID",
+          "message": "Customer.io ID"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLWVtYWls.option.aWRlbnRpZmllcnM.field.Y2lvX2lk.short_desc": {
+          "source": "The Customer.io immutable ID",
+          "message": "The Customer.io immutable ID"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLWVtYWls.option.aWRlbnRpZmllcnM.field.Y2lvX2lk.desc": {
+          "source": "The immutable identifier assigned by Customer.io (prefixed with `cio_`)",
+          "message": "The immutable identifier assigned by Customer.io (prefixed with `cio_`)"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLWVtYWls.option.aWRlbnRpZmllcnM.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLWVtYWls.option.aWRlbnRpZmllcnM.field.ZW1haWw.short_desc": {
+          "source": "The customer's email address",
+          "message": "The customer's email address"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLWVtYWls.option.aWRlbnRpZmllcnM.field.ZW1haWw.desc": {
+          "source": "The customer's email address",
+          "message": "The customer's email address"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLWVtYWls.option.aWRlbnRpZmllcnM.field.aWQ.display_name": {
+          "source": "Customer ID",
+          "message": "Customer ID"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLWVtYWls.option.aWRlbnRpZmllcnM.field.aWQ.short_desc": {
+          "source": "The customer's unique identifier",
+          "message": "The customer's unique identifier"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLWVtYWls.option.aWRlbnRpZmllcnM.field.aWQ.desc": {
+          "source": "The customer's unique identifier in your system",
+          "message": "The customer's unique identifier in your system"
+        },
         "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLWVtYWls.option.bWVzc2FnZV9kYXRh.display_name": {
           "source": "Message Data",
           "message": "Message Data"
@@ -1142,6 +1226,42 @@
         "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLXB1c2g.option.aWRlbnRpZmllcnM.desc": {
           "source": "Customer identifiers such as id, email, or cio_id",
           "message": "Customer identifiers such as id, email, or cio_id"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLXB1c2g.option.aWRlbnRpZmllcnM.field.Y2lvX2lk.display_name": {
+          "source": "Customer.io ID",
+          "message": "Customer.io ID"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLXB1c2g.option.aWRlbnRpZmllcnM.field.Y2lvX2lk.short_desc": {
+          "source": "The Customer.io immutable ID",
+          "message": "The Customer.io immutable ID"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLXB1c2g.option.aWRlbnRpZmllcnM.field.Y2lvX2lk.desc": {
+          "source": "The immutable identifier assigned by Customer.io (prefixed with `cio_`)",
+          "message": "The immutable identifier assigned by Customer.io (prefixed with `cio_`)"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLXB1c2g.option.aWRlbnRpZmllcnM.field.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "Email"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLXB1c2g.option.aWRlbnRpZmllcnM.field.ZW1haWw.short_desc": {
+          "source": "The customer's email address",
+          "message": "The customer's email address"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLXB1c2g.option.aWRlbnRpZmllcnM.field.ZW1haWw.desc": {
+          "source": "The customer's email address",
+          "message": "The customer's email address"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLXB1c2g.option.aWRlbnRpZmllcnM.field.aWQ.display_name": {
+          "source": "Customer ID",
+          "message": "Customer ID"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLXB1c2g.option.aWRlbnRpZmllcnM.field.aWQ.short_desc": {
+          "source": "The customer's unique identifier",
+          "message": "The customer's unique identifier"
+        },
+        "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLXB1c2g.option.aWRlbnRpZmllcnM.field.aWQ.desc": {
+          "source": "The customer's unique identifier in your system",
+          "message": "The customer's unique identifier in your system"
         },
         "app.Q3VzdG9tZXJJbw.action.c2VuZC10cmFuc2FjdGlvbmFsLXB1c2g.option.bWVzc2FnZV9kYXRh.display_name": {
           "source": "Message Data",

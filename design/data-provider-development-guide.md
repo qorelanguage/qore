@@ -332,8 +332,9 @@ qctl update-index                 # rebuild the index
 # restart the platform to pick up the new modules
 ```
 
-Running `qctl update-index` before the modules are in place produces an index without the app and no
-error, so the ordering matters more than it appears.
+Running `qctl update-index` before the modules are in place fails qualification when the expected
+inventory names the app. The ordering still matters: install first so the discovery source and its
+owner path are available to the qualified generation.
 
 To verify, either ask for the app directly, or look for its index chunk, which is named for the
 SHA-256 of the **app name**:
@@ -343,14 +344,33 @@ qdp @MyService
 ls "${QORE_PROVIDER_INDEX_DIR}/qore-data-index-$(printf 'MyService' | sha256sum | cut -d' ' -f1).msgpack"
 ```
 
-**Two conditions make the index build skip an app**, each logged as an error rather than failing the
-build, so read the output rather than trusting the exit status:
+**Two conditions make an app ineligible for a qualified index**. Both are structured discovery
+failures and prevent atomic publication; logs are diagnostic and are not the success contract:
 
 - `Data provider app "X" has no module path` — the app registered without a resolvable module,
   usually because it was registered from a script rather than from a module on the module path.
 - `Data provider app "X" has unregistered scheme "y"` — `app.scheme` names a scheme missing from
   `SchemeMap`, so registering the app but forgetting the scheme drops the app from the index
   entirely, not just its connections.
+
+Provider initialization has the same rule. Eager and deferred registration failures retain their
+technical app/action identity across retries. Source loaders, factories, and index publication report
+their own structured phase. Only a sealed generation with all expected identities may replace an
+index, and a catalog mutation after sealing invalidates its single-use token. See
+[data-provider-discovery-qualification.md](data-provider-discovery-qualification.md).
+
+### Nested presentation metadata
+
+An option's `display_name`, `short_desc`, and `desc` are not the end of its presentation surface.
+Fields reachable through its structured type, list elements, union alternatives, and their finite
+values are also user-visible. The catalog generator walks this graph with cycle detection. First-layer
+fields retain action/option context; deeper reusable structures use stable app/action/option/occurrence/type/field
+identities. The occurrence includes the canonical technical field path and any union context above it, and the type
+segment includes an explicit producer schema path when available plus a digest of immediate technical field/type
+shape. One canonical occurrence is assigned per concrete type object in each action/option. This distinguishes
+anonymous schemas without making IDs depend on labels and avoids expanding a shared schema DAG once per path.
+Regenerate every root and complete locale after changing either a field label or the type graph that makes it
+reachable. The runtime fallback is not evidence that a shipped locale is complete.
 
 ### Description Formatting
 

@@ -1,0 +1,22 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# ProviderIndexEnvironmentMapFixture.qm provides an environment-loading retry fixture
+
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+
+module ProviderIndexEnvironmentMapFixture {
+    version = "1.0";
+    desc = "ProviderIndex environment loading retry fixture";
+    author = "Qore Technologies";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+#! Returns one deliberately unavailable provider module
+public hash<string, string> sub get_data_provider_map() {
+    return {
+        "fixture": getenv("QORE_PROVIDER_INDEX_FIXTURE_MODULE")
+            ?? "ProviderIndexMissingProviderFixture",
+    };
+}

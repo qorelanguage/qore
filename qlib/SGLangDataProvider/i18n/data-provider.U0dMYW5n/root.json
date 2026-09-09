@@ -363,6 +363,118 @@
           "source": "The conversation history as a list of message objects.  Each message has a `role` (`system`, `user`, `assistant`, or `tool`) and `content` (text).\n\n**Typical patterns**:\n- Single user turn: `[{role: \"user\", content: \"...\"}]`\n- With system prompt: `[{role: \"system\", content: \"...\"}, {role: \"user\", content: \"...\"}]`\n- Multi-turn: include prior `assistant` messages to preserve context\n- Tool calling: `assistant` messages carry `tool_calls`; `tool` messages return results keyed by `tool_call_id`",
           "message": "The conversation history as a list of message objects.  Each message has a `role` (`system`, `user`, `assistant`, or `tool`) and `content` (text).\n\n**Typical patterns**:\n- Single user turn: `[{role: \"user\", content: \"...\"}]`\n- With system prompt: `[{role: \"system\", content: \"...\"}, {role: \"user\", content: \"...\"}]`\n- Multi-turn: include prior `assistant` messages to preserve context\n- Tool calling: `assistant` messages carry `tool_calls`; `tool` messages return results keyed by `tool_call_id`"
         },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.Y29udGVudA.display_name": {
+          "source": "Content",
+          "message": "Content"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.Y29udGVudA.short_desc": {
+          "source": "The text content of the message",
+          "message": "The text content of the message"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.Y29udGVudA.desc": {
+          "source": "The text content of the message.  May be `NOTHING` on assistant messages that only contain `tool_calls`.",
+          "message": "The text content of the message.  May be `NOTHING` on assistant messages that only contain `tool_calls`."
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.bmFtZQ.display_name": {
+          "source": "Author Name",
+          "message": "Author Name"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.bmFtZQ.short_desc": {
+          "source": "Optional name of the author",
+          "message": "Optional name of the author"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.bmFtZQ.desc": {
+          "source": "Optional name identifying the specific author of the message.  May be used with `user` or `tool` roles to distinguish multiple participants.",
+          "message": "Optional name identifying the specific author of the message.  May be used with `user` or `tool` roles to distinguish multiple participants."
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.short_desc": {
+          "source": "The role of the message author",
+          "message": "The role of the message author"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.desc": {
+          "source": "The role of the author of this message.  Determines how the message is interpreted by the model.\n\n- `system` — high-level instructions and persona for the assistant\n- `user` — input from the end user\n- `assistant` — previous model output (used for multi-turn conversations)\n- `tool` — result returned by a tool invocation (paired with a `tool_call_id`)",
+          "message": "The role of the author of this message.  Determines how the message is interpreted by the model.\n\n- `system` — high-level instructions and persona for the assistant\n- `user` — input from the end user\n- `assistant` — previous model output (used for multi-turn conversations)\n- `tool` — result returned by a tool invocation (paired with a `tool_call_id`)"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnN5c3RlbQ.display_name": {
+          "source": "System - instructions and persona",
+          "message": "System - instructions and persona"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User - end-user input",
+          "message": "User - end-user input"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOmFzc2lzdGFudA.display_name": {
+          "source": "Assistant - previous model output",
+          "message": "Assistant - previous model output"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.cm9sZQ.allowed-value.c3RyaW5nOnRvb2w.display_name": {
+          "source": "Tool - tool invocation result",
+          "message": "Tool - tool invocation result"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxsX2lk.display_name": {
+          "source": "Tool Call ID",
+          "message": "Tool Call ID"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxsX2lk.short_desc": {
+          "source": "ID of the tool call this message responds to",
+          "message": "ID of the tool call this message responds to"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxsX2lk.desc": {
+          "source": "Required when `role` is `tool` — identifies which of the preceding assistant message's `tool_calls` this message is returning the result for.",
+          "message": "Required when `role` is `tool` — identifies which of the preceding assistant message's `tool_calls` this message is returning the result for."
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxscw.display_name": {
+          "source": "Tool Calls",
+          "message": "Tool Calls"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxscw.short_desc": {
+          "source": "Tool invocations emitted by the assistant",
+          "message": "Tool invocations emitted by the assistant"
+        },
+        "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bWVzc2FnZXM.field.dG9vbF9jYWxscw.desc": {
+          "source": "List of tool calls emitted by the assistant.  Present only on assistant messages that chose to invoke a tool.",
+          "message": "List of tool calls emitted by the assistant.  Present only on assistant messages that chose to invoke a tool."
+        },
+        "app.U0dMYW5n.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1OlNHTGFuZ0NoYXRUb29sQ2FsbERhdGFUeXBlOmhhc2g8YXV0bz4jNjFhODM3YWJkNTZhMWQzMjMyMDU3NTJhNGM2ZGY3MzRkNGU4Y2ZkYWYyMmRjMDBkZWM5MDQ3Y2ViMTQ4YWUwYjpvcHRpb246YldWemMyRm5aWE06ZmllbGQ6ZEc5dmJGOWpZV3hzY3c.field.ZnVuY3Rpb24.display_name": {
+          "source": "Function Call",
+          "message": "Function Call"
+        },
+        "app.U0dMYW5n.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1OlNHTGFuZ0NoYXRUb29sQ2FsbERhdGFUeXBlOmhhc2g8YXV0bz4jNjFhODM3YWJkNTZhMWQzMjMyMDU3NTJhNGM2ZGY3MzRkNGU4Y2ZkYWYyMmRjMDBkZWM5MDQ3Y2ViMTQ4YWUwYjpvcHRpb246YldWemMyRm5aWE06ZmllbGQ6ZEc5dmJGOWpZV3hzY3c.field.ZnVuY3Rpb24.short_desc": {
+          "source": "Function name and JSON-encoded arguments",
+          "message": "Function name and JSON-encoded arguments"
+        },
+        "app.U0dMYW5n.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1OlNHTGFuZ0NoYXRUb29sQ2FsbERhdGFUeXBlOmhhc2g8YXV0bz4jNjFhODM3YWJkNTZhMWQzMjMyMDU3NTJhNGM2ZGY3MzRkNGU4Y2ZkYWYyMmRjMDBkZWM5MDQ3Y2ViMTQ4YWUwYjpvcHRpb246YldWemMyRm5aWE06ZmllbGQ6ZEc5dmJGOWpZV3hzY3c.field.ZnVuY3Rpb24.desc": {
+          "source": "Hash with `name` (string) and `arguments` (JSON-encoded string) describing the function the model wants to invoke.",
+          "message": "Hash with `name` (string) and `arguments` (JSON-encoded string) describing the function the model wants to invoke."
+        },
+        "app.U0dMYW5n.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1OlNHTGFuZ0NoYXRUb29sQ2FsbERhdGFUeXBlOmhhc2g8YXV0bz4jNjFhODM3YWJkNTZhMWQzMjMyMDU3NTJhNGM2ZGY3MzRkNGU4Y2ZkYWYyMmRjMDBkZWM5MDQ3Y2ViMTQ4YWUwYjpvcHRpb246YldWemMyRm5aWE06ZmllbGQ6ZEc5dmJGOWpZV3hzY3c.field.aWQ.display_name": {
+          "source": "Tool Call ID",
+          "message": "Tool Call ID"
+        },
+        "app.U0dMYW5n.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1OlNHTGFuZ0NoYXRUb29sQ2FsbERhdGFUeXBlOmhhc2g8YXV0bz4jNjFhODM3YWJkNTZhMWQzMjMyMDU3NTJhNGM2ZGY3MzRkNGU4Y2ZkYWYyMmRjMDBkZWM5MDQ3Y2ViMTQ4YWUwYjpvcHRpb246YldWemMyRm5aWE06ZmllbGQ6ZEc5dmJGOWpZV3hzY3c.field.aWQ.short_desc": {
+          "source": "Unique identifier for the tool call",
+          "message": "Unique identifier for the tool call"
+        },
+        "app.U0dMYW5n.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1OlNHTGFuZ0NoYXRUb29sQ2FsbERhdGFUeXBlOmhhc2g8YXV0bz4jNjFhODM3YWJkNTZhMWQzMjMyMDU3NTJhNGM2ZGY3MzRkNGU4Y2ZkYWYyMmRjMDBkZWM5MDQ3Y2ViMTQ4YWUwYjpvcHRpb246YldWemMyRm5aWE06ZmllbGQ6ZEc5dmJGOWpZV3hzY3c.field.aWQ.desc": {
+          "source": "Unique identifier for this tool call.  The same `id` must be echoed back in the corresponding `tool` role message that returns the tool's result.",
+          "message": "Unique identifier for this tool call.  The same `id` must be echoed back in the corresponding `tool` role message that returns the tool's result."
+        },
+        "app.U0dMYW5n.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1OlNHTGFuZ0NoYXRUb29sQ2FsbERhdGFUeXBlOmhhc2g8YXV0bz4jNjFhODM3YWJkNTZhMWQzMjMyMDU3NTJhNGM2ZGY3MzRkNGU4Y2ZkYWYyMmRjMDBkZWM5MDQ3Y2ViMTQ4YWUwYjpvcHRpb246YldWemMyRm5aWE06ZmllbGQ6ZEc5dmJGOWpZV3hzY3c.field.dHlwZQ.display_name": {
+          "source": "Tool Type",
+          "message": "Tool Type"
+        },
+        "app.U0dMYW5n.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1OlNHTGFuZ0NoYXRUb29sQ2FsbERhdGFUeXBlOmhhc2g8YXV0bz4jNjFhODM3YWJkNTZhMWQzMjMyMDU3NTJhNGM2ZGY3MzRkNGU4Y2ZkYWYyMmRjMDBkZWM5MDQ3Y2ViMTQ4YWUwYjpvcHRpb246YldWemMyRm5aWE06ZmllbGQ6ZEc5dmJGOWpZV3hzY3c.field.dHlwZQ.short_desc": {
+          "source": "Type of tool invoked",
+          "message": "Type of tool invoked"
+        },
+        "app.U0dMYW5n.type.YWN0aW9uOlkyaGhkQzFqYjIxd2JHVjBhVzl1OlNHTGFuZ0NoYXRUb29sQ2FsbERhdGFUeXBlOmhhc2g8YXV0bz4jNjFhODM3YWJkNTZhMWQzMjMyMDU3NTJhNGM2ZGY3MzRkNGU4Y2ZkYWYyMmRjMDBkZWM5MDQ3Y2ViMTQ4YWUwYjpvcHRpb246YldWemMyRm5aWE06ZmllbGQ6ZEc5dmJGOWpZV3hzY3c.field.dHlwZQ.desc": {
+          "source": "Type of tool invoked.  Currently `function` is the only supported type for OpenAI-compatible tool calling.",
+          "message": "Type of tool invoked.  Currently `function` is the only supported type for OpenAI-compatible tool calling."
+        },
         "app.U0dMYW5n.action.Y2hhdC1jb21wbGV0aW9u.option.bW9kZWw.display_name": {
           "source": "Model",
           "message": "Model"

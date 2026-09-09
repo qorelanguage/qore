@@ -3,17 +3,653 @@
   "locales": {
     "cs": {
       "messages": {
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.desc": {
-          "source": "Create an API key for a project to authenticate Data Plane and Control Plane requests.\n\n**Save the key:** the API returns the new key only when it is created. Use it with a separate Pinecone database connection.",
-          "message": "Vytvořte klíč API pro projekt pro ověřování požadavků datové roviny a řídicí roviny.\n\n**Uložit klíč:** API vrátí nový klíč pouze při jeho vytvoření. Použijte jej se samostatným připojením k databázi Pinecone."
+        "app.UGluZWNvbmVBZG1pbg.display_name": {
+          "source": "Pinecone Admin",
+          "message": "Správce šišky"
+        },
+        "app.UGluZWNvbmVBZG1pbg.short_desc": {
+          "source": "Provision Pinecone projects and manage organization access",
+          "message": "Poskytování projektů Pinecone a správa přístupu organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.desc": {
+          "source": "Automate organization administration in [Pinecone](https://www.pinecone.io).\n\n**Administration tasks**:\n- Create and configure projects for teams and workloads\n- Issue and revoke project API keys\n- Manage service accounts and rotate their credentials\n- Assign roles, invite users, and manage organization access\n\n**Connection**: Uses a **Pinecone Admin** service-account connection with OAuth2 client credentials. Use the **Pinecone** application with a project API key for indexes and records.",
+          "message": "Automatizujte správu organizace v [Pinecone] (https://www.pinecone.io).\n\n**Administrativní úkoly**:\n- Vytvářejte a konfigurujte projekty pro týmy a pracovní zátěže\n- Vydávat a odvolávat klíče API projektu\n- Spravujte servisní účty a střídejte jejich přihlašovací údaje\n- Přidělujte role, zvěte uživatele a spravujte přístup organizace\n\n**Připojení**: Používá připojení účtu služby **Pinecone Admin** s přihlašovacími údaji klienta OAuth2. Pro indexy a záznamy použijte aplikaci **Pinecone** s klíčem API projektu."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.display_name": {
+          "source": "Make an API call",
+          "message": "Provést volání API"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.short_desc": {
+          "source": "Make a custom API call to Pinecone Admin",
+          "message": "Proveďte vlastní volání API pro správce Pinecone"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.desc": {
+          "source": "Make a custom HTTP / REST API call to **Pinecone Admin** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
+          "message": "Proveďte vlastní volání HTTP / REST API na **Pinecone Admin** pomocí ověření nakonfigurovaného připojení.\n\nZadejte metodu HTTP, cestu URI (vzhledem k základní adrese URL rozhraní API připojení), volitelné parametry dotazu, záhlaví a tělo požadavku. Odpověď je vrácena jako hash obsahující stavový kód, hlavičky odpovědi a tělo odpovědi.\n\nTuto akci použijte pro koncové body, které v této aplikaci ještě nejsou vystaveny jako prvotřídní akce."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.display_name": {
+          "source": "HTTP Method",
+          "message": "Metoda HTTP"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.short_desc": {
+          "source": "The HTTP method to use for the request",
+          "message": "Metoda HTTP, která se má použít pro požadavek"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.desc": {
+          "source": "The HTTP method to use for the request",
+          "message": "Metoda HTTP, která se má použít pro požadavek"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.display_name": {
+          "source": "GET",
+          "message": "GET"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.short_desc": {
+          "source": "HTTP GET",
+          "message": "HTTP GET"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.desc": {
+          "source": "HTTP `GET`",
+          "message": "HTTP `GET`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.display_name": {
+          "source": "POST",
+          "message": "POST"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.short_desc": {
+          "source": "HTTP POST",
+          "message": "HTTP POST"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.desc": {
+          "source": "HTTP `POST`",
+          "message": "HTTP `POST`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.display_name": {
+          "source": "PUT",
+          "message": "PUT"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.short_desc": {
+          "source": "HTTP PUT",
+          "message": "HTTP PUT"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.desc": {
+          "source": "HTTP `PUT`",
+          "message": "HTTP `PUT`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.display_name": {
+          "source": "PATCH",
+          "message": "PATCH"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.short_desc": {
+          "source": "HTTP PATCH",
+          "message": "HTTP PATCH"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.desc": {
+          "source": "HTTP `PATCH`",
+          "message": "HTTP `PATCH`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.display_name": {
+          "source": "DELETE",
+          "message": "DELETE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.short_desc": {
+          "source": "HTTP DELETE",
+          "message": "HTTP DELETE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.desc": {
+          "source": "HTTP `DELETE`",
+          "message": "HTTP `DELETE`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.display_name": {
+          "source": "HEAD",
+          "message": "HEAD"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.short_desc": {
+          "source": "HTTP HEAD",
+          "message": "HTTP HEAD"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.desc": {
+          "source": "HTTP `HEAD`",
+          "message": "HTTP `HEAD`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.display_name": {
+          "source": "OPTIONS",
+          "message": "OPTIONS"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.short_desc": {
+          "source": "HTTP OPTIONS",
+          "message": "HTTP OPTIONS"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.desc": {
+          "source": "HTTP `OPTIONS`",
+          "message": "HTTP `OPTIONS`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.display_name": {
+          "source": "TRACE",
+          "message": "TRACE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.short_desc": {
+          "source": "HTTP TRACE",
+          "message": "HTTP TRACE"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.desc": {
+          "source": "HTTP `TRACE`",
+          "message": "HTTP `TRACE`"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.display_name": {
+          "source": "URI Path",
+          "message": "Cesta URI"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.short_desc": {
+          "source": "The URI path relative to the connection's API base URL",
+          "message": "Cesta URI relativní vůči základní URL API připojení"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.desc": {
+          "source": "The URI path relative to the connection's API base URL. May contain `{name}` placeholders that are replaced from `path_vars`. Example: `/users/{id}/comments`.",
+          "message": "Cesta URI relativní k základní adrese URL API připojení. Může obsahovat zástupné symboly `{name}`, které jsou nahrazeny z `path_vars`. Příklad: `/users/{id}/comments`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.display_name": {
+          "source": "Body Type",
+          "message": "Typ těla"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.short_desc": {
+          "source": "How the body is serialized and what Content-Type is sent",
+          "message": "Jak je tělo serializováno a jaký Content-Type je odeslán"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.desc": {
+          "source": "Selects the body serialization mode and the corresponding `Content-Type` header. Changing this field reshapes the `body` editor - selecting JSON exposes a JSON editor, selecting Multipart Form exposes a file picker, and so on.",
+          "message": "Vybírá režim serializace těla a odpovídající záhlaví `Content-Type`. Změna tohoto pole upraví editor `body` – výběrem JSON se zobrazí editor JSON, výběrem Multipart Form se zobrazí výběr souboru a podobně."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Auto",
+          "message": "Automaticky"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Pass-through; use connection serialization and let the REST client decide",
+          "message": "Přímé předání; použít serializaci připojení a nechat rozhodnout REST klienta"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Pass the body to the REST client unchanged; the client decides serialization based on its configured `data` option and the value type",
+          "message": "Předat tělo klientovi REST beze změny; klient rozhodne o serializaci na základě své nakonfigurované možnosti `data` a typu hodnoty"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.short_desc": {
+          "source": "Serialize body as JSON",
+          "message": "Serializovat tělo jako JSON"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.desc": {
+          "source": "Serialize the body as JSON; sets `Content-Type: application/json`. The body should be a hash, list, or scalar value.",
+          "message": "Serializovat tělo jako JSON; nastavuje `Content-Type: application/json`. Tělo by mělo být hash, seznam nebo skalární hodnota."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.display_name": {
+          "source": "Form (URL-encoded)",
+          "message": "Formulář (URL-encoded)"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.short_desc": {
+          "source": "Serialize body as application/x-www-form-urlencoded form fields",
+          "message": "Serializovat tělo jako formulářová pole application/x-www-form-urlencoded"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.desc": {
+          "source": "Serialize a hash of form fields as `application/x-www-form-urlencoded`. The body must be a hash whose values are scalars (strings/numbers/booleans).",
+          "message": "Serializovat hash formulářových polí jako `application/x-www-form-urlencoded`. Tělo musí být hash, jehož hodnotami jsou skaláry (řetězce/čísla/booleovské hodnoty)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.display_name": {
+          "source": "Multipart Form",
+          "message": "Multipart Form"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.short_desc": {
+          "source": "Upload a file using multipart/form-data",
+          "message": "Nahrát soubor pomocí multipart/form-data"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.desc": {
+          "source": "Upload a file using `multipart/form-data`. The body must be a @ref DataProvider::FileDataType \"FileDataType\" structure (filename + content + mime_type). The framework builds the multipart envelope and sets the boundary header.",
+          "message": "Nahrát soubor pomocí `multipart/form-data`. Tělo musí být struktura @ref DataProvider::FileDataType \"FileDataType\" (filename + content + mime_type). Framework vytvoří obálku multipart a nastaví záhlaví boundary."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.display_name": {
+          "source": "XML",
+          "message": "XML"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.short_desc": {
+          "source": "Send body as XML",
+          "message": "Odeslat tělo jako XML"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.desc": {
+          "source": "Send the body as XML. If the body is a hash it is serialized to XML; if it is a string it is sent verbatim. Sets `Content-Type: application/xml`.",
+          "message": "Odeslat tělo jako XML. Pokud je tělo hash, serializuje se do XML; pokud je to řetězec, odešle se doslovně. Nastavuje `Content-Type: application/xml`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.display_name": {
+          "source": "YAML",
+          "message": "YAML"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.short_desc": {
+          "source": "Send body as YAML",
+          "message": "Odeslat tělo jako YAML"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.desc": {
+          "source": "Send the body as YAML. If the body is a hash it is serialized to YAML; if it is a string it is sent verbatim. Sets `Content-Type: application/x-yaml`.",
+          "message": "Odeslat tělo jako YAML. Pokud je tělo hash, serializuje se do YAML; pokud je to řetězec, odešle se doslovně. Nastavuje `Content-Type: application/x-yaml`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Plain Text",
+          "message": "Čistý text"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Send body as text/plain",
+          "message": "Odeslat tělo jako text/plain"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Send the body as plain text. The body must be a string. Sets `Content-Type: text/plain`.",
+          "message": "Odeslat tělo jako prostý text. Tělo musí být řetězec. Nastavuje `Content-Type: text/plain`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
+          "source": "Raw Binary",
+          "message": "Surová binární data"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.short_desc": {
+          "source": "Send body as raw bytes",
+          "message": "Odeslat tělo jako surové bajty"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.desc": {
+          "source": "Send the body as raw bytes. The body must be a binary value. Sets `Content-Type: application/octet-stream` unless overridden by `hdr`.",
+          "message": "Odeslat tělo jako surové bajty. Tělo musí být binární hodnota. Nastavuje `Content-Type: application/octet-stream`, pokud není přepsáno `hdr`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.display_name": {
+          "source": "Body",
+          "message": "Tělo"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.short_desc": {
+          "source": "The request body",
+          "message": "Tělo požadavku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.desc": {
+          "source": "The request body. The effective type depends on `body_type`: JSON/form/YAML expect a hash, XML/text expect a string, multipart expects a file structure, binary expects raw bytes.",
+          "message": "Tělo požadavku. Efektivní typ závisí na `body_type`: JSON/form/YAML očekávají hash, XML/text očekávají řetězec, multipart očekává strukturu souboru, binary očekává surové bajty."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.display_name": {
+          "source": "Path Variables",
+          "message": "Proměnné cesty"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.short_desc": {
+          "source": "Values for {name} placeholders in path",
+          "message": "Hodnoty pro zástupné symboly {name} v cestě"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.desc": {
+          "source": "Hash of values substituted into `{name}` placeholders in the URI path. Example: with `path = /users/{id}` and `path_vars = {id: 123}` the framework sends `/users/123`. Values are URL-encoded.",
+          "message": "Haš hodnot nahrazených za zástupné symboly `{name}` v cestě URI. Příklad: s `path = /users/{id}` a `path_vars = {id: 123}` rozhraní odesílá `/users/123`. Hodnoty jsou kódovány v URL."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.display_name": {
+          "source": "Query Arguments",
+          "message": "Argumenty dotazu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.short_desc": {
+          "source": "Query string parameters",
+          "message": "Parametry dotazovacího řetězce"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.desc": {
+          "source": "Hash of query string parameters to append to the URI path. Values are URL-encoded; list values are joined with `,`.",
+          "message": "Haš parametrů dotazovacího řetězce, které se připojí k cestě URI. Hodnoty jsou kódovány v URL; hodnoty seznamu jsou spojeny pomocí `,`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.display_name": {
+          "source": "Custom Headers",
+          "message": "Vlastní záhlaví"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.short_desc": {
+          "source": "Extra request headers",
+          "message": "Dodatečná záhlaví požadavku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.desc": {
+          "source": "Hash of custom headers added to the request. These override any default headers set by `body_type` (e.g. supplying `Content-Type` here wins over the body-type default).",
+          "message": "Hash vlastních záhlaví přidaných k požadavku. Tyto přepisují jakákoli výchozí záhlaví nastavená `body_type` (např. zadání `Content-Type` zde má přednost před výchozím nastavením typu těla)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.display_name": {
+          "source": "Expected Status Codes",
+          "message": "Očekávané stavové kódy"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.short_desc": {
+          "source": "Response status codes treated as success",
+          "message": "Stavové kódy odpovědi považované za úspěch"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.desc": {
+          "source": "Optional list of HTTP status codes treated as success. If set and the response status is not in this list, the action throws `REST-STATUS-ERROR`. When unset, the REST client's default behavior applies (typically: 2xx is success, non-2xx throws).",
+          "message": "Volitelný seznam stavových kódů HTTP považovaných za úspěch. Je-li nastaven a stav odpovědi není v tomto seznamu, akce vyvolá `REST-STATUS-ERROR`. Pokud není nastaven, uplatní se výchozí chování klienta REST (obvykle: 2xx je úspěch, jiné než 2xx vyvolá výjimku)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.display_name": {
+          "source": "Return Errors as Data",
+          "message": "Vracet chyby jako data"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.short_desc": {
+          "source": "Return non-2xx responses normally instead of throwing",
+          "message": "Vracet odpovědi jiné než 2xx normálně namísto vyvolání výjimky"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.desc": {
+          "source": "If `True`, non-2xx HTTP responses return as the normal response hash (with the actual status code) instead of raising `REST-RESPONSE-ERROR`. Useful for handling 4xx/5xx as data - e.g. checking whether a resource exists. Overrides the connection's `error_passthru` setting for this call only.",
+          "message": "Pokud je `True`, odpovědi HTTP jiné než 2xx se vrátí jako běžný hash odpovědi (s reálným stavovým kódem) namísto vyvolání `REST-RESPONSE-ERROR`. Užitečné pro zpracování 4xx/5xx jako dat – např. kontrola, zda prostředek existuje. Přepisuje nastavení `error_passthru` připojení pouze pro toto volání."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.display_name": {
+          "source": "Include Debug Info",
+          "message": "Zahrnout ladicí informace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.short_desc": {
+          "source": "Include request/timing/size debug info in the response",
+          "message": "Zahrnout do odpovědi ladicí informace o požadavku/časování/velikosti"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.desc": {
+          "source": "If `True`, the response hash includes a `debug` sub-hash containing the request method/URL/headers (with sensitive values redacted), request and response sizes, and round-trip duration. Useful when investigating slow or failing calls. Off by default to keep responses lean.",
+          "message": "Pokud je `True`, hash odpovědi obsahuje pod-hash `debug` obsahující metodu/URL/záhlaví požadavku (s cenzurovanými citlivými hodnotami), velikosti požadavku a odpovědi a dobu trvání. Užitečné při zkoumání pomalých nebo selhávajících volání. Ve výchozím nastavení vypnuto pro zachování kompaktních odpovědí."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.display_name": {
+          "source": "List Projects",
+          "message": "Seznam projektů"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.short_desc": {
+          "source": "List projects",
+          "message": "Seznam projektů"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.desc": {
+          "source": "List all projects in an organization.",
+          "message": "Seznam všech projektů v organizaci."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.display_name": {
+          "source": "Create Project",
+          "message": "Vytvořit projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.short_desc": {
+          "source": "Create a new project",
+          "message": "Vytvořit nový projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.desc": {
+          "source": "Create a project to separate a team or workload's indexes, API keys, and deployment settings.",
+          "message": "Vytvořte projekt pro oddělení indexů týmu nebo pracovní zátěže, klíčů API a nastavení nasazení."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Název"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "Název"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.desc": {
+          "source": "The name of the new project.",
+          "message": "Název nového projektu."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.display_name": {
+          "source": "Max Pods",
+          "message": "Max Pods"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.short_desc": {
+          "source": "Max Pods",
+          "message": "Max Pods"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.desc": {
+          "source": "The maximum number of Pods that can be created in the project. Default is `0` (serverless only).",
+          "message": "Maximální počet modulů, které lze v projektu vytvořit. Výchozí hodnota je `0` (pouze bez serveru)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.display_name": {
+          "source": "Force Encryption With CMEK",
+          "message": "Vynutit šifrování pomocí CMEK"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.short_desc": {
+          "source": "Force Encryption With CMEK",
+          "message": "Vynutit šifrování pomocí CMEK"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.desc": {
+          "source": "Whether to force encryption with a customer-managed encryption key (CMEK). Default is `false`.",
+          "message": "Zda vynutit šifrování pomocí šifrovacího klíče spravovaného zákazníkem (CMEK). Výchozí hodnota je `false`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.display_name": {
+          "source": "List Organizations",
+          "message": "Vypsat organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.short_desc": {
+          "source": "List organizations",
+          "message": "Seznam organizací"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.desc": {
+          "source": "List all organizations associated with an account.",
+          "message": "Seznam všech organizací přidružených k účtu."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.display_name": {
+          "source": "Get Project",
+          "message": "Získat projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.short_desc": {
+          "source": "Get project details",
+          "message": "Získat podrobnosti projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.desc": {
+          "source": "Read a project's configuration before changing deployment limits or encryption settings.",
+          "message": "Před změnou limitů nasazení nebo nastavení šifrování si přečtěte konfiguraci projektu."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "ID projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "ID projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "ID projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.display_name": {
+          "source": "Delete Project",
+          "message": "Smazat projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.short_desc": {
+          "source": "Delete a project",
+          "message": "Smazat projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.desc": {
+          "source": "Delete a project and all its configuration; delete its indexes, assistants, backups, and collections first.",
+          "message": "Smazat projekt a celou jeho konfiguraci; nejprve odstraňte jeho indexy, asistenty, zálohy a kolekce."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "ID projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "ID projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "ID projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.display_name": {
+          "source": "Update Project",
+          "message": "Aktualizovat projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.short_desc": {
+          "source": "Update a project",
+          "message": "Aktualizujte projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.desc": {
+          "source": "Adjust a project's name, pod limit, or customer-managed encryption settings as its workload changes.",
+          "message": "Upravte název projektu, limit pod nebo nastavení šifrování spravovaného zákazníkem podle toho, jak se mění jeho pracovní zátěž."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "ID projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "ID projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "ID projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Název"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "Název"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.desc": {
+          "source": "The name of the new project.",
+          "message": "Název nového projektu."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.display_name": {
+          "source": "Max Pods",
+          "message": "Max Pods"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.short_desc": {
+          "source": "Max Pods",
+          "message": "Max Pods"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.desc": {
+          "source": "The maximum number of Pods that can be created in the project.",
+          "message": "Maximální počet modulů, které lze v projektu vytvořit."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.display_name": {
+          "source": "Force Encryption With CMEK",
+          "message": "Vynutit šifrování pomocí CMEK"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.short_desc": {
+          "source": "Force Encryption With CMEK",
+          "message": "Vynutit šifrování pomocí CMEK"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.desc": {
+          "source": "Whether to force encryption with a customer-managed encryption key (CMEK). Once enabled, CMEK encryption cannot be disabled.",
+          "message": "Zda vynutit šifrování pomocí šifrovacího klíče spravovaného zákazníkem (CMEK). Po aktivaci nelze šifrování CMEK deaktivovat."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Get Organization",
+          "message": "Získat organizaci"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.short_desc": {
+          "source": "Get organization details",
+          "message": "Získejte podrobnosti o organizaci"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.desc": {
+          "source": "Read an organization's configuration to review its plan and administrative settings.",
+          "message": "Přečtěte si konfiguraci organizace a zkontrolujte její plán a nastavení správy."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
+          "source": "Organization ID",
+          "message": "ID organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
+          "source": "Organization ID",
+          "message": "ID organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
+          "source": "Organization ID",
+          "message": "ID organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Delete Organization",
+          "message": "Smazat organizaci"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.short_desc": {
+          "source": "Delete an organization",
+          "message": "Smazat organizaci"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.desc": {
+          "source": "Delete an organization and all its configuration; delete all its projects first.",
+          "message": "Odstranit organizaci a celou její konfiguraci; nejprve smažte všechny jeho projekty."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
+          "source": "Organization ID",
+          "message": "ID organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
+          "source": "Organization ID",
+          "message": "ID organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
+          "source": "Organization ID",
+          "message": "ID organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Update Organization",
+          "message": "Aktualizovat organizaci"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.short_desc": {
+          "source": "Update an organization",
+          "message": "Aktualizujte organizaci"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.desc": {
+          "source": "Rename an organization so its display name matches the business or team it serves.",
+          "message": "Přejmenujte organizaci tak, aby její zobrazovaný název odpovídal firmě nebo týmu, kterému slouží."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
+          "source": "Organization ID",
+          "message": "ID organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
+          "source": "Organization ID",
+          "message": "ID organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
+          "source": "Organization ID",
+          "message": "ID organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Název"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "Název"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.desc": {
+          "source": "The new name for the organization.",
+          "message": "Nový název organizace."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.display_name": {
+          "source": "List Project API Keys",
+          "message": "Seznam klíčů API projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.short_desc": {
+          "source": "List API keys",
+          "message": "Seznam klíčů API"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.desc": {
+          "source": "List all API keys in a project.",
+          "message": "Seznam všech klíčů API v projektu."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "ID projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "ID projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "ID projektu"
         },
         "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.display_name": {
           "source": "Create API Key",
           "message": "Vytvořit klíč API"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.bmFtZQ.desc": {
-          "source": "The name of the API key. The name must be 1-80 characters long.",
-          "message": "Název klíče API. Název musí mít 1–80 znaků."
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.short_desc": {
+          "source": "Create an API key",
+          "message": "Vytvořte klíč API"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.desc": {
+          "source": "Create an API key for a project to authenticate Data Plane and Control Plane requests.\n\n**Save the key:** the API returns the new key only when it is created. Use it with a separate Pinecone database connection.",
+          "message": "Vytvořte klíč API pro projekt pro ověřování požadavků datové roviny a řídicí roviny.\n\n**Uložit klíč:** API vrátí nový klíč pouze při jeho vytvoření. Použijte jej se samostatným připojením k databázi Pinecone."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.display_name": {
+          "source": "Project ID",
+          "message": "ID projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.short_desc": {
+          "source": "Project ID",
+          "message": "ID projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.desc": {
+          "source": "Project ID",
+          "message": "ID projektu"
         },
         "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.bmFtZQ.display_name": {
           "source": "Name",
@@ -23,17 +659,29 @@
           "source": "Name",
           "message": "Název"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.desc": {
-          "source": "Project ID",
-          "message": "ID projektu"
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.bmFtZQ.desc": {
+          "source": "The name of the API key. The name must be 1-80 characters long.",
+          "message": "Název klíče API. Název musí mít 1–80 znaků."
         },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.display_name": {
-          "source": "Project ID",
-          "message": "ID projektu"
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.display_name": {
+          "source": "Roles",
+          "message": "Role"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cHJvamVjdF9pZA.short_desc": {
-          "source": "Project ID",
-          "message": "ID projektu"
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.short_desc": {
+          "source": "Roles",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.desc": {
+          "source": "The roles to create the API key with. Default is `[\"ProjectEditor\"]`.",
+          "message": "Role, se kterými se má vytvořit klíč API. Výchozí hodnota je `[\"ProjectEditor\"]`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "Editor projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "Prohlížeč projektů"
         },
         "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
           "source": "Control Plane Editor",
@@ -51,333 +699,17 @@
           "source": "Data Plane Viewer",
           "message": "Prohlížeč datové roviny"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
-          "source": "Project Editor",
-          "message": "Editor projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
-          "source": "Project Viewer",
-          "message": "Prohlížeč projektů"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.desc": {
-          "source": "The roles to create the API key with. Default is `[\"ProjectEditor\"]`.",
-          "message": "Role, se kterými se má vytvořit klíč API. Výchozí hodnota je `[\"ProjectEditor\"]`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.display_name": {
-          "source": "Roles",
-          "message": "Role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.option.cm9sZXM.short_desc": {
-          "source": "Roles",
-          "message": "Role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWFwaS1rZXk.short_desc": {
-          "source": "Create an API key",
-          "message": "Vytvořte klíč API"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.desc": {
-          "source": "Invite a user to the organization by email and grant their initial role bindings.\n\n**Sends email:** delivers an invitation to the specified address.",
-          "message": "Pozvěte uživatele do organizace e-mailem a udělte mu počáteční vazby role.\n\n**Pošle e-mail:** doručí pozvánku na zadanou adresu."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.display_name": {
-          "source": "Create Invite",
-          "message": "Vytvořit pozvánku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.desc": {
-          "source": "The email address to invite.",
-          "message": "E-mailová adresa, kterou chcete pozvat."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.display_name": {
-          "source": "Email",
-          "message": "E-mail"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.short_desc": {
-          "source": "Email",
-          "message": "E-mail"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.desc": {
-          "source": "Role bindings for the invitee. Must include at least one `organization`-scoped binding that grants organization membership (`OrgOwner`, `OrgManager`, `OrgBillingAdmin`, or `OrgMember`); `project`-scoped bindings are optional. Not returned in the response.",
-          "message": "Vazby rolí pro pozvaného. Musí obsahovat alespoň jednu vazbu v rozsahu `organization`, která uděluje členství v organizaci (`OrgOwner`, `OrgManager`, `OrgBillingAdmin` nebo `OrgMember`); Vazby s rozsahem `project` jsou volitelné. Nevráceno v odpovědi."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.display_name": {
-          "source": "Role Bindings",
-          "message": "Vazby rolí"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.short_desc": {
-          "source": "Role Bindings",
-          "message": "Vazby rolí"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.short_desc": {
-          "source": "Invite a user to the organization",
-          "message": "Pozvěte uživatele do organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.desc": {
-          "source": "Create a project to separate a team or workload's indexes, API keys, and deployment settings.",
-          "message": "Vytvořte projekt pro oddělení indexů týmu nebo pracovní zátěže, klíčů API a nastavení nasazení."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.display_name": {
-          "source": "Create Project",
-          "message": "Vytvořit projekt"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.desc": {
-          "source": "Whether to force encryption with a customer-managed encryption key (CMEK). Default is `false`.",
-          "message": "Zda vynutit šifrování pomocí šifrovacího klíče spravovaného zákazníkem (CMEK). Výchozí hodnota je `false`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.display_name": {
-          "source": "Force Encryption With CMEK",
-          "message": "Vynutit šifrování pomocí CMEK"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.short_desc": {
-          "source": "Force Encryption With CMEK",
-          "message": "Vynutit šifrování pomocí CMEK"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.desc": {
-          "source": "The maximum number of Pods that can be created in the project. Default is `0` (serverless only).",
-          "message": "Maximální počet modulů, které lze v projektu vytvořit. Výchozí hodnota je `0` (pouze bez serveru)."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.display_name": {
-          "source": "Max Pods",
-          "message": "Max Pods"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bWF4X3BvZHM.short_desc": {
-          "source": "Max Pods",
-          "message": "Max Pods"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.desc": {
-          "source": "The name of the new project.",
-          "message": "Název nového projektu."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.display_name": {
-          "source": "Name",
-          "message": "Název"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.option.bmFtZQ.short_desc": {
-          "source": "Name",
-          "message": "Název"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXByb2plY3Q.short_desc": {
-          "source": "Create a new project",
-          "message": "Vytvořit nový projekt"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.desc": {
-          "source": "Grant a user or service account the role it needs at organization or project scope.",
-          "message": "Přidělte uživatelskému účtu nebo účtu služby roli, kterou potřebuje v rámci organizace nebo projektu."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.display_name": {
-          "source": "Create Role Binding",
-          "message": "Vytvořte vazbu role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.desc": {
-          "source": "The resource ID of the selected `principal_type`, from **List Users**, **List Service Accounts**, **List Project API Keys**, or **List Invites**. For a service account use its `id`, not its OAuth2 `client_id`.",
-          "message": "ID zdroje vybraného `principal_type` z **Seznam uživatelů**, **Seznam servisních účtů**, **Seznam klíčů API projektu** nebo **Seznam pozvánek**. Pro servisní účet použijte jeho `id`, nikoli jeho OAuth2 `client_id`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.display_name": {
-          "source": "Principal ID",
-          "message": "Hlavní ID"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.short_desc": {
-          "source": "Principal ID",
-          "message": "Hlavní ID"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmFwaV9rZXk.display_name": {
-          "source": "API Key",
-          "message": "Klíč API"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmludml0ZQ.display_name": {
-          "source": "Invite",
-          "message": "Pozvat"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnNlcnZpY2VfYWNjb3VudA.display_name": {
-          "source": "Service Account",
-          "message": "Servisní účet"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnVzZXI.display_name": {
-          "source": "User",
-          "message": "Uživatel"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.desc": {
-          "source": "The kind of principal that receives permissions from a role binding.\nPossible values: `user`, `service_account`, `api_key`, `invite`.",
-          "message": "Druh principála, který přijímá oprávnění z vazby role.\nMožné hodnoty: `user`, `service_account`, `api_key`, `invite`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.display_name": {
-          "source": "Principal Type",
-          "message": "Hlavní typ"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.short_desc": {
-          "source": "Principal Type",
-          "message": "Hlavní typ"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
-          "source": "Organization Manager",
-          "message": "Manažer organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
-          "source": "Organization Member",
-          "message": "Člen organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
-          "source": "Organization Owner",
-          "message": "Vlastník organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
-          "source": "Organization Billing Admin",
-          "message": "Správce fakturace organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
-          "source": "Control Plane Editor",
-          "message": "Editor řídicí roviny"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
-          "source": "Control Plane Viewer",
-          "message": "Prohlížeč Control Plane Viewer"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
-          "source": "Data Plane Editor",
-          "message": "Editor datové roviny"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
-          "source": "Data Plane Viewer",
-          "message": "Prohlížeč datové roviny"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
-          "source": "Project Editor",
-          "message": "Editor projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
-          "source": "Project Manager",
-          "message": "projektový manažer"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
-          "source": "Project Member",
-          "message": "Člen projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
-          "source": "Project Owner",
-          "message": "Vlastník projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
-          "source": "Project Viewer",
-          "message": "Prohlížeč projektů"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.desc": {
-          "source": "A role assigned to a principal at a resource scope.",
-          "message": "Role přiřazená principálovi v oboru zdrojů."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.display_name": {
-          "source": "Role",
-          "message": "Role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.short_desc": {
-          "source": "Role",
-          "message": "Role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.desc": {
-          "source": "Project UUID. Required when `resource_type` is `project`; omit for `organization` scope.",
-          "message": "UUID projektu. Vyžaduje se, když `resource_type` je `project`; vynechat pro rozsah `organization`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.display_name": {
-          "source": "Resource ID",
-          "message": "ID prostředku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.short_desc": {
-          "source": "Resource ID",
-          "message": "ID prostředku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
-          "source": "Organization",
-          "message": "Organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
-          "source": "Project",
-          "message": "Projekt"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.desc": {
-          "source": "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`.",
-          "message": "Druh rozsahu prostředků, na který se vztahuje vazba role.\nMožné hodnoty: `organization`, `project`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.display_name": {
-          "source": "Resource Type",
-          "message": "Typ prostředku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.short_desc": {
-          "source": "Resource Type",
-          "message": "Typ prostředku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.short_desc": {
-          "source": "Create a role binding",
-          "message": "Vytvořte vazbu role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
-          "source": "Create a service account for automated workflows, optionally assigning its initial roles.\n\n**Save the secret:** `client_secret` is returned only once and cannot be read again.",
-          "message": "Vytvořte servisní účet pro automatizované pracovní postupy, volitelně s přiřazením jeho počátečních rolí.\n\n**Uložte tajemství:** `client_secret` se vrátí pouze jednou a nelze jej znovu přečíst."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
-          "source": "Create Service Account",
-          "message": "Vytvořit servisní účet"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.desc": {
-          "source": "The human-readable name of the service account.",
-          "message": "Lidsky čitelný název servisního účtu."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.display_name": {
-          "source": "Name",
-          "message": "Název"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.short_desc": {
-          "source": "Name",
-          "message": "Název"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.desc": {
-          "source": "Optional initial role bindings. Omitting the field or passing an empty array creates the service account with no role bindings; roles can be added later via the role binding endpoints. A service account may be granted any organization- or project-scoped role. Not returned in the response.",
-          "message": "Volitelné vazby počáteční role. Vynecháním pole nebo předáním prázdného pole se vytvoří účet služby bez vazeb rolí; role lze přidat později prostřednictvím koncových bodů vazby role. Servisnímu účtu může být udělena jakákoli role v rámci organizace nebo projektu. Nevráceno v odpovědi."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.display_name": {
-          "source": "Role Bindings",
-          "message": "Vazby rolí"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.short_desc": {
-          "source": "Role Bindings",
-          "message": "Vazby rolí"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
-          "source": "Create a service account",
-          "message": "Vytvořte servisní účet"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.desc": {
-          "source": "Read an organization's configuration to review its plan and administrative settings.",
-          "message": "Přečtěte si konfiguraci organizace a zkontrolujte její plán a nastavení správy."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.display_name": {
-          "source": "Get Organization",
-          "message": "Získat organizaci"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
-          "source": "Organization ID",
-          "message": "ID organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
-          "source": "Organization ID",
-          "message": "ID organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
-          "source": "Organization ID",
-          "message": "ID organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LW9yZ2FuaXphdGlvbg.short_desc": {
-          "source": "Get organization details",
-          "message": "Získejte podrobnosti o organizaci"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.desc": {
-          "source": "Read an API key's configuration and roles to review its access. The response excludes the secret.",
-          "message": "Přečtěte si konfiguraci a role klíče API a zkontrolujte jeho přístup. Odpověď vylučuje tajemství."
-        },
         "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.display_name": {
           "source": "Get API Key",
           "message": "Získejte API klíč"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
-          "source": "API key ID",
-          "message": "ID klíče API"
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.short_desc": {
+          "source": "Get API key details",
+          "message": "Získejte podrobnosti o klíči API"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.desc": {
+          "source": "Read an API key's configuration and roles to review its access. The response excludes the secret.",
+          "message": "Přečtěte si konfiguraci a role klíče API a zkontrolujte jeho přístup. Odpověď vylučuje tajemství."
         },
         "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.option.YXBpX2tleV9pZA.display_name": {
           "source": "API Key ID",
@@ -387,165 +719,21 @@
           "source": "API Key ID",
           "message": "ID klíče API"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.short_desc": {
-          "source": "Get API key details",
-          "message": "Získejte podrobnosti o klíči API"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.desc": {
-          "source": "Read an invitation's details before following up, resending it, or withdrawing access.",
-          "message": "Přečtěte si podrobnosti o pozvánce, než budete reagovat, znovu ji odeslat nebo odebrat přístup."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.display_name": {
-          "source": "Get Invite",
-          "message": "Získejte pozvánku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.desc": {
-          "source": "Invite ID",
-          "message": "ID pozvánky"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.display_name": {
-          "source": "Invite ID",
-          "message": "ID pozvánky"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
-          "source": "Invite ID",
-          "message": "ID pozvánky"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.short_desc": {
-          "source": "Get invite details",
-          "message": "Získejte podrobnosti o pozvánce"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.desc": {
-          "source": "Read a project's configuration before changing deployment limits or encryption settings.",
-          "message": "Před změnou limitů nasazení nebo nastavení šifrování si přečtěte konfiguraci projektu."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.display_name": {
-          "source": "Get Project",
-          "message": "Získat projekt"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
-          "source": "Project ID",
-          "message": "ID projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
-          "source": "Project ID",
-          "message": "ID projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
-          "source": "Project ID",
-          "message": "ID projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXByb2plY3Q.short_desc": {
-          "source": "Get project details",
-          "message": "Získat podrobnosti projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.desc": {
-          "source": "Read a role assignment to check which principal has access to the selected resource.",
-          "message": "Přečtěte si přiřazení role a zjistěte, který principál má přístup k vybranému zdroji."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.display_name": {
-          "source": "Get Role Binding",
-          "message": "Získejte vazbu na roli"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.desc": {
-          "source": "Role binding ID",
-          "message": "ID vazby role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.display_name": {
-          "source": "Role Binding ID",
-          "message": "ID vazby role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.short_desc": {
-          "source": "Role Binding ID",
-          "message": "ID vazby role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.short_desc": {
-          "source": "Get role binding details",
-          "message": "Získejte podrobnosti o vazbě rolí"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.desc": {
-          "source": "Read a service account's details to review an integration's identity. Its secret is available only when created or rotated.",
-          "message": "Přečtěte si podrobnosti servisního účtu a zkontrolujte identitu integrace. Jeho tajemství je dostupné pouze při vytvoření nebo otočení."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.display_name": {
-          "source": "Get Service Account",
-          "message": "Získejte servisní účet"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
-          "source": "The unique identifier of the service account.",
-          "message": "Jedinečný identifikátor servisního účtu."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
-          "source": "Service Account ID",
-          "message": "ID servisního účtu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
-          "source": "Service Account ID",
-          "message": "ID servisního účtu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.short_desc": {
-          "source": "Get service account details",
-          "message": "Získejte podrobnosti o servisním účtu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.desc": {
-          "source": "Read a team member's organization details before reviewing their access or removing membership.",
-          "message": "Před kontrolou přístupu nebo odebráním členství si přečtěte podrobnosti o organizaci člena týmu."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.display_name": {
-          "source": "Get User",
-          "message": "Získat uživatele"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.desc": {
-          "source": "User ID",
-          "message": "ID uživatele"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.display_name": {
-          "source": "User ID",
-          "message": "ID uživatele"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.short_desc": {
-          "source": "User ID",
-          "message": "ID uživatele"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.short_desc": {
-          "source": "Get user details",
-          "message": "Získejte podrobnosti o uživateli"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.desc": {
-          "source": "Delete an organization and all its configuration; delete all its projects first.",
-          "message": "Odstranit organizaci a celou její konfiguraci; nejprve smažte všechny jeho projekty."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.display_name": {
-          "source": "Delete Organization",
-          "message": "Smazat organizaci"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
-          "source": "Organization ID",
-          "message": "ID organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
-          "source": "Organization ID",
-          "message": "ID organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
-          "source": "Organization ID",
-          "message": "ID organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLW9yZ2FuaXphdGlvbg.short_desc": {
-          "source": "Delete an organization",
-          "message": "Smazat organizaci"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.desc": {
-          "source": "Revoke a project API key when an integration is retired or its credentials must be replaced.",
-          "message": "Zrušte klíč API projektu, když je integrace vyřazena nebo musí být nahrazena její pověření."
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
+          "source": "API key ID",
+          "message": "ID klíče API"
         },
         "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.display_name": {
           "source": "Delete API Key",
           "message": "Smazat klíč API"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
-          "source": "API key ID",
-          "message": "ID klíče API"
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.short_desc": {
+          "source": "Delete an API key",
+          "message": "Odstraňte klíč API"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.desc": {
+          "source": "Revoke a project API key when an integration is retired or its credentials must be replaced.",
+          "message": "Zrušte klíč API projektu, když je integrace vyřazena nebo musí být nahrazena její pověření."
         },
         "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.display_name": {
           "source": "API Key ID",
@@ -555,889 +743,21 @@
           "source": "API Key ID",
           "message": "ID klíče API"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.short_desc": {
-          "source": "Delete an API key",
-          "message": "Odstraňte klíč API"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.desc": {
-          "source": "Delete a pending or expired invite and its role bindings; to remove an accepted user, delete the user instead.",
-          "message": "Odstranit nevyřízenou nebo vypršenou pozvánku a její vazby rolí; chcete-li odebrat přijatého uživatele, smažte místo toho uživatele."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.display_name": {
-          "source": "Delete Invite",
-          "message": "Smazat pozvánku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.desc": {
-          "source": "Invite ID",
-          "message": "ID pozvánky"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.display_name": {
-          "source": "Invite ID",
-          "message": "ID pozvánky"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
-          "source": "Invite ID",
-          "message": "ID pozvánky"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.short_desc": {
-          "source": "Delete an invite",
-          "message": "Smazat pozvánku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.desc": {
-          "source": "Delete a project and all its configuration; delete its indexes, assistants, backups, and collections first.",
-          "message": "Smazat projekt a celou jeho konfiguraci; nejprve odstraňte jeho indexy, asistenty, zálohy a kolekce."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.display_name": {
-          "source": "Delete Project",
-          "message": "Smazat projekt"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
-          "source": "Project ID",
-          "message": "ID projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
-          "source": "Project ID",
-          "message": "ID projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
-          "source": "Project ID",
-          "message": "ID projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXByb2plY3Q.short_desc": {
-          "source": "Delete a project",
-          "message": "Smazat projekt"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.desc": {
-          "source": "Remove a role assignment when access is no longer needed. Permissions are revoked when deletion completes.",
-          "message": "Odeberte přiřazení role, když již není potřeba přístup. Po dokončení mazání jsou oprávnění odvolána."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.display_name": {
-          "source": "Delete Role Binding",
-          "message": "Odstranit vazbu role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.desc": {
-          "source": "Role binding ID",
-          "message": "ID vazby role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.display_name": {
-          "source": "Role Binding ID",
-          "message": "ID vazby role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.short_desc": {
-          "source": "Role Binding ID",
-          "message": "ID vazby role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.short_desc": {
-          "source": "Delete a role binding",
-          "message": "Odstraňte vazbu role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
-          "source": "Delete a service account and its role bindings; tokens it minted are revoked within a few seconds.",
-          "message": "Odstranit účet služby a jeho vazby rolí; žetony, které razil, jsou během několika sekund odvolány."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
-          "source": "Delete Service Account",
-          "message": "Smazat servisní účet"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
-          "source": "The unique identifier of the service account.",
-          "message": "Jedinečný identifikátor servisního účtu."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
-          "source": "Service Account ID",
-          "message": "ID servisního účtu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
-          "source": "Service Account ID",
-          "message": "ID servisního účtu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
-          "source": "Delete a service account",
-          "message": "Smazat servisní účet"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.desc": {
-          "source": "Remove a user from the organization and revoke their role bindings; their Pinecone account is not deleted.",
-          "message": "Odebrat uživatele z organizace a zrušit jeho vazby rolí; jejich účet Pinecone nebude smazán."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.display_name": {
-          "source": "Delete User",
-          "message": "Smazat uživatele"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.desc": {
-          "source": "User ID",
-          "message": "ID uživatele"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.display_name": {
-          "source": "User ID",
-          "message": "ID uživatele"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.short_desc": {
-          "source": "User ID",
-          "message": "ID uživatele"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.short_desc": {
-          "source": "Remove a user from the organization",
-          "message": "Odebrat uživatele z organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.desc": {
-          "source": "List users in the caller's organization, optionally filtered by email address.",
-          "message": "Seznam uživatelů v organizaci volajícího, volitelně filtrovaný podle e-mailové adresy."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.display_name": {
-          "source": "List Users",
-          "message": "Seznam uživatelů"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.desc": {
-          "source": "Case-insensitive filter on the user's email address. Malformed email returns `400 INVALID_ARGUMENT`.",
-          "message": "Filtr nerozlišující malá a velká písmena na e-mailové adrese uživatele. Chybný e-mail vrací `400 INVALID_ARGUMENT`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.display_name": {
-          "source": "Email",
-          "message": "E-mail"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.short_desc": {
-          "source": "Email",
-          "message": "E-mail"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.desc": {
-          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
-          "message": "Počet výsledků, které se mají vrátit na stránku. Pokud je vynechán, výchozí hodnota serveru je 100. Hodnoty mimo rozsah vrátí `400 OUT_OF_RANGE`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.display_name": {
-          "source": "Limit",
-          "message": "Limit"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.short_desc": {
-          "source": "Limit",
-          "message": "Limit"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.desc": {
-          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
-          "message": "Kurzor od `pagination.next` předchozí odpovědi. Musí být znovu použit se stejným kontextem dotazu (parametry cesty, filtry a `limit`)."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.display_name": {
-          "source": "Pagination Token",
-          "message": "Stránkovací token"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
-          "source": "Pagination Token",
-          "message": "Stránkovací token"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.short_desc": {
-          "source": "List users in the organization",
-          "message": "Seznam uživatelů v organizaci"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.desc": {
-          "source": "List pending and expired invites in the caller's organization.",
-          "message": "Seznam nevyřízených a vypršelých pozvánek v organizaci volajícího."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.display_name": {
-          "source": "List Invites",
-          "message": "Seznam pozvánek"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.desc": {
-          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
-          "message": "Počet výsledků, které se mají vrátit na stránku. Pokud je vynechán, výchozí hodnota serveru je 100. Hodnoty mimo rozsah vrátí `400 OUT_OF_RANGE`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.display_name": {
-          "source": "Limit",
-          "message": "Limit"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.short_desc": {
-          "source": "Limit",
-          "message": "Limit"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.desc": {
-          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
-          "message": "Kurzor od `pagination.next` předchozí odpovědi. Musí být znovu použit se stejným kontextem dotazu (parametry cesty, filtry a `limit`)."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
-          "source": "Pagination Token",
-          "message": "Stránkovací token"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
-          "source": "Pagination Token",
-          "message": "Stránkovací token"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.short_desc": {
-          "source": "List invites",
-          "message": "Seznam pozvánek"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.desc": {
-          "source": "List all organizations associated with an account.",
-          "message": "Seznam všech organizací přidružených k účtu."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.display_name": {
-          "source": "List Organizations",
-          "message": "Vypsat organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1vcmdhbml6YXRpb25z.short_desc": {
-          "source": "List organizations",
-          "message": "Seznam organizací"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.desc": {
-          "source": "List all API keys in a project.",
-          "message": "Seznam všech klíčů API v projektu."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.display_name": {
-          "source": "List Project API Keys",
-          "message": "Seznam klíčů API projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.desc": {
-          "source": "Project ID",
-          "message": "ID projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.display_name": {
-          "source": "Project ID",
-          "message": "ID projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.option.cHJvamVjdF9pZA.short_desc": {
-          "source": "Project ID",
-          "message": "ID projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0LWFwaS1rZXlz.short_desc": {
-          "source": "List API keys",
-          "message": "Seznam klíčů API"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.desc": {
-          "source": "List all projects in an organization.",
-          "message": "Seznam všech projektů v organizaci."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.display_name": {
-          "source": "List Projects",
-          "message": "Seznam projektů"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1wcm9qZWN0cw.short_desc": {
-          "source": "List projects",
-          "message": "Seznam projektů"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.desc": {
-          "source": "List role bindings in the caller's organization, optionally filtered by principal, resource, and role.",
-          "message": "Seznam vazeb rolí v organizaci volajícího, volitelně filtrovaný podle principála, zdroje a role."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.display_name": {
-          "source": "List Role Bindings",
-          "message": "Seznam vazeb rolí"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.desc": {
-          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
-          "message": "Počet výsledků, které se mají vrátit na stránku. Pokud je vynechán, výchozí hodnota serveru je 100. Hodnoty mimo rozsah vrátí `400 OUT_OF_RANGE`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.display_name": {
-          "source": "Limit",
-          "message": "Limit"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.short_desc": {
-          "source": "Limit",
-          "message": "Limit"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.desc": {
-          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
-          "message": "Kurzor od `pagination.next` předchozí odpovědi. Musí být znovu použit se stejným kontextem dotazu (parametry cesty, filtry a `limit`)."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
-          "source": "Pagination Token",
-          "message": "Stránkovací token"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
-          "source": "Pagination Token",
-          "message": "Stránkovací token"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.desc": {
-          "source": "The resource ID of the selected `principal_type`, from **List Users**, **List Service Accounts**, **List Project API Keys**, or **List Invites**. For a service account use its `id`, not its OAuth2 `client_id`.",
-          "message": "ID zdroje vybraného `principal_type` z **Seznam uživatelů**, **Seznam servisních účtů**, **Seznam klíčů API projektu** nebo **Seznam pozvánek**. Pro servisní účet použijte jeho `id`, nikoli jeho OAuth2 `client_id`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.display_name": {
-          "source": "Principal ID",
-          "message": "Hlavní ID"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.short_desc": {
-          "source": "Principal ID",
-          "message": "Hlavní ID"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmFwaV9rZXk.display_name": {
-          "source": "API Key",
-          "message": "Klíč API"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmludml0ZQ.display_name": {
-          "source": "Invite",
-          "message": "Pozvat"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnNlcnZpY2VfYWNjb3VudA.display_name": {
-          "source": "Service Account",
-          "message": "Servisní účet"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnVzZXI.display_name": {
-          "source": "User",
-          "message": "Uživatel"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.desc": {
-          "source": "Filter by principal type. Required when `principal_id` is set.",
-          "message": "Filtrujte podle hlavního typu. Vyžadováno, když je nastaveno `principal_id`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.display_name": {
-          "source": "Principal Type",
-          "message": "Hlavní typ"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.short_desc": {
-          "source": "Principal Type",
-          "message": "Hlavní typ"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
-          "source": "Organization Manager",
-          "message": "Manažer organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
-          "source": "Organization Member",
-          "message": "Člen organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
-          "source": "Organization Owner",
-          "message": "Vlastník organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
-          "source": "Organization Billing Admin",
-          "message": "Správce fakturace organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
-          "source": "Control Plane Editor",
-          "message": "Editor řídicí roviny"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
-          "source": "Control Plane Viewer",
-          "message": "Prohlížeč Control Plane Viewer"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
-          "source": "Data Plane Editor",
-          "message": "Editor datové roviny"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
-          "source": "Data Plane Viewer",
-          "message": "Prohlížeč datové roviny"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
-          "source": "Project Editor",
-          "message": "Editor projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
-          "source": "Project Manager",
-          "message": "projektový manažer"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
-          "source": "Project Member",
-          "message": "Člen projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
-          "source": "Project Owner",
-          "message": "Vlastník projektu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
-          "source": "Project Viewer",
-          "message": "Prohlížeč projektů"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.desc": {
-          "source": "Filter by role.",
-          "message": "Filtrujte podle role."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.display_name": {
-          "source": "Role",
-          "message": "Role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.short_desc": {
-          "source": "Role",
-          "message": "Role"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.desc": {
-          "source": "Filter by resource ID. Requires `resource_type`.",
-          "message": "Filtrujte podle ID zdroje. Vyžaduje `resource_type`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.display_name": {
-          "source": "Resource ID",
-          "message": "ID prostředku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.short_desc": {
-          "source": "Resource ID",
-          "message": "ID prostředku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
-          "source": "Organization",
-          "message": "Organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
-          "source": "Project",
-          "message": "Projekt"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.desc": {
-          "source": "Filter by resource type. Required when `resource_id` is set.",
-          "message": "Filtrujte podle typu zdroje. Vyžadováno, když je nastaveno `resource_id`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.display_name": {
-          "source": "Resource Type",
-          "message": "Typ prostředku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.short_desc": {
-          "source": "Resource Type",
-          "message": "Typ prostředku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.short_desc": {
-          "source": "List role bindings",
-          "message": "Seznam vazeb rolí"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.desc": {
-          "source": "List service accounts in the caller's organization.",
-          "message": "Seznam servisních účtů v organizaci volajícího."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.display_name": {
-          "source": "List Service Accounts",
-          "message": "Seznam servisních účtů"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.desc": {
-          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
-          "message": "Počet výsledků, které se mají vrátit na stránku. Pokud je vynechán, výchozí hodnota serveru je 100. Hodnoty mimo rozsah vrátí `400 OUT_OF_RANGE`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.display_name": {
-          "source": "Limit",
-          "message": "Limit"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.short_desc": {
-          "source": "Limit",
-          "message": "Limit"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.desc": {
-          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
-          "message": "Kurzor od `pagination.next` předchozí odpovědi. Musí být znovu použit se stejným kontextem dotazu (parametry cesty, filtry a `limit`)."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
-          "source": "Pagination Token",
-          "message": "Stránkovací token"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
-          "source": "Pagination Token",
-          "message": "Stránkovací token"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.short_desc": {
-          "source": "List service accounts",
-          "message": "Seznam servisních účtů"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.desc": {
-          "source": "Make a custom HTTP / REST API call to **Pinecone Admin** using the configured connection's authentication.\n\nSpecify the HTTP method, the URI path (relative to the connection's API base URL), optional query parameters, headers, and request body. The response is returned as a hash containing the status code, response headers, and response body.\n\nUse this action for endpoints that are not yet exposed as first-class actions on this app.",
-          "message": "Proveďte vlastní volání HTTP / REST API na **Pinecone Admin** pomocí ověření nakonfigurovaného připojení.\n\nZadejte metodu HTTP, cestu URI (vzhledem k základní adrese URL rozhraní API připojení), volitelné parametry dotazu, záhlaví a tělo požadavku. Odpověď je vrácena jako hash obsahující stavový kód, hlavičky odpovědi a tělo odpovědi.\n\nTuto akci použijte pro koncové body, které v této aplikaci ještě nejsou vystaveny jako prvotřídní akce."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.display_name": {
-          "source": "Make an API call",
-          "message": "Provést volání API"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.desc": {
-          "source": "The request body. The effective type depends on `body_type`: JSON/form/YAML expect a hash, XML/text expect a string, multipart expects a file structure, binary expects raw bytes.",
-          "message": "Tělo požadavku. Efektivní typ závisí na `body_type`: JSON/form/YAML očekávají hash, XML/text očekávají řetězec, multipart očekává strukturu souboru, binary očekává surové bajty."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.display_name": {
-          "source": "Body",
-          "message": "Tělo"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keQ.short_desc": {
-          "source": "The request body",
-          "message": "Tělo požadavku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.desc": {
-          "source": "Upload a file using `multipart/form-data`. The body must be a @ref DataProvider::FileDataType \"FileDataType\" structure (filename + content + mime_type). The framework builds the multipart envelope and sets the boundary header.",
-          "message": "Nahrát soubor pomocí `multipart/form-data`. Tělo musí být struktura @ref DataProvider::FileDataType \"FileDataType\" (filename + content + mime_type). Framework vytvoří obálku multipart a nastaví záhlaví boundary."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.display_name": {
-          "source": "Multipart Form",
-          "message": "Multipart Form"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOm11bHRpcGFydA.short_desc": {
-          "source": "Upload a file using multipart/form-data",
-          "message": "Nahrát soubor pomocí multipart/form-data"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
-          "source": "Pass the body to the REST client unchanged; the client decides serialization based on its configured `data` option and the value type",
-          "message": "Předat tělo klientovi REST beze změny; klient rozhodne o serializaci na základě své nakonfigurované možnosti `data` a typu hodnoty"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
-          "source": "Auto",
-          "message": "Automaticky"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
-          "source": "Pass-through; use connection serialization and let the REST client decide",
-          "message": "Přímé předání; použít serializaci připojení a nechat rozhodnout REST klienta"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.desc": {
-          "source": "Send the body as raw bytes. The body must be a binary value. Sets `Content-Type: application/octet-stream` unless overridden by `hdr`.",
-          "message": "Odeslat tělo jako surové bajty. Tělo musí být binární hodnota. Nastavuje `Content-Type: application/octet-stream`, pokud není přepsáno `hdr`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.display_name": {
-          "source": "Raw Binary",
-          "message": "Surová binární data"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmJpbmFyeQ.short_desc": {
-          "source": "Send body as raw bytes",
-          "message": "Odeslat tělo jako surové bajty"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.desc": {
-          "source": "Serialize a hash of form fields as `application/x-www-form-urlencoded`. The body must be a hash whose values are scalars (strings/numbers/booleans).",
-          "message": "Serializovat hash formulářových polí jako `application/x-www-form-urlencoded`. Tělo musí být hash, jehož hodnotami jsou skaláry (řetězce/čísla/booleovské hodnoty)."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.display_name": {
-          "source": "Form (URL-encoded)",
-          "message": "Formulář (URL-encoded)"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmZvcm0.short_desc": {
-          "source": "Serialize body as application/x-www-form-urlencoded form fields",
-          "message": "Serializovat tělo jako formulářová pole application/x-www-form-urlencoded"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.desc": {
-          "source": "Serialize the body as JSON; sets `Content-Type: application/json`. The body should be a hash, list, or scalar value.",
-          "message": "Serializovat tělo jako JSON; nastavuje `Content-Type: application/json`. Tělo by mělo být hash, seznam nebo skalární hodnota."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.display_name": {
-          "source": "JSON",
-          "message": "JSON"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOmpzb24.short_desc": {
-          "source": "Serialize body as JSON",
-          "message": "Serializovat tělo jako JSON"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.desc": {
-          "source": "Send the body as plain text. The body must be a string. Sets `Content-Type: text/plain`.",
-          "message": "Odeslat tělo jako prostý text. Tělo musí být řetězec. Nastavuje `Content-Type: text/plain`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.display_name": {
-          "source": "Plain Text",
-          "message": "Čistý text"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
-          "source": "Send body as text/plain",
-          "message": "Odeslat tělo jako text/plain"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.desc": {
-          "source": "Send the body as XML. If the body is a hash it is serialized to XML; if it is a string it is sent verbatim. Sets `Content-Type: application/xml`.",
-          "message": "Odeslat tělo jako XML. Pokud je tělo hash, serializuje se do XML; pokud je to řetězec, odešle se doslovně. Nastavuje `Content-Type: application/xml`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.display_name": {
-          "source": "XML",
-          "message": "XML"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnhtbA.short_desc": {
-          "source": "Send body as XML",
-          "message": "Odeslat tělo jako XML"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.desc": {
-          "source": "Send the body as YAML. If the body is a hash it is serialized to YAML; if it is a string it is sent verbatim. Sets `Content-Type: application/x-yaml`.",
-          "message": "Odeslat tělo jako YAML. Pokud je tělo hash, serializuje se do YAML; pokud je to řetězec, odešle se doslovně. Nastavuje `Content-Type: application/x-yaml`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.display_name": {
-          "source": "YAML",
-          "message": "YAML"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.allowed-value.c3RyaW5nOnlhbWw.short_desc": {
-          "source": "Send body as YAML",
-          "message": "Odeslat tělo jako YAML"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.desc": {
-          "source": "Selects the body serialization mode and the corresponding `Content-Type` header. Changing this field reshapes the `body` editor - selecting JSON exposes a JSON editor, selecting Multipart Form exposes a file picker, and so on.",
-          "message": "Vybírá režim serializace těla a odpovídající záhlaví `Content-Type`. Změna tohoto pole upraví editor `body` – výběrem JSON se zobrazí editor JSON, výběrem Multipart Form se zobrazí výběr souboru a podobně."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.display_name": {
-          "source": "Body Type",
-          "message": "Typ těla"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.Ym9keV90eXBl.short_desc": {
-          "source": "How the body is serialized and what Content-Type is sent",
-          "message": "Jak je tělo serializováno a jaký Content-Type je odeslán"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.desc": {
-          "source": "If `True`, non-2xx HTTP responses return as the normal response hash (with the actual status code) instead of raising `REST-RESPONSE-ERROR`. Useful for handling 4xx/5xx as data - e.g. checking whether a resource exists. Overrides the connection's `error_passthru` setting for this call only.",
-          "message": "Pokud je `True`, odpovědi HTTP jiné než 2xx se vrátí jako běžný hash odpovědi (s reálným stavovým kódem) namísto vyvolání `REST-RESPONSE-ERROR`. Užitečné pro zpracování 4xx/5xx jako dat – např. kontrola, zda prostředek existuje. Přepisuje nastavení `error_passthru` připojení pouze pro toto volání."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.display_name": {
-          "source": "Return Errors as Data",
-          "message": "Vracet chyby jako data"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXJyb3JfcGFzc3RocnU.short_desc": {
-          "source": "Return non-2xx responses normally instead of throwing",
-          "message": "Vracet odpovědi jiné než 2xx normálně namísto vyvolání výjimky"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.desc": {
-          "source": "Optional list of HTTP status codes treated as success. If set and the response status is not in this list, the action throws `REST-STATUS-ERROR`. When unset, the REST client's default behavior applies (typically: 2xx is success, non-2xx throws).",
-          "message": "Volitelný seznam stavových kódů HTTP považovaných za úspěch. Je-li nastaven a stav odpovědi není v tomto seznamu, akce vyvolá `REST-STATUS-ERROR`. Pokud není nastaven, uplatní se výchozí chování klienta REST (obvykle: 2xx je úspěch, jiné než 2xx vyvolá výjimku)."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.display_name": {
-          "source": "Expected Status Codes",
-          "message": "Očekávané stavové kódy"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.ZXhwZWN0ZWRfc3RhdHVz.short_desc": {
-          "source": "Response status codes treated as success",
-          "message": "Stavové kódy odpovědi považované za úspěch"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.desc": {
-          "source": "Hash of custom headers added to the request. These override any default headers set by `body_type` (e.g. supplying `Content-Type` here wins over the body-type default).",
-          "message": "Hash vlastních záhlaví přidaných k požadavku. Tyto přepisují jakákoli výchozí záhlaví nastavená `body_type` (např. zadání `Content-Type` zde má přednost před výchozím nastavením typu těla)."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.display_name": {
-          "source": "Custom Headers",
-          "message": "Vlastní záhlaví"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aGRy.short_desc": {
-          "source": "Extra request headers",
-          "message": "Dodatečná záhlaví požadavku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.desc": {
-          "source": "If `True`, the response hash includes a `debug` sub-hash containing the request method/URL/headers (with sensitive values redacted), request and response sizes, and round-trip duration. Useful when investigating slow or failing calls. Off by default to keep responses lean.",
-          "message": "Pokud je `True`, hash odpovědi obsahuje pod-hash `debug` obsahující metodu/URL/záhlaví požadavku (s cenzurovanými citlivými hodnotami), velikosti požadavku a odpovědi a dobu trvání. Užitečné při zkoumání pomalých nebo selhávajících volání. Ve výchozím nastavení vypnuto pro zachování kompaktních odpovědí."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.display_name": {
-          "source": "Include Debug Info",
-          "message": "Zahrnout ladicí informace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.aW5jbHVkZV9kZWJ1Zw.short_desc": {
-          "source": "Include request/timing/size debug info in the response",
-          "message": "Zahrnout do odpovědi ladicí informace o požadavku/časování/velikosti"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.desc": {
-          "source": "HTTP `OPTIONS`",
-          "message": "HTTP `OPTIONS`"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.display_name": {
-          "source": "OPTIONS",
-          "message": "OPTIONS"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOk9QVElPTlM.short_desc": {
-          "source": "HTTP OPTIONS",
-          "message": "HTTP OPTIONS"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.desc": {
-          "source": "HTTP `DELETE`",
-          "message": "HTTP `DELETE`"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.display_name": {
-          "source": "DELETE",
-          "message": "DELETE"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkRFTEVURQ.short_desc": {
-          "source": "HTTP DELETE",
-          "message": "HTTP DELETE"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.desc": {
-          "source": "HTTP `GET`",
-          "message": "HTTP `GET`"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.display_name": {
-          "source": "GET",
-          "message": "GET"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkdFVA.short_desc": {
-          "source": "HTTP GET",
-          "message": "HTTP GET"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.desc": {
-          "source": "HTTP `HEAD`",
-          "message": "HTTP `HEAD`"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.display_name": {
-          "source": "HEAD",
-          "message": "HEAD"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOkhFQUQ.short_desc": {
-          "source": "HTTP HEAD",
-          "message": "HTTP HEAD"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.desc": {
-          "source": "HTTP `PATCH`",
-          "message": "HTTP `PATCH`"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.display_name": {
-          "source": "PATCH",
-          "message": "PATCH"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBBVENI.short_desc": {
-          "source": "HTTP PATCH",
-          "message": "HTTP PATCH"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.desc": {
-          "source": "HTTP `POST`",
-          "message": "HTTP `POST`"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.display_name": {
-          "source": "POST",
-          "message": "POST"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBPU1Q.short_desc": {
-          "source": "HTTP POST",
-          "message": "HTTP POST"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.desc": {
-          "source": "HTTP `PUT`",
-          "message": "HTTP `PUT`"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.display_name": {
-          "source": "PUT",
-          "message": "PUT"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlBVVA.short_desc": {
-          "source": "HTTP PUT",
-          "message": "HTTP PUT"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.desc": {
-          "source": "HTTP `TRACE`",
-          "message": "HTTP `TRACE`"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.display_name": {
-          "source": "TRACE",
-          "message": "TRACE"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.allowed-value.c3RyaW5nOlRSQUNF.short_desc": {
-          "source": "HTTP TRACE",
-          "message": "HTTP TRACE"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.desc": {
-          "source": "The HTTP method to use for the request",
-          "message": "Metoda HTTP, která se má použít pro požadavek"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.display_name": {
-          "source": "HTTP Method",
-          "message": "Metoda HTTP"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.bWV0aG9k.short_desc": {
-          "source": "The HTTP method to use for the request",
-          "message": "Metoda HTTP, která se má použít pro požadavek"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.desc": {
-          "source": "The URI path relative to the connection's API base URL. May contain `{name}` placeholders that are replaced from `path_vars`. Example: `/users/{id}/comments`.",
-          "message": "Cesta URI relativní k základní adrese URL API připojení. Může obsahovat zástupné symboly `{name}`, které jsou nahrazeny z `path_vars`. Příklad: `/users/{id}/comments`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.display_name": {
-          "source": "URI Path",
-          "message": "Cesta URI"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aA.short_desc": {
-          "source": "The URI path relative to the connection's API base URL",
-          "message": "Cesta URI relativní vůči základní URL API připojení"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.desc": {
-          "source": "Hash of values substituted into `{name}` placeholders in the URI path. Example: with `path = /users/{id}` and `path_vars = {id: 123}` the framework sends `/users/123`. Values are URL-encoded.",
-          "message": "Haš hodnot nahrazených za zástupné symboly `{name}` v cestě URI. Příklad: s `path = /users/{id}` a `path_vars = {id: 123}` rozhraní odesílá `/users/123`. Hodnoty jsou kódovány v URL."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.display_name": {
-          "source": "Path Variables",
-          "message": "Proměnné cesty"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cGF0aF92YXJz.short_desc": {
-          "source": "Values for {name} placeholders in path",
-          "message": "Hodnoty pro zástupné symboly {name} v cestě"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.desc": {
-          "source": "Hash of query string parameters to append to the URI path. Values are URL-encoded; list values are joined with `,`.",
-          "message": "Haš parametrů dotazovacího řetězce, které se připojí k cestě URI. Hodnoty jsou kódovány v URL; hodnoty seznamu jsou spojeny pomocí `,`."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.display_name": {
-          "source": "Query Arguments",
-          "message": "Argumenty dotazu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.option.cXVlcnlfYXJncw.short_desc": {
-          "source": "Query string parameters",
-          "message": "Parametry dotazovacího řetězce"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.bWFrZS1hcGktY2FsbA.short_desc": {
-          "source": "Make a custom API call to Pinecone Admin",
-          "message": "Proveďte vlastní volání API pro správce Pinecone"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.desc": {
-          "source": "Rotate a service account's OAuth client secret; the previous secret and its tokens are revoked within seconds and the new secret is returned only once.\n\n**Save the secret:** store `client_secret` securely when returned; it cannot be read again. Update the connections that use this service account after rotation.",
-          "message": "Otočit tajný klíč klienta OAuth servisního účtu; předchozí tajemství a jeho tokeny jsou během několika sekund odvolány a nové tajemství je vráceno pouze jednou.\n\n**Uložte tajemství:** po vrácení bezpečně uložte `client_secret`; nelze to znovu přečíst. Po otočení aktualizujte připojení, která používají tento účet služby."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.display_name": {
-          "source": "Rotate Service Account Secret",
-          "message": "Otočit tajný servisní účet"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
-          "source": "The unique identifier of the service account.",
-          "message": "Jedinečný identifikátor servisního účtu."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
-          "source": "Service Account ID",
-          "message": "ID servisního účtu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
-          "source": "Service Account ID",
-          "message": "ID servisního účtu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.short_desc": {
-          "source": "Rotate a service account's OAuth client secret",
-          "message": "Otočte tajný klíč klienta OAuth servisního účtu"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.desc": {
-          "source": "Resend the invite email and extend its expiration to 7 days from now; limited to 100 emails per hour per organization.\n\n**Sends email:** delivers another invitation and renews its expiry.",
-          "message": "Znovu odešlete e-mail s pozvánkou a prodlužte jeho platnost na 7 dní ode dneška; omezeno na 100 e-mailů za hodinu na organizaci.\n\n**Pošle e-mail:** doručí další pozvánku a obnoví její platnost."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.display_name": {
-          "source": "Resend Invite",
-          "message": "Znovu odeslat pozvánku"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.desc": {
-          "source": "Invite ID",
-          "message": "ID pozvánky"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.display_name": {
-          "source": "Invite ID",
-          "message": "ID pozvánky"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
-          "source": "Invite ID",
-          "message": "ID pozvánky"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.short_desc": {
-          "source": "Resend an invite email",
-          "message": "Znovu odeslat e-mail s pozvánkou"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.desc": {
-          "source": "Rename an organization so its display name matches the business or team it serves.",
-          "message": "Přejmenujte organizaci tak, aby její zobrazovaný název odpovídal firmě nebo týmu, kterému slouží."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.display_name": {
-          "source": "Update Organization",
-          "message": "Aktualizovat organizaci"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.desc": {
-          "source": "Organization ID",
-          "message": "ID organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.display_name": {
-          "source": "Organization ID",
-          "message": "ID organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.b3JnYW5pemF0aW9uX2lk.short_desc": {
-          "source": "Organization ID",
-          "message": "ID organizace"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.desc": {
-          "source": "The new name for the organization.",
-          "message": "Nový název organizace."
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.display_name": {
-          "source": "Name",
-          "message": "Název"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.option.bmFtZQ.short_desc": {
-          "source": "Name",
-          "message": "Název"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLW9yZ2FuaXphdGlvbg.short_desc": {
-          "source": "Update an organization",
-          "message": "Aktualizujte organizaci"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.desc": {
-          "source": "Change an API key's name or roles to keep its access aligned with the integration it serves.",
-          "message": "Změňte název nebo role klíče API, aby byl jeho přístup v souladu s integrací, kterou obsluhuje."
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
+          "source": "API key ID",
+          "message": "ID klíče API"
         },
         "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.display_name": {
           "source": "Update API Key",
           "message": "Aktualizovat klíč API"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
-          "source": "API key ID",
-          "message": "ID klíče API"
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.short_desc": {
+          "source": "Update an API key",
+          "message": "Aktualizujte klíč API"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.desc": {
+          "source": "Change an API key's name or roles to keep its access aligned with the integration it serves.",
+          "message": "Změňte název nebo role klíče API, aby byl jeho přístup v souladu s integrací, kterou obsluhuje."
         },
         "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.display_name": {
           "source": "API Key ID",
@@ -1447,9 +767,9 @@
           "source": "API Key ID",
           "message": "ID klíče API"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.bmFtZQ.desc": {
-          "source": "A new name for the API key. The name must be 1-80 characters long. If omitted, the name will not be updated.",
-          "message": "Nový název pro klíč API. Název musí mít 1–80 znaků. Pokud je vynechán, název nebude aktualizován."
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.YXBpX2tleV9pZA.desc": {
+          "source": "API key ID",
+          "message": "ID klíče API"
         },
         "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.bmFtZQ.display_name": {
           "source": "Name",
@@ -1458,6 +778,30 @@
         "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.bmFtZQ.short_desc": {
           "source": "Name",
           "message": "Název"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.bmFtZQ.desc": {
+          "source": "A new name for the API key. The name must be 1-80 characters long. If omitted, the name will not be updated.",
+          "message": "Nový název pro klíč API. Název musí mít 1–80 znaků. Pokud je vynechán, název nebude aktualizován."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.display_name": {
+          "source": "Roles",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.short_desc": {
+          "source": "Roles",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.desc": {
+          "source": "A new set of roles for the API key. Existing roles will be removed if not included.\nIf this field is omitted, the roles will not be updated.",
+          "message": "Nová sada rolí pro klíč API. Pokud stávající role nebudou zahrnuty, budou odebrány.\nPokud je toto pole vynecháno, role nebudou aktualizovány."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "Editor projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "Prohlížeč projektů"
         },
         "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
           "source": "Control Plane Editor",
@@ -1475,113 +819,569 @@
           "source": "Data Plane Viewer",
           "message": "Prohlížeč datové roviny"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.display_name": {
+          "source": "List Users",
+          "message": "Seznam uživatelů"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.short_desc": {
+          "source": "List users in the organization",
+          "message": "Seznam uživatelů v organizaci"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.desc": {
+          "source": "List users in the caller's organization, optionally filtered by email address.",
+          "message": "Seznam uživatelů v organizaci volajícího, volitelně filtrovaný podle e-mailové adresy."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "E-mail"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.short_desc": {
+          "source": "Email",
+          "message": "E-mail"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.ZW1haWw.desc": {
+          "source": "Case-insensitive filter on the user's email address. Malformed email returns `400 INVALID_ARGUMENT`.",
+          "message": "Filtr nerozlišující malá a velká písmena na e-mailové adrese uživatele. Chybný e-mail vrací `400 INVALID_ARGUMENT`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "Počet výsledků, které se mají vrátit na stránku. Pokud je vynechán, výchozí hodnota serveru je 100. Hodnoty mimo rozsah vrátí `400 OUT_OF_RANGE`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "Stránkovací token"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "Stránkovací token"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC11c2Vycw.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "Kurzor od `pagination.next` předchozí odpovědi. Musí být znovu použit se stejným kontextem dotazu (parametry cesty, filtry a `limit`)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.display_name": {
+          "source": "Get User",
+          "message": "Získat uživatele"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.short_desc": {
+          "source": "Get user details",
+          "message": "Získejte podrobnosti o uživateli"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.desc": {
+          "source": "Read a team member's organization details before reviewing their access or removing membership.",
+          "message": "Před kontrolou přístupu nebo odebráním členství si přečtěte podrobnosti o organizaci člena týmu."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.display_name": {
+          "source": "User ID",
+          "message": "ID uživatele"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.short_desc": {
+          "source": "User ID",
+          "message": "ID uživatele"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXVzZXI.option.dXNlcl9pZA.desc": {
+          "source": "User ID",
+          "message": "ID uživatele"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.display_name": {
+          "source": "Delete User",
+          "message": "Smazat uživatele"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.short_desc": {
+          "source": "Remove a user from the organization",
+          "message": "Odebrat uživatele z organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.desc": {
+          "source": "Remove a user from the organization and revoke their role bindings; their Pinecone account is not deleted.",
+          "message": "Odebrat uživatele z organizace a zrušit jeho vazby rolí; jejich účet Pinecone nebude smazán."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.display_name": {
+          "source": "User ID",
+          "message": "ID uživatele"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.short_desc": {
+          "source": "User ID",
+          "message": "ID uživatele"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXVzZXI.option.dXNlcl9pZA.desc": {
+          "source": "User ID",
+          "message": "ID uživatele"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.display_name": {
+          "source": "List Invites",
+          "message": "Seznam pozvánek"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.short_desc": {
+          "source": "List invites",
+          "message": "Seznam pozvánek"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.desc": {
+          "source": "List pending and expired invites in the caller's organization.",
+          "message": "Seznam nevyřízených a vypršelých pozvánek v organizaci volajícího."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "Počet výsledků, které se mají vrátit na stránku. Pokud je vynechán, výchozí hodnota serveru je 100. Hodnoty mimo rozsah vrátí `400 OUT_OF_RANGE`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "Stránkovací token"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "Stránkovací token"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1pbnZpdGVz.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "Kurzor od `pagination.next` předchozí odpovědi. Musí být znovu použit se stejným kontextem dotazu (parametry cesty, filtry a `limit`)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.display_name": {
+          "source": "Create Invite",
+          "message": "Vytvořit pozvánku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.short_desc": {
+          "source": "Invite a user to the organization",
+          "message": "Pozvěte uživatele do organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.desc": {
+          "source": "Invite a user to the organization by email and grant their initial role bindings.\n\n**Sends email:** delivers an invitation to the specified address.",
+          "message": "Pozvěte uživatele do organizace e-mailem a udělte mu počáteční vazby role.\n\n**Pošle e-mail:** doručí pozvánku na zadanou adresu."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.display_name": {
+          "source": "Email",
+          "message": "E-mail"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.short_desc": {
+          "source": "Email",
+          "message": "E-mail"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.ZW1haWw.desc": {
+          "source": "The email address to invite.",
+          "message": "E-mailová adresa, kterou chcete pozvat."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.display_name": {
+          "source": "Role Bindings",
+          "message": "Vazby rolí"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.short_desc": {
+          "source": "Role Bindings",
+          "message": "Vazby rolí"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.desc": {
+          "source": "Role bindings for the invitee. Must include at least one `organization`-scoped binding that grants organization membership (`OrgOwner`, `OrgManager`, `OrgBillingAdmin`, or `OrgMember`); `project`-scoped bindings are optional. Not returned in the response.",
+          "message": "Vazby rolí pro pozvaného. Musí obsahovat alespoň jednu vazbu v rozsahu `organization`, která uděluje členství v organizaci (`OrgOwner`, `OrgManager`, `OrgBillingAdmin` nebo `OrgMember`); Vazby s rozsahem `project` jsou volitelné. Nevráceno v odpovědi."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfaWQ.display_name": {
+          "source": "Resource ID",
+          "message": "ID prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfaWQ.short_desc": {
+          "source": "Resource ID",
+          "message": "ID prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfaWQ.desc": {
+          "source": "Project UUID. Required when `resource_type` is `project`; omit for `organization` scope.",
+          "message": "UUID projektu. Vyžaduje se, když `resource_type` je `project`; vynechat pro rozsah `organization`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.display_name": {
+          "source": "Resource Type",
+          "message": "Typ prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.short_desc": {
+          "source": "Resource Type",
+          "message": "Typ prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.desc": {
+          "source": "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`.",
+          "message": "Druh rozsahu prostředků, na který se vztahuje vazba role.\nMožné hodnoty: `organization`, `project`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Organization",
+          "message": "Organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.short_desc": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.desc": {
+          "source": "A role assigned to a principal at a resource scope.",
+          "message": "Role přiřazená principálovi v oboru zdrojů."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
+          "source": "Organization Owner",
+          "message": "Vlastník organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
+          "source": "Organization Manager",
+          "message": "Manažer organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
+          "source": "Organization Member",
+          "message": "Člen organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
+          "source": "Organization Billing Admin",
+          "message": "Správce fakturace organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
+          "source": "Project Owner",
+          "message": "Vlastník projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
+          "source": "Project Manager",
+          "message": "projektový manažer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
+          "source": "Project Member",
+          "message": "Člen projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
           "source": "Project Editor",
           "message": "Editor projektu"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
           "source": "Project Viewer",
           "message": "Prohlížeč projektů"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.desc": {
-          "source": "A new set of roles for the API key. Existing roles will be removed if not included.\nIf this field is omitted, the roles will not be updated.",
-          "message": "Nová sada rolí pro klíč API. Pokud stávající role nebudou zahrnuty, budou odebrány.\nPokud je toto pole vynecháno, role nebudou aktualizovány."
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "Editor řídicí roviny"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.display_name": {
-          "source": "Roles",
-          "message": "Role"
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "Prohlížeč Control Plane Viewer"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.option.cm9sZXM.short_desc": {
-          "source": "Roles",
-          "message": "Role"
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "Editor datové roviny"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLWFwaS1rZXk.short_desc": {
-          "source": "Update an API key",
-          "message": "Aktualizujte klíč API"
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLWludml0ZQ.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "Prohlížeč datové roviny"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.desc": {
-          "source": "Adjust a project's name, pod limit, or customer-managed encryption settings as its workload changes.",
-          "message": "Upravte název projektu, limit pod nebo nastavení šifrování spravovaného zákazníkem podle toho, jak se mění jeho pracovní zátěž."
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.display_name": {
+          "source": "Get Invite",
+          "message": "Získejte pozvánku"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.display_name": {
-          "source": "Update Project",
-          "message": "Aktualizovat projekt"
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.short_desc": {
+          "source": "Get invite details",
+          "message": "Získejte podrobnosti o pozvánce"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.desc": {
-          "source": "Whether to force encryption with a customer-managed encryption key (CMEK). Once enabled, CMEK encryption cannot be disabled.",
-          "message": "Zda vynutit šifrování pomocí šifrovacího klíče spravovaného zákazníkem (CMEK). Po aktivaci nelze šifrování CMEK deaktivovat."
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.desc": {
+          "source": "Read an invitation's details before following up, resending it, or withdrawing access.",
+          "message": "Přečtěte si podrobnosti o pozvánce, než budete reagovat, znovu ji odeslat nebo odebrat přístup."
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.display_name": {
-          "source": "Force Encryption With CMEK",
-          "message": "Vynutit šifrování pomocí CMEK"
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.display_name": {
+          "source": "Invite ID",
+          "message": "ID pozvánky"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.Zm9yY2VfZW5jcnlwdGlvbl93aXRoX2NtZWs.short_desc": {
-          "source": "Force Encryption With CMEK",
-          "message": "Vynutit šifrování pomocí CMEK"
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
+          "source": "Invite ID",
+          "message": "ID pozvánky"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.desc": {
-          "source": "The maximum number of Pods that can be created in the project.",
-          "message": "Maximální počet modulů, které lze v projektu vytvořit."
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LWludml0ZQ.option.aW52aXRlX2lk.desc": {
+          "source": "Invite ID",
+          "message": "ID pozvánky"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.display_name": {
-          "source": "Max Pods",
-          "message": "Max Pods"
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.display_name": {
+          "source": "Delete Invite",
+          "message": "Smazat pozvánku"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bWF4X3BvZHM.short_desc": {
-          "source": "Max Pods",
-          "message": "Max Pods"
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.short_desc": {
+          "source": "Delete an invite",
+          "message": "Smazat pozvánku"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.desc": {
-          "source": "The name of the new project.",
-          "message": "Název nového projektu."
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.desc": {
+          "source": "Delete a pending or expired invite and its role bindings; to remove an accepted user, delete the user instead.",
+          "message": "Odstranit nevyřízenou nebo vypršenou pozvánku a její vazby rolí; chcete-li odebrat přijatého uživatele, smažte místo toho uživatele."
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.display_name": {
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.display_name": {
+          "source": "Invite ID",
+          "message": "ID pozvánky"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
+          "source": "Invite ID",
+          "message": "ID pozvánky"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLWludml0ZQ.option.aW52aXRlX2lk.desc": {
+          "source": "Invite ID",
+          "message": "ID pozvánky"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.display_name": {
+          "source": "Resend Invite",
+          "message": "Znovu odeslat pozvánku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.short_desc": {
+          "source": "Resend an invite email",
+          "message": "Znovu odeslat e-mail s pozvánkou"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.desc": {
+          "source": "Resend the invite email and extend its expiration to 7 days from now; limited to 100 emails per hour per organization.\n\n**Sends email:** delivers another invitation and renews its expiry.",
+          "message": "Znovu odešlete e-mail s pozvánkou a prodlužte jeho platnost na 7 dní ode dneška; omezeno na 100 e-mailů za hodinu na organizaci.\n\n**Pošle e-mail:** doručí další pozvánku a obnoví její platnost."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.display_name": {
+          "source": "Invite ID",
+          "message": "ID pozvánky"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.short_desc": {
+          "source": "Invite ID",
+          "message": "ID pozvánky"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cmVzZW5kLWludml0ZQ.option.aW52aXRlX2lk.desc": {
+          "source": "Invite ID",
+          "message": "ID pozvánky"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.display_name": {
+          "source": "List Service Accounts",
+          "message": "Seznam servisních účtů"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.short_desc": {
+          "source": "List service accounts",
+          "message": "Seznam servisních účtů"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.desc": {
+          "source": "List service accounts in the caller's organization.",
+          "message": "Seznam servisních účtů v organizaci volajícího."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "Počet výsledků, které se mají vrátit na stránku. Pokud je vynechán, výchozí hodnota serveru je 100. Hodnoty mimo rozsah vrátí `400 OUT_OF_RANGE`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "Stránkovací token"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "Stránkovací token"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1zZXJ2aWNlLWFjY291bnRz.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "Kurzor od `pagination.next` předchozí odpovědi. Musí být znovu použit se stejným kontextem dotazu (parametry cesty, filtry a `limit`)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Create Service Account",
+          "message": "Vytvořit servisní účet"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Create a service account",
+          "message": "Vytvořte servisní účet"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Create a service account for automated workflows, optionally assigning its initial roles.\n\n**Save the secret:** `client_secret` is returned only once and cannot be read again.",
+          "message": "Vytvořte servisní účet pro automatizované pracovní postupy, volitelně s přiřazením jeho počátečních rolí.\n\n**Uložte tajemství:** `client_secret` se vrátí pouze jednou a nelze jej znovu přečíst."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.display_name": {
           "source": "Name",
           "message": "Název"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.bmFtZQ.short_desc": {
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.short_desc": {
           "source": "Name",
           "message": "Název"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.desc": {
-          "source": "Project ID",
-          "message": "ID projektu"
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.desc": {
+          "source": "The human-readable name of the service account.",
+          "message": "Lidsky čitelný název servisního účtu."
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.display_name": {
-          "source": "Project ID",
-          "message": "ID projektu"
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.display_name": {
+          "source": "Role Bindings",
+          "message": "Vazby rolí"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.option.cHJvamVjdF9pZA.short_desc": {
-          "source": "Project ID",
-          "message": "ID projektu"
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.short_desc": {
+          "source": "Role Bindings",
+          "message": "Vazby rolí"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXByb2plY3Q.short_desc": {
-          "source": "Update a project",
-          "message": "Aktualizujte projekt"
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.desc": {
+          "source": "Optional initial role bindings. Omitting the field or passing an empty array creates the service account with no role bindings; roles can be added later via the role binding endpoints. A service account may be granted any organization- or project-scoped role. Not returned in the response.",
+          "message": "Volitelné vazby počáteční role. Vynecháním pole nebo předáním prázdného pole se vytvoří účet služby bez vazeb rolí; role lze přidat později prostřednictvím koncových bodů vazby role. Servisnímu účtu může být udělena jakákoli role v rámci organizace nebo projektu. Nevráceno v odpovědi."
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
-          "source": "Rename a service account to identify the integration it serves. Manage its permissions with the role-binding actions.",
-          "message": "Přejmenujte účet služby a identifikujte integraci, kterou obsluhuje. Spravujte jeho oprávnění pomocí akcí vazby role."
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfaWQ.display_name": {
+          "source": "Resource ID",
+          "message": "ID prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfaWQ.short_desc": {
+          "source": "Resource ID",
+          "message": "ID prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfaWQ.desc": {
+          "source": "Project UUID. Required when `resource_type` is `project`; omit for `organization` scope.",
+          "message": "UUID projektu. Vyžaduje se, když `resource_type` je `project`; vynechat pro rozsah `organization`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.display_name": {
+          "source": "Resource Type",
+          "message": "Typ prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.short_desc": {
+          "source": "Resource Type",
+          "message": "Typ prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.desc": {
+          "source": "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`.",
+          "message": "Druh rozsahu prostředků, na který se vztahuje vazba role.\nMožné hodnoty: `organization`, `project`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Organization",
+          "message": "Organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.short_desc": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.desc": {
+          "source": "A role assigned to a principal at a resource scope.",
+          "message": "Role přiřazená principálovi v oboru zdrojů."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
+          "source": "Organization Owner",
+          "message": "Vlastník organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
+          "source": "Organization Manager",
+          "message": "Manažer organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
+          "source": "Organization Member",
+          "message": "Člen organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
+          "source": "Organization Billing Admin",
+          "message": "Správce fakturace organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
+          "source": "Project Owner",
+          "message": "Vlastník projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
+          "source": "Project Manager",
+          "message": "projektový manažer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
+          "source": "Project Member",
+          "message": "Člen projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "Editor projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "Prohlížeč projektů"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "Editor řídicí roviny"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "Prohlížeč Control Plane Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "Editor datové roviny"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXNlcnZpY2UtYWNjb3VudA.option.cm9sZV9iaW5kaW5ncw.field.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "Prohlížeč datové roviny"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Get Service Account",
+          "message": "Získejte servisní účet"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Get service account details",
+          "message": "Získejte podrobnosti o servisním účtu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Read a service account's details to review an integration's identity. Its secret is available only when created or rotated.",
+          "message": "Přečtěte si podrobnosti servisního účtu a zkontrolujte identitu integrace. Jeho tajemství je dostupné pouze při vytvoření nebo otočení."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "ID servisního účtu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "ID servisního účtu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "Jedinečný identifikátor servisního účtu."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
+          "source": "Delete Service Account",
+          "message": "Smazat servisní účet"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Delete a service account",
+          "message": "Smazat servisní účet"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Delete a service account and its role bindings; tokens it minted are revoked within a few seconds.",
+          "message": "Odstranit účet služby a jeho vazby rolí; žetony, které razil, jsou během několika sekund odvolány."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "ID servisního účtu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "ID servisního účtu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "Jedinečný identifikátor servisního účtu."
         },
         "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.display_name": {
           "source": "Update Service Account",
           "message": "Aktualizovat servisní účet"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.desc": {
-          "source": "A new name for the service account. If omitted, the name is unchanged.",
-          "message": "Nový název servisního účtu. Pokud je vynechán, název se nezmění."
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
+          "source": "Update a service account",
+          "message": "Aktualizujte servisní účet"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.display_name": {
-          "source": "Name",
-          "message": "Název"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.short_desc": {
-          "source": "Name",
-          "message": "Název"
-        },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
-          "source": "The unique identifier of the service account.",
-          "message": "Jedinečný identifikátor servisního účtu."
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.desc": {
+          "source": "Rename a service account to identify the integration it serves. Manage its permissions with the role-binding actions.",
+          "message": "Přejmenujte účet služby a identifikujte integraci, kterou obsluhuje. Spravujte jeho oprávnění pomocí akcí vazby role."
         },
         "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
           "source": "Service Account ID",
@@ -1591,21 +1391,413 @@
           "source": "Service Account ID",
           "message": "ID servisního účtu"
         },
-        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.short_desc": {
-          "source": "Update a service account",
-          "message": "Aktualizujte servisní účet"
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "Jedinečný identifikátor servisního účtu."
         },
-        "app.UGluZWNvbmVBZG1pbg.desc": {
-          "source": "Automate organization administration in [Pinecone](https://www.pinecone.io).\n\n**Administration tasks**:\n- Create and configure projects for teams and workloads\n- Issue and revoke project API keys\n- Manage service accounts and rotate their credentials\n- Assign roles, invite users, and manage organization access\n\n**Connection**: Uses a **Pinecone Admin** service-account connection with OAuth2 client credentials. Use the **Pinecone** application with a project API key for indexes and records.",
-          "message": "Automatizujte správu organizace v [Pinecone] (https://www.pinecone.io).\n\n**Administrativní úkoly**:\n- Vytvářejte a konfigurujte projekty pro týmy a pracovní zátěže\n- Vydávat a odvolávat klíče API projektu\n- Spravujte servisní účty a střídejte jejich přihlašovací údaje\n- Přidělujte role, zvěte uživatele a spravujte přístup organizace\n\n**Připojení**: Používá připojení účtu služby **Pinecone Admin** s přihlašovacími údaji klienta OAuth2. Pro indexy a záznamy použijte aplikaci **Pinecone** s klíčem API projektu."
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Název"
         },
-        "app.UGluZWNvbmVBZG1pbg.display_name": {
-          "source": "Pinecone Admin",
-          "message": "Správce šišky"
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.short_desc": {
+          "source": "Name",
+          "message": "Název"
         },
-        "app.UGluZWNvbmVBZG1pbg.short_desc": {
-          "source": "Provision Pinecone projects and manage organization access",
-          "message": "Poskytování projektů Pinecone a správa přístupu organizace"
+        "app.UGluZWNvbmVBZG1pbg.action.dXBkYXRlLXNlcnZpY2UtYWNjb3VudA.option.bmFtZQ.desc": {
+          "source": "A new name for the service account. If omitted, the name is unchanged.",
+          "message": "Nový název servisního účtu. Pokud je vynechán, název se nezmění."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.display_name": {
+          "source": "Rotate Service Account Secret",
+          "message": "Otočit tajný servisní účet"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.short_desc": {
+          "source": "Rotate a service account's OAuth client secret",
+          "message": "Otočte tajný klíč klienta OAuth servisního účtu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.desc": {
+          "source": "Rotate a service account's OAuth client secret; the previous secret and its tokens are revoked within seconds and the new secret is returned only once.\n\n**Save the secret:** store `client_secret` securely when returned; it cannot be read again. Update the connections that use this service account after rotation.",
+          "message": "Otočit tajný klíč klienta OAuth servisního účtu; předchozí tajemství a jeho tokeny jsou během několika sekund odvolány a nové tajemství je vráceno pouze jednou.\n\n**Uložte tajemství:** po vrácení bezpečně uložte `client_secret`; nelze to znovu přečíst. Po otočení aktualizujte připojení, která používají tento účet služby."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.display_name": {
+          "source": "Service Account ID",
+          "message": "ID servisního účtu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.short_desc": {
+          "source": "Service Account ID",
+          "message": "ID servisního účtu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.cm90YXRlLXNlcnZpY2UtYWNjb3VudC1zZWNyZXQ.option.c2VydmljZV9hY2NvdW50X2lk.desc": {
+          "source": "The unique identifier of the service account.",
+          "message": "Jedinečný identifikátor servisního účtu."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.display_name": {
+          "source": "List Role Bindings",
+          "message": "Seznam vazeb rolí"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.short_desc": {
+          "source": "List role bindings",
+          "message": "Seznam vazeb rolí"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.desc": {
+          "source": "List role bindings in the caller's organization, optionally filtered by principal, resource, and role.",
+          "message": "Seznam vazeb rolí v organizaci volajícího, volitelně filtrovaný podle principála, zdroje a role."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.display_name": {
+          "source": "Principal Type",
+          "message": "Hlavní typ"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.short_desc": {
+          "source": "Principal Type",
+          "message": "Hlavní typ"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.desc": {
+          "source": "Filter by principal type. Required when `principal_id` is set.",
+          "message": "Filtrujte podle hlavního typu. Vyžadováno, když je nastaveno `principal_id`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "Uživatel"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnNlcnZpY2VfYWNjb3VudA.display_name": {
+          "source": "Service Account",
+          "message": "Servisní účet"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmFwaV9rZXk.display_name": {
+          "source": "API Key",
+          "message": "Klíč API"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmludml0ZQ.display_name": {
+          "source": "Invite",
+          "message": "Pozvat"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.display_name": {
+          "source": "Principal ID",
+          "message": "Hlavní ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.short_desc": {
+          "source": "Principal ID",
+          "message": "Hlavní ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cHJpbmNpcGFsX2lk.desc": {
+          "source": "The resource ID of the selected `principal_type`, from **List Users**, **List Service Accounts**, **List Project API Keys**, or **List Invites**. For a service account use its `id`, not its OAuth2 `client_id`.",
+          "message": "ID zdroje vybraného `principal_type` z **Seznam uživatelů**, **Seznam servisních účtů**, **Seznam klíčů API projektu** nebo **Seznam pozvánek**. Pro servisní účet použijte jeho `id`, nikoli jeho OAuth2 `client_id`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.display_name": {
+          "source": "Resource Type",
+          "message": "Typ prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.short_desc": {
+          "source": "Resource Type",
+          "message": "Typ prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.desc": {
+          "source": "Filter by resource type. Required when `resource_id` is set.",
+          "message": "Filtrujte podle typu zdroje. Vyžadováno, když je nastaveno `resource_id`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Organization",
+          "message": "Organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.display_name": {
+          "source": "Resource ID",
+          "message": "ID prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.short_desc": {
+          "source": "Resource ID",
+          "message": "ID prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cmVzb3VyY2VfaWQ.desc": {
+          "source": "Filter by resource ID. Requires `resource_type`.",
+          "message": "Filtrujte podle ID zdroje. Vyžaduje `resource_type`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.short_desc": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.desc": {
+          "source": "Filter by role.",
+          "message": "Filtrujte podle role."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
+          "source": "Organization Owner",
+          "message": "Vlastník organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
+          "source": "Organization Manager",
+          "message": "Manažer organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
+          "source": "Organization Member",
+          "message": "Člen organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
+          "source": "Organization Billing Admin",
+          "message": "Správce fakturace organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
+          "source": "Project Owner",
+          "message": "Vlastník projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
+          "source": "Project Manager",
+          "message": "projektový manažer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
+          "source": "Project Member",
+          "message": "Člen projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "Editor projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "Prohlížeč projektů"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "Editor řídicí roviny"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "Prohlížeč Control Plane Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "Editor datové roviny"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "Prohlížeč datové roviny"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.display_name": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.short_desc": {
+          "source": "Limit",
+          "message": "Limit"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.bGltaXQ.desc": {
+          "source": "The number of results to return per page. When omitted, the server defaults to 100. Out-of-range values return `400 OUT_OF_RANGE`.",
+          "message": "Počet výsledků, které se mají vrátit na stránku. Pokud je vynechán, výchozí hodnota serveru je 100. Hodnoty mimo rozsah vrátí `400 OUT_OF_RANGE`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.display_name": {
+          "source": "Pagination Token",
+          "message": "Stránkovací token"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.short_desc": {
+          "source": "Pagination Token",
+          "message": "Stránkovací token"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.bGlzdC1yb2xlLWJpbmRpbmdz.option.cGFnaW5hdGlvblRva2Vu.desc": {
+          "source": "Cursor from `pagination.next` of a prior response. Must be reused with the same query context (path parameters, filters, and `limit`).",
+          "message": "Kurzor od `pagination.next` předchozí odpovědi. Musí být znovu použit se stejným kontextem dotazu (parametry cesty, filtry a `limit`)."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.display_name": {
+          "source": "Create Role Binding",
+          "message": "Vytvořte vazbu role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.short_desc": {
+          "source": "Create a role binding",
+          "message": "Vytvořte vazbu role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.desc": {
+          "source": "Grant a user or service account the role it needs at organization or project scope.",
+          "message": "Přidělte uživatelskému účtu nebo účtu služby roli, kterou potřebuje v rámci organizace nebo projektu."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.display_name": {
+          "source": "Principal Type",
+          "message": "Hlavní typ"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.short_desc": {
+          "source": "Principal Type",
+          "message": "Hlavní typ"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.desc": {
+          "source": "The kind of principal that receives permissions from a role binding.\nPossible values: `user`, `service_account`, `api_key`, `invite`.",
+          "message": "Druh principála, který přijímá oprávnění z vazby role.\nMožné hodnoty: `user`, `service_account`, `api_key`, `invite`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnVzZXI.display_name": {
+          "source": "User",
+          "message": "Uživatel"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOnNlcnZpY2VfYWNjb3VudA.display_name": {
+          "source": "Service Account",
+          "message": "Servisní účet"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmFwaV9rZXk.display_name": {
+          "source": "API Key",
+          "message": "Klíč API"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX3R5cGU.allowed-value.c3RyaW5nOmludml0ZQ.display_name": {
+          "source": "Invite",
+          "message": "Pozvat"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.display_name": {
+          "source": "Principal ID",
+          "message": "Hlavní ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.short_desc": {
+          "source": "Principal ID",
+          "message": "Hlavní ID"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cHJpbmNpcGFsX2lk.desc": {
+          "source": "The resource ID of the selected `principal_type`, from **List Users**, **List Service Accounts**, **List Project API Keys**, or **List Invites**. For a service account use its `id`, not its OAuth2 `client_id`.",
+          "message": "ID zdroje vybraného `principal_type` z **Seznam uživatelů**, **Seznam servisních účtů**, **Seznam klíčů API projektu** nebo **Seznam pozvánek**. Pro servisní účet použijte jeho `id`, nikoli jeho OAuth2 `client_id`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.display_name": {
+          "source": "Resource Type",
+          "message": "Typ prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.short_desc": {
+          "source": "Resource Type",
+          "message": "Typ prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.desc": {
+          "source": "The kind of resource scope a role binding applies to.\nPossible values: `organization`, `project`.",
+          "message": "Druh rozsahu prostředků, na který se vztahuje vazba role.\nMožné hodnoty: `organization`, `project`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOm9yZ2FuaXphdGlvbg.display_name": {
+          "source": "Organization",
+          "message": "Organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfdHlwZQ.allowed-value.c3RyaW5nOnByb2plY3Q.display_name": {
+          "source": "Project",
+          "message": "Projekt"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.display_name": {
+          "source": "Resource ID",
+          "message": "ID prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.short_desc": {
+          "source": "Resource ID",
+          "message": "ID prostředku"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cmVzb3VyY2VfaWQ.desc": {
+          "source": "Project UUID. Required when `resource_type` is `project`; omit for `organization` scope.",
+          "message": "UUID projektu. Vyžaduje se, když `resource_type` je `project`; vynechat pro rozsah `organization`."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.display_name": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.short_desc": {
+          "source": "Role",
+          "message": "Role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.desc": {
+          "source": "A role assigned to a principal at a resource scope.",
+          "message": "Role přiřazená principálovi v oboru zdrojů."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ093bmVy.display_name": {
+          "source": "Organization Owner",
+          "message": "Vlastník organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01hbmFnZXI.display_name": {
+          "source": "Organization Manager",
+          "message": "Manažer organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ01lbWJlcg.display_name": {
+          "source": "Organization Member",
+          "message": "Člen organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOk9yZ0JpbGxpbmdBZG1pbg.display_name": {
+          "source": "Organization Billing Admin",
+          "message": "Správce fakturace organizace"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RPd25lcg.display_name": {
+          "source": "Project Owner",
+          "message": "Vlastník projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNYW5hZ2Vy.display_name": {
+          "source": "Project Manager",
+          "message": "projektový manažer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RNZW1iZXI.display_name": {
+          "source": "Project Member",
+          "message": "Člen projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RFZGl0b3I.display_name": {
+          "source": "Project Editor",
+          "message": "Editor projektu"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOlByb2plY3RWaWV3ZXI.display_name": {
+          "source": "Project Viewer",
+          "message": "Prohlížeč projektů"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZUVkaXRvcg.display_name": {
+          "source": "Control Plane Editor",
+          "message": "Editor řídicí roviny"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkNvbnRyb2xQbGFuZVZpZXdlcg.display_name": {
+          "source": "Control Plane Viewer",
+          "message": "Prohlížeč Control Plane Viewer"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZUVkaXRvcg.display_name": {
+          "source": "Data Plane Editor",
+          "message": "Editor datové roviny"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Y3JlYXRlLXJvbGUtYmluZGluZw.option.cm9sZQ.allowed-value.c3RyaW5nOkRhdGFQbGFuZVZpZXdlcg.display_name": {
+          "source": "Data Plane Viewer",
+          "message": "Prohlížeč datové roviny"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.display_name": {
+          "source": "Get Role Binding",
+          "message": "Získejte vazbu na roli"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.short_desc": {
+          "source": "Get role binding details",
+          "message": "Získejte podrobnosti o vazbě rolí"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.desc": {
+          "source": "Read a role assignment to check which principal has access to the selected resource.",
+          "message": "Přečtěte si přiřazení role a zjistěte, který principál má přístup k vybranému zdroji."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.display_name": {
+          "source": "Role Binding ID",
+          "message": "ID vazby role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.short_desc": {
+          "source": "Role Binding ID",
+          "message": "ID vazby role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.Z2V0LXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.desc": {
+          "source": "Role binding ID",
+          "message": "ID vazby role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.display_name": {
+          "source": "Delete Role Binding",
+          "message": "Odstranit vazbu role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.short_desc": {
+          "source": "Delete a role binding",
+          "message": "Odstraňte vazbu role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.desc": {
+          "source": "Remove a role assignment when access is no longer needed. Permissions are revoked when deletion completes.",
+          "message": "Odeberte přiřazení role, když již není potřeba přístup. Po dokončení mazání jsou oprávnění odvolána."
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.display_name": {
+          "source": "Role Binding ID",
+          "message": "ID vazby role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.short_desc": {
+          "source": "Role Binding ID",
+          "message": "ID vazby role"
+        },
+        "app.UGluZWNvbmVBZG1pbg.action.ZGVsZXRlLXJvbGUtYmluZGluZw.option.cm9sZV9iaW5kaW5nX2lk.desc": {
+          "source": "Role binding ID",
+          "message": "ID vazby role"
         }
       }
     }

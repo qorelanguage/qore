@@ -3,10 +3,6 @@
   "locales": {
     "zh-TW": {
       "messages": {
-        "app.U1FMLVNlcnZlcg.desc": {
-          "source": "Create and manage connections to a Microsoft SQL Server database",
-          "message": "建立並管理至 Microsoft SQL Server 資料庫的連線"
-        },
         "app.U1FMLVNlcnZlcg.display_name": {
           "source": "SQL-Server",
           "message": "SQL-Server"
@@ -14,6 +10,10 @@
         "app.U1FMLVNlcnZlcg.short_desc": {
           "source": "Microsoft SQL Server database",
           "message": "Microsoft SQL Server 資料庫"
+        },
+        "app.U1FMLVNlcnZlcg.desc": {
+          "source": "Create and manage connections to a Microsoft SQL Server database",
+          "message": "建立並管理至 Microsoft SQL Server 資料庫的連線"
         }
       }
     }

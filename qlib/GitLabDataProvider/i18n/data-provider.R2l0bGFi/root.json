@@ -1699,6 +1699,126 @@
           "source": "Avatar image for the group",
           "message": "Avatar image for the group"
         },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "File Data"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME Type"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "Autodetect"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "MS Word docx document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "MS Word `docx` document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "MS PowerPoint pptx document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "MS PowerPoint `pptx` document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "MS Excel xlsx document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "MS Excel `xlsx` document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "Filename"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "The filename"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "The filename"
+        },
         "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.c2hhcmVfd2l0aF9ncm91cF9sb2Nr.display_name": {
           "source": "Share with Group Lock",
           "message": "Share with Group Lock"
@@ -1926,6 +2046,94 @@
         "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.desc": {
           "source": "Determine if developers can push to default branch",
           "message": "Determine if developers can push to default branch"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dfZm9yY2VfcHVzaA.display_name": {
+          "source": "Allow Force Push",
+          "message": "Allow Force Push"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dfZm9yY2VfcHVzaA.short_desc": {
+          "source": "Allow force push for all users with push access",
+          "message": "Allow force push for all users with push access"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dfZm9yY2VfcHVzaA.desc": {
+          "source": "Allow force push for all users with push access.",
+          "message": "Allow force push for all users with push access."
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dlZF90b19tZXJnZQ.display_name": {
+          "source": "Allowed to Merge",
+          "message": "Allowed to Merge"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dlZF90b19tZXJnZQ.short_desc": {
+          "source": "An array of access levels allowed to merge",
+          "message": "An array of access levels allowed to merge"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dlZF90b19tZXJnZQ.desc": {
+          "source": "An array of access levels allowed to merge",
+          "message": "An array of access levels allowed to merge"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNHOXpkRUZ3YVZZMFIzSnZkWEJ6Okhhc2hEYXRhVHlwZTppdGVtcyNiYjZjNzFhYzEyMzVkYjE2ZTI3NTMwZTA2MzA5YjgyOTA4MWFkN2NmZjc4ZGMxY2ZiZjFiYzFjN2U0N2ZlNWFjOm9wdGlvbjpaR1ZtWVhWc2RGOWljbUZ1WTJoZmNISnZkR1ZqZEdsdmJsOWtaV1poZFd4MGN3OmZpZWxkOllXeHNiM2RsWkY5MGIxOXRaWEpuWlE.field.YWNjZXNzX2xldmVs.display_name": {
+          "source": "Access Level",
+          "message": "Access Level"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNHOXpkRUZ3YVZZMFIzSnZkWEJ6Okhhc2hEYXRhVHlwZTppdGVtcyNiYjZjNzFhYzEyMzVkYjE2ZTI3NTMwZTA2MzA5YjgyOTA4MWFkN2NmZjc4ZGMxY2ZiZjFiYzFjN2U0N2ZlNWFjOm9wdGlvbjpaR1ZtWVhWc2RGOWljbUZ1WTJoZmNISnZkR1ZqZEdsdmJsOWtaV1poZFd4MGN3OmZpZWxkOllXeHNiM2RsWkY5MGIxOXRaWEpuWlE.field.YWNjZXNzX2xldmVs.short_desc": {
+          "source": "A valid access level",
+          "message": "A valid access level"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNHOXpkRUZ3YVZZMFIzSnZkWEJ6Okhhc2hEYXRhVHlwZTppdGVtcyNiYjZjNzFhYzEyMzVkYjE2ZTI3NTMwZTA2MzA5YjgyOTA4MWFkN2NmZjc4ZGMxY2ZiZjFiYzFjN2U0N2ZlNWFjOm9wdGlvbjpaR1ZtWVhWc2RGOWljbUZ1WTJoZmNISnZkR1ZqZEdsdmJsOWtaV1poZFd4MGN3OmZpZWxkOllXeHNiM2RsWkY5MGIxOXRaWEpuWlE.field.YWNjZXNzX2xldmVs.desc": {
+          "source": "A valid access level",
+          "message": "A valid access level"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNHOXpkRUZ3YVZZMFIzSnZkWEJ6Okhhc2hEYXRhVHlwZTppdGVtcyNiYjZjNzFhYzEyMzVkYjE2ZTI3NTMwZTA2MzA5YjgyOTA4MWFkN2NmZjc4ZGMxY2ZiZjFiYzFjN2U0N2ZlNWFjOm9wdGlvbjpaR1ZtWVhWc2RGOWljbUZ1WTJoZmNISnZkR1ZqZEdsdmJsOWtaV1poZFd4MGN3OmZpZWxkOllXeHNiM2RsWkY5MGIxOXRaWEpuWlE.field.YWNjZXNzX2xldmVs.allowed-value.c3RyaW5nOjMw.display_name": {
+          "source": "30",
+          "message": "30"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNHOXpkRUZ3YVZZMFIzSnZkWEJ6Okhhc2hEYXRhVHlwZTppdGVtcyNiYjZjNzFhYzEyMzVkYjE2ZTI3NTMwZTA2MzA5YjgyOTA4MWFkN2NmZjc4ZGMxY2ZiZjFiYzFjN2U0N2ZlNWFjOm9wdGlvbjpaR1ZtWVhWc2RGOWljbUZ1WTJoZmNISnZkR1ZqZEdsdmJsOWtaV1poZFd4MGN3OmZpZWxkOllXeHNiM2RsWkY5MGIxOXRaWEpuWlE.field.YWNjZXNzX2xldmVs.allowed-value.c3RyaW5nOjQw.display_name": {
+          "source": "40",
+          "message": "40"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNHOXpkRUZ3YVZZMFIzSnZkWEJ6Okhhc2hEYXRhVHlwZTppdGVtcyNiYjZjNzFhYzEyMzVkYjE2ZTI3NTMwZTA2MzA5YjgyOTA4MWFkN2NmZjc4ZGMxY2ZiZjFiYzFjN2U0N2ZlNWFjOm9wdGlvbjpaR1ZtWVhWc2RGOWljbUZ1WTJoZmNISnZkR1ZqZEdsdmJsOWtaV1poZFd4MGN3OmZpZWxkOllXeHNiM2RsWkY5MGIxOXRaWEpuWlE.field.YWNjZXNzX2xldmVs.allowed-value.c3RyaW5nOjYw.display_name": {
+          "source": "60",
+          "message": "60"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNHOXpkRUZ3YVZZMFIzSnZkWEJ6Okhhc2hEYXRhVHlwZTppdGVtcyNiYjZjNzFhYzEyMzVkYjE2ZTI3NTMwZTA2MzA5YjgyOTA4MWFkN2NmZjc4ZGMxY2ZiZjFiYzFjN2U0N2ZlNWFjOm9wdGlvbjpaR1ZtWVhWc2RGOWljbUZ1WTJoZmNISnZkR1ZqZEdsdmJsOWtaV1poZFd4MGN3OmZpZWxkOllXeHNiM2RsWkY5MGIxOXRaWEpuWlE.field.YWNjZXNzX2xldmVs.allowed-value.c3RyaW5nOjA.display_name": {
+          "source": "0",
+          "message": "0"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dlZF90b19wdXNo.display_name": {
+          "source": "Allowed to Push",
+          "message": "Allowed to Push"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dlZF90b19wdXNo.short_desc": {
+          "source": "An array of access levels allowed to push",
+          "message": "An array of access levels allowed to push"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dlZF90b19wdXNo.desc": {
+          "source": "An array of access levels allowed to push",
+          "message": "An array of access levels allowed to push"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.Y29kZV9vd25lcl9hcHByb3ZhbF9yZXF1aXJlZA.display_name": {
+          "source": "Code Owner Approval Required",
+          "message": "Code Owner Approval Required"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.Y29kZV9vd25lcl9hcHByb3ZhbF9yZXF1aXJlZA.short_desc": {
+          "source": "Require approval from code owners",
+          "message": "Require approval from code owners"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.Y29kZV9vd25lcl9hcHByb3ZhbF9yZXF1aXJlZA.desc": {
+          "source": "Require approval from code owners",
+          "message": "Require approval from code owners"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.ZGV2ZWxvcGVyX2Nhbl9pbml0aWFsX3B1c2g.display_name": {
+          "source": "Developer Can Initial Push",
+          "message": "Developer Can Initial Push"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.ZGV2ZWxvcGVyX2Nhbl9pbml0aWFsX3B1c2g.short_desc": {
+          "source": "Allow developers to initial push",
+          "message": "Allow developers to initial push"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.ZGV2ZWxvcGVyX2Nhbl9pbml0aWFsX3B1c2g.desc": {
+          "source": "Allow developers to initial push",
+          "message": "Allow developers to initial push"
         },
         "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.ZW5hYmxlZF9naXRfYWNjZXNzX3Byb3RvY29s.display_name": {
           "source": "Enabled Git Access Protocol",
@@ -2231,6 +2439,30 @@
           "source": "Whether each foundational agent has been enabled or disabled.",
           "message": "Whether each foundational agent has been enabled or disabled."
         },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.Zm91bmRhdGlvbmFsX2FnZW50c19zdGF0dXNlcw.field.ZW5hYmxlZA.display_name": {
+          "source": "Enabled",
+          "message": "Enabled"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.Zm91bmRhdGlvbmFsX2FnZW50c19zdGF0dXNlcw.field.ZW5hYmxlZA.short_desc": {
+          "source": "Whether foundational agent has been enabled or disabled",
+          "message": "Whether foundational agent has been enabled or disabled"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.Zm91bmRhdGlvbmFsX2FnZW50c19zdGF0dXNlcw.field.ZW5hYmxlZA.desc": {
+          "source": "Whether foundational agent has been enabled or disabled.",
+          "message": "Whether foundational agent has been enabled or disabled."
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.Zm91bmRhdGlvbmFsX2FnZW50c19zdGF0dXNlcw.field.cmVmZXJlbmNl.display_name": {
+          "source": "Reference",
+          "message": "Reference"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.Zm91bmRhdGlvbmFsX2FnZW50c19zdGF0dXNlcw.field.cmVmZXJlbmNl.short_desc": {
+          "source": "Reference of the foundational agent",
+          "message": "Reference of the foundational agent"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.Zm91bmRhdGlvbmFsX2FnZW50c19zdGF0dXNlcw.field.cmVmZXJlbmNl.desc": {
+          "source": "Reference of the foundational agent.",
+          "message": "Reference of the foundational agent."
+        },
         "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.display_name": {
           "source": "AI Settings Attributes",
           "message": "AI Settings Attributes"
@@ -2242,6 +2474,234 @@
         "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.desc": {
           "source": "AI-related settings",
           "message": "AI-related settings"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWlfY2F0YWxvZ19yZXN0cmljdGVkX3RvX2dyb3VwX2hpZXJhcmNoeQ.display_name": {
+          "source": "AI Catalog Restricted to Group Hierarchy",
+          "message": "AI Catalog Restricted to Group Hierarchy"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWlfY2F0YWxvZ19yZXN0cmljdGVkX3RvX2dyb3VwX2hpZXJhcmNoeQ.short_desc": {
+          "source": "Restrict the AI Catalog to items within this top-level group hierarchy",
+          "message": "Restrict the AI Catalog to items within this top-level group hierarchy"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWlfY2F0YWxvZ19yZXN0cmljdGVkX3RvX2dyb3VwX2hpZXJhcmNoeQ.desc": {
+          "source": "Restrict the AI Catalog to items within this top-level group hierarchy",
+          "message": "Restrict the AI Catalog to items within this top-level group hierarchy"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWlfdXNhZ2VfZGF0YV9jb2xsZWN0aW9uX2VuYWJsZWQ.display_name": {
+          "source": "AI Usage Data Collection Enabled",
+          "message": "AI Usage Data Collection Enabled"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWlfdXNhZ2VfZGF0YV9jb2xsZWN0aW9uX2VuYWJsZWQ.short_desc": {
+          "source": "Enable AI usage data collection for this namespace",
+          "message": "Enable AI usage data collection for this namespace"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWlfdXNhZ2VfZGF0YV9jb2xsZWN0aW9uX2VuYWJsZWQ.desc": {
+          "source": "Enable AI usage data collection for this namespace",
+          "message": "Enable AI usage data collection for this namespace"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWxsb3dfYWxsX3VuaXhfc29ja2V0cw.display_name": {
+          "source": "Allow All Unix Sockets",
+          "message": "Allow All Unix Sockets"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWxsb3dfYWxsX3VuaXhfc29ja2V0cw.short_desc": {
+          "source": "Whether to allow all Unix sockets for network access",
+          "message": "Whether to allow all Unix sockets for network access"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWxsb3dfYWxsX3VuaXhfc29ja2V0cw.desc": {
+          "source": "Whether to allow all Unix sockets for network access",
+          "message": "Whether to allow all Unix sockets for network access"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWxsb3dfcHJvamVjdF9leHRlbnNpb24.display_name": {
+          "source": "Allow Project Extension",
+          "message": "Allow Project Extension"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWxsb3dfcHJvamVjdF9leHRlbnNpb24.short_desc": {
+          "source": "Whether to allow projects to extend the network access domain allowlist",
+          "message": "Whether to allow projects to extend the network access domain allowlist"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWxsb3dfcHJvamVjdF9leHRlbnNpb24.desc": {
+          "source": "Whether to allow projects to extend the network access domain allowlist",
+          "message": "Whether to allow projects to extend the network access domain allowlist"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.ZHVvX2FnZW50X3BsYXRmb3JtX2VuYWJsZWQ.display_name": {
+          "source": "Duo Agent Platform Enabled",
+          "message": "Duo Agent Platform Enabled"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.ZHVvX2FnZW50X3BsYXRmb3JtX2VuYWJsZWQ.short_desc": {
+          "source": "Whether Duo Agent Platform features are enabled",
+          "message": "Whether Duo Agent Platform features are enabled"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.ZHVvX2FnZW50X3BsYXRmb3JtX2VuYWJsZWQ.desc": {
+          "source": "Whether Duo Agent Platform features are enabled",
+          "message": "Whether Duo Agent Platform features are enabled"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.ZHVvX3dvcmtmbG93X21jcF9lbmFibGVk.display_name": {
+          "source": "Duo Workflow MCP Enabled",
+          "message": "Duo Workflow MCP Enabled"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.ZHVvX3dvcmtmbG93X21jcF9lbmFibGVk.short_desc": {
+          "source": "Enable MCP support for Duo Agent Platform",
+          "message": "Enable MCP support for Duo Agent Platform"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.ZHVvX3dvcmtmbG93X21jcF9lbmFibGVk.desc": {
+          "source": "Enable MCP support for Duo Agent Platform",
+          "message": "Enable MCP support for Duo Agent Platform"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.Zm91bmRhdGlvbmFsX2FnZW50c19kZWZhdWx0X2VuYWJsZWQ.display_name": {
+          "source": "Foundational Agents Default Enabled",
+          "message": "Foundational Agents Default Enabled"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.Zm91bmRhdGlvbmFsX2FnZW50c19kZWZhdWx0X2VuYWJsZWQ.short_desc": {
+          "source": "Whether new foundational agents are enabled by default",
+          "message": "Whether new foundational agents are enabled by default"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.Zm91bmRhdGlvbmFsX2FnZW50c19kZWZhdWx0X2VuYWJsZWQ.desc": {
+          "source": "Whether new foundational agents are enabled by default",
+          "message": "Whether new foundational agents are enabled by default"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.aW5jbHVkZV9yZWNvbW1lbmRlZF9hbGxvd2Vk.display_name": {
+          "source": "Include Recommended Allowed",
+          "message": "Include Recommended Allowed"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.aW5jbHVkZV9yZWNvbW1lbmRlZF9hbGxvd2Vk.short_desc": {
+          "source": "Whether to include recommended domains in the network access allowlist",
+          "message": "Whether to include recommended domains in the network access allowlist"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.aW5jbHVkZV9yZWNvbW1lbmRlZF9hbGxvd2Vk.desc": {
+          "source": "Whether to include recommended domains in the network access allowlist",
+          "message": "Whether to include recommended domains in the network access allowlist"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZW5hYmxlX29uX3Byb2plY3Rz.display_name": {
+          "source": "Minimum Access Level Enable on Projects",
+          "message": "Minimum Access Level Enable on Projects"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZW5hYmxlX29uX3Byb2plY3Rz.short_desc": {
+          "source": "The minimum access level required to enable Duo Agent Platform",
+          "message": "The minimum access level required to enable Duo Agent Platform"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZW5hYmxlX29uX3Byb2plY3Rz.desc": {
+          "source": "The minimum access level required to enable Duo Agent Platform. This field is behind a feature flag.",
+          "message": "The minimum access level required to enable Duo Agent Platform. This field is behind a feature flag."
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZW5hYmxlX29uX3Byb2plY3Rz.allowed-value.c3RyaW5nOjMw.display_name": {
+          "source": "30",
+          "message": "30"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZW5hYmxlX29uX3Byb2plY3Rz.allowed-value.c3RyaW5nOjQw.display_name": {
+          "source": "40",
+          "message": "40"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZW5hYmxlX29uX3Byb2plY3Rz.allowed-value.c3RyaW5nOjUw.display_name": {
+          "source": "50",
+          "message": "50"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.display_name": {
+          "source": "Minimum Access Level Execute",
+          "message": "Minimum Access Level Execute"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.short_desc": {
+          "source": "The minimum access level required to execute Duo Agent Platform",
+          "message": "The minimum access level required to execute Duo Agent Platform"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.desc": {
+          "source": "The minimum access level required to execute Duo Agent Platform. This field is behind a feature flag.",
+          "message": "The minimum access level required to execute Duo Agent Platform. This field is behind a feature flag."
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.allowed-value.c3RyaW5nOjEw.display_name": {
+          "source": "10",
+          "message": "10"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.allowed-value.c3RyaW5nOjE1.display_name": {
+          "source": "15",
+          "message": "15"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.allowed-value.c3RyaW5nOjIw.display_name": {
+          "source": "20",
+          "message": "20"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.allowed-value.c3RyaW5nOjMw.display_name": {
+          "source": "30",
+          "message": "30"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.allowed-value.c3RyaW5nOjQw.display_name": {
+          "source": "40",
+          "message": "40"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.allowed-value.c3RyaW5nOjUw.display_name": {
+          "source": "50",
+          "message": "50"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZV9hc3luYw.display_name": {
+          "source": "Minimum Access Level Execute Async",
+          "message": "Minimum Access Level Execute Async"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZV9hc3luYw.short_desc": {
+          "source": "The minimum access level required to execute Duo Agent Platform features in…",
+          "message": "The minimum access level required to execute Duo Agent Platform features in…"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZV9hc3luYw.desc": {
+          "source": "The minimum access level required to execute Duo Agent Platform features in CI/CD. This field is behind a feature flag.",
+          "message": "The minimum access level required to execute Duo Agent Platform features in CI/CD. This field is behind a feature flag."
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZV9hc3luYw.allowed-value.c3RyaW5nOjMw.display_name": {
+          "source": "30",
+          "message": "30"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZV9hc3luYw.allowed-value.c3RyaW5nOjQw.display_name": {
+          "source": "40",
+          "message": "40"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZV9hc3luYw.allowed-value.c3RyaW5nOjUw.display_name": {
+          "source": "50",
+          "message": "50"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfbWFuYWdl.display_name": {
+          "source": "Minimum Access Level Manage",
+          "message": "Minimum Access Level Manage"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfbWFuYWdl.short_desc": {
+          "source": "The minimum access level required to manage Duo Agent Platform",
+          "message": "The minimum access level required to manage Duo Agent Platform"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfbWFuYWdl.desc": {
+          "source": "The minimum access level required to manage Duo Agent Platform. This field is behind a feature flag.",
+          "message": "The minimum access level required to manage Duo Agent Platform. This field is behind a feature flag."
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfbWFuYWdl.allowed-value.c3RyaW5nOjMw.display_name": {
+          "source": "30",
+          "message": "30"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfbWFuYWdl.allowed-value.c3RyaW5nOjQw.display_name": {
+          "source": "40",
+          "message": "40"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfbWFuYWdl.allowed-value.c3RyaW5nOjUw.display_name": {
+          "source": "50",
+          "message": "50"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.cHJvbXB0X2luamVjdGlvbl9wcm90ZWN0aW9uX2xldmVs.display_name": {
+          "source": "Prompt Injection Protection Level",
+          "message": "Prompt Injection Protection Level"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.cHJvbXB0X2luamVjdGlvbl9wcm90ZWN0aW9uX2xldmVs.short_desc": {
+          "source": "Prompt injection protection level",
+          "message": "Prompt injection protection level"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.cHJvbXB0X2luamVjdGlvbl9wcm90ZWN0aW9uX2xldmVs.desc": {
+          "source": "Prompt injection protection level. One of `no_checks`, `log_only` or `interrupt`",
+          "message": "Prompt injection protection level. One of `no_checks`, `log_only` or `interrupt`"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.cHJvbXB0X2luamVjdGlvbl9wcm90ZWN0aW9uX2xldmVs.allowed-value.c3RyaW5nOm5vX2NoZWNrcw.display_name": {
+          "source": "no_checks",
+          "message": "no_checks"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.cHJvbXB0X2luamVjdGlvbl9wcm90ZWN0aW9uX2xldmVs.allowed-value.c3RyaW5nOmxvZ19vbmx5.display_name": {
+          "source": "log_only",
+          "message": "log_only"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0R3JvdXBz.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.cHJvbXB0X2luamVjdGlvbl9wcm90ZWN0aW9uX2xldmVs.allowed-value.c3RyaW5nOmludGVycnVwdA.display_name": {
+          "source": "interrupt",
+          "message": "interrupt"
         },
         "app.R2l0bGFi.action.Z2V0QXBpVjRHcm91cHNJZA.display_name": {
           "source": "Get Group",
@@ -2422,6 +2882,126 @@
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.desc": {
           "source": "Avatar image for the group",
           "message": "Avatar image for the group"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "File Data"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME Type"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "Autodetect"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "MS Word docx document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "MS Word `docx` document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "MS PowerPoint pptx document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "MS PowerPoint `pptx` document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "MS Excel xlsx document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "MS Excel `xlsx` document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "Filename"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "The filename"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "The filename"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.c2hhcmVfd2l0aF9ncm91cF9sb2Nr.display_name": {
           "source": "Share with Group Lock",
@@ -2650,6 +3230,94 @@
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.desc": {
           "source": "Determine if developers can push to default branch",
           "message": "Determine if developers can push to default branch"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dfZm9yY2VfcHVzaA.display_name": {
+          "source": "Allow Force Push",
+          "message": "Allow Force Push"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dfZm9yY2VfcHVzaA.short_desc": {
+          "source": "Allow force push for all users with push access",
+          "message": "Allow force push for all users with push access"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dfZm9yY2VfcHVzaA.desc": {
+          "source": "Allow force push for all users with push access.",
+          "message": "Allow force push for all users with push access."
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dlZF90b19tZXJnZQ.display_name": {
+          "source": "Allowed to Merge",
+          "message": "Allowed to Merge"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dlZF90b19tZXJnZQ.short_desc": {
+          "source": "An array of access levels allowed to merge",
+          "message": "An array of access levels allowed to merge"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dlZF90b19tZXJnZQ.desc": {
+          "source": "An array of access levels allowed to merge",
+          "message": "An array of access levels allowed to merge"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6SGFzaERhdGFUeXBlOml0ZW1zI2JiNmM3MWFjMTIzNWRiMTZlMjc1MzBlMDYzMDliODI5MDgxYWQ3Y2ZmNzhkYzFjZmJmMWJjMWM3ZTQ3ZmU1YWM6b3B0aW9uOlpHVm1ZWFZzZEY5aWNtRnVZMmhmY0hKdmRHVmpkR2x2Ymw5a1pXWmhkV3gwY3c6ZmllbGQ6WVd4c2IzZGxaRjkwYjE5dFpYSm5aUQ.field.YWNjZXNzX2xldmVs.display_name": {
+          "source": "Access Level",
+          "message": "Access Level"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6SGFzaERhdGFUeXBlOml0ZW1zI2JiNmM3MWFjMTIzNWRiMTZlMjc1MzBlMDYzMDliODI5MDgxYWQ3Y2ZmNzhkYzFjZmJmMWJjMWM3ZTQ3ZmU1YWM6b3B0aW9uOlpHVm1ZWFZzZEY5aWNtRnVZMmhmY0hKdmRHVmpkR2x2Ymw5a1pXWmhkV3gwY3c6ZmllbGQ6WVd4c2IzZGxaRjkwYjE5dFpYSm5aUQ.field.YWNjZXNzX2xldmVs.short_desc": {
+          "source": "A valid access level",
+          "message": "A valid access level"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6SGFzaERhdGFUeXBlOml0ZW1zI2JiNmM3MWFjMTIzNWRiMTZlMjc1MzBlMDYzMDliODI5MDgxYWQ3Y2ZmNzhkYzFjZmJmMWJjMWM3ZTQ3ZmU1YWM6b3B0aW9uOlpHVm1ZWFZzZEY5aWNtRnVZMmhmY0hKdmRHVmpkR2x2Ymw5a1pXWmhkV3gwY3c6ZmllbGQ6WVd4c2IzZGxaRjkwYjE5dFpYSm5aUQ.field.YWNjZXNzX2xldmVs.desc": {
+          "source": "A valid access level",
+          "message": "A valid access level"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6SGFzaERhdGFUeXBlOml0ZW1zI2JiNmM3MWFjMTIzNWRiMTZlMjc1MzBlMDYzMDliODI5MDgxYWQ3Y2ZmNzhkYzFjZmJmMWJjMWM3ZTQ3ZmU1YWM6b3B0aW9uOlpHVm1ZWFZzZEY5aWNtRnVZMmhmY0hKdmRHVmpkR2x2Ymw5a1pXWmhkV3gwY3c6ZmllbGQ6WVd4c2IzZGxaRjkwYjE5dFpYSm5aUQ.field.YWNjZXNzX2xldmVs.allowed-value.c3RyaW5nOjMw.display_name": {
+          "source": "30",
+          "message": "30"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6SGFzaERhdGFUeXBlOml0ZW1zI2JiNmM3MWFjMTIzNWRiMTZlMjc1MzBlMDYzMDliODI5MDgxYWQ3Y2ZmNzhkYzFjZmJmMWJjMWM3ZTQ3ZmU1YWM6b3B0aW9uOlpHVm1ZWFZzZEY5aWNtRnVZMmhmY0hKdmRHVmpkR2x2Ymw5a1pXWmhkV3gwY3c6ZmllbGQ6WVd4c2IzZGxaRjkwYjE5dFpYSm5aUQ.field.YWNjZXNzX2xldmVs.allowed-value.c3RyaW5nOjQw.display_name": {
+          "source": "40",
+          "message": "40"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6SGFzaERhdGFUeXBlOml0ZW1zI2JiNmM3MWFjMTIzNWRiMTZlMjc1MzBlMDYzMDliODI5MDgxYWQ3Y2ZmNzhkYzFjZmJmMWJjMWM3ZTQ3ZmU1YWM6b3B0aW9uOlpHVm1ZWFZzZEY5aWNtRnVZMmhmY0hKdmRHVmpkR2x2Ymw5a1pXWmhkV3gwY3c6ZmllbGQ6WVd4c2IzZGxaRjkwYjE5dFpYSm5aUQ.field.YWNjZXNzX2xldmVs.allowed-value.c3RyaW5nOjYw.display_name": {
+          "source": "60",
+          "message": "60"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6SGFzaERhdGFUeXBlOml0ZW1zI2JiNmM3MWFjMTIzNWRiMTZlMjc1MzBlMDYzMDliODI5MDgxYWQ3Y2ZmNzhkYzFjZmJmMWJjMWM3ZTQ3ZmU1YWM6b3B0aW9uOlpHVm1ZWFZzZEY5aWNtRnVZMmhmY0hKdmRHVmpkR2x2Ymw5a1pXWmhkV3gwY3c6ZmllbGQ6WVd4c2IzZGxaRjkwYjE5dFpYSm5aUQ.field.YWNjZXNzX2xldmVs.allowed-value.c3RyaW5nOjA.display_name": {
+          "source": "0",
+          "message": "0"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dlZF90b19wdXNo.display_name": {
+          "source": "Allowed to Push",
+          "message": "Allowed to Push"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dlZF90b19wdXNo.short_desc": {
+          "source": "An array of access levels allowed to push",
+          "message": "An array of access levels allowed to push"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.YWxsb3dlZF90b19wdXNo.desc": {
+          "source": "An array of access levels allowed to push",
+          "message": "An array of access levels allowed to push"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.Y29kZV9vd25lcl9hcHByb3ZhbF9yZXF1aXJlZA.display_name": {
+          "source": "Code Owner Approval Required",
+          "message": "Code Owner Approval Required"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.Y29kZV9vd25lcl9hcHByb3ZhbF9yZXF1aXJlZA.short_desc": {
+          "source": "Require approval from code owners",
+          "message": "Require approval from code owners"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.Y29kZV9vd25lcl9hcHByb3ZhbF9yZXF1aXJlZA.desc": {
+          "source": "Require approval from code owners",
+          "message": "Require approval from code owners"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.ZGV2ZWxvcGVyX2Nhbl9pbml0aWFsX3B1c2g.display_name": {
+          "source": "Developer Can Initial Push",
+          "message": "Developer Can Initial Push"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.ZGV2ZWxvcGVyX2Nhbl9pbml0aWFsX3B1c2g.short_desc": {
+          "source": "Allow developers to initial push",
+          "message": "Allow developers to initial push"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZGVmYXVsdF9icmFuY2hfcHJvdGVjdGlvbl9kZWZhdWx0cw.field.ZGV2ZWxvcGVyX2Nhbl9pbml0aWFsX3B1c2g.desc": {
+          "source": "Allow developers to initial push",
+          "message": "Allow developers to initial push"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZW5hYmxlZF9naXRfYWNjZXNzX3Byb3RvY29s.display_name": {
           "source": "Enabled Git Access Protocol",
@@ -2955,6 +3623,30 @@
           "source": "Whether each foundational agent has been enabled or disabled.",
           "message": "Whether each foundational agent has been enabled or disabled."
         },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.Zm91bmRhdGlvbmFsX2FnZW50c19zdGF0dXNlcw.field.ZW5hYmxlZA.display_name": {
+          "source": "Enabled",
+          "message": "Enabled"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.Zm91bmRhdGlvbmFsX2FnZW50c19zdGF0dXNlcw.field.ZW5hYmxlZA.short_desc": {
+          "source": "Whether foundational agent has been enabled or disabled",
+          "message": "Whether foundational agent has been enabled or disabled"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.Zm91bmRhdGlvbmFsX2FnZW50c19zdGF0dXNlcw.field.ZW5hYmxlZA.desc": {
+          "source": "Whether foundational agent has been enabled or disabled.",
+          "message": "Whether foundational agent has been enabled or disabled."
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.Zm91bmRhdGlvbmFsX2FnZW50c19zdGF0dXNlcw.field.cmVmZXJlbmNl.display_name": {
+          "source": "Reference",
+          "message": "Reference"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.Zm91bmRhdGlvbmFsX2FnZW50c19zdGF0dXNlcw.field.cmVmZXJlbmNl.short_desc": {
+          "source": "Reference of the foundational agent",
+          "message": "Reference of the foundational agent"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.Zm91bmRhdGlvbmFsX2FnZW50c19zdGF0dXNlcw.field.cmVmZXJlbmNl.desc": {
+          "source": "Reference of the foundational agent.",
+          "message": "Reference of the foundational agent."
+        },
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.display_name": {
           "source": "AI Settings Attributes",
           "message": "AI Settings Attributes"
@@ -2966,6 +3658,234 @@
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.desc": {
           "source": "AI-related settings",
           "message": "AI-related settings"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWlfY2F0YWxvZ19yZXN0cmljdGVkX3RvX2dyb3VwX2hpZXJhcmNoeQ.display_name": {
+          "source": "AI Catalog Restricted to Group Hierarchy",
+          "message": "AI Catalog Restricted to Group Hierarchy"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWlfY2F0YWxvZ19yZXN0cmljdGVkX3RvX2dyb3VwX2hpZXJhcmNoeQ.short_desc": {
+          "source": "Restrict the AI Catalog to items within this top-level group hierarchy",
+          "message": "Restrict the AI Catalog to items within this top-level group hierarchy"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWlfY2F0YWxvZ19yZXN0cmljdGVkX3RvX2dyb3VwX2hpZXJhcmNoeQ.desc": {
+          "source": "Restrict the AI Catalog to items within this top-level group hierarchy",
+          "message": "Restrict the AI Catalog to items within this top-level group hierarchy"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWlfdXNhZ2VfZGF0YV9jb2xsZWN0aW9uX2VuYWJsZWQ.display_name": {
+          "source": "AI Usage Data Collection Enabled",
+          "message": "AI Usage Data Collection Enabled"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWlfdXNhZ2VfZGF0YV9jb2xsZWN0aW9uX2VuYWJsZWQ.short_desc": {
+          "source": "Enable AI usage data collection for this namespace",
+          "message": "Enable AI usage data collection for this namespace"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWlfdXNhZ2VfZGF0YV9jb2xsZWN0aW9uX2VuYWJsZWQ.desc": {
+          "source": "Enable AI usage data collection for this namespace",
+          "message": "Enable AI usage data collection for this namespace"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWxsb3dfYWxsX3VuaXhfc29ja2V0cw.display_name": {
+          "source": "Allow All Unix Sockets",
+          "message": "Allow All Unix Sockets"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWxsb3dfYWxsX3VuaXhfc29ja2V0cw.short_desc": {
+          "source": "Whether to allow all Unix sockets for network access",
+          "message": "Whether to allow all Unix sockets for network access"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWxsb3dfYWxsX3VuaXhfc29ja2V0cw.desc": {
+          "source": "Whether to allow all Unix sockets for network access",
+          "message": "Whether to allow all Unix sockets for network access"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWxsb3dfcHJvamVjdF9leHRlbnNpb24.display_name": {
+          "source": "Allow Project Extension",
+          "message": "Allow Project Extension"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWxsb3dfcHJvamVjdF9leHRlbnNpb24.short_desc": {
+          "source": "Whether to allow projects to extend the network access domain allowlist",
+          "message": "Whether to allow projects to extend the network access domain allowlist"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.YWxsb3dfcHJvamVjdF9leHRlbnNpb24.desc": {
+          "source": "Whether to allow projects to extend the network access domain allowlist",
+          "message": "Whether to allow projects to extend the network access domain allowlist"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.ZHVvX2FnZW50X3BsYXRmb3JtX2VuYWJsZWQ.display_name": {
+          "source": "Duo Agent Platform Enabled",
+          "message": "Duo Agent Platform Enabled"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.ZHVvX2FnZW50X3BsYXRmb3JtX2VuYWJsZWQ.short_desc": {
+          "source": "Whether Duo Agent Platform features are enabled",
+          "message": "Whether Duo Agent Platform features are enabled"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.ZHVvX2FnZW50X3BsYXRmb3JtX2VuYWJsZWQ.desc": {
+          "source": "Whether Duo Agent Platform features are enabled",
+          "message": "Whether Duo Agent Platform features are enabled"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.ZHVvX3dvcmtmbG93X21jcF9lbmFibGVk.display_name": {
+          "source": "Duo Workflow MCP Enabled",
+          "message": "Duo Workflow MCP Enabled"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.ZHVvX3dvcmtmbG93X21jcF9lbmFibGVk.short_desc": {
+          "source": "Enable MCP support for Duo Agent Platform",
+          "message": "Enable MCP support for Duo Agent Platform"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.ZHVvX3dvcmtmbG93X21jcF9lbmFibGVk.desc": {
+          "source": "Enable MCP support for Duo Agent Platform",
+          "message": "Enable MCP support for Duo Agent Platform"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.Zm91bmRhdGlvbmFsX2FnZW50c19kZWZhdWx0X2VuYWJsZWQ.display_name": {
+          "source": "Foundational Agents Default Enabled",
+          "message": "Foundational Agents Default Enabled"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.Zm91bmRhdGlvbmFsX2FnZW50c19kZWZhdWx0X2VuYWJsZWQ.short_desc": {
+          "source": "Whether new foundational agents are enabled by default",
+          "message": "Whether new foundational agents are enabled by default"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.Zm91bmRhdGlvbmFsX2FnZW50c19kZWZhdWx0X2VuYWJsZWQ.desc": {
+          "source": "Whether new foundational agents are enabled by default",
+          "message": "Whether new foundational agents are enabled by default"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.aW5jbHVkZV9yZWNvbW1lbmRlZF9hbGxvd2Vk.display_name": {
+          "source": "Include Recommended Allowed",
+          "message": "Include Recommended Allowed"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.aW5jbHVkZV9yZWNvbW1lbmRlZF9hbGxvd2Vk.short_desc": {
+          "source": "Whether to include recommended domains in the network access allowlist",
+          "message": "Whether to include recommended domains in the network access allowlist"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.aW5jbHVkZV9yZWNvbW1lbmRlZF9hbGxvd2Vk.desc": {
+          "source": "Whether to include recommended domains in the network access allowlist",
+          "message": "Whether to include recommended domains in the network access allowlist"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZW5hYmxlX29uX3Byb2plY3Rz.display_name": {
+          "source": "Minimum Access Level Enable on Projects",
+          "message": "Minimum Access Level Enable on Projects"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZW5hYmxlX29uX3Byb2plY3Rz.short_desc": {
+          "source": "The minimum access level required to enable Duo Agent Platform",
+          "message": "The minimum access level required to enable Duo Agent Platform"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZW5hYmxlX29uX3Byb2plY3Rz.desc": {
+          "source": "The minimum access level required to enable Duo Agent Platform. This field is behind a feature flag.",
+          "message": "The minimum access level required to enable Duo Agent Platform. This field is behind a feature flag."
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZW5hYmxlX29uX3Byb2plY3Rz.allowed-value.c3RyaW5nOjMw.display_name": {
+          "source": "30",
+          "message": "30"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZW5hYmxlX29uX3Byb2plY3Rz.allowed-value.c3RyaW5nOjQw.display_name": {
+          "source": "40",
+          "message": "40"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZW5hYmxlX29uX3Byb2plY3Rz.allowed-value.c3RyaW5nOjUw.display_name": {
+          "source": "50",
+          "message": "50"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.display_name": {
+          "source": "Minimum Access Level Execute",
+          "message": "Minimum Access Level Execute"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.short_desc": {
+          "source": "The minimum access level required to execute Duo Agent Platform",
+          "message": "The minimum access level required to execute Duo Agent Platform"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.desc": {
+          "source": "The minimum access level required to execute Duo Agent Platform. This field is behind a feature flag.",
+          "message": "The minimum access level required to execute Duo Agent Platform. This field is behind a feature flag."
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.allowed-value.c3RyaW5nOjEw.display_name": {
+          "source": "10",
+          "message": "10"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.allowed-value.c3RyaW5nOjE1.display_name": {
+          "source": "15",
+          "message": "15"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.allowed-value.c3RyaW5nOjIw.display_name": {
+          "source": "20",
+          "message": "20"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.allowed-value.c3RyaW5nOjMw.display_name": {
+          "source": "30",
+          "message": "30"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.allowed-value.c3RyaW5nOjQw.display_name": {
+          "source": "40",
+          "message": "40"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZQ.allowed-value.c3RyaW5nOjUw.display_name": {
+          "source": "50",
+          "message": "50"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZV9hc3luYw.display_name": {
+          "source": "Minimum Access Level Execute Async",
+          "message": "Minimum Access Level Execute Async"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZV9hc3luYw.short_desc": {
+          "source": "The minimum access level required to execute Duo Agent Platform features in…",
+          "message": "The minimum access level required to execute Duo Agent Platform features in…"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZV9hc3luYw.desc": {
+          "source": "The minimum access level required to execute Duo Agent Platform features in CI/CD. This field is behind a feature flag.",
+          "message": "The minimum access level required to execute Duo Agent Platform features in CI/CD. This field is behind a feature flag."
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZV9hc3luYw.allowed-value.c3RyaW5nOjMw.display_name": {
+          "source": "30",
+          "message": "30"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZV9hc3luYw.allowed-value.c3RyaW5nOjQw.display_name": {
+          "source": "40",
+          "message": "40"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfZXhlY3V0ZV9hc3luYw.allowed-value.c3RyaW5nOjUw.display_name": {
+          "source": "50",
+          "message": "50"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfbWFuYWdl.display_name": {
+          "source": "Minimum Access Level Manage",
+          "message": "Minimum Access Level Manage"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfbWFuYWdl.short_desc": {
+          "source": "The minimum access level required to manage Duo Agent Platform",
+          "message": "The minimum access level required to manage Duo Agent Platform"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfbWFuYWdl.desc": {
+          "source": "The minimum access level required to manage Duo Agent Platform. This field is behind a feature flag.",
+          "message": "The minimum access level required to manage Duo Agent Platform. This field is behind a feature flag."
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfbWFuYWdl.allowed-value.c3RyaW5nOjMw.display_name": {
+          "source": "30",
+          "message": "30"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfbWFuYWdl.allowed-value.c3RyaW5nOjQw.display_name": {
+          "source": "40",
+          "message": "40"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.bWluaW11bV9hY2Nlc3NfbGV2ZWxfbWFuYWdl.allowed-value.c3RyaW5nOjUw.display_name": {
+          "source": "50",
+          "message": "50"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.cHJvbXB0X2luamVjdGlvbl9wcm90ZWN0aW9uX2xldmVs.display_name": {
+          "source": "Prompt Injection Protection Level",
+          "message": "Prompt Injection Protection Level"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.cHJvbXB0X2luamVjdGlvbl9wcm90ZWN0aW9uX2xldmVs.short_desc": {
+          "source": "Prompt injection protection level",
+          "message": "Prompt injection protection level"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.cHJvbXB0X2luamVjdGlvbl9wcm90ZWN0aW9uX2xldmVs.desc": {
+          "source": "Prompt injection protection level. One of `no_checks`, `log_only` or `interrupt`",
+          "message": "Prompt injection protection level. One of `no_checks`, `log_only` or `interrupt`"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.cHJvbXB0X2luamVjdGlvbl9wcm90ZWN0aW9uX2xldmVs.allowed-value.c3RyaW5nOm5vX2NoZWNrcw.display_name": {
+          "source": "no_checks",
+          "message": "no_checks"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.cHJvbXB0X2luamVjdGlvbl9wcm90ZWN0aW9uX2xldmVs.allowed-value.c3RyaW5nOmxvZ19vbmx5.display_name": {
+          "source": "log_only",
+          "message": "log_only"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YWlfc2V0dGluZ3NfYXR0cmlidXRlcw.field.cHJvbXB0X2luamVjdGlvbl9wcm90ZWN0aW9uX2xldmVs.allowed-value.c3RyaW5nOmludGVycnVwdA.display_name": {
+          "source": "interrupt",
+          "message": "interrupt"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.cHJldmVudF9zaGFyaW5nX2dyb3Vwc19vdXRzaWRlX2hpZXJhcmNoeQ.display_name": {
           "source": "Prevent Sharing Groups Outside Hierarchy",
@@ -3314,6 +4234,66 @@
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZHVvX25hbWVzcGFjZV9hY2Nlc3NfcnVsZXM.desc": {
           "source": "AI entity access rules for controlling Duo feature access",
           "message": "AI entity access rules for controlling Duo feature access"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZHVvX25hbWVzcGFjZV9hY2Nlc3NfcnVsZXM.field.ZmVhdHVyZXM.display_name": {
+          "source": "Features",
+          "message": "Features"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZHVvX25hbWVzcGFjZV9hY2Nlc3NfcnVsZXM.field.ZmVhdHVyZXM.short_desc": {
+          "source": "List of accessible features",
+          "message": "List of accessible features"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZHVvX25hbWVzcGFjZV9hY2Nlc3NfcnVsZXM.field.ZmVhdHVyZXM.desc": {
+          "source": "List of accessible features",
+          "message": "List of accessible features"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZHVvX25hbWVzcGFjZV9hY2Nlc3NfcnVsZXM.field.dGhyb3VnaF9uYW1lc3BhY2U.display_name": {
+          "source": "Through Namespace",
+          "message": "Through Namespace"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZHVvX25hbWVzcGFjZV9hY2Nlc3NfcnVsZXM.field.dGhyb3VnaF9uYW1lc3BhY2U.short_desc": {
+          "source": "Object containing through namespace information",
+          "message": "Object containing through namespace information"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.ZHVvX25hbWVzcGFjZV9hY2Nlc3NfcnVsZXM.field.dGhyb3VnaF9uYW1lc3BhY2U.desc": {
+          "source": "Object containing through namespace information",
+          "message": "Object containing through namespace information"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6T3BlbkFwaTNIYXNoRGF0YVR5cGU6KnRocm91Z2hfbmFtZXNwYWNlIzA5MWVlYzZmZTMxMzgxYzgxMDllY2IwMmE2MTM1NDkwOGUyNWYzOGU3ZThjYjFkMGY1OWE5MDc5YTljNjBmZGY6b3B0aW9uOlpIVnZYMjVoYldWemNHRmpaVjloWTJObGMzTmZjblZzWlhNOmZpZWxkOmRHaHliM1ZuYUY5dVlXMWxjM0JoWTJV.field.ZnVsbF9wYXRo.display_name": {
+          "source": "Full Path",
+          "message": "Full Path"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6T3BlbkFwaTNIYXNoRGF0YVR5cGU6KnRocm91Z2hfbmFtZXNwYWNlIzA5MWVlYzZmZTMxMzgxYzgxMDllY2IwMmE2MTM1NDkwOGUyNWYzOGU3ZThjYjFkMGY1OWE5MDc5YTljNjBmZGY6b3B0aW9uOlpIVnZYMjVoYldWemNHRmpaVjloWTJObGMzTmZjblZzWlhNOmZpZWxkOmRHaHliM1ZuYUY5dVlXMWxjM0JoWTJV.field.ZnVsbF9wYXRo.short_desc": {
+          "source": "Full path of the through namespace",
+          "message": "Full path of the through namespace"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6T3BlbkFwaTNIYXNoRGF0YVR5cGU6KnRocm91Z2hfbmFtZXNwYWNlIzA5MWVlYzZmZTMxMzgxYzgxMDllY2IwMmE2MTM1NDkwOGUyNWYzOGU3ZThjYjFkMGY1OWE5MDc5YTljNjBmZGY6b3B0aW9uOlpIVnZYMjVoYldWemNHRmpaVjloWTJObGMzTmZjblZzWlhNOmZpZWxkOmRHaHliM1ZuYUY5dVlXMWxjM0JoWTJV.field.ZnVsbF9wYXRo.desc": {
+          "source": "Full path of the through namespace",
+          "message": "Full path of the through namespace"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6T3BlbkFwaTNIYXNoRGF0YVR5cGU6KnRocm91Z2hfbmFtZXNwYWNlIzA5MWVlYzZmZTMxMzgxYzgxMDllY2IwMmE2MTM1NDkwOGUyNWYzOGU3ZThjYjFkMGY1OWE5MDc5YTljNjBmZGY6b3B0aW9uOlpIVnZYMjVoYldWemNHRmpaVjloWTJObGMzTmZjblZzWlhNOmZpZWxkOmRHaHliM1ZuYUY5dVlXMWxjM0JoWTJV.field.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6T3BlbkFwaTNIYXNoRGF0YVR5cGU6KnRocm91Z2hfbmFtZXNwYWNlIzA5MWVlYzZmZTMxMzgxYzgxMDllY2IwMmE2MTM1NDkwOGUyNWYzOGU3ZThjYjFkMGY1OWE5MDc5YTljNjBmZGY6b3B0aW9uOlpIVnZYMjVoYldWemNHRmpaVjloWTJObGMzTmZjblZzWlhNOmZpZWxkOmRHaHliM1ZuYUY5dVlXMWxjM0JoWTJV.field.aWQ.short_desc": {
+          "source": "ID of the through namespace",
+          "message": "ID of the through namespace"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6T3BlbkFwaTNIYXNoRGF0YVR5cGU6KnRocm91Z2hfbmFtZXNwYWNlIzA5MWVlYzZmZTMxMzgxYzgxMDllY2IwMmE2MTM1NDkwOGUyNWYzOGU3ZThjYjFkMGY1OWE5MDc5YTljNjBmZGY6b3B0aW9uOlpIVnZYMjVoYldWemNHRmpaVjloWTJObGMzTmZjblZzWlhNOmZpZWxkOmRHaHliM1ZuYUY5dVlXMWxjM0JoWTJV.field.aWQ.desc": {
+          "source": "ID of the through namespace",
+          "message": "ID of the through namespace"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6T3BlbkFwaTNIYXNoRGF0YVR5cGU6KnRocm91Z2hfbmFtZXNwYWNlIzA5MWVlYzZmZTMxMzgxYzgxMDllY2IwMmE2MTM1NDkwOGUyNWYzOGU3ZThjYjFkMGY1OWE5MDc5YTljNjBmZGY6b3B0aW9uOlpIVnZYMjVoYldWemNHRmpaVjloWTJObGMzTmZjblZzWlhNOmZpZWxkOmRHaHliM1ZuYUY5dVlXMWxjM0JoWTJV.field.bmFtZQ.display_name": {
+          "source": "Name",
+          "message": "Name"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6T3BlbkFwaTNIYXNoRGF0YVR5cGU6KnRocm91Z2hfbmFtZXNwYWNlIzA5MWVlYzZmZTMxMzgxYzgxMDllY2IwMmE2MTM1NDkwOGUyNWYzOGU3ZThjYjFkMGY1OWE5MDc5YTljNjBmZGY6b3B0aW9uOlpIVnZYMjVoYldWemNHRmpaVjloWTJObGMzTmZjblZzWlhNOmZpZWxkOmRHaHliM1ZuYUY5dVlXMWxjM0JoWTJV.field.bmFtZQ.short_desc": {
+          "source": "Name of the through namespace",
+          "message": "Name of the through namespace"
+        },
+        "app.R2l0bGFi.type.YWN0aW9uOmNIVjBRWEJwVmpSSGNtOTFjSE5KWkE6T3BlbkFwaTNIYXNoRGF0YVR5cGU6KnRocm91Z2hfbmFtZXNwYWNlIzA5MWVlYzZmZTMxMzgxYzgxMDllY2IwMmE2MTM1NDkwOGUyNWYzOGU3ZThjYjFkMGY1OWE5MDc5YTljNjBmZGY6b3B0aW9uOlpIVnZYMjVoYldWemNHRmpaVjloWTJObGMzTmZjblZzWlhNOmZpZWxkOmRHaHliM1ZuYUY5dVlXMWxjM0JoWTJV.field.bmFtZQ.desc": {
+          "source": "Name of the through namespace",
+          "message": "Name of the through namespace"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRHcm91cHNJZA.option.YnVpbHRfaW5fcHJvamVjdF90ZW1wbGF0ZXNfZW5hYmxlZA.display_name": {
           "source": "Built in Project Templates Enabled",
@@ -7895,6 +8875,30 @@
           "source": "Approval Rules Attributes",
           "message": "Approval Rules Attributes"
         },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZE1lcmdlUmVxdWVzdHM.option.YXBwcm92YWxfcnVsZXNfYXR0cmlidXRlcw.field.YXBwcm92YWxzX3JlcXVpcmVk.display_name": {
+          "source": "Approvals Required",
+          "message": "Approvals Required"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZE1lcmdlUmVxdWVzdHM.option.YXBwcm92YWxfcnVsZXNfYXR0cmlidXRlcw.field.YXBwcm92YWxzX3JlcXVpcmVk.short_desc": {
+          "source": "Total number of approvals required",
+          "message": "Total number of approvals required"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZE1lcmdlUmVxdWVzdHM.option.YXBwcm92YWxfcnVsZXNfYXR0cmlidXRlcw.field.YXBwcm92YWxzX3JlcXVpcmVk.desc": {
+          "source": "Total number of approvals required",
+          "message": "Total number of approvals required"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZE1lcmdlUmVxdWVzdHM.option.YXBwcm92YWxfcnVsZXNfYXR0cmlidXRlcw.field.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZE1lcmdlUmVxdWVzdHM.option.YXBwcm92YWxfcnVsZXNfYXR0cmlidXRlcw.field.aWQ.short_desc": {
+          "source": "The ID of a rule",
+          "message": "The ID of a rule"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZE1lcmdlUmVxdWVzdHM.option.YXBwcm92YWxfcnVsZXNfYXR0cmlidXRlcw.field.aWQ.desc": {
+          "source": "The ID of a rule",
+          "message": "The ID of a rule"
+        },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0c01lcmdlUmVxdWVzdElpZA.display_name": {
           "source": "Get Merge Request",
           "message": "Get Merge Request"
@@ -8242,6 +9246,30 @@
         "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0c01lcmdlUmVxdWVzdElpZA.option.YXBwcm92YWxfcnVsZXNfYXR0cmlidXRlcw.display_name": {
           "source": "Approval Rules Attributes",
           "message": "Approval Rules Attributes"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0c01lcmdlUmVxdWVzdElpZA.option.YXBwcm92YWxfcnVsZXNfYXR0cmlidXRlcw.field.YXBwcm92YWxzX3JlcXVpcmVk.display_name": {
+          "source": "Approvals Required",
+          "message": "Approvals Required"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0c01lcmdlUmVxdWVzdElpZA.option.YXBwcm92YWxfcnVsZXNfYXR0cmlidXRlcw.field.YXBwcm92YWxzX3JlcXVpcmVk.short_desc": {
+          "source": "Total number of approvals required",
+          "message": "Total number of approvals required"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0c01lcmdlUmVxdWVzdElpZA.option.YXBwcm92YWxfcnVsZXNfYXR0cmlidXRlcw.field.YXBwcm92YWxzX3JlcXVpcmVk.desc": {
+          "source": "Total number of approvals required",
+          "message": "Total number of approvals required"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0c01lcmdlUmVxdWVzdElpZA.option.YXBwcm92YWxfcnVsZXNfYXR0cmlidXRlcw.field.aWQ.display_name": {
+          "source": "ID",
+          "message": "ID"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0c01lcmdlUmVxdWVzdElpZA.option.YXBwcm92YWxfcnVsZXNfYXR0cmlidXRlcw.field.aWQ.short_desc": {
+          "source": "The ID of a rule",
+          "message": "The ID of a rule"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0c01lcmdlUmVxdWVzdElpZA.option.YXBwcm92YWxfcnVsZXNfYXR0cmlidXRlcw.field.aWQ.desc": {
+          "source": "The ID of a rule",
+          "message": "The ID of a rule"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkTWVyZ2VSZXF1ZXN0c01lcmdlUmVxdWVzdElpZA.display_name": {
           "source": "Delete Merge Request",
@@ -9819,6 +10847,78 @@
           "source": "Object that contains information on the container expiration policy",
           "message": "Object that contains information on the container expiration policy"
         },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.Y2FkZW5jZQ.display_name": {
+          "source": "Cadence",
+          "message": "Cadence"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.Y2FkZW5jZQ.short_desc": {
+          "source": "Container expiration policy cadence for recurring job",
+          "message": "Container expiration policy cadence for recurring job"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.Y2FkZW5jZQ.desc": {
+          "source": "Container expiration policy cadence for recurring job",
+          "message": "Container expiration policy cadence for recurring job"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.ZW5hYmxlZA.display_name": {
+          "source": "Enabled",
+          "message": "Enabled"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.ZW5hYmxlZA.short_desc": {
+          "source": "Flag indication if container expiration policy is enabled",
+          "message": "Flag indication if container expiration policy is enabled"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.ZW5hYmxlZA.desc": {
+          "source": "Flag indication if container expiration policy is enabled",
+          "message": "Flag indication if container expiration policy is enabled"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.a2VlcF9u.display_name": {
+          "source": "Keep N",
+          "message": "Keep N"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.a2VlcF9u.short_desc": {
+          "source": "Container expiration policy number of images to keep",
+          "message": "Container expiration policy number of images to keep"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.a2VlcF9u.desc": {
+          "source": "Container expiration policy number of images to keep",
+          "message": "Container expiration policy number of images to keep"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.bmFtZV9yZWdleA.display_name": {
+          "source": "Name Regex",
+          "message": "Name Regex"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.bmFtZV9yZWdleA.short_desc": {
+          "source": "Container expiration policy regex for image removal",
+          "message": "Container expiration policy regex for image removal"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.bmFtZV9yZWdleA.desc": {
+          "source": "Container expiration policy regex for image removal",
+          "message": "Container expiration policy regex for image removal"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.bmFtZV9yZWdleF9rZWVw.display_name": {
+          "source": "Name Regex Keep",
+          "message": "Name Regex Keep"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.bmFtZV9yZWdleF9rZWVw.short_desc": {
+          "source": "Container expiration policy regex for image retention",
+          "message": "Container expiration policy regex for image retention"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.bmFtZV9yZWdleF9rZWVw.desc": {
+          "source": "Container expiration policy regex for image retention",
+          "message": "Container expiration policy regex for image retention"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.b2xkZXJfdGhhbg.display_name": {
+          "source": "Older Than",
+          "message": "Older Than"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.b2xkZXJfdGhhbg.short_desc": {
+          "source": "Container expiration policy remove images older than value",
+          "message": "Container expiration policy remove images older than value"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.b2xkZXJfdGhhbg.desc": {
+          "source": "Container expiration policy remove images older than value",
+          "message": "Container expiration policy remove images older than value"
+        },
         "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.bGZzX2VuYWJsZWQ.display_name": {
           "source": "Lfs Enabled",
           "message": "Lfs Enabled"
@@ -9926,6 +11026,126 @@
         "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.desc": {
           "source": "Avatar image for project",
           "message": "Avatar image for project"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "File Data"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME Type"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "Autodetect"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "MS Word docx document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "MS Word `docx` document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "MS PowerPoint pptx document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "MS PowerPoint `pptx` document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "MS Excel xlsx document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "MS Excel `xlsx` document"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "Filename"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "The filename"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "The filename"
         },
         "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHM.option.cHJpbnRpbmdfbWVyZ2VfcmVxdWVzdF9saW5rX2VuYWJsZWQ.display_name": {
           "source": "Printing Merge Request Link Enabled",
@@ -11383,6 +12603,78 @@
           "source": "Object that contains information on the container expiration policy",
           "message": "Object that contains information on the container expiration policy"
         },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.Y2FkZW5jZQ.display_name": {
+          "source": "Cadence",
+          "message": "Cadence"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.Y2FkZW5jZQ.short_desc": {
+          "source": "Container expiration policy cadence for recurring job",
+          "message": "Container expiration policy cadence for recurring job"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.Y2FkZW5jZQ.desc": {
+          "source": "Container expiration policy cadence for recurring job",
+          "message": "Container expiration policy cadence for recurring job"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.ZW5hYmxlZA.display_name": {
+          "source": "Enabled",
+          "message": "Enabled"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.ZW5hYmxlZA.short_desc": {
+          "source": "Flag indication if container expiration policy is enabled",
+          "message": "Flag indication if container expiration policy is enabled"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.ZW5hYmxlZA.desc": {
+          "source": "Flag indication if container expiration policy is enabled",
+          "message": "Flag indication if container expiration policy is enabled"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.a2VlcF9u.display_name": {
+          "source": "Keep N",
+          "message": "Keep N"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.a2VlcF9u.short_desc": {
+          "source": "Container expiration policy number of images to keep",
+          "message": "Container expiration policy number of images to keep"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.a2VlcF9u.desc": {
+          "source": "Container expiration policy number of images to keep",
+          "message": "Container expiration policy number of images to keep"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.bmFtZV9yZWdleA.display_name": {
+          "source": "Name Regex",
+          "message": "Name Regex"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.bmFtZV9yZWdleA.short_desc": {
+          "source": "Container expiration policy regex for image removal",
+          "message": "Container expiration policy regex for image removal"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.bmFtZV9yZWdleA.desc": {
+          "source": "Container expiration policy regex for image removal",
+          "message": "Container expiration policy regex for image removal"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.bmFtZV9yZWdleF9rZWVw.display_name": {
+          "source": "Name Regex Keep",
+          "message": "Name Regex Keep"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.bmFtZV9yZWdleF9rZWVw.short_desc": {
+          "source": "Container expiration policy regex for image retention",
+          "message": "Container expiration policy regex for image retention"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.bmFtZV9yZWdleF9rZWVw.desc": {
+          "source": "Container expiration policy regex for image retention",
+          "message": "Container expiration policy regex for image retention"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.b2xkZXJfdGhhbg.display_name": {
+          "source": "Older Than",
+          "message": "Older Than"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.b2xkZXJfdGhhbg.short_desc": {
+          "source": "Container expiration policy remove images older than value",
+          "message": "Container expiration policy remove images older than value"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.Y29udGFpbmVyX2V4cGlyYXRpb25fcG9saWN5X2F0dHJpYnV0ZXM.field.b2xkZXJfdGhhbg.desc": {
+          "source": "Container expiration policy remove images older than value",
+          "message": "Container expiration policy remove images older than value"
+        },
         "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.bGZzX2VuYWJsZWQ.display_name": {
           "source": "Lfs Enabled",
           "message": "Lfs Enabled"
@@ -11490,6 +12782,126 @@
         "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.desc": {
           "source": "Avatar image for project",
           "message": "Avatar image for project"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "File Data"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Base64-encoded file data or raw data to be encoded with base64 encoding"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "MIME Type"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "The MIME type string for the file"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "Autodetect"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Autodetect from the file name; valid only on input"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "Plain text"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "HTML text"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "PDF file"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "MS Word docx document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "MS Word `docx` document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "MS PowerPoint pptx document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "MS PowerPoint `pptx` document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "MS Excel xlsx document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "MS Excel `xlsx` document"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "Filename"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "The filename"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.YXZhdGFy.union.RmlsZU9yTm90aGluZ0RhdGFUeXBlOipmaWxlIzIzNjViZGNiODM5OGViYTEyZmMxNTQ2YWFkNDc2YWRkNDcwYjJlNjUwOWQxNDQ0ODcyYjE2M2I4YzM4OGUwZDU.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "The filename"
         },
         "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lk.option.cHJpbnRpbmdfbWVyZ2VfcmVxdWVzdF9saW5rX2VuYWJsZWQ.display_name": {
           "source": "Printing Merge Request Link Enabled",
@@ -12799,6 +14211,18 @@
           "source": "Available filters: [environment_scope]. Example: filter[environment_scope]=production",
           "message": "Available filters: [environment_scope]. Example: filter[environment_scope]=production"
         },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.ZmlsdGVy.field.ZW52aXJvbm1lbnRfc2NvcGU.display_name": {
+          "source": "Environment Scope",
+          "message": "Environment Scope"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.ZmlsdGVy.field.ZW52aXJvbm1lbnRfc2NvcGU.short_desc": {
+          "source": "The environment scope of a variable",
+          "message": "The environment scope of a variable"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.ZmlsdGVy.field.ZW52aXJvbm1lbnRfc2NvcGU.desc": {
+          "source": "The environment scope of a variable",
+          "message": "The environment scope of a variable"
+        },
         "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkVmFyaWFibGVzS2V5.option.ZGVzY3JpcHRpb24.display_name": {
           "source": "Description",
           "message": "Description"
@@ -13383,6 +14807,18 @@
           "source": "Object that contains YAML frontmatter",
           "message": "Object that contains YAML frontmatter"
         },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFdpa2lz.option.ZnJvbnRfbWF0dGVy.field.dGl0bGU.display_name": {
+          "source": "Title",
+          "message": "Title"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFdpa2lz.option.ZnJvbnRfbWF0dGVy.field.dGl0bGU.short_desc": {
+          "source": "Frontmatter title of a wiki page",
+          "message": "Frontmatter title of a wiki page"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFdpa2lz.option.ZnJvbnRfbWF0dGVy.field.dGl0bGU.desc": {
+          "source": "Frontmatter title of a wiki page",
+          "message": "Frontmatter title of a wiki page"
+        },
         "app.R2l0bGFi.action.Z2V0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.display_name": {
           "source": "Get Wiki Page",
           "message": "Get Wiki Page"
@@ -13542,6 +14978,18 @@
         "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.ZnJvbnRfbWF0dGVy.desc": {
           "source": "Object that contains YAML frontmatter",
           "message": "Object that contains YAML frontmatter"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.ZnJvbnRfbWF0dGVy.field.dGl0bGU.display_name": {
+          "source": "Title",
+          "message": "Title"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.ZnJvbnRfbWF0dGVy.field.dGl0bGU.short_desc": {
+          "source": "Frontmatter title of a wiki page",
+          "message": "Frontmatter title of a wiki page"
+        },
+        "app.R2l0bGFi.action.cHV0QXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.option.ZnJvbnRfbWF0dGVy.field.dGl0bGU.desc": {
+          "source": "Frontmatter title of a wiki page",
+          "message": "Frontmatter title of a wiki page"
         },
         "app.R2l0bGFi.action.ZGVsZXRlQXBpVjRQcm9qZWN0c0lkV2lraXNTbHVn.display_name": {
           "source": "Delete Wiki Page",
@@ -13758,6 +15206,118 @@
         "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.desc": {
           "source": "The file changes this commit makes. Every change is applied in one commit, so either all of them land or none of them do",
           "message": "The file changes this commit makes. Every change is applied in one commit, so either all of them land or none of them do"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.YWN0aW9u.display_name": {
+          "source": "Action",
+          "message": "Action"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.YWN0aW9u.short_desc": {
+          "source": "What to do with the file",
+          "message": "What to do with the file"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.YWN0aW9u.desc": {
+          "source": "What to do with the file: `create`, `update`, `move`, `delete` or `chmod`",
+          "message": "What to do with the file: `create`, `update`, `move`, `delete` or `chmod`"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.YWN0aW9u.allowed-value.c3RyaW5nOmNyZWF0ZQ.display_name": {
+          "source": "create",
+          "message": "create"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.YWN0aW9u.allowed-value.c3RyaW5nOnVwZGF0ZQ.display_name": {
+          "source": "update",
+          "message": "update"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.YWN0aW9u.allowed-value.c3RyaW5nOm1vdmU.display_name": {
+          "source": "move",
+          "message": "move"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.YWN0aW9u.allowed-value.c3RyaW5nOmRlbGV0ZQ.display_name": {
+          "source": "delete",
+          "message": "delete"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.YWN0aW9u.allowed-value.c3RyaW5nOmNobW9k.display_name": {
+          "source": "chmod",
+          "message": "chmod"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.Y29udGVudA.display_name": {
+          "source": "Content",
+          "message": "Content"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.Y29udGVudA.short_desc": {
+          "source": "The file content, for \"create\" and \"update\"",
+          "message": "The file content, for \"create\" and \"update\""
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.Y29udGVudA.desc": {
+          "source": "The new content of the file. Required for `create` and `update`, and optional for `move` when the file is also being changed",
+          "message": "The new content of the file. Required for `create` and `update`, and optional for `move` when the file is also being changed"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.ZW5jb2Rpbmc.display_name": {
+          "source": "Encoding",
+          "message": "Encoding"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.ZW5jb2Rpbmc.short_desc": {
+          "source": "How \"content\" is encoded: \"text\" or \"base64\"",
+          "message": "How \"content\" is encoded: \"text\" or \"base64\""
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.ZW5jb2Rpbmc.desc": {
+          "source": "How `content` is encoded: `text` (the default) or `base64`. Use `base64` for a binary file",
+          "message": "How `content` is encoded: `text` (the default) or `base64`. Use `base64` for a binary file"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "text",
+          "message": "text"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.ZW5jb2Rpbmc.allowed-value.c3RyaW5nOmJhc2U2NA.display_name": {
+          "source": "base64",
+          "message": "base64"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.ZXhlY3V0ZV9maWxlbW9kZQ.display_name": {
+          "source": "Executable",
+          "message": "Executable"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.ZXhlY3V0ZV9maWxlbW9kZQ.short_desc": {
+          "source": "Set or clear the file's execute bit",
+          "message": "Set or clear the file's execute bit"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.ZXhlY3V0ZV9maWxlbW9kZQ.desc": {
+          "source": "Sets or clears the execute bit on the file; used with a `chmod` action",
+          "message": "Sets or clears the execute bit on the file; used with a `chmod` action"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.ZmlsZV9wYXRo.display_name": {
+          "source": "File Path",
+          "message": "File Path"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.ZmlsZV9wYXRo.short_desc": {
+          "source": "The full path of the file, relative to the repository root",
+          "message": "The full path of the file, relative to the repository root"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.ZmlsZV9wYXRo.desc": {
+          "source": "The full path of the file, relative to the repository root",
+          "message": "The full path of the file, relative to the repository root"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.bGFzdF9jb21taXRfaWQ.display_name": {
+          "source": "Last Commit ID",
+          "message": "Last Commit ID"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.bGFzdF9jb21taXRfaWQ.short_desc": {
+          "source": "Reject the change if the file has moved on since this commit",
+          "message": "Reject the change if the file has moved on since this commit"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.bGFzdF9jb21taXRfaWQ.desc": {
+          "source": "The commit the file was last changed in. Supplying it makes the change conditional: GitLab rejects the commit if somebody else has changed the file since, instead of silently overwriting their work",
+          "message": "The commit the file was last changed in. Supplying it makes the change conditional: GitLab rejects the commit if somebody else has changed the file since, instead of silently overwriting their work"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.cHJldmlvdXNfcGF0aA.display_name": {
+          "source": "Previous Path",
+          "message": "Previous Path"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.cHJldmlvdXNfcGF0aA.short_desc": {
+          "source": "The file's original path, for a \"move\" action",
+          "message": "The file's original path, for a \"move\" action"
+        },
+        "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.YWN0aW9ucw.field.cHJldmlvdXNfcGF0aA.desc": {
+          "source": "The file's original path; required for a `move` action and ignored otherwise",
+          "message": "The file's original path; required for a `move` action and ignored otherwise"
         },
         "app.R2l0bGFi.action.cG9zdEFwaVY0UHJvamVjdHNJZFJlcG9zaXRvcnlDb21taXRz.option.c3RhcnRfYnJhbmNo.display_name": {
           "source": "Start Branch",

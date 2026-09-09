@@ -1399,6 +1399,42 @@
           "source": "A list of line items for the order. Each item requires `variant_id`, `products_price_id`, and `quantity`.\n\n**Note**: for one-time orders, line items must reference one-time products. For subscription orders, line items can include both one-time and subscription products",
           "message": "A list of line items for the order. Each item requires `variant_id`, `products_price_id`, and `quantity`.\n\n**Note**: for one-time orders, line items must reference one-time products. For subscription orders, line items can include both one-time and subscription products"
         },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLW9yZGVy.option.bGluZV9pdGVtc19hdHRyaWJ1dGVz.field.cHJvZHVjdHNfcHJpY2VfaWQ.display_name": {
+          "source": "Products Price ID",
+          "message": "Products Price ID"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLW9yZGVy.option.bGluZV9pdGVtc19hdHRyaWJ1dGVz.field.cHJvZHVjdHNfcHJpY2VfaWQ.short_desc": {
+          "source": "The product price ID",
+          "message": "The product price ID"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLW9yZGVy.option.bGluZV9pdGVtc19hdHRyaWJ1dGVz.field.cHJvZHVjdHNfcHJpY2VfaWQ.desc": {
+          "source": "The ID of the product price to use",
+          "message": "The ID of the product price to use"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLW9yZGVy.option.bGluZV9pdGVtc19hdHRyaWJ1dGVz.field.cXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLW9yZGVy.option.bGluZV9pdGVtc19hdHRyaWJ1dGVz.field.cXVhbnRpdHk.short_desc": {
+          "source": "The quantity to order",
+          "message": "The quantity to order"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLW9yZGVy.option.bGluZV9pdGVtc19hdHRyaWJ1dGVz.field.cXVhbnRpdHk.desc": {
+          "source": "The number of items to order",
+          "message": "The number of items to order"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLW9yZGVy.option.bGluZV9pdGVtc19hdHRyaWJ1dGVz.field.dmFyaWFudF9pZA.display_name": {
+          "source": "Variant ID",
+          "message": "Variant ID"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLW9yZGVy.option.bGluZV9pdGVtc19hdHRyaWJ1dGVz.field.dmFyaWFudF9pZA.short_desc": {
+          "source": "The product variant ID",
+          "message": "The product variant ID"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLW9yZGVy.option.bGluZV9pdGVtc19hdHRyaWJ1dGVz.field.dmFyaWFudF9pZA.desc": {
+          "source": "The ID of the product variant to order",
+          "message": "The ID of the product variant to order"
+        },
         "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLW9yZGVy.option.Y3VycmVuY3k.display_name": {
           "source": "Currency",
           "message": "Currency"
@@ -2442,6 +2478,30 @@
         "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLWZ1bGZpbGxtZW50.option.aW5jbHVkZWRfb3JkZXJzX2ludm9pY2VzX2xpbmVfaXRlbXNfYXR0cmlidXRlcw.desc": {
           "source": "A list of invoice line items to fulfill. Each item requires `invoices_line_item_id` and `quantity`",
           "message": "A list of invoice line items to fulfill. Each item requires `invoices_line_item_id` and `quantity`"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLWZ1bGZpbGxtZW50.option.aW5jbHVkZWRfb3JkZXJzX2ludm9pY2VzX2xpbmVfaXRlbXNfYXR0cmlidXRlcw.field.aW52b2ljZXNfbGluZV9pdGVtX2lk.display_name": {
+          "source": "Invoice Line Item ID",
+          "message": "Invoice Line Item ID"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLWZ1bGZpbGxtZW50.option.aW5jbHVkZWRfb3JkZXJzX2ludm9pY2VzX2xpbmVfaXRlbXNfYXR0cmlidXRlcw.field.aW52b2ljZXNfbGluZV9pdGVtX2lk.short_desc": {
+          "source": "The invoice line item to fulfill",
+          "message": "The invoice line item to fulfill"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLWZ1bGZpbGxtZW50.option.aW5jbHVkZWRfb3JkZXJzX2ludm9pY2VzX2xpbmVfaXRlbXNfYXR0cmlidXRlcw.field.aW52b2ljZXNfbGluZV9pdGVtX2lk.desc": {
+          "source": "The ID of the orders invoice line item to fulfill",
+          "message": "The ID of the orders invoice line item to fulfill"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLWZ1bGZpbGxtZW50.option.aW5jbHVkZWRfb3JkZXJzX2ludm9pY2VzX2xpbmVfaXRlbXNfYXR0cmlidXRlcw.field.cXVhbnRpdHk.display_name": {
+          "source": "Quantity",
+          "message": "Quantity"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLWZ1bGZpbGxtZW50.option.aW5jbHVkZWRfb3JkZXJzX2ludm9pY2VzX2xpbmVfaXRlbXNfYXR0cmlidXRlcw.field.cXVhbnRpdHk.short_desc": {
+          "source": "The quantity to fulfill",
+          "message": "The quantity to fulfill"
+        },
+        "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLWZ1bGZpbGxtZW50.option.aW5jbHVkZWRfb3JkZXJzX2ludm9pY2VzX2xpbmVfaXRlbXNfYXR0cmlidXRlcw.field.cXVhbnRpdHk.desc": {
+          "source": "The number of items to fulfill",
+          "message": "The number of items to fulfill"
         },
         "app.Q2xpY2tGdW5uZWxz.action.Y3JlYXRlLWZ1bGZpbGxtZW50.option.dHJhY2tpbmdfY29kZQ.display_name": {
           "source": "Tracking Code",

@@ -603,6 +603,38 @@ public class AbstractDataField inherits Qore::Serializable {
         };
     }
 
+    #! Returns only static presentation metadata without resolving dynamic type, default, or example callbacks
+    /** Catalog extraction must be deterministic and connection-free. Unlike @ref getLocalInfo(), this method does
+        not call @ref getType(), @ref getDefaultValue(), @ref getExampleValue(), or the inherited
+        \c uniqueHash() method.
+
+        @return static name, descriptive fields, and declared allowed-value metadata
+
+        @since DataProvider 3.8
+    */
+    hash<auto> getPresentationInfo() {
+        return {
+            "name": getName(),
+            "display_name": getDisplayName(),
+            "short_desc": getShortDescription(),
+            "desc": getDescription(),
+            "allowed_values": allowed_values,
+            "element_allowed_values": element_allowed_values,
+        };
+    }
+
+    #! Returns the statically declared type without resolving a context-dependent dynamic type
+    /** The default implementation is identical to @ref getType(). Fields supporting dynamic types must override
+        this method to return their fallback declaration without executing producer callbacks.
+
+        @return the field's statically declared fallback type
+
+        @since DataProvider 3.8
+    */
+    AbstractDataProviderType getDeclaredType() {
+        return getType();
+    }
+
     #! returns information about the field
     hash<DataFieldInfo> getConfigInfo() {
         on_error rethrow $1.err, sprintf("%s (while reading field %s %s)", $1.desc, getType().getName(), getName());
