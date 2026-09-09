@@ -83,6 +83,23 @@ public const DataSchemaJsonSchema = {
         "column_options": {
             "type": "object",
         },
+        "columns": {
+            "type": "object",
+            "description": "Shared column definitions keyed by name. A table's column draws from one "
+                "with {\"$use\": \"<name>\"}, and any key it sets alongside overrides the shared value. "
+                "Resolved at load; the normalized schema carries fully-expanded columns only.",
+            "additionalProperties": {
+                "$ref": "#/$defs/columnDefinition",
+            },
+        },
+        "indexes": {
+            "type": "object",
+            "description": "Shared index definitions keyed by name, drawn from the same way as shared "
+                "columns.",
+            "additionalProperties": {
+                "$ref": "#/$defs/indexDefinition",
+            },
+        },
     },
     "$defs": {
         "schemaMetadata": {
@@ -120,6 +137,11 @@ public const DataSchemaJsonSchema = {
         "columnDefinition": {
             "type": "object",
             "properties": {
+                "$use": {
+                    "type": "string",
+                    "description": "Draw from the shared column definition of this name; any key set "
+                        "here overrides the shared value.",
+                },
                 "type": {
                     "type": "string",
                     "enum": ("int", "varchar", "char", "timestamp", "date", "number",
@@ -166,8 +188,18 @@ public const DataSchemaJsonSchema = {
         },
         "indexDefinition": {
             "type": "object",
-            "required": ("columns",),
+            # either the index says what it indexes, or it draws from a
+            # shared definition that does
+            "anyOf": (
+                {"required": ("columns",)},
+                {"required": ("$use",)},
+            ),
             "properties": {
+                "$use": {
+                    "type": "string",
+                    "description": "Draw from the shared index definition of this name; any key set "
+                        "here overrides the shared value.",
+                },
                 "columns": {
                     "type": "array",
                     "items": {"type": "string"},
