@@ -27,6 +27,8 @@ class FakeOpenAiRestClient inherits OpenAiRestClient::OpenAiRestClientIo {
         list<hash<SseMessageInfo>> stream_events;
         # raw (pre-serialized) requests: multipart uploads
         *data last_raw_body;
+        #! when set, restDoRawRequest() throws this exception instead of answering
+        *hash<auto> raw_error;
         # raw response body; a string for text response formats
         auto raw_response_body;
     }
@@ -61,6 +63,9 @@ class FakeOpenAiRestClient inherits OpenAiRestClient::OpenAiRestClientIo {
     }
 
     hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body, *hash<auto> hdr) {
+        if (raw_error) {
+            throw raw_error.err, raw_error.desc, raw_error.arg;
+        }
         last_method = method;
         last_path = path;
         last_raw_body = body;
@@ -1602,6 +1607,53 @@ public class OpenAiDataProviderTest inherits QUnit::Test {
         assertEq("0.2", parts.temperature.body.toString());
         assertEq("hello world", resp.text);
         assertEq("tokens", resp.usage.type);
+
+        # the FileDataType placeholder "auto" must never be sent as the part's Content-Type; the MIME type is
+        # taken from the file name instead
+        rest.raw_response_body = {"text": "wav"};
+        prov.doRequest({
+            "file": {
+                "name": "note.wav",
+                "mime_type": "auto",
+                "content": audio,
+            },
+            "model": "whisper-1",
+        });
+        parts = MultiPartFormDataMessage::parseMessage(rest.last_hdr."Content-Type", rest.last_raw_body.toString());
+        # the MIME type the framework derives for .wav
+        assertEq("audio/x-wav", parts.file.hdr."content-type");
+        assertEq("note.wav", parts.file.filename);
+
+        # an HTTP error keeps its status in the message and its argument (status, body) for the caller
+        rest.raw_error = {
+            "err": "REST-RESPONSE-ERROR",
+            "desc": "HTTP 400 response received",
+            "arg": {"status_code": 400, "body": {"error": {"message": "Unrecognized file format"}}},
+        };
+        try {
+            prov.doRequest({"file": {"name": "note.wav", "content": audio}, "model": "whisper-1"});
+            fail("an HTTP error must be raised");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("REST-RESPONSE-ERROR", ex.err);
+            assertRegex("HTTP response code: 400", ex.desc);
+            assertEq(400, ex.arg.status_code);
+            assertEq("Unrecognized file format", ex.arg.body.error.message, "the response body is preserved");
+        }
+        # a transport error without an HTTP status is rethrown unchanged instead of failing while formatting
+        rest.raw_error = {
+            "err": "TEST-TRANSPORT-ERROR",
+            "desc": "connection reset by peer",
+            "arg": {"detail": "no status here"},
+        };
+        try {
+            prov.doRequest({"file": {"name": "note.wav", "content": audio}, "model": "whisper-1"});
+            fail("a transport error must be raised");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("TEST-TRANSPORT-ERROR", ex.err);
+            assertEq("connection reset by peer", ex.desc);
+            assertEq({"detail": "no status here"}, ex.arg);
+        }
+        rest.raw_error = NOTHING;
         assertEq(17, resp.usage.total_tokens);
 
         # verbose JSON response: the parsed body is returned as-is

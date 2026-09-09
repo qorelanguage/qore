@@ -491,7 +491,12 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
                 if (retry(ex, \retries)) {
                     continue;
                 }
-                rethrow ex.err, sprintf("%s (HTTP response code: %y)", ex.desc, ex.arg.status_code);
+                # socket-level errors carry no HTTP status; keep the original argument so that any response
+                # metadata (status, headers, body) stays available to the caller
+                string desc = ex.arg.status_code.val()
+                    ? sprintf("%s (HTTP response code: %d)", ex.desc, ex.arg.status_code)
+                    : ex.desc;
+                rethrow ex.err, desc, ex.arg;
             }
         }
     }

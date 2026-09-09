@@ -107,7 +107,7 @@ public class OpenAiTranscribeAudioDataProvider inherits OpenAiDataProviderCommon
         checkAudioFile(file.name, content);
 
         Mime::MultiPartFormDataMessage msg();
-        msg.addPart(content, "file", file.name, file.mime_type ?? MimeTypeOctetStream);
+        msg.addPart(content, "file", file.name, getAudioMimeType(file));
         foreach hash<auto> i in (req.pairIterator()) {
             if (exists i.value) {
                 msg.addPart(string(i.value), i.key, {"Content-Type": MimeTypeText});
@@ -123,6 +123,22 @@ public class OpenAiTranscribeAudioDataProvider inherits OpenAiDataProviderCommon
             };
         }
         return body;
+    }
+
+    #! Returns the MIME type to send for the audio file part
+    /** @param file the file value
+
+        @return the MIME type carried by the file; the @ref DataProvider::FileDataType "FileDataType" placeholder
+        \c "auto" (or a missing value) is resolved from the file name, falling back to
+        \c application/octet-stream, so that the part never carries an invalid \c Content-Type
+
+        @since OpenAiDataProvider 1.7
+    */
+    private static string getAudioMimeType(hash<auto> file) {
+        if (file.mime_type.val() && file.mime_type != "auto") {
+            return file.mime_type;
+        }
+        return file.name.val() ? get_mime_type_from_ext(file.name) : MimeTypeOctetStream;
     }
 
     #! Validates the audio file name extension and size before uploading
