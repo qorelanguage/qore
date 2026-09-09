@@ -1796,6 +1796,8 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         (<a href="https://github.com/qoretechnologies/qore/issues/4997">issue 4997</a>)
       - fixed a foreign-key ordering bug in @ref SqlUtil::Tables::populate() "Tables::populate()" that left the
         cache out of sync for structurally divergent tables; now processes tables in FK topological order
+      - fixed foreign-key DDL generation for Oracle, MySQL, SQL Server, Firebird, and SQLite to preserve quoted
+        and renamed column names on both sides of the constraint
 
     - @ref utilintro "Util" module
       - added the @ref Util::TerminalColor "TerminalColor" class for ANSI terminal color output with automatic terminal detection

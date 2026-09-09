@@ -178,7 +178,8 @@ public namespace XdbcFirebirdSqlUtilBase {
 
         string getAddSql(string name, string table_name, *hash<auto> opt) {
             return sprintf("add constraint %s foreign key (%s) references %s (%s)", name,
-                (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+                (foldl $1 + ", " + $2, getSqlColumnNameIterator()), target.table,
+                (foldl $1 + ", " + $2, target.columns.getSqlColumnNameIterator()));
         }
 
         #! returns a string that can be used to drop the foreign constraint from the database

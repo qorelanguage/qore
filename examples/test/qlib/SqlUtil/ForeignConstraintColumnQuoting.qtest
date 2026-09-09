@@ -1,0 +1,125 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires QUnit
+%requires SqlUtil
+%requires OracleSqlUtilBase
+%requires MysqlSqlUtil
+%requires MssqlSqlUtilBase
+%requires XdbcFirebirdSqlUtilBase
+%requires Sqlite3SqlUtil
+%exec-class ForeignConstraintColumnQuotingTest
+
+class ForeignConstraintColumnQuotingTest inherits QUnit::Test {
+    constructor() : Test("ForeignConstraintColumnQuotingTest", "1.0", \ARGV) {
+        addDriverTests("Oracle", \oracleColumn(),
+            AbstractForeignConstraint sub (string name, Columns cols, ForeignConstraintTarget target) {
+                return new OracleForeignConstraint(name, cols, target, True);
+            }, '"', '"');
+        addDriverTests("MySQL",
+            AbstractColumn sub (string name) {
+                return new MysqlColumn(name, "varchar", "string", 80, False);
+            },
+            AbstractForeignConstraint sub (string name, Columns cols, ForeignConstraintTarget target) {
+                return new MysqlForeignConstraint(name, cols, target);
+            }, "`", "`");
+        addDriverTests("MS SQL",
+            AbstractColumn sub (string name) {
+                return new MssqlColumn(name, "varchar", "string", 80, False);
+            },
+            AbstractForeignConstraint sub (string name, Columns cols, ForeignConstraintTarget target) {
+                return new MssqlForeignConstraint(name, cols, target);
+            }, "[", "]");
+        addDriverTests("Firebird",
+            AbstractColumn sub (string name) {
+                return new XdbcFirebirdColumn(name, "varchar", "string", 80, False);
+            },
+            AbstractForeignConstraint sub (string name, Columns cols, ForeignConstraintTarget target) {
+                return new XdbcFirebirdForeignConstraint(name, cols, target);
+            }, '"', '"');
+        addDriverTests("SQLite",
+            AbstractColumn sub (string name) {
+                return new Sqlite3Column(name, "text", "string", False);
+            },
+            AbstractForeignConstraint sub (string name, Columns cols, ForeignConstraintTarget target) {
+                return new Sqlite3ForeignConstraint(name, cols, target);
+            }, "'", "'");
+        addTestCase("Oracle composite draft key preserves deferrability", \oracleDeferred());
+        set_return_value(main());
+    }
+
+    private static AbstractColumn oracleColumn(string name) {
+        return new OracleColumn(name, "varchar2", "string", 80, False);
+    }
+
+    private static Columns columns(code<AbstractColumn(string)> factory, list<string> names) {
+        Columns cols({});
+        foreach string name in (names) {
+            cols.add(name, factory(name));
+        }
+        return cols;
+    }
+
+    # Exercise the actual driver column classes without requiring database connections.
+    private addDriverTests(string driver, code<AbstractColumn(string)> column_factory,
+            code<AbstractForeignConstraint(string, Columns, ForeignConstraintTarget)> constraint_factory,
+            string quote_start, string quote_end) {
+        string quoted_order = quote_start + "order" + quote_end;
+        string quoted_select = quote_start + "select" + quote_end;
+
+        addTestCase(driver + ": plain foreign-key names remain unchanged", sub () {
+            AbstractForeignConstraint fk = constraint_factory("fk_plain", columns(column_factory, ("parent_id",)),
+                new ForeignConstraintTarget("parent", columns(column_factory, ("id",))));
+            assertEq("alter table child add constraint fk_plain foreign key (parent_id) references parent (id)",
+                fk.getCreateSql("child"));
+        });
+
+        addTestCase(driver + ": reserved columns are quoted on both sides", sub () {
+            AbstractForeignConstraint fk = constraint_factory("fk_reserved", columns(column_factory, ("order",)),
+                new ForeignConstraintTarget("parent", columns(column_factory, ("select",))));
+            string definition = "foreign key (" + quoted_order + ") references parent (" + quoted_select + ")";
+            assertEq("alter table child add constraint fk_reserved " + definition, fk.getCreateSql("child"));
+
+            # Recreating a renamed constraint must preserve the same column quoting.
+            softlist<string> renamed = fk.getRenameSql("child", "fk_renamed");
+            if (driver == "Oracle") {
+                assertEq(("alter table child rename constraint fk_reserved to fk_renamed",), renamed);
+            } else if (driver == "MS SQL") {
+                assertEq(("alter table child drop constraint fk_reserved",
+                    "alter table child add constraint fk_renamed " + definition), renamed);
+            } else {
+                string drop_kind = driver == "Firebird" ? "constraint" : "foreign key";
+                assertEq(("alter table child drop " + drop_kind + " fk_reserved, add constraint fk_renamed "
+                    + definition,), renamed);
+            }
+        });
+
+        addTestCase(driver + ": composite column order is preserved", sub () {
+            AbstractForeignConstraint fk = constraint_factory("fk_composite",
+                columns(column_factory, ("z_id", "order", "a_id")),
+                new ForeignConstraintTarget("parent", columns(column_factory, ("z_key", "select", "a_key"))));
+            assertEq("alter table child add constraint fk_composite foreign key (z_id, " + quoted_order
+                + ", a_id) references parent (z_key, " + quoted_select + ", a_key)", fk.getCreateSql("child"));
+        });
+
+        addTestCase(driver + ": renamed column DDL names are used", sub () {
+            Columns source = columns(column_factory, ("local_name",));
+            Columns target = columns(column_factory, ("old_name",));
+            source.local_name.setDdlName("order");
+            target.old_name.setDdlName("select");
+            AbstractForeignConstraint fk = constraint_factory("fk_after_rename", source,
+                new ForeignConstraintTarget("parent", target));
+            assertEq("alter table child add constraint fk_after_rename foreign key (" + quoted_order
+                + ") references parent (" + quoted_select + ")", fk.getCreateSql("child"));
+        });
+    }
+
+    private oracleDeferred() {
+        OracleForeignConstraint fk("fk_draft", columns(\oracleColumn(), ("draft_user", "type", "draft_id")),
+            new ForeignConstraintTarget("drafts", columns(\oracleColumn(), ("user", "type", "draftid"))),
+            True, True, True);
+        assertEq('alter table guard add constraint fk_draft foreign key (draft_user, type, draft_id) '
+            'references drafts ("user", type, draftid) deferrable initially deferred', fk.getCreateSql("guard"));
+    }
+}
