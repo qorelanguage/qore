@@ -452,7 +452,7 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
         int retries = 0;
         while (True) {
             try {
-                debug("REST %y %y (%y) body: %y", method, rest.getUrl(), path, body);
+                debug("REST %y %y (%y) body: %y", method, rest.getSafeUrl(), path, body);
                 return rest.restDoRequest(method, path, body, hdr);
             } catch (hash<ExceptionInfo> ex) {
                 if (retry(ex, \retries)) {
@@ -484,7 +484,7 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
         int retries = 0;
         while (True) {
             try {
-                debug("REST (raw) %y %y (%y) %d byte(s) %y", method, rest.getUrl(), path, body.size(),
+                debug("REST (raw) %y %y (%y) %d byte(s) %y", method, rest.getSafeUrl(), path, body.size(),
                     content_type);
                 return rest.restDoRawRequest(method, path, body, hdr);
             } catch (hash<ExceptionInfo> ex) {
