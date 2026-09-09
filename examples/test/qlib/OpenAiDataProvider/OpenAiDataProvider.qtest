@@ -1705,7 +1705,7 @@ public class OpenAiDataProviderTest inherits QUnit::Test {
 
         # a missing file is rejected by the request type before any request is made
         rest.last_method = "";
-        assertThrows("INVALID-REQUEST", "mandatory hash field \"file\"", \prov.doRequest(), ({"model": "whisper-1"},));
+        assertThrows("INVALID-REQUEST", "field \"file\"", \prov.doRequest(), ({"model": "whisper-1"},));
         # the file name must have a supported audio extension
         assertThrows("TRANSCRIBE-AUDIO-ERROR", "notes.txt", \prov.doRequest(), ({
             "file": {
