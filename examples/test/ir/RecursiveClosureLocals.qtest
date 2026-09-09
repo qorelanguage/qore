@@ -38,6 +38,64 @@ class RecursiveClosureLocalsTest inherits QUnit::Test {
         throw "TEST-SETUP-ERROR", "cannot locate executable " + name;
     }
 
+    #! Returns the toolchain roots that hold a versioned LLVM install, newest version first
+    /** Distributions that ship several LLVM versions side by side keep each one in its own
+        prefix and do not link its driver into a PATH directory: alpine uses
+        \c /usr/lib/llvm<major>, MacPorts \c /opt/local/libexec/llvm-<major> and Homebrew
+        \c /opt/homebrew/opt/llvm@<major>.  These are the same families
+        examples/test/docker_test/test-alpine.sh and test-macos.sh search when they configure
+        the build, so looking here finds the LLVM that qore was actually built against.
+    */
+    private static list<string> llvmPrefixes() {
+        list<string> prefixes = ();
+        foreach string parent in (("/usr/lib", "/usr/lib64", "/usr/local/lib", "/usr/local/lib64",
+            "/opt/homebrew/opt", "/usr/local/opt", "/opt/local/libexec")) {
+            foreach string candidate in (glob(parent + "/llvm*") ?? ()) {
+                if (is_dir(candidate)) {
+                    prefixes += candidate;
+                }
+            }
+        }
+        # newest first; an unversioned prefix (Homebrew's plain "llvm") sorts last
+        return sort_descending(prefixes, int sub (string l, string r) {
+            int lv = llvmPrefixVersion(l);
+            int rv = llvmPrefixVersion(r);
+            return lv == rv ? (l < r ? -1 : (l == r ? 0 : 1)) : (lv < rv ? -1 : 1);
+        });
+    }
+
+    #! Returns the major LLVM version encoded in a prefix directory name, or 0 if it has none
+    private static int llvmPrefixVersion(string prefix) {
+        *list<*string> match = (basename(prefix) =~ x/([0-9]+)/);
+        return match[0].toInt();
+    }
+
+    #! Returns the path to llvm-config
+    /** \c llvm-config is only in the \c PATH where the distribution ships a single LLVM;
+        everywhere else it lives in the versioned prefix, so a PATH-only lookup fails on
+        exactly the platforms where the JIT is fully functional (alpine in CI, MacPorts and
+        Homebrew locally).  \c LLVM_CONFIG overrides the search.
+    */
+    private static string llvmConfigPath() {
+        if (ENV.LLVM_CONFIG) {
+            return executablePath(ENV.LLVM_CONFIG);
+        }
+        foreach string directory in (split(":", ENV.PATH ?? "")) {
+            string path = (directory ? directory : ".") + "/llvm-config";
+            if (is_executable(path)) {
+                return realpath(path);
+            }
+        }
+        foreach string prefix in (llvmPrefixes()) {
+            string path = prefix + "/bin/llvm-config";
+            if (is_executable(path)) {
+                return realpath(path);
+            }
+        }
+        throw "TEST-SETUP-ERROR", "cannot locate executable llvm-config; set LLVM_CONFIG to the "
+            "llvm-config matching the LLVM this qore was built against";
+    }
+
     private string run(string dir, list<string> args) {
         string command = "LD_LIBRARY_PATH=" + quote(lib_dir)
             + " " + (map quote($1), args).join(" ");
@@ -59,7 +117,7 @@ class RecursiveClosureLocalsTest inherits QUnit::Test {
 
     private nativeCalls() {
         TmpDir dir("qore-recursive-locals-native-");
-        string llvm_config = executablePath(ENV.LLVM_CONFIG ?? "llvm-config");
+        string llvm_config = llvmConfigPath();
         string llvm_include = trim(run(dir.path, (llvm_config, "--includedir")));
         string llvm_lib = trim(run(dir.path, (llvm_config, "--libdir")));
         list<string> llvm_link = split(" ", trim(run(dir.path, (llvm_config, "--libs"))));
