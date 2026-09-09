@@ -140,6 +140,8 @@
     - new @ref Qore::ParseOptions "ParseOptions" container supporting more than 64 option bits
 
     <i>Networking and I/O:</i>
+    - HTTP/1.0 client connections require explicit keep-alive before reuse; redirects reconnect after
+      nonpersistent responses, and comma-separated or repeated Connection options honor close precedence
     - <a href="https://datatracker.ietf.org/doc/html/rfc9113">HTTP/2</a> and
       <a href="https://datatracker.ietf.org/doc/html/rfc9114">HTTP/3</a> support with end-to-end
       asynchronous I/O across HTTP/1.x, HTTP/2, and HTTP/3

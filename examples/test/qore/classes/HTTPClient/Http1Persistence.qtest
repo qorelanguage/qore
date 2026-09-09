@@ -1,0 +1,135 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../../qlib"
+%requires ../../../../../qlib/QUnit.qm
+%exec-class Http1PersistenceTest
+
+class Http1PersistenceTest inherits QUnit::Test {
+    constructor() : QUnit::Test("HTTP/1 connection persistence", "1.0") {
+        addTestCase("HTTP/1.0 requires an explicit keep-alive option", \http10());
+        addTestCase("HTTP/1.1 persists unless close is present", \http11());
+        addTestCase("Connection options are case-insensitive comma-separated tokens", \connectionTokens());
+        addTestCase("HTTP/1.0 redirects reconnect before the next request", \redirect());
+        set_return_value(main());
+    }
+
+    private static nothing serve(Socket listener, Queue completed, string version, string headers,
+            bool persistent, bool redirect) {
+        hash<auto> result();
+        *Socket first;
+        *Socket second;
+        on_exit {
+            if (first) {
+                first.close();
+            }
+            if (second) {
+                second.close();
+            }
+            listener.close();
+            completed.push(result);
+        }
+        try {
+            first = listener.accept(20s);
+            if (!first) {
+                throw "TEST-TIMEOUT", "first HTTP connection was not established";
+            }
+            result.first = first.readHTTPHeader(20s).path;
+            first.send("HTTP/" + version + (redirect ? " 302 Found\r\nLocation: /second\r\n" : " 200 OK\r\n")
+                + headers + "Content-Type: text/plain\r\nContent-Length: 1\r\n\r\nA", 20s);
+            if (persistent) {
+                result.connections = 1;
+                result.second = first.readHTTPHeader(20s).path;
+                first.send("HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/plain\r\n"
+                    "Content-Length: 1\r\n\r\nB", 20s);
+            } else {
+                # The peer must close before sending another request. Keeping this
+                # socket open makes incorrect reuse deterministic, independent of FIN timing.
+                try {
+                    result.after_close_response = first.recv(1, 20s);
+                } catch (hash<ExceptionInfo> ex) {
+                    if (ex.err != "SOCKET-CLOSED") {
+                        rethrow;
+                    }
+                    result.after_close_response = "";
+                }
+                if (result.after_close_response) {
+                    throw "TEST-CONNECTION-REUSED", "client reused a nonpersistent connection";
+                }
+                first.close();
+                second = listener.accept(20s);
+                if (!second) {
+                    throw "TEST-TIMEOUT", "replacement HTTP connection was not established";
+                }
+                result.connections = 2;
+                result.second = second.readHTTPHeader(20s).path;
+                second.send("HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/plain\r\n"
+                    "Content-Length: 1\r\n\r\nB", 20s);
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            result.error = ex.err;
+            result.description = ex.desc;
+        }
+    }
+
+    private nothing check(string version, string headers, bool persistent, bool redirect = False) {
+        Socket listener();
+        listener.bind(0, True);
+        listener.listen();
+        int port = listener.getSocketInfo().port;
+        Queue completed();
+        background serve(listener, completed, version, headers, persistent, redirect);
+        *hash<ExceptionInfo> error;
+        *string first;
+        *string second;
+        HTTPClient client({"url": sprintf("http://127.0.0.1:%d", port), "timeout": 20s});
+        try {
+            first = client.get("/first");
+            if (!redirect) {
+                second = client.get("/second");
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            error = ex;
+        }
+        auto result = completed.get(45s);
+        assertNothing(result.error, result.description);
+        assertNothing(error, sprintf("HTTP/%s %y", version, headers));
+        assertEq(persistent ? 1 : 2, result.connections);
+        assertEq("/first", result.first);
+        assertEq("/second", result.second);
+        assertEq(redirect ? "B" : "A", first);
+        if (!redirect) {
+            assertEq("B", second);
+        }
+        if (!persistent) {
+            assertEq("", result.after_close_response);
+        }
+    }
+
+    http10() {
+        check("1.0", "", False);
+        check("1.0", "Connection: keep-alive\r\n", True);
+        check("1.0", "Connection: close\r\n", False);
+    }
+
+    http11() {
+        check("1.1", "", True);
+        check("1.1", "Connection: close\r\n", False);
+        check("1.1", "Connection: keep-alive\r\n", True);
+    }
+
+    connectionTokens() {
+        check("1.1", "Connection: extension, ClOsE\r\n", False);
+        check("1.1", "Connection: keep-alive\r\nConnection: close\r\n", False);
+        check("1.1", "Connection: xclose, closed\r\n", True);
+        check("1.0", "Connection: extension, KeEp-AlIvE\r\n", True);
+        check("1.0", "Connection: keep-alive, close\r\n", False);
+        check("1.0", "Connection: xkeep-alive\r\n", False);
+    }
+
+    redirect() {
+        check("1.0", "", False, True);
+        check("1.1", "Connection: extension, close\r\n", False, True);
+        check("1.0", "Connection: keep-alive\r\n", True, True);
+    }
+}

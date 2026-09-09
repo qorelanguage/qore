@@ -1241,26 +1241,59 @@ QoreHashNode* Http1ClientPollOperationPriv::handleRecvHeader(ExceptionSink* xsin
             }
         }
 
-        // Check connection header - handles both string and list
+        // RFC 9112 section 9.3: HTTP/1.0 is persistent only with keep-alive;
+        // a close connection option takes precedence for either version.
+        bool keep_alive = false;
+        auto inspect_connection = [&](const QoreStringNode& value) -> int {
+            const char* start = value.c_str();
+            const char* end = start + value.size();
+            while (start < end) {
+                if (qore_check_cancel(xsink, "HTTP connection options")) {
+                    return -1;
+                }
+                const char* comma = static_cast<const char*>(memchr(start, ',', end - start));
+                const char* token_end = comma ? comma : end;
+                while (start < token_end && (*start == ' ' || *start == '\t')) {
+                    if (qore_check_cancel(xsink, "HTTP connection options")) {
+                        return -1;
+                    }
+                    ++start;
+                }
+                while (token_end > start && (token_end[-1] == ' ' || token_end[-1] == '\t')) {
+                    if (qore_check_cancel(xsink, "HTTP connection options")) {
+                        return -1;
+                    }
+                    --token_end;
+                }
+                size_t length = token_end - start;
+                if (length == 5 && !strncasecmp(start, "close", 5)) {
+                    connection_close = true;
+                } else if (length == 10 && !strncasecmp(start, "keep-alive", 10)) {
+                    keep_alive = true;
+                }
+                start = comma ? comma + 1 : end;
+            }
+            return 0;
+        };
         QoreValue conn_val = response_headers->getKeyValue("connection");
         if (conn_val.getType() == NT_STRING) {
-            QoreStringValueHelper conn_str(conn_val);
-            if (!strcasecmp(conn_str->c_str(), "close")) {
-                connection_close = true;
+            if (inspect_connection(*conn_val.get<const QoreStringNode>())) {
+                return nullptr;
             }
         } else if (conn_val.getType() == NT_LIST) {
             ConstListIterator li(conn_val.get<const QoreListNode>());
             while (li.next()) {
+                if (qore_check_cancel(xsink, "HTTP connection options")) {
+                    return nullptr;
+                }
                 QoreValue item = li.getValue();
-                if (item.getType() == NT_STRING) {
-                    QoreStringValueHelper item_str(item);
-                    if (strcasecmp(item_str->c_str(), "close")) {
-                        continue;
-                    }
-                    connection_close = true;
-                    break;
+                if (item.getType() == NT_STRING && inspect_connection(*item.get<const QoreStringNode>())) {
+                    return nullptr;
                 }
             }
+        }
+        if (response_http_version && !strcmp(response_http_version->c_str(), "1.0") && !keep_alive) {
+            connection_close = true;
         }
 
         printd(5, "Http1ClientPollOperationPriv::handleRecvHeader() status=%d chunked=%d "
