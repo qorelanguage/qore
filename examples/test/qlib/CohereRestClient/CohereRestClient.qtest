@@ -361,7 +361,9 @@ public class CohereRestClientTest inherits QUnit::Test {
         if (transport == 0) {
             makeConnection().ping(True);
         } else if (transport == 1) {
-            drivePing(makeConnection().startPollConnect());
+            # The poll operation keeps a weak reference to its owning connection.
+            CohereRestClient::CohereRestConnection conn = makeConnection();
+            drivePing(conn.startPollConnect());
         } else if (transport == 2) {
             SyncCohereConnection conn(sprintf("http://127.0.0.1:%d", port),
                 {"apikey": "trial-key", "http_version": "1.1"});
@@ -395,7 +397,8 @@ public class CohereRestClientTest inherits QUnit::Test {
                     error = ex;
                 }
                 assertTrue(exists error, "invalid ping must fail");
-                assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|DESERIALIZATION-ERROR|JSON-PARSE-ERROR)$", error.err);
+                assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|DESERIALIZATION-ERROR|JSON-PARSE-ERROR)$", error.err,
+                    sprintf("response %s, transport %d: %s", response, transport, get_exception_string(error)));
             }
         }
         foreach int status in (401, 429, 500) {
@@ -408,7 +411,8 @@ public class CohereRestClientTest inherits QUnit::Test {
                     error = ex;
                 }
                 assertTrue(exists error, "invalid ping must fail");
-                assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|HTTP-CLIENT-RECEIVE-ERROR)$", error.err);
+                assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|HTTP-CLIENT-RECEIVE-ERROR)$", error.err,
+                    sprintf("status %d, transport %d: %s", status, transport, get_exception_string(error)));
             }
         }
         key_handler.setResponse("{\"valid\":true}");
