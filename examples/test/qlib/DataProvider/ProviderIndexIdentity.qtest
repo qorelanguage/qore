@@ -1,0 +1,165 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires QUnit
+%requires FsUtil
+%requires DataProvider
+%requires ProviderIndex
+%requires json
+%try-module yaml
+%define NoYaml
+%endtry
+%exec-class ProviderIndexIdentityTest
+
+class ProviderIndexIdentityTest inherits QUnit::Test {
+    private {
+        string qore_bin = ENV.QORE_BIN ?? ENV.QORE_BINARY ?? QORE_ARGV[0] ?? "qore";
+        string qcc_bin = ENV.QCC ?? ENV.QORE_QCC ?? ENV.QORE_QCC_EXECUTABLE
+            ?? (is_file(dirname(qore_bin) + "/qcc") ? dirname(qore_bin) + "/qcc" : "qcc");
+        string fixture = get_script_dir() + "/index-identity/IndexIdentityFixture.qm";
+        string worker = get_script_dir() + "/index-identity/worker.qr";
+    }
+
+    constructor() : Test("Provider index identity", "1.0", \ARGV) {
+        addTestCase("generated examples are stable and authored values survive", \examplesTest());
+        addTestCase("native source and compiled dependencies agree", \identityTest());
+        addTestCase("unresolved explicit ownership fails before publication", \unresolvedTest());
+        set_return_value(main());
+    }
+
+    private static string quote(string arg) {
+        return "'" + replace(arg, "'", "'\\''") + "'";
+    }
+
+    private examplesTest() {
+        date sample = 2000-01-01T00:00:00Z;
+        foreach Type type in ((DateType, DateOrNothingType)) {
+            QoreDataField field({"name": "timestamp", "type": type});
+            assertEq(sample, field.getInfo().example_value);
+            assertEq(field.getInfo(), field.getInfo(), "independent metadata reads are stable");
+            assertEq(0, field.getInfo().example_value.getUtcOffset(), "generated sample uses UTC");
+        }
+        date authored = 2034-03-04T05:06:07+09:00;
+        date default_value = 2035-04-05T06:07:08-04:00;
+        QoreDataField explicit_field({"name": "timestamp", "type": DateType,
+            "example_value": authored, "default_value": default_value});
+        assertEq(authored, explicit_field.getInfo().example_value);
+        assertEq(default_value, explicit_field.getInfo().default_value);
+        QoreDataField default_field({"name": "timestamp", "type": DateType, "default_value": default_value});
+        assertEq(default_value, default_field.getInfo().example_value, "defaults retain precedence over fallback");
+        QoreDataField allowed_field({"name": "timestamp", "type": DateType,
+            "example_value": authored, "allowed_values": (
+                <AllowedValueInfo>{"value": authored, "display_name": "Delivery"},
+                <AllowedValueInfo>{"value": default_value, "display_name": "Dispatch"},
+            )});
+        assertEq(authored, allowed_field.getInfo().example_value);
+        assertEq((authored, default_value), map $1.value, allowed_field.getInfo().allowed_values);
+        hash<string, AbstractDataField> fields = {
+            "created": new QoreDataField({"name": "created", "type": DateType}),
+            "lines": new QoreDataField({"name": "lines", "type": new ListDataType(DateType)}),
+            "delivery": new QoreDataField({"name": "delivery", "type": DateType, "example_value": authored}),
+        };
+        HashDataType order("ExampleOrder", fields);
+        hash<auto> expected = {"created": sample, "lines": (sample,), "delivery": authored};
+        assertEq(expected, order.getExampleValue());
+        hash<auto> changed = order.getExampleValue();
+        changed.lines[0] = authored;
+        assertEq(expected, order.getExampleValue(), "nested traversal does not retain caller mutations");
+    }
+
+    private checkYaml() {
+%ifdef NoYaml
+        testSkip("yaml is not available");
+%endif
+    }
+
+    private string env(string root, string zone = "UTC") {
+        string modules = root + ":" + get_script_dir() + "/../../../../qlib"
+            + (ENV.QORE_MODULE_DIR ? ":" + ENV.QORE_MODULE_DIR : "");
+        return "env QORE_MODULE_DIR=" + quote(modules) + " QORE_PROVIDER_INDEX_DIR=" + quote(root)
+            + " TZ=" + quote(zone) + " ";
+    }
+
+    private hash<auto> runWorker(string root, string module, string mode = "build", string zone = "UTC") {
+        string out = backquote(env(root, zone) + quote(qore_bin) + " " + quote(worker) + " "
+            + quote(module) + " " + quote(mode) + " 2>&1");
+        try {
+            hash<auto> result = parse_json(out);
+            if (result.index_yaml) {
+%ifndef NoYaml
+                # Parse both workers' dates in this process; JSON's local-zone date encoding
+                # is not part of the native YAML index contract.
+                result.index = parse_yaml(result.index_yaml);
+%endif
+            }
+            return result;
+        } catch () {
+            throw "WORKER-ERROR", out;
+        }
+    }
+
+    private identityTest() {
+        checkYaml();
+        TmpDir tmp("provider-index-identity-");
+        string source = tmp.path + "/IndexIdentityFixture.qm";
+        File f();
+        f.open2(source, O_CREAT | O_EXCL | O_WRONLY);
+        f.write(File::readTextFile(fixture));
+        f.close();
+        hash<auto> from_source = runWorker(tmp.path, source);
+        assertEq({"IndexIdentityFixture": True}, from_source.index.appmap.IndexIdentityFixture);
+        assertEq({"IndexIdentityFixture": True, "yaml": True}, from_source.index.schememap.identity);
+        assertEq("IndexIdentityFixture", from_source.index.factorymap.identity);
+        assertEq(source, from_source.loaded);
+        assertEq((), from_source.unloaded ?? (), "loaded source path and logical name are recognized");
+        hash<auto> repeated = runWorker(tmp.path, source, "build", "Asia/Tokyo");
+        assertEq(from_source.index, repeated.index,
+            "repeated build in a different timezone has identical metadata");
+        assertEq(from_source.index_yaml, repeated.index_yaml, "native bytes are timezone-independent");
+
+        string binary_path = tmp.path + "/IndexIdentityFixture.qmod";
+        string compiler = backquote(env(tmp.path) + quote(qcc_bin) + " -m -o " + quote(binary_path)
+            + " " + quote(source) + " 2>&1");
+        assertTrue(is_file(binary_path), "fixture AOT compilation succeeds: " + compiler);
+        hash<auto> compiled = runWorker(tmp.path, "IndexIdentityFixture");
+        assertEq(binary_path, compiled.loaded, "name-based loading prefers compiled artifact beside source");
+        assertEq(from_source.index, compiled.index, "packaging does not change dependency or content identity");
+        assertEq(from_source.index_yaml, compiled.index_yaml, "equivalent packaging preserves native index bytes");
+        assertEq((), compiled.unloaded ?? ());
+        assertEq(from_source.index, runWorker(tmp.path, source).index,
+            "explicit source remains semantically equivalent when compiled artifact exists");
+
+        hash<auto> lazy = runWorker(tmp.path, "IndexIdentityFixture", "read");
+        assertTrue(lazy.loaded_app);
+        assertEq(binary_path, lazy.loaded, "named persisted route uses ordinary loader precedence");
+        hash<auto> legacy = runWorker(tmp.path, source, "legacy");
+        assertTrue(legacy.loaded_app);
+        assertEq(source, legacy.loaded, "legacy explicit source routes remain readable");
+        assertEq((), legacy.unloaded ?? (), "legacy source and API-versioned binary paths are recognized");
+    }
+
+    private unresolvedTest() {
+        checkYaml();
+        TmpDir tmp("provider-index-unresolved-");
+        ProviderIndexUtil::setEnvironmentVariable(tmp.path);
+        hash<DataProviderIndexInfo> original = <DataProviderIndexInfo>{
+            "factorymap": {"preserved": "Original"},
+        };
+        ProviderIndexUtil::writeDataProviderIndex(original, 0s, {});
+        binary before = ReadOnlyFile::readBinaryFile(tmp.path + "/qore-data-index.yaml");
+        try {
+            ProviderIndex::createDataProviderIndex(<DataProviderIndexInfo>{
+                "appmap": {"Synthetic": {"/missing/DoNotGuess.qmod": True}},
+            }, tmp.path, <ProviderIndexCreateOptions>{
+                "load_known_factories": False, "load_environment": False,
+                "load_typescript_actions": False, "apps": (),
+            });
+            fail("unregistered explicit dependency cannot become a guessed module name");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("PROVIDER-INDEX-MODULE-ERROR", ex.err);
+        }
+        assertEq(before, ReadOnlyFile::readBinaryFile(tmp.path + "/qore-data-index.yaml"),
+            "the previous index remains byte-identical on failure");
+    }
+}

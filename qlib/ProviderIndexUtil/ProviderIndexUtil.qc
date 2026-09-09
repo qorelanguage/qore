@@ -44,10 +44,10 @@ public hashdecl DataProviderIndexInfo {
     #! Factory to module map
     *hash<string, string> factorymap;
 
-    #! App to module map
+    #! App to module-name map; readers also accept explicit paths from legacy indexes
     *hash<string, hash<string, bool>> appmap;
 
-    #! Scheme to module map
+    #! Scheme to module-name map; readers also accept explicit paths from legacy indexes
     *hash<string, hash<string, bool>> schememap;
 
     #! App to app info map
@@ -479,14 +479,21 @@ public class ProviderIndexUtil {
         }
 
         # iterate all apps and calculate the set of unloaded modules
-        *hash<auto> mh = get_module_hash();
+        hash<string, bool> loaded;
+        foreach hash<auto> mod in (get_module_hash().values()) {
+            loaded{mod.name} = True;
+            if (mod.path.val()) {
+                loaded{mod.path} = True;
+            }
+            if (mod.filename.val()) {
+                loaded{mod.filename} = True;
+            }
+        }
         hash<string, bool> rv;
         foreach hash<string, bool> h in (index.appmap.iterator()) {
-            foreach string path in (keys h) {
-                string mod = basename(path);
-                mod =~ s/\.qm$//i;
-                if (!mh{mod}) {
-                    rv{path} = True;
+            foreach string dependency in (keys h) {
+                if (!loaded{dependency}) {
+                    rv{dependency} = True;
                 }
             }
         }

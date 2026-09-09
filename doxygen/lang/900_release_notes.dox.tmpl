@@ -247,6 +247,8 @@
       rotation by rewrapping or re-encryption, keyed blind indexes for equality
       lookups over encrypted data, and bounded retry with a fail-closed circuit
       breaker around key providers
+    - provider indexes now identify module dependencies independently of source or compiled packaging, and generated
+      date examples remain stable across repeated metadata reads
     - existing modules updated extensively (DataProvider, RestClient, HttpServer,
       WebSocketClient/Handler/Util, Logger, SqlUtil, etc.) — see
       @ref qore_3_0_0_updated_modules "Updated Modules"

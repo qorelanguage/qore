@@ -1,0 +1,29 @@
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%requires DataProvider
+
+module IndexIdentityFixture {
+    version = "1.0";
+    desc = "Provider index module identity test fixture";
+    author = "Qore Technologies, s.r.o.";
+    license = "MIT";
+    init = sub () {
+        DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
+            "name": "IndexIdentityFixture", "display_name": "Index fixture",
+            "short_desc": "Index fixture", "desc": "Index fixture",
+            "groups": (AppGroup::DataTransformation,),
+            "logo": "fixture", "logo_mime_type": "image/svg+xml", "logo_file_name": "fixture.svg",
+        });
+        QoreDataField timestamp({"name": "timestamp", "type": DateType});
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": "IndexIdentityFixture", "action": "record", "path": "/record",
+            "display_name": "Record", "short_desc": "Record", "desc": "Record",
+            "action_code": DPAT_API,
+            "options": DataProviderActionCatalog::getActionOptionFromFields({"timestamp": timestamp}),
+            "output_type": AbstractDataProviderType::get(AutoHashType),
+        });
+    };
+}
+
+public namespace IndexIdentityFixture {
+}

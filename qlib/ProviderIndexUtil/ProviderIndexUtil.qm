@@ -43,7 +43,7 @@
 %requires reflection
 
 module ProviderIndexUtil {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for indexing data providers";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -60,6 +60,10 @@ module ProviderIndexUtil {
     on-demand initialization.
 
     @section providerindexutil_relnotes Release Notes
+
+    @subsection providerindexutil_v1_1 ProviderIndexUtil v1.1
+    - loaded dependency filtering recognizes exact module names and loaded artifact paths, including compiled
+      modules with API-version suffixes; legacy explicit-path indexes remain readable
 
     @subsection providerindexutil_v1_0 ProviderIndexUtil v1.0
     - added an optional, versioned, app-sharded MessagePack metadata cache with per-shard integrity validation and

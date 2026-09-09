@@ -44,6 +44,22 @@ public class ProviderIndex inherits ProviderIndexUtil {
     public {}
 
     #! Create the data provider index
+    /** @param index optional seeded factory, application and scheme dependencies; logical module names are
+            preferred, and explicit artifact paths must match the loaded module registry
+        @param dir optional output directory; otherwise the configured provider-index directory is used
+        @param opts discovery sources and optional application selection
+        @return the published index path, size, elapsed generation time and summary
+        @throw PROVIDER-INDEX-MODULE-ERROR an explicit dependency has no authoritative loaded module identity
+        @throw DATA-PROVIDER-INITIALIZATION-ERROR selected provider initialization failed
+        @throw APP-ERROR a requested application is not registered
+        @throw PROVIDER-INDEX-ERROR the output directory is unavailable
+        @note Existing explicit-path indexes remain readable. Rebuilding persists module names so the runtime
+            can select source or compiled representations through its normal search path. This is a semantic
+            catalog, not a binary digest or a lease over concurrently replaced module files.
+        @par Example
+        Rebuild after installing order-processing providers; equivalent source and AOT packaging retains the
+        same dependencies, while a changed order-line action or option remains part of the new index content.
+    */
     public static hash<auto> createDataProviderIndex(hash<DataProviderIndexInfo> index = <DataProviderIndexInfo>{},
             *string dir, hash<ProviderIndexCreateOptions> opts = <ProviderIndexCreateOptions>{}) {
         date start = now_us();
@@ -80,13 +96,33 @@ public class ProviderIndex inherits ProviderIndexUtil {
             tryLoadTypeScriptActionInterface();
         }
 
-        # iterate all apps to initialize the app and scheme maps
-        foreach hash<DataProviderAppInfo> app in (getIndexApps(opts.apps)) {
+        # Finish deferred registration before taking one authoritative module snapshot.
+        list<hash<DataProviderAppInfo>> apps = getIndexApps(opts.apps);
+        hash<string, string> module_names;
+        foreach hash<auto> mod in (get_module_hash().values()) {
+            module_names{mod.name} = mod.name;
+            if (mod.path.val()) {
+                module_names{mod.path} = mod.name;
+            }
+            if (mod.filename.val()) {
+                module_names{mod.filename} = mod.name;
+            }
+        }
+        index.factorymap = map {$1.key: moduleDependency($1.value, module_names)}, index.factorymap.pairIterator();
+        foreach string section in (("appmap", "schememap")) {
+            foreach string key in (keys index{section}) {
+                index{section}{key} = map {moduleDependency($1, module_names): True}, keys index{section}{key};
+            }
+        }
+
+        # Dependencies are module identities; physical registration paths remain in the live catalog.
+        foreach hash<DataProviderAppInfo> app in (apps) {
             *list<string> paths = DataProviderActionCatalog::getModulePathsForApp(app.name);
             if (!paths) {
                 log(LoggerLevel::LevelError, "Data provider app %y has no module path", app.name);
                 continue;
             }
+            list<string> dependencies = map moduleDependency($1, module_names), paths;
             # add to app info map
             index.appinfomap{app.name} = app;
             # add to app action info map (skip apps with no actions)
@@ -94,8 +130,8 @@ public class ProviderIndex inherits ProviderIndexUtil {
                 index.actioninfomap{app.name} = actions;
             }
             if (!index.appmap{app.name}) {
-                map index.appmap{app.name}{$1} = True, paths;
-                map log(LoggerLevel::LevelDebug, "Registered data provider app %y -> %y", app.name, $1), paths;
+                map index.appmap{app.name}{$1} = True, dependencies;
+                map log(LoggerLevel::LevelDebug, "Registered data provider app %y -> %y", app.name, $1), dependencies;
             }
             if (app.scheme) {
                 *hash<ConnectionSchemeInfo> info = ConnectionSchemeCache::getScheme(app.scheme);
@@ -103,9 +139,9 @@ public class ProviderIndex inherits ProviderIndexUtil {
                     log(LoggerLevel::LevelError, "Data provider app %y has unregistered scheme %y", app.name, app.scheme);
                     continue;
                 }
-                foreach string path in (paths) {
-                    map index.schememap{$1}{path} = True, keys info.schemes;
-                    map log(LoggerLevel::LevelDebug, "Registered scheme %y -> %y", $1, path), keys info.schemes;
+                foreach string dependency in (dependencies) {
+                    map index.schememap{$1}{dependency} = True, keys info.schemes;
+                    map log(LoggerLevel::LevelDebug, "Registered scheme %y -> %y", $1, dependency), keys info.schemes;
                 }
             }
         }
@@ -115,6 +151,19 @@ public class ProviderIndex inherits ProviderIndexUtil {
             "apps": index.appmap.size(),
             "schemes": index.schememap.size(),
         });
+    }
+
+    #! Resolves exact runtime ownership; never infers a module name from an artifact filename
+    private static string moduleDependency(string value, hash<string, string> module_names) {
+        if (exists module_names{value}) {
+            return module_names{value};
+        }
+        # Optional known factories need not be installed. Keep their declared logical names;
+        # an explicit path, however, needs a real registry record to establish its identity.
+        if (!value.val() || value =~ /[\/\\\\]/ || value =~ /\.(qm|qmod)$/i) {
+            throw "PROVIDER-INDEX-MODULE-ERROR", sprintf("cannot resolve indexed module dependency %y", value);
+        }
+        return value;
     }
 
     #! Get YAML-serializable hash of actions keyed by action name
@@ -239,15 +288,8 @@ public class ProviderIndex inherits ProviderIndexUtil {
                 continue;
             }
 
-            # get the path to the module
-            *string path = get_module_hash(){mod}.path;
-            if (!path.val()) {
-                log(LoggerLevel::LevelError, "Data provider factory %y module %y has no path", factory, mod);
-                continue;
-            }
-
-            index.factorymap{factory} = path;
-            log(LoggerLevel::LevelDebug, "Registered factory %y -> %y", factory, path);
+            index.factorymap{factory} = mod;
+            log(LoggerLevel::LevelDebug, "Registered factory %y -> %y", factory, mod);
         }
     }
 }

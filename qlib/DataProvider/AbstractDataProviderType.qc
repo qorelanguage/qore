@@ -854,7 +854,9 @@ public class AbstractDataProviderType inherits Qore::Serializable {
             case NT_BOOLEAN: return True;
             case NT_FLOAT: return 3.1415927;
             case NT_NUMBER: return 3.1415927n;
-            case NT_DATE: return now_us();
+            # Examples describe the type, not the time metadata was requested. A fixed UTC
+            # sample also makes nested examples stable across processes and time zones.
+            case NT_DATE: return 2000-01-01T00:00:00Z;
             case NT_BINARY: return <abcd>;
             case NT_LIST: {
                 # do not return example values for complex "or nothing" types
