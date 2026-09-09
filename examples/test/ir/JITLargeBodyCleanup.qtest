@@ -211,8 +211,20 @@ printf(\"rv:%d\\n\", big(1));
             "inline reload-chain branches match the AST tier");
     }
 
+    #! Runs the generated script, forcing native compilation to complete in JIT mode.
+    /** Native compilation of a function is queued on the JIT background thread and
+        cancelled when the %Program is destroyed, so a script that calls its function
+        once can exit before that function is ever compiled: the lowering statistics
+        asserted below would then be missing, and the tier comparisons would compare
+        the IR interpreter against the AST tier instead of native code against it.
+        QORE_JIT_SYNC_COMPILE makes the calling thread wait for the compilation it
+        queued, which is what makes every assertion here deterministic.
+    */
     private string runScript(string code, *string exec_mode, *string env) {
         string mode = exec_mode ?? "jit";
+        if (mode == "jit") {
+            env = "QORE_JIT_SYNC_COMPILE=1 " + (env ?? "");
+        }
         # .qr implies %modern
         TmpFile tmp(NOTHING, ".qr");
         tmp.file.write(code);

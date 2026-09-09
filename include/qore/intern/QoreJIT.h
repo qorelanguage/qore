@@ -625,6 +625,18 @@ public:
     static void setIRThreshold(uint64_t t);
     static void setJITThreshold(uint64_t t);
 
+    //! Returns true if enqueueBgCompile() must block until the compilation it queued is done.
+    /** Off by default: native compilation runs asynchronously so that execution continues on the
+        functional IR tier while LLVM works, and a Program that is destroyed before its queued work
+        is claimed cancels that work (see waitForBgCompileQueue(QoreProgram*)).  A short-lived
+        program can therefore exit before any of its functions reaches the native tier, which makes
+        every observable effect of native compilation - promotion to the JIT tier, \c QORE_IR_OPT_STATS
+        lowering statistics - depend on winning a race with process teardown.  Set
+        \c QORE_JIT_SYNC_COMPILE=1 to serialize the compilation into the enqueueing thread's
+        execution instead; tests that must observe native lowering deterministically rely on it.
+    */
+    static bool syncBgCompile();
+
     //! Returns the largest %Qore IR function size that may be submitted for native compilation.
     /** Functions (and interprocedural batches) larger than this many IR instructions stay on the
         functional IR tier instead of being compiled to native code, because native compilation of
@@ -686,7 +698,7 @@ public:
             std::shared_ptr<QoreIRFunction> owned_ir_func = nullptr);
 
     //! Wait for all pending background compilations to complete.
-    //! Used during shutdown.
+    //! Used during shutdown, and after every enqueue when syncBgCompile() is set.
     void waitForBgCompileQueue();
 
     //! Drain only the background compilations that reference the given Program.

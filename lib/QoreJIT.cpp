@@ -2032,6 +2032,21 @@ void QoreJIT::enqueueBgCompile(const AbstractQoreFunctionVariant* variant, const
     if (getenv("QORE_JIT_TIMING")) {
         fprintf(stderr, "[BG-JIT] enqueued compilation of '%s'\n", ir_func->name.c_str());
     }
+
+    // The work stays on the dedicated compiler thread even in synchronous mode: it owns the LLVM
+    // state, and moving compilation to this thread would change which locks are held across it.
+    // Only the enqueueing thread's progress is tied to the result.
+    if (syncBgCompile()) {
+        waitForBgCompileQueue();
+    }
+}
+
+bool QoreJIT::syncBgCompile() {
+    static const bool sync = []() -> bool {
+        const char* env = getenv("QORE_JIT_SYNC_COMPILE");
+        return env && *env && strcmp(env, "0") != 0;
+    }();
+    return sync;
 }
 
 void QoreJIT::waitForBgCompileQueue() {

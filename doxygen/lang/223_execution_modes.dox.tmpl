@@ -60,14 +60,37 @@ qore --exec-mode=jit script.qr
     JIT mode is useful for long-running or CPU-intensive programs where native
     compilation cost is amortized.
 
-    Native compilation runs on a dedicated background thread. In explicit JIT
-    mode the program's own functions are compiled to native code up front: a
-    parse-commit barrier waits for them to finish before execution begins.
-    Functions imported from modules are not all compiled at once; they are
-    promoted to native code adaptively on first use, so startup is not dominated
-    by compiling the entire imported module stack. When a program is destroyed,
-    only its own pending background compilations are drained, so unrelated
-    programs' compilation is unaffected.
+    Top-level code is compiled to native code before it runs. Everything else is
+    compiled on a dedicated background thread: at parse commit the program's own
+    functions are lowered to @ref exec_mode_ir "IR" only, and each one is queued
+    for native compilation when it is first called, so it executes as IR until
+    its compiled form is ready and runs native from the next call on. Functions
+    imported from modules are not lowered at parse commit at all; they are
+    promoted adaptively on first use, so startup is not dominated by compiling
+    the entire imported module stack.
+
+    When a program is destroyed, its queued native compilations are cancelled and
+    only a compilation already in progress is awaited; compilations belonging to
+    other programs are neither cancelled nor waited for. A program that runs a
+    function only a few times can therefore exit before that function is ever
+    compiled.
+
+    @subsection jit_sync_compile Synchronous Native Compilation
+
+    Because compilation is asynchronous and is cancelled at program destruction,
+    whether any given function reaches the native tier in a short-lived program
+    depends on timing. Set \c QORE_JIT_SYNC_COMPILE to \c 1 to make the thread
+    that queues a compilation block until it completes, which makes native
+    compilation - and therefore anything it reports, such as the lowering
+    statistics enabled by \c QORE_IR_OPT_STATS - deterministic.
+
+    @code{.sh}
+QORE_JIT_SYNC_COMPILE=1 qore --exec-mode=jit script.qr
+    @endcode
+
+    @note This serializes execution behind LLVM and is meant for testing and
+    diagnostics; leave it unset in production, where the point of background
+    compilation is that execution continues while LLVM works.
 
     @subsection jit_debugging Debugging JIT-Compiled Code
 
