@@ -157,11 +157,13 @@ public class DataSchemaLoader {
             "schema": raw.schema,
         };
 
-        # Normalize tables
+        # Normalize tables, resolving shared column and index definitions first
         if (raw.tables) {
             hash<auto!> tables();
             foreach hash<auto> pair in (raw.tables.pairIterator()) {
-                tables{pair.key} = DataSchemaLoader::normalizeTable(pair.key, pair.value);
+                hash<auto> table_def = DataSchemaLoader::resolveSharedDefinitions(pair.key, pair.value,
+                    raw.columns, raw.indexes);
+                tables{pair.key} = DataSchemaLoader::normalizeTable(pair.key, table_def);
             }
             result.tables = tables;
         }
@@ -185,6 +187,89 @@ public class DataSchemaLoader {
         }
 
         return result;
+    }
+
+    #! The key by which a table entry draws from a shared definition
+    public const SharedDefinitionKey = "$use";
+
+    #! Resolves a table's shared column and index references
+    /** A schema may declare `columns` and `indexes` at the top level: definitions named once and
+        drawn from by any table, so that a column used in nine tables is described in one place. A
+        table's entry draws from one with @ref SharedDefinitionKey, and any key it sets alongside
+        overrides the shared value:
+
+        @code{.yaml}
+    columns:
+      audit_ts:
+        type: timestamp
+        notnull: true
+
+    tables:
+      orders:
+        columns:
+          created:
+            $use: audit_ts
+          updated:
+            $use: audit_ts
+            notnull: false      # this one may be null
+        @endcode
+
+        Resolution happens here, before normalization, so everything downstream — the normalized
+        hash, @ref Schema::DataSchema "DataSchema", the diff and the alignment — sees fully-expanded
+        tables and needs to know nothing about sharing. The shared sections are an authoring
+        convenience and do not appear in the normalized schema.
+
+        @param table_name the table being resolved (for error messages)
+        @param table_def the raw table definition
+        @param shared_columns the schema's shared column definitions, if any
+        @param shared_indexes the schema's shared index definitions, if any
+
+        @return the table definition with every reference expanded
+
+        @throw DATA-SCHEMA-ERROR if a reference names a definition that does not exist
+    */
+    static hash<auto> resolveSharedDefinitions(string table_name, hash<auto> table_def,
+            *hash<auto> shared_columns, *hash<auto> shared_indexes) {
+        if (exists table_def.columns) {
+            table_def.columns = DataSchemaLoader::resolveSharedSection(table_name, "column",
+                table_def.columns, shared_columns);
+        }
+        if (exists table_def.indexes) {
+            table_def.indexes = DataSchemaLoader::resolveSharedSection(table_name, "index",
+                table_def.indexes, shared_indexes);
+        }
+        return table_def;
+    }
+
+    #! Resolves every reference in one named-entry section of a table
+    private static auto resolveSharedSection(string table_name, string what, auto entries,
+            *hash<auto> shared) {
+        if (entries.typeCode() != NT_HASH) {
+            return entries;
+        }
+        hash<auto!> result();
+        foreach hash<auto> pair in (entries.pairIterator()) {
+            result{pair.key} = DataSchemaLoader::resolveSharedEntry(table_name, what, pair.key,
+                pair.value, shared);
+        }
+        return result;
+    }
+
+    #! Resolves one entry against the shared definitions, if it draws from them
+    private static auto resolveSharedEntry(string table_name, string what, string name, auto def,
+            *hash<auto> shared) {
+        if (def.typeCode() != NT_HASH || !exists def{DataSchemaLoader::SharedDefinitionKey}) {
+            return def;
+        }
+        string ref = def{DataSchemaLoader::SharedDefinitionKey};
+        *hash<auto> base = shared{ref};
+        if (!exists base) {
+            throw "DATA-SCHEMA-ERROR", sprintf("table %y %s %y draws from unknown shared %s %y; "
+                "the schema declares %y", table_name, what, name, what, ref,
+                shared ? shared.keys() : ());
+        }
+        # the shared definition first, then the entry's own keys, so a local key wins
+        return base + (def - DataSchemaLoader::SharedDefinitionKey);
     }
 
     #! Normalizes a single table definition

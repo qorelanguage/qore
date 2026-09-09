@@ -29,7 +29,43 @@ reference_data:   # Optional: reference/seed data
 migrations:       # Optional: version-based migration steps
 index_options:    # Optional: index creation options
 column_options:   # Optional: column creation options
+columns:          # Optional: shared column definitions, drawn from with `$use`
+indexes:          # Optional: shared index definitions, drawn from with `$use`
 ```
+
+## Shared Definitions
+
+A column used in nine tables should be described once. Declare it under the
+top-level `columns` (or `indexes`) and draw from it in a table with `$use`;
+any key set alongside overrides the shared value.
+
+```yaml
+columns:
+  audit_ts:
+    type: timestamp
+    notnull: true
+    comment: when the row was written
+
+tables:
+  orders:
+    columns:
+      id: {type: int, notnull: true}
+      created:
+        $use: audit_ts             # timestamp, NOT NULL, with the comment
+      updated:
+        $use: audit_ts
+        notnull: false             # ...but this one may be null
+```
+
+References are resolved when the schema is loaded, before anything else looks
+at it: the normalized schema carries fully-expanded tables, so alignment, the
+diff and migrations neither see nor need to know about sharing. The shared
+sections are an authoring convenience and do not appear in the normalized
+output.
+
+A reference that names a definition which does not exist raises
+`DATA-SCHEMA-ERROR` at load, naming the table, the entry and what it asked
+for.
 
 ## Schema Metadata
 

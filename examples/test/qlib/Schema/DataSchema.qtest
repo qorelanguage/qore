@@ -19,6 +19,7 @@ class DataSchemaTest inherits QUnit::Test {
             \tableReconciliationContractTests());
         addTestCase("column normalization", \columnNormalizationTests());
         addTestCase("table normalization", \tableNormalizationTests());
+        addTestCase("shared definitions", \sharedDefinitionTests());
         addTestCase("partition normalization", \partitionNormalizationTests());
         addTestCase("reference data normalization", \referenceDataTests());
         addTestCase("auto-trigger expansion", \autoTriggerExpansionTests());
@@ -329,6 +330,81 @@ class DataSchemaTest inherits QUnit::Test {
                 "primary_key": {"name": "pk_bad", "columns": ("missing",)},
             });
         });
+    }
+
+    sharedDefinitionTests() {
+        # a column drawing from a shared definition inherits it
+        hash<auto> raw = {
+            "schema": {"name": "S", "version": "1.0"},
+            "columns": {
+                "audit_ts": {"type": "timestamp", "notnull": True, "comment": "when it happened"},
+            },
+            "tables": {
+                "t": {
+                    "columns": {
+                        "id": {"type": "int", "notnull": True},
+                        "created": {"$use": "audit_ts"},
+                    },
+                },
+            },
+        };
+        hash<auto> out = Schema::DataSchemaLoader::normalize(raw);
+        assertEq(Type::Date, out.tables.t.columns.created.qore_type);
+        assertTrue(out.tables.t.columns.created.notnull);
+        assertEq("when it happened", out.tables.t.columns.created.comment);
+
+        # `$use` is an authoring key: it must not reach SqlUtil
+        assertFalse(out.tables.t.columns.created.hasKey("$use"));
+
+        # the shared sections have done their job and do not survive: the
+        # normalized hash is what SqlUtil consumes, and it has no such keys
+        assertFalse(out.hasKey("columns"));
+
+        # local keys override the shared ones
+        raw.tables.t.columns.updated = {"$use": "audit_ts", "notnull": False, "comment": "or not"};
+        out = Schema::DataSchemaLoader::normalize(raw);
+        assertEq(Type::Date, out.tables.t.columns.updated.qore_type);
+        # nullable is the ABSENCE of notnull, not notnull: False — the
+        # normalizer has always emitted it that way, so an override that
+        # turns it off removes the key
+        assertFalse(out.tables.t.columns.updated.hasKey("notnull"));
+        assertEq("or not", out.tables.t.columns.updated.comment);
+        # ...and the definition it drew from is untouched by that override
+        assertTrue(out.tables.t.columns.created.notnull);
+
+        # a shared definition may itself be overridden into a different type
+        raw.tables.t.columns.note = {"$use": "audit_ts", "type": "varchar", "size": 40};
+        out = Schema::DataSchemaLoader::normalize(raw);
+        assertEq(SqlUtil::VARCHAR, out.tables.t.columns.note.qore_type);
+        assertEq(40, out.tables.t.columns.note.size);
+
+        # a dangling reference names the table, the column and the target
+        raw.tables.t.columns.bad = {"$use": "nope"};
+        assertThrows("DATA-SCHEMA-ERROR", "unknown shared column", sub () {
+            Schema::DataSchemaLoader::normalize(raw);
+        });
+        remove raw.tables.t.columns.bad;
+
+        # indexes work the same way
+        raw.indexes = {"by_created": {"columns": ("created",)}};
+        raw.tables.t.indexes = {"t_created": {"$use": "by_created"}};
+        out = Schema::DataSchemaLoader::normalize(raw);
+        assertEq(("created",), out.tables.t.indexes.t_created.columns);
+        assertFalse(out.tables.t.indexes.t_created.hasKey("$use"));
+        assertFalse(out.hasKey("indexes"));
+
+        raw.tables.t.indexes.bad = {"$use": "nope"};
+        assertThrows("DATA-SCHEMA-ERROR", "unknown shared index", sub () {
+            Schema::DataSchemaLoader::normalize(raw);
+        });
+        remove raw.tables.t.indexes.bad;
+
+        # a schema that uses no shared definitions is unaffected
+        hash<auto> plain = getSampleSchema();
+        assertEq(Schema::DataSchemaLoader::normalize(plain), Schema::DataSchemaLoader::normalize(plain));
+
+        # the meta-schema accepts the two new top-level sections
+        Schema::DataSchemaLoader::validate(raw);
     }
 
     partitionNormalizationTests() {

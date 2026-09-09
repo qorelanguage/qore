@@ -44,7 +44,7 @@
 %requires json
 
 module Schema {
-    version = "1.7.0";
+    version = "1.8.0";
     desc = "user module for working with SQL schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -363,6 +363,38 @@ module Schema {
       version_where:                 # WHERE clause to locate the version row
         name: MyApp
     @endcode
+
+    @section schema_shared_definitions Shared Column and Index Definitions
+
+    A column used in nine tables should be described once. Declare it under the top-level
+    \c columns (or \c indexes) and draw from it in a table with \c $use; any key set alongside
+    overrides the shared value.
+
+    @par Example: A column defined once and used twice
+    @code{.yaml}
+    columns:
+      audit_ts:
+        type: timestamp
+        notnull: true
+        comment: when the row was written
+
+    tables:
+      orders:
+        columns:
+          id: {type: int, notnull: true}
+          created:
+            $use: audit_ts          # timestamp, NOT NULL, with the comment
+          updated:
+            $use: audit_ts
+            notnull: false          # ...but this one may be null
+    @endcode
+
+    References are resolved when the schema is loaded, before anything else looks at it, so
+    alignment, the diff and migrations see fully-expanded tables and need to know nothing about
+    sharing. The shared sections do not appear in the normalized schema.
+
+    A reference naming a definition that does not exist raises \c DATA-SCHEMA-ERROR at load,
+    naming the table, the entry and what it asked for.
 
     See \c design/data-schema-format.md in the Qore source for the complete format specification.
 
@@ -852,8 +884,14 @@ module Schema {
     - Migration action types: all 18 supported actions with their field definitions
     - Reference data categories: \c strict, \c normal, \c create_only, \c insert_only
     - Auto-trigger configuration: \c created, \c modified, \c sequence_columns
+    - Shared definitions: top-level \c columns and \c indexes, drawn from with \c $use
 
     @section schema_relnotes Schema Module Release History
+
+    @subsection schema_v1_8_0 Schema Module v1.8.0
+    - added shared \c columns and \c indexes definitions at the top level of a data schema: a
+      definition named once and drawn from by any table with \c {$use: <name>}, with any key set
+      alongside overriding the shared value — see @ref schema_shared_definitions
 
     @subsection schema_v1_7_0 Schema Module v1.7.0
     - added the additive, data-preserving \c reconcile_table DataSchema
