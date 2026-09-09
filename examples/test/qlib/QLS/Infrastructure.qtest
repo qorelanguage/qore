@@ -30,6 +30,7 @@
 %requires QUnit
 %requires json
 %requires QLS
+%requires astparser
 
 %exec-class InfrastructureTest
 

@@ -6,6 +6,7 @@
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
 %requires json
 %requires QUnit
+%requires ServerSentEventHandler
 %requires HttpServer
 %requires Logger
 %requires Mime

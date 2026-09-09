@@ -30,6 +30,7 @@
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
 %requires QUnit
+%requires Util
 
 %try-module jni
 %define NoJni

@@ -8,6 +8,7 @@
 
 %requires QUnit
 %requires FsUtil
+%requires Util
 
 %exec-class SandboxManagerTest
 

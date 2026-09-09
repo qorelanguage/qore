@@ -383,8 +383,10 @@ public string sub readThere() {
         writeFile(cons_qm, consumerModuleCode());
 
         string script_path = tmp_dir + "/run.qr";
+        # The script reads the provider directly; the consumer's private import is not reexported.
         writeFile(script_path, "%modern
 %requires AOTConstInitConsMod
+%requires AOTConstInitProvMod
 printf(\"%s\", AOTConstInitProvMod::readHere());
 printf(\"%s\", AOTConstInitConsMod::readThere());
 printf(\"script=%d\\nreal=%d\\n\", AOTConstInitProvMod::ProvPid, getpid());

@@ -32,6 +32,7 @@
 %requires avro
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
 %requires QUnit
+%requires json
 
 %exec-class AvroCppApiTest
 

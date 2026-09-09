@@ -27,6 +27,7 @@
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
 %requires Util
 %requires QUnit
+%requires OneDriveRestClient
 %requires Logger
 %requires DataProvider
 %requires RestClient
