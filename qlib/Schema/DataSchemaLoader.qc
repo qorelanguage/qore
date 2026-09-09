@@ -262,11 +262,21 @@ public class DataSchemaLoader {
             return def;
         }
         string ref = def{DataSchemaLoader::SharedDefinitionKey};
+        # indexing NOTHING yields NOTHING, so a schema with no shared section at all reaches the
+        # same error as one that simply does not declare this name
         *hash<auto> base = shared{ref};
         if (!exists base) {
             throw "DATA-SCHEMA-ERROR", sprintf("table %y %s %y draws from unknown shared %s %y; "
                 "the schema declares %y", table_name, what, name, what, ref,
                 shared ? shared.keys() : ());
+        }
+        # Resolution is deliberately one level deep, and that is enforced rather than documented:
+        # a shared definition that itself draws from another would otherwise merge the unresolved
+        # key straight through, and an index carries unknown keys verbatim into SqlUtil.
+        if (exists base{DataSchemaLoader::SharedDefinitionKey}) {
+            throw "DATA-SCHEMA-ERROR", sprintf("table %y %s %y draws from shared %s %y, which "
+                "itself draws from %y; shared definitions are not resolved recursively",
+                table_name, what, name, what, ref, base{DataSchemaLoader::SharedDefinitionKey});
         }
         # the shared definition first, then the entry's own keys, so a local key wins
         return base + (def - DataSchemaLoader::SharedDefinitionKey);

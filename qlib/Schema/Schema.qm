@@ -890,7 +890,7 @@ module Schema {
 
     @subsection schema_v1_8_0 Schema Module v1.8.0
     - added shared \c columns and \c indexes definitions at the top level of a data schema: a
-      definition named once and drawn from by any table with \c {$use: <name>}, with any key set
+      definition named once and drawn from by any table with \c {$use:\ name}, with any key set
       alongside overriding the shared value — see @ref schema_shared_definitions
 
     @subsection schema_v1_7_0 Schema Module v1.7.0

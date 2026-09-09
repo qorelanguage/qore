@@ -403,6 +403,31 @@ class DataSchemaTest inherits QUnit::Test {
         hash<auto> plain = getSampleSchema();
         assertEq(Schema::DataSchemaLoader::normalize(plain), Schema::DataSchemaLoader::normalize(plain));
 
+        # a reference in a schema with NO shared section at all reaches the
+        # same error, rather than failing on the missing section
+        hash<auto> orphan = {
+            "schema": {"name": "S", "version": "1.0"},
+            "tables": {"t": {"columns": {"created": {"$use": "audit_ts"}}}},
+        };
+        assertThrows("DATA-SCHEMA-ERROR", "unknown shared column", sub () {
+            Schema::DataSchemaLoader::normalize(orphan);
+        });
+
+        # resolution is one level deep, and says so rather than merging an
+        # unresolved key through — an index carries unknown keys verbatim
+        # into SqlUtil, so this would otherwise leave `$use` in the output
+        hash<auto> chained = {
+            "schema": {"name": "S", "version": "1.0"},
+            "columns": {
+                "base_ts": {"type": "timestamp"},
+                "audit_ts": {"$use": "base_ts", "notnull": True},
+            },
+            "tables": {"t": {"columns": {"created": {"$use": "audit_ts"}}}},
+        };
+        assertThrows("DATA-SCHEMA-ERROR", "not resolved recursively", sub () {
+            Schema::DataSchemaLoader::normalize(chained);
+        });
+
         # the meta-schema accepts the two new top-level sections
         Schema::DataSchemaLoader::validate(raw);
     }
