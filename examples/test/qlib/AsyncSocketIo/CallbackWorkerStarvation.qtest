@@ -1,0 +1,177 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+/*
+    Copyright (C) 2026 Qore Technologies, s.r.o., all rights reserved
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires Util
+%requires QUnit
+%requires Logger
+%requires AsyncSocketIo
+
+%exec-class CallbackWorkerStarvationTest
+
+#! Regression tests for flushCallbacksByOwner() when the callback worker pool is starved
+/** Field report (qorus-core, 2026-09-09): a Creator WebSocket action ran on an HTTP
+    handler-pool thread, held the connection's process mutex across its whole frame
+    dispatch, and made an outbound LLM call.  Every callback worker in the shared
+    dispatcher pool piled up on that same process mutex delivering further stream data.
+    When the action's RestClientIo went out of scope, its private
+    HttpClientConnectionManager destructor called flushCallbacksByOwner(), which waited
+    for the manager's cancellation callbacks — callbacks that only the pool it had just
+    starved could ever run.  33 threads stayed blocked until the process was restarted.
+
+    The barrier must therefore never depend on a worker being free: queued items for a
+    shutting-down owner are dropped by markOwnerShuttingDown() and further ones are
+    rejected by the dispatcher's enqueue path, leaving only genuinely in-flight callbacks
+    to wait for.
+*/
+public class CallbackWorkerStarvationTest inherits QUnit::Test {
+    public {
+        #! Callback worker pool size for this process
+        /** Small so the test can park every worker; the cap is read when the dispatcher
+            is first created, so it must be set before any callback is dispatched.
+        */
+        const Workers = 4;
+
+        #! Number of owner-tagged callbacks queued behind the parked pool
+        const QueuedCallbacks = 25;
+
+        #! Settle window for the I/O thread to fire timers whose deadline is already past
+        /** Every dispatcher worker is parked at this point, so the dispatcher itself
+            cannot report the enqueue; the I/O thread's next pass is microseconds away,
+            so this is ~5 orders of magnitude of margin.  A window that was somehow too
+            short does not make the test pass silently: the callbacks would then be
+            enqueued after the barrier cleared its mark and would run, failing the final
+            assertion.
+        */
+        const TimerSettle = 1s;
+
+        #! Upper bound for any wait that a regression turns into a hang
+        const HangTimeout = 30s;
+    }
+
+    constructor() : Test("CallbackWorkerStarvationTest", "1.0") {
+        # must run before anything dispatches a callback: the worker cap is read when the
+        # dispatcher is constructed
+        getGlobalAsyncIoController().setMaxCallbackWorkers(Workers);
+
+        addTestCase("flush drains queued callbacks with the pool starved", \flushWithPoolStarved());
+        addTestCase("flush still waits for in-flight callbacks", \flushWaitsForInFlight());
+        set_return_value(main());
+    }
+
+    flushWithPoolStarved() {
+        AsyncSocketIoController ctrl = getGlobalAsyncIoController();
+
+        string blocker_owner = "starve-blocker-" + get_random_string(8);
+        string victim_owner = "starve-victim-" + get_random_string(8);
+
+        Counter blocked(Workers);
+        Counter blockers_done(Workers);
+        Counter release(1);
+        Counter victim_started(QueuedCallbacks);
+
+        # park every callback worker in a callback that cannot return until this test
+        # releases it - the dispatcher can then pop nothing at all
+        for (int i = 0; i < Workers; ++i) {
+            ctrl.addTimer(now_us(), sub () {
+                blocked.dec();
+                release.waitForZero(HangTimeout * 2);
+                blockers_done.dec();
+            }, blocker_owner);
+        }
+        # release the parked workers on every exit path, including a failed assertion
+        on_exit {
+            release.dec();
+            blockers_done.waitForZero(HangTimeout * 2);
+        }
+
+        assertEq(0, blocked.waitForZero(HangTimeout),
+            sprintf("the %d blocker callbacks did not occupy the whole worker pool", Workers));
+
+        # queue owner-tagged callbacks behind the starved pool; the deadline is already in
+        # the past, so the I/O thread dispatches them on its next pass
+        for (int i = 0; i < QueuedCallbacks; ++i) {
+            ctrl.addTimer(now_us(), sub () {
+                victim_started.dec();
+            }, victim_owner);
+        }
+        usleep(TimerSettle);
+
+        # The barrier must not wait for work that only the starved pool could perform.
+        # Run it on a background thread so a regression is a clean assertion failure
+        # rather than an unattributable hang of the whole test process.
+        Counter flushed(1);
+        background sub () {
+            ctrl.flushCallbacksByOwner(victim_owner);
+            flushed.dec();
+        }();
+        assertEq(0, flushed.waitForZero(HangTimeout),
+            "flushCallbacksByOwner() blocked waiting for callbacks that only the starved "
+            "worker pool could have run");
+
+        # the barrier discards what it drains: not one queued callback may run, either
+        # during the flush or afterwards
+        assertEq(QueuedCallbacks, victim_started.getCount(),
+            "flushCallbacksByOwner() let an owner-tagged callback run past the barrier");
+    }
+
+    #! The starvation fix must not turn the barrier into a no-op
+    /** An owner-tagged callback that a worker has already picked up is still waited for:
+        that is the guarantee HttpClientConnectionManager::closeAll() relies on to keep a
+        worker out of its members while it destroys them.
+    */
+    flushWaitsForInFlight() {
+        AsyncSocketIoController ctrl = getGlobalAsyncIoController();
+
+        string owner = "inflight-" + get_random_string(8);
+        Counter started(1);
+        Counter proceed(1);
+        Counter finished(1);
+
+        ctrl.addTimer(now_us(), sub () {
+            started.dec();
+            proceed.waitForZero(HangTimeout);
+            finished.dec();
+        }, owner);
+
+        assertEq(0, started.waitForZero(HangTimeout), "owner-tagged callback did not start");
+
+        Counter flushed(1);
+        background sub () {
+            ctrl.flushCallbacksByOwner(owner);
+            flushed.dec();
+        }();
+
+        # the flush must still be blocked on the in-flight callback
+        assertNeq(0, flushed.waitForZero(TimerSettle),
+            "flushCallbacksByOwner() returned while one of the owner's callbacks was "
+            "still running");
+
+        proceed.dec();
+        assertEq(0, flushed.waitForZero(HangTimeout),
+            "flushCallbacksByOwner() did not return after the in-flight callback finished");
+        assertEq(0, finished.getCount(), "the in-flight callback did not complete");
+    }
+}

@@ -757,6 +757,41 @@ void QoreCallDispatcher::dispatchPollCompleteAsync(QoreObject* spop_obj, const s
     enqueue(std::move(item));
 }
 
+void QoreCallDispatcher::releaseWorkItem(AsyncWorkItem& item, ExceptionSink* xsink) {
+    if (item.controller) {
+        if (item.type == DT_CONTINUE_POLL) {
+            // Tell the I/O thread the operation is done so it drops its cache entry;
+            // otherwise the op stays registered with no worker left to complete it.
+            // Mirrors workerLoop()'s owner/program shutdown branch.
+            item.controller->enqueueContinuePollResult(item.key, nullptr, nullptr, true);
+        }
+        item.controller->deref(xsink);
+        item.controller = nullptr;
+    }
+    if (item.spop_obj) {
+        item.spop_obj->deref(xsink);
+        item.spop_obj = nullptr;
+    }
+    if (item.result) {
+        item.result->deref(xsink);
+        item.result = nullptr;
+    }
+    if (item.callback) {
+        item.callback->deref(xsink);
+        item.callback = nullptr;
+    }
+    if (item.args) {
+        item.args->deref(xsink);
+        item.args = nullptr;
+    }
+    if (item.pgm) {
+        // must match enqueue()'s depRef() - deref() would decrement the strong
+        // refcount but not the dc counter, stranding the program past shutdown
+        item.pgm->depDeref();
+        item.pgm = nullptr;
+    }
+}
+
 void QoreCallDispatcher::enqueue(AsyncWorkItem&& item) {
     // Hold a dependency reference to the object's program to keep the
     // program struct alive (not freed) while the callback is pending.
@@ -779,77 +814,82 @@ void QoreCallDispatcher::enqueue(AsyncWorkItem&& item) {
         }
     }
 
-    AutoLocker al(m);
+    // The discard decision is made under the lock, but the item's references are
+    // only released after the lock is dropped: a deref can run a Qore destructor
+    // that re-enters the dispatcher (e.g. an HttpClientConnectionManager
+    // destructor calling flushCallbacksByOwner()), which would deadlock on the
+    // non-recursive dispatcher lock.
+    bool discard = false;
+    {
+        AutoLocker al(m);
 
-    // Reject enqueues for programs whose teardown is already in progress.
-    // markProgramShuttingDown() drained the queue under this same lock; without
-    // this check, an I/O thread could complete a poll AFTER cancelByProgram
-    // returned but BEFORE waitForTerminationAndClear sets ptid, enqueue an item
-    // for the dying pgm, and a worker would pop it and run the cleanup-deref
-    // concurrently with main thread's clearLocalVars (the workerLoop+0x3c6
-    // SIGSEGV signature with stale spop_obj pointer in JVM-heap range).  The
-    // synchronous cleanup below mirrors the `stopping` branch — it runs on the
-    // calling thread (typically the I/O thread), which is fine because the
-    // strong ref was taken at submit time and the destructor chain runs while
-    // the program is still in its post-cancelByProgram / pre-data-clearance
-    // window.
-    bool pgm_shutting_down_now = item.pgm && shutting_down_programs.count(item.pgm) > 0;
+        // Reject enqueues for programs whose teardown is already in progress.
+        // markProgramShuttingDown() drained the queue under this same lock; without
+        // this check, an I/O thread could complete a poll AFTER cancelByProgram
+        // returned but BEFORE waitForTerminationAndClear sets ptid, enqueue an item
+        // for the dying pgm, and a worker would pop it and run the cleanup-deref
+        // concurrently with main thread's clearLocalVars (the workerLoop+0x3c6
+        // SIGSEGV signature with stale spop_obj pointer in JVM-heap range).  The
+        // discard cleanup runs on the calling thread (typically the I/O thread),
+        // which is fine because the strong ref was taken at submit time and the
+        // destructor chain runs while the program is still in its
+        // post-cancelByProgram / pre-data-clearance window.
+        bool pgm_shutting_down_now = item.pgm && shutting_down_programs.count(item.pgm) > 0;
 
-    // Increment per-owner tracking at enqueue time (before the early-return
-    // path below, so discarded items are not counted).  Counting at enqueue —
-    // rather than at pop time in the worker — makes waitForOwnerIdle() a
-    // true barrier: it must wait not only for items currently being processed
-    // but also for items still sitting on async_queue.  Without this, a
-    // callback enqueued before markOwnerShuttingDown() but popped after
-    // clearOwnerShuttingDown() runs past the barrier — defeating the whole
-    // point of flushCallbacksByOwner().
-    if (!stopping && !pgm_shutting_down_now && !item.owner.empty()) {
-        ++active_per_owner[item.owner];
+        // Reject enqueues for owners whose teardown is already in progress.  A
+        // worker would discard such an item anyway (see the owner_shutting_down
+        // branch in workerLoop()), but only after popping it — and a caller blocked
+        // in waitForOwnerIdle() may be the very reason no worker can pop anything.
+        // Discarding here keeps that wait independent of worker availability, and
+        // additionally closes the window where an item popped after
+        // clearOwnerShuttingDown() no longer sees the mark and so runs the user
+        // callback past the barrier.
+        bool owner_shutting_down_now = !item.owner.empty()
+            && shutting_down_owners.count(item.owner) > 0;
+
+        if (stopping || pgm_shutting_down_now || owner_shutting_down_now) {
+            // Cannot dispatch — the references are released below, outside the lock.
+            // Deliberately NOT counted in active_per_owner: nothing will ever pop
+            // this item, so a counted item would hang waitForOwnerIdle() forever.
+            discard = true;
+        } else {
+            // Increment per-owner tracking at enqueue time (only for items that are
+            // actually queued).  Counting at enqueue — rather than at pop time in the
+            // worker — makes waitForOwnerIdle() a true barrier: it must wait not only
+            // for items currently being processed but also for items still sitting on
+            // async_queue.  Without this, a callback enqueued before
+            // markOwnerShuttingDown() but popped after clearOwnerShuttingDown() runs
+            // past the barrier — defeating the whole point of flushCallbacksByOwner().
+            if (!item.owner.empty()) {
+                ++active_per_owner[item.owner];
+            }
+
+            // Spawn a new worker when all existing workers are committed to pending work
+            // (items already in the queue + items being actively processed >= worker count).
+            // This ensures one worker per pending item during a burst, rather than one worker
+            // for all items.  Idle workers are still woken by work_avail.signal() below.
+            int committed = (int)async_queue.size() + active_processing;
+            if (committed >= active_workers && active_workers < max_workers) {
+                ++active_workers;
+                ExceptionSink xsink;
+                int tid = q_start_thread(&xsink, workerEntry, this, QTF_EXTERNAL_LIFECYCLE);
+                if (tid == -1) {
+                    --active_workers;
+                }
+            }
+
+            // Enqueue even if no workers exist — stop() will drain and clean up.
+            // Cannot execute synchronously here: caller may be the I/O thread,
+            // and Qore code could call submit() causing deadlock.
+            async_queue.push_back(std::move(item));
+            work_avail.signal();
+        }
     }
 
-    if (stopping || pgm_shutting_down_now) {
-        // Cannot dispatch — clean up refs synchronously
+    if (discard) {
         ExceptionSink xsink;
-        if (item.spop_obj) {
-            item.spop_obj->deref(&xsink);
-        }
-        if (item.result) {
-            item.result->deref(&xsink);
-        }
-        if (item.callback) {
-            item.callback->deref(&xsink);
-        }
-        if (item.args) {
-            item.args->deref(&xsink);
-        }
-        if (item.controller) {
-            item.controller->deref(&xsink);
-        }
-        if (item.pgm) {
-            item.pgm->depDeref();
-        }
-        return;
+        releaseWorkItem(item, &xsink);
     }
-
-    // Spawn a new worker when all existing workers are committed to pending work
-    // (items already in the queue + items being actively processed >= worker count).
-    // This ensures one worker per pending item during a burst, rather than one worker
-    // for all items.  Idle workers are still woken by work_avail.signal() below.
-    int committed = (int)async_queue.size() + active_processing;
-    if (committed >= active_workers && active_workers < max_workers) {
-        ++active_workers;
-        ExceptionSink xsink;
-        int tid = q_start_thread(&xsink, workerEntry, this, QTF_EXTERNAL_LIFECYCLE);
-        if (tid == -1) {
-            --active_workers;
-        }
-    }
-
-    // Enqueue even if no workers exist — stop() will drain and clean up.
-    // Cannot execute synchronously here: caller may be the I/O thread,
-    // and Qore code could call submit() causing deadlock.
-    async_queue.push_back(std::move(item));
-    work_avail.signal();
 }
 
 void QoreCallDispatcher::stop(ExceptionSink* xsink) {
@@ -940,58 +980,49 @@ void QoreCallDispatcher::waitForProgramIdle(QoreProgram* pgm) {
 }
 
 void QoreCallDispatcher::markProgramShuttingDown(QoreProgram* pgm, ExceptionSink* xsink) {
-    AutoLocker al(m);
-    shutting_down_programs.insert(pgm);
+    // Items are moved out of the queue under the lock and released after it is
+    // dropped; see releaseWorkItem() for why the derefs cannot run under the lock.
+    std::vector<AsyncWorkItem> drained;
+    {
+        AutoLocker al(m);
+        shutting_down_programs.insert(pgm);
 
-    // Drop already-queued items belonging to this program in the same critical
-    // section as the mark, so workers cannot pop a pgm-owned item between the
-    // mark and the drain.  See the header comment on this method for the full
-    // rationale (workerLoop+0x3c6 SIGSEGV on stale spop_obj).  Mirrors the
-    // per-item cleanup in stop() (line 538+) and workerLoop (line 876+).
-    auto it = async_queue.begin();
-    while (it != async_queue.end()) {
-        if (it->pgm == pgm) {
-            if (it->spop_obj) {
-                it->spop_obj->deref(xsink);
-            }
-            if (it->result) {
-                it->result->deref(xsink);
-            }
-            if (it->callback) {
-                it->callback->deref(xsink);
-            }
-            if (it->args) {
-                it->args->deref(xsink);
-            }
-            if (it->controller) {
-                it->controller->deref(xsink);
-            }
-            // depDeref matches the depRef taken at enqueue (line 464);
-            // it->pgm is non-null because we just compared it to pgm.
-            it->pgm->depDeref();
-            // active_per_owner is incremented at enqueue time (line 479);
-            // the matching decrement must happen here for drained items, or
-            // waitForOwnerIdle() would hang on items that will never be popped.
-            // active_per_program is NOT decremented: it is incremented only
-            // when a worker pops an item (workerLoop line 691), not at enqueue.
-            if (!it->owner.empty()) {
-                auto oit = active_per_owner.find(it->owner);
-                if (oit != active_per_owner.end()) {
-                    if (--oit->second <= 0) {
-                        active_per_owner.erase(oit);
-                        owner_idle_cond.broadcast();
+        // Drop already-queued items belonging to this program in the same critical
+        // section as the mark, so workers cannot pop a pgm-owned item between the
+        // mark and the drain.  See the header comment on this method for the full
+        // rationale (workerLoop+0x3c6 SIGSEGV on stale spop_obj).
+        auto it = async_queue.begin();
+        while (it != async_queue.end()) {
+            if (it->pgm == pgm) {
+                // active_per_owner is incremented at enqueue time; the matching
+                // decrement must happen here for drained items, or waitForOwnerIdle()
+                // would hang on items that will never be popped.
+                // active_per_program is NOT decremented: it is incremented only
+                // when a worker pops an item, not at enqueue.
+                if (!it->owner.empty()) {
+                    auto oit = active_per_owner.find(it->owner);
+                    if (oit != active_per_owner.end()) {
+                        if (--oit->second <= 0) {
+                            active_per_owner.erase(oit);
+                            owner_idle_cond.broadcast();
+                        }
                     }
                 }
+                drained.push_back(std::move(*it));
+                it = async_queue.erase(it);
+            } else {
+                ++it;
             }
-            it = async_queue.erase(it);
-        } else {
-            ++it;
         }
+        // Unconditional: waitForIdle()'s predicate excludes continuePoll, so
+        // draining the last queued callbacks here must wake it even while a
+        // continuePoll is still in flight (active_processing > 0).
+        idle_cond.broadcast();
     }
-    // Unconditional: waitForIdle()'s predicate excludes continuePoll, so
-    // draining the last queued callbacks here must wake it even while a
-    // continuePoll is still in flight (active_processing > 0).
-    idle_cond.broadcast();
+
+    for (auto& item : drained) {
+        releaseWorkItem(item, xsink);
+    }
 }
 
 void QoreCallDispatcher::clearProgramShuttingDown(QoreProgram* pgm) {
@@ -1003,8 +1034,63 @@ void QoreCallDispatcher::markOwnerShuttingDown(const std::string& owner) {
     if (owner.empty()) {
         return;
     }
-    AutoLocker al(m);
-    shutting_down_owners.insert(owner);
+
+    // Items are moved out of the queue under the lock and released after it is
+    // dropped; see releaseWorkItem() for why the derefs cannot run under the lock.
+    std::vector<AsyncWorkItem> drained;
+    {
+        AutoLocker al(m);
+        ++shutting_down_owners[owner];
+
+        // Drop already-queued items for this owner in the same critical section as
+        // the mark.  A worker would discard them anyway (workerLoop()'s
+        // owner_shutting_down branch), but only after popping them, which makes
+        // waitForOwnerIdle() depend on the worker pool having a free thread — and
+        // the caller of flushCallbacksByOwner() can itself be what is starving that
+        // pool.  See the header comment on this method for the observed deadlock.
+        //
+        // Partitioned in two linear passes rather than erased in place: this runs on
+        // every connection-manager teardown, and erasing from the middle of a deque
+        // is O(n) per item.  The common case — nothing queued for this owner — costs
+        // one scan and no allocation.
+        size_t matches = 0;
+        for (const auto& qi : async_queue) {
+            if (qi.owner == owner) {
+                ++matches;
+            }
+        }
+        if (matches) {
+            drained.reserve(matches);
+            std::deque<AsyncWorkItem> keep;
+            for (auto& qi : async_queue) {
+                if (qi.owner != owner) {
+                    keep.push_back(std::move(qi));
+                    continue;
+                }
+                // active_per_owner is incremented at enqueue time; the matching
+                // decrement must happen here for drained items, or waitForOwnerIdle()
+                // would hang on items that will never be popped.  active_per_program
+                // is NOT decremented: it is only incremented when a worker pops an item.
+                auto oit = active_per_owner.find(owner);
+                if (oit != active_per_owner.end()) {
+                    if (--oit->second <= 0) {
+                        active_per_owner.erase(oit);
+                        owner_idle_cond.broadcast();
+                    }
+                }
+                drained.push_back(std::move(qi));
+            }
+            async_queue.swap(keep);
+            // waitForIdle()'s predicate counts queued non-continuePoll items, so
+            // removing them here must wake any thread blocked in it.
+            idle_cond.broadcast();
+        }
+    }
+
+    ExceptionSink xsink;
+    for (auto& item : drained) {
+        releaseWorkItem(item, &xsink);
+    }
 }
 
 void QoreCallDispatcher::clearOwnerShuttingDown(const std::string& owner) {
@@ -1012,7 +1098,10 @@ void QoreCallDispatcher::clearOwnerShuttingDown(const std::string& owner) {
         return;
     }
     AutoLocker al(m);
-    shutting_down_owners.erase(owner);
+    auto it = shutting_down_owners.find(owner);
+    if (it != shutting_down_owners.end() && --it->second <= 0) {
+        shutting_down_owners.erase(it);
+    }
 }
 
 void QoreCallDispatcher::waitForOwnerIdle(const std::string& owner) {

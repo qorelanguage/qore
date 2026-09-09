@@ -1311,6 +1311,14 @@ public class WebSocketConnection {
 
     This eliminates the need for a dedicated handler thread to poll the stream.
 
+    Frame processing is serialized by an admission gate rather than by blocking:
+    notifyIo() admits one thread to the drain loop and records any further
+    notification in a pending flag, so a notification that arrives while user code is
+    running in gotMessage() returns immediately instead of parking the async I/O
+    callback worker that delivered it.  A busy handler therefore cannot consume the
+    shared dispatcher pool, and the skipped notifications are not lost: the thread in
+    the loop re-reads the stream context before it leaves.
+
     @since WebSocketHandler 2.7
 */
 class WebSocketStreamProcessor {
@@ -1336,11 +1344,29 @@ class WebSocketStreamProcessor {
         #! Counter to signal when the stream closes
         Counter done;
 
-        #! Mutex to serialize I/O processing (held during notifyIo and its gotMessage/sendData calls)
+        #! Mutex to serialize I/O processing (held during processFrames() and its gotMessage/sendData calls)
         /** Note: this mutex may be held for extended periods while blocking on user code or
-            QUIC stream writes. It must NOT be used to protect shutdown-critical state.
+            QUIC stream writes. It must NOT be used to protect shutdown-critical state, and
+            @ref notifyIo() must never wait on it — see the admission gate there.
         */
         Mutex process_mutex();
+
+        #! Lock protecting @ref processing and @ref notify_pending
+        /** Only ever held for the duration of a flag check-and-set; never across I/O or
+            user code, so @ref notifyIo() can always take it without blocking.
+        */
+        Mutex notify_lock();
+
+        #! True while a thread is inside the frame-processing loop
+        /** Protected by @ref notify_lock. */
+        bool processing = False;
+
+        #! True if a stream notification arrived while @ref processing was set
+        /** Protected by @ref notify_lock; makes the admission gate in @ref notifyIo()
+            lossless — the thread in the loop re-runs the frame drain instead of the
+            notifier waiting for it.
+        */
+        bool notify_pending = False;
 
         #! Dedicated fast lock for the closed flag — never held during I/O
         /** This lock is ONLY held to perform the check-and-set on @ref closed and
@@ -1420,11 +1446,63 @@ class WebSocketStreamProcessor {
     #! Called by the I/O controller's worker pool when stream data arrives
 
     notifyIo() {
-        # Fast bail-out without acquiring process_mutex if already closed
+        # Fast bail-out without acquiring any lock if already closed
         if (isClosed()) {
             return;
         }
 
+        # Admission gate: at most one thread at a time runs the frame-drain loop; any
+        # other notification records that more data is available and returns at once.
+        #
+        # Blocking here instead (as waiting on process_mutex used to) parks an async I/O
+        # callback worker for as long as user code in gotMessage() runs, and a peer that
+        # keeps sending can park EVERY worker in the shared dispatcher pool that way.
+        # That stalls callbacks for every other connection in the process, and it
+        # deadlocks outright if the running handler performs a dispatcher drain — an
+        # ordinary RestClientIo destructor reaches AsyncIoController::flushCallbacksByOwner(),
+        # which can then wait for callbacks that only the pool it has starved could run.
+        #
+        # Skipping is lossless: the drain loop below re-reads the stream context whenever
+        # notify_pending was set, so any frame (including the close notification) that
+        # arrives while a handler is running is picked up by the thread already in the loop.
+        {
+            AutoLock al(notify_lock);
+            if (processing) {
+                notify_pending = True;
+                return;
+            }
+            processing = True;
+            notify_pending = False;
+        }
+        # exception safety: the gate must be released on ANY exit path, or the stream
+        # would silently stop processing frames
+        on_error {
+            AutoLock al(notify_lock);
+            processing = False;
+        }
+
+        while (True) {
+            processFrames();
+
+            AutoLock al(notify_lock);
+            if (!notify_pending) {
+                processing = False;
+                return;
+            }
+            notify_pending = False;
+        }
+    }
+
+    #! Drains and dispatches all WebSocket frames currently available on the stream
+    /** Called only by @ref notifyIo(), which admits a single thread at a time, so
+        @ref process_mutex is contended here only with @ref close() and
+        @ref sendHeartbeatFrame().
+
+        Frame-dispatch errors are handled internally (logged, then the stream is marked
+        closed); anything that does escape is caught by @ref notifyIo()'s \c on_error,
+        which releases the admission gate.
+    */
+    private processFrames() {
         AutoLock al(process_mutex);
         # Re-check after acquiring the mutex (another worker may have closed us)
         if (isClosed()) {

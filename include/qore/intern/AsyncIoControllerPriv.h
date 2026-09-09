@@ -240,6 +240,23 @@ public:
     /** Workers that pick up items tagged with this owner will silently discard
         them instead of calling the user callback (which may touch now-invalid
         state on the owner object).
+
+        This call also drops any already-queued items belonging to \a owner and
+        releases their references, and enqueue() discards (rather than queues)
+        further items for the owner while the mark is set.  Both are required for
+        waitForOwnerIdle() to be a *bounded* wait: queued items are only counted
+        down when a worker pops them, so a caller blocked in waitForOwnerIdle()
+        while every worker is busy would wait forever for work that can only be
+        performed by the pool it is starving.  That is a real, reproducible
+        deadlock: a WebSocket frame dispatch running on the HTTP handler pool
+        holds the connection's process mutex while destroying a private
+        HttpClientConnectionManager, every callback worker blocks on that same
+        mutex delivering further stream data, and the manager's cancellation
+        callbacks then sit in the queue with nobody left to drain them.
+
+        Draining here is also strictly safer than letting a worker discard the
+        item later: an item popped after clearOwnerShuttingDown() no longer sees
+        the mark and would run the user callback past the barrier.
     */
     DLLLOCAL void markOwnerShuttingDown(const std::string& owner);
 
@@ -250,6 +267,12 @@ public:
     /** Unlike waitForIdle() which waits for ALL callbacks, this only waits for
         callbacks tagged with \a owner.  This avoids deadlock when the caller
         holds a lock that callbacks from OTHER owners also need.
+
+        Only callbacks a worker has already popped are waited for; queued items
+        are removed by markOwnerShuttingDown() and further ones are rejected by
+        enqueue() while the owner is marked, so this wait never depends on the
+        worker pool having a free thread.  Callers MUST therefore mark the owner
+        before waiting (flushCallbacksByOwner() does).
 
         @param owner the owner identifier to wait for
     */
@@ -285,13 +308,34 @@ private:
     std::unordered_set<QoreProgram*> shutting_down_programs;  //!< Programs being destroyed — skip callbacks
     std::unordered_map<QoreProgram*, int> active_per_program; //!< Per-program in-flight callback count
     QoreCondition pgm_idle_cond;                //!< Signaled when a program's active count reaches zero
-    std::unordered_set<std::string> shutting_down_owners;      //!< Owners being torn down — skip callbacks
+    //! Owners being torn down — skip callbacks; nesting depth, not a flag
+    /** flushCallbacksByOwner() can nest for the same owner: releasing a work item's
+        references can run a destructor that flushes the same owner again.  A plain set
+        would let the inner call's clearOwnerShuttingDown() drop the mark while the outer
+        call is still draining, re-opening the barrier it holds.
+    */
+    std::unordered_map<std::string, int> shutting_down_owners;
     std::unordered_map<std::string, int> active_per_owner;     //!< Per-owner in-flight callback count
     QoreCondition owner_idle_cond;              //!< Signaled when an owner's active count reaches zero
     QoreThreadLock qore_continue_poll_lock;     //!< Serializes Qore-level continuePoll() dispatch
 
     //! Enqueue a work item, starting a worker if needed
     DLLLOCAL void enqueue(AsyncWorkItem&& item);
+
+    //! Releases every reference held by a work item that will never be dispatched
+    /** Must be called with the dispatcher lock NOT held: these derefs can run Qore
+        destructors that re-enter the dispatcher (for example an
+        HttpClientConnectionManager destructor calling flushCallbacksByOwner()),
+        which would deadlock on the non-recursive dispatcher lock.
+
+        @param item the work item to release; all of its reference fields are cleared
+        @param xsink exception sink for the derefs
+
+        @note a DT_CONTINUE_POLL item's controller is told the operation completed so
+        the I/O thread drops its cache entry, mirroring what workerLoop() does when it
+        pops an item whose owner or program is shutting down
+    */
+    DLLLOCAL static void releaseWorkItem(AsyncWorkItem& item, ExceptionSink* xsink);
 
     //! Worker thread entry point
     DLLLOCAL static void workerEntry(ExceptionSink* xsink, void* arg);
