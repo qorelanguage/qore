@@ -1,0 +1,99 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%exec-class DateUtcOffsetTest
+
+class DateUtcOffsetTest inherits QUnit::Test {
+    constructor() : Test("Date UTC offset at the represented instant", "1.0") {
+        addTestCase("Fixed offsets retain seconds through date copies", \fixedOffsets());
+        addTestCase("Regional offsets follow both daylight-saving transitions", \transitions());
+        addTestCase("A regional TZif file retains a one-second west standard offset", \regionalSecond());
+        addTestCase("Relative values have no UTC offset", \relativeValues());
+        addTestCase("Program interruption leaves later timezone lookups usable", \interruption());
+        set_return_value(main());
+    }
+
+    private fixedOffsets() {
+        foreach int offset in (-50400, -19800, -60, -32, -1, 0, 1, 32, 60, 19800, 50400) {
+            TimeZone zone(offset);
+            assertEq(offset, zone.UTCOffset());
+            TimeZone restored = Serializable::deserialize(zone.serialize());
+            assertEq(offset, restored.UTCOffset());
+            foreach int epoch in (-2208988800, -1, 0, 1, 1790000000) {
+                date original = zone.date(epoch, 123456);
+                foreach date value in (original, date(original), Serializable::deserialize(Serializable::serialize(original))) {
+                    assertEq(offset, value.getUtcOffset());
+                    assertEq(epoch, value.getEpochSeconds());
+                    assertEq(123456, get_microseconds(value));
+                }
+            }
+        }
+    }
+
+    private transitions() {
+        foreach hash<auto> row in (
+                {"zone": "Europe/Prague", "at": 2026-03-29T00:59:59Z, "offset": 3600},
+                {"zone": "Europe/Prague", "at": 2026-03-29T01:00:00Z, "offset": 7200},
+                {"zone": "Europe/Prague", "at": 2026-10-25T00:59:59Z, "offset": 7200},
+                {"zone": "Europe/Prague", "at": 2026-10-25T01:00:00Z, "offset": 3600},
+                {"zone": "America/New_York", "at": 2026-03-08T06:59:59Z, "offset": -18000},
+                {"zone": "America/New_York", "at": 2026-03-08T07:00:00Z, "offset": -14400},
+                {"zone": "America/New_York", "at": 2026-11-01T05:59:59Z, "offset": -14400},
+                {"zone": "America/New_York", "at": 2026-11-01T06:00:00Z, "offset": -18000}) {
+            TimeZone zone(row.zone);
+            date original = zone.date(row.at);
+            foreach date value in (original, date(original), Serializable::deserialize(Serializable::serialize(original))) {
+                assertEq(row.offset, value.getUtcOffset());
+                assertEq(row.at, value);
+                assertEq(row.at.getEpochSeconds(), value.getEpochSeconds());
+            }
+        }
+    }
+
+    private regionalSecond() {
+        # Authored TZif v1: one standard type, UTC-1 second, abbreviation QOR,
+        # no transitions/leaps. Tests that a valid -1 offset is not an unset sentinel.
+        TimeZone zone(realpath(get_script_dir() + "/fixtures/one-second-west.tzif"));
+        assertEq(-1, zone.UTCOffset());
+        date value = zone.date(0);
+        assertEq(-1, value.getUtcOffset());
+        assertEq("1969-12-31T23:59:59", value.format("YYYY-MM-DDTHH:mm:SS"));
+        TimeZone restored = Serializable::deserialize(zone.serialize());
+        assertEq(-1, restored.UTCOffset());
+        assertEq(-1, restored.date(0).getUtcOffset());
+    }
+
+    private interruption() {
+        string fixture = realpath(get_script_dir() + "/fixtures/one-second-west.tzif");
+        SandboxManager manager();
+        manager.addFilesystemAllowedPath(fixture, QSEC_READ);
+        on_exit manager.clearInterrupt();
+        Program program(PO_MODERN);
+        program.setSandboxManager(manager);
+        program.parse("%modern\nsub execute(code<nothing()> work) { work(); }\n",
+            get_script_dir() + "/date-offset-interruption.qr");
+        code<nothing()> work = sub() {
+            manager.requestInterrupt();
+            # A bounded batch crosses the runtime's cooperative check interval,
+            # including when the fixture's immutable zone is already cached.
+            for (int index = 0; index < 1000; ++index) {
+                TimeZone zone(fixture);
+                @assert(zone.UTCOffset() == -1);
+            }
+        };
+        assertThrows("PROGRAM-INTERRUPTED", sub() { program.callFunction("execute", work); });
+        manager.clearInterrupt();
+        TimeZone recovered(realpath(get_script_dir() + "/fixtures/one-second-west.tzif"));
+        assertEq(-1, recovered.date(0).getUtcOffset());
+    }
+
+    private relativeValues() {
+        foreach date duration in (0s, 1s, -1s, 24h, P1M) {
+            assertTrue(duration.relative());
+            assertEq(-1, duration.getUtcOffset());
+            assertEq(0, 1970-01-01Z.getUtcOffset());
+        }
+    }
+}

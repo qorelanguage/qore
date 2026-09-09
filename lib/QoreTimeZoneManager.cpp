@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -284,7 +284,10 @@ QoreZoneInfo::QoreZoneInfo(QoreString& root, std::string& n_name, ExceptionSink*
         unsigned i = tzh_typecnt;
         while (i) {
             --i;
-            if (utcoff == -1 && !tti[i].isdst && tti[i].utcoff != -1) {
+            if (!(i % 100) && qore_check_cancel(xsink, "selecting the standard time zone offset")) {
+                return;
+            }
+            if (!tti[i].isdst) {
                 utcoff = tti[i].utcoff;
                 //printd(5, "QoreZoneInfo::QoreZoneInfo() tti[%d] %s: utcoff: %d isdst: %s isstd: %s isutc: %s\n", i,
                 //    tti[i].abbr.c_str(), tti[i].utcoff, QB(tti[i].isdst), QB(tti[i].isstd), QB(tti[i].isutc));

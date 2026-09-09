@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -73,7 +73,7 @@ class AbstractQoreZoneInfo {
 protected:
     // region or time zone locale name (i.e. "Europe/Prague" or "-06:00" for UTC - 06:00)
     std::string name;
-    // UTC offset in seconds east; -1 = unknown
+    // UTC offset in seconds east; defaults to UTC until a standard type is found
     int utcoff;
     // true if the zone ever has daylight savings time, false if not
     bool has_dst;
@@ -86,10 +86,10 @@ protected:
     }
 
 public:
-    DLLLOCAL AbstractQoreZoneInfo() : utcoff(-1), has_dst(false) {
+    DLLLOCAL AbstractQoreZoneInfo() : utcoff(0), has_dst(false) {
     }
 
-    DLLLOCAL AbstractQoreZoneInfo(const std::string& n_name, int n_utcoff = -1) : name(n_name), utcoff(n_utcoff), has_dst(false) {
+    DLLLOCAL AbstractQoreZoneInfo(const std::string& n_name, int n_utcoff = 0) : name(n_name), utcoff(n_utcoff), has_dst(false) {
         // issue #3736: do not return leading path
         if (!name.compare(0, localtime_path_prefix.size(), localtime_path_prefix)) {
             name = name.c_str() + localtime_path_prefix.size();
@@ -101,7 +101,7 @@ public:
 
     // returns general UTC offset for the time zone's standard time in seconds east
     DLLLOCAL int getUTCOffset() const {
-        return utcoff == -1 ? 0 : utcoff;
+        return utcoff;
     }
 
     // returns the UTC offset for the given time given as seconds from the epoch (1970-01-01Z)

@@ -409,17 +409,25 @@ bool <date>::isDst() [const;flags=CONSTANT] {
    return new QoreStringNode(zone_name);
 }
 
-//! Returns the time zone offset for the current time in seconds east of UTC or -1 for @ref relative_dates "relative date/time values"
+//! Returns the time zone offset at the represented instant in seconds east of UTC
 /**
-    @return the time zone offset for the current time in seconds east of UTC or -1 for @ref relative_dates "relative date/time values"
+    @return the time zone offset at the represented instant in seconds east of UTC, including daylight-saving
+    rules; returns -1 for @ref relative_dates "relative date/time values"
+
+    @note A fixed offset of -1 second is also valid for absolute dates. Use relative() to distinguish a duration.
 
     @par Example:
     @code{.py}
-int utcoffset = d.getUtcOffset();
+TimeZone office("Europe/Prague");
+date appointment = office.date("2026-07-01T09:00:00");
+int utcoffset = appointment.getUtcOffset(); # 7200, the summer offset
     @endcode
  */
 int <date>::getUtcOffset() [const;flags=CONSTANT] {
-   return AbstractQoreZoneInfo::getUTCOffset(dt->getZone());
+    if (dt->isRelative()) {
+        return -1;
+    }
+    return AbstractQoreZoneInfo::getUTCOffset(dt->getZone(), dt->getEpochSecondsUTC());
 }
 
 //! Returns @ref False if the date value is all zeros, @ref True if not
