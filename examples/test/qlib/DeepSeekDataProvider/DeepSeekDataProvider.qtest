@@ -124,9 +124,9 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
         addTestCase("request type schema is enforceable",   \requestSchemaTest());
 
         # Live test requires a real DeepSeek connection.
-        # Cost: 1 token-bounded deepseek-chat request (~$0.0001 per run).
+        # Cost: 1 token-bounded deepseek-v4-flash request (~$0.0001 per run).
         if (conn_name) {
-            addTestCase("live: ping + chat-completion (deepseek-chat)",
+            addTestCase("live: ping + chat-completion (deepseek-v4-flash)",
                 \liveDeepSeekTest());
         }
         addTestCase("all actions have usable metadata and paths", \actionMetadataTest());
@@ -288,7 +288,7 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
 
     #! Exercises DeepSeek's live chat-completion endpoint
     /** Verifies the actual wire format against DeepSeek's production endpoint
-        with a token-bounded request on `deepseek-chat`. Cost: ~$0.0001 per
+        with a token-bounded request on `deepseek-v4-flash`. Cost: ~$0.0001 per
         run (capped via max_tokens=16).
     */
     private liveDeepSeekTest() {
