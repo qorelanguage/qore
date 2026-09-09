@@ -84,8 +84,9 @@ public class DeepSeekApiDataProvider inherits DeepSeekDataProviderCommon {
                 if (!has_input && !trim(body.instructions ?? "")) {
                     throw "DEEPSEEK-REQUEST-ERROR", "supply input or instructions";
                 }
+                # Empty schemas and names are valid; require the declared types without testing truthiness.
                 if (body.text.format.type == "json_schema"
-                    && (!trim(body.text.format.name ?? "") || !body.text.format.schema)) {
+                    && (body.text.format.name.typeCode() != NT_STRING || body.text.format.schema.typeCode() != NT_HASH)) {
                     throw "DEEPSEEK-REQUEST-ERROR", "JSON Schema output requires a name and schema";
                 }
                 validateTools(body, True);

@@ -2203,6 +2203,8 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - added complete DeepSeek action coverage: chat, Responses, Fill-in-the-Middle, models, balance, and image files;
         typed options, live dropdowns, input validation, and all twelve presentation translations
         (<a href="https://github.com/qoretechnologies/qore/issues/5427">issue 5427</a>)
+      - corrected Responses validation to preserve valid empty JSON Schemas and schema names while rejecting
+        missing or null fields
 
     - @ref deepseekrestclientintro "DeepSeekRestClient" module
       - corrected automatic URLs, app association, JSON encoding, default models, and synchronous connection behavior;

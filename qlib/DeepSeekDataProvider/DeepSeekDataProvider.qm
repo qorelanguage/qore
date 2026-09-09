@@ -152,6 +152,8 @@ printf("Response: %s\n", result.choices[0].message.content);
     - Deprecated `frequency_penalty` and `presence_penalty`, and unsupported `seed` and `user` chat options
       are no longer advertised. Use `user_id` for chat isolation; Responses uses `user`.
     - API failures propagate without replaying requests that may already have generated billable tokens.
+    - For Responses JSON Schema output, `schema: {}` accepts any JSON value. The `schema` field must still be
+      present and non-null. The `name` field must be a string; empty and whitespace-only names are preserved.
 
     @par Example: Structured invoice extraction
     @code{.py}
@@ -174,6 +176,7 @@ hash<auto> invoice = response.doRequest({
     - Completed the documented API actions with typed inputs and outputs, model and file dropdowns,
       reasoning and vision support, multipart image uploads, and local validation.
     - Corrected chat option contracts and beta routing; added regression and opt-in live tests.
+    - Accept valid empty Responses JSON Schemas and schema names while rejecting missing or null fields.
     - Updated the presentation catalog and all twelve existing translation locales.
 
 

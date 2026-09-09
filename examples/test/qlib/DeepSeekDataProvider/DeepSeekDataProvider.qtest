@@ -130,7 +130,9 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
                 \liveDeepSeekTest());
         }
         addTestCase("all actions have usable metadata and paths", \actionMetadataTest());
-        addTestCase("all locales translate short presentation labels", \translationTest());
+        addTestCase("complete action inventory survives repeated registration", \registrationQualificationTest());
+        addTestCase("all locales match the root catalog and retain short-label translations", \translationTest());
+        addTestCase("empty schemas and nested choices survive serialization", \schemaBoundaryTest());
         addTestCase("model and paginated file dropdowns", \referenceDataTest());
         addTestCase("all API routes and timestamp conversion", \apiRoutesTest());
         addTestCase("beta prefix and strict tool routing", \betaTest());
@@ -146,6 +148,7 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
         if (ENV.DEEPSEEK_INFERENCE) {
             addTestCase("live chat, Responses, FIM, and image file lifecycle", \liveApiTest());
             addTestCase("live JSON, reasoning, and strict tools", \liveAdvancedTest());
+            addTestCase("live empty Responses JSON Schema", \liveEmptySchemaTest());
         }
         set_return_value(main());
     }
@@ -345,37 +348,93 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
         assertEq(9, root.getChildProviderSummaryInfo().size());
     }
 
-    private translationTest() {
-        # Product names, API literals, and words also native to the target language may stay unchanged.
-        hash<string, bool> literals = {"DeepSeek": True, "JSON": True, "XML": True, "YAML": True,
-            "Top-P": True};
-        foreach string method in (("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "TRACE")) {
-            literals{method} = True;
-            literals{"HTTP " + method} = True;
-            literals{"HTTP `" + method + "`"} = True;
+    private registrationQualificationTest() {
+        # Independent inventory: a missing or substituted registration must not hide behind a healthy subset.
+        list<string> expected = sort(("chat-completion", "create-response", "delete-file", "fim-completion",
+            "get-balance", "get-file", "list-files", "list-models", "upload-file",
+            AbstractDataProvider::GenericApiCallActionName));
+        foreach int pass in (0..1) {
+            if (pass) {
+                DeepSeekActions::registerActions();
+            }
+            assertEq(expected, sort(map $1.action, DataProviderActionCatalog::getActions("DeepSeek")));
+            assertEq((), DataProviderActionCatalog::getInitializationFailures(("DeepSeek",)),
+                "complete registration also requires no retained initialization failures");
         }
-        hash<auto> native_words = {
-            "cs": {"Limit": True, "Model": True},
-            "de": {"Limit": True, "Suffix": True},
-            "fr": {"Instructions": True, "Messages": True},
-            "pl": {"Limit": True, "Model": True},
-            "sk": {"Limit": True, "Model": True},
-        };
+    }
+
+    private translationTest() {
         string catalog_dir = get_script_dir()
             + "/../../../../qlib/DeepSeekDataProvider/i18n/data-provider.RGVlcFNlZWs/";
+        hash<auto> root = parse_json(File::readTextFile(catalog_dir + "root.json")).locales.root.messages;
+        hash<DataProviderAppInfo> app = DataProviderActionCatalog::getApp("DeepSeek");
+        hash<auto> generated = DataProviderPresentation::buildSourceCatalogs(app,
+            DataProviderActionCatalog::getActions("DeepSeek"));
+        assertEq(generated{DataProviderPresentation::appCatalogDomain(app)}.locales.root.messages, root,
+            "the committed root catalog covers the registered presentation metadata");
+        # Specific regressions for previously untranslated Japanese labels. Do not reject identical text
+        # globally: technical literals and cognates are legitimate, including in future nested catalogs.
+        list<string> translated_labels = (
+            DataProviderPresentation::optionMessageId("DeepSeek", "upload-file", "file", "display_name"),
+            DataProviderPresentation::optionMessageId("DeepSeek", "fim-completion", "echo", "display_name"),
+            DataProviderPresentation::optionMessageId("DeepSeek", "create-response", "text", "display_name"),
+        );
         foreach string locale in (DataProviderPresentation::StandardTranslationLocales) {
             hash<auto> catalog = parse_json(File::readTextFile(catalog_dir + locale + ".json"));
             hash<auto> messages = catalog.locales{locale}.messages;
-            assertTrue(messages.size() > 0, locale + ": catalog must contain presentation messages");
-            list<string> untranslated = ();
+            assertEq(sort(keys root), sort(keys messages), locale + ": exact root message IDs");
+            list<string> invalid = ();
             foreach hash<auto> entry in (messages.pairIterator()) {
-                string source = entry.value.source;
-                if (entry.value.message == source && !literals{source} && !native_words{locale}{source}) {
-                    push untranslated, entry.key + ": " + source;
+                if (entry.value.source != root{entry.key}.source || !trim(entry.value.message)) {
+                    push invalid, entry.key;
                 }
             }
-            assertEq((), untranslated, locale + ": untranslated presentation strings, including short labels");
+            assertEq((), invalid, locale + ": exact sources and non-empty translations");
+            if (locale == "ja") {
+                foreach string id in (translated_labels) {
+                    assertNeq(root{id}.source, messages{id}.message,
+                        "previously untranslated Japanese short label: " + id);
+                }
+            }
         }
+    }
+
+    private schemaBoundaryTest() {
+        FakeDeepSeekRestClientIo fake();
+        DeepSeekApiDataProvider response(fake, "create-response");
+        fake.response_body = {"id": "schema", "object": "response", "created_at": 0,
+            "status": "completed", "model": "deepseek-v4-flash", "output": ()};
+        AbstractDataProviderType original = response.getRequestType();
+        AbstractDataProviderType restored = Serializable::deserialize(original.serialize());
+        assertEq(original.className(), restored.className(), "stable named type identity survives serialization");
+        foreach AbstractDataProviderType type in (original, restored) {
+            AbstractDataField effort = type.getField("reasoning").getType().getField("effort");
+            assertEq(("none", "minimal", "low", "medium", "high", "xhigh", "max"),
+                map $1.value, effort.getAllowedValues());
+            assertEq("xhigh", effort.acceptsValue("xhigh"));
+            assertThrows("FIELD-VALUE-ERROR", \effort.acceptsValue(), "Extra High");
+            foreach hash<auto> schema in ({}, {"type": "object", "properties": {"value": {"type": "string"}},
+                    "default": {"value": "ORD-1001"}}) {
+                foreach string name in ("reply", "", " ") {
+                    hash<auto> request = type.acceptsValue({"model": "deepseek-v4-flash", "input": "Return JSON",
+                        "text": {"format": {"type": "json_schema", "name": name, "schema": schema}}});
+                    assertEq(schema, request.text.format.schema, "raw schema hashes retain value members");
+                    response.doRequest(request);
+                    assertEq("/v1/responses", fake.last_path);
+                    assertEq(schema, fake.last_request.text.format.schema, "empty and populated schemas reach transport");
+                    assertEq(name, fake.last_request.text.format.name, "schema names remain opaque strings");
+                }
+            }
+        }
+        int calls = fake.calls;
+        foreach hash<auto> format in ({"name": "reply"}, {"name": "reply", "schema": NULL},
+                {"schema": {}}, {"name": NULL, "schema": {}}) {
+            assertThrows("DEEPSEEK-REQUEST-ERROR", sub () {
+                response.doRequest({"model": "deepseek-v4-flash", "input": "Return JSON",
+                    "text": {"format": {"type": "json_schema"} + format}});
+            });
+        }
+        assertEq(calls, fake.calls, "invalid schema configurations fail before transport");
     }
 
     private referenceDataTest() {
@@ -681,6 +740,12 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
         assertTrue(wire.hdr."content-type".startsWith("application/json"));
         assertEq(8, parse_json(wire.body.toString()).max_tokens);
         assertEq("/beta", client.getConnectionPath());
+        root.getChildProvider("create-response").doRequest({"model": "m", "input": "Return JSON",
+            "text": {"format": {"type": "json_schema", "name": "reply", "schema": {}}}});
+        wire = handler.getRequest();
+        assertEq("v1/responses", wire.hdr.path);
+        assertEq({}, parse_json(wire.body.toString()).text.format.schema,
+            "the HTTP body preserves an empty schema object");
         root.getChildProvider("upload-file").doRequest({"purpose": "user_data", "file": {
             "name": "a.png", "content": binary("image\0payload")}});
         wire = handler.getRequest();
@@ -693,6 +758,17 @@ public class DeepSeekDataProviderTest inherits QUnit::Test {
         assertEq("GET", wire.hdr.method);
         assertEq("v1/files/file-a", wire.hdr.path);
         assertNothing(wire.body);
+    }
+
+    private liveEmptySchemaTest() {
+        DeepSeekDataProvider::DeepSeekDataProvider root({"apikey": ENV.DEEPSEEK_APIKEY});
+        auto response = root.getChildProvider("create-response").doRequest({"model": "deepseek-v4-flash",
+            "input": "Reply with the JSON object {\"ok\":true}.", "reasoning": {"effort": "none"},
+            "text": {"format": {"type": "json_schema", "name": "", "schema": {}}},
+            "max_output_tokens": 64});
+        assertEq("completed", response.status);
+        list<hash<auto>> messages = select response.output, $1.type == "message";
+        assertTrue(parse_json(messages[0].content[0].text).ok);
     }
 
     private liveAdvancedTest() {
