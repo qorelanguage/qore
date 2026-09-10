@@ -1,0 +1,202 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%modern
+%no-child-restrictions
+
+%prepend-module-path "${SCRIPT_DIR}/../../../qlib"
+%requires QUnit
+%requires FsUtil
+
+%exec-class AOTDeferredConstRefTypedContainerTest
+
+# A constant's value is serialized with its inferred type, and the reader applies that type to the
+# value it read back.  Values that are themselves constants are not always read back as values: a
+# reference into a constant that is still a pending shell deserializes to a deferred reference node
+# (RuntimeConstantRefNode, or RuntimeConstantPathRefNode for a reference into another constant's
+# interior), which is resolved after the surrounding value is complete.
+#
+# A deferred reference is therefore NOT a value and must not be judged as one.  Applying the
+# container's element type to it rejects a container that is in fact well typed, and the diagnostic
+# is self-contradictory because the placeholder renders as the type it will resolve to:
+#
+#   AOT cannot deserialize value for class constant 'T::M': cannot restore typed AOT container value
+#   as 'hash<string, list<string>>': RUNTIME-TYPE-ERROR: key 'job' expects type 'list<string>', but
+#   got type 'list<string>' instead
+#
+# It needs a container constant whose *inferred* type is narrow -- an all-list or all-hash literal
+# gives hash<string, list<string>> or hash<string, hash<string, string>> rather than hash<auto> --
+# holding a constant that is not materialized yet.  Both halves are ordinary Qore, and the failure
+# is invisible until the artifact is loaded: the compile succeeds either way.
+#
+# Two paths read this metadata and both broke:
+#   qmod load        the module falls back to parsing its own source, silently losing AOT
+#   sibling preload  `qcc -c -L <dir>` fails the compile with "sibling .qo cross-resolution failed"
+class AOTDeferredConstRefTypedContainerTest inherits QUnit::Test {
+    private {
+        string qore_bin;
+        string qcc_bin;
+        string libqore_dir;
+    }
+
+    constructor() : QUnit::Test("AOTDeferredConstRefTypedContainerTest", "1.0", \ARGV) {
+        qore_bin = ENV.QORE_BIN ?? ENV.QORE_BINARY ?? QORE_ARGV[0] ?? "qore";
+        libqore_dir = ENV.QORE_LIBDIR ?? dirname(qore_bin);
+        qcc_bin = ENV.QCC ?? ENV.QORE_QCC
+            ?? (is_file(libqore_dir + "/qcc") ? libqore_dir + "/qcc" : "qcc");
+
+        addTestCase("a narrowed container constant holding a later sibling constant loads",
+            \testLaterSiblingConstantInTypedContainer());
+        addTestCase("a derived class constant computed from its base's constant loads",
+            \testDerivedClassConstantFromBase());
+        addTestCase("a sibling .qo preload cross-resolves a narrowed container constant",
+            \testSiblingPreloadCrossResolution());
+
+        set_return_value(main());
+    }
+
+    private string run(string cmd) {
+        return backquote(cmd + " 2>&1");
+    }
+
+    private writeFile(string path, string contents) {
+        File f();
+        f.open2(path, O_WRONLY | O_CREAT | O_TRUNC);
+        f.write(contents);
+    }
+
+    private string env() {
+        return sprintf("LD_LIBRARY_PATH=%s QORE_LIBDIR=%s", libqore_dir, libqore_dir);
+    }
+
+    #! Compiles a single-file module and runs a script against the compiled artifact
+    private string compileAndUse(string dir, string mod_name, string mod_src, string script_src) {
+        string qm_path = sprintf("%s/%s.qm", dir, mod_name);
+        writeFile(qm_path, mod_src);
+        string compile_out = run(sprintf("%s %s -m --strip-source %s -o %s/%s.qmod",
+            env(), qcc_bin, qm_path, dir, mod_name));
+        assertTrue(is_file(sprintf("%s/%s.qmod", dir, mod_name)),
+            "the module compiles: " + compile_out);
+
+        string script_path = dir + "/use.q";
+        writeFile(script_path, script_src);
+        return run(sprintf("%s QORE_MODULE_DIR=%s %s -b --enable-debug %s",
+            env(), dir, qore_bin, script_path));
+    }
+
+    #! The list-valued shape a Qorus build hit: {"service": Later} with Later declared below it.
+    testLaterSiblingConstantInTypedContainer() {
+        TmpDir tmp("qore-aot-deferred-const-ref-sibling-");
+        string out = compileAndUse(tmp.path, "AOTDeferredSiblingList", "%modern
+module AOTDeferredSiblingList {
+    version = \"1.0\";
+    desc = \"deferred sibling constant in a narrowed container\";
+    author = \"Test\";
+    license = \"MIT\";
+}
+
+public namespace AOTDeferredSiblingList {
+    public class T {
+        public {
+            const Service = (\"x\", \"y\");
+            const M = {\"service\": Service, \"job\": Job};
+            const Job = (\"p\", \"q\");
+        }
+    }
+}
+", "%modern
+%requires AOTDeferredSiblingList
+printf(\"%s|%y|%y\\n\", AOTDeferredSiblingList::T::M.fullType(),
+    AOTDeferredSiblingList::T::M.service, AOTDeferredSiblingList::T::M.job);
+");
+
+        assertEq(-1, out.find("failed to load"),
+            "the qmod loads rather than falling back to its source: " + out);
+        assertEq("hash<string, list<string>>|[\"x\", \"y\"]|[\"p\", \"q\"]\n", out,
+            "the deferred sibling constants resolve to their values");
+    }
+
+    #! A derived class constant computed from its base's: the surviving entries are path references.
+    testDerivedClassConstantFromBase() {
+        TmpDir tmp("qore-aot-deferred-const-ref-derived-");
+        string out = compileAndUse(tmp.path, "AOTDeferredDerivedConst", "%modern
+module AOTDeferredDerivedConst {
+    version = \"1.0\";
+    desc = \"derived class constant computed from a base class constant\";
+    author = \"Test\";
+    license = \"MIT\";
+}
+
+public namespace AOTDeferredDerivedConst {
+    public class Base {
+        public {
+            const Fields = {
+                \"kept\": {\"type\": \"int\", \"desc\": \"the one that survives\"},
+                \"dropped\": {\"type\": \"bool\", \"desc\": \"the one the derived class removes\"},
+            };
+        }
+    }
+
+    public class Derived inherits Base {
+        public {
+            const Fields = Base::Fields - \"dropped\";
+        }
+    }
+}
+", "%modern
+%requires AOTDeferredDerivedConst
+printf(\"%y|%y|%y\\n\", AOTDeferredDerivedConst::Derived::Fields.keys(),
+    AOTDeferredDerivedConst::Derived::Fields.kept.type,
+    AOTDeferredDerivedConst::Base::Fields.keys());
+");
+
+        assertEq(-1, out.find("failed to load"),
+            "the qmod loads rather than falling back to its source: " + out);
+        assertEq("[\"kept\"]|\"int\"|[\"kept\", \"dropped\"]\n", out,
+            "the derived constant keeps exactly the entries its expression selects");
+    }
+
+    #! The same metadata read through `qcc -c -L`, which preloads a sibling object's declarations.
+    /** A Qorus incremental build takes this path for a small stale set and stopped here with
+        "sibling .qo cross-resolution failed", naming a constant in a file the developer had not
+        touched.
+    */
+    testSiblingPreloadCrossResolution() {
+        TmpDir tmp("qore-aot-deferred-const-ref-preload-");
+        string definer_src = "%modern
+class Q {
+    public {
+        const M = {\"service\": Later, \"job\": Other};
+        const Later = (\"x\", \"y\");
+        const Other = (\"p\", \"q\");
+    }
+}
+";
+        # folds the definer's constant, which is what forces the reference to be read back
+        string consumer_src = "%modern
+class R {
+    public {
+        const N = Q::M;
+    }
+}
+string sub describe() {
+    return R::N.service[0] + \"/\" + R::N.job[1];
+}
+";
+        string definer_path = tmp.path + "/definer.q";
+        string consumer_path = tmp.path + "/consumer.q";
+        writeFile(definer_path, definer_src);
+        writeFile(consumer_path, consumer_src);
+
+        string definer_out = run(sprintf("%s %s -c --parse-option=PO_MODERN --output-dir=%s %s",
+            env(), qcc_bin, tmp.path, definer_path));
+        assertTrue(is_file(tmp.path + "/definer.qo"), "the definer compiles: " + definer_out);
+
+        string consumer_out = run(sprintf("%s %s -c -L %s --parse-option=PO_MODERN "
+            "--output-dir=%s %s", env(), qcc_bin, tmp.path, tmp.path, consumer_path));
+        assertEq(-1, consumer_out.find("cross-resolution failed"),
+            "the preloaded sibling's narrowed container constant resolves: " + consumer_out);
+        assertTrue(is_file(tmp.path + "/consumer.qo"),
+            "the consumer compiles against the preloaded sibling: " + consumer_out);
+    }
+}

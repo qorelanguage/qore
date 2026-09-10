@@ -5699,6 +5699,26 @@ static bool qore_retype_element_accepted(QoreValue& v, const QoreTypeInfo* elem_
     if (!elem_ti || elem_ti == autoTypeInfo || elem_ti == autoNoNarrowTypeInfo) {
         return true;
     }
+    switch (v.getType()) {
+        // Not values yet, or not values at all: judging these here would reject a container that
+        // is in fact well typed.
+        //
+        // A deferred constant reference stands in for a constant that has not been resolved -- the
+        // AOT deserializer restores a sibling class constant declared later in the class as one and
+        // resolves it afterwards, and the resolved value has its own type applied then.
+        // qore_runtime_accepts_call_arg() in Function.cpp makes the same allowance for call
+        // arguments.  Weak references and lvalue references are unwrapped by dedicated branches in
+        // QoreTypeSpec::acceptInput(); the runtime match below does not see through them.
+        case NT_RTCONSTREF:
+        case NT_WEAKREF:
+        case NT_WEAKREF_HASH:
+        case NT_WEAKREF_LIST:
+        case NT_REFERENCE:
+            return true;
+
+        default:
+            break;
+    }
     if (QoreTypeInfo::runtimeAcceptsValue(elem_ti, v) != QTI_NOT_EQUAL) {
         return true;
     }
