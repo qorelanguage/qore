@@ -53,6 +53,8 @@ class CMakeBuildHelpersTest inherits QUnit::Test {
             \testManagedQccOutputPruning());
         addTestCase("source qmod links reject stale format artifacts",
             \testSourceQmodSymlinkFreshness());
+        addTestCase("module source globs track added and removed sources",
+            \testModuleSourceGlobTracking());
         addTestCase("qcc format fingerprint covers every AOT format source",
             \testFormatFingerprintCoverage());
         addTestCase("qcc build inputs track libqore for an installed qore",
@@ -85,6 +87,104 @@ class CMakeBuildHelpersTest inherits QUnit::Test {
     private date mtime(string path) {
         hash<auto> info = hstat(path);
         return info.mtime;
+    }
+
+    #! The module source names the generated install script installs for \a module
+    /** Read from the install script rather than from an installation so that the
+        list reflects what configure decided, which is where the glob result lands.
+    */
+    private list<string> installedModuleSources(string build_dir, string module) {
+        hash<string, bool> names;
+        string marker = "/qlib/" + module + "/";
+        foreach string token in (read(build_dir + "/cmake_install.cmake").split("\"")) {
+            int ix = token.find(marker);
+            if (ix < 0) {
+                continue;
+            }
+            string name = token.substr(ix + marker.size());
+            if (name =~ /^[-A-Za-z0-9_]+\.(qm|qc)$/) {
+                names{name} = True;
+            }
+        }
+        return sort(keys names);
+    }
+
+    #! Adding or removing a module source must re-run configure by itself
+    /** A split-dir module's file list is a configure-time glob, and it feeds
+        install(FILES), the doc/metadata rules and the AOT .qmod rule's DEPENDS.
+        Without CONFIGURE_DEPENDS a newly added .qc reaches none of them: it is
+        never installed -- leaving an installed source tree that cannot parse --
+        and the .qmod is not rebuilt even though \c qcc \c -m compiles the whole
+        directory, so the AOT artifact goes stale against a file it consumes.
+    */
+    testModuleSourceGlobTracking() {
+        TmpDir tmp("qore-module-source-glob-");
+        string src_dir = tmp.path + "/src";
+        string build_dir = tmp.path + "/build";
+        string stage_dir = tmp.path + "/stage";
+        string module_dir = src_dir + "/qlib/Fixture";
+        # an absolute module dir that cannot exist, so only the DESTDIR-staged
+        # installation below can satisfy the assertions
+        string module_install_dir = "/opt/qore-fixture-modules";
+        mkdir(module_dir, 0755, True);
+        write(module_dir + "/Fixture.qm", "%modern\n"
+            "module Fixture {\n"
+            "    version = \"1.0\";\n"
+            "    desc = \"module source glob fixture\";\n"
+            "    author = \"Qore Technologies, s.r.o.\";\n"
+            "    license = \"MIT\";\n"
+            "}\n");
+        write(module_dir + "/FixtureOne.qc", "%modern\n"
+            "public namespace Fixture;\n"
+            "public class FixtureOne {\n"
+            "    static int one() { return 1; }\n"
+            "}\n");
+        write(src_dir + "/CMakeLists.txt",
+"cmake_minimum_required(VERSION 3.16)
+project(QoreModuleSourceGlob NONE)
+find_package(Qore REQUIRED)
+qore_user_modules(\"qlib/Fixture\")
+");
+
+        string configure = run(sprintf("cmake -S %s -B %s -DQORE_USER_MODULE_DIR=%s%s",
+            shellQuote(src_dir), shellQuote(build_dir), shellQuote(module_install_dir),
+            qore_dir ? " -DQore_DIR=" + shellQuote(qore_dir) : ""));
+        assertTrue(is_file(build_dir + "/cmake_install.cmake"),
+            "the fixture module project configures: " + configure);
+        assertEq(("Fixture.qm", "FixtureOne.qc"), installedModuleSources(build_dir, "Fixture"),
+            "configure installs exactly the module sources that exist: " + configure);
+
+        # the glob must be re-checked on every build, not only on reconfigure
+        string verify_globs = build_dir + "/CMakeFiles/VerifyGlobs.cmake";
+        assertTrue(is_file(verify_globs),
+            "the module source glob is verified by the generated build system: " + configure);
+        assertTrue(read(verify_globs).find(module_dir + "/*.qc") >= 0,
+            "the module's .qc glob is among the globs verified on every build");
+
+        # adding a source must take effect without an explicit reconfigure
+        write(module_dir + "/FixtureTwo.qc", "%modern\n"
+            "public namespace Fixture;\n"
+            "public class FixtureTwo {\n"
+            "    static int two() { return 2; }\n"
+            "}\n");
+        string build = run(sprintf("cmake --build %s", shellQuote(build_dir)));
+        assertEq(("Fixture.qm", "FixtureOne.qc", "FixtureTwo.qc"),
+            installedModuleSources(build_dir, "Fixture"),
+            "a source added to the module joins the install list on the next build: " + build);
+
+        string install = run(sprintf("DESTDIR=%s cmake --install %s",
+            shellQuote(stage_dir), shellQuote(build_dir)));
+        assertTrue(is_file(stage_dir + module_install_dir + "/Fixture/FixtureTwo.qc"),
+            "the added module source is installed with the module: " + install);
+        assertEq(read(module_dir + "/FixtureTwo.qc"),
+            read(stage_dir + module_install_dir + "/Fixture/FixtureTwo.qc"),
+            "the installed module source preserves its content");
+
+        # and removing one must drop it again
+        unlink(module_dir + "/FixtureTwo.qc");
+        string rebuild = run(sprintf("cmake --build %s", shellQuote(build_dir)));
+        assertEq(("Fixture.qm", "FixtureOne.qc"), installedModuleSources(build_dir, "Fixture"),
+            "a source removed from the module leaves the install list: " + rebuild);
     }
 
     testSourceQmodSymlinkFreshness() {

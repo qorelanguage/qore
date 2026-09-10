@@ -501,6 +501,13 @@ int echoed = child.echo(value);
     External user-module documentation now includes only generated Qore source headers; packaged
     SVG, YAML, JSON and protocol resources no longer cause missing documentation input warnings.
 
+    @par User Module Source Tracking
+    Adding or removing a source file in a separated (split-directory) user module re-runs the CMake
+    configure step on the next build, so the file is installed with the module and is tracked as a
+    build input of the module's AOT \c .qmod.  Previously a newly added file was only picked up by
+    the next unrelated reconfigure, leaving it out of the installation and leaving the \c .qmod out
+    of date with respect to a source that it compiles.
+
     @par Autotools Build System Removed
     @parblock
     The autotools build system (\c configure.ac, \c Makefile.am, \c reconf.sh, \c m4/) has been

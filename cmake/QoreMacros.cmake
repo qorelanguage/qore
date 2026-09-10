@@ -2326,19 +2326,23 @@ MACRO (QORE_USER_MODULE_AOT_RULES _name _is_dir _source_root)
 
     # For split-dir modules, collect sibling resource files at cmake-time
     # so they can be declared as BYPRODUCTS of the copy step and tracked
-    # by make for rebuild triggers when the source changes.
+    # by make for rebuild triggers when the source changes.  CONFIGURE_DEPENDS
+    # so that ADDING a resource (not just editing one) re-runs configure: the
+    # glob result is baked into the copy rules and the install list, both of
+    # which would otherwise silently omit the new file until the next
+    # unrelated reconfigure.
     set(_qmod_resource_copies "")
     set(_qmod_resource_srcs "")
     set(_qmod_jar_srcs "")
     set(_qmod_jar_stage_commands "")
     if (${_is_dir})
-        file(GLOB _qmod_resource_srcs
+        file(GLOB _qmod_resource_srcs CONFIGURE_DEPENDS
             "${_source_root}/*.svg"
             "${_source_root}/*.yaml"
             "${_source_root}/*.json"
             "${_source_root}/*.proto")
         if (IS_DIRECTORY "${_source_root}/jar")
-            file(GLOB _qmod_jar_srcs "${_source_root}/jar/*.jar")
+            file(GLOB _qmod_jar_srcs CONFIGURE_DEPENDS "${_source_root}/jar/*.jar")
             set(_qmod_jar_stage_commands
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${_qmod_out_dir}/jar
                 COMMAND ${CMAKE_COMMAND} -E copy_directory ${_source_root}/jar ${_qmod_out_dir}/jar)
@@ -2836,7 +2840,9 @@ ENDFUNCTION (QORE_FINALIZE_CATALOG_INSTALL)
 MACRO (QORE_USER_MODULE _module_file)
     get_filename_component(f ${_module_file} NAME_WE)
     if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${f})
-        file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc"
+        # CONFIGURE_DEPENDS: see QORE_MODULE_SOURCE_GLOB_NOTE below
+        file(GLOB _mod_targets CONFIGURE_DEPENDS
+            "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc"
             "${CMAKE_SOURCE_DIR}/qlib/${f}/*.yaml" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.svg"
             "${CMAKE_SOURCE_DIR}/qlib/${f}/*.proto" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.json")
         set(qm_install_subdir "${f}") # install files into a subdir
@@ -3099,10 +3105,12 @@ ENDMACRO (QORE_USER_MODULE)
 #
 # Each scanned source is registered on CMAKE_CONFIGURE_DEPENDS so that editing a
 # module's %requires re-runs CMake configure (nothing else triggers reconfigure
-# on a .qm edit).
+# on a .qm edit), and the glob itself is CONFIGURE_DEPENDS so that ADDING a .qc
+# -- which carries its own %requires -- also re-runs configure and contributes
+# its build-order edges.
 function(_QORE_PARSE_MODULE_REQUIRES _mod _out_var)
     if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${_mod})
-        file(GLOB _src_files
+        file(GLOB _src_files CONFIGURE_DEPENDS
             "${CMAKE_SOURCE_DIR}/qlib/${_mod}/*.qm"
             "${CMAKE_SOURCE_DIR}/qlib/${_mod}/*.qc")
     elseif (EXISTS ${CMAKE_SOURCE_DIR}/qlib/${_mod}.qm)
@@ -3206,10 +3214,19 @@ MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
     unset(_mod_targets)
     unset(_mod_jar_targets)
     if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${f})
-        file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc"
+        # QORE_MODULE_SOURCE_GLOB_NOTE: this glob is the module's file list for
+        # install(FILES), for the doc/metadata rules, and (via the variadic
+        # ARGN of QORE_USER_MODULE_AOT_RULES) for the AOT .qmod rule's DEPENDS.
+        # Without CONFIGURE_DEPENDS, adding a .qc to a split-dir module does not
+        # re-run configure, so the new file is absent from all three: it is never
+        # installed (leaving an installed source tree that cannot parse) and the
+        # .qmod is not rebuilt even though `qcc -m <dir>` compiles the whole
+        # directory, so the AOT artifact goes stale against a file it consumes.
+        file(GLOB _mod_targets CONFIGURE_DEPENDS
+            "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc"
             "${CMAKE_SOURCE_DIR}/qlib/${f}/*.yaml" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.svg"
             "${CMAKE_SOURCE_DIR}/qlib/${f}/*.proto" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.json")
-        file(GLOB _mod_jar_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/jar/*.jar")
+        file(GLOB _mod_jar_targets CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/qlib/${f}/jar/*.jar")
         set(qm_install_subdir "${f}") # install files into a subdir
         #message(STATUS "_mod_targets ${_mod_targets}")
     else()
@@ -3491,13 +3508,16 @@ MACRO (QORE_USER_MODULES _inputs)
                 MATH(EXPR f_len "${f_len}-5")
                 string(SUBSTRING ${f} 5 ${f_len} new_f)
 
-                file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/${f}/*.qm" "${CMAKE_SOURCE_DIR}/${f}/*.qc"
+                # CONFIGURE_DEPENDS: see QORE_MODULE_SOURCE_GLOB_NOTE above
+                file(GLOB _mod_targets CONFIGURE_DEPENDS
+                    "${CMAKE_SOURCE_DIR}/${f}/*.qm" "${CMAKE_SOURCE_DIR}/${f}/*.qc"
                     "${CMAKE_SOURCE_DIR}/${f}/*.yaml" "${CMAKE_SOURCE_DIR}/${f}/*.svg"
                     "${CMAKE_SOURCE_DIR}/${f}/*.proto" "${CMAKE_SOURCE_DIR}/${f}/*.json")
                 set(qm_install_subdir "${new_f}") # install files into a subdir
                 #message(STATUS "_mod_targets ${_mod_targets}")
             else()
-                file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/${f}/*.qm" "${CMAKE_SOURCE_DIR}/${f}/*.qc")
+                file(GLOB _mod_targets CONFIGURE_DEPENDS
+                    "${CMAKE_SOURCE_DIR}/${f}/*.qm" "${CMAKE_SOURCE_DIR}/${f}/*.qc")
                 set(qm_install_subdir "${f}") # install files into a subdir
                 #message(STATUS "_mod_targets ${_mod_targets}")
             endif()
