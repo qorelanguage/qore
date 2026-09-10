@@ -12707,10 +12707,26 @@ static AOTModuleInitRunResult runAOTModuleInitForProgram(const std::string& mod_
         // coupling unrelated module loads.
         assert(shadow_build_lock);
         AutoLocker shadow_build_al(*shadow_build_lock);
+        // Local-variable ownership follows what the pass can publish, because LocalVar storage is a
+        // per-Program arena that is freed wholesale at Program teardown.
+        //
+        // A per-Program pass only writes this Program's own constant, static-var and global entries, so
+        // its locals die with it and are owned by it -- that is the reclamation that keeps repeated
+        // short-lived imports of an AOT module bounded (#5381).
+        //
+        // The shadow-populating pass is different: it writes the module's own Program, whose entries are
+        // shared with every later importer and live for the process.  Anything it builds from these
+        // locals -- above all the UserClosureFunction of a closure inside a module constant, whose
+        // signature locals and lazy-IR context are reached again on the closure's first call -- outlives
+        // this Program.  Owning those in the importing Program left every such closure pointing into a
+        // freed arena as soon as that Program was destroyed: loading a module into a throwaway Program
+        // and then using it from another one read freed LocalVar storage and crashed.  The shadow pass
+        // runs at most once per module per process, so owning its locals in the module Program is a
+        // bounded one-time cost, not per-import growth.
         registerAOTFunctionsFromSlotMaps(*init_reader, init_root_priv,
             init_ctx_pgm, func_map, registered, &init_func_contexts, nullptr,
             &registration_errors, debug_metadata, false, nullptr, nullptr, nullptr,
-            tpgm);
+            write_shadow ? nullptr : tpgm);
     }
 
     if (aotInitTraceEnabled()) {
@@ -15529,9 +15545,12 @@ static int executeInitFunctions(
             rec->fn_ptr = nullptr;
             rec->owns_ctx = true;
         }
-        // a context retained for a script load is bound to the Program whose state it runs against, so the
-        // Program's teardown neutralizes the record rather than leaving it able to run against freed state
-        if (retained_ctx && !shadow_pgm) {
+        // A retained context is bound to the Program that owns the locals its slots name, so that Program's
+        // teardown must neutralize the record rather than leave it able to run against freed state.  That is
+        // this Program for a script load, and equally for a module pass that is not populating the shared
+        // shadow: only the shadow-populating pass owns its locals in the module Program (which lives for the
+        // process); every later per-Program pass owns them here and loses them at teardown.
+        if (retained_ctx && (!shadow_pgm || !write_shadow)) {
             aotAdoptScriptPendingConstantContext(pgm, rec);
         }
     }

@@ -88,12 +88,18 @@ record may hold rather than whether it exists:
   all.** The first read already runs in the Program that owns the entry, which
   is the only Program its initializer may touch, so it needs none; path 1 has
   no module entry to adopt from and is simply skipped.
-- A retained execution context is bound to the Program whose objects its slots
-  name. A script load hands its contexts to that Program
+- A retained execution context is bound to the Program whose objects and locals
+  its slots name. A script load hands its contexts to that Program
   (`AotScriptPendingConstantState`, attached as Program external data), so
   Program teardown neutralizes the records it created. A copy of a
   still-pending entry that outlived its Program then reports the constant as
   unpopulated instead of running against freed state.
+
+  A module load does the same for every pass that is not populating the shared
+  shadow. Only the shadow-populating pass owns its locals in the module Program;
+  every later per-Program pass owns them in the importing Program and loses them
+  at its teardown, which is the same constraint a script load is under. See
+  `design/aot-module-init-program-lifetime.md`.
 
 Program external data whose state belongs to one Program alone returns
 `nullptr` from `copy()` rather than a copy — a child Program runs its own AOT

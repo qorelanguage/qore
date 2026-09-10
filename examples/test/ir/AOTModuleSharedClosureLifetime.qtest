@@ -1,0 +1,192 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%modern
+%no-child-restrictions
+
+%prepend-module-path "${SCRIPT_DIR}/../../../qlib"
+%requires QUnit
+%requires FsUtil
+%requires Util
+
+%exec-class AOTModuleSharedClosureLifetimeTest
+
+#! Verifies that a closure in an AOT module constant survives the destruction of the Program that loaded it
+/** An AOT module's initializers run once per importing Program, but the first import also populates the
+    module's own Program, whose constant entries are shared with every later importer and live for the process.
+    The LocalVar storage those initializers build is a per-Program arena that is freed wholesale at Program
+    teardown, so owning it in the importing Program left every closure inside a shared module constant pointing
+    into freed memory as soon as that Program was destroyed.
+
+    Nothing at the call site shows the trap: the later code loads a perfectly ordinary module and calls a
+    perfectly ordinary constant closure.  The closure's lazy AOT IR is materialized on its first call, and that
+    materialization reads the closure signature's LocalVars and the Program that owns them - both gone -
+    crashing the process rather than failing a request.
+*/
+class AOTModuleSharedClosureLifetimeTest inherits QUnit::Test {
+    public {
+        const ModuleName = "AotSharedClosure";
+
+        #! the probe prints this after the closure call returns; absent if the process died
+        const Sentinel = "PROBE-COMPLETE";
+
+        #! the value the module's constant closure must produce
+        const Expected = "col like %v [\"abc\"]";
+
+        #! throwaway Programs created after the first one is destroyed
+        /** Each one loads the module and parses locals of its own, which recycles the freed arena of the
+            destroyed first importer.  Without that reuse the freed storage still reads back intact and the
+            defect is silent; with it, the stale read lands on unrelated data.
+        */
+        const ChurnPrograms = 40;
+    }
+
+    private {
+        string qore_bin;
+        string qcc_bin;
+        string libqore_dir;
+    }
+
+    constructor() : QUnit::Test("AOTModuleSharedClosureLifetimeTest", "1.0", \ARGV) {
+        qore_bin = ENV.QORE_BIN ?? ENV.QORE_BINARY ?? QORE_ARGV[0] ?? "qore";
+        libqore_dir = ENV.QORE_LIBDIR ?? dirname(qore_bin);
+        qcc_bin = ENV.QCC ?? ENV.QORE_QCC ?? ENV.QORE_QCC_EXECUTABLE
+            ?? (is_file(libqore_dir + "/qcc") ? libqore_dir + "/qcc" : "qcc");
+
+        addTestCase("module loaded from source", \testSourceModule());
+        addTestCase("module loaded from an AOT image", \testAotModule());
+        set_return_value(main());
+    }
+
+    #! The module under test: a public constant holding closures, reached through a public class method
+    /** The closure takes a reference to a hashdecl so that its signature carries complex types resolved at
+        load time, which is the shape the defect was found with (SqlUtil::DefaultOpMap).
+    */
+    private string moduleSource() {
+        return "%modern\n"
+            "\n"
+            "module " + ModuleName + " {\n"
+            "    version = \"1.0\";\n"
+            "    desc = \"shared module constant closure lifetime probe\";\n"
+            "    author = \"Qore Technologies, s.r.o.\";\n"
+            "    license = \"MIT\";\n"
+            "}\n"
+            "\n"
+            "public namespace " + ModuleName + " {\n"
+            "public hashdecl OpInfo {\n"
+            "    list<auto> args = ();\n"
+            "}\n"
+            "\n"
+            "public const OpMap = {\n"
+            "    \"like\": {\n"
+            "        \"name\": \"like\",\n"
+            "        \"code\": string sub (reference<hash<OpInfo>> info, string cn, auto arg) {\n"
+            "            info.args += arg;\n"
+            "            return sprintf(\"%s like %v\", cn);\n"
+            "        },\n"
+            "    },\n"
+            "    \"eq\": {\n"
+            "        \"name\": \"eq\",\n"
+            "        \"code\": string sub (reference<hash<OpInfo>> info, string cn, auto arg) {\n"
+            "            if (!exists arg) {\n"
+            "                return sprintf(\"%s is null\", cn);\n"
+            "            }\n"
+            "            info.args += arg;\n"
+            "            return sprintf(\"%s = %v\", cn);\n"
+            "        },\n"
+            "    },\n"
+            "};\n"
+            "\n"
+            "public class Runner {\n"
+            "    static string run(string op, string cn, auto arg) {\n"
+            "        hash<OpInfo> info();\n"
+            "        *hash<auto> cmd = OpMap{op};\n"
+            "        if (!cmd) {\n"
+            "            throw \"NO-OP\", sprintf(\"unknown op %y\", op);\n"
+            "        }\n"
+            "        return cmd.code(\\info, cn, arg) + sprintf(\" %y\", info.args);\n"
+            "    }\n"
+            "}\n"
+            "}\n";
+    }
+
+    #! A script that destroys the first importing Program, then uses the module from another one
+    private string probeSource(string module_path) {
+        return "%modern\n"
+            "%no-child-restrictions\n"
+            "string mod = " + sprintf("%y", module_path) + ";\n"
+            "{\n"
+            "    # the only Program that ever loads the module first; its AOT init populates the\n"
+            "    # module's shared constant entries, and it is then destroyed\n"
+            "    Program first(PO_NEW_STYLE);\n"
+            "    first.loadModule(mod);\n"
+            "}\n"
+            "for (int i = 0; i < " + ChurnPrograms + "; ++i) {\n"
+            "    Program churn(PO_NEW_STYLE);\n"
+            "    churn.loadModule(mod);\n"
+            "    churn.parse(\"%new-style\\nsub f() { int a; string b; list<auto> c; hash<auto> d; \"\n"
+            "        \"float e; date g; binary h; bool j; softint k; *string l; }\", \"churn\");\n"
+            "    delete churn;\n"
+            "}\n"
+            "Program later(PO_NEW_STYLE);\n"
+            "later.loadModule(mod);\n"
+            "printf(\"RESULT: %s\\n\", later.callStaticMethod(" + sprintf("%y", ModuleName + "::Runner")
+                + ", \"run\", \"like\", \"col\", \"abc\"));\n"
+            "printf(\"" + Sentinel + "\\n\");\n";
+    }
+
+    private write(string path, string body) {
+        File f();
+        f.open2(path, O_WRONLY | O_CREAT | O_TRUNC);
+        f.write(body);
+    }
+
+    #! Runs the probe script in its own process so that a crash is observable instead of fatal here
+    private string runProbe(string module_dir) {
+        string mdir = module_dir;
+        if (ENV.QORE_MODULE_DIR) {
+            mdir += ":" + ENV.QORE_MODULE_DIR;
+        }
+        return backquote(sprintf("LD_LIBRARY_PATH=%s QORE_LIBDIR=%s QORE_MODULE_DIR=%s %s %s 2>&1",
+            libqore_dir, libqore_dir, mdir, qore_bin, module_dir + "/probe.qr"));
+    }
+
+    #! Asserts that the closure ran with the right value and that the process reached the end
+    private checkProbe(string out) {
+        assertEq(True, out.find("RESULT: " + Expected) != -1, out);
+        assertEq(True, out.find(Sentinel) != -1,
+            "the probe process must survive using a module constant closure after the Program that "
+            "loaded the module was destroyed: " + out);
+    }
+
+    #! baseline: the same code loaded from module source
+    testSourceModule() {
+        TmpDir tmp("qore-aot-shared-closure-src-");
+        string src = tmp.path + "/" + ModuleName + ".qm";
+        write(src, moduleSource());
+        write(tmp.path + "/probe.qr", probeSource(src));
+        checkProbe(runProbe(tmp.path));
+    }
+
+    #! the AOT-compiled module must behave identically
+    testAotModule() {
+        TmpDir tmp("qore-aot-shared-closure-aot-");
+        string src = tmp.path + "/" + ModuleName + ".qm";
+        string qmod = tmp.path + "/" + ModuleName + ".qmod";
+        write(src, moduleSource());
+
+        string mdir = ENV.QORE_MODULE_DIR ? ":" + ENV.QORE_MODULE_DIR : "";
+        string compile_out = backquote(sprintf("LD_LIBRARY_PATH=%s QORE_LIBDIR=%s QORE_MODULE_DIR=%s%s "
+            "%s --module --strip-source -o %s %s 2>&1",
+            libqore_dir, libqore_dir, tmp.path, mdir, qcc_bin, qmod, src));
+        if (!is_file(qmod)) {
+            testSkip("qcc could not compile the probe module: " + compile_out);
+        }
+        # remove the source so that only the AOT image can satisfy the module requirement
+        unlink(src);
+        assertEq(False, is_file(src));
+
+        write(tmp.path + "/probe.qr", probeSource(qmod));
+        checkProbe(runProbe(tmp.path));
+    }
+}
