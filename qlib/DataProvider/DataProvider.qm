@@ -1354,6 +1354,9 @@ fetch
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v3_8 DataProvider v3.8
+    - optional @ref DataProvider::SoftListDataType "soft lists" preserve absent collections as NOTHING;
+      collection defaults are validated item by item, while explicit NULL and missing-valued list items
+      retain their element-type validation
     - added generation-scoped provider discovery qualification with typed expected-inventory callbacks, structured
       failure reports, revision-bound single-use publication tokens, and qualified atomic ProviderIndex publication;
       healthy registrations remain usable and failures remain retryable in live processes, but a partial result cannot

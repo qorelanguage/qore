@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore SoftListDataType class definition
 
-/** SoftListDataType.qc Copyright 2023 - 2024 Qore Technologies, s.r.o.
+/** SoftListDataType.qc Copyright 2023 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -21,14 +21,6 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 */
-
-# assume local scope for variables, do not use "$" signs
-%modern
-# require type definitions everywhere
-#! strict argument handling
-# enable all warnings
-
-%requires reflection
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
@@ -89,12 +81,30 @@ public class SoftListDataType inherits ListDataType {
         @return the value to be assigned; can be converted by the type
 
         @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
+
+        @note A missing optional collection returns NOTHING without validating an item. A configured
+        collection default is converted and validated item by item. Explicit list items, including NOTHING
+        or NULL, still pass through the element type; an explicit NULL does not select a default.
+
+        @par Example: an optional list of invoice references
+        @code{.py}
+        SoftListDataType references(StringType, True);
+        @assert(references.acceptsValue(NOTHING) === NOTHING);
+        @assert(references.acceptsValue("INV-2026-0042") == ("INV-2026-0042",));
+        @endcode
     */
     auto acceptsValue(auto value) {
-        string typename = value.type();
         on_error rethrow $1.err, sprintf("%s (while accepting a value of type %y for type %y (%s)", $1.desc,
             value.fullType(), name, type.getName());
 
+        if (!exists value) {
+            if (exists default_value) {
+                value = default_value;
+            } else if (or_nothing_type) {
+                return;
+            }
+        }
+        string typename = value.type();
         if (typename == Type::List) {
             return map element_type.acceptsValue($1), value;
         } else {
