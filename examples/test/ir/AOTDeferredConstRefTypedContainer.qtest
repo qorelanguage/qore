@@ -49,6 +49,8 @@ class AOTDeferredConstRefTypedContainerTest inherits QUnit::Test {
             \testLaterSiblingConstantInTypedContainer());
         addTestCase("a derived class constant computed from its base's constant loads",
             \testDerivedClassConstantFromBase());
+        addTestCase("a path reference into a base class constant resolves across units",
+            \testDerivedClassPathReferenceAcrossUnits());
         addTestCase("a sibling .qo preload cross-resolves a narrowed container constant",
             \testSiblingPreloadCrossResolution());
 
@@ -116,7 +118,61 @@ printf(\"%s|%y|%y\\n\", AOTDeferredSiblingList::T::M.fullType(),
             "the deferred sibling constants resolve to their values");
     }
 
-    #! A derived class constant computed from its base's: the surviving entries are path references.
+    #! A derived class constant computed from its base's, read back across compilation units.
+    /** The surviving entries are the base constant's own nodes, so the writer records them as
+        references into that constant -- a RuntimeConstantPathRefNode, which renders as
+        'AOT constant path reference'.  Three units are needed: a compile never emits a reference
+        into the constant it is currently writing, so base and derived must be separate objects, and
+        a third has to fold the derived constant to force the reference to be read back.  This is the
+        shape that stopped a Qorus build, where the derived constant is
+        `Base::Fields - "key"` in another file of the same directory module.
+    */
+    testDerivedClassPathReferenceAcrossUnits() {
+        TmpDir tmp("qore-aot-deferred-const-ref-path-");
+        writeFile(tmp.path + "/base.q", "%modern
+class Base {
+    public {
+        const Fields = {
+            \"kept\": {\"type\": \"int\", \"desc\": \"survives\"},
+            \"dropped\": {\"type\": \"bool\", \"desc\": \"removed\"},
+        };
+    }
+}
+");
+        # exactly one surviving entry, so the whole value is the base constant's node
+        writeFile(tmp.path + "/derived.q", "%modern
+class Derived inherits Base {
+    public {
+        const Fields = Base::Fields - \"dropped\";
+    }
+}
+");
+        # folds the derived constant, which is what forces the reference to be read back; the typed
+        # constant pins the resolved leaf inside the compile under test
+        writeFile(tmp.path + "/consumer.q", "%modern
+class Consumer {
+    public {
+        const Copy = Derived::Fields;
+        const Proof = Derived::Fields{\"kept\"}{\"type\"};
+    }
+}
+string sub describe() {
+    string s = Consumer::Proof;
+    return s;
+}
+");
+
+        foreach string unit in ("base", "derived", "consumer") {
+            string out = run(sprintf("%s %s -c -L %s --parse-option=PO_MODERN --output-dir=%s %s/%s.q",
+                env(), qcc_bin, tmp.path, tmp.path, tmp.path, unit));
+            assertEq(-1, out.find("AOT constant path reference"),
+                sprintf("%s compiles without judging a path reference as a value: %s", unit, out));
+            assertTrue(is_file(sprintf("%s/%s.qo", tmp.path, unit)),
+                sprintf("%s compiles: %s", unit, out));
+        }
+    }
+
+    #! A derived class constant computed from its base's within one module.
     testDerivedClassConstantFromBase() {
         TmpDir tmp("qore-aot-deferred-const-ref-derived-");
         string out = compileAndUse(tmp.path, "AOTDeferredDerivedConst", "%modern
