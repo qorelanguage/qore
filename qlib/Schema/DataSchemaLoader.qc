@@ -230,15 +230,25 @@ public class DataSchemaLoader {
     */
     static hash<auto> resolveSharedDefinitions(string table_name, hash<auto> table_def,
             *hash<auto> shared_columns, *hash<auto> shared_indexes) {
+        # the resolved sections are written into a fresh wide hash rather than back into the table
+        # passed in: a schema built as a Qore hash literal rather than parsed from YAML or JSON
+        # infers a narrow value type for the table (a table whose only column is written as the
+        # bare {"$use": name} form gives hash<string, hash<string, hash<string, string>>>), and a
+        # resolved column carrying a non-string value from the shared definition -- notnull: True,
+        # a numeric size -- cannot be stored in it
+        hash<auto!> result();
+        foreach hash<auto> pair in (table_def.pairIterator()) {
+            result{pair.key} = pair.value;
+        }
         if (exists table_def.columns) {
-            table_def.columns = DataSchemaLoader::resolveSharedSection(table_name, "column",
+            result.columns = DataSchemaLoader::resolveSharedSection(table_name, "column",
                 table_def.columns, shared_columns);
         }
         if (exists table_def.indexes) {
-            table_def.indexes = DataSchemaLoader::resolveSharedSection(table_name, "index",
+            result.indexes = DataSchemaLoader::resolveSharedSection(table_name, "index",
                 table_def.indexes, shared_indexes);
         }
-        return table_def;
+        return result;
     }
 
     #! Resolves every reference in one named-entry section of a table

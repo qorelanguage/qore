@@ -67,6 +67,13 @@ A reference that names a definition which does not exist raises
 `DATA-SCHEMA-ERROR` at load, naming the table, the entry and what it asked
 for.
 
+Resolution builds a new table hash rather than writing the expanded sections
+back into the one it was given: a schema built as a Qore hash literal in code
+narrows (a table whose only column is the bare `{"$use": name}` form is a
+`hash<string, hash<string, hash<string, string>>>`), and a resolved column
+carrying `notnull: True` or a numeric size does not fit in it. Schemas parsed
+from YAML or JSON are unaffected either way.
+
 ## Schema Metadata
 
 ```yaml

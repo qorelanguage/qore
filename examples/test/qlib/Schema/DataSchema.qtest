@@ -428,6 +428,27 @@ class DataSchemaTest inherits QUnit::Test {
             Schema::DataSchemaLoader::normalize(chained);
         });
 
+        # a table whose ONLY column draws from a shared definition (issue #5451): every value in
+        # the literal is a string, so the table hash narrows to
+        # hash<string, hash<string, hash<string, string>>> and the resolved column -- which carries
+        # a bool -- cannot be written back into it
+        hash<auto> narrow = {
+            "schema": {"name": "S", "version": "1.0"},
+            "columns": {"audit_ts": {"type": "timestamp", "notnull": True}},
+            "tables": {"t": {"columns": {"created": {"$use": "audit_ts"}}}},
+        };
+        out = Schema::DataSchemaLoader::normalize(narrow);
+        assertEq(Type::Date, out.tables.t.columns.created.qore_type);
+        assertTrue(out.tables.t.columns.created.notnull);
+        assertFalse(out.tables.t.columns.created.hasKey("$use"));
+
+        # the same shape for an index, whose entry narrows the same way
+        narrow.indexes = {"by_created": {"columns": ("created",), "unique": True}};
+        narrow.tables.t.indexes = {"t_created": {"$use": "by_created"}};
+        out = Schema::DataSchemaLoader::normalize(narrow);
+        assertEq(("created",), out.tables.t.indexes.t_created.columns);
+        assertTrue(out.tables.t.indexes.t_created.unique);
+
         # the meta-schema accepts the two new top-level sections
         Schema::DataSchemaLoader::validate(raw);
     }
