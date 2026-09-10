@@ -4,6 +4,7 @@
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/Mime.qm
 %exec-class HttpServerRequestEncodingTest
 
 class RequestEncodingHandler inherits HttpServer::AbstractHttpRequestHandler {
@@ -22,6 +23,7 @@ class HttpServerRequestEncodingTest inherits QUnit::Test {
         addTestCase("Buffered request strings retain the declared character encoding", \encoding());
         addTestCase("HTTP protocol fields do not inherit a previous body charset", \headers());
         addTestCase("Binary request bodies retain their original bytes", \binaryBodies());
+        addTestCase("Multipart request bodies keep every part's bytes", \multipartBodies());
         set_return_value(main());
     }
     private encoding() {
@@ -75,6 +77,37 @@ class HttpServerRequestEncodingTest inherits QUnit::Test {
         assertThrows("SOCKET-HTTP-ERROR", \receiver.readHTTPHeader(), (5000,));
         sender.send(binary("GET /recovered HTTP/1.1\r\nContent-Length: 0\r\n\r\n"), 5000);
         assertEq("/recovered", receiver.readHTTPHeader(5000).path);
+    }
+
+    #! A multipart body is a container of parts, each carrying its own encoding.
+    /** The request's charset does not describe the container's octets, so labeling them with it makes
+        the first conversion of the message transcode binary parts: a 0xff byte read as Latin-1 becomes
+        0xc3 0xbf in UTF-8, and the file a client uploaded arrives one byte longer than it was sent.
+        The container is therefore handed to the handler as bytes, like any other binary content type.
+    */
+    private multipartBodies() {
+        HttpServer server();
+        on_exit server.stop();
+        RequestEncodingHandler handler();
+        server.setDefaultHandler("encoding", handler);
+        int port = server.addListener(0).port;
+        HTTPClient client({"url": sprintf("http://127.0.0.1:%d/", port), "timeout": 30000});
+
+        binary file = <00017fff52494646>;
+        MultiPartFormDataMessage msg();
+        msg.addPart(file, "file", "invoice.wav", "audio/wav");
+        msg.addPart("en", "language");
+        hash<MessageInfo> mi = msg.getMsgAndHeaders();
+
+        assertEq("ok", client.send(mi.body, "POST", "/", mi.hdr).body.toString());
+        hash<auto> received = handler.requests.pop(30000);
+        assertEq(NOTHING, received.body_encoding, "the container is not labeled with the request charset");
+
+        hash<string, hash<FormDataMessageInfo>> parts =
+            MultiPartFormDataMessage::parseMessage(mi.hdr."Content-Type", received.body.toString());
+        assertEq(file, parts.file.body, "a binary part arrives byte for byte");
+        assertEq("invoice.wav", parts.file.filename);
+        assertEq("en", parts.language.body, "a text part beside it still decodes");
     }
 
     private binaryBodies() {

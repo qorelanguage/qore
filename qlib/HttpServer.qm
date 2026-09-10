@@ -180,7 +180,9 @@ log("started listener on %s", lh.desc);
 
     @subsection http1_7 HttpServer 1.7
     - buffered HTTP/1 request text retains its declared charset, matching direct socket reads;
-      Latin-1 and UTF-16 bodies no longer acquire a UTF-8 encoding label
+      Latin-1 and UTF-16 bodies no longer acquire a UTF-8 encoding label.  A \c multipart/* body is
+      delivered to the handler as binary data, since the request charset describes neither the
+      container nor the parts inside it, each of which carries its own encoding
     - response compression honors Accept-Encoding quality values, exclusions, aliases, wildcard preferences,
       and explicit identity preferences consistently across HTTP/1, HTTP/2, and HTTP/3
     - @ref HttpServer::HttpServer::waitStop() "waitStop()" accepts an optional timeout and returns whether all
@@ -3444,8 +3446,11 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                     return;
                 }
                 if (body_data.size()) {
+                    # a multipart container's octets are not text in the request charset: each part
+                    # carries its own encoding, so the container is handed over as bytes
                     if (hdr."content-encoding" || hdr."content-type" == MimeTypeOctetStream
-                            || hdr."content-type" =~ /^application\/connect\+/) {
+                            || hdr."content-type" =~ /^application\/connect\+/
+                            || hdr."content-type" =~ /^multipart\//i) {
                         body = body_data;
                     } else {
                         body = body_data.toString();
@@ -3466,9 +3471,11 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                         cx."response-encoding", hdr.method == "HEAD");
                     return;
                 }
-                # Body is always binary from the I/O layer — convert to string if text content type
+                # Body is always binary from the I/O layer — convert to string if text content type;
+                # a multipart container stays binary, as its parts carry their own encodings
                 if (hdr."content-encoding" || hdr."content-type" == MimeTypeOctetStream
-                        || hdr."content-type" =~ /^application\/connect\+/) {
+                        || hdr."content-type" =~ /^application\/connect\+/
+                        || hdr."content-type" =~ /^multipart\//i) {
                     body = cx."header-info".body;
                 } else {
                     # The buffered bytes have the same charset as a direct socket read.
@@ -3496,7 +3503,10 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 }
                 # HTTP/1.x: read body from socket
                 try {
-                    if (hdr."content-encoding" || hdr."content-type" == MimeTypeOctetStream) {
+                    # a multipart container stays binary here too, so that a direct read and a
+                    # buffered one hand the handler the same bytes
+                    if (hdr."content-encoding" || hdr."content-type" == MimeTypeOctetStream
+                            || hdr."content-type" =~ /^multipart\//i) {
                         body = s.recvBinary(hdr."content-length", HttpServer::ReadTimeout);
                     } else {
                         body = s.recv(hdr."content-length", HttpServer::ReadTimeout);

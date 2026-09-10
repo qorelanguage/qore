@@ -8,6 +8,15 @@ read has already buffered the body as binary data, HttpServer labels the resulti
 string with that request charset, matching a direct textual socket read. Binary
 content types remain binary.
 
+A multipart body is a container of parts, each carrying its own encoding, and the
+request's charset does not describe the container's octets. Labeling them with it
+makes the first conversion of the message transcode binary parts -- a 0xff byte
+read as Latin-1 becomes 0xc3 0xbf in UTF-8, so an uploaded file arrives longer
+than it was sent. HttpServer therefore hands a `multipart/*` body to the handler
+as bytes, like any other binary content type, and `MultiPartMessage` parsing
+applies each part's own encoding. This holds for all three body paths: chunked
+reads, bodies buffered by the async I/O layer, and direct socket reads.
+
 HTTP protocol fields have their own representation. The HTTP version and request
 target use the same default string encoding as the other parsed header fields;
 they do not inherit a charset left by the previous message body. Content-Type
