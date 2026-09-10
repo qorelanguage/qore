@@ -2656,9 +2656,11 @@ struct qore_socket_private : public QoreReferenceCounter {
         // process header flags
         int flags = CHF_PROCESS;
 
+        // HTTP protocol fields use the same encoding as the other header fields.
+        // The socket encoding belongs to the previous body until Content-Type is parsed.
         // get version
         {
-            QoreStringNode* hv = new QoreStringNode(t1 + 5, 3, enc);
+            QoreStringNode* hv = new QoreStringNode(t1 + 5, 3, QCS_DEFAULT);
             h->setKeyValue("http_version", hv, nullptr);
             if (*hv == "1.1") {
                 flags |= CHF_HTTP11;
@@ -2693,7 +2695,7 @@ struct qore_socket_private : public QoreReferenceCounter {
                     *t1 = '\0';
                     //printd(5, "found path '%s'\n", t2);
                     // the path is returned as-is with no decodings - use decode_url() to decode
-                    h->setKeyValue("path", new QoreStringNode(t2, enc), nullptr);
+                    h->setKeyValue("path", new QoreStringNode(t2, QCS_DEFAULT), nullptr);
                 }
             }
             info_key = "request-uri";

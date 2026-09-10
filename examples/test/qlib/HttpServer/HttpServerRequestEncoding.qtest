@@ -1,0 +1,95 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/HttpServer.qm
+%exec-class HttpServerRequestEncodingTest
+
+class RequestEncodingHandler inherits HttpServer::AbstractHttpRequestHandler {
+    public {
+        Queue requests();
+    }
+    hash<HttpResponseInfo> handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
+        requests.push({"body": body, "context_encoding": cx.char_encoding,
+            "body_encoding": body.typeCode() == NT_STRING ? get_encoding(cast<string>(body)) : NOTHING});
+        return <HttpResponseInfo>{"code": 200, "body": "ok"};
+    }
+}
+
+class HttpServerRequestEncodingTest inherits QUnit::Test {
+    constructor() : Test("HttpServer request encoding", "1.0") {
+        addTestCase("Buffered request strings retain the declared character encoding", \encoding());
+        addTestCase("HTTP protocol fields do not inherit a previous body charset", \headers());
+        addTestCase("Binary request bodies retain their original bytes", \binaryBodies());
+        set_return_value(main());
+    }
+    private encoding() {
+        HttpServer server();
+        on_exit server.stop();
+        RequestEncodingHandler handler();
+        server.setDefaultHandler("encoding", handler);
+        int port = server.addListener(0).port;
+        HTTPClient client({"url": sprintf("http://127.0.0.1:%d/", port), "timeout": 30000});
+        string value = "é\r\n \t";
+        foreach string encoding in ("UTF-8", "ISO-8859-1", "UTF-16LE", "UTF-16BE") {
+            string encoded = convert_encoding(value, encoding);
+            assertEq("ok", client.post("/", binary(encoded), {"Content-Type": "text/plain; charset=" + encoding}));
+            hash<auto> received = handler.requests.pop(30000);
+            assertEq(encoding, received.context_encoding, "header parser recognizes the advertised encoding");
+            assertEq(encoding, received.body_encoding, "buffered bytes inherit the request encoding");
+            assertEq(value, received.body);
+        }
+    }
+    private headers() {
+        Socket listener();
+        listener.bind("127.0.0.1:0");
+        listener.listen();
+        on_exit listener.close();
+        Socket sender();
+        sender.connect(sprintf("127.0.0.1:%d", listener.getSocketInfo().port), 5000);
+        on_exit sender.close();
+        Socket receiver = listener.accept(5000);
+        on_exit receiver.close();
+        foreach string encoding in ("UTF-8", "ISO-8859-1", "UTF-16LE", "UTF-16BE") {
+            foreach bool response in (False, True) {
+                receiver.setEncoding(encoding);
+                sender.send(binary((response ? "HTTP/1.1 200 OK" : "POST /records HTTP/1.1")
+                    + "\r\nContent-Type: text/plain; charset=UTF-16LE\r\nContent-Length: 0\r\n\r\n"), 5000);
+                hash<auto> info;
+                hash<auto> headers = receiver.readHTTPHeader(5000, \info);
+                assertEq("1.1", headers.http_version);
+                assertEq("UTF-8", get_encoding(headers.http_version));
+                assertEq("UTF-16LE", receiver.getEncoding());
+                if (response) {
+                    assertEq(200, headers.status_code);
+                } else {
+                    assertEq("/records", headers.path);
+                    assertEq("UTF-8", get_encoding(headers.path));
+                    assertFalse(info.close, "HTTP/1.1 remains persistent after a wide-encoded body");
+                }
+            }
+        }
+        receiver.setEncoding("UTF-16BE");
+        sender.send(binary("invalid\r\n\r\n"), 5000);
+        assertThrows("SOCKET-HTTP-ERROR", \receiver.readHTTPHeader(), (5000,));
+        sender.send(binary("GET /recovered HTTP/1.1\r\nContent-Length: 0\r\n\r\n"), 5000);
+        assertEq("/recovered", receiver.readHTTPHeader(5000).path);
+    }
+
+    private binaryBodies() {
+        HttpServer server();
+        on_exit server.stop();
+        RequestEncodingHandler handler();
+        server.setDefaultHandler("encoding", handler);
+        int port = server.addListener(0).port;
+        HTTPClient client({"url": sprintf("http://127.0.0.1:%d/", port), "timeout": 30000});
+        foreach binary value in (<00ff0d0a>, <3c0078003e00>, <003c0078003e>) {
+            assertEq("ok", client.post("/", value, {"Content-Type": "application/octet-stream"}));
+            hash<auto> received = handler.requests.pop(30000);
+            assertEq(value, received.body);
+            assertEq(NOTHING, received.body_encoding);
+        }
+    }
+
+}

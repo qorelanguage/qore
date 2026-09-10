@@ -140,6 +140,8 @@
     - new @ref Qore::ParseOptions "ParseOptions" container supporting more than 64 option bits
 
     <i>Networking and I/O:</i>
+    - HTTP/1 protocol version and request-target fields retain their header encoding after a UTF-16
+      body; persistent connections can receive the next request without inheriting the prior body charset
     - already encoded HTTP request paths accept the URI unreserved character <tt>~</tt>,
       for example <tt>/~user/catalog.xsd</tt>, while retaining existing percent escapes
     - caught TLS handshake failures retain their exception details without writing unsolicited

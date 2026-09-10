@@ -1,0 +1,40 @@
+# HTTP request text encoding
+
+Copyright (C) 2026 Qore Technologies, s.r.o.
+
+The HTTP/1 header parser records the request charset on the socket. HttpServer
+copies that charset into the request context before dispatch. When an asynchronous
+read has already buffered the body as binary data, HttpServer labels the resulting
+string with that request charset, matching a direct textual socket read. Binary
+content types remain binary.
+
+HTTP protocol fields have their own representation. The HTTP version and request
+target use the same default string encoding as the other parsed header fields;
+they do not inherit a charset left by the previous message body. Content-Type
+processing still selects the charset for the new body. This permits a persistent
+connection to switch between UTF-8, Latin-1 and UTF-16 bodies without interpreting
+an ASCII request line as UTF-16.
+
+A caller sending an already encoded request body through HTTPClient can pass its
+raw bytes with a matching Content-Type charset:
+
+```qore
+%modern
+HTTPClient client({"url": "http://127.0.0.1:8080/", "timeout": 5000});
+string message = convert_encoding("café", "UTF-16LE");
+client.post("/records", binary(message), {"Content-Type": "text/plain; charset=UTF-16LE"});
+```
+
+The binary argument prevents the client from transcoding the fixture to its own
+configured outgoing string encoding. HttpServer exposes the received textual
+value in the charset specified by the HTTP header.
+
+`examples/test/qlib/HttpServer/HttpServerRequestEncoding.qtest` checks actual
+buffered request bodies, persistent requests with changing charsets, binary
+preservation, direct request/response header parsing, rejection and recovery.
+Independent XML-RPC peer tests in module-xml additionally verify UTF-16 requests
+and exact character data through the production HTTP handler.
+
+[HTTP/1.1 message parsing (RFC 9112 section 2.2)](https://www.rfc-editor.org/rfc/rfc9112.html#section-2.2)
+requires protocol parsing as octets in an encoding compatible with US-ASCII;
+a body's charset does not change that message grammar.

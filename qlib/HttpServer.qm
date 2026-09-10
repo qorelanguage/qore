@@ -179,6 +179,8 @@ log("started listener on %s", lh.desc);
     @section http_relnotes HttpServer Module Release Notes
 
     @subsection http1_7 HttpServer 1.7
+    - buffered HTTP/1 request text retains its declared charset, matching direct socket reads;
+      Latin-1 and UTF-16 bodies no longer acquire a UTF-8 encoding label
     - response compression honors Accept-Encoding quality values, exclusions, aliases, wildcard preferences,
       and explicit identity preferences consistently across HTTP/1, HTTP/2, and HTTP/3
     - @ref HttpServer::HttpServer::waitStop() "waitStop()" accepts an optional timeout and returns whether all
@@ -3469,7 +3471,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                         || hdr."content-type" =~ /^application\/connect\+/) {
                     body = cx."header-info".body;
                 } else {
-                    body = cx."header-info".body.toString();
+                    # The buffered bytes have the same charset as a direct socket read.
+                    body = cx."header-info".body.toString(cx.char_encoding);
                 }
             } else if (hdr."content-length" && !is_multiplexed) {
                 # HTTP/1.x only: the request body is read from the raw socket here.
