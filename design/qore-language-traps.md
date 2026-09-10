@@ -126,6 +126,23 @@ that the target variable has an inferred container type and can identify the ass
 it. Explicitly typed targets use `INCOMPATIBLE-ASSIGNMENT-TYPE` or
 `INCOMPATIBLE-LIST-ELEMENT-TYPE` and never receive `auto!` guidance.
 
+The element type is enforced at **every** level, not just the outermost one. An all-string literal
+narrows the whole tree — `{"columns": {"col": {"type": "timestamp"}}}` is
+`hash<string, hash<string, hash<string, string>>>` — so writing a resolved or merged value back into
+one of its keys fails on a value nested two levels down:
+
+```qore
+hash<auto> table = {"columns": {"col": {"type": "timestamp"}}};
+table.columns = wider();      # wider() returns {"col": {"type": "timestamp", "notnull": True}}
+# RUNTIME-TYPE-ERROR: key 'notnull' expects type 'string', but got type 'bool' instead
+#                     (while folding values into type 'hash<hash<string, string>>')
+```
+
+This is the shape that bites code which takes a caller's hash, computes something wider from it and
+writes the result back — a loader expanding shared definitions, a normalizer merging defaults. Build
+the result in a fresh `hash<auto!>` and return that instead of writing into the hash that came in;
+the caller's literal decides how narrow that hash is, and a library cannot control it.
+
 **Do:** declare `hash<auto!>` / `list<auto!>` when the container genuinely holds mixed types, and say
 in a comment why it is heterogeneous. Hash addition (`h + {...}`) does widen and is tempting as a
 fix, but it works around the type system rather than declaring intent; `auto!` is the language's

@@ -75,6 +75,9 @@ public class TypeNarrowingTest inherits QUnit::Test {
             \autoNoNarrowParamBindingStripTest());
         addTestCase("hash<auto!> strips hashdecl source", \hashAutoNoNarrowHashdeclStripTest());
         addTestCase("hash<auto!> class member strips hashdecl", \hashAutoNoNarrowClassMemberHashdeclTest());
+        addTestCase("nested fold checks element values", \nestedFoldChecksElementValuesTest());
+        addTestCase("nested list fold checks element values", \nestedListFoldChecksElementValuesTest());
+        addTestCase("nested fold still converts and rejects", \nestedFoldConvertsAndRejectsTest());
 
         set_return_value(main());
     }
@@ -1948,5 +1951,125 @@ hash<auto!> sub memberAddKey() {
         hash<auto> h = p.callFunction("memberAddKey");
         assertEq(1, h.size);
         assertEq("bar", h.foo);
+    }
+
+    # A value folded into a narrowed container must actually satisfy the container's element type,
+    # at every level.  Issue #5451: a nested container was stamped with the target element type
+    # without checking what it held, so this assignment silently produced a hash<string, string>
+    # holding a bool -- read back unharmed under AST execution, but RUNTIME-TYPE-ERROR on the
+    # typed read emitted by the IR/JIT/AOT tiers, thrown far from the assignment that caused it.
+    nestedFoldChecksElementValuesTest() {
+        # every value in the literal is a string, so every level narrows
+        hash<auto> table = {"columns": {"col": {"type": "timestamp"}}};
+        assertEq("hash<string, hash<string, hash<string, string>>>", table.fullType());
+
+        # the right-hand side's type is known only at runtime, so this is a runtime fold
+        assertThrows("RUNTIME-TYPE-ERROR", "notnull", \TypeNarrowingTest::foldIncompatibleHash());
+
+        # a fold that fails leaves the target alone
+        table = TypeNarrowingTest::foldCompatibleHash();
+        assertEq("hash<string, hash<string, hash<string, string>>>", table.fullType());
+        assertEq("hash<string, string>", table.columns.col.fullType(),
+            "a folded value reports the type it was folded into");
+        assertEq("timestamp", table.columns.col.type);
+
+        # the same fold into a wide container keeps every value and narrows nothing
+        hash<auto!> wide = {"columns": {"col": {"type": "timestamp"}}};
+        wide.columns = TypeNarrowingTest::wideSection(True);
+        assertEq(True, wide.columns.col.notnull);
+        assertEq("hash<auto>", wide.columns.fullType());
+    }
+
+    # the same hole existed in the list branch of the retype pass
+    nestedListFoldChecksElementValuesTest() {
+        hash<auto> table = {"columns": ({"type": "timestamp"},)};
+        assertEq("hash<string, list<hash<string, string>>>", table.fullType());
+
+        assertThrows("RUNTIME-TYPE-ERROR", "notnull", \TypeNarrowingTest::foldIncompatibleList());
+
+        table = TypeNarrowingTest::foldCompatibleList();
+        assertEq("hash<string, list<hash<string, string>>>", table.fullType());
+        assertEq("hash<string, string>", table.columns[0].fullType());
+        assertEq("timestamp", table.columns[0].type);
+    }
+
+    # checking nested elements must not cost the conversions the element type allows
+    nestedFoldConvertsAndRejectsTest() {
+        # a soft element type converts a nested value rather than rejecting it
+        hash<string, hash<string, softstring>> soft = {"a": {"k": "x"}};
+        soft.a = TypeNarrowingTest::wideValue(1);
+        assertEq({"k": "1"}, soft.a);
+        assertEq("string", soft.a.k.type());
+
+        # an or-nothing element type accepts a nested NOTHING
+        hash<string, hash<string, *string>> opt = {"a": {"k": "x"}};
+        opt.a = TypeNarrowingTest::wideValue(NOTHING);
+        assertNothing(opt.a.k);
+
+        # a hard element type rejects a value it cannot represent
+        assertThrows("RUNTIME-TYPE-ERROR", "expects type 'int'", \TypeNarrowingTest::foldFloatIntoInt());
+
+        # ...and a value it can hold still folds
+        hash<auto> narrow = {"a": {"k": 1}};
+        narrow.a = TypeNarrowingTest::wideValue(2);
+        assertEq("hash<string, int>", narrow.a.fullType());
+        assertEq(2, narrow.a.k);
+    }
+
+    static foldFloatIntoInt() {
+        hash<auto> narrow = {"a": {"k": 1}};
+        narrow.a = TypeNarrowingTest::wideValue(1.5);
+    }
+
+    # returns a wide single-key hash; declared auto so the fold happens at runtime
+    static auto wideValue(auto v) {
+        hash<auto!> h();
+        h.k = v;
+        return h;
+    }
+
+    static foldIncompatibleHash() {
+        hash<auto> table = {"columns": {"col": {"type": "timestamp"}}};
+        table.columns = TypeNarrowingTest::wideSection(True);
+    }
+
+    static hash<auto> foldCompatibleHash() {
+        hash<auto> table = {"columns": {"col": {"type": "timestamp"}}};
+        table.columns = TypeNarrowingTest::wideSection(False);
+        return table;
+    }
+
+    static foldIncompatibleList() {
+        hash<auto> table = {"columns": ({"type": "timestamp"},)};
+        table.columns = TypeNarrowingTest::wideList(True);
+    }
+
+    static hash<auto> foldCompatibleList() {
+        hash<auto> table = {"columns": ({"type": "timestamp"},)};
+        table.columns = TypeNarrowingTest::wideList(False);
+        return table;
+    }
+
+    # returns a wide hash of hashes; declared auto so the fold happens at runtime
+    static auto wideSection(bool with_bool) {
+        hash<auto!> section();
+        section.col = TypeNarrowingTest::wideEntry(with_bool);
+        return section;
+    }
+
+    # returns a wide list of hashes; declared auto so the fold happens at runtime
+    static auto wideList(bool with_bool) {
+        list<auto!> section();
+        section += TypeNarrowingTest::wideEntry(with_bool);
+        return section;
+    }
+
+    static hash<auto!> wideEntry(bool with_bool) {
+        hash<auto!> entry();
+        entry.type = "timestamp";
+        if (with_bool) {
+            entry.notnull = True;
+        }
+        return entry;
     }
 }

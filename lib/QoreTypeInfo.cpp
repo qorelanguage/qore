@@ -5678,6 +5678,43 @@ const QoreTypeInfo* QoreTypeInfo::getComplexBufferValueType(const QoreTypeInfo* 
     return qore_get_complex_buffer_value_type(ti);
 }
 
+// Verifies that one container element satisfies the element type that retypeValue() is about to
+// stamp on the container, converting it first where the element type allows it.
+//
+// QoreTypeInfo::retypeValue() only reshapes container metadata; for a leaf value (a scalar element
+// type, an object, code, etc.) it has nothing to reshape and returns success without looking at the
+// value at all.  Its callers then stamp the container with the target element type, so an element
+// that does not satisfy that type would be silently mislabeled -- producing e.g. a
+// hash<string, string> that holds a bool.  Such a value reads back unharmed under AST execution but
+// makes the typed read emitted by the IR/JIT/AOT tiers throw RUNTIME-TYPE-ERROR far from the
+// assignment that created it, and it defeats the fold check in acceptInputComplexHash(), which
+// short-circuits as soon as the value type matches.
+//
+// The element type's own acceptance machinery is used here so that legal conversions (soft types,
+// int -> float, ...) still take place; an element that cannot be accepted fails the retype, and the
+// caller reports the type error.
+static bool qore_retype_element_accepted(QoreValue& v, const QoreTypeInfo* elem_ti, const char* key,
+        ExceptionSink* xsink) {
+    // auto and auto! element types accept any value without narrowing it
+    if (!elem_ti || elem_ti == autoTypeInfo || elem_ti == autoNoNarrowTypeInfo) {
+        return true;
+    }
+    if (QoreTypeInfo::runtimeAcceptsValue(elem_ti, v) != QTI_NOT_EQUAL) {
+        return true;
+    }
+    if (key) {
+        QoreTypeInfo::acceptInputKey(elem_ti, key, v, xsink);
+    } else {
+        QoreTypeInfo::acceptAssignment(elem_ti, "<list element>", v, xsink);
+    }
+    if (xsink && *xsink) {
+        return false;
+    }
+    // with parse exceptions disabled there is no xsink to report through; the caller turns a false
+    // return into a type error of its own
+    return QoreTypeInfo::runtimeAcceptsValue(elem_ti, v) != QTI_NOT_EQUAL;
+}
+
 bool QoreTypeInfo::retypeValue(QoreValue& v, const QoreTypeInfo* target_ti,
         ExceptionSink* xsink) {
     // retyping only mutates a value when the declared type can actually reshape the runtime value.  A soft
@@ -5735,7 +5772,8 @@ bool QoreTypeInfo::retypeValue(QoreValue& v, const QoreTypeInfo* target_ti,
                 }
                 hash_assignment_priv ha(*qore_hash_private::get(*h), *qhi_priv::get(hi)->i);
                 QoreValue cur(ha.swap(QoreValue()));
-                if (!QoreTypeInfo::retypeValue(cur, inner_h_vt, xsink)) {
+                if (!QoreTypeInfo::retypeValue(cur, inner_h_vt, xsink)
+                        || !qore_retype_element_accepted(cur, inner_h_vt, hi.getKey(), xsink)) {
                     ha.swap(cur);
                     return false;
                 }
@@ -5768,7 +5806,8 @@ bool QoreTypeInfo::retypeValue(QoreValue& v, const QoreTypeInfo* target_ti,
                     return false;
                 }
                 QoreValue cur = lp->swap(i, QoreValue());
-                if (!QoreTypeInfo::retypeValue(cur, inner_l_vt, xsink)) {
+                if (!QoreTypeInfo::retypeValue(cur, inner_l_vt, xsink)
+                        || !qore_retype_element_accepted(cur, inner_l_vt, nullptr, xsink)) {
                     lp->swap(i, cur);
                     return false;
                 }
