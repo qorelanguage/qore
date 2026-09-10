@@ -18,7 +18,12 @@ other; release qualification requires both.
 
 1. `beginDiscovery()` records the current revision and optional exact app/action inventory. Producers can register a
    typed, lightweight inventory callback with `registerDiscoveryInventoryProvider()`; ProviderIndex collects those
-   callbacks after loading its requested discovery sources and scopes their output for filtered builds. Callback code
+   callbacks after loading its requested discovery sources and completing deferred app/action, output-type, and
+   scheme initialization, and scopes their output for filtered builds. Those initialization paths can introduce
+   another inventory callback or add identities to an existing producer; collecting before that warm-up makes a
+   rebuild invalidate its own snapshot. Producers still declare lightweight identity inventories before their own
+   expensive schema materialization. Collection runs once per build, before the authoritative snapshot checkpoint;
+   it must not retry or recollect over a failed or concurrently changed snapshot. Callback code
    runs without the catalog lock, and a callback exception becomes a structured `source`/`inventory` failure instead
    of aborting the remaining sources. Callback registration and producer identity changes advance a separate
    inventory revision; sealing rejects a snapshot whose revision changed during or after collection.
@@ -108,6 +113,8 @@ Local and release checks cover:
 - exact root/locale ID and source parity, including nested fields and allowed values;
 - build-and-install into an empty prefix, followed by checks with source module paths excluded;
 - full provider-index generation with an expected inventory and zero structured failures;
+- inventory callbacks added or changed by lazy initialization, including late missing identities and callback
+  failures; mutation during collection still rejects repeated attempts without replacing the previous index;
 - fresh-process loading for binary provider modules and their declared runtime dependencies.
 
 The release report records immutable source revisions and dependency image digests. A dependent module is qualified

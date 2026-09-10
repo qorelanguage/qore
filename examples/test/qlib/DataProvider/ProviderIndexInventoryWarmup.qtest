@@ -1,0 +1,199 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%prepend-module-path "${SCRIPT_DIR}/index-identity"
+%requires QUnit
+%requires FsUtil
+%requires DataProvider
+%requires ProviderIndex >= 1.1
+%requires IndexIdentityFixture
+%try-module yaml
+%define NoYaml
+%endtry
+%exec-class ProviderIndexInventoryWarmupTest
+
+#! Exercises inventory collection after lazy metadata initialization, without connections or action execution
+class ProviderIndexInventoryWarmupTest inherits QUnit::Test {
+    private {
+        const App = "IndexIdentityFixture";
+        string root;
+    }
+
+    constructor() : Test("Provider index inventory warmup", "1.0", \ARGV) {
+        root = make_tmp_dir("provider-index-inventory-");
+        on_exit remove_tree(root);
+        *string old_directory = getenv(ProviderIndexEnvVar);
+        auto old_env = ENV{ProviderIndexEnvVar};
+        int old_options = DataProvider::getOptions();
+        on_exit {
+            DataProvider::setOptions(old_options);
+            if (exists old_directory) {
+                ProviderIndexUtil::setEnvironmentVariable(old_directory);
+            } else {
+                unsetenv(ProviderIndexEnvVar);
+            }
+            if (exists old_env) {
+                ENV{ProviderIndexEnvVar} = old_env;
+            } else {
+                remove ENV{ProviderIndexEnvVar};
+            }
+        }
+        ProviderIndexUtil::setEnvironmentVariable(root);
+        addTestCase("lazy initialization updates an existing inventory before collection", \changedInventoryTest());
+        addTestCase("lazy initialization adds a new inventory before collection", \lateInventoryTest());
+        addTestCase("late inventory missing identities still block publication", \missingIdentityTest());
+        addTestCase("late inventory callback errors still block publication", \callbackFailureTest());
+        addTestCase("mutation during inventory collection still blocks repeated publication", \mutationTest());
+        set_return_value(main());
+    }
+
+    private checkYaml() {
+%ifdef NoYaml
+        testSkip("yaml is not available");
+%endif
+    }
+
+    private hash<auto> createIndex() {
+        return ProviderIndex::ProviderIndex::createDataProviderIndex(<DataProviderIndexInfo>{}, root,
+            <ProviderIndexCreateOptions>{
+                "load_known_factories": False,
+                "load_environment": False,
+                "load_typescript_actions": False,
+                "apps": (App,),
+            });
+    }
+
+    private hash<DataProviderActionInfo> action(string name) {
+        # Reuse the module-owned fixture's typed options and response, changing only its test identity.
+        hash<DataProviderActionInfo> info = DataProviderActionCatalog::getActionHashEx(App).record;
+        info.action = name;
+        info.path = "/" + name;
+        return info;
+    }
+
+    private changedInventoryTest() {
+        checkYaml();
+        string source = "warmup-change-" + get_random_string(8);
+        on_exit DataProviderActionCatalog::deregisterDiscoveryInventoryProvider(source);
+        hash<DataProviderActionInfo> info = action(source);
+        list<hash<DataProviderDiscoveryExpectedIdentityInfo>> inventory = ();
+        int collections = 0;
+        DataProviderActionCatalog::registerDiscoveryInventoryProvider(source,
+            list<hash<DataProviderDiscoveryExpectedIdentityInfo>> sub () {
+                ++collections;
+                return inventory;
+            });
+        bool initialized = False;
+        DataProviderActionCatalog::registerPendingAppAction(App, info.action, sub () {
+            inventory = (<DataProviderDiscoveryExpectedIdentityInfo>{"app": App, "action": info.action},);
+            DataProviderActionCatalog::markDiscoveryInventoryChanged(source);
+            DataProviderActionCatalog::registerAction(info);
+            initialized = True;
+        });
+        assertFalse(initialized);
+        assertEq(0, collections);
+        for (int attempt = 1; attempt <= 2; ++attempt) {
+            hash<auto> result = createIndex();
+            assertTrue(initialized);
+            assertEq(attempt, collections, "one collection per publication, no retry loop");
+            assertTrue(result.summary.qualification.complete);
+            assertEq((), result.summary.qualification.failures);
+            assertEq(1, (select result.summary.qualification.expected,
+                $1.app == App && $1.action == info.action).size());
+            assertTrue(exists ProviderIndexUtil::readDataProviderIndex().actioninfomap{App}{info.action});
+        }
+    }
+
+    private lateInventoryTest() {
+        checkYaml();
+        string source = "warmup-late-" + get_random_string(8);
+        on_exit DataProviderActionCatalog::deregisterDiscoveryInventoryProvider(source);
+        hash<DataProviderActionInfo> info = action(source);
+        int collections = 0;
+        DataProviderActionCatalog::registerPendingAppAction(App, info.action, sub () {
+            DataProviderActionCatalog::registerDiscoveryInventoryProvider(source,
+                list<hash<DataProviderDiscoveryExpectedIdentityInfo>> sub () {
+                    ++collections;
+                    return (<DataProviderDiscoveryExpectedIdentityInfo>{"app": App, "action": info.action},);
+                });
+            DataProviderActionCatalog::registerAction(info);
+        });
+        hash<auto> result = createIndex();
+        assertEq(1, collections);
+        assertTrue(result.summary.qualification.complete);
+        assertEq((), result.summary.qualification.failures);
+        assertTrue(exists ProviderIndexUtil::readDataProviderIndex().actioninfomap{App}{info.action});
+    }
+
+    private missingIdentityTest() {
+        checkYaml();
+        lateFailure(False);
+    }
+
+    private callbackFailureTest() {
+        checkYaml();
+        lateFailure(True);
+    }
+
+    private lateFailure(bool callback_error) {
+        createIndex();
+        string before = ReadOnlyFile::readTextFile(root + "/qore-data-index.yaml");
+        string source = "warmup-error-" + get_random_string(8);
+        on_exit DataProviderActionCatalog::deregisterDiscoveryInventoryProvider(source);
+        hash<DataProviderActionInfo> info = action(source);
+        string missing = source + "-missing";
+        DataProviderActionCatalog::registerPendingAppAction(App, info.action, sub () {
+            DataProviderActionCatalog::registerDiscoveryInventoryProvider(source,
+                list<hash<DataProviderDiscoveryExpectedIdentityInfo>> sub () {
+                    if (callback_error) {
+                        throw "TEST-INVENTORY-ERROR", "日本語の診断 / česká diagnostika";
+                    }
+                    return (<DataProviderDiscoveryExpectedIdentityInfo>{"app": App, "action": missing},);
+                });
+            DataProviderActionCatalog::registerAction(info);
+        });
+        hash<DataProviderDiscoveryReportInfo> report = failureReport();
+        list<hash<DataProviderDiscoveryFailureInfo>> failures = select report.failures,
+            $1.error == (callback_error ? "TEST-INVENTORY-ERROR" : "DATA-PROVIDER-EXPECTED-IDENTITY-MISSING");
+        assertEq(1, failures.size());
+        assertEq(callback_error ? source : App + "/" + missing, failures[0].identity);
+        assertEq(callback_error ? "inventory" : "expected-inventory", failures[0].phase);
+        assertEq(before, ReadOnlyFile::readTextFile(root + "/qore-data-index.yaml"));
+    }
+
+    private hash<DataProviderDiscoveryReportInfo> failureReport() {
+        *hash<DataProviderDiscoveryReportInfo> report;
+        try {
+            createIndex();
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("DATA-PROVIDER-DISCOVERY-ERROR", ex.err);
+            report = ex.arg;
+        }
+        assertTrue(exists report, "a failed inventory must not publish");
+        assertFalse(report.complete);
+        return report;
+    }
+
+    private mutationTest() {
+        checkYaml();
+        createIndex();
+        string before = ReadOnlyFile::readTextFile(root + "/qore-data-index.yaml");
+        string source = "warmup-mutation-" + get_random_string(8);
+        on_exit DataProviderActionCatalog::deregisterDiscoveryInventoryProvider(source);
+        int collections = 0;
+        DataProviderActionCatalog::registerDiscoveryInventoryProvider(source,
+            list<hash<DataProviderDiscoveryExpectedIdentityInfo>> sub () {
+                ++collections;
+                DataProviderActionCatalog::markDiscoveryInventoryChanged(source);
+                return (<DataProviderDiscoveryExpectedIdentityInfo>{"app": App},);
+            });
+        for (int attempt = 1; attempt <= 2; ++attempt) {
+            hash<DataProviderDiscoveryReportInfo> report = failureReport();
+            assertEq(attempt, collections, "mutation must fail, not trigger an unbounded retry");
+            assertEq(1, (select report.failures,
+                $1.error == "DATA-PROVIDER-DISCOVERY-INVENTORY-STALE").size());
+            assertEq(before, ReadOnlyFile::readTextFile(root + "/qore-data-index.yaml"));
+        }
+    }
+}

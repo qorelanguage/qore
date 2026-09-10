@@ -59,6 +59,9 @@ module ProviderIndex {
     @section providerindex_relnotes Release Notes
 
     @subsection providerindex_v1_1 ProviderIndex v1.1
+    - rebuilding an existing index now includes provider inventories introduced during deferred initialization,
+      without incorrectly rejecting the rebuild as stale; inventory changes during qualification still block
+      publication and preserve the previous index
     - index dependencies now use exact registered module names rather than source or compiled artifact paths,
       so installing an equivalent compiled module does not change its dependency identity
     - explicit seeded paths are resolved against loaded module metadata; unresolved paths fail before publication

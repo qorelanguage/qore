@@ -145,11 +145,6 @@ public class ProviderIndex inherits ProviderIndexUtil {
             tryLoadTypeScriptActionInterface(discovery);
         }
 
-        # Collect producer-owned lightweight inventories only after optional
-        # discovery sources have loaded and registered their callbacks.
-        DataProviderActionCatalog::collectDiscoveryExpectedInventory(
-            discovery);
-
         # Finish deferred registration, output-type resolution, and scheme loading before starting the authoritative
         # snapshot. These calls are allowed to advance the revision; the second getIndexApps() below is the actual
         # checked-point read.
@@ -162,6 +157,12 @@ public class ProviderIndex inherits ProviderIndexUtil {
             }
         }
         DataProviderActionCatalog::getAllActions();
+
+        # Deferred initialization can load another producer or add exact identities to an existing producer's
+        # inventory. Collect only after that intentional warm-up, otherwise the build invalidates its own inventory
+        # snapshot. Changes during collection or after this point must still reject publication; do not retry or
+        # recollect over a failed snapshot.
+        DataProviderActionCatalog::collectDiscoveryExpectedInventory(discovery);
 
         # The warm-up above materializes every selected pending app/action and resolves deferred output types. Mark
         # the exact revision immediately before copying the authoritative index candidate. A concurrent registration

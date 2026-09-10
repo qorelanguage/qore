@@ -3072,6 +3072,8 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - an index directory that is not readable, writable, and traversable is now reported as an actionable
         \c PROVIDER-INDEX-ERROR before the index is built, instead of as a file-open error after it
         (<a href="https://github.com/qoretechnologies/qore/issues/5383">issue 5383</a>)
+      - rebuilding a provider index now includes inventories introduced by lazily loaded integrations, avoiding
+        false stale-inventory errors while still preserving the previous index if qualification fails
       - added \c ProviderIndexUtil::getIndexReadError() so that callers can distinguish an unreadable or corrupt
         index from a system where no index has been created yet, and therefore avoid silently degrading to a
         partial app catalog
