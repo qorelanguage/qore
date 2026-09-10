@@ -452,13 +452,51 @@ public class OpenAiDataProviderCommon inherits DataProvider::AbstractDataProvide
         int retries = 0;
         while (True) {
             try {
-                debug("REST %y %y (%y) body: %y", method, rest.getUrl(), path, body);
+                debug("REST %y %y (%y) body: %y", method, rest.getSafeUrl(), path, body);
                 return rest.restDoRequest(method, path, body, hdr);
             } catch (hash<ExceptionInfo> ex) {
                 if (retry(ex, \retries)) {
                     continue;
                 }
                 rethrow ex.err, sprintf("%s (HTTP response code: %y)", ex.desc, ex.arg.status_code);
+            }
+        }
+    }
+
+    #! Makes a REST call with a pre-serialized body and returns the response; handles I/O retries
+    /** The body is sent verbatim with the given \c Content-Type; no serialization and no client-side schema
+        validation is performed on the request, which is required for \c multipart/form-data uploads of binary
+        data such as audio files
+
+        @param method the HTTP method
+        @param path the URI path
+        @param body the request body, sent verbatim
+        @param content_type the content type of \a body
+        @param hdr any additional headers
+
+        @return the REST response
+
+        @since OpenAiDataProvider 1.7
+    */
+    private hash<auto> doRestRawCommand(string method, string path, data body, string content_type,
+            *hash<auto> hdr) {
+        hdr = (hdr ?? {}) + {"Content-Type": content_type};
+        int retries = 0;
+        while (True) {
+            try {
+                debug("REST (raw) %y %y (%y) %d byte(s) %y", method, rest.getSafeUrl(), path, body.size(),
+                    content_type);
+                return rest.restDoRawRequest(method, path, body, hdr);
+            } catch (hash<ExceptionInfo> ex) {
+                if (retry(ex, \retries)) {
+                    continue;
+                }
+                # socket-level errors carry no HTTP status; keep the original argument so that any response
+                # metadata (status, headers, body) stays available to the caller
+                string desc = ex.arg.status_code.val()
+                    ? sprintf("%s (HTTP response code: %d)", ex.desc, ex.arg.status_code)
+                    : ex.desc;
+                rethrow ex.err, desc, ex.arg;
             }
         }
     }
