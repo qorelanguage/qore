@@ -73,6 +73,25 @@ The three restore sites that must populate the field are `buildContextFromSlotMa
 `Holder::smap{"k"}` is lowered differently — so a regression test must use a variable key; see
 `examples/test/ir/AOTModulePrivateClassStatic.qtest`.
 
+### Constructor calls retain lexical access context
+
+Constructor slots record the expression's declaring class in
+`QoreAOTCallTarget::class_ctx`. A global function records a null class; closure
+slots use the enclosing lexical class supplied with their runtime binding. Both
+constructor argument-ownership paths install this context with
+`ClassOnlySubstitutionHelper` while resolving and executing the call, restoring
+the caller's context even when argument conversion or a constructor fails.
+
+A fast static entry can execute while an unrelated instance caller's implicit
+class remains active. Dynamic constructor overload selection must not inherit
+that caller's private access, or lose the callee's legitimate private access.
+The slot therefore records the lexical owner, not the class being constructed.
+This uses existing runtime slot storage and requires no artifact-format change.
+`examples/test/ir/AOTConstructorClassContext.qtest` covers typed private overloads,
+instance-member operands, static closures, access denial from another class and
+global code, and successful reuse after constructor failure in source and
+source-stripped compiled modules.
+
 ### Restored Expression Trees Are Already Parse-Initialized
 
 Expression trees restored from an AOT image (class member initializers, static

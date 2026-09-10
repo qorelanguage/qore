@@ -1,0 +1,183 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%no-child-restrictions
+%prepend-module-path "${SCRIPT_DIR}/../../../qlib"
+%requires ../../../qlib/QUnit.qm
+%requires ../../../qlib/FsUtil.qm
+%exec-class AOTConstructorClassContextTest
+
+class AOTConstructorClassContextTest inherits QUnit::Test {
+    private {
+        string qore_bin = executablePath(ENV.QORE_BIN ?? QORE_ARGV[0] ?? "qore");
+        string lib_dir = ENV.QORE_LIBDIR ?? dirname(qore_bin);
+        string qcc_bin = ENV.QCC ?? lib_dir + "/qcc";
+    }
+    constructor() : Test("AOT constructor lexical class context", "1.0", \ARGV) {
+        addTestCase("Private overloads and access denial agree in all source modes", \source());
+        addTestCase("Private overloads and exception cleanup agree in compiled modules", \compiled());
+        set_return_value(main());
+    }
+    private static string quote(string value) {
+        return "'" + join("'\\''", split("'", value)) + "'";
+    }
+    private static string executablePath(string name) {
+        if (name.regex("/")) {
+            return realpath(name);
+        }
+        foreach string directory in (split(":", ENV.PATH ?? "")) {
+            string path = (directory ? directory : ".") + "/" + name;
+            if (is_executable(path)) {
+                return realpath(path);
+            }
+        }
+        throw "TEST-SETUP-ERROR", "cannot locate Qore executable " + name;
+    }
+    private static write(string path, string value) {
+        File file();
+        file.open2(path, O_WRONLY | O_CREAT | O_TRUNC);
+        on_exit file.close();
+        file.write(value);
+    }
+    private string run(string dir, list<string> args) {
+        string log = dir + "/run.log";
+        string command = "timeout 90s env LD_LIBRARY_PATH=" + quote(lib_dir)
+            + " QORE_LIBDIR=" + quote(lib_dir) + " " + (map quote($1), args).join(" ");
+        int status = system(command + " > " + quote(log) + " 2>&1");
+        string output = File::readTextFile(log);
+        assertEq(0, status, output);
+        assertFalse(output.regex("(?i)warning[: ]"), output);
+        return output;
+    }
+    private static fixture(string dir, string suffix) {
+        write(dir + "/ConstructorContextFixture.qm", Module);
+        write(dir + "/run.qr", "%requires ./ConstructorContextFixture." + suffix + "\n" + Driver);
+    }
+    private source() {
+        TmpDir dir("qore-ctor-context-source-");
+        fixture(dir.path, "qm");
+        foreach string mode in ("ast", "ir", "jit", "tiered") {
+            assertEq(Expected, run(dir.path, (qore_bin, "-b", "--enable-debug", "--exec-mode=" + mode,
+                dir.path + "/run.qr")));
+        }
+    }
+    private compiled() {
+        foreach string level in ("-O0", "-O3") {
+            TmpDir dir("qore-ctor-context-aot-");
+            fixture(dir.path, "qmod");
+            run(dir.path, (qcc_bin, level, "--strip-source", "-m", dir.path + "/ConstructorContextFixture.qm",
+                "-o", dir.path + "/ConstructorContextFixture.qmod"));
+            assertEq(Expected, run(dir.path, (qore_bin, "-b", "--enable-debug", dir.path + "/run.qr")));
+        }
+    }
+    private {
+        const string ExpectedLine = "7:3:4\n3:9\ndenied\ndenied\ndenied\nrecovered:5\n";
+        const string Expected = ExpectedLine + ExpectedLine + ExpectedLine + "child:3\n";
+        const string Module = "%modern
+module ConstructorContextFixture {
+    version = \"1.0\";
+    desc = \"Private constructor lexical access regression fixture\";
+    author = \"Qore Technologies, s.r.o.\";
+    license = \"MIT\";
+}
+public namespace ConstructorContextFixture {
+    public final class Node inherits Qore::Serializable {
+        public {
+            int count;
+            list<Node> children;
+        }
+        constructor(string value) {
+            count = value.size();
+        }
+        private constructor(list<Node> children) {
+            self.children = children;
+            count = children[0].count + children[1].count;
+            if (count == 13) {
+                throw \"FIXTURE-CONSTRUCTOR-ERROR\", \"rejected aggregate\";
+            }
+        }
+        static *Node combine(*Node a, *Node b) {
+            return a && b ? new Node((a, b)) : a ?? b;
+        }
+        static Node indirect(auto children) {
+            return new Node(children);
+        }
+        static code<Node(auto)> factory() {
+            return Node sub(auto children) { return new Node(children); };
+        }
+        static Node outside(auto value) {
+            return externalConstructor(value);
+        }
+    }
+    public Node sub externalConstructor(auto value) {
+        return new Node(value);
+    }
+    public class Consumer {
+        private {
+            *Node first;
+            *Node second;
+            *Node output;
+        }
+        Node result(string a, string b) {
+            first = new Node(a);
+            second = new Node(b);
+            output = Node::combine(first, second);
+            return output;
+        }
+        Node indirectResult(string a, string b) {
+            first = new Node(a);
+            second = new Node(b);
+            output = Node::indirect((first, second));
+            return output;
+        }
+        Node closureResult(string a, string b) {
+            first = new Node(a);
+            second = new Node(b);
+            code<Node(auto)> factory = Node::factory();
+            output = factory((first, second));
+            return output;
+        }
+        Node denied(auto value) {
+            return new Node(value);
+        }
+    }
+}
+";
+        const string Driver = "%modern
+Consumer consumer();
+for (int iteration = 0; iteration < 3; ++iteration) {
+    Node result = consumer.result(\"abc\", \"defg\");
+    printf(\"%d:%d:%d\\n\", result.count, result.children[0].count, result.children[1].count);
+    printf(\"%d:%d\\n\", consumer.indirectResult(\"a\", \"bc\").count,
+        consumer.closureResult(\"abcd\", \"efghi\").count);
+    foreach code<Node(auto)> rejected in (\\consumer.denied(), \\externalConstructor(), \\Node::outside()) {
+        try {
+            rejected(result.children);
+            throw \"TEST-FAILURE\", \"private constructor was accessible outside its declaring class\";
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err != \"RUNTIME-OVERLOAD-ERROR\") {
+                rethrow;
+            }
+            printf(\"denied\\n\");
+        }
+    }
+    try {
+        consumer.result(\"abcdef\", \"abcdefg\");
+        throw \"TEST-FAILURE\", \"constructor failure was not propagated\";
+    } catch (hash<ExceptionInfo> ex) {
+        if (ex.err != \"FIXTURE-CONSTRUCTOR-ERROR\") {
+            rethrow;
+        }
+    }
+    printf(\"recovered:%d\\n\", consumer.result(\"ab\", \"cde\").count);
+}
+Program child(PO_MODERN);
+*hash<ExceptionInfo> warnings = child.parse(\"int sub childCount() { Consumer c(); \"
+    \"return c.result(\\\"a\\\", \\\"bc\\\").count; }\", \"constructor-context-child\", WARN_ALL);
+if (warnings) {
+    throw \"TEST-FAILURE\", \"unexpected child parse warnings\", warnings;
+}
+printf(\"child:%d\\n\", child.callFunction(\"childCount\"));
+";
+    }
+}

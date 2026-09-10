@@ -3018,6 +3018,9 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
 
     @subsection qore_3_0_0_bug_fixes Bug Fixes in Qore
 
+    - Fixed AOT constructor calls losing their lexical class access during dynamic overload resolution;
+      static factories retain private constructor access when called from another class, while global
+      and unrelated class callers remain denied, including after constructor exceptions.
     - Fixed empty or whitespace-only string-to-float conversion returning an uninitialized value;
       these inputs now consistently convert to zero.
     - Fixed string-to-float conversion producing different results on different platforms. The

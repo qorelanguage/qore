@@ -210,7 +210,7 @@ struct QoreAOTCallTarget {
     const char* method_name = nullptr;     //!< for dot-eval fallback (name-based dispatch)
     const char* class_path = nullptr;      //!< for lazy class resolution when registration order delays availability
     const char* variant_sig = nullptr;     //!< constructor/method signature text retained for diagnostics/lazy resolution
-    const qore_class_private* class_ctx = nullptr; //!< class context for self/base method calls
+    const qore_class_private* class_ctx = nullptr; //!< lexical class context for self/base and constructor calls
     //! Lazily resolved immutable metadata for object member summary lowering.
     std::atomic<const QoreAOTObjectMemberDescriptor*> object_member_descriptor{
         nullptr};

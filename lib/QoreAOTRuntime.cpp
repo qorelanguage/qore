@@ -4271,6 +4271,12 @@ static QoreAOTContext* buildContextFromSlotMap(
         switch (kind) {
             case AOTExprKind::NEW_OBJECT:
             case AOTExprKind::SCOPED_NEW_OBJECT: {
+                // Fast AOT entries can retain an unrelated caller's implicit
+                // class context. Deferred overload resolution must use the
+                // lexical owner of this expression, including a null owner for
+                // global functions, to enforce constructor access correctly.
+                ctx->call_targets[i].class_ctx = variant_class_ctx
+                    ? variant_class_ctx : getAOTVariantClassContext(uvb);
                 // ref1 = class path, ref2 = variant signature (e.g. "(string)").
                 // ref3 = instantiated object type path when present.
                 // Constructor args are IR operands here, not inline AST values.

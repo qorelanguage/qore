@@ -15781,6 +15781,7 @@ extern "C" DLLEXPORT uint64_t qore_rt_new_object_nb_aot(QoreAOTContext* ctx,
             target.class_path && *target.class_path ? target.class_path : "<missing>", slot);
         return toBits(QoreValue());
     }
+    ClassOnlySubstitutionHelper class_context(target.class_ctx);
     return qore_rt_new_object_nb(qc, target.variant, target.object_type_info, args, nargs, xsink);
 }
 
@@ -15800,6 +15801,7 @@ extern "C" DLLEXPORT uint64_t qore_rt_new_object_nb_aot_consume_args(
         clearConsumedArgCleanups(arg_cleanups, nargs, xsink);
         return toBits(QoreValue());
     }
+    ClassOnlySubstitutionHelper class_context(target.class_ctx);
     return qore_rt_new_object_nb_consume_args(qc, target.variant, target.object_type_info, args,
         arg_cleanups, nargs, xsink);
 }
