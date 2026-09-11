@@ -19,9 +19,15 @@ class MultipartFilesTest inherits QUnit::Test {
                         "enabled": {"type": "boolean"},
                         "temperature": {"type": "number"},
                         "comment": {"type": "string"},
+                        "settings": {"type": "object", "additionalProperties": True},
+                        "metadata": {"type": "object", "additionalProperties": True},
+                        "tags": {"type": "array", "items": {"type": "string"}},
+                        "images": {"type": "array", "items": {"type": "string", "format": "binary"}},
                         "extra": {"anyOf": ({"type": "string", "format": "binary"}, {"type": "null"})},
+                        "file_or_url": {"anyOf": ({"type": "string", "format": "binary"},
+                            {"type": "string", "format": "uri"})},
                     },
-                }}}},
+                }, "encoding": {"settings": {"style": "deepObject", "explode": True}}}}},
                 "responses": {"200": {"description": "Stored file", "content": {
                     "application/octet-stream": {"schema": {"type": "string", "format": "binary"}},
                 }}},
@@ -30,9 +36,11 @@ class MultipartFilesTest inherits QUnit::Test {
     }
     constructor() : Test("OpenAPI multipart files", "1.0", \ARGV) {
         addTestCase("named files retain bytes, filenames, media types and field order", \fileTest());
+        addTestCase("structured fields retain their declared form encoding", \structuredTest());
         addTestCase("legacy binary files and empty files", \binaryTest());
         addTestCase("invalid file input is rejected before serialization", \negativeTest());
         addTestCase("file request types preserve requiredness and cached wire types", \fieldTest());
+        addTestCase("file arrays retain every named part through generated requests", \arrayTest());
         set_return_value(main());
     }
     private fileTest() {
@@ -65,6 +73,48 @@ class MultipartFilesTest inherits QUnit::Test {
         assertRegex("filename=\"invoice.wav\"", raw_parts.part[4].hdr."content-disposition");
         assertRegex("filename=\"notes.txt\"", raw_parts.part[5].hdr."content-disposition");
     }
+    private structuredTest() {
+        foreach hash<auto> metadata in ({}, {"value": {"name": "literal", "content": "ordinary data"}}) {
+            hash<auto> request = {"model": "transcribe", "file": {"name": "empty.wav", "content": binary()},
+                "settings": {"seconds": 0, "enabled": False, "comment": ""}, "metadata": metadata, "tags": ()};
+            hash<RestRequestClientInfo> result = schema.processRequest("POST", "/upload", request);
+            hash<string, hash<FormDataMessageInfo>> parts = MultiPartFormDataMessage::parseMessage(
+                result.content, result.body.toString());
+            assertEq("0", parts."settings[seconds]".body);
+            assertEq("false", parts."settings[enabled]".body);
+            assertEq("", parts."settings[comment]".body);
+            assertEq(metadata, parse_json(parts.metadata.body.toString()));
+            assertEq((), parse_json(parts.tags.body.toString()));
+            assertRegex("^application/json(?:;|$)", parts.metadata.hdr."content-type");
+            assertNothing(parts.metadata.filename);
+            assertEq("empty.wav", parts.file.filename);
+        }
+    }
+
+    private arrayTest() {
+        OpenApi3::PathItemObject pio = schema.paths.match("/upload");
+        OpenApi3::OperationObject op = pio.getOperation("post", "/upload");
+        hash<auto> request = {"model": "edit", "file": binary("base"),
+            "images": ({"name": "one.png", "content": binary("one"), "mime_type": "image/png"},
+                {"name": "two.png", "content": binary(), "mime_type": "image/png"})};
+        auto accepted = op.getRequestBodyField(pio).acceptsValue(request);
+        assertEq(2, accepted.images.size());
+        hash<auto> headers;
+        data body = op.getRequestBody(pio, accepted, \headers);
+        hash<MessageInfo> message = MultiPartMessage::parseBody(
+            (headers."Content-Type" =~ x/boundary="([^"]+)"/)[0], body);
+        assertEq(4, message.part.size());
+        assertTrue(message.part[2].hdr."content-disposition".find("name=\"images[]\"") >= 0);
+        assertRegex("filename=\"one.png\"", message.part[2].hdr."content-disposition");
+        assertEq(binary("one"), message.part[2].body);
+        assertRegex("filename=\"two.png\"", message.part[3].hdr."content-disposition");
+        assertEq(binary(), message.part[3].body);
+        assertThrows("SCHEMA-VALIDATION-ERROR", sub () {
+            schema.processRequest("POST", "/upload", {"model": "edit", "file": binary(),
+                "images": ({"name": "", "content": binary()},)});
+        });
+    }
+
     private binaryTest() {
         foreach binary bytes in (binary(), binary("raw data")) {
             hash<RestRequestClientInfo> result = schema.processRequest("POST", "/upload", {
@@ -108,5 +158,13 @@ class MultipartFilesTest inherits QUnit::Test {
         AbstractDataField wire = schema.getFieldFromSchema("body", "Wire body", op.body.schema);
         assertEq(NT_BINARY, wire.getType().getFields().file.getType().getBaseTypeCode());
         assertEq(NT_STRING, fields.model.getType().getBaseTypeCode());
+        QoreUnionDataType uploads = cast<QoreUnionDataType>(fields.file_or_url.getType().getMandatoryType());
+        assertEq("file", uploads.getUnionTypes()[0].getName(), "named files keep the established outer alternative");
+        assertTrue(uploads.getUnionTypes()[1] instanceof OpenApi3UnionDataType,
+            "the original wire union retains composition rules and presentation identity");
+        assertEq("invoice.pdf", fields.file_or_url.acceptsValue({
+            "name": "invoice.pdf", "content": binary("pdf")}).name);
+        assertEq("https://example.com/invoice.pdf",
+            fields.file_or_url.acceptsValue("https://example.com/invoice.pdf"));
     }
 }

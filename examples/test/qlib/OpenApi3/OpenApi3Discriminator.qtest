@@ -1,0 +1,182 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/OpenApi3.qm
+%requires json
+%exec-class DiscriminatorTest
+
+class DiscriminatorTest inherits QUnit::Test {
+    constructor() : Test("OpenAPI discriminator mappings", "1.0", \ARGV) {
+        addTestCase("mapped branches expose and validate their complete fields", \branchesTest());
+        addTestCase("optional, soft, and mandatory forms keep the mapping", \optionalTest());
+        addTestCase("mapping cycles are rejected instead of recursing", \mappingCycleTest());
+        addTestCase("mapping survives serialization and presentation changes", \serializationTest());
+        addTestCase("invalid mapping references fail explicitly", \invalidReferenceTest());
+        addTestCase("mapping resolves escaped component names", \escapedReferenceTest());
+        set_return_value(main());
+    }
+
+    private OpenApi3Schema schema(*hash<auto> mapping) {
+        return OpenApi3Loader::fromString(make_json({"openapi": "3.2.0",
+            "info": {"title": "Messages", "version": "1"}, "paths": {}, "components": {"schemas": {
+                "Message": {"type": "object", "required": ("role",),
+                    "properties": {"role": {"type": "string"}},
+                    "discriminator": {"propertyName": "role", "mapping": mapping ?? {
+                        "user": "#/components/schemas/User", "tool": "Tool",
+                    }}},
+                "User": {"type": "object", "allOf": ({"\$ref": "#/components/schemas/Message"},),
+                    "required": ("content",), "properties": {
+                        "content": {"type": "string"},
+                    }},
+                "Tool": {"type": "object", "allOf": ({"\$ref": "#/components/schemas/Message"},),
+                    "required": ("call_id", "content"), "properties": {
+                        "call_id": {"type": "string"}, "content": {"type": "string"},
+                    }},
+            }}}), True);
+    }
+
+    private branchesTest() {
+        OpenApi3Schema doc = schema();
+        SchemaObject message = doc.components.schemas.Message;
+        AbstractDataProviderType type = message.getDataType();
+        assertTrue(type instanceof OpenApi3DiscriminatorDataType);
+        assertTrue(type === message.getDataType(), "types are memoized");
+        list<AbstractDataProviderType> branches = cast<QoreUnionDataType>(type).getUnionTypes();
+        assertEq(2, branches.size());
+        assertEq(("content", "role"), sort(keys branches[0].getFields()));
+        assertEq(("call_id", "content", "role"), sort(keys branches[1].getFields()));
+        foreach hash<auto> value in ({"role": "user", "content": ""},
+                {"role": "tool", "call_id": "call_1", "content": "result"}) {
+            assertEq(value, type.acceptsValue(value));
+            auto wire = value;
+            message.check(True, True, "/messages", "POST", "message", \wire);
+            assertEq(value, wire, "wire validation retains derived fields");
+        }
+        foreach auto value in ({}, {"role": NULL}, {"role": 0}, {"role": "unknown"},
+                {"role": "user", "content": "text", "call_id": "wrong branch"}, NULL, ()) {
+            assertThrows("RUNTIME-TYPE-ERROR", sub () { type.acceptsValue(value); });
+        }
+        foreach hash<auto> value in ({"role": "user"}, {"role": "tool", "content": "result"}) {
+            assertThrows("MISSING-VALUE-ERROR", sub () { type.acceptsValue(value); });
+        }
+        assertNothing(message.getDataType(False).acceptsValue(NOTHING));
+    }
+
+    private optionalTest() {
+        OpenApi3Schema doc = schema();
+        SchemaObject message = doc.components.schemas.Message;
+        AbstractDataProviderType required = message.getDataType();
+        AbstractDataProviderType optional = message.getDataType(False);
+        assertTrue(optional instanceof OpenApi3DiscriminatorDataType, "an optional property keeps its mapping");
+        assertTrue(optional.isOrNothingType());
+        assertNothing(optional.acceptsValue(NOTHING));
+        assertTrue(optional === optional.getOrNothingType(), "an or-nothing type is its own or-nothing type");
+        assertTrue(required === required.getMandatoryType());
+        AbstractDataProviderType soft = required.getSoftType();
+        AbstractDataProviderType mandatory = optional.getMandatoryType();
+        assertTrue(soft instanceof OpenApi3DiscriminatorDataType);
+        assertTrue(mandatory instanceof OpenApi3DiscriminatorDataType);
+        # every form selects the branch by discriminator rather than by whichever alternative matches
+        foreach AbstractDataProviderType type in (required, optional, soft, mandatory) {
+            assertEq({"role": "user", "content": "hello"}, type.acceptsValue({"role": "user", "content": "hello"}));
+            assertThrows("MISSING-VALUE-ERROR", sub () { type.acceptsValue({"role": "tool", "content": "x"}); },
+                NOTHING, "the discriminator selects Tool, whose call_id is absent");
+            assertThrows("RUNTIME-TYPE-ERROR", sub () { type.acceptsValue({"role": "unknown"}); });
+        }
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { mandatory.acceptsValue(NOTHING); });
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { required.acceptsValue(NOTHING); });
+    }
+
+    private mappingCycleTest() {
+        # A maps to B and B maps back to A; validation follows mapping edges with the value unchanged
+        OpenApi3Schema doc = cyclicSchema({"A": "B", "B": "A"});
+        assertThrows("INVALID-REFERENCE", sub () {
+            hash<auto> value = {"kind": "next"};
+            doc.components.schemas.A.check(True, True, "/cycle", "POST", "value", \value);
+        });
+        assertThrows("INVALID-REFERENCE", \doc.components.schemas.A.getDataType());
+        # a cycle that does not include the entry point is caught when its own edge is resolved
+        OpenApi3Schema reachable = cyclicSchema({"A": "B", "B": "C", "C": "B"});
+        assertThrows("INVALID-REFERENCE", sub () {
+            hash<auto> value = {"kind": "next"};
+            reachable.components.schemas.A.check(True, True, "/cycle", "POST", "value", \value);
+        });
+        # an acyclic chain of mappings is unaffected
+        OpenApi3Schema chain = cyclicSchema({"A": "B", "B": "C"});
+        hash<auto> value = {"kind": "next"};
+        chain.components.schemas.A.check(True, True, "/cycle", "POST", "value", \value);
+        assertEq({"kind": "next"}, value);
+        assertEq(("kind",), keys chain.components.schemas.A.getDataType().getFields());
+    }
+
+    #! Returns a document where each named schema maps its only discriminator value to another schema
+    private OpenApi3Schema cyclicSchema(hash<string, string> mappings) {
+        hash<auto> schemas = {};
+        foreach string name in (keys mappings) {
+            schemas{name} = {"type": "object", "required": ("kind",),
+                "properties": {"kind": {"type": "string"}},
+                "discriminator": {"propertyName": "kind", "mapping": {"next": mappings{name}}}};
+        }
+        foreach string target in (mappings.iterator()) {
+            if (!schemas{target}) {
+                schemas{target} = {"type": "object", "required": ("kind",),
+                    "properties": {"kind": {"type": "string"}}};
+            }
+        }
+        return OpenApi3Loader::fromString(make_json({"openapi": "3.1.0",
+            "info": {"title": "Cyclic mappings", "version": "1"}, "paths": {},
+            "components": {"schemas": schemas}}), True);
+    }
+
+    private serializationTest() {
+        OpenApi3Schema doc = schema();
+        QoreUnionDataType original = cast<QoreUnionDataType>(doc.components.schemas.Message.getDataType());
+        QoreUnionDataType restored = cast<QoreUnionDataType>(Serializable::deserialize(original.serialize()));
+        list<AbstractDataProviderType> types = restored.getUnionTypes();
+        hash<string, AbstractDataField> fields = types[0].getFields();
+        fields.content = fields.content.getRenamedField("content", "Customer Text");
+        types[0] = cast<HashDataType>(types[0]).copyWithFields(fields);
+        QoreUnionDataType renamed = restored.copyWithUnionTypes(types);
+        assertEq("Customer Text", renamed.getUnionTypes()[0].getFields().content.getDisplayName());
+        foreach QoreUnionDataType type in (original, restored, renamed) {
+            assertEq({"role": "user", "content": "hello"},
+                type.acceptsValue({"role": "user", "content": "hello"}));
+            assertThrows("RUNTIME-TYPE-ERROR", sub () {
+                type.acceptsValue({"role": "Customer Text", "content": "hello"});
+            });
+        }
+    }
+
+    private escapedReferenceTest() {
+        foreach string reference in ("A~B", "#/components/schemas/A~0B") {
+            OpenApi3Schema doc = OpenApi3Loader::fromString(make_json({"openapi": "3.1.0",
+                "info": {"title": "Escaped mapping", "version": "1"}, "paths": {}, "components": {"schemas": {
+                    "Base": {"type": "object", "properties": {"kind": {"type": "string"}},
+                        "discriminator": {"propertyName": "kind", "mapping": {"customer": reference}}},
+                    "A~B": {"type": "object", "allOf": ({"$ref": "#/components/schemas/Base"},),
+                        "required": ("name",), "properties": {"name": {"type": "string"}}},
+                }}}), True);
+            auto value = {"kind": "customer", "name": "Invoice 42"};
+            AbstractDataProviderType original = doc.components.schemas.Base.getDataType();
+            foreach AbstractDataProviderType type in (original, Serializable::deserialize(original.serialize())) {
+                assertEq(value, type.acceptsValue(value));
+                assertEq(("kind", "name"), sort(keys type.getFields()));
+                foreach auto invalid in ({"name": "Invoice 42"}, {"kind": "unknown", "name": "Invoice 42"}) {
+                    assertThrows("RUNTIME-TYPE-ERROR", sub () { type.acceptsValue(invalid); });
+                }
+            }
+            assertEq("Invoice 42", doc.resolveSchemaObject("escaped", "#/components/schemas/A~0B", {}).getDataType()
+                .acceptsValue(value).name);
+        }
+    }
+
+    private invalidReferenceTest() {
+        foreach hash<auto> mapping in ({"user": "#/components/schemas/Missing"},
+                {"user": "#/components/schemas/Message"}) {
+            OpenApi3Schema doc = schema(mapping);
+            assertThrows("INVALID-REFERENCE", sub () { doc.components.schemas.Message.getDataType(); });
+        }
+    }
+}

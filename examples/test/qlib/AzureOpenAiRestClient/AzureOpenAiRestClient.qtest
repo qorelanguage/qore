@@ -1,18 +1,19 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires QoreLlmTypes
-%requires QoreLlmUtils
-%requires OpenAiRestClient
-%requires AzureAuth
-%requires AzureOpenAiRestClient
-%requires ConnectionProvider
-%requires RestClient
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/QoreLlmTypes.qm
+%requires ../../../../qlib/QoreLlmUtils
+%requires ../../../../qlib/OpenAiRestClient.qm
+%requires ../../../../qlib/AzureAuth.qm
+%requires ../../../../qlib/AzureOpenAiRestClient.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/RestClient.qm
 
 %exec-class AzureOpenAiTest
 

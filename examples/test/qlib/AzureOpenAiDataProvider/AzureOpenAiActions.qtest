@@ -1,0 +1,274 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/AzureOpenAiDataProvider
+%requires ../../../../qlib/RestSchemaActions
+%requires ../../../../qlib/Mime.qm
+%requires json
+%exec-class AzureActionsTest
+
+class AzureActionFixtureClient inherits RestClientIo::RestClientIo {
+    public {
+        string method;
+        string path;
+        *data raw;
+        *hash<auto> last_headers;
+        auto response = {};
+        int requests = 0;
+    }
+    constructor() : RestClientIo({"url": "https://resource.example.com", "data_type": "auto", "headers": {"accept": "application/json"}}) {
+    }
+    RestClient::AbstractRestClient copyWithUrl(string url) {
+        return self;
+    }
+    hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body, *hash<auto> hdr) {
+        self.method = method;
+        self.path = path;
+        raw = body;
+        last_headers = hdr;
+        ++requests;
+        return <RestClient::RestResponseInfo>{"status_code": 200, "body": response};
+    }
+    hash<RestClient::RestResponseInfo> restDoRequest(string method, string path, auto body, *hash<auto> hdr) {
+        self.method = method;
+        self.path = path;
+        ++requests;
+        return <RestClient::RestResponseInfo>{"status_code": 200, "body": response};
+    }
+}
+
+class AzureActionsTest inherits QUnit::Test {
+    private {
+        list<hash<auto>> fixtures = parse_json(File::readTextFile(get_script_dir() + "/requests.json"));
+        RestSchemaActionSet actions = AzureOpenAiSchema::getActionSet();
+    }
+    constructor() : Test("Azure OpenAI v1 actions", "1.1", \ARGV) {
+        addTestCase("exact independent action inventory and metadata", \inventoryTest());
+        addTestCase("deferred registration preserves the complete inventory", \deferredTest());
+        addTestCase("pinned schema agrees with every manifest entry", \driftTest());
+        foreach hash<auto> fixture in (fixtures) {
+            hash<auto> test_fixture = fixture;
+            addTestCase("request: " + fixture.action, sub () { requestTest(test_fixture); });
+        }
+        addTestCase("empty values and raw value objects survive transport and serialization", \valuesTest());
+        addTestCase("invalid values stop before transport", \negativeTest());
+        addTestCase("resource references retain IDs and display names", \referenceTest());
+        addTestCase("resource timestamps are dates, including null and epoch zero", \timestampTest());
+        addTestCase("multipart media and file expiration preserve bytes and structure", \multipartTest());
+        addTestCase("fresh recursive catalogs match all twelve locales", \translationTest());
+        set_return_value(main());
+    }
+    private inventoryTest() {
+        list<string> expected = sort((map $1.action, fixtures) + (AbstractDataProvider::GenericApiCallActionName,));
+        assertEq(100, expected.size());
+        foreach int pass in (0..1) {
+            if (pass) {
+                foreach hash<DataProviderActionInfo> action in (actions.getActionInfoList("AzureOpenAI")) {
+                    if (action.action == "embedding") {
+                        action.mutates_state = False;
+                    }
+                    DataProviderActionCatalog::registerAction(action);
+                }
+            }
+            list<hash<DataProviderActionInfo>> actual = DataProviderActionCatalog::getActions("AzureOpenAI");
+            assertEq(expected, sort(map $1.action, actual));
+            assertEq((), DataProviderActionCatalog::getInitializationFailures(("AzureOpenAI",)));
+            foreach hash<DataProviderActionInfo> action in (actual) {
+                assertTrue(action.display_name.val(), action.action);
+                assertTrue(action.short_desc.val() && action.short_desc.size() < 80, action.action);
+                assertTrue(action.desc.val(), action.action);
+                assertFalse(exists action.cls, action.action);
+                if (action.action == AbstractDataProvider::GenericApiCallActionName) {
+                    continue;
+                }
+                RestSchemaActionOperation operation = actions.getOperationEx(action.action);
+                assertEq(sort(keys operation.getRequestFields()), sort(keys action.options), action.action);
+                assertEq(exists operation.getResponseType(), exists action.output_type, action.action);
+            }
+        }
+    }
+    private deferredTest() {
+        string alias = "AzureOpenAI-DeferredFixture";
+        hash<DataProviderAppInfo> app = DataProviderActionCatalog::getApp("AzureOpenAI");
+        app.name = alias;
+        app.dynamic = True;
+        DataProviderActionCatalog::registerPendingApp(alias, sub () {
+            DataProviderActionCatalog::registerApp(app);
+            foreach hash<DataProviderActionInfo> action in (actions.getActionInfoList(alias)) {
+                hash<DataProviderActionInfo> deferred = action;
+                DataProviderActionCatalog::registerPendingAppAction(alias, action.action, sub () {
+                    DataProviderActionCatalog::registerAction(deferred);
+                });
+            }
+        });
+        on_exit DataProviderActionCatalog::deregisterDynamicApp(alias);
+        list<string> expected = sort((map $1.action, fixtures) + (AbstractDataProvider::GenericApiCallActionName,));
+        DataProviderActionCatalog::getApp(alias);
+        assertEq(expected, sort(map $1.action, DataProviderActionCatalog::getActions(alias)));
+        assertEq((), DataProviderActionCatalog::getInitializationFailures((alias,)));
+        list<hash<DataProviderDiscoveryExpectedIdentityInfo>> inventory
+            = map <DataProviderDiscoveryExpectedIdentityInfo>{"app": alias, "action": $1}, expected;
+        DataProviderDiscoverySession session = DataProviderActionCatalog::beginDiscovery(inventory, (alias,));
+        DataProviderActionCatalog::collectDiscoveryExpectedInventory(session);
+        DataProviderQualifiedDiscovery result = DataProviderActionCatalog::sealDiscovery(session);
+        assertTrue(result.getReport().complete);
+        assertEq((), result.getReport().failures);
+    }
+
+    private driftTest() {
+        assertEq((), RestSchemaDrift::compare(actions, AzureOpenAiSchema::getSchema()));
+        assertEq("/openai/v1", AzureOpenAiSchema::getSchema().getBasePath());
+        assertEq(118, AzureOpenAiSchema::Provenance.source_operations);
+        assertRegex("^[a-f0-9]{64}$", AzureOpenAiSchema::Provenance.source_sha256);
+    }
+    private requestTest(hash<auto> fixture) {
+        AzureActionFixtureClient fake();
+        AzureOpenAiDataProvider::AzureOpenAiDataProvider root(fake);
+        root.getChildProvider(fixture.action).doRequest(fixture.request);
+        assertEq(1, fake.requests, fixture.action);
+        assertEq(fixture.method, fake.method, fixture.action);
+        string path = "/openai/v1" + fixture.path;
+        foreach string name in ((path =~ x/\{([^}]+)\}/g)) {
+            # Path placeholder names are wire names; video_id is the curated action name.
+            path = replace(path, "{" + name + "}", fixture.request{name == "video-id" ? "video_id" : name});
+        }
+        assertEq(path, fake.path.split("?")[0], fixture.action);
+    }
+    private valuesTest() {
+        AbstractDataProviderType original = actions.getOperationEx("create-response").getRequestType();
+        AbstractDataProviderType restored = Serializable::deserialize(original.serialize());
+        foreach AbstractDataProviderType type in (original, restored) {
+            hash<auto> options = {"model": "fixture", "input": "", "store": False, "temperature": 0,
+                "tools": (), "metadata": {}, "text": {"format": {"type": "json_schema", "name": "result",
+                    "schema": {}, "strict": False}}};
+            auto value = type.acceptsValue(options);
+            assertEq({}, value.text.format.schema);
+            assertEq("", value.input);
+            assertEq(False, value.store);
+            assertTrue(value.temperature == 0);
+            assertEq((), value.tools);
+            AzureActionFixtureClient fake();
+            AzureOpenAiDataProvider::AzureOpenAiDataProvider root(fake);
+            root.getChildProvider("create-response").doRequest(options);
+            hash<auto> wire = parse_json(fake.raw.toString());
+            assertEq({}, wire.text.format.schema);
+            assertFalse(wire.store);
+            options.text.format.schema = {"properties": {"value": {"type": "string"}}};
+            value = type.acceptsValue(options);
+            assertEq("string", value.text.format.schema.properties.value.type);
+        }
+    }
+    private negativeTest() {
+        AzureActionFixtureClient fake();
+        AzureOpenAiDataProvider::AzureOpenAiDataProvider root(fake);
+        foreach hash<auto> request in ({}, {"deployment": "fixture", "messages": ()},
+                {"deployment": "fixture", "messages": ({"role": "invalid", "content": "x"},)},
+                {"deployment": "fixture", "messages": NOTHING},
+                {"deployment": "", "messages": ({"role": "user", "content": "x"},)},
+                {"deployment": "   ", "messages": ({"role": "user", "content": "x"},)}) {
+            *hash<ExceptionInfo> error;
+            try {
+                root.getChildProvider("chat-completion").doRequest(request);
+            } catch (hash<ExceptionInfo> ex) {
+                error = ex;
+            }
+            assertTrue(exists error);
+            assertEq(0, fake.requests);
+        }
+    }
+    private referenceTest() {
+        AzureActionFixtureClient fake();
+        fake.response = {"data": ({"id": "file-1", "filename": "invoices.jsonl"},)};
+        AzureOpenAiDataProvider::AzureOpenAiDataProvider root(fake);
+        auto choices = root.getChildProvider("get-file").getReferenceData("files");
+        assertEq("file-1", choices[0].value);
+        assertEq("invoices.jsonl", choices[0].display_name);
+        assertTrue(fake.path.startsWith("/openai/v1/files"));
+    }
+    private timestampTest() {
+        auto file = actions.getOperationEx("get-file").processResponse({"created_at": 0, "expires_at": 1});
+        assertEq(1970-01-01Z, file.created_at);
+        assertEq(1970-01-01T00:00:01Z, file.expires_at);
+        auto job = actions.getOperationEx("get-fine-tuning-job").processResponse({
+            "created_at": 0, "finished_at": 1, "estimated_finish": NOTHING});
+        assertEq(1970-01-01T00:00:01Z, job.finished_at);
+        assertNothing(job.estimated_finish);
+        assertEq(NT_DATE, actions.getOperationEx("get-fine-tuning-job").getResponseType()
+            .getFields().finished_at.getType().getBaseTypeCode());
+        hash<auto> wire = {"data": ({"created_at": 0, "expires_at": NOTHING, "last_active_at": 1},)};
+        auto stores = actions.getOperationEx("list-vector-stores").processResponse(wire);
+        assertEq(1970-01-01Z, stores.data[0].created_at);
+        assertNothing(stores.data[0].expires_at);
+        assertEq(1970-01-01T00:00:01Z, stores.data[0].last_active_at);
+        assertEq(0, wire.data[0].created_at, "response conversion preserves the caller's wire hash");
+        auto absent = actions.getOperationEx("get-file").processResponse({"created_at": 0});
+        assertFalse(exists absent.expires_at);
+        auto session = actions.getOperationEx("create-realtime-transcription-session").processResponse({
+            "client_secret": {"expires_at": 0}});
+        assertEq(1970-01-01Z, session.client_secret.expires_at);
+    }
+    private translationTest() {
+        string dir = get_script_dir() + "/../../../../qlib/AzureOpenAiDataProvider/i18n/data-provider.QXp1cmVPcGVuQUk/";
+        hash<auto> root = parse_json(File::readTextFile(dir + "root.json")).locales.root.messages;
+        hash<DataProviderAppInfo> app = DataProviderActionCatalog::getApp("AzureOpenAI");
+        hash<auto> generated = DataProviderPresentation::buildSourceCatalogs(app,
+            DataProviderActionCatalog::getActions("AzureOpenAI"));
+        assertEq(generated{DataProviderPresentation::appCatalogDomain(app)}.locales.root.messages, root);
+        foreach string locale in (DataProviderPresentation::StandardTranslationLocales) {
+            hash<auto> messages = parse_json(File::readTextFile(dir + locale + ".json")).locales{locale}.messages;
+            assertEq(sort(keys root), sort(keys messages), locale + ": exact message IDs");
+            list<string> invalid = ();
+            foreach hash<auto> entry in (messages.pairIterator()) {
+                if (entry.value.source != root{entry.key}.source || !trim(entry.value.message)) {
+                    invalid += entry.key;
+                }
+            }
+            assertEq((), invalid, locale + ": exact source text and nonempty translations");
+            if (locale == "ja") {
+                foreach list<string> option in (("chat-completion", "deployment"), ("create-file", "file"),
+                        ("create-transcription", "timestamp_granularities")) {
+                    string id = DataProviderPresentation::optionMessageId("AzureOpenAI", option[0], option[1],
+                        "display_name");
+                    assertTrue(messages{id}.message.val());
+                    assertNeq(root{id}.source, messages{id}.message);
+                }
+            }
+        }
+    }
+
+    private multipartTest() {
+        AzureActionFixtureClient fake();
+        AzureOpenAiDataProvider::AzureOpenAiDataProvider root(fake);
+        root.getChildProvider("create-file").doRequest({"purpose": "batch",
+            "file": {"name": "invoices.jsonl", "content": binary("{}\n")},
+            "expires_after": {"anchor": "created_at", "seconds": 259200}});
+        auto parts = MultiPartFormDataMessage::parseMessage(fake.last_headers."Content-Type", fake.raw.toString());
+        assertEq("invoices.jsonl", parts.file.filename);
+        assertEq("259200", parts."expires_after[seconds]".body);
+        assertEq("created_at", parts."expires_after[anchor]".body);
+        root.getChildProvider("create-transcription").doRequest({"model": "speech-deployment",
+            "file": {"name": "invoice.wav", "content": binary("RIFF")}, "temperature": 0,
+            "timestamp_granularities": ("word", "segment"), "response_format": "verbose_json"});
+        assertTrue(fake.path.startsWith("/openai/v1/audio/transcriptions"));
+        assertTrue(fake.path.find("api-version=preview") >= 0);
+        parts = MultiPartFormDataMessage::parseMessage(fake.last_headers."Content-Type", fake.raw.toString());
+        assertEq("invoice.wav", parts.file.filename);
+        assertEq("segment", parts."timestamp_granularities[]".body);
+        assertEq(0.0, parts.temperature.body.toFloat());
+        int sent = fake.requests;
+        foreach int seconds in (0, 259199, 2592001) {
+            *hash<ExceptionInfo> error;
+            try {
+                root.getChildProvider("create-file").doRequest({"purpose": "batch",
+                    "file": {"name": "invoices.jsonl", "content": binary("{}\n")},
+                    "expires_after": {"anchor": "created_at", "seconds": seconds}});
+            } catch (hash<ExceptionInfo> ex) {
+                error = ex;
+            }
+            assertTrue(exists error);
+            assertEq(sent, fake.requests);
+        }
+    }
+}

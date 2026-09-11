@@ -1,0 +1,147 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/OpenApi3.qm
+%requires ../../../../qlib/RestSchemaActions
+%requires json
+%exec-class UnionCodecTest
+
+class UnionCodecTest inherits QUnit::Test {
+    constructor() : Test("Uniform union codecs", "1.0", \ARGV) {
+        addTestCase("uniform request and response codecs", \uniformTest());
+        addTestCase("branch-specific conversions are rejected", \differentTest());
+        addTestCase("presentation can target a subset of branches", \presentationTest());
+        addTestCase("an optional union keeps its conversion and wire contract", \optionalUnionTest());
+        set_return_value(main());
+    }
+
+    private hash<auto> unionSchema(bool uniform) {
+        hash<auto> first = {"type": "object", "additionalProperties": False,
+            "required": ("kind", "created"), "properties": {
+                "kind": {"type": "string", "enum": ("complete",)},
+                "created": {"type": "integer"},
+            }};
+        hash<auto> second = {"type": "object", "additionalProperties": False,
+            "required": ("kind",), "properties": {
+                "kind": {"type": "string", "enum": ("chunk",)},
+            }};
+        if (uniform) {
+            second.properties.created = {"type": "integer"};
+        }
+        return {"oneOf": (first, second)};
+    }
+
+    private OpenApi3Schema schema(bool uniform) {
+        return document(unionSchema(uniform));
+    }
+
+    #! Returns a document posting and returning the given body schema
+    private OpenApi3Schema document(hash<auto> body) {
+        return OpenApi3Loader::fromString(make_json({"openapi": "3.1.0",
+            "info": {"title": "Uniform codecs", "version": "1"}, "paths": {
+                "/response": {"post": {
+                    "requestBody": {"required": True, "content": {"application/json": {"schema": body}}},
+                    "responses": {"200": {"description": "Result",
+                        "content": {"application/json": {"schema": body}}}},
+                }},
+            }}), True);
+    }
+
+    private hash<RestSchemaActionInfo> manifest() {
+        return <RestSchemaActionInfo>{"action": "response", "method": "POST", "path": "/response",
+            "display_name": "Response", "short_desc": "Return a response", "desc": "Return a response.",
+            "flatten_body": False,
+            "fields": {"body": <RestSchemaFieldOverlayInfo>{"fields": {
+                "created": <RestSchemaFieldOverlayInfo>{"codec": RestSchemaActionCodecs::UnixSeconds},
+            }}},
+            "response_fields": {"created": <RestSchemaFieldOverlayInfo>{
+                "codec": RestSchemaActionCodecs::UnixSeconds,
+            }}};
+    }
+
+    private uniformTest() {
+        OpenApi3Schema doc = schema(True);
+        RestSchemaActionOperation op(doc, manifest());
+        AbstractDataProviderType restored = Serializable::deserialize(op.getResponseType().serialize());
+        assertEq({"kind": "complete", "created": 1970-01-01Z},
+            restored.acceptsValue({"kind": "complete", "created": 1970-01-01Z}));
+        foreach string kind in (("complete", "chunk")) {
+            foreach int epoch in ((0, 1700000000)) {
+                date timestamp = 1970-01-01Z + seconds(epoch);
+                hash<auto> request = {"body": {"kind": kind, "created": timestamp}};
+                assertEq(request, op.getRequestType().acceptsValue(request));
+                hash<auto> wire = op.unflatten(request);
+                assertEq(epoch, wire.req.body.created);
+                assertEq(request, op.flatten(wire));
+                auto response = op.processResponse({"kind": kind, "created": epoch});
+                assertEq(timestamp, response.created);
+                assertEq(response, op.getResponseType().acceptsValue(response));
+            }
+        }
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {
+            op.getResponseType().acceptsValue({"kind": "unknown", "created": 1970-01-01Z});
+        }, NOTHING, "wire discriminators still reject unknown alternatives after conversion");
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {
+            op.getResponseType().acceptsValue({"kind": "complete", "created": 1970-01-01Z, "extra": 1});
+        }, NOTHING, "wire additionalProperties constraints remain enforced");
+        assertEq({"kind": "chunk"}, op.processResponse({"kind": "chunk"}),
+            "an absent optional timestamp remains absent");
+    }
+
+    private differentTest() {
+        OpenApi3Schema doc = schema(False);
+        assertThrows("REST-SCHEMA-ACTION-ERROR", sub () {
+            new RestSchemaActionOperation(doc, manifest());
+        });
+        hash<RestSchemaActionInfo> info = manifest();
+        remove info.fields;
+        assertThrows("REST-SCHEMA-ACTION-ERROR", sub () {
+            new RestSchemaActionOperation(doc, info);
+        }, NOTHING, "response-only branch-specific conversions are also rejected");
+    }
+
+    private optionalUnionTest() {
+        # the union is an optional property, so the action-facing type is its "or nothing" form
+        OpenApi3Schema doc = document({"type": "object", "additionalProperties": False,
+            "properties": {"event": unionSchema(True)}});
+        RestSchemaActionOperation op(doc, <RestSchemaActionInfo>{"action": "event", "method": "POST",
+            "path": "/response", "display_name": "Event", "short_desc": "Send an event",
+            "desc": "Send an event.", "flatten_body": False,
+            "fields": {"body": <RestSchemaFieldOverlayInfo>{"fields": {
+                "event": <RestSchemaFieldOverlayInfo>{"fields": {
+                    "created": <RestSchemaFieldOverlayInfo>{"codec": RestSchemaActionCodecs::UnixSeconds},
+                }},
+            }}}});
+        AbstractDataProviderType event = op.getRequestType().getFields().body.getType().getFields()
+            .event.getType();
+        assertTrue(event instanceof RestSchemaConvertedUnionDataType, "an optional union keeps its conversion");
+        assertTrue(event.isOrNothingType());
+        assertNothing(event.acceptsValue(NOTHING));
+        hash<auto> value = {"kind": "complete", "created": 1970-01-01Z};
+        assertEq(value, event.acceptsValue(value));
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {
+            event.acceptsValue({"kind": "unknown", "created": 1970-01-01Z});
+        }, NOTHING, "the wire contract is still enforced for an optional union");
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {
+            event.acceptsValue({"kind": "complete", "created": 1970-01-01Z, "extra": 1});
+        }, NOTHING, "wire additionalProperties constraints remain enforced for an optional union");
+        hash<auto> request = {"body": {"event": value}};
+        assertEq(request, op.getRequestType().acceptsValue(request));
+        hash<auto> wire = op.unflatten(request);
+        assertEq(0, wire.req.body.event.created, "the conversion still reaches the wire");
+        assertEq(request, op.flatten(wire));
+        assertEq({"body": {}}, op.getRequestType().acceptsValue({"body": {}}), "an optional union may be absent");
+    }
+
+    private presentationTest() {
+        OpenApi3Schema doc = schema(False);
+        hash<RestSchemaActionInfo> info = manifest();
+        remove info.fields;
+        info.response_fields.created = <RestSchemaFieldOverlayInfo>{"display_name": "Created At"};
+        RestSchemaActionOperation op(doc, info);
+        assertEq({"kind": "complete", "created": 0}, op.processResponse({"kind": "complete", "created": 0}));
+        assertEq({"kind": "chunk"}, op.processResponse({"kind": "chunk"}));
+    }
+}

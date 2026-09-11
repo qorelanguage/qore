@@ -1,23 +1,24 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Logger
-%requires Mime
-%requires HttpServerUtil
-%requires HttpServer
-%requires HttpServerAsyncIo
-%requires ConnectionProvider
-%requires DataProvider
-%requires RestClientIo
-%requires AzureAuth
-%requires OpenAiRestClient
-%requires AzureOpenAiRestClient
-%requires AzureOpenAiDataProvider
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/HttpServerAsyncIo
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/RestClientIo.qm
+%requires ../../../../qlib/AzureAuth.qm
+%requires ../../../../qlib/OpenAiRestClient.qm
+%requires ../../../../qlib/AzureOpenAiRestClient.qm
+%requires ../../../../qlib/AzureOpenAiDataProvider
 
 %requires json
 
@@ -36,7 +37,15 @@ class FakeAzureHandler inherits AbstractHttpRequestHandler {
         last_authorization = hdr."authorization" ?? "";
         string body_str = body ? (body.typeCode() == NT_BINARY
             ? body.toString("UTF-8") : body) : "";
-        try { last_body = parse_json(body_str); } catch () {}
+        last_body = body_str ? parse_json(body_str) : NOTHING;
+        if (last_api_key_header != "test-azure-key") {
+            return makeResponse({"Content-Type": MimeTypeJson}, 401,
+                make_json({"error": {"code": "Unauthorized", "message": "Invalid API key"}}));
+        }
+        if (last_path == "/openai/v1/models") {
+            return makeResponse({"Content-Type": MimeTypeJson}, 200,
+                make_json({"object": "list", "data": ({"id": "gpt-4.1-mini", "object": "model"},)}));
+        }
         if (last_path =~ /\/chat\/completions/) {
             return makeResponse({"Content-Type": MimeTypeJson}, 200, make_json({
                 "id": "chatcmpl-fake",
@@ -92,19 +101,18 @@ public class AzureOpenAiDataProviderTest inherits QUnit::Test {
             \deploymentPathTest());
         addTestCase("api-key auth header sent on chat call", \apiKeyHeaderTest());
         addTestCase("child providers discoverable",       \childrenTest());
+        addTestCase("root children preserve authentication and deployment names", \childRequestTest());
+        addTestCase("connections expose Azure actions and authenticated pings", \connectionTest());
+        addTestCase("sync, async, and copied transports preserve authentication", \transportTest());
+        addTestCase("connection authentication validates mode-specific credentials", \connectionValidationTest());
 
-        try { setupServer(); }
-        catch (hash<ExceptionInfo> ex) {
-            if (m_options.verbose) {
-                printf("setup error: %s\n", get_exception_string(ex));
-            }
-        }
+        setupServer();
 
         # Live test requires a real Azure OpenAI connection plus the
         # AZURE_OPENAI_DEPLOYMENT env var naming a deployment in the account.
-        # Cost: 1 token-bounded gpt-4o-mini request (~$0.0001 per run).
+        # Uses one short, token-bounded request to the configured deployment.
         if (conn_name) {
-            addTestCase("live: ping + chat-completion (gpt-4o-mini)",
+            addTestCase("live: authentication, inference, and temporary file lifecycle",
                 \liveAzureOpenAiTest());
         }
         set_return_value(main());
@@ -118,11 +126,8 @@ public class AzureOpenAiDataProviderTest inherits QUnit::Test {
             OptionColumn);
     }
 
-    #! Exercises Azure OpenAI's live chat-completion endpoint.
-    /** Verifies the actual wire format against Azure OpenAI's production
-        deployments — including api-key auth, deployment-name URL routing, and
-        the chat-completion response shape.  Cost: 1 token-bounded
-        gpt-4o-mini request (~$0.0001 per run).
+    #! Exercises authenticated v1 actions against explicitly configured Azure deployments.
+    /** Uses bounded inference requests and removes temporary uploads even if an assertion fails.
     */
     private liveAzureOpenAiTest() {
         *string deployment = ENV.AZURE_OPENAI_DEPLOYMENT;
@@ -131,7 +136,11 @@ public class AzureOpenAiDataProviderTest inherits QUnit::Test {
                 "deployment in the account");
         }
 
-        AbstractConnection conn = get_connection(conn_name);
+        if (!ENV.AZURE_OPENAI_API_KEY.val() || !ENV.AZURE_OPENAI_ENDPOINT.val()) {
+            testSkip("AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT are required for standalone live tests");
+        }
+        AzureOpenAiRestConnection conn({"name": conn_name, "url": ENV.AZURE_OPENAI_ENDPOINT,
+            "opts": {"api_key": ENV.AZURE_OPENAI_API_KEY}});
         hash<auto> ping = conn.ping(True);
         assertTrue(ping.ok, sprintf("Azure OpenAI connection ping failed: %s",
             ping.info ?? "no info"));
@@ -147,9 +156,49 @@ public class AzureOpenAiDataProviderTest inherits QUnit::Test {
             "Azure OpenAI returned assistant text");
         assertTrue(resp.usage.total_tokens > 0,
             "Azure OpenAI reported a positive total-token count");
-    }
 
-    static checkJson(Test test) {
+        auto response = prov.getChildProvider("create-response").doRequest({"model": deployment,
+            "input": "Return JSON with ok set to true.", "store": False, "max_output_tokens": 32,
+            "text": {"format": {"type": "json_schema", "name": "result", "schema": {}, "strict": False}}});
+        assertTrue(response.output.size() > 0);
+        assertTrue(response.usage.total_tokens > 0);
+        if (ENV.AZURE_OPENAI_EMBEDDING_DEPLOYMENT.val()) {
+            auto embedding = prov.getChildProvider("embedding").doRequest({
+                "deployment": ENV.AZURE_OPENAI_EMBEDDING_DEPLOYMENT, "input": "Qore test", "dimensions": 8});
+            assertEq(8, embedding.data[0].embedding.size());
+        }
+        foreach bool expiration in (False, True) {
+            binary bytes = binary(make_json({"custom_id": "fixture", "method": "POST",
+                "url": "/chat/completions", "body": {"model": deployment,
+                    "messages": ({"role": "user", "content": "OK"},)}}) + "\n");
+            hash<auto> options = {"purpose": "batch", "file": {"name": "qore-5425.jsonl", "content": bytes}};
+            if (expiration) {
+                options.expires_after = {"anchor": "created_at", "seconds": 259200};
+            }
+            auto file = prov.getChildProvider("create-file").doRequest(options);
+            string id = file.id;
+            on_exit {
+                auto deleted = prov.getChildProvider("delete-file").doRequest({"file_id": id});
+                assertTrue(deleted.deleted, "temporary upload cleanup");
+            }
+            auto metadata = prov.getChildProvider("get-file").doRequest({"file_id": id});
+            assertEq("qore-5425.jsonl", metadata.filename);
+            if (expiration) {
+                assertEq(259200, int(get_epoch_seconds(file.expires_at) - get_epoch_seconds(file.created_at)));
+            }
+            auto content = prov.getChildProvider("download-file").doRequest({"file_id": id});
+            assertEq(bytes.toString(), content.toString());
+        }
+        AzureOpenAiRestConnection invalid({"name": "invalid", "url": ENV.AZURE_OPENAI_ENDPOINT,
+            "opts": {"api_key": "qore-invalid-key"}});
+        *hash<ExceptionInfo> error;
+        try {
+            invalid.ping(True);
+        } catch (hash<ExceptionInfo> ex) {
+            error = ex;
+        }
+        assertTrue(exists error);
+        assertEq(401, error.arg.status_code);
     }
 
     private setupServer() {
@@ -199,16 +248,12 @@ public class AzureOpenAiDataProviderTest inherits QUnit::Test {
                 AzureOpenAiDataProvider::AppName, action_name);
             assertEq(NT_BOOLEAN, action.mutates_state.typeCode(),
                 action_name + " publishes a typed mutation effect");
-            assertFalse(DataProviderActionCatalog::actionMutatesState(action),
-                action_name + " is pure inference by its producer contract");
+            assertEq(action_name == "chat-completion", DataProviderActionCatalog::actionMutatesState(action),
+                "chat can store completions; embedding only returns vectors");
         }
     }
 
     private chatCompletionTest() {
-        AzureOpenAiDataProviderTest::checkJson(self);
-        if (!http) {
-            testSkip("no fake server");
-        }
         AzureOpenAiChatCompletionDataProvider p(buildOptions());
         auto resp = p.doRequest({
             "deployment": "gpt-4o",
@@ -226,10 +271,6 @@ public class AzureOpenAiDataProviderTest inherits QUnit::Test {
     }
 
     private embeddingTest() {
-        AzureOpenAiDataProviderTest::checkJson(self);
-        if (!http) {
-            testSkip("no fake server");
-        }
         AzureOpenAiEmbeddingDataProvider p(buildOptions());
         auto resp = p.doRequest({
             "deployment": "text-embedding-3-small",
@@ -240,10 +281,6 @@ public class AzureOpenAiDataProviderTest inherits QUnit::Test {
     }
 
     private deploymentPathTest() {
-        AzureOpenAiDataProviderTest::checkJson(self);
-        if (!http) {
-            testSkip("no fake server");
-        }
         AzureOpenAiChatCompletionDataProvider p(buildOptions());
         p.doRequest({
             "deployment": "my-gpt4o-deploy",
@@ -256,10 +293,6 @@ public class AzureOpenAiDataProviderTest inherits QUnit::Test {
     }
 
     private apiKeyHeaderTest() {
-        AzureOpenAiDataProviderTest::checkJson(self);
-        if (!http) {
-            testSkip("no fake server");
-        }
         AzureOpenAiChatCompletionDataProvider p(buildOptions());
         p.doRequest({
             "deployment": "gpt-4o",
@@ -269,14 +302,100 @@ public class AzureOpenAiDataProviderTest inherits QUnit::Test {
     }
 
     private childrenTest() {
-        AzureOpenAiDataProviderTest::checkJson(self);
-        if (!http) {
-            testSkip("no fake server");
-        }
         AzureOpenAiDataProvider::AzureOpenAiDataProvider root(buildOptions());
         list<string> names = root.getChildProviderNames();
         assertTrue(inlist("chat-completion", names));
         assertTrue(inlist("embedding", names));
+    }
+
+    private hash<auto> connectionConfig(*string key) {
+        return {"name": "azure-test", "url": "http://localhost:" + port,
+            "opts": {"api_key": key ?? "test-azure-key", "azure_api_version": "2024-12-01-preview"}};
+    }
+
+    private childRequestTest() {
+        AzureOpenAiDataProvider::AzureOpenAiDataProvider root(buildOptions()
+            + {"azure_api_version": "2024-12-01-preview"});
+        AbstractDataProvider child = root.getChildProvider("chat-completion");
+        auto response = child.doRequest({"deployment": "custom-chat",
+            "messages": ({"role": "user", "content": "hello"},)});
+        assertEq("Hello from Azure OpenAI", response.choices[0].message.content);
+        assertEq("test-azure-key", handler.last_api_key_header);
+        assertEq("/openai/v1/chat/completions?api-version=v1", handler.last_path);
+        assertEq("custom-chat", handler.last_body.model);
+        assertFalse(handler.last_body.hasKey("deployment"));
+        child = root.getChildProvider("embedding");
+        response = child.doRequest({"deployment": "custom-embedding", "input": "hello"});
+        assertEq((0.1, 0.2, 0.3), response.data[0].embedding);
+        assertEq("test-azure-key", handler.last_api_key_header);
+    }
+
+    private connectionTest() {
+        AzureOpenAiRestConnection conn(connectionConfig());
+        assertEq("AzureOpenAI", conn.getAppName());
+        assertEq("AzureOpenAI", conn.getInfo().app);
+        assertTrue(conn.ping(True).ok);
+        assertEq("/openai/v1/models", handler.last_path);
+        assertEq("test-azure-key", handler.last_api_key_header);
+        AbstractDataProvider root = conn.getDataProvider();
+        assertEq("azure-openai", root.getName());
+        auto response = root.getChildProvider("chat-completion").doRequest({"deployment": "custom-chat",
+            "messages": ({"role": "user", "content": "hello"},)});
+        assertEq("Hello from Azure OpenAI", response.choices[0].message.content);
+        assertEq("/openai/v1/chat/completions?api-version=v1", handler.last_path);
+        assertEq("custom-chat", handler.last_body.model);
+        assertFalse(handler.last_body.hasKey("deployment"));
+        AzureOpenAiRestConnection invalid(connectionConfig("invalid-key"));
+        assertThrows("REST-RESPONSE-ERROR", sub () { invalid.ping(True); });
+    }
+
+    private transportTest() {
+        AzureOpenAiRestConnection conn(connectionConfig());
+        AbstractRestClient sync = conn.get(False);
+        assertTrue(sync instanceof AzureOpenAiRestClient::AzureOpenAiRestClient);
+        assertEq("gpt-4.1-mini", sync.restGet("/openai/v1/models").body.data[0].id);
+        AbstractRestClient sync_copy = sync.copyWithUrl(sync.getUrl());
+        assertTrue(sync_copy instanceof AzureOpenAiRestClient::AzureOpenAiRestClient);
+        assertEq(200, sync_copy.restGet("/openai/v1/models").status_code);
+        AzureOpenAiRestClientIo async = cast<AzureOpenAiRestClientIo>(conn.getAsync(False));
+        auto response = async.restDoRequestAsync("GET", "/openai/v1/models", NOTHING, NOTHING).get();
+        assertEq(200, response.status_code);
+        AbstractRestClient copy = async.copyWithUrl(async.getUrl());
+        assertTrue(copy instanceof AzureOpenAiRestClientIo);
+        assertEq(200, copy.restDoRawRequest("GET", "/openai/v1/models", NOTHING, NOTHING).status_code);
+        async.setConnectionPath("/unchanged");
+        AzureOpenAiDataProvider::AzureOpenAiDataProvider root(async);
+        assertEq("/unchanged", async.getConnectionPath(), "constructing a provider preserves the caller's path");
+        assertEq(200, root.getRestClient().restGet("/openai/v1/models").status_code);
+    }
+
+    private connectionValidationTest() {
+        hash<ConnectionSchemeInfo> scheme = AzureOpenAiRestConnection::ConnectionScheme;
+        foreach string name in (("api_key", "azure_tenant_id", "azure_client_id", "azure_client_secret")) {
+            assertTrue(scheme.options{name}.required, name + " is marked required for its authentication mode");
+            assertTrue(scheme.options{name}.depends_on.val());
+        }
+        assertTrue(scheme.options.api_key.sensitive);
+        assertTrue(scheme.options.azure_client_secret.sensitive);
+        assertFalse(scheme.options.azure_managed_identity_client_id.required);
+        foreach string key in (("", " ")) {
+            hash<auto> cfg = connectionConfig();
+            cfg.opts.api_key = key;
+            assertThrows("AZURE-OPENAI-AUTH-ERROR", sub () { new AzureOpenAiRestConnection(cfg); });
+        }
+        hash<auto> cfg = connectionConfig();
+        remove cfg.opts.api_key;
+        assertThrows("AZURE-OPENAI-AUTH-ERROR", sub () { new AzureOpenAiRestConnection(cfg); });
+        cfg.opts.azure_auth_mode = "entra_client_credentials";
+        cfg.opts.azure_client_id = "client";
+        cfg.opts.azure_client_secret = "secret";
+        assertThrows("AZURE-OPENAI-AUTH-ERROR", sub () { new AzureOpenAiRestConnection(cfg); });
+        cfg.opts.azure_tenant_id = "tenant";
+        AzureOpenAiRestConnection entra(cfg);
+        assertTrue(entra.getExtendedInfoAsData().oauth2_client_credentials);
+        cfg.opts = {"azure_auth_mode": "entra_managed_identity"};
+        AzureOpenAiRestConnection managed(cfg);
+        assertFalse(managed.getExtendedInfoAsData().oauth2_client_credentials);
     }
 
     private hash<auto> buildOptions() {

@@ -4989,7 +4989,10 @@ public class OpenApi3Test inherits QUnit::Test {
         OpenApi3::SchemaObject nickname = pet.properties.nickname;
         assertTrue(tag.nullable);
         assertTrue(nickname.nullable);
-        hash<string, AbstractDataField> fields = pet.getDataType().getFields();
+        # The mapped base exposes complete alternatives, including inherited nullable fields.
+        QoreUnionDataType pet_type = cast<QoreUnionDataType>(pet.getDataType());
+        assertEq(2, pet_type.getUnionTypes().size());
+        hash<string, AbstractDataField> fields = pet_type.getUnionTypes()[0].getFields();
         assertEq(fields.tag.getType().getName(), fields.nickname.getType().getName());
         assertEq("*softstring", fields.tag.getType().getName());
 

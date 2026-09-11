@@ -35,9 +35,8 @@
 
 module AzureOpenAiRestClient {
     version = "1.0";
-    desc = "REST client and LLM provider for Azure OpenAI Service — speaks the "
-        "OpenAI chat-completions wire shape but routes through deployment-name URLs "
-        "and supports api-key, Entra client_credentials, and managed-identity auth";
+    desc = "Authenticated synchronous and asynchronous Azure OpenAI REST clients and LLM provider "
+        "with API key, Entra client credentials, and managed identity authentication";
     author = "Qore Technologies, s.r.o.";
     url = "https://qore.org";
     license = "MIT";
@@ -55,10 +54,11 @@ module AzureOpenAiRestClient {
 
     @section azureopenairestclientintro Introduction to the AzureOpenAiRestClient Module
 
-    The %AzureOpenAiRestClient module wraps Azure OpenAI Service for use with
-    the @ref qorellmutilsintro "QoreLlmUtils" agent stack.  Azure OpenAI
-    speaks the OpenAI chat-completions wire shape but differs from OpenAI in
-    two ways this module handles transparently:
+    The %AzureOpenAiRestClient module provides authenticated synchronous and asynchronous REST clients,
+    the `azure-openai` connection scheme, and an LLM provider for the
+    [QoreLlmUtils](../../QoreLlmUtils/html/index.html) agent stack. The connection supports the
+    [AzureOpenAiDataProvider](../../AzureOpenAiDataProvider/html/index.html) v1 actions. The separate LLM provider
+    retains deployment URLs for compatibility:
 
     - **URL routing**: chat completions are published per-deployment at
       <tt>/openai/deployments/{deployment}/chat/completions?api-version=...</tt>
@@ -77,7 +77,7 @@ module AzureOpenAiRestClient {
 
     - \c url (required): the Azure resource endpoint, e.g.
       \c "https://my-resource.openai.azure.com"
-    - \c azure_deployment (required): the deployment name
+    - \c azure_deployment (required for the LLM provider): the deployment name; v1 actions choose it per action
     - \c azure_api_version (optional): default \c "2024-10-21"
     - \c azure_auth_mode (optional, default \c "api_key"):
       \c "api_key", \c "entra_client_credentials", or
@@ -86,12 +86,21 @@ module AzureOpenAiRestClient {
       resource's primary or secondary key
     - For \c entra_client_credentials: \c azure_tenant_id,
       \c azure_client_id, \c azure_client_secret
-    - For \c entra_managed_identity: optional \c azure_client_id (for
-      user-assigned identities)
+    - For \c entra_managed_identity: optional \c azure_managed_identity_client_id (for
+      user-assigned identities); legacy \c azure_client_id remains supported
+
+    @par REST example
+    @code{.py}
+%requires AzureOpenAiRestClient
+AzureOpenAiRestClientIo client({
+    "url": ENV.AZURE_OPENAI_ENDPOINT, "api_key": ENV.AZURE_OPENAI_API_KEY,
+});
+auto models = client.restDoRequest("GET", "/openai/v1/models");
+    @endcode
 
     @par Capability gating
 
-    @ref AzureOpenAiLlmProviderFactory::getInfo() returns a
+    @ref AzureOpenAiRestClient::AzureOpenAiLlmProviderFactory::getInfo() returns a
     @ref QoreLlmUtils::LlmProviderInfo computed statically from
     \c azure_api_version: features only present in newer API versions are
     advertised only when the configured version meets the minimum.
@@ -106,7 +115,7 @@ AzureOpenAiLlmProvider p(<LlmBackendConfig>{
     "url": "https://my-resource.openai.azure.com",
     "model": "gpt-4o",  # deployment name
     "api_key": "<resource-key>",
-    "options": {
+    "provider_options": {
         "azure_deployment": "gpt-4o",
         "azure_api_version": "2024-10-21",
     },
@@ -117,9 +126,12 @@ hash<ChatResponse> r = p.chat((<ChatMessage>{"role": "user", "content": "hi"},))
     @section azureopenairestclientrelnotes Release Notes
 
     @subsection azureopenairestclient_v1_0 AzureOpenAiRestClient v1.0
-    - initial release: chat completions via the deployment-routed URL,
-      api-key + Entra client_credentials + managed-identity auth modes,
+    - initial release: authenticated synchronous and asynchronous REST clients, including raw requests
+      and client copies, with api-key + Entra client_credentials + managed-identity auth modes and the
       LLM provider registered under mode \c "azure-openai"
+    - connections expose the Azure OpenAI app and verify credentials with the v1 model listing
+    - conditional required credentials and a dedicated optional managed-identity client ID clarify setup
+    - the dated API version remains scoped to the legacy deployment-routed LLM interface
 */
 
 #! Contains all public definitions in the AzureOpenAiRestClient module
@@ -138,38 +150,187 @@ public const AuthModeEntraManagedIdentity = "entra_managed_identity";
 */
 public const DefaultEntraScope = "https://cognitiveservices.azure.com/.default";
 
+#! Shared configuration and request authentication for Azure OpenAI clients
+/** Authentication configuration is immutable after construction. Entra tokens are obtained through
+    AzureAuth's synchronized cache for each request, so copied clients retain automatic token refresh.
+*/
+public class AzureOpenAiRestClientBase {
+    public {
+        #! Options owned by this module rather than by the generic REST transport
+        const AzureOptions = ("azure_deployment", "azure_api_version", "azure_auth_mode", "api_key",
+            "azure_tenant_id", "azure_client_id", "azure_client_secret", "azure_entra_scope",
+            "azure_managed_identity_client_id");
+    }
+
+    private {
+        #! Immutable authentication and deployment configuration
+        hash<auto> azure_options;
+    }
+
+    #! Captures the Azure configuration for authentication and transport copies
+    /** @param options Azure client options */
+    constructor(hash<auto> options) {
+        azure_options = options{AzureOptions};
+    }
+
+    #! Validates the credentials required by the selected authentication mode
+    /** @param options Azure client or connection options
+        @throw AZURE-OPENAI-AUTH-ERROR missing credentials or unknown authentication mode
+    */
+    static validateOptions(hash<auto> options) {
+        string mode = options.azure_auth_mode ?? AuthModeApiKey;
+        list<string> required;
+        switch (mode) {
+            case AuthModeApiKey:
+                required = ("api_key",);
+                break;
+            case AuthModeEntraClientCredentials:
+                required = ("azure_tenant_id", "azure_client_id", "azure_client_secret");
+                break;
+            case AuthModeEntraManagedIdentity:
+                return;
+            default:
+                throw "AZURE-OPENAI-AUTH-ERROR", sprintf("Unknown authentication mode %y", mode);
+        }
+        foreach string name in (required) {
+            if (options{name}.typeCode() != NT_STRING || !trim(options{name})) {
+                throw "AZURE-OPENAI-AUTH-ERROR", sprintf("Authentication mode %y requires %s", mode, name);
+            }
+        }
+    }
+
+    #! Returns generic transport options with explicit JSON serialization
+    /** @param options Azure client options
+        @return options understood by RestClient or RestClientIo
+        @throw AZURE-OPENAI-AUTH-ERROR invalid authentication configuration
+    */
+    static hash<auto> getOptions(hash<auto> options) {
+        AzureOpenAiRestClientBase::validateOptions(options);
+        hash<auto> rv = options - AzureOptions;
+        if (!rv.data || rv.data == "auto") {
+            rv.data = "json";
+        }
+        rv.headers = {"accept": MimeTypeJson} + rv.headers;
+        # Authentication is applied per request, independently of generic OAuth2/token options.
+        rv -= ("token", "token_type", "token_api_key_header", "oauth2_grant_type");
+        return rv;
+    }
+
+    #! Returns the authentication header for the next request
+    /** @return API-key or refreshed Entra Bearer authentication
+        @throw any AzureAuth token acquisition error
+    */
+    private hash<auto> getAzureAuthHeader() {
+        string mode = azure_options.azure_auth_mode ?? AuthModeApiKey;
+        if (mode == AuthModeApiKey) {
+            return {"api-key": azure_options.api_key};
+        }
+        string scope = azure_options.azure_entra_scope ?? DefaultEntraScope;
+        string token;
+        if (mode == AuthModeEntraClientCredentials) {
+            token = AzureAuth::getEntraTokenClientCredentials(azure_options.azure_tenant_id,
+                azure_options.azure_client_id, azure_options.azure_client_secret, scope);
+        } else {
+            string resource = scope;
+            resource =~ s/\/\.default$//;
+            token = AzureAuth::getEntraTokenManagedIdentity(resource,
+                azure_options.azure_managed_identity_client_id ?? azure_options.azure_client_id);
+        }
+        return {"authorization": "Bearer " + token};
+    }
+}
+
+#! Synchronous Azure OpenAI REST client
+/** Provides authenticated JSON and binary requests to the resource endpoint. */
+public class AzureOpenAiRestClient inherits RestClient::RestClient, AzureOpenAiRestClientBase {
+    #! Creates an authenticated client, optionally deferring the connection
+    /** @param options Azure client and RestClient options
+        @param do_not_connect if True, connect only when requested
+        @throw AZURE-OPENAI-AUTH-ERROR invalid authentication configuration
+        @throw any transport construction or connection error
+    */
+    constructor(hash<auto> options, *softbool do_not_connect)
+            : RestClient(AzureOpenAiRestClientBase::getOptions(options), True),
+                AzureOpenAiRestClientBase(options) {
+        if (!do_not_connect) {
+            connect();
+        }
+    }
+
+    private signRequest(string method, *string path, *data body, reference<hash<auto>> hdr) {
+        hdr += getAzureAuthHeader();
+    }
+
+    private AbstractRestClient copySelf(hash<auto> options) {
+        return new AzureOpenAiRestClient(options + azure_options, True);
+    }
+}
+
+#! Multiplexed Azure OpenAI REST client
+/** Authentication is applied to ordinary, asynchronous, streaming, and pre-serialized requests. */
+public class AzureOpenAiRestClientIo inherits RestClientIo::RestClientIo, AzureOpenAiRestClientBase {
+    #! Creates an authenticated client using an optional shared connection manager
+    /** @param options Azure client and RestClientIo options
+        @param shared_mgr an optional shared connection manager
+        @throw AZURE-OPENAI-AUTH-ERROR invalid authentication configuration
+        @throw any transport construction error
+    */
+    constructor(hash<auto> options, *HttpClientIo::HttpClientConnectionManager shared_mgr)
+            : RestClientIo(AzureOpenAiRestClientBase::getOptions(options)
+                - keys AbstractRestClient::Http1OnlyOptions, shared_mgr), AzureOpenAiRestClientBase(options) {
+    }
+
+    private hash<auto> prepareRequestIntern(string method, reference<string> path, auto body,
+            reference<*hash<auto>> hdr, bool raw) {
+        hdr = (hdr ?? {}) + getAzureAuthHeader();
+        return RestClientIo::prepareRequestIntern(method, \path, body, \hdr, raw);
+    }
+
+    private AbstractRestClient copySelf(hash<auto> options) {
+        return new AzureOpenAiRestClientIo(options + azure_options, getConnectionManager());
+    }
+}
+
 #! Azure OpenAI REST connection (registered under the \c "azure-openai" scheme)
 public class AzureOpenAiRestConnection inherits RestClient::RestConnection {
     public {
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "display_name": "Azure OpenAI Connection",
             "short_desc": "A connection to an Azure OpenAI Service resource",
-            "desc": "A connection to an Azure OpenAI Service resource — "
-                "speaks the OpenAI chat-completions wire shape via "
-                "deployment-routed URLs and supports api-key + Entra ID auth",
+            "desc": "Connect to an Azure OpenAI resource for model inference, files, batches, and retrieval. "
+                "Authenticate with a resource API key or Microsoft Entra ID. Connection pings verify "
+                "authentication without generating content.",
             "cls": Class::forName("AzureOpenAiRestConnection"),
             "schemes": {"azure-openai": True},
+            "base_scheme_map": {"https": "azure-openai"},
             "options": RestConnection::ConnectionScheme.options + {
                 "azure_deployment": <ConnectionOptionInfo>{
-                    "display_name": "Azure Deployment",
+                    "display_name": "Default Model Deployment",
                     "short_desc": "Azure OpenAI deployment name",
                     "type": "string",
-                    "desc": "The Azure OpenAI deployment name (used in the URL "
-                        "path: /openai/deployments/{deployment}/...)",
+                    "desc": "Deployment used by the LLM provider. In the Azure Foundry portal, open Models and "
+                        "endpoints and copy the deployment name. Actions can choose another deployment.",
+                    "example_value": "my-chat-deployment",
                 },
                 "azure_api_version": <ConnectionOptionInfo>{
-                    "display_name": "Azure API Version",
+                    "display_name": "Legacy API Version",
                     "short_desc": "Azure OpenAI REST API version",
                     "type": "string",
-                    "desc": "Azure OpenAI REST API version (e.g. 2024-10-21)",
+                    "desc": "API version for the LLM provider and legacy deployment URLs. The v1 actions do not "
+                        "require an API version. Use a supported date or preview version.",
+                    "allowed_values": (<AllowedValueInfo>{"value": "2024-10-21",
+                        "display_name": "2024-10-21 (Stable)"},),
+                    "allowed_values_creatable": True,
                     "default_value": DefaultAzureApiVersion,
                 },
                 "azure_auth_mode": <ConnectionOptionInfo>{
-                    "display_name": "Azure Auth Mode",
+                    "display_name": "Authentication",
                     "short_desc": "Authentication mode",
                     "type": "string",
-                    "desc": "Authentication mode: 'api_key', "
-                        "'entra_client_credentials', or 'entra_managed_identity'",
+                    "desc": "Use a resource API key for development, a registered Entra application for a service, "
+                        "or the identity assigned to an Azure host.",
+                    "preselected": True,
+                    "has_dependents": True,
                     "default_value": AuthModeApiKey,
                     "allowed_values": (
                         <AllowedValueInfo>{"value": AuthModeApiKey,
@@ -187,41 +348,56 @@ public class AzureOpenAiRestConnection inherits RestClient::RestConnection {
                     "display_name": "API Key",
                     "short_desc": "Azure OpenAI resource api-key",
                     "type": "string",
-                    "desc": "Primary or secondary api-key for the Azure OpenAI "
-                        "resource (used when azure_auth_mode = 'api_key')",
+                    "desc": "Key 1 or Key 2 from the Azure resource Keys and Endpoint page. Either key works.",
+                    "required": True,
+                    "depends_on": ("azure_auth_mode=api_key",),
                     "sensitive": True,
+                    "preselected": True,
                 },
                 "azure_tenant_id": <ConnectionOptionInfo>{
                     "display_name": "Entra Tenant ID",
                     "short_desc": "Tenant ID for Entra auth",
                     "type": "string",
-                    "desc": "Entra tenant ID (GUID or domain). Used by "
-                        "client_credentials auth.",
+                    "desc": "Tenant ID or domain of the Entra application used for authentication.",
+                    "required": True,
+                    "depends_on": ("azure_auth_mode=entra_client_credentials",),
                 },
                 "azure_client_id": <ConnectionOptionInfo>{
                     "display_name": "Entra Client ID",
                     "short_desc": "Client ID for Entra auth",
                     "type": "string",
-                    "desc": "Entra registered-app client ID. Used by both "
-                        "client_credentials and (optionally) managed_identity "
-                        "(user-assigned identity).",
+                    "desc": "Application (client) ID of the Entra application. Assign it access to this Azure OpenAI resource.",
+                    "required": True,
+                    "depends_on": ("azure_auth_mode=entra_client_credentials",),
                 },
                 "azure_client_secret": <ConnectionOptionInfo>{
                     "display_name": "Entra Client Secret",
                     "short_desc": "Client secret for Entra auth",
                     "type": "string",
-                    "desc": "Entra registered-app client secret. Used by "
-                        "client_credentials auth.",
+                    "desc": "Client secret value of the Entra application, not the secret identifier.",
+                    "required": True,
+                    "depends_on": ("azure_auth_mode=entra_client_credentials",),
                     "sensitive": True,
                 },
                 "azure_entra_scope": <ConnectionOptionInfo>{
                     "display_name": "Entra Scope",
                     "short_desc": "OAuth2 scope to request",
                     "type": "string",
-                    "desc": "OAuth2 scope to request when using Entra auth; "
-                        "default 'https://cognitiveservices.azure.com/.default'",
+                    "desc": "OAuth2 scope for the Azure resource. Keep the default for Azure OpenAI.",
                     "default_value": DefaultEntraScope,
                 },
+                "azure_managed_identity_client_id": <ConnectionOptionInfo>{
+                    "display_name": "Managed Identity Client ID",
+                    "short_desc": "Optional client ID of a user-assigned managed identity",
+                    "type": "string",
+                    "desc": "Leave empty to use the host's system-assigned identity. For a user-assigned "
+                        "identity, supply its client ID. The host must provide Azure managed identity access.",
+                    "depends_on": ("azure_auth_mode=entra_managed_identity",),
+                },
+                "ping_method": RestConnection::ConnectionScheme.options.ping_method
+                    + <ConnectionOptionInfo>{"default_value": "GET"},
+                "ping_path": RestConnection::ConnectionScheme.options.ping_path
+                    + <ConnectionOptionInfo>{"default_value": "/openai/v1/models"},
             },
         };
     }
@@ -229,13 +405,46 @@ public class AzureOpenAiRestConnection inherits RestClient::RestConnection {
     constructor(string name, string description, string url, hash<auto> attributes = {},
             hash<auto> options = {}) : RestConnection(name, description, url,
                 attributes, options) {
+        AzureOpenAiRestClientBase::validateOptions(opts);
     }
 
     constructor(hash<auto> config, *hash<auto> attr) : RestConnection(config, attr) {
+        AzureOpenAiRestClientBase::validateOptions(opts);
     }
 
     string getType() {
         return "azure-openai";
+    }
+
+    #! Returns the application associated with this connection
+    /** @return the Azure OpenAI app identity */
+    *string getAppName() {
+        return "AzureOpenAI";
+    }
+
+    #! Returns the Azure OpenAI action provider with this connection's authenticated transport
+    /** @param constructor_options additional provider constructor options
+        @return a connected AzureOpenAiDataProvider
+        @throw any provider loading or construction error
+    */
+    AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
+        load_module("AzureOpenAiDataProvider");
+        return create_object("AzureOpenAiDataProvider", (constructor_options ?? {}) + {
+            "restclient": getAsync(False),
+            "azure_api_version": opts.azure_api_version,
+        });
+    }
+
+    private setChildCapabilities() {
+        children_can_support_apis = True;
+    }
+
+    private AzureOpenAiRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        return new AzureOpenAiRestClient(getConnectionOptions(rtopts), !connect);
+    }
+
+    private object getAsyncImpl(bool connect = True, *hash<auto> rtopts) {
+        return new AzureOpenAiRestClientIo(getConnectionOptions(rtopts));
     }
 
     private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
@@ -313,7 +522,9 @@ public class AzureOpenAiLlmProvider inherits OpenAiRestClient::OpenAiLlmProvider
         auth_mode = config.provider_options.azure_auth_mode
             ?? AzureOpenAiRestClient::AuthModeApiKey;
         tenant_id = config.provider_options.azure_tenant_id;
-        client_id = config.provider_options.azure_client_id;
+        client_id = config.provider_options.azure_auth_mode == AuthModeEntraManagedIdentity
+            ? (config.provider_options.azure_managed_identity_client_id ?? config.provider_options.azure_client_id)
+            : config.provider_options.azure_client_id;
         client_secret = config.provider_options.azure_client_secret;
         entra_scope = config.provider_options.azure_entra_scope
             ?? AzureOpenAiRestClient::DefaultEntraScope;

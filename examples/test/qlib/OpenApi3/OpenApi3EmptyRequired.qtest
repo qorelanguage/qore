@@ -1,0 +1,59 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright 2026 Qore Technologies, s.r.o.
+
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/OpenApi3.qm
+%requires json
+%exec-class OpenApi3EmptyRequiredTest
+
+class OpenApi3EmptyRequiredTest inherits QUnit::Test {
+    constructor() : Test("OpenAPI empty required arrays", "1.0", \ARGV) {
+        addTestCase("modern schemas accept empty required arrays", \emptyRequiredTest());
+        addTestCase("nonempty required arrays still enforce presence", \requiredFieldTest());
+        addTestCase("legacy schemas retain their required-array constraint", \legacyTest());
+        set_return_value(main());
+    }
+
+    private OpenApi3Schema schema(string version, list<string> required) {
+        return OpenApi3Loader::fromString(make_json({
+            "openapi": version, "info": {"title": "Optional container file", "version": "1"},
+            "paths": {}, "components": {"schemas": {"File": {
+                "type": "object", "required": required, "additionalProperties": False,
+                "properties": {"file_id": {"type": "string"}},
+            }}},
+        }), True);
+    }
+
+    private auto check(SchemaObject s, auto value) {
+        s.check(False, True, "/containers/files", "POST", "body", \value);
+        return value;
+    }
+
+    private emptyRequiredTest() {
+        foreach string version in (("3.1.0", "3.2.0")) {
+            OpenApi3Schema doc = schema(version, ());
+            SchemaObject s = doc.components.schemas.File;
+            assertEq({}, check(s, {}));
+            assertEq({"file_id": "file-test"}, check(s, {"file_id": "file-test"}));
+            assertFalse(s.getField("file_id", NOTHING, False).getAttributes().required ?? False);
+            assertThrows("SCHEMA-VALIDATION-ERROR", sub () { check(s, {"unknown": "field"}); });
+            assertThrows("SCHEMA-VALIDATION-ERROR", sub () { check(s, parse_json("null")); });
+        }
+    }
+
+    private requiredFieldTest() {
+        foreach string version in (("3.0.3", "3.1.0", "3.2.0")) {
+            OpenApi3Schema doc = schema(version, ("file_id",));
+            SchemaObject s = doc.components.schemas.File;
+            assertThrows("SCHEMA-VALIDATION-ERROR", sub () { check(s, {}); });
+            assertEq({"file_id": "file-test"}, check(s, {"file_id": "file-test"}));
+        }
+    }
+
+    private legacyTest() {
+        assertThrows("INVALID-FIELD-FORMAT", sub () { schema("3.0.3", ()); });
+    }
+}

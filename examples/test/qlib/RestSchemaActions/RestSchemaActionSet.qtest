@@ -886,15 +886,14 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
         assertEq("*softint", cast<QoreUnionDataType>(typed.getRequestFields().body.getType())
             .getUnionTypes()[0].getFields().secret.getType().getName());
 
-        # a codec is recorded per field name, and the same name would need a different conversion in
-        # each alternative, so it is refused rather than applied to whichever one matches at run time
-        assertThrows("REST-SCHEMA-ACTION-ERROR", "needs a wire conversion", sub () {
+        # a codec on a field declared by only one branch cannot be applied uniformly.
+        assertThrows("REST-SCHEMA-ACTION-ERROR", "different wire conversions", sub () {
             makeOp(entry("create-subscription", "POST", "/subscriptions", {
                 "flatten_body": False,
                 "fields": {
                     "body": <RestSchemaFieldOverlayInfo>{
                         "fields": {
-                            "secret": <RestSchemaFieldOverlayInfo>{
+                            "url": <RestSchemaFieldOverlayInfo>{
                                 "codec": RestSchemaActionCodecs::UnixSeconds,
                             },
                         },

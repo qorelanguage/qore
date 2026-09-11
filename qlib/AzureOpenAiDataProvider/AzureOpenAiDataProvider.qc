@@ -36,15 +36,6 @@ public class AzureOpenAiDataProvider inherits AzureOpenAiDataProviderCommon {
         };
     }
 
-    private {
-        const ChildMap = {
-            "chat-completion": Class::forName(
-                "AzureOpenAiDataProvider::AzureOpenAiChatCompletionDataProvider"),
-            "embedding": Class::forName(
-                "AzureOpenAiDataProvider::AzureOpenAiEmbeddingDataProvider"),
-        };
-    }
-
     constructor(RestClientIo::RestClientIo rest) : AzureOpenAiDataProviderCommon(rest) {
     }
 
@@ -55,20 +46,17 @@ public class AzureOpenAiDataProvider inherits AzureOpenAiDataProviderCommon {
         return ProviderInfo.name;
     }
 
-    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
-    }
-
     private *list<string> getChildProviderNamesImpl() {
-        return keys ChildMap;
+        return AzureOpenAiSchema::getActionSet().getActionNames();
     }
 
     private *AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = ChildMap{name};
-        if (!cls) {
+        RestSchemaActionSet actions = AzureOpenAiSchema::getActionSet();
+        *RestSchemaActionOperation op = actions.getOperation(name);
+        if (!op) {
             return;
         }
-        return cls.newObject(rest);
+        return new RestSchemaActionDataProvider(actions, op, rest);
     }
 
     private hash<DataProviderInfo> getStaticInfoImpl() {

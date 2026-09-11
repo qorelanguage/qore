@@ -697,7 +697,9 @@ imap_t::iterator QoreSerializable::serializeHashToIndexIntern(const QoreHashNode
         // issue #3318: write complex type to stream, if any
         const QoreTypeInfo* vti = h.getValueTypeInfo();
         //printd(5, "QoreSerializable::serializeHashToData() vti: '%s'\n", QoreTypeInfo::getName(vti));
-        rv->setKeyValue("_hash", new QoreStringNodeMaker("^%s", QoreTypeInfo::getName(vti)), xsink);
+        // Persist namespace-qualified types: short class names can resolve to a different
+        // module when several schema providers are loaded in the same program.
+        rv->setKeyValue("_hash", new QoreStringNodeMaker("^%s", QoreTypeInfo::getPath(vti)), xsink);
     }
 
     // serialize hash members
@@ -759,7 +761,7 @@ imap_t::iterator QoreSerializable::serializeListToIndexIntern(const QoreListNode
     // issue #3318: write complex type to stream, if any
     const QoreTypeInfo* vti = l.getValueTypeInfo();
     //printd(5, "QoreSerializable::serializeHashToData() vti: '%s'\n", QoreTypeInfo::getName(vti));
-    rv->setKeyValue("_list", new QoreStringNode(QoreTypeInfo::getName(vti)), xsink);
+    rv->setKeyValue("_list", new QoreStringNode(QoreTypeInfo::getPath(vti)), xsink);
 
     ReferenceHolder<QoreListNode> serialized_list(xsink);
 
@@ -1429,7 +1431,14 @@ QoreValue QoreSerializable::deserializeListData(QoreValue v, const QoreHashNode&
     }
 
     if (elements.isNothing()) {
-        return rval ? rval->listRefSelf() : new QoreListNode(vti);
+        if (rval) {
+            // Indexed containers start as list<auto>. Empty lists have no element pass
+            // below, but still need the declared type before their owner uses them.
+            qore_list_private::get(*rval)->complexTypeInfo
+                = (vti == anyTypeInfo ? nullptr : qore_get_complex_list_type(vti));
+            return rval->listRefSelf();
+        }
+        return new QoreListNode(vti);
     }
     ValueHolder rv(deserializeListData(*elements.get<const QoreListNode>(), context, xsink, rval), xsink);
     if (*xsink) {

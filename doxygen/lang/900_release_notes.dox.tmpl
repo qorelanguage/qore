@@ -1522,6 +1522,12 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
     Compact native date-string construction uses a growing buffer, fixing a buffer overrun for extended
     calendar years; compact concatenation also retains the negative year's complete padded magnitude.
 
+    @par Qualified Container Types in Serialized Data
+    @ref Qore::Serializable "Serializable" writes namespace-qualified list element and hash value types,
+    so a container of a class named by two modules loaded in the same %Program deserializes to the class
+    the data was written from. Unqualified types written by earlier versions are still accepted. An empty
+    indexed list also retains its declared element type after deserialization.
+
     @par Safe Cleanup of Invalid Serialized Containers
     @ref Qore::Serializable "Serializable" now retains ownership of indexed hashes and lists when
     deserialization rejects a member or reference. Malformed input raises the original type or
@@ -2124,10 +2130,13 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       - new module providing a REST client for <a href="https://azure.microsoft.com/products/ai-services/ai-document-intelligence">Azure Document Intelligence</a>
 
     - @ref azureopenaidataproviderintro "AzureOpenAiDataProvider" module
-      - new module providing a data provider API for Azure OpenAI Service — deployment-routed chat completions and embeddings
+      - new module providing 99 reviewed Azure OpenAI v1 actions, including Responses, media generation,
+        files, batches, evaluations, fine-tuning, realtime calls, conversations, and vector stores
+      - typed nested options, identifier dropdowns, and complete recursive catalogs in twelve locales
 
     - @ref azureopenairestclientintro "AzureOpenAiRestClient" module
-      - new module providing a REST client and \c LlmProvider for <a href="https://azure.microsoft.com/en-us/products/ai-services/openai-service/">Azure OpenAI Service</a>
+      - new module providing authenticated REST clients and a \c LlmProvider for <a href="https://azure.microsoft.com/en-us/products/ai-services/openai-service/">Azure OpenAI Service</a>
+      - credential-aware connection options and an authenticated, inference-free connection ping
 
     - @ref baselinkerdataproviderintro "BaseLinkerDataProvider" module
       - new module providing a data provider API for <a href="https://baselinker.com/">BaseLinker</a> multichannel e-commerce integration

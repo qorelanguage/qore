@@ -1292,3 +1292,43 @@ key's scope. Filters never become undocumented API parameters. The standard `val
 and deduplication rules apply to the resulting records. `value_template` assembles a resource name from
 scalar record fields, for example `projects/{projectId}/models/{id}`. Missing template fields are errors;
 the displayed label still comes from `display_field`.
+
+
+## Azure OpenAI v1 contracts and media uploads
+
+Azure OpenAI pins the vendor's v1 preview description and exports 99 reviewed operations. Ordinary
+operations use `api-version=v1`; audio, images, and video use `preview`. The original chat and embedding
+action identities retain `deployment`, mapped to the v1 `model` field. Deployment names are entered
+explicitly because the resource's data-plane model catalog does not enumerate Azure deployments.
+Retired Assistants threads and DALL-E 2 image variations are excluded.
+
+The checked import spec repairs specific generated contract errors: multipart files and media fields,
+optional file expiration with Azure's three-to-thirty-day bounds, video reference images, evaluation
+HTTP metadata accidentally placed in the body, and realtime session request/response confusion.
+Nullable Unix timestamp declarations are normalized to integer-or-null rather than contradictory
+integer/string schemas. Response overlays expose Unix timestamps as Qore dates, including nested
+collections, optional completion times, and epoch zero.
+Every repair carries its expected upstream value and supporting source. The runtime does not download
+or rewrite schemas. Batch input and container-file source alternatives use manifest required groups.
+
+The shared OpenAPI parser expands server defaults before parsing the URL. An empty `{endpoint}` default
+therefore produces `/openai/v1`, with the origin supplied by the authenticated connection. Discriminator
+mappings produce typed branches even when the base declares no `oneOf`; pruning follows their reference
+closure, including short component names and escaped JSON pointers. Both resolve a mapping value the same
+way, so a bare component name names the same schema in each. A mapped branch keeps its mapping in every
+form of its type - optional, soft and mandatory - so an optional property is still validated against the
+branch its discriminator names rather than against whichever alternative happens to match. A mapping that
+leads back to the schema declaring it, directly or through other mappings, is rejected as an invalid
+reference: validation follows mapping edges with the value unchanged, so such a cycle never terminates.
+
+Multipart encoding belongs to declared schema positions. Ordinary objects containing `name`, `content`,
+or `value` remain JSON objects; named uploads are decoded only at binary positions. File arrays emit
+repeated named parts, preserving each filename and its bytes. Structured fields honor JSON or form
+encoding, including Azure's `expires_after[seconds]`. Empty objects, lists, strings, false, and zero
+are retained wherever the contract permits them.
+
+A codec can apply across a union when every alternative has the same conversion tree. The converted
+union validates action values, converts to the wire type for composition checks, and converts back.
+Serializable conversion trees contain registered codec names rather than closures. Different branch
+conversions are rejected because selecting a wire conversion from presentation metadata is ambiguous.
+An optional converted union retains both its conversion and its schema-backed wire contract.

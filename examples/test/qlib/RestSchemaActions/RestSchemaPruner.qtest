@@ -98,6 +98,7 @@ public class RestSchemaPrunerTest inherits QUnit::Test {
     constructor() : Test("RestSchemaPrunerTest", "1.0") {
         addTestCase("method and path filtering", \filteringTest());
         addTestCase("transitive and recursive refs", \transitiveTest());
+        addTestCase("discriminator mapping closure", \discriminatorTest());
         addTestCase("shared refs", \sharedTest());
         addTestCase("path-level parameters", \pathParametersTest());
         addTestCase("metadata and security", \metadataTest());
@@ -110,6 +111,28 @@ public class RestSchemaPrunerTest inherits QUnit::Test {
         addTestCase("negative cases", \negativeTest());
         addTestCase("an operation naming its own host", \ownServersTest());
         set_return_value(main());
+    }
+
+    private discriminatorTest() {
+        hash<auto> source = Schema;
+        source.components.schemas.A = source.components.schemas.A + {"discriminator": {"propertyName": "kind", "mapping": {
+            "mapped": "#/components/schemas/Mapped", "bare": "Bare~Name",
+            "external": "https://example.com/models.json#/External",
+        }}};
+        source.components.schemas.Mapped = {"type": "object", "properties": {
+            "parent": {"\$ref": "#/components/schemas/A"},
+        }};
+        source.components.schemas."Bare~Name" = {"type": "string"};
+        hash<auto> original = source;
+        hash<PruneResultInfo> result = RestSchemaPruner::prune(source, (GetA,));
+        assertTrue(result.schema.components.schemas.hasKey("Mapped"));
+        assertTrue(result.schema.components.schemas.hasKey("Bare~Name"));
+        assertFalse(result.schema.components.schemas.hasKey("Orphan"));
+        assertEq(source.components.schemas.A.discriminator, result.schema.components.schemas.A.discriminator);
+        assertEq(original, source, "following mapped references does not rewrite the source");
+        assertEq(result.schema, RestSchemaPruner::prune(source, (GetA,)).schema);
+        source.components.schemas.A.discriminator.mapping.broken = "Missing";
+        assertThrows("REST-SCHEMA-PRUNE-ERROR", sub () { RestSchemaPruner::prune(source, (GetA,)); });
     }
 
     #! An operation that names its own host is refused rather than pruned and silently misrouted

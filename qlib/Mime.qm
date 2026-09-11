@@ -2326,6 +2326,22 @@ hash: (2 members)
             addPartIntern(mime_data, getPartHeader(name, NOTHING, NOTHING, hdr));
         }
 
+        #! Adds a named file or field while allowing repeated form names
+        /** @param h the part body, name, optional filename, and headers
+            @throw MULTIPART-FORMDATA-ERROR the part name is empty, or a filename has no content type
+            @note Use MultiPartMessage::parseBody() to retain all parts when decoding repeated names.
+            @since %Mime 1.9
+        */
+        addRepeatedPart(hash<FormDataMessageInfo> h) {
+            if (h.name.empty()) {
+                throw "MULTIPART-FORMDATA-ERROR", "missing name of the part";
+            }
+            hash<auto> hdr = getPartHeader(h.name, h.filename, h.hdr."Content-Type" ?? h.hdr."content-type",
+                h.hdr - ("Content-Type", "content-type"));
+            parts{h.name} = True;
+            addPartIntern(h.body, hdr);
+        }
+
         #! adds a message part to the end of the list
         /** @param h the information for this part
 

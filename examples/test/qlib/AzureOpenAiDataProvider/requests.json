@@ -1,0 +1,879 @@
+[
+  {
+    "action": "create-speech",
+    "method": "POST",
+    "path": "/audio/speech",
+    "request": {
+      "model": "fixture",
+      "input": "fixture",
+      "voice": "alloy"
+    }
+  },
+  {
+    "action": "create-transcription",
+    "method": "POST",
+    "path": "/audio/transcriptions",
+    "request": {
+      "file": {
+        "name": "fixture.txt",
+        "content": "dGVzdA==",
+        "mime_type": "application/octet-stream"
+      },
+      "model": "fixture"
+    }
+  },
+  {
+    "action": "create-translation",
+    "method": "POST",
+    "path": "/audio/translations",
+    "request": {
+      "file": {
+        "name": "fixture.txt",
+        "content": "dGVzdA==",
+        "mime_type": "application/octet-stream"
+      },
+      "model": "fixture"
+    }
+  },
+  {
+    "action": "create-batch",
+    "method": "POST",
+    "path": "/batches",
+    "request": {
+      "endpoint": "/v1/chat/completions",
+      "completion_window": "24h",
+      "input_file_id": "file-input"
+    }
+  },
+  {
+    "action": "list-batches",
+    "method": "GET",
+    "path": "/batches",
+    "request": {}
+  },
+  {
+    "action": "get-batch",
+    "method": "GET",
+    "path": "/batches/{batch_id}",
+    "request": {
+      "batch_id": "fixture"
+    }
+  },
+  {
+    "action": "cancel-batch",
+    "method": "POST",
+    "path": "/batches/{batch_id}/cancel",
+    "request": {
+      "batch_id": "fixture"
+    }
+  },
+  {
+    "action": "chat-completion",
+    "method": "POST",
+    "path": "/chat/completions",
+    "request": {
+      "messages": [
+        {
+          "role": "user",
+          "content": "Summarize invoice 42."
+        }
+      ],
+      "deployment": "fixture"
+    }
+  },
+  {
+    "action": "create-completion",
+    "method": "POST",
+    "path": "/completions",
+    "request": {
+      "model": "fixture"
+    }
+  },
+  {
+    "action": "list-containers",
+    "method": "GET",
+    "path": "/containers",
+    "request": {}
+  },
+  {
+    "action": "create-container",
+    "method": "POST",
+    "path": "/containers",
+    "request": {
+      "name": "fixture"
+    }
+  },
+  {
+    "action": "get-container",
+    "method": "GET",
+    "path": "/containers/{container_id}",
+    "request": {
+      "container_id": "fixture"
+    }
+  },
+  {
+    "action": "delete-container",
+    "method": "DELETE",
+    "path": "/containers/{container_id}",
+    "request": {
+      "container_id": "fixture"
+    }
+  },
+  {
+    "action": "list-container-files",
+    "method": "GET",
+    "path": "/containers/{container_id}/files",
+    "request": {
+      "container_id": "fixture"
+    }
+  },
+  {
+    "action": "create-container-file",
+    "method": "POST",
+    "path": "/containers/{container_id}/files",
+    "request": {
+      "container_id": "fixture",
+      "file_id": "file-input"
+    }
+  },
+  {
+    "action": "get-container-file",
+    "method": "GET",
+    "path": "/containers/{container_id}/files/{file_id}",
+    "request": {
+      "container_id": "fixture",
+      "file_id": "fixture"
+    }
+  },
+  {
+    "action": "delete-container-file",
+    "method": "DELETE",
+    "path": "/containers/{container_id}/files/{file_id}",
+    "request": {
+      "container_id": "fixture",
+      "file_id": "fixture"
+    }
+  },
+  {
+    "action": "get-container-file-content",
+    "method": "GET",
+    "path": "/containers/{container_id}/files/{file_id}/content",
+    "request": {
+      "container_id": "fixture",
+      "file_id": "fixture"
+    }
+  },
+  {
+    "action": "create-conversation",
+    "method": "POST",
+    "path": "/conversations",
+    "request": {}
+  },
+  {
+    "action": "get-conversation",
+    "method": "GET",
+    "path": "/conversations/{conversation_id}",
+    "request": {
+      "conversation_id": "fixture"
+    }
+  },
+  {
+    "action": "update-conversation",
+    "method": "POST",
+    "path": "/conversations/{conversation_id}",
+    "request": {
+      "conversation_id": "fixture",
+      "metadata": {}
+    }
+  },
+  {
+    "action": "delete-conversation",
+    "method": "DELETE",
+    "path": "/conversations/{conversation_id}",
+    "request": {
+      "conversation_id": "fixture"
+    }
+  },
+  {
+    "action": "list-conversation-items",
+    "method": "GET",
+    "path": "/conversations/{conversation_id}/items",
+    "request": {
+      "conversation_id": "fixture"
+    }
+  },
+  {
+    "action": "create-conversation-items",
+    "method": "POST",
+    "path": "/conversations/{conversation_id}/items",
+    "request": {
+      "conversation_id": "fixture",
+      "items": [
+        {
+          "role": "user",
+          "content": "fixture",
+          "type": "message"
+        }
+      ]
+    }
+  },
+  {
+    "action": "get-conversation-item",
+    "method": "GET",
+    "path": "/conversations/{conversation_id}/items/{item_id}",
+    "request": {
+      "conversation_id": "fixture",
+      "item_id": "fixture"
+    }
+  },
+  {
+    "action": "delete-conversation-item",
+    "method": "DELETE",
+    "path": "/conversations/{conversation_id}/items/{item_id}",
+    "request": {
+      "conversation_id": "fixture",
+      "item_id": "fixture"
+    }
+  },
+  {
+    "action": "embedding",
+    "method": "POST",
+    "path": "/embeddings",
+    "request": {
+      "input": "fixture",
+      "deployment": "fixture"
+    }
+  },
+  {
+    "action": "list-evaluations",
+    "method": "GET",
+    "path": "/evals",
+    "request": {}
+  },
+  {
+    "action": "create-evaluation",
+    "method": "POST",
+    "path": "/evals",
+    "request": {
+      "data_source_config": {
+        "type": "custom",
+        "item_schema": {}
+      },
+      "testing_criteria": [
+        {
+          "type": "string_check",
+          "name": "Check answer",
+          "input": "{{sample.output_text}}",
+          "reference": "OK",
+          "operation": "eq"
+        }
+      ]
+    }
+  },
+  {
+    "action": "get-evaluation",
+    "method": "GET",
+    "path": "/evals/{eval_id}",
+    "request": {
+      "eval_id": "fixture"
+    }
+  },
+  {
+    "action": "update-evaluation",
+    "method": "POST",
+    "path": "/evals/{eval_id}",
+    "request": {
+      "eval_id": "fixture"
+    }
+  },
+  {
+    "action": "delete-evaluation",
+    "method": "DELETE",
+    "path": "/evals/{eval_id}",
+    "request": {
+      "eval_id": "fixture"
+    }
+  },
+  {
+    "action": "list-evaluation-runs",
+    "method": "GET",
+    "path": "/evals/{eval_id}/runs",
+    "request": {
+      "eval_id": "fixture"
+    }
+  },
+  {
+    "action": "create-evaluation-run",
+    "method": "POST",
+    "path": "/evals/{eval_id}/runs",
+    "request": {
+      "eval_id": "fixture",
+      "data_source": {
+        "type": "jsonl",
+        "source": {
+          "type": "file_content",
+          "content": [
+            {
+              "item": {}
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "action": "get-evaluation-run",
+    "method": "GET",
+    "path": "/evals/{eval_id}/runs/{run_id}",
+    "request": {
+      "eval_id": "fixture",
+      "run_id": "fixture"
+    }
+  },
+  {
+    "action": "cancel-evaluation-run",
+    "method": "POST",
+    "path": "/evals/{eval_id}/runs/{run_id}",
+    "request": {
+      "eval_id": "fixture",
+      "run_id": "fixture"
+    }
+  },
+  {
+    "action": "delete-evaluation-run",
+    "method": "DELETE",
+    "path": "/evals/{eval_id}/runs/{run_id}",
+    "request": {
+      "eval_id": "fixture",
+      "run_id": "fixture"
+    }
+  },
+  {
+    "action": "list-evaluation-output-items",
+    "method": "GET",
+    "path": "/evals/{eval_id}/runs/{run_id}/output_items",
+    "request": {
+      "eval_id": "fixture",
+      "run_id": "fixture"
+    }
+  },
+  {
+    "action": "get-evaluation-run-output-item",
+    "method": "GET",
+    "path": "/evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}",
+    "request": {
+      "eval_id": "fixture",
+      "run_id": "fixture",
+      "output_item_id": "fixture"
+    }
+  },
+  {
+    "action": "create-file",
+    "method": "POST",
+    "path": "/files",
+    "request": {
+      "file": {
+        "name": "fixture.txt",
+        "content": "dGVzdA==",
+        "mime_type": "application/octet-stream"
+      },
+      "purpose": "batch"
+    }
+  },
+  {
+    "action": "list-files",
+    "method": "GET",
+    "path": "/files",
+    "request": {}
+  },
+  {
+    "action": "get-file",
+    "method": "GET",
+    "path": "/files/{file_id}",
+    "request": {
+      "file_id": "fixture"
+    }
+  },
+  {
+    "action": "delete-file",
+    "method": "DELETE",
+    "path": "/files/{file_id}",
+    "request": {
+      "file_id": "fixture"
+    }
+  },
+  {
+    "action": "download-file",
+    "method": "GET",
+    "path": "/files/{file_id}/content",
+    "request": {
+      "file_id": "fixture"
+    }
+  },
+  {
+    "action": "run-grader",
+    "method": "POST",
+    "path": "/fine_tuning/alpha/graders/run",
+    "request": {
+      "grader": {
+        "type": "string_check",
+        "name": "fixture",
+        "input": "fixture",
+        "reference": "fixture",
+        "operation": "eq"
+      },
+      "model_sample": "fixture"
+    }
+  },
+  {
+    "action": "validate-grader",
+    "method": "POST",
+    "path": "/fine_tuning/alpha/graders/validate",
+    "request": {}
+  },
+  {
+    "action": "list-fine-tuning-checkpoint-permissions",
+    "method": "GET",
+    "path": "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+    "request": {
+      "fine_tuned_model_checkpoint": "fixture"
+    }
+  },
+  {
+    "action": "create-fine-tuning-checkpoint-permission",
+    "method": "POST",
+    "path": "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+    "request": {
+      "fine_tuned_model_checkpoint": "fixture",
+      "project_ids": [
+        "fixture"
+      ]
+    }
+  },
+  {
+    "action": "delete-fine-tuning-checkpoint-permission",
+    "method": "DELETE",
+    "path": "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}",
+    "request": {
+      "fine_tuned_model_checkpoint": "fixture",
+      "permission_id": "fixture"
+    }
+  },
+  {
+    "action": "create-fine-tuning-job",
+    "method": "POST",
+    "path": "/fine_tuning/jobs",
+    "request": {
+      "model": "fixture",
+      "training_file": "fixture"
+    }
+  },
+  {
+    "action": "list-fine-tuning-jobs",
+    "method": "GET",
+    "path": "/fine_tuning/jobs",
+    "request": {}
+  },
+  {
+    "action": "get-fine-tuning-job",
+    "method": "GET",
+    "path": "/fine_tuning/jobs/{fine_tuning_job_id}",
+    "request": {
+      "fine_tuning_job_id": "fixture"
+    }
+  },
+  {
+    "action": "cancel-fine-tuning-job",
+    "method": "POST",
+    "path": "/fine_tuning/jobs/{fine_tuning_job_id}/cancel",
+    "request": {
+      "fine_tuning_job_id": "fixture"
+    }
+  },
+  {
+    "action": "list-fine-tuning-job-checkpoints",
+    "method": "GET",
+    "path": "/fine_tuning/jobs/{fine_tuning_job_id}/checkpoints",
+    "request": {
+      "fine_tuning_job_id": "fixture"
+    }
+  },
+  {
+    "action": "copy-fine-tuning-checkpoint",
+    "method": "POST",
+    "path": "/fine_tuning/jobs/{fine_tuning_job_id}/checkpoints/{fine_tuning_checkpoint_id}/copy",
+    "request": {
+      "fine_tuning_job_id": "fixture",
+      "fine_tuning_checkpoint_id": "fixture",
+      "destinationResourceId": "fixture",
+      "region": "fixture"
+    }
+  },
+  {
+    "action": "get-fine-tuning-checkpoint-copy",
+    "method": "GET",
+    "path": "/fine_tuning/jobs/{fine_tuning_job_id}/checkpoints/{fine_tuning_checkpoint_id}/copy",
+    "request": {
+      "fine_tuning_job_id": "fixture",
+      "fine_tuning_checkpoint_id": "fixture"
+    }
+  },
+  {
+    "action": "list-fine-tuning-events",
+    "method": "GET",
+    "path": "/fine_tuning/jobs/{fine_tuning_job_id}/events",
+    "request": {
+      "fine_tuning_job_id": "fixture"
+    }
+  },
+  {
+    "action": "pause-fine-tuning-job",
+    "method": "POST",
+    "path": "/fine_tuning/jobs/{fine_tuning_job_id}/pause",
+    "request": {
+      "fine_tuning_job_id": "fixture"
+    }
+  },
+  {
+    "action": "resume-fine-tuning-job",
+    "method": "POST",
+    "path": "/fine_tuning/jobs/{fine_tuning_job_id}/resume",
+    "request": {
+      "fine_tuning_job_id": "fixture"
+    }
+  },
+  {
+    "action": "create-image-edit",
+    "method": "POST",
+    "path": "/images/edits",
+    "request": {
+      "image": {
+        "name": "fixture.txt",
+        "content": "dGVzdA==",
+        "mime_type": "application/octet-stream"
+      },
+      "prompt": "fixture",
+      "model": "fixture"
+    }
+  },
+  {
+    "action": "create-image",
+    "method": "POST",
+    "path": "/images/generations",
+    "request": {
+      "prompt": "fixture",
+      "model": "fixture"
+    }
+  },
+  {
+    "action": "list-models",
+    "method": "GET",
+    "path": "/models",
+    "request": {}
+  },
+  {
+    "action": "get-model",
+    "method": "GET",
+    "path": "/models/{model}",
+    "request": {
+      "model": "fixture"
+    }
+  },
+  {
+    "action": "delete-model",
+    "method": "DELETE",
+    "path": "/models/{model}",
+    "request": {
+      "model": "fixture"
+    }
+  },
+  {
+    "action": "create-realtime-call",
+    "method": "POST",
+    "path": "/realtime/calls",
+    "request": {
+      "sdp": "fixture"
+    }
+  },
+  {
+    "action": "accept-realtime-call",
+    "method": "POST",
+    "path": "/realtime/calls/{call_id}/accept",
+    "request": {
+      "call_id": "fixture",
+      "type": "realtime"
+    }
+  },
+  {
+    "action": "hangup-realtime-call",
+    "method": "POST",
+    "path": "/realtime/calls/{call_id}/hangup",
+    "request": {
+      "call_id": "fixture"
+    }
+  },
+  {
+    "action": "refer-realtime-call",
+    "method": "POST",
+    "path": "/realtime/calls/{call_id}/refer",
+    "request": {
+      "call_id": "fixture",
+      "target_uri": "fixture"
+    }
+  },
+  {
+    "action": "reject-realtime-call",
+    "method": "POST",
+    "path": "/realtime/calls/{call_id}/reject",
+    "request": {
+      "call_id": "fixture"
+    }
+  },
+  {
+    "action": "create-realtime-client-secret",
+    "method": "POST",
+    "path": "/realtime/client_secrets",
+    "request": {}
+  },
+  {
+    "action": "create-realtime-session",
+    "method": "POST",
+    "path": "/realtime/sessions",
+    "request": {
+      "model": "fixture"
+    }
+  },
+  {
+    "action": "create-realtime-transcription-session",
+    "method": "POST",
+    "path": "/realtime/transcription_sessions",
+    "request": {}
+  },
+  {
+    "action": "create-response",
+    "method": "POST",
+    "path": "/responses",
+    "request": {
+      "model": "fixture",
+      "input": "Summarize invoice 42.",
+      "store": false
+    }
+  },
+  {
+    "action": "get-response",
+    "method": "GET",
+    "path": "/responses/{response_id}",
+    "request": {
+      "response_id": "fixture"
+    }
+  },
+  {
+    "action": "delete-response",
+    "method": "DELETE",
+    "path": "/responses/{response_id}",
+    "request": {
+      "response_id": "fixture"
+    }
+  },
+  {
+    "action": "cancel-response",
+    "method": "POST",
+    "path": "/responses/{response_id}/cancel",
+    "request": {
+      "response_id": "fixture"
+    }
+  },
+  {
+    "action": "list-response-input-items",
+    "method": "GET",
+    "path": "/responses/{response_id}/input_items",
+    "request": {
+      "response_id": "fixture"
+    }
+  },
+  {
+    "action": "list-vector-stores",
+    "method": "GET",
+    "path": "/vector_stores",
+    "request": {}
+  },
+  {
+    "action": "create-vector-store",
+    "method": "POST",
+    "path": "/vector_stores",
+    "request": {}
+  },
+  {
+    "action": "get-vector-store",
+    "method": "GET",
+    "path": "/vector_stores/{vector_store_id}",
+    "request": {
+      "vector_store_id": "fixture"
+    }
+  },
+  {
+    "action": "update-vector-store",
+    "method": "POST",
+    "path": "/vector_stores/{vector_store_id}",
+    "request": {
+      "vector_store_id": "fixture"
+    }
+  },
+  {
+    "action": "delete-vector-store",
+    "method": "DELETE",
+    "path": "/vector_stores/{vector_store_id}",
+    "request": {
+      "vector_store_id": "fixture"
+    }
+  },
+  {
+    "action": "create-vector-store-file-batch",
+    "method": "POST",
+    "path": "/vector_stores/{vector_store_id}/file_batches",
+    "request": {
+      "vector_store_id": "fixture",
+      "file_ids": [
+        "file-input"
+      ]
+    }
+  },
+  {
+    "action": "get-vector-store-file-batch",
+    "method": "GET",
+    "path": "/vector_stores/{vector_store_id}/file_batches/{batch_id}",
+    "request": {
+      "vector_store_id": "fixture",
+      "batch_id": "fixture"
+    }
+  },
+  {
+    "action": "cancel-vector-store-file-batch",
+    "method": "POST",
+    "path": "/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel",
+    "request": {
+      "vector_store_id": "fixture",
+      "batch_id": "fixture"
+    }
+  },
+  {
+    "action": "list-files-in-vector-store-batch",
+    "method": "GET",
+    "path": "/vector_stores/{vector_store_id}/file_batches/{batch_id}/files",
+    "request": {
+      "vector_store_id": "fixture",
+      "batch_id": "fixture"
+    }
+  },
+  {
+    "action": "list-vector-store-files",
+    "method": "GET",
+    "path": "/vector_stores/{vector_store_id}/files",
+    "request": {
+      "vector_store_id": "fixture"
+    }
+  },
+  {
+    "action": "create-vector-store-file",
+    "method": "POST",
+    "path": "/vector_stores/{vector_store_id}/files",
+    "request": {
+      "vector_store_id": "fixture",
+      "file_id": "fixture"
+    }
+  },
+  {
+    "action": "get-vector-store-file",
+    "method": "GET",
+    "path": "/vector_stores/{vector_store_id}/files/{file_id}",
+    "request": {
+      "vector_store_id": "fixture",
+      "file_id": "fixture"
+    }
+  },
+  {
+    "action": "update-vector-store-file-attributes",
+    "method": "POST",
+    "path": "/vector_stores/{vector_store_id}/files/{file_id}",
+    "request": {
+      "vector_store_id": "fixture",
+      "file_id": "fixture",
+      "attributes": {}
+    }
+  },
+  {
+    "action": "delete-vector-store-file",
+    "method": "DELETE",
+    "path": "/vector_stores/{vector_store_id}/files/{file_id}",
+    "request": {
+      "vector_store_id": "fixture",
+      "file_id": "fixture"
+    }
+  },
+  {
+    "action": "get-vector-store-file-content",
+    "method": "GET",
+    "path": "/vector_stores/{vector_store_id}/files/{file_id}/content",
+    "request": {
+      "vector_store_id": "fixture",
+      "file_id": "fixture"
+    }
+  },
+  {
+    "action": "search-vector-store",
+    "method": "POST",
+    "path": "/vector_stores/{vector_store_id}/search",
+    "request": {
+      "vector_store_id": "fixture",
+      "query": "fixture"
+    }
+  },
+  {
+    "action": "create-video",
+    "method": "POST",
+    "path": "/videos",
+    "request": {
+      "model": "fixture",
+      "prompt": "fixture"
+    }
+  },
+  {
+    "action": "list-videos",
+    "method": "GET",
+    "path": "/videos",
+    "request": {}
+  },
+  {
+    "action": "get-video",
+    "method": "GET",
+    "path": "/videos/{video-id}",
+    "request": {
+      "video_id": "fixture"
+    }
+  },
+  {
+    "action": "delete-video",
+    "method": "DELETE",
+    "path": "/videos/{video-id}",
+    "request": {
+      "video_id": "fixture"
+    }
+  },
+  {
+    "action": "download-video",
+    "method": "GET",
+    "path": "/videos/{video-id}/content",
+    "request": {
+      "video_id": "fixture"
+    }
+  },
+  {
+    "action": "remix-video",
+    "method": "POST",
+    "path": "/videos/{video-id}/remix",
+    "request": {
+      "prompt": "fixture",
+      "video_id": "fixture"
+    }
+  }
+]

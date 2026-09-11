@@ -287,6 +287,19 @@ aωb\r
         map assertTrue($1.hdr."content-disposition" =~ /name="languages"/),
             parsed.part[1..2];
 
+        foreach string name in ("first.png", "second.png") {
+            msg.addRepeatedPart(<FormDataMessageInfo>{"name": "images[]", "filename": name,
+                "hdr": {"Content-Type": "image/png"}, "body": binary(name)});
+        }
+        parsed = MultiPartMessage::parseBody(msg.getBoundary(), msg.serializeBody(), True);
+        assertEq(5, parsed.part.size());
+        assertEq(binary("first.png"), parsed.part[3].body);
+        assertEq(binary("second.png"), parsed.part[4].body);
+        assertTrue(parsed.part[3].hdr."content-disposition".find("filename=\"first.png\"") >= 0);
+        assertThrows("MULTIPART-FORMDATA-ERROR", sub () {
+            msg.addRepeatedPart(<FormDataMessageInfo>{"name": "", "body": binary()});
+        });
+
         # addPart() still rejects a repeated name
         assertThrows("MULTIPART-FORMDATA-ERROR", "given twice", sub () {
             msg.addPart("fra", "languages");

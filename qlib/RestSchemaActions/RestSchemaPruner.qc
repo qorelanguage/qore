@@ -299,7 +299,7 @@ public class RestSchemaPruner {
         return rv;
     }
 
-    #! Collects every local \c "$ref" reachable from a node
+    #! Collects local references, including explicit discriminator mappings, reachable from a node
     /** Only \c "#/..." pointers are collected: an external reference names another document, which
         this transformation neither reads nor rewrites.
 
@@ -315,6 +315,23 @@ public class RestSchemaPruner {
                 break;
             }
             case NT_HASH: {
+                # Discriminator mappings are references too, although they do not use a $ref key.
+                # Leaving them out removes every derived request shape reachable only through its base.
+                if (node.discriminator.typeCode() == NT_HASH
+                        && node.discriminator.propertyName.typeCode() == NT_STRING
+                        && node.discriminator.mapping.typeCode() == NT_HASH) {
+                    foreach auto target in (node.discriminator.mapping.iterator()) {
+                        if (target.typeCode() != NT_STRING) {
+                            continue;
+                        }
+                        # the schema parser resolves a mapping value the same way, so both must agree on
+                        # what a bare component name means
+                        string ref = OpenApi3::SchemaObject::getDiscriminatorReference(target);
+                        if (ref.equalPartial("#/")) {
+                            acc{ref} = True;
+                        }
+                    }
+                }
                 foreach hash<auto> i in (node.pairIterator()) {
                     if (i.key == "$ref" && i.value.typeCode() == NT_STRING
                         && i.value.equalPartial("#/")) {

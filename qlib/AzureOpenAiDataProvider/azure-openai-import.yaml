@@ -1,0 +1,1402 @@
+# Copyright 2026 Qore Technologies, s.r.o.
+documents:
+- name: AzureOpenAi
+  source: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/a6943a926f76b3a2f90371b3466157eddf760e25/specification/ai/data-plane/OpenAI.v1/azure-v1-preview-generated.json
+  output: azure-openai-v1.json
+  manifest: AzureOpenAiDataProvider:AzureOpenAiManifest::Manifest
+  provenance: AzureOpenAiSchema.qc
+  json: true
+  normalize:
+  - reason: The Azure Files API accepts named multipart file bytes and optional expires_after[anchor]/expires_after[seconds]
+      form fields. The generated document omits the file type, incorrectly requires expiration, and omits its encoding
+      and Azure bounds. Live verification on 2026-09-11 accepted an upload without expiration, ignored a JSON expiration
+      part, and required seconds between 259200 and 2592000 for bracket fields. See https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/azureopenai/files
+    replace_required:
+    - pointer: '#/components/schemas/OpenAI.CreateFileRequest'
+      expected:
+      - file
+      - expires_after
+      - purpose
+      replacement:
+      - file
+      - purpose
+    replace_values:
+    - pointer: '#/components/schemas/OpenAI.CreateFileRequest/properties/file'
+      expected:
+        description: The File object (not file name) to be uploaded.
+      replacement:
+        description: The File object (not file name) to be uploaded.
+        type: string
+        format: binary
+    - pointer: '#/components/schemas/OpenAI.CreateFileRequest/properties/expires_after/properties/seconds'
+      expected:
+        type: integer
+        format: int32
+      replacement:
+        type: integer
+        format: int32
+        minimum: 259200
+        maximum: 2592000
+    - pointer: '#/paths/~1files/post/requestBody/content/multipart~1form-data'
+      expected:
+        schema: &id001
+          $ref: '#/components/schemas/OpenAI.CreateFileRequest'
+      replacement:
+        schema: *id001
+        encoding:
+          expires_after:
+            style: deepObject
+            explode: true
+  - reason: 'Microsoft documents multipart audio transcription, translation, image edits, and optional video reference
+      images. The generated preview document incorrectly emits object placeholders for scalar and file fields and
+      JSON content for upload operations. Restore the documented types and finite choices, choose the supported
+      multipart representation for video creation, and require Azure deployment names instead of public OpenAI model
+      defaults. Sources: https://learn.microsoft.com/en-us/azure/foundry/openai/reference-preview-latest and https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/video-generation
+      . Array option names retain the documented multipart [] spelling.'
+    replace_values:
+    - pointer: '#/paths/~1audio~1transcriptions/post/requestBody/content'
+      expected:
+        application/json:
+          schema:
+            type: object
+            properties:
+              file:
+                type: object
+                description: 'The audio file object (not file name) to transcribe, in one of these formats: flac,
+                  mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.'
+                x-oaiTypeLabel: file
+              model:
+                type: string
+                description: The model to use for this transcription request.
+                x-oaiTypeLabel: string
+              language:
+                type: object
+                description: The language of the input audio. Supplying the input language in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
+                  (e.g. `en`) format will improve accuracy and latency.
+              prompt:
+                type: object
+                description: An optional text to guide the model's style or continue a previous audio segment. The
+                  [prompt](/docs/guides/speech-to-text#prompting) should match the audio language. This field is
+                  not supported when using `gpt-4o-transcribe-diarize`.
+              response_format:
+                type: object
+              temperature:
+                type: object
+                description: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output
+                  more random, while lower values like 0.2 will make it more focused and deterministic. If set to
+                  0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically
+                  increase the temperature until certain thresholds are hit.
+              include:
+                type: object
+                description: "Additional information to include in the transcription response.\n  `logprobs` will\
+                  \ return the log probabilities of the tokens in the\n  response to understand the model's confidence\
+                  \ in the transcription.\n  `logprobs` only works with response_format set to `json` and only with\n\
+                  \  the models `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`.\
+                  \ This field is not supported when using `gpt-4o-transcribe-diarize`."
+              timestamp_granularities:
+                type: object
+                description: "The timestamp granularities to populate for this transcription. `response_format`\
+                  \ must be set `verbose_json` to use timestamp granularities. Either or both of these options are\
+                  \ supported: `word`, or `segment`. Note: There is no additional latency for segment timestamps,\
+                  \ but generating word timestamps incurs additional latency.\n  This option is not available for\
+                  \ `gpt-4o-transcribe-diarize`."
+              stream:
+                type: object
+              chunking_strategy:
+                type: object
+              known_speaker_names:
+                type: object
+              known_speaker_references:
+                type: object
+              filename:
+                type: string
+                description: The optional filename or descriptive identifier to associate with with the audio data.
+            required:
+            - file
+            - model
+      replacement:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              file:
+                description: 'The audio file object (not file name) to transcribe, in one of these formats: flac,
+                  mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.'
+                x-oaiTypeLabel: file
+                type: string
+                format: binary
+              model:
+                type: string
+                description: The model to use for this transcription request.
+                x-oaiTypeLabel: string
+              language:
+                description: The language of the input audio. Supplying the input language in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
+                  (e.g. `en`) format will improve accuracy and latency.
+                type: string
+              prompt:
+                description: An optional text to guide the model's style or continue a previous audio segment. The
+                  [prompt](/docs/guides/speech-to-text#prompting) should match the audio language. This field is
+                  not supported when using `gpt-4o-transcribe-diarize`.
+                type: string
+              response_format:
+                type: string
+                enum:
+                - json
+                - text
+                - srt
+                - verbose_json
+                - vtt
+                - diarized_json
+              temperature:
+                description: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output
+                  more random, while lower values like 0.2 will make it more focused and deterministic. If set to
+                  0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically
+                  increase the temperature until certain thresholds are hit.
+                type: number
+                minimum: 0
+                maximum: 1
+              stream:
+                type: boolean
+              chunking_strategy:
+                anyOf:
+                - type: string
+                  enum:
+                  - auto
+                - type: object
+                  required:
+                  - type
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                      - server_vad
+                    prefix_padding_ms:
+                      type: integer
+                      minimum: 0
+                    silence_duration_ms:
+                      type: integer
+                      minimum: 0
+                    threshold:
+                      type: number
+                      minimum: 0
+                      maximum: 1
+              filename:
+                type: string
+                description: The optional filename or descriptive identifier to associate with with the audio data.
+              include[]:
+                description: "Additional information to include in the transcription response.\n  `logprobs` will\
+                  \ return the log probabilities of the tokens in the\n  response to understand the model's confidence\
+                  \ in the transcription.\n  `logprobs` only works with response_format set to `json` and only with\n\
+                  \  the models `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`.\
+                  \ This field is not supported when using `gpt-4o-transcribe-diarize`."
+                type: array
+                items:
+                  type: string
+                  enum:
+                  - logprobs
+              timestamp_granularities[]:
+                description: "The timestamp granularities to populate for this transcription. `response_format`\
+                  \ must be set `verbose_json` to use timestamp granularities. Either or both of these options are\
+                  \ supported: `word`, or `segment`. Note: There is no additional latency for segment timestamps,\
+                  \ but generating word timestamps incurs additional latency.\n  This option is not available for\
+                  \ `gpt-4o-transcribe-diarize`."
+                type: array
+                items:
+                  type: string
+                  enum:
+                  - word
+                  - segment
+              known_speaker_names[]:
+                type: array
+                items:
+                  type: string
+              known_speaker_references[]:
+                type: array
+                items:
+                  type: string
+            required:
+            - file
+            - model
+          encoding:
+            chunking_strategy:
+              contentType: application/json
+            include[]:
+              style: form
+              explode: true
+            timestamp_granularities[]:
+              style: form
+              explode: true
+            known_speaker_names[]:
+              style: form
+              explode: true
+            known_speaker_references[]:
+              style: form
+              explode: true
+    - pointer: '#/paths/~1audio~1translations/post/requestBody/content'
+      expected:
+        application/json:
+          schema:
+            type: object
+            properties:
+              file:
+                type: object
+                description: 'The audio file object (not file name) translate, in one of these formats: flac, mp3,
+                  mp4, mpeg, mpga, m4a, ogg, wav, or webm.'
+                x-oaiTypeLabel: file
+              model:
+                type: string
+                description: The model to use for this transcription request.
+                x-oaiTypeLabel: string
+              prompt:
+                type: object
+                description: An optional text to guide the model's style or continue a previous audio segment. The
+                  [prompt](/docs/guides/speech-to-text#prompting) should be in English.
+              response_format:
+                type: object
+                description: 'The format of the output, in one of these options: `json`, `text`, `srt`, `verbose_json`,
+                  or `vtt`.'
+              temperature:
+                type: object
+                description: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output
+                  more random, while lower values like 0.2 will make it more focused and deterministic. If set to
+                  0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically
+                  increase the temperature until certain thresholds are hit.
+              filename:
+                type: string
+                description: The optional filename or descriptive identifier to associate with with the audio data
+            required:
+            - file
+            - model
+      replacement:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              file:
+                description: 'The audio file object (not file name) translate, in one of these formats: flac, mp3,
+                  mp4, mpeg, mpga, m4a, ogg, wav, or webm.'
+                x-oaiTypeLabel: file
+                type: string
+                format: binary
+              model:
+                type: string
+                description: The model to use for this transcription request.
+                x-oaiTypeLabel: string
+              prompt:
+                description: An optional text to guide the model's style or continue a previous audio segment. The
+                  [prompt](/docs/guides/speech-to-text#prompting) should be in English.
+                type: string
+              response_format:
+                description: 'The format of the output, in one of these options: `json`, `text`, `srt`, `verbose_json`,
+                  or `vtt`.'
+                type: string
+                enum:
+                - json
+                - text
+                - srt
+                - verbose_json
+                - vtt
+              temperature:
+                description: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output
+                  more random, while lower values like 0.2 will make it more focused and deterministic. If set to
+                  0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically
+                  increase the temperature until certain thresholds are hit.
+                type: number
+                minimum: 0
+                maximum: 1
+              filename:
+                type: string
+                description: The optional filename or descriptive identifier to associate with with the audio data
+            required:
+            - file
+            - model
+          encoding: {}
+    - pointer: '#/components/schemas/OpenAI.CreateImageEditRequest'
+      expected:
+        type: object
+        required:
+        - image
+        - prompt
+        properties:
+          image:
+            type: object
+            description: "The image(s) to edit. Must be a supported image file or an array of images.\n  For the\
+              \ GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and `gpt-image-1.5`), each image should be\
+              \ a `png`, `webp`, or `jpg`\n  file less than 50MB. You can provide up to 16 images.\n  `chatgpt-image-latest`\
+              \ follows the same input constraints as GPT image models.\n  For `dall-e-2`, you can only provide\
+              \ one image, and it should be a square\n  `png` file less than 4MB."
+          prompt:
+            type: object
+            description: A text description of the desired image(s). The maximum length is 1000 characters for `dall-e-2`,
+              and 32000 characters for the GPT image models.
+          mask:
+            type: object
+            description: An additional image whose fully transparent areas (e.g. where alpha is zero) indicate where
+              `image` should be edited. If there are multiple images provided, the mask will be applied on the first
+              image. Must be a valid PNG file, less than 4MB, and have the same dimensions as `image`.
+          background:
+            type: object
+            description: "Allows to set transparency for the background of the generated image(s).\n  This parameter\
+              \ is only supported for the GPT image models. Must be one of\n  `transparent`, `opaque` or `auto`\
+              \ (default value). When `auto` is used, the\n  model will automatically determine the best background\
+              \ for the image.\n  If `transparent`, the output format needs to support transparency, so it\n  should\
+              \ be set to either `png` (default value) or `webp`."
+          model:
+            type: string
+            description: The model to use for image generation. Defaults to `gpt-image-1.5`.
+            x-oaiTypeLabel: string
+          n:
+            type: object
+            description: The number of images to generate. Must be between 1 and 10.
+          size:
+            type: object
+            description: The size of the generated images. For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary
+              resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must
+              both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size
+              must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`,
+              and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic
+              sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of
+              `1024x1024`, `1792x1024`, or `1024x1792`.
+          response_format:
+            type: object
+            description: The format in which the generated images are returned. Must be one of `url` or `b64_json`.
+              URLs are only valid for 60 minutes after the image has been generated. This parameter is only supported
+              for `dall-e-2` (default is `url` for `dall-e-2`), as GPT image models always return base64-encoded
+              images.
+          output_format:
+            type: object
+            description: "The format in which the generated images are returned. This parameter is\n  only supported\
+              \ for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.\n  The default value is `png`."
+          output_compression:
+            type: object
+            description: "The compression level (0-100%) for the generated images. This parameter\n  is only supported\
+              \ for the GPT image models with the `webp` or `jpeg` output\n  formats, and defaults to 100."
+          user:
+            type: object
+            description: A unique identifier representing your end-user, which can help OpenAI to monitor and detect
+              abuse. [Learn more](/docs/guides/safety-best-practices#end-user-ids).
+          input_fidelity:
+            type: object
+          stream:
+            type: object
+            description: "Edit the image in streaming mode. Defaults to `false`. See the\n  [Image generation guide](/docs/guides/image-generation)\
+              \ for more information."
+          partial_images:
+            type: object
+          quality:
+            type: object
+            description: The quality of the image that will be generated for GPT image models. Defaults to `auto`.
+      replacement:
+        type: object
+        required:
+        - image
+        - prompt
+        - model
+        properties:
+          image:
+            description: "The image(s) to edit. Must be a supported image file or an array of images.\n  For the\
+              \ GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and `gpt-image-1.5`), each image should be\
+              \ a `png`, `webp`, or `jpg`\n  file less than 50MB. You can provide up to 16 images.\n  `chatgpt-image-latest`\
+              \ follows the same input constraints as GPT image models.\n  For `dall-e-2`, you can only provide\
+              \ one image, and it should be a square\n  `png` file less than 4MB."
+            anyOf:
+            - type: string
+              format: binary
+            - type: array
+              items:
+                type: string
+                format: binary
+              minItems: 1
+              maxItems: 16
+          prompt:
+            description: A text description of the desired image(s). The maximum length is 1000 characters for `dall-e-2`,
+              and 32000 characters for the GPT image models.
+            type: string
+          mask:
+            description: An additional image whose fully transparent areas (e.g. where alpha is zero) indicate where
+              `image` should be edited. If there are multiple images provided, the mask will be applied on the first
+              image. Must be a valid PNG file, less than 4MB, and have the same dimensions as `image`.
+            type: string
+            format: binary
+          background:
+            description: "Allows to set transparency for the background of the generated image(s).\n  This parameter\
+              \ is only supported for the GPT image models. Must be one of\n  `transparent`, `opaque` or `auto`\
+              \ (default value). When `auto` is used, the\n  model will automatically determine the best background\
+              \ for the image.\n  If `transparent`, the output format needs to support transparency, so it\n  should\
+              \ be set to either `png` (default value) or `webp`."
+            type: string
+            enum:
+            - transparent
+            - opaque
+            - auto
+          model:
+            type: string
+            description: The model to use for image generation. Defaults to `gpt-image-1.5`.
+            x-oaiTypeLabel: string
+          n:
+            description: The number of images to generate. Must be between 1 and 10.
+            type: integer
+            minimum: 1
+            maximum: 10
+          size:
+            description: The size of the generated images. For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary
+              resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must
+              both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size
+              must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`,
+              and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic
+              sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of
+              `1024x1024`, `1792x1024`, or `1024x1792`.
+            type: string
+          response_format:
+            description: The format in which the generated images are returned. Must be one of `url` or `b64_json`.
+              URLs are only valid for 60 minutes after the image has been generated. This parameter is only supported
+              for `dall-e-2` (default is `url` for `dall-e-2`), as GPT image models always return base64-encoded
+              images.
+            type: string
+            enum:
+            - url
+            - b64_json
+          output_format:
+            description: "The format in which the generated images are returned. This parameter is\n  only supported\
+              \ for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.\n  The default value is `png`."
+            type: string
+            enum:
+            - png
+            - jpeg
+            - webp
+          output_compression:
+            description: "The compression level (0-100%) for the generated images. This parameter\n  is only supported\
+              \ for the GPT image models with the `webp` or `jpeg` output\n  formats, and defaults to 100."
+            type: integer
+            minimum: 0
+            maximum: 100
+          user:
+            description: A unique identifier representing your end-user, which can help OpenAI to monitor and detect
+              abuse. [Learn more](/docs/guides/safety-best-practices#end-user-ids).
+            type: string
+          input_fidelity:
+            type: string
+            enum:
+            - high
+            - low
+          stream:
+            description: "Edit the image in streaming mode. Defaults to `false`. See the\n  [Image generation guide](/docs/guides/image-generation)\
+              \ for more information."
+            type: boolean
+          partial_images:
+            type: integer
+            minimum: 0
+            maximum: 3
+          quality:
+            description: The quality of the image that will be generated for GPT image models. Defaults to `auto`.
+            type: string
+            enum:
+            - auto
+            - low
+            - medium
+            - high
+            - standard
+    - pointer: '#/paths/~1images~1edits/post/requestBody/content'
+      expected:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpenAI.CreateImageEditRequest'
+      replacement:
+        multipart/form-data:
+          schema:
+            $ref: '#/components/schemas/OpenAI.CreateImageEditRequest'
+    - pointer: '#/components/schemas/OpenAI.CreateImageRequest'
+      expected:
+        type: object
+        required:
+        - prompt
+        properties:
+          prompt:
+            type: string
+            description: A text description of the desired image(s). The maximum length is 32000 characters for
+              the GPT image models, 1000 characters for `dall-e-2` and 4000 characters for `dall-e-3`.
+          model:
+            type: string
+            description: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
+            x-oaiTypeLabel: string
+            default: dall-e-2
+          n:
+            anyOf:
+            - type: integer
+            - type: 'null'
+            minimum: 1
+            maximum: 10
+            description: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only `n=1`
+              is supported.
+            default: 1
+          quality:
+            anyOf:
+            - type: string
+              enum:
+              - standard
+              - hd
+              - low
+              - medium
+              - high
+              - auto
+            - type: 'null'
+            description: "The quality of the image that will be generated.\n  - `auto` (default value) will automatically\
+              \ select the best quality for the given model.\n  - `high`, `medium` and `low` are supported for the\
+              \ GPT image models.\n  - `hd` and `standard` are supported for `dall-e-3`.\n  - `standard` is the\
+              \ only option for `dall-e-2`."
+            default: auto
+          response_format:
+            anyOf:
+            - type: string
+              enum:
+              - url
+              - b64_json
+            - type: 'null'
+            description: The format in which generated images with `dall-e-2` and `dall-e-3` are returned. Must
+              be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the image has been generated.
+              This parameter isn't supported for the GPT image models, which always return base64-encoded images.
+            default: url
+          output_format:
+            anyOf:
+            - type: string
+              enum:
+              - png
+              - jpeg
+              - webp
+            - type: 'null'
+            description: The format in which the generated images are returned. This parameter is only supported
+              for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+            default: png
+          output_compression:
+            anyOf:
+            - type: integer
+            - type: 'null'
+            description: The compression level (0-100%) for the generated images. This parameter is only supported
+              for the GPT image models with the `webp` or `jpeg` output formats, and defaults to 100.
+            default: 100
+          stream:
+            anyOf:
+            - type: boolean
+            - type: 'null'
+            description: "Generate the image in streaming mode. Defaults to `false`. See the\n  [Image generation\
+              \ guide](/docs/guides/image-generation) for more information.\n  This parameter is only supported\
+              \ for the GPT image models."
+          partial_images:
+            $ref: '#/components/schemas/OpenAI.PartialImages'
+          size:
+            anyOf:
+            - type: string
+            - type: string
+              enum:
+              - auto
+              - 1024x1024
+              - 1536x1024
+              - 1024x1536
+              - 256x256
+              - 512x512
+              - 1792x1024
+              - 1024x1792
+            - type: 'null'
+            description: The size of the generated images. For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary
+              resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must
+              both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size
+              must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`,
+              and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic
+              sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of
+              `1024x1024`, `1792x1024`, or `1024x1792`.
+            default: auto
+          moderation:
+            anyOf:
+            - type: string
+              enum:
+              - low
+              - auto
+            - type: 'null'
+            description: Control the content-moderation level for images generated by the GPT image models. Must
+              be either `low` for less restrictive filtering or `auto` (default value).
+            default: auto
+          background:
+            anyOf:
+            - type: string
+              enum:
+              - transparent
+              - opaque
+              - auto
+            - type: 'null'
+            description: "Allows to set transparency for the background of the generated image(s).\n  This parameter\
+              \ is only supported for the GPT image models. Must be one of\n  `transparent`, `opaque` or `auto`\
+              \ (default value). When `auto` is used, the\n  model will automatically determine the best background\
+              \ for the image.\n  If `transparent`, the output format needs to support transparency, so it\n  should\
+              \ be set to either `png` (default value) or `webp`."
+            default: auto
+          style:
+            anyOf:
+            - type: string
+              enum:
+              - vivid
+              - natural
+            - type: 'null'
+            description: The style of the generated images. This parameter is only supported for `dall-e-3`. Must
+              be one of `vivid` or `natural`. Vivid causes the model to lean towards generating hyper-real and dramatic
+              images. Natural causes the model to produce more natural, less hyper-real looking images.
+            default: vivid
+          user:
+            type: string
+            description: A unique identifier representing your end-user, which can help OpenAI to monitor and detect
+              abuse. [Learn more](/docs/guides/safety-best-practices#end-user-ids).
+      replacement:
+        type: object
+        required:
+        - prompt
+        - model
+        properties:
+          prompt:
+            type: string
+            description: A text description of the desired image(s). The maximum length is 32000 characters for
+              the GPT image models, 1000 characters for `dall-e-2` and 4000 characters for `dall-e-3`.
+          model:
+            type: string
+            description: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
+            x-oaiTypeLabel: string
+          n:
+            anyOf:
+            - type: integer
+            - type: 'null'
+            minimum: 1
+            maximum: 10
+            description: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only `n=1`
+              is supported.
+            default: 1
+          quality:
+            anyOf:
+            - type: string
+              enum:
+              - standard
+              - hd
+              - low
+              - medium
+              - high
+              - auto
+            - type: 'null'
+            description: "The quality of the image that will be generated.\n  - `auto` (default value) will automatically\
+              \ select the best quality for the given model.\n  - `high`, `medium` and `low` are supported for the\
+              \ GPT image models.\n  - `hd` and `standard` are supported for `dall-e-3`.\n  - `standard` is the\
+              \ only option for `dall-e-2`."
+            default: auto
+          response_format:
+            anyOf:
+            - type: string
+              enum:
+              - url
+              - b64_json
+            - type: 'null'
+            description: The format in which generated images with `dall-e-2` and `dall-e-3` are returned. Must
+              be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the image has been generated.
+              This parameter isn't supported for the GPT image models, which always return base64-encoded images.
+            default: url
+          output_format:
+            anyOf:
+            - type: string
+              enum:
+              - png
+              - jpeg
+              - webp
+            - type: 'null'
+            description: The format in which the generated images are returned. This parameter is only supported
+              for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+            default: png
+          output_compression:
+            anyOf:
+            - type: integer
+            - type: 'null'
+            description: The compression level (0-100%) for the generated images. This parameter is only supported
+              for the GPT image models with the `webp` or `jpeg` output formats, and defaults to 100.
+            default: 100
+          stream:
+            anyOf:
+            - type: boolean
+            - type: 'null'
+            description: "Generate the image in streaming mode. Defaults to `false`. See the\n  [Image generation\
+              \ guide](/docs/guides/image-generation) for more information.\n  This parameter is only supported\
+              \ for the GPT image models."
+          partial_images:
+            $ref: '#/components/schemas/OpenAI.PartialImages'
+          size:
+            anyOf:
+            - type: string
+            - type: string
+              enum:
+              - auto
+              - 1024x1024
+              - 1536x1024
+              - 1024x1536
+              - 256x256
+              - 512x512
+              - 1792x1024
+              - 1024x1792
+            - type: 'null'
+            description: The size of the generated images. For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary
+              resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must
+              both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size
+              must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`,
+              and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic
+              sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of
+              `1024x1024`, `1792x1024`, or `1024x1792`.
+            default: auto
+          moderation:
+            anyOf:
+            - type: string
+              enum:
+              - low
+              - auto
+            - type: 'null'
+            description: Control the content-moderation level for images generated by the GPT image models. Must
+              be either `low` for less restrictive filtering or `auto` (default value).
+            default: auto
+          background:
+            anyOf:
+            - type: string
+              enum:
+              - transparent
+              - opaque
+              - auto
+            - type: 'null'
+            description: "Allows to set transparency for the background of the generated image(s).\n  This parameter\
+              \ is only supported for the GPT image models. Must be one of\n  `transparent`, `opaque` or `auto`\
+              \ (default value). When `auto` is used, the\n  model will automatically determine the best background\
+              \ for the image.\n  If `transparent`, the output format needs to support transparency, so it\n  should\
+              \ be set to either `png` (default value) or `webp`."
+            default: auto
+          style:
+            anyOf:
+            - type: string
+              enum:
+              - vivid
+              - natural
+            - type: 'null'
+            description: The style of the generated images. This parameter is only supported for `dall-e-3`. Must
+              be one of `vivid` or `natural`. Vivid causes the model to lean towards generating hyper-real and dramatic
+              images. Natural causes the model to produce more natural, less hyper-real looking images.
+            default: vivid
+          user:
+            type: string
+            description: A unique identifier representing your end-user, which can help OpenAI to monitor and detect
+              abuse. [Learn more](/docs/guides/safety-best-practices#end-user-ids).
+    - pointer: '#/components/schemas/CreateVideoBodyWithInputReference'
+      expected:
+        type: object
+        properties:
+          model:
+            type: string
+            description: The name of the deployment to use for this request.
+          prompt:
+            type: string
+            description: Text prompt that describes the video to generate.
+          seconds:
+            allOf:
+            - $ref: '#/components/schemas/VideoSeconds'
+            description: Clip duration in seconds. Defaults to 4 seconds.
+          size:
+            allOf:
+            - $ref: '#/components/schemas/VideoSize'
+            description: Output resolution formatted as width x height. Defaults to 720x1280.
+          input_reference:
+            description: Optional image reference that guides generation.
+            x-oaiTypeLabel: file
+        required:
+        - model
+        - prompt
+        - input_reference
+      replacement:
+        type: object
+        properties:
+          model:
+            type: string
+            description: The name of the deployment to use for this request.
+          prompt:
+            type: string
+            description: Text prompt that describes the video to generate.
+            minLength: 1
+          seconds:
+            allOf:
+            - $ref: '#/components/schemas/VideoSeconds'
+            description: Clip duration in seconds. Defaults to 4 seconds.
+          size:
+            allOf:
+            - $ref: '#/components/schemas/VideoSize'
+            description: Output resolution formatted as width x height. Defaults to 720x1280.
+          input_reference:
+            description: Optional image reference that guides generation.
+            x-oaiTypeLabel: file
+            type: string
+            format: binary
+        required:
+        - model
+        - prompt
+    - pointer: '#/paths/~1videos/post/requestBody/content'
+      expected:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateVideoBody'
+        multipart/form-data:
+          schema:
+            $ref: '#/components/schemas/CreateVideoBodyWithInputReference'
+          encoding:
+            seconds:
+              contentType: text/plain
+            size:
+              contentType: text/plain
+            input_reference:
+              contentType: '*/*'
+      replacement:
+        multipart/form-data:
+          schema:
+            $ref: '#/components/schemas/CreateVideoBodyWithInputReference'
+  - reason: 'Evaluation statusCode is HTTP response metadata and the realtime client_secret is generated by the
+      service, not supplied by the caller. Realtime session creation takes a model deployment. Container file uploads
+      take binary multipart content. Sources: https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/azureopenai/evals
+      , https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/realtime-audio-webrtc and https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/azureopenai/containers
+      .'
+    replace_values:
+    - pointer: '#/paths/~1evals/post/requestBody/content/application~1json/schema'
+      expected:
+        type: object
+        properties:
+          statusCode:
+            type: number
+            enum:
+            - 201
+          name:
+            type: string
+            description: The name of the evaluation.
+          metadata:
+            anyOf:
+            - $ref: '#/components/schemas/OpenAI.Metadata'
+            - type: 'null'
+          data_source_config:
+            oneOf:
+            - $ref: '#/components/schemas/OpenAI.CreateEvalCustomDataSourceConfig'
+            - $ref: '#/components/schemas/OpenAI.CreateEvalLogsDataSourceConfig'
+            - $ref: '#/components/schemas/OpenAI.CreateEvalStoredCompletionsDataSourceConfig'
+            description: The configuration for the data source used for the evaluation runs. Dictates the schema
+              of the data used in the evaluation.
+          testing_criteria:
+            type: array
+            items:
+              anyOf:
+              - $ref: '#/components/schemas/OpenAI.CreateEvalLabelModelGrader'
+              - $ref: '#/components/schemas/OpenAI.EvalGraderStringCheck'
+              - $ref: '#/components/schemas/OpenAI.EvalGraderTextSimilarity'
+              - $ref: '#/components/schemas/OpenAI.EvalGraderPython'
+              - $ref: '#/components/schemas/OpenAI.EvalGraderScoreModel'
+              - $ref: '#/components/schemas/EvalGraderEndpoint'
+            description: A list of graders for all eval runs in this group. Graders can reference variables in the
+              data source using double curly braces notation, like `{{item.variable_name}}`. To reference the model's
+              output, use the `sample` namespace (ie, `{{sample.output_text}}`).
+        required:
+        - statusCode
+        - data_source_config
+        - testing_criteria
+      replacement:
+        type: object
+        properties:
+          name:
+            type: string
+            description: The name of the evaluation.
+          metadata:
+            anyOf:
+            - $ref: '#/components/schemas/OpenAI.Metadata'
+            - type: 'null'
+          data_source_config:
+            oneOf:
+            - $ref: '#/components/schemas/OpenAI.CreateEvalCustomDataSourceConfig'
+            - $ref: '#/components/schemas/OpenAI.CreateEvalLogsDataSourceConfig'
+            - $ref: '#/components/schemas/OpenAI.CreateEvalStoredCompletionsDataSourceConfig'
+            description: The configuration for the data source used for the evaluation runs. Dictates the schema
+              of the data used in the evaluation.
+          testing_criteria:
+            type: array
+            items:
+              anyOf:
+              - $ref: '#/components/schemas/OpenAI.CreateEvalLabelModelGrader'
+              - $ref: '#/components/schemas/OpenAI.EvalGraderStringCheck'
+              - $ref: '#/components/schemas/OpenAI.EvalGraderTextSimilarity'
+              - $ref: '#/components/schemas/OpenAI.EvalGraderPython'
+              - $ref: '#/components/schemas/OpenAI.EvalGraderScoreModel'
+              - $ref: '#/components/schemas/EvalGraderEndpoint'
+            description: A list of graders for all eval runs in this group. Graders can reference variables in the
+              data source using double curly braces notation, like `{{item.variable_name}}`. To reference the model's
+              output, use the `sample` namespace (ie, `{{sample.output_text}}`).
+        required:
+        - data_source_config
+        - testing_criteria
+    - pointer: '#/components/schemas/OpenAI.RealtimeSessionCreateRequest'
+      expected:
+        type: object
+        required:
+        - client_secret
+        properties:
+          client_secret:
+            allOf:
+            - $ref: '#/components/schemas/OpenAI.RealtimeSessionCreateRequestClientSecret'
+            description: Ephemeral key returned by the API.
+          modalities:
+            type: array
+            items:
+              type: string
+              enum:
+              - text
+              - audio
+            description: "The set of modalities the model can respond with. To disable audio,\n  set this to [\"\
+              text\"]."
+            default:
+            - text
+            - audio
+          instructions:
+            type: string
+            description: "The default system instructions (i.e. system message) prepended to model calls. This field\
+              \ allows the client to guide the model on desired responses. The model can be instructed on response\
+              \ content and format, (e.g. \"be extremely succinct\", \"act friendly\", \"here are examples of good\
+              \ responses\") and on audio behavior (e.g. \"talk quickly\", \"inject emotion into your voice\", \"\
+              laugh frequently\"). The instructions are not guaranteed to be followed by the model, but they provide\
+              \ guidance to the model on the desired behavior.\n  Note that the server sets default instructions\
+              \ which will be used if this field is not set and are visible in the `session.created` event at the\
+              \ start of the session."
+          voice:
+            allOf:
+            - $ref: '#/components/schemas/OpenAI.VoiceIdsOrCustomVoice'
+            description: "The voice the model uses to respond. Supported built-in voices are\n  `alloy`, `ash`,\
+              \ `ballad`, `coral`, `echo`, `sage`, `shimmer`, `verse`,\n  `marin`, and `cedar`. You may also provide\
+              \ a custom voice object with an\n  `id`, for example `{ \"id\": \"voice_1234\" }`. Voice cannot be\
+              \ changed during\n  the session once the model has responded with audio at least once."
+          input_audio_format:
+            type: string
+            description: The format of input audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
+          output_audio_format:
+            type: string
+            description: The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
+          input_audio_transcription:
+            allOf:
+            - $ref: '#/components/schemas/OpenAI.RealtimeSessionCreateRequestInputAudioTranscription'
+            description: "Configuration for input audio transcription, defaults to off and can be\n  set to `null`\
+              \ to turn off once on. Input audio transcription is not native\n  to the model, since the model consumes\
+              \ audio directly. Transcription runs\n  asynchronously and should be treated as rough guidance\n \
+              \ rather than the representation understood by the model."
+          speed:
+            type: number
+            minimum: 0.25
+            maximum: 1.5
+            description: "The speed of the model's spoken response. 1.0 is the default speed. 0.25 is\n  the minimum\
+              \ speed. 1.5 is the maximum speed. This value can only be changed\n  in between model turns, not while\
+              \ a response is in progress."
+            default: 1
+          tracing:
+            oneOf:
+            - type: string
+              enum:
+              - auto
+            - type: object
+              properties:
+                workflow_name:
+                  type: string
+                group_id:
+                  type: string
+                metadata:
+                  type: object
+                  unevaluatedProperties: {}
+            description: "Configuration options for tracing. Set to null to disable tracing. Once\n  tracing is\
+              \ enabled for a session, the configuration cannot be modified.\n  `auto` will create a trace for the\
+              \ session with default values for the\n  workflow name, group id, and metadata."
+            title: Tracing Configuration
+            default: auto
+          turn_detection:
+            allOf:
+            - $ref: '#/components/schemas/OpenAI.RealtimeSessionCreateRequestTurnDetection'
+            description: "Configuration for turn detection. Can be set to `null` to turn off. Server\n  VAD means\
+              \ that the model will detect the start and end of speech based on\n  audio volume and respond at the\
+              \ end of user speech."
+          tools:
+            type: array
+            items:
+              $ref: '#/components/schemas/OpenAI.RealtimeSessionCreateRequestTools'
+            description: Tools (functions) available to the model.
+          tool_choice:
+            type: string
+            description: "How the model chooses tools. Options are `auto`, `none`, `required`, or\n  specify a function."
+          temperature:
+            type: number
+            description: Sampling temperature for the model, limited to [0.6, 1.2]. Defaults to 0.8.
+          max_response_output_tokens:
+            oneOf:
+            - type: integer
+            - type: string
+              enum:
+              - inf
+            description: "Maximum number of output tokens for a single assistant response,\n  inclusive of tool\
+              \ calls. Provide an integer between 1 and 4096 to\n  limit output tokens, or `inf` for the maximum\
+              \ available tokens for a\n  given model. Defaults to `inf`."
+          truncation:
+            $ref: '#/components/schemas/OpenAI.RealtimeTruncation'
+          prompt:
+            $ref: '#/components/schemas/OpenAI.Prompt'
+        description: 'A new Realtime session configuration, with an ephemeral key. Default TTL
+
+          for keys is one minute.'
+        x-oaiMeta:
+          name: The session object
+          group: realtime
+          example: "{\n  \"id\": \"sess_001\",\n  \"object\": \"realtime.session\",\n  \"model\": \"gpt-realtime-2025-08-25\"\
+            ,\n  \"modalities\": [\"audio\", \"text\"],\n  \"instructions\": \"You are a friendly assistant.\",\n\
+            \  \"voice\": \"alloy\",\n  \"input_audio_format\": \"pcm16\",\n  \"output_audio_format\": \"pcm16\"\
+            ,\n  \"input_audio_transcription\": {\n      \"model\": \"whisper-1\"\n  },\n  \"turn_detection\": null,\n\
+            \  \"tools\": [],\n  \"tool_choice\": \"none\",\n  \"temperature\": 0.7,\n  \"speed\": 1.1,\n  \"tracing\"\
+            : \"auto\",\n  \"max_response_output_tokens\": 200,\n  \"truncation\": \"auto\",\n  \"prompt\": null,\n\
+            \  \"client_secret\": {\n    \"value\": \"ek_abc123\",\n    \"expires_at\": 1234567890\n  }\n}\n"
+      replacement:
+        type: object
+        required:
+        - model
+        properties:
+          modalities:
+            type: array
+            items:
+              type: string
+              enum:
+              - text
+              - audio
+            description: "The set of modalities the model can respond with. To disable audio,\n  set this to [\"\
+              text\"]."
+            default:
+            - text
+            - audio
+          instructions:
+            type: string
+            description: "The default system instructions (i.e. system message) prepended to model calls. This field\
+              \ allows the client to guide the model on desired responses. The model can be instructed on response\
+              \ content and format, (e.g. \"be extremely succinct\", \"act friendly\", \"here are examples of good\
+              \ responses\") and on audio behavior (e.g. \"talk quickly\", \"inject emotion into your voice\", \"\
+              laugh frequently\"). The instructions are not guaranteed to be followed by the model, but they provide\
+              \ guidance to the model on the desired behavior.\n  Note that the server sets default instructions\
+              \ which will be used if this field is not set and are visible in the `session.created` event at the\
+              \ start of the session."
+          voice:
+            allOf:
+            - $ref: '#/components/schemas/OpenAI.VoiceIdsOrCustomVoice'
+            description: "The voice the model uses to respond. Supported built-in voices are\n  `alloy`, `ash`,\
+              \ `ballad`, `coral`, `echo`, `sage`, `shimmer`, `verse`,\n  `marin`, and `cedar`. You may also provide\
+              \ a custom voice object with an\n  `id`, for example `{ \"id\": \"voice_1234\" }`. Voice cannot be\
+              \ changed during\n  the session once the model has responded with audio at least once."
+          input_audio_format:
+            type: string
+            description: The format of input audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
+          output_audio_format:
+            type: string
+            description: The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
+          input_audio_transcription:
+            allOf:
+            - $ref: '#/components/schemas/OpenAI.RealtimeSessionCreateRequestInputAudioTranscription'
+            description: "Configuration for input audio transcription, defaults to off and can be\n  set to `null`\
+              \ to turn off once on. Input audio transcription is not native\n  to the model, since the model consumes\
+              \ audio directly. Transcription runs\n  asynchronously and should be treated as rough guidance\n \
+              \ rather than the representation understood by the model."
+          speed:
+            type: number
+            minimum: 0.25
+            maximum: 1.5
+            description: "The speed of the model's spoken response. 1.0 is the default speed. 0.25 is\n  the minimum\
+              \ speed. 1.5 is the maximum speed. This value can only be changed\n  in between model turns, not while\
+              \ a response is in progress."
+            default: 1
+          tracing:
+            oneOf:
+            - type: string
+              enum:
+              - auto
+            - type: object
+              properties:
+                workflow_name:
+                  type: string
+                group_id:
+                  type: string
+                metadata:
+                  type: object
+                  unevaluatedProperties: {}
+            description: "Configuration options for tracing. Set to null to disable tracing. Once\n  tracing is\
+              \ enabled for a session, the configuration cannot be modified.\n  `auto` will create a trace for the\
+              \ session with default values for the\n  workflow name, group id, and metadata."
+            title: Tracing Configuration
+            default: auto
+          turn_detection:
+            allOf:
+            - $ref: '#/components/schemas/OpenAI.RealtimeSessionCreateRequestTurnDetection'
+            description: "Configuration for turn detection. Can be set to `null` to turn off. Server\n  VAD means\
+              \ that the model will detect the start and end of speech based on\n  audio volume and respond at the\
+              \ end of user speech."
+          tools:
+            type: array
+            items:
+              $ref: '#/components/schemas/OpenAI.RealtimeSessionCreateRequestTools'
+            description: Tools (functions) available to the model.
+          tool_choice:
+            type: string
+            description: "How the model chooses tools. Options are `auto`, `none`, `required`, or\n  specify a function."
+          temperature:
+            type: number
+            description: Sampling temperature for the model, limited to [0.6, 1.2]. Defaults to 0.8.
+          max_response_output_tokens:
+            oneOf:
+            - type: integer
+            - type: string
+              enum:
+              - inf
+            description: "Maximum number of output tokens for a single assistant response,\n  inclusive of tool\
+              \ calls. Provide an integer between 1 and 4096 to\n  limit output tokens, or `inf` for the maximum\
+              \ available tokens for a\n  given model. Defaults to `inf`."
+          truncation:
+            $ref: '#/components/schemas/OpenAI.RealtimeTruncation'
+          prompt:
+            $ref: '#/components/schemas/OpenAI.Prompt'
+          model:
+            type: string
+            description: Name of the Azure realtime model deployment.
+        description: 'A new Realtime session configuration, with an ephemeral key. Default TTL
+
+          for keys is one minute.'
+        x-oaiMeta:
+          name: The session object
+          group: realtime
+          example: "{\n  \"id\": \"sess_001\",\n  \"object\": \"realtime.session\",\n  \"model\": \"gpt-realtime-2025-08-25\"\
+            ,\n  \"modalities\": [\"audio\", \"text\"],\n  \"instructions\": \"You are a friendly assistant.\",\n\
+            \  \"voice\": \"alloy\",\n  \"input_audio_format\": \"pcm16\",\n  \"output_audio_format\": \"pcm16\"\
+            ,\n  \"input_audio_transcription\": {\n      \"model\": \"whisper-1\"\n  },\n  \"turn_detection\": null,\n\
+            \  \"tools\": [],\n  \"tool_choice\": \"none\",\n  \"temperature\": 0.7,\n  \"speed\": 1.1,\n  \"tracing\"\
+            : \"auto\",\n  \"max_response_output_tokens\": 200,\n  \"truncation\": \"auto\",\n  \"prompt\": null,\n\
+            \  \"client_secret\": {\n    \"value\": \"ek_abc123\",\n    \"expires_at\": 1234567890\n  }\n}\n"
+    - pointer: '#/components/schemas/OpenAI.CreateContainerFileBody/properties/file'
+      expected:
+        description: The File object (not file name) to be uploaded.
+      replacement:
+        description: The File object (not file name) to be uploaded.
+        type: string
+        format: binary
+  - reason: Azure inference requires a nonblank model deployment or model identifier when model is supplied. The
+      generated string declarations omit this constraint. Preserve optionality for context-based requests while
+      rejecting empty and whitespace-only model values before transport. See https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/deployment-types
+      and https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/azureopenai/chat .
+    replace_values:
+    - pointer: '#/paths/~1audio~1speech/post/requestBody/content/application~1json/schema/properties/model'
+      expected:
+        type: string
+        description: The model to use for this text-to-speech request.
+        x-oaiTypeLabel: string
+      replacement:
+        type: string
+        description: The model to use for this text-to-speech request.
+        x-oaiTypeLabel: string
+        minLength: 1
+        pattern: \S
+    - pointer: '#/paths/~1audio~1transcriptions/post/requestBody/content/multipart~1form-data/schema/properties/model'
+      expected:
+        type: string
+        description: The model to use for this transcription request.
+        x-oaiTypeLabel: string
+      replacement:
+        type: string
+        description: The model to use for this transcription request.
+        x-oaiTypeLabel: string
+        minLength: 1
+        pattern: \S
+    - pointer: '#/paths/~1audio~1translations/post/requestBody/content/multipart~1form-data/schema/properties/model'
+      expected:
+        type: string
+        description: The model to use for this transcription request.
+        x-oaiTypeLabel: string
+      replacement:
+        type: string
+        description: The model to use for this transcription request.
+        x-oaiTypeLabel: string
+        minLength: 1
+        pattern: \S
+    - pointer: '#/paths/~1chat~1completions/post/requestBody/content/application~1json/schema/properties/model'
+      expected:
+        type: string
+        description: "Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI\n  offers a wide range\
+          \ of models with different capabilities, performance\n  characteristics, and price points. Refer to the\
+          \ [model guide](/docs/models)\n  to browse and compare available models."
+      replacement:
+        type: string
+        description: "Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI\n  offers a wide range\
+          \ of models with different capabilities, performance\n  characteristics, and price points. Refer to the\
+          \ [model guide](/docs/models)\n  to browse and compare available models."
+        minLength: 1
+        pattern: \S
+    - pointer: '#/paths/~1completions/post/requestBody/content/application~1json/schema/properties/model'
+      expected:
+        type: string
+        description: ID of the model to use. You can use the [List models](/docs/api-reference/models/list) API
+          to see all of your available models, or see our [Model overview](/docs/models) for descriptions of them.
+        x-oaiTypeLabel: string
+      replacement:
+        type: string
+        description: ID of the model to use. You can use the [List models](/docs/api-reference/models/list) API
+          to see all of your available models, or see our [Model overview](/docs/models) for descriptions of them.
+        x-oaiTypeLabel: string
+        minLength: 1
+        pattern: \S
+    - pointer: '#/components/schemas/OpenAI.CreateEmbeddingRequest/properties/model'
+      expected:
+        type: string
+        description: ID of the model to use. You can use the [List models](/docs/api-reference/models/list) API
+          to see all of your available models, or see our [Model overview](/docs/models) for descriptions of them.
+        x-oaiTypeLabel: string
+      replacement:
+        type: string
+        description: ID of the model to use. You can use the [List models](/docs/api-reference/models/list) API
+          to see all of your available models, or see our [Model overview](/docs/models) for descriptions of them.
+        x-oaiTypeLabel: string
+        minLength: 1
+        pattern: \S
+    - pointer: '#/components/schemas/OpenAI.CreateImageEditRequest/properties/model'
+      expected:
+        type: string
+        description: The model to use for image generation. Defaults to `gpt-image-1.5`.
+        x-oaiTypeLabel: string
+      replacement:
+        type: string
+        description: The model to use for image generation. Defaults to `gpt-image-1.5`.
+        x-oaiTypeLabel: string
+        minLength: 1
+        pattern: \S
+    - pointer: '#/components/schemas/OpenAI.CreateImageRequest/properties/model'
+      expected:
+        type: string
+        description: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT image model
+          (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to `dall-e-2` unless a parameter specific
+          to the GPT image models is used.
+        x-oaiTypeLabel: string
+      replacement:
+        type: string
+        description: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT image model
+          (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to `dall-e-2` unless a parameter specific
+          to the GPT image models is used.
+        x-oaiTypeLabel: string
+        minLength: 1
+        pattern: \S
+    - pointer: '#/components/schemas/OpenAI.RealtimeSessionCreateRequestGA/properties/model'
+      expected:
+        type: string
+        description: The Realtime model used for this session.
+      replacement:
+        type: string
+        description: The Realtime model used for this session.
+        minLength: 1
+        pattern: \S
+    - pointer: '#/components/schemas/OpenAI.RealtimeSessionCreateRequest/properties/model'
+      expected:
+        type: string
+        description: Name of the Azure realtime model deployment.
+      replacement:
+        type: string
+        description: Name of the Azure realtime model deployment.
+        minLength: 1
+        pattern: \S
+    - pointer: '#/components/schemas/OpenAI.CreateResponse/properties/model'
+      expected:
+        type: string
+        description: "Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI\n  offers a wide range\
+          \ of models with different capabilities, performance\n  characteristics, and price points. Refer to the\
+          \ [model guide](/docs/models)\n  to browse and compare available models."
+      replacement:
+        type: string
+        description: "Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI\n  offers a wide range\
+          \ of models with different capabilities, performance\n  characteristics, and price points. Refer to the\
+          \ [model guide](/docs/models)\n  to browse and compare available models."
+        minLength: 1
+        pattern: \S
+    - pointer: '#/components/schemas/CreateVideoBodyWithInputReference/properties/model'
+      expected:
+        type: string
+        description: The name of the deployment to use for this request.
+      replacement:
+        type: string
+        description: The name of the deployment to use for this request.
+        minLength: 1
+        pattern: \S
+  - reason: Generated nullable Unix timestamps contradict their integer wire type with string/date-time alternatives.
+      Preserve the declared Unix-seconds representation and nullability for fine-tuning completion estimates, response
+      completion, and vector-store activity/expiration. See https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/azureopenai/fine-tuning
+      and the pinned vendor schemas, which explicitly mark these integer fields unixTimestamp.
+    replace_values:
+    - pointer: '#/components/schemas/OpenAI.FineTuningJob/properties/finished_at'
+      expected:
+        anyOf:
+        - type: string
+          format: date-time
+        - type: 'null'
+        type: integer
+        format: unixTimestamp
+      replacement:
+        type:
+        - integer
+        - 'null'
+        format: unixtime
+    - pointer: '#/components/schemas/OpenAI.FineTuningJob/properties/estimated_finish'
+      expected:
+        anyOf:
+        - type: string
+          format: date-time
+        - type: 'null'
+        type: integer
+        format: unixTimestamp
+      replacement:
+        type:
+        - integer
+        - 'null'
+        format: unixtime
+    - pointer: '#/components/schemas/OpenAI.Response/properties/completed_at'
+      expected:
+        anyOf:
+        - type: string
+          format: date-time
+        - type: 'null'
+        type: integer
+        format: unixTimestamp
+      replacement:
+        type:
+        - integer
+        - 'null'
+        format: unixtime
+    - pointer: '#/components/schemas/OpenAI.VectorStoreObject/properties/expires_at'
+      expected:
+        anyOf:
+        - type: string
+          format: date-time
+        - type: 'null'
+        type: integer
+        format: unixTimestamp
+      replacement:
+        type:
+        - integer
+        - 'null'
+        format: unixtime
+    - pointer: '#/components/schemas/OpenAI.VectorStoreObject/properties/last_active_at'
+      expected:
+        anyOf:
+        - type: string
+          format: date-time
+        - type: 'null'
+        type: integer
+        format: unixTimestamp
+      replacement:
+        type:
+        - integer
+        - 'null'
+        format: unixtime

@@ -302,6 +302,12 @@ excluded from the union and make it @ref RestSchemaValidator::AbstractSchemaObje
     @section openapi3_relnotes OpenApi3 Module Release Notes
 
     @subsection openapi3_1_0 OpenApi3 v1.0
+    - expand server-variable defaults before deriving the request base path
+    - support discriminator-only inheritance mappings and escaped local schema references; a mapped branch
+      is selected by its discriminator in optional, soft and mandatory type forms alike, and a cyclic
+      mapping is reported as an invalid reference
+    - accept empty `required` arrays in OpenAPI 3.1 and later
+    - serialize structured multipart fields using their Encoding Objects and preserve repeated file arrays
     - respect request/response direction for required read-only and write-only properties
     - support named uploads and URLs in multipart file-or-URL unions
     - preserve composed allOf types when they are used as required or optional object fields
@@ -1158,7 +1164,20 @@ public class OpenApi3Schema inherits ObjectBase, AbstractRestSchemaValidator {
                 # Extract host and basePath from the first server URL if not already set
                 hash<auto> firstServer = serversObj[0];
                 if (firstServer.url.typeCode() == NT_STRING) {
-                    hash<UrlInfo> urlInfo = parse_url(firstServer.url);
+                    string url = firstServer.url;
+                    # Server defaults may provide the entire origin, including an empty origin
+                    # for a connection-supplied endpoint. Expand before splitting host and path.
+                    *hash<auto> variables;
+                    optional_field("Server", firstServer, "variables", NT_HASH, \variables);
+                    foreach hash<auto> variable in (variables.pairIterator()) {
+                        if (variable.value.typeCode() != NT_HASH
+                                || variable.value.default.typeCode() != NT_STRING) {
+                            throw "INVALID-FIELD-TYPE", sprintf("server variable %y requires a string default",
+                                variable.key);
+                        }
+                        url = replace(url, "{" + variable.key + "}", variable.value.default);
+                    }
+                    hash<UrlInfo> urlInfo = parse_url(url);
                     if (urlInfo.protocol.val()) {
                         scheme = urlInfo.protocol;
                     }
@@ -1270,6 +1289,7 @@ public class OpenApi3Schema inherits ObjectBase, AbstractRestSchemaValidator {
         if (refstr !~ /^#\/components\/schemas\//)
             throw "INVALID-REFERENCE", sprintf("cannot resolve SchemaObject %y reference %y", name, refstr);
         string rstr = (refstr =~ x/^#\/components\/schemas\/(.*)$/)[0];
+        rstr = replace(replace(rstr, "~1", "/"), "~0", "~");
         *SchemaObject ref = components.schemas{rstr};
         if (!ref) {
             if (exists (*hash<auto> def = source_definition_hash{rstr})) {
@@ -2020,7 +2040,7 @@ public class OpenApi3Schema inherits ObjectBase, AbstractRestSchemaValidator {
             rv.uri_path = make_uri_query(cast<hash<UriQueryInfo>>(h), query_arg_separator);
         }
 
-        if (!body) {
+        if (!exists body) {
             return rv;
         }
 
@@ -2040,7 +2060,7 @@ public class OpenApi3Schema inherits ObjectBase, AbstractRestSchemaValidator {
                 continue;
             }
             if (content == MimeTypeMultipartFormData) {
-                hash<MessageInfo> mh = OperationObject::serializeMultipartBody(body);
+                hash<MessageInfo> mh = op.getMultipartRequestBody(pio, body);
                 return rv += {
                     "body": mh.body,
                     "content": mh.hdr."Content-Type",
@@ -3027,8 +3047,8 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
                 continue;
             }
             QoreDataField f = cast<QoreDataField>(fields{name}.copy());
-            AbstractDataProviderType file_type = new QoreUnionDataType((FileDataType,
-                f.getType().getMandatoryType()));
+            AbstractDataProviderType file_type = OperationObject::getMultipartInputType(
+                f.getType().getMandatoryType());
             f.updateFieldType(f.isMandatory() ? file_type : file_type.getOrNothingType());
             fields{name} = f;
         }
@@ -3036,6 +3056,29 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         AbstractDataProviderType body_type = type.copyWithFields(fields);
         result.updateFieldType(field.isMandatory() ? body_type : body_type.getOrNothingType());
         return result;
+    }
+
+    #! Adds named file support at binary positions, including array elements
+    private static AbstractDataProviderType getMultipartInputType(AbstractDataProviderType type) {
+        AbstractDataProviderType transformed = OperationObject::getMultipartArrayInputType(type);
+        # Keep the established outer file alternative for file-or-URL contracts. Moving it
+        # inside the wire union changes presentation identities and loses composition validation.
+        return OperationObject::hasBinaryAlternative(type, False)
+            ? new QoreUnionDataType((FileDataType, transformed)) : transformed;
+    }
+
+    #! Transforms array elements without altering scalar alternatives or union semantics
+    private static AbstractDataProviderType getMultipartArrayInputType(AbstractDataProviderType type) {
+        if (type instanceof QoreUnionDataType) {
+            return cast<QoreUnionDataType>(type).copyWithUnionTypes(
+                map OperationObject::getMultipartArrayInputType($1),
+                cast<QoreUnionDataType>(type).getUnionTypes());
+        }
+        if (type.getBaseTypeCode() == NT_LIST) {
+            return cast<ListDataType>(type).copyWithElementType(
+                OperationObject::getMultipartInputType(type.getElementType()));
+        }
+        return type;
     }
 
     #! Finds binary properties that are represented by individual multipart file parts
@@ -3055,13 +3098,16 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
     }
 
     #! Returns whether a multipart property accepts binary content, directly or through a union
-    private static bool hasBinaryAlternative(AbstractDataProviderType type) {
+    private static bool hasBinaryAlternative(AbstractDataProviderType type, bool include_arrays = True) {
         if (type.getBaseTypeCode() == NT_BINARY) {
             return True;
         }
+        if (include_arrays && type.getBaseTypeCode() == NT_LIST && type.getElementType()) {
+            return OperationObject::hasBinaryAlternative(type.getElementType());
+        }
         if (type instanceof QoreUnionDataType) {
             foreach AbstractDataProviderType branch in (cast<QoreUnionDataType>(type).getUnionTypes()) {
-                if (OperationObject::hasBinaryAlternative(branch)) {
+                if (OperationObject::hasBinaryAlternative(branch, include_arrays)) {
                     return True;
                 }
             }
@@ -3082,56 +3128,116 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
             }
             checked = fields;
             foreach string name in (keys getMultipartFileProperties(param)) {
-                if (checked{name}.typeCode() != NT_HASH) {
-                    continue;
+                if (checked{name}.typeCode() == NT_HASH || checked{name}.typeCode() == NT_LIST) {
+                    files{name} = checked{name};
+                    checked{name} = OperationObject::getMultipartWireValue(name, checked{name});
                 }
-                hash<auto> file = FileDataType.acceptsValue(checked{name});
-                if (!file.name.val()) {
-                    throw "SCHEMA-VALIDATION-ERROR", sprintf("multipart file %y requires a non-empty filename", name);
-                }
-                files{name} = file;
-                checked{name} = parse_base64_string(file.content);
             }
         }
         param.check(serialize, True, path, method, "body", \checked);
         value = files ? checked + files : checked;
     }
 
+    #! Decodes named files for schema validation while retaining raw binary and URL alternatives
+    private static auto getMultipartWireValue(string name, auto value) {
+        if (value.typeCode() == NT_LIST) {
+            return map OperationObject::getMultipartWireValue(name, $1), value;
+        }
+        if (value.typeCode() == NT_HASH) {
+            hash<auto> file = FileDataType.acceptsValue(value);
+            if (!file.name.val()) {
+                throw "SCHEMA-VALIDATION-ERROR", sprintf("multipart file %y requires a non-empty filename", name);
+            }
+            return parse_base64_string(file.content);
+        }
+        return value;
+    }
+
     #! Serializes multipart request fields with file names, media types, and unmodified bytes
     /** @param body validated multipart request properties
+        @param encoding per-property Encoding Objects from the selected media type
+        @param file_fields declared file positions; omitted for legacy schema-less callers
         @return the serialized body and Content-Type header including its boundary
         @throw MULTIPART-FORMDATA-ERROR an invalid part name or filename was supplied
         @throw BASE64-PARSE-ERROR encoded file contents are invalid
+        @throw SERIALIZATION-ERROR a structured part encoding is unsupported
 
         Text parameters precede file parts so APIs can read their options before streaming an upload.
     */
-    static hash<MessageInfo> serializeMultipartBody(hash<auto> body) {
+    static hash<MessageInfo> serializeMultipartBody(hash<auto> body,
+            *hash<string, hash<auto>> encoding, *hash<string, bool> file_fields) {
         MultiPartFormDataMessage message();
-        hash<string, hash<FormDataMessageInfo>> files;
+        list<hash<FormDataMessageInfo>> files = ();
         foreach hash<auto> entry in (body.pairIterator()) {
-            if (entry.value.typeCode() == NT_HASH) {
-                hash<auto> file = FileDataType.acceptsValue(entry.value);
-                files{entry.key} = <FormDataMessageInfo>{
-                    "name": entry.key,
-                    "filename": file.name,
-                    "hdr": {"Content-Type": file.mime_type},
-                    "body": parse_base64_string(file.content),
-                };
-            } else if (entry.value.typeCode() == NT_BINARY) {
-                files{entry.key} = <FormDataMessageInfo>{
-                    "name": entry.key,
-                    "filename": entry.key,
-                    "hdr": {"Content-Type": MimeTypeOctetStream},
-                    "body": entry.value,
-                };
+            bool is_file = exists file_fields ? (file_fields{entry.key} ?? False)
+                : (entry.value.typeCode() == NT_HASH && entry.value.hasKey("content"));
+            if (is_file && (entry.value.typeCode() == NT_HASH || entry.value.typeCode() == NT_LIST)
+                    || entry.value.typeCode() == NT_BINARY) {
+                bool array = entry.value.typeCode() == NT_LIST;
+                list<auto> values = array ? entry.value : (entry.value,);
+                foreach auto value in (values) {
+                    string name = entry.key + (array ? "[]" : "");
+                    if (value.typeCode() == NT_HASH) {
+                        hash<auto> file = FileDataType.acceptsValue(value);
+                        files += <FormDataMessageInfo>{"name": name, "filename": file.name,
+                            "hdr": {"Content-Type": file.mime_type}, "body": parse_base64_string(file.content)};
+                    } else if (value.typeCode() == NT_BINARY) {
+                        files += <FormDataMessageInfo>{"name": name, "filename": entry.key,
+                            "hdr": {"Content-Type": MimeTypeOctetStream}, "body": value};
+                    } else {
+                        message.addRepeatedPart(formScalar(value), name);
+                    }
+                }
             } else {
-                message.addPart(formScalar(entry.value), entry.key);
+                *hash<auto> enc = encoding{entry.key};
+                if (enc.style.val()) {
+                    # Reuse the form style implementation, retaining repeated parts and literal empty
+                    # values. Decode each pair independently so repeated array names are not collapsed.
+                    list<string> pairs = ();
+                    string style = enc.style;
+                    bool explode = enc.explode ?? (style == "form" || style == "deepObject");
+                    OperationObject::addFormProperty(\pairs, entry.key, entry.value, style, explode);
+                    foreach string pair in (pairs) {
+                        int at = pair.find("=");
+                        @assert(at >= 0);
+                        message.addRepeatedPart(mime_decode_urlencoded_string(pair.substr(at + 1)),
+                            mime_decode_urlencoded_string(pair.substr(0, at)));
+                    }
+                } else if (entry.value.typeCode() == NT_HASH || entry.value.typeCode() == NT_LIST
+                        || enc.contentType == MimeTypeJson) {
+                    # An ordinary object is not a file, even when it contains a property called value,
+                    # name, or content. File interpretation belongs to the declared schema position.
+                    string content_type = enc.contentType ?? MimeTypeJson;
+                    if (!MimeDataTypes{content_type}) {
+                        throw "SERIALIZATION-ERROR", sprintf("multipart property %y cannot be serialized as %y",
+                            entry.key, content_type);
+                    }
+                    message.addPart(<FormDataMessageInfo>{"name": entry.key,
+                        "hdr": {"Content-Type": content_type},
+                        "body": MimeDataTypes{content_type}.serialize(entry.value)});
+                } else {
+                    message.addPart(formScalar(entry.value), entry.key);
+                }
             }
         }
-        foreach hash<FormDataMessageInfo> file in (files.iterator()) {
-            message.addPart(file);
+        foreach hash<FormDataMessageInfo> file in (files) {
+            message.addRepeatedPart(file);
         }
         return message.getMsgAndHeaders();
+    }
+
+    #! Serializes validated multipart fields using this operation's schema and encoding
+    /** @param pio the path item supplying inherited body parameters
+        @param value the validated request body
+        @return the multipart message and its Content-Type header
+        @throw SERIALIZATION-ERROR a declared part encoding is unsupported
+        @throw MULTIPART-FORMDATA-ERROR a part name or filename is invalid
+        @throw BASE64-PARSE-ERROR encoded file contents are invalid
+    */
+    hash<MessageInfo> getMultipartRequestBody(PathItemObject pio, hash<auto> value) {
+        *ParameterObject param = body ?? pio.body;
+        return OperationObject::serializeMultipartBody(value, content_encoding{MimeTypeMultipartFormData},
+            param ? getMultipartFileProperties(param) : NOTHING);
     }
 
     #! Processes a generated request
@@ -3167,7 +3273,7 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         string ct = consumes.firstKey();
 
         if (ct == MimeTypeMultipartFormData) {
-            hash<MessageInfo> mh = OperationObject::serializeMultipartBody(body);
+            hash<MessageInfo> mh = getMultipartRequestBody(real_pio, body);
             headers."Content-Type" = mh.hdr."Content-Type";
             return mh.body;
         }
@@ -4405,6 +4511,14 @@ public class OpenApi3HashDataType inherits HashDataType {
 
     #! Validates schema composition rules (oneOf, anyOf, not, readOnly, writeOnly)
     private validateSchemaComposition(hash<auto> value) {
+        if (schema.discriminatorMapping && !schema.oneOf && !schema.anyOf) {
+            if (value{schema.discriminator}.typeCode() != NT_STRING
+                    || !schema.discriminatorMapping.hasKey(value{schema.discriminator})) {
+                throw "RUNTIME-TYPE-ERROR", sprintf("expected a mapped string discriminator %y",
+                    schema.discriminator);
+            }
+            schema.check(True, for_request, "/", "POST", getName(), \value);
+        }
         # Check oneOf - value must match exactly one schema
         if (schema.oneOf) {
             int matches = 0;
@@ -4593,6 +4707,96 @@ public class OpenApi3HashDataType inherits HashDataType {
                 return True;
         }
         return True;
+    }
+}
+
+#! A polymorphic object selected by an explicit OpenAPI discriminator mapping
+/** Each branch exposes its own fields rather than only the common base properties. The discriminator
+    remains a wire value; changing presentation labels cannot change branch selection.
+*/
+public class OpenApi3DiscriminatorDataType inherits QoreUnionDataType {
+    private {
+        string discriminator;
+        hash<string, AbstractDataProviderType> alternatives;
+    }
+
+    #! Creates a type over explicitly mapped discriminator values
+    /** @param discriminator the property identifying the branch
+        @param alternatives the mapped branch types in declaration order
+    */
+    constructor(string discriminator, hash<string, AbstractDataProviderType> alternatives)
+            : QoreUnionDataType(cast<list<AbstractDataProviderType>>(map $1, alternatives.iterator())) {
+        self.discriminator = discriminator;
+        self.alternatives = alternatives;
+    }
+
+    #! Validates a value against the branch selected by its discriminator
+    /** @param value the object to validate
+        @return the validated object
+        @throw RUNTIME-TYPE-ERROR the discriminator is missing, invalid, or unknown, or the branch rejects the object
+        @throw MISSING-VALUE-ERROR a required field of the selected branch is absent
+    */
+    auto acceptsValue(auto value) {
+        if (!exists value && isOrNothingType()) {
+            return;
+        }
+        if (value.typeCode() != NT_HASH || value{discriminator}.typeCode() != NT_STRING) {
+            throw "RUNTIME-TYPE-ERROR", sprintf("expected an object with string discriminator %y", discriminator);
+        }
+        *AbstractDataProviderType branch = alternatives{value{discriminator}};
+        if (!branch) {
+            throw "RUNTIME-TYPE-ERROR", sprintf("unknown value for discriminator %y; expected one of %y",
+                discriminator, keys alternatives);
+        }
+        return branch.acceptsValue(value);
+    }
+
+    #! Retains branch identities when presentation replaces the types
+    /** @param types replacement branches in the original order
+        @return a type with the same discriminator mapping
+        @throw RUNTIME-TYPE-ERROR the replacement branch count differs
+    */
+    QoreUnionDataType copyWithUnionTypes(list<AbstractDataProviderType> types) {
+        if (types.size() != alternatives.size()) {
+            throw "RUNTIME-TYPE-ERROR", "cannot change the number of discriminator alternatives";
+        }
+        hash<string, AbstractDataProviderType> replaced = {};
+        int i = 0;
+        foreach string key in (keys alternatives) {
+            replaced{key} = types[i++];
+        }
+        return new OpenApi3DiscriminatorDataType(discriminator, replaced);
+    }
+
+    #! Returns a "soft" type equivalent to the current type
+    /** @return a type selecting the same branches, each accepting soft values */
+    AbstractDataProviderType getSoftType() {
+        return new OpenApi3DiscriminatorDataType(discriminator,
+            map {$1.key: $1.value.getSoftType()}, alternatives.pairIterator());
+    }
+
+    #! Returns an "or nothing" type equivalent to the current type
+    /** An optional property is still selected by its discriminator; a union that forgets the mapping
+        accepts any branch that happens to match, which is not what the document says.
+
+        @return a type selecting the same branches, each accepting @ref nothing
+    */
+    AbstractDataProviderType getOrNothingType() {
+        if (isOrNothingType()) {
+            return self;
+        }
+        return new OpenApi3DiscriminatorDataType(discriminator,
+            map {$1.key: $1.value.getOrNothingType()}, alternatives.pairIterator());
+    }
+
+    #! Returns a mandatory (i.e. not "or nothing") type equivalent to the current type
+    /** @return a type selecting the same branches, each mandatory */
+    AbstractDataProviderType getMandatoryType() {
+        if (!isOrNothingType()) {
+            return self;
+        }
+        return new OpenApi3DiscriminatorDataType(discriminator,
+            map {$1.key: $1.value.getMandatoryType()}, alternatives.pairIterator());
     }
 }
 
@@ -4894,6 +5098,9 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         #! Reference to the OpenApi3 schema
         OpenApi3Schema openapi3;
 
+        #! Resolved discriminator branches, retained when the weak document reference is serialized away
+        hash<string, SchemaObject> mappedSchemas = {};
+
         #! Whether the schema declares a JSON Schema constant, including null
         bool has_const = False;
 
@@ -5054,8 +5261,11 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
 
         # process "required"
         if (optional_field(obj_type, oh, "required", OpenApi3ListToStringSet, \required)) {
-            if (!required)
+            # JSON Schema 2020-12 allows an empty required array, equivalent to omitting the keyword.
+            # OpenAPI 3.0 retains the older non-empty array constraint.
+            if (!required && !openapi3.is31OrLater()) {
                 throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: field 'required' is an empty list", name);
+            }
             # make sure all required properties are defined
             #
             # JSON Schema does not require a "required" name to appear in "properties" - the keyword asserts only
@@ -5428,6 +5638,42 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
     #! Returns the data type for the schema
     AbstractDataProviderType getDataType(bool required = True, *object rest) {
         required = required && !nullable;
+        if (discriminatorMapping && !oneOf && !anyOf) {
+            if (!dataType) {
+                # Mapped children may refer back to the base through nested properties. Use the same
+                # bounded recursion guard as composed types; inheritance itself is already flattened.
+                if (buildingComposition()) {
+                    return AbstractDataProviderTypeMap."auto";
+                }
+                push CompositionStack, self;
+                on_exit pop CompositionStack;
+                hash<string, AbstractDataProviderType> alternatives = {};
+                foreach hash<auto> entry in (discriminatorMapping.pairIterator()) {
+                    SchemaObject branch = getDiscriminatorSchema(entry.key);
+                    alternatives{entry.key} = branch.getDataType(True, rest);
+                }
+                if (alternatives.size() == 1) {
+                    # A single mapped object is a hash, not a union. Keep the base schema so
+                    # validation still requires the exact discriminator, including after copying.
+                    HashDataType branch = cast<HashDataType>((map $1, alternatives.iterator())[0]);
+                    OpenApi3HashDataType single(AutoHashType, name, self);
+                    foreach AbstractDataField field in (branch.getFields().iterator()) {
+                        single.addField(field);
+                    }
+                    single.setDefaultOtherFieldType(branch.getDefaultOtherFieldType());
+                    dataType = single;
+                } else {
+                    dataType = new OpenApi3DiscriminatorDataType(discriminator, alternatives);
+                }
+            }
+            if (required) {
+                return dataType;
+            }
+            if (!orNothingDataType) {
+                orNothingDataType = dataType.getOrNothingType();
+            }
+            return orNothingDataType;
+        }
         if (isAllOfWrapper()) {
             # a one-member "allOf" that adds nothing of its own IS its member; delegating gives the member's
             # type even when it is a composition, which a scalar type name cannot express
@@ -5477,6 +5723,80 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
             return orNothingDataType;
         }
         return RestSchemaValidator::AbstractRestSchemaObject::getDataType(required, rest);
+    }
+
+    #! Returns the local reference named by a discriminator mapping value
+    /** A mapping value is either a reference or a bare component schema name; a bare name names a
+        schema in \c "#/components/schemas/" and is escaped as a JSON pointer token.
+
+        @param target the declared mapping value
+
+        @return the reference the mapping names
+    */
+    static string getDiscriminatorReference(string target) {
+        return (target =~ /[\/#:]/) ? target : "#/components/schemas/" + replace(target, "~", "~0");
+    }
+
+    #! Resolves one explicitly mapped discriminator branch
+    /** @param key the discriminator value to resolve
+
+        @return the mapped schema
+
+        @throw INVALID-REFERENCE the mapping names this schema, or a schema whose own mappings lead back
+        to it; validation follows mapping edges with the same value, so such a cycle never terminates
+    */
+    private SchemaObject getDiscriminatorSchema(string key) {
+        if (mappedSchemas{key}) {
+            return mappedSchemas{key};
+        }
+        string reference = SchemaObject::getDiscriminatorReference(discriminatorMapping{key});
+        SchemaObject branch = openapi3.resolveSchemaObject(key, reference, {});
+        if (branch === self) {
+            throw "INVALID-REFERENCE", sprintf("schema %y maps discriminator %y to itself", name, discriminator);
+        }
+        hash<string, bool> seen = {reference: True};
+        if (branch.mapsDiscriminatorTo(self, \seen)) {
+            throw "INVALID-REFERENCE", sprintf("schema %y maps discriminator %y to %y, whose own discriminator "
+                "mappings lead back to %y", name, discriminator, branch.name, name);
+        }
+        mappedSchemas{key} = branch;
+        return branch;
+    }
+
+    #! Returns @ref True if this schema's discriminator mappings can reach the given schema
+    /** Mapping edges are followed with the value unchanged, so a mapping cycle is a document error
+        rather than a bounded recursive value.  Unresolvable mapping targets are ignored here and
+        reported by the path that actually needs them.
+
+        @param target the schema to look for
+        @param seen references already visited, which bounds the walk in a cyclic document
+
+        @return @ref True if \a target is reachable through discriminator mappings
+    */
+    private bool mapsDiscriminatorTo(SchemaObject target, reference<hash<string, bool>> seen) {
+        if (!discriminatorMapping || oneOf || anyOf) {
+            return False;
+        }
+        foreach auto mapped in (discriminatorMapping.iterator()) {
+            if (mapped.typeCode() != NT_STRING) {
+                continue;
+            }
+            string reference = SchemaObject::getDiscriminatorReference(mapped);
+            if (seen{reference}) {
+                continue;
+            }
+            seen{reference} = True;
+            *SchemaObject branch;
+            try {
+                branch = openapi3.resolveSchemaObject(name, reference, {});
+            } catch (hash<ExceptionInfo> ex) {
+                continue;
+            }
+            if (branch === target || branch.mapsDiscriminatorTo(target, \seen)) {
+                return True;
+            }
+        }
+        return False;
     }
 
     #! Returns @ref True if this thread is already building this schema's composition type
@@ -5903,6 +6223,17 @@ public class SchemaObject inherits ObjectBase, SchemaBase, RestSchemaValidator::
         }
         if (type != "object" && type != "any") {
             throwInvalidType(name, "object", type, v);
+        }
+
+        if (discriminatorMapping && !oneOf && !anyOf && !no_check_others) {
+            if (value{discriminator}.typeCode() != NT_STRING || !discriminatorMapping.hasKey(value{discriminator})) {
+                throw "SCHEMA-VALIDATION-ERROR", sprintf("object %y requires discriminator %y with one of %y",
+                    name, discriminator, keys discriminatorMapping);
+            }
+            # A mapped child validates its complete property set. Its allOf base is checked below
+            # with no_check_others, so inheritance does not dispatch back to the same child.
+            getDiscriminatorSchema(value{discriminator}).check(serialize, request, path, method, name, \value);
+            return;
         }
 
         # check "allOf" schemas, if any

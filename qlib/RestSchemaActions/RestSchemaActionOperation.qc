@@ -1253,40 +1253,44 @@ public class RestSchemaActionOperation {
         that declares it and to no others; an entry no branch declares is a manifest error, exactly as it is
         for an object.
 
-        Only presentation may be changed this way.  A codec or a type replacement produces a wire conversion
-        that is recorded per field name, and the same name would need different conversions in different
-        branches, so a conversion here is refused rather than silently applied to whichever branch is matched
-        at runtime.
+        A wire conversion is permitted only when every branch produces the same conversion tree. For
+        example, a timestamp shared by complete responses and stream chunks can use one date codec.
+        Branch-specific conversions are refused because selecting a conversion by field name would be
+        ambiguous. Presentation-only overlays may still apply to a subset of the branches.
 
         @param type the union type
         @param ovl the nested field overrides
         @param ctx a description of the value for error messages
-        @param node the conversion applied to the assembled value; never set here
+        @param node the common conversion applied to the assembled value, if any
 
         @return the union rebuilt over the overlaid branches
 
-        @throw REST-SCHEMA-ACTION-ERROR an entry names no branch's field, or would need a wire conversion
+        @throw REST-SCHEMA-ACTION-ERROR an entry names no branch's field, or conversions differ across branches
     */
     private AbstractDataProviderType applyUnionOverlay(DataProvider::QoreUnionDataType type,
             hash<string, hash<RestSchemaFieldOverlayInfo>> ovl, string ctx, reference<*hash<auto>> node) {
         hash<string, bool> matched = {};
         list<AbstractDataProviderType> branches = ();
+        list<*hash<auto>> conversions = ();
         foreach AbstractDataProviderType branch in (type.getUnionTypes()) {
             *hash<string, AbstractDataField> bfields = branch.getFields();
             hash<string, hash<RestSchemaFieldOverlayInfo>> bovl = ovl{keys (bfields ?? {})};
             if (!bovl) {
                 branches += branch;
+                push conversions, NOTHING;
                 continue;
             }
             map matched{$1} = True, keys bovl;
             *hash<auto> bnode;
             branches += applyTypeOverlay(branch, bovl,
                 sprintf("%s alternative %y", ctx, branch.getName()), \bnode);
-            if (bnode) {
-                throw "REST-SCHEMA-ACTION-ERROR", sprintf("the overlay for %s alternative %y needs a wire "
-                    "conversion; only presentation can be overridden on a union alternative, because the "
-                    "same field name would need a different conversion in each alternative", ctx,
-                    branch.getName());
+            push conversions, bnode;
+        }
+        foreach *hash<auto> conversion in (conversions) {
+            if (conversion != conversions[0]) {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("the overlay for %s requires different wire "
+                    "conversions across union alternatives; every alternative must use the same conversion",
+                    ctx);
             }
         }
         foreach string key in (keys ovl) {
@@ -1295,6 +1299,11 @@ public class RestSchemaActionOperation {
                     "alternative of %s; alternatives: %y", key, ctx,
                     (map $1.getName(), type.getUnionTypes()));
             }
+        }
+        node = conversions[0];
+        if (node) {
+            hash<auto> conversion = node;
+            return new RestSchemaConvertedUnionDataType(type, branches, conversion);
         }
         return type.copyWithUnionTypes(branches);
     }
@@ -1692,15 +1701,24 @@ public class RestSchemaActionOperation {
         return field.getType().isMandatory() || (field.getAttributes().required ?? False);
     }
 
-    #! Converts a value through a conversion tree in either direction
-    private static auto convertValue(auto value, hash<auto> node, bool to_wire) {
+    #! Converts a value through an immutable operation conversion tree
+    /** Used by schema actions and converted union types to retain the same wire contract.
+        @param value the value to convert
+        @param node the conversion tree constructed from field overlays
+        @param to_wire convert to wire form when true, to action form otherwise
+        @return the converted value
+        @throw REST-SCHEMA-CODEC-ERROR a codec cannot convert the value
+    */
+    static auto convertValue(auto value, hash<auto> node, bool to_wire) {
         if (!exists value) {
             return value;
         }
+        *hash<RestSchemaWireCodecInfo> codec = node.codec.typeCode() == NT_STRING
+            ? RestSchemaActionCodecs::getCodecEx(node.codec) : node.codec;
         # a codec replaces the whole value, so nested conversions only make sense on the action-facing side:
         # convert children first when going out, and last when coming back
-        if (!to_wire && node.codec) {
-            value = node.codec.from_wire(value);
+        if (!to_wire && codec) {
+            value = codec.from_wire(value);
         }
         if (node.fields || node.merge) {
             switch (value.typeCode()) {
@@ -1720,8 +1738,8 @@ public class RestSchemaActionOperation {
                 }
             }
         }
-        if (to_wire && node.codec) {
-            value = node.codec.to_wire(value);
+        if (to_wire && codec) {
+            value = codec.to_wire(value);
         }
         return value;
     }

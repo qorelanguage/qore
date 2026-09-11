@@ -29,17 +29,26 @@
 %requires(reexport) AzureOpenAiRestClient
 %requires(reexport) AzureAuth
 %requires RestClientIo
+%requires RestSchemaActions
+%requires OpenApi3
 
 module AzureOpenAiDataProvider {
     version = "1.0";
-    desc = "user module providing a data provider API for Azure OpenAI Service — "
-        "deployment-routed chat completions and embeddings with three "
-        "authentication modes (api-key, Entra client credentials, Entra "
-        "managed identity)";
+    desc = "Azure OpenAI actions for inference, media, files, batches, evaluation, and model customization";
     author = "Qore Technologies, s.r.o.";
     url = "https://qore.org";
     license = "MIT";
     init = sub () {
+        DataProviderActionCatalog::registerDiscoveryInventoryProvider("AzureOpenAiDataProvider",
+            list<hash<DataProviderDiscoveryExpectedIdentityInfo>> sub () {
+                return (<DataProviderDiscoveryExpectedIdentityInfo>{"app": AzureOpenAiDataProvider::AppName},)
+                    + (map <DataProviderDiscoveryExpectedIdentityInfo>{
+                        "app": AzureOpenAiDataProvider::AppName, "action": $1.action,
+                    }, AzureOpenAiManifest::Manifest)
+                    + (<DataProviderDiscoveryExpectedIdentityInfo>{
+                        "app": AzureOpenAiDataProvider::AppName, "action": "make-api-call",
+                    },);
+            });
         DataProvider::registerFactory(new AzureOpenAiDataProviderFactory());
 
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
@@ -47,25 +56,17 @@ module AzureOpenAiDataProvider {
             "presentation_source_locale": "en",
             "display_name": "Azure OpenAI",
             "short_desc": "Microsoft Azure OpenAI Service",
-            "desc": "**Azure OpenAI Service** is Microsoft's enterprise-hosted "
-                "offering of the OpenAI models (GPT-4o, GPT-4o-mini, o3, "
-                "text-embedding-3) with Azure-grade compliance, networking, "
-                "and identity:\n\n"
-                "- **Chat completions** — same wire shape as the public OpenAI "
-                "API, accessed through deployment-routed URLs\n"
-                "- **Embeddings** — `text-embedding-3-small` / `-large` / "
-                "`ada-002` deployments\n"
-                "- **Three authentication modes** — api-key header, Entra ID "
-                "(Azure AD) client credentials, or managed-identity (system "
-                "or user-assigned)\n"
-                "- **Azure Content Safety** annotations on the prompt and "
-                "completion side returned alongside the OpenAI-shape response\n"
-                "- **Per-deployment routing** — one connection can target any "
-                "deployment defined in the resource without re-authentication\n\n"
-                "Tokens for Entra modes are cached and refreshed transparently "
-                "by `AzureAuth` so callers pay the token-exchange cost once "
-                "per refresh window.\n\n"
-                "Project: <https://azure.microsoft.com/en-us/products/ai-services/openai-service/>",
+            "desc": "**Azure OpenAI** connects business workflows to models deployed in your Azure resource. "
+                "Use one connection to work with multiple deployments and manage their supporting data.\n\n"
+                "- Generate answers, structured results, and tool calls with Chat Completions and Responses\n"
+                "- Create embeddings for search and matching\n"
+                "- Generate speech, images, and videos, or transcribe and translate audio\n"
+                "- Upload files, run batches, and organize retrieval with vector stores\n"
+                "- Manage conversations, fine-tuning, evaluations, and realtime calls\n\n"
+                "**Deployment names:** Copy names from Models and endpoints in the Azure Foundry portal. "
+                "They can differ from catalog model IDs. Media operations use the v1 preview API; "
+                "availability depends on regional API rollout and your resource's deployments, permissions, and quota.\n\n"
+                "[Azure OpenAI documentation](https://learn.microsoft.com/en-us/azure/foundry/openai/)",
             "scheme": "azure-openai",
             "logo": AzureLogo,
             "logo_file_name": "azure-logo.svg",
@@ -73,56 +74,13 @@ module AzureOpenAiDataProvider {
             "groups": (DataProvider::AppGroup::AiLlm,),
         });
 
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": AzureOpenAiDataProvider::AppName,
-            "path": "/chat-completion",
-            "action": "chat-completion",
-            "display_name": "Chat Completion",
-            "short_desc": "Generate a chat completion via an Azure OpenAI deployment",
-            "desc": "Generate a chat completion via an Azure OpenAI Service "
-                "deployment. The deployment name in the request body is "
-                "resolved into the URL "
-                "(`/openai/deployments/{deployment}/chat/completions?api-version=...`); "
-                "the body is otherwise identical to the public OpenAI "
-                "chat-completions API.",
-            "action_code": DPAT_API,
-            "mutates_state": False,
-            "groups": ("Chat",),
-            "options": DataProviderActionCatalog::getActionOptionFromFields(
-                AzureOpenAiChatCompletionRequestDataType::Fields{"deployment", "messages"}, {
-                    "preselected": True,
-                    "required": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                AzureOpenAiChatCompletionRequestDataType::Fields - ("deployment", "messages")
-            ),
-            "output_type": AzureOpenAiChatCompletionDataProvider::ResponseType,
-        });
-
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": AzureOpenAiDataProvider::AppName,
-            "path": "/embedding",
-            "action": "embedding",
-            "display_name": "Embedding",
-            "short_desc": "Generate text embeddings via an Azure OpenAI deployment",
-            "desc": "Generate dense vector embeddings via an Azure OpenAI Service "
-                "deployment bound to a `text-embedding-*` model. Accepts either "
-                "a single string or a list of strings as `input` for batch "
-                "embedding; supports the `dimensions` knob on "
-                "`text-embedding-3-*` models for shorter (cheaper) vectors.",
-            "action_code": DPAT_API,
-            "mutates_state": False,
-            "groups": ("Embeddings",),
-            "options": DataProviderActionCatalog::getActionOptionFromFields(
-                AzureOpenAiEmbeddingRequestDataType::Fields{"deployment", "input"}, {
-                    "preselected": True,
-                    "required": True,
-                }
-            ) + DataProviderActionCatalog::getActionOptionFromFields(
-                AzureOpenAiEmbeddingRequestDataType::Fields - ("deployment", "input")
-            ),
-            "output_type": AzureOpenAiEmbeddingDataProvider::ResponseType,
-        });
+        foreach hash<DataProviderActionInfo> action in (
+                AzureOpenAiSchema::getActionSet().getActionInfoList(AzureOpenAiDataProvider::AppName)) {
+            if (action.action == "embedding") {
+                action.mutates_state = False;
+            }
+            DataProviderActionCatalog::registerAction(action);
+        }
     };
 }
 
@@ -132,15 +90,34 @@ module AzureOpenAiDataProvider {
 
     @section azureopenaidataproviderintro Introduction to the AzureOpenAiDataProvider Module
 
-    The %AzureOpenAiDataProvider module provides a
-    @ref dataproviderintro "data provider" API for Azure OpenAI Service so
-    deployment-routed chat completions and embeddings are discoverable
-    from `qctl`, the Qorus action catalog, and DPQL expressions.
+    The %AzureOpenAiDataProvider module exposes 99 reviewed Azure OpenAI API operations plus the
+    generic API-call action. Its pinned Microsoft v1 description supplies typed request and response
+    contracts, finite choices, and nested options. The manifest supplies stable action identities,
+    user-facing presentation, deployment guidance, and resource dropdowns.
 
-    @par Provided children
+    @par Action families
+    Chat Completions, Responses, embeddings, audio, images, videos, files, batches, conversations,
+    containers, evaluations, fine-tuning, realtime calls, and vector stores. Retired Assistants threads
+    and DALL-E 2 image variations are excluded. Media operations select the v1 preview API.
+    Availability depends on the Azure resource and regional rollout. For example, the documented Conversations
+    endpoint returned HTTP 404 with both `v1` and `preview` on the development resource during qualification;
+    Responses remained available. Resource updates can also become visible to reads asynchronously.
 
-    - `/chat-completion` — @ref AzureOpenAiDataProvider::AzureOpenAiChatCompletionDataProvider
-    - `/embedding` — @ref AzureOpenAiDataProvider::AzureOpenAiEmbeddingDataProvider
+    @par Compatibility
+    The original `chat-completion` and `embedding` action IDs and their `deployment` option remain
+    unchanged. They now send the deployment as `model` to v1 endpoints. The public legacy provider
+    classes and LLM client retain dated deployment routes and `azure_api_version`.
+
+    @par Example
+    @code{.py}
+%requires AzureOpenAiDataProvider
+AzureOpenAiDataProvider::AzureOpenAiDataProvider app({
+    "url": ENV.AZURE_OPENAI_ENDPOINT, "api_key": ENV.AZURE_OPENAI_API_KEY,
+});
+auto answer = app.getChildProvider("create-response").doRequest({
+    "model": ENV.AZURE_OPENAI_DEPLOYMENT, "input": "Summarize the invoice requirements.", "store": False,
+});
+    @endcode
 
     @par Factory
 
@@ -154,8 +131,11 @@ AbstractDataProvider p = DataProvider::getFactoryObjectFromString(
     @section azureopenaidataproviderrelnotes Release Notes
 
     @subsection azureopenaidataprovider_v1_0 AzureOpenAiDataProvider v1.0
-    - initial release: ChatCompletion + Embedding actions registered under
-      the \c azure-openai app + scheme
+    - initial release: 99 reviewed Azure OpenAI v1 operations plus the generic API-call action, registered
+      under the \c azure-openai app + scheme, with resource dropdowns and media uploads
+    - authenticated connection clients preserve credentials across copies and raw requests
+    - pinned, pruned schema imports include checked repairs for documented upstream contract defects
+    - recursive presentation catalogs, exact discovery inventory, and value/serialization regressions
 */
 
 #! Contains all public definitions in the AzureOpenAiDataProvider module

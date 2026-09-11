@@ -1,0 +1,39 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/OpenApi3.qm
+%exec-class ServerVariablesTest
+
+class ServerVariablesTest inherits QUnit::Test {
+    constructor() : Test("OpenAPI server variables", "1.0", \ARGV) {
+        addTestCase("origin and path defaults are resolved before URL parsing", \defaultsTest());
+        addTestCase("invalid variable defaults are rejected", \negativeTest());
+        set_return_value(main());
+    }
+    private OpenApi3Schema schema(hash<auto> server) {
+        return new OpenApi3Schema("server variables", {"openapi": "3.1.0",
+            "info": {"title": "Server defaults", "version": "1"}, "servers": (server,), "paths": {}});
+    }
+    private defaultsTest() {
+        foreach string endpoint in ("", "https://resource.example.com") {
+            OpenApi3Schema doc = schema({"url": "{endpoint}/openai/{version}/",
+                "variables": {"endpoint": {"default": endpoint}, "version": {"default": "v1"}}});
+            assertEq("/openai/v1", doc.getBasePath());
+            assertEq(endpoint ? "resource.example.com" : NOTHING, doc.host);
+        }
+        OpenApi3Schema doc = schema({"url": "https://{region}.example.com:{port}/{version}",
+            "variables": {"region": {"default": "eu"}, "port": {"default": "8443"},
+                "version": {"default": "v2"}}});
+        assertEq("eu.example.com:8443", doc.host);
+        assertEq("/v2", doc.getBasePath());
+    }
+    private negativeTest() {
+        foreach auto value in ({}, {"default": 0}, {"default": NOTHING}, "invalid") {
+            assertThrows("INVALID-FIELD-TYPE", sub () {
+                schema({"url": "{endpoint}/v1", "variables": {"endpoint": value}});
+            });
+        }
+    }
+}

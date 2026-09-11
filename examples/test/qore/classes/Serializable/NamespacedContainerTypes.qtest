@@ -1,0 +1,102 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../../qlib"
+%requires ../../../../../qlib/QUnit.qm
+%exec-class NamespacedContainerTest
+
+namespace First {
+    class Item inherits Serializable {
+        public { string name = "first"; }
+    }
+}
+namespace Second {
+    class Item inherits Serializable {
+        public { int count = 42; }
+    }
+}
+namespace Third {
+    class LegacyItem inherits Serializable {
+        public { int count = 7; }
+    }
+}
+class ContainerHolder inherits Serializable {
+    public {
+        list<Second::Item> items = (new Second::Item(),);
+        hash<string, Second::Item> lookup = {"item": new Second::Item()};
+    }
+}
+class NamespacedContainerTest inherits QUnit::Test {
+    constructor() : Test("Namespaced container type serialization", "1.0", \ARGV) {
+        addTestCase("class member containers resolve exact class identities", \membersTest());
+        addTestCase("empty and nested containers retain qualified element types", \nestedTest());
+        addTestCase("unqualified types written by earlier versions still load", \legacyTest());
+        set_return_value(main());
+    }
+    private auto wrongType() {
+        return new First::Item();
+    }
+    #! Returns the index key of the serialized container declaring the given type key
+    private string containerIndex(hash<SerializationInfo> state, string key) {
+        foreach string index in (keys state._index) {
+            if (state._index{index}.hasKey(key)) {
+                return index;
+            }
+        }
+        throw "TEST-ERROR", sprintf("no %y container in the serialized index", key);
+    }
+
+    private legacyTest() {
+        # data written before container types were qualified names the element type without its namespace;
+        # such a type must still resolve, or every serialized value written by an earlier version is lost
+        list<Third::LegacyItem> items = (new Third::LegacyItem(),);
+        hash<SerializationInfo> lstate = Serializable::serializeToData(items);
+        string lindex = containerIndex(lstate, "_list");
+        assertEq("object<::Third::LegacyItem>", lstate._index{lindex}._list);
+        lstate._index{lindex}._list = replace(lstate._index{lindex}._list, "::Third::", "");
+        assertEq("object<LegacyItem>", lstate._index{lindex}._list);
+        auto lvalue = Serializable::deserialize(lstate);
+        assertTrue(lvalue[0] instanceof Third::LegacyItem);
+        assertEq(7, lvalue[0].count);
+        list<Third::LegacyItem> lrestored = lvalue;
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { lrestored += wrongType(); },
+            NOTHING, "an unqualified element type is still enforced");
+
+        hash<string, Third::LegacyItem> lookup = {"item": new Third::LegacyItem()};
+        hash<SerializationInfo> hstate = Serializable::serializeToData(lookup);
+        string hindex = containerIndex(hstate, "_hash");
+        assertEq("^object<::Third::LegacyItem>", hstate._index{hindex}._hash);
+        hstate._index{hindex}._hash = replace(hstate._index{hindex}._hash, "::Third::", "");
+        assertEq("^object<LegacyItem>", hstate._index{hindex}._hash);
+        auto hvalue = Serializable::deserialize(hstate);
+        assertTrue(hvalue.item instanceof Third::LegacyItem);
+        hash<string, Third::LegacyItem> hrestored = hvalue;
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { hrestored.bad = wrongType(); },
+            NOTHING, "an unqualified value type is still enforced");
+    }
+
+    private membersTest() {
+        ContainerHolder original();
+        ContainerHolder restored = Serializable::deserialize(original.serialize());
+        assertEq(42, restored.items[0].count);
+        assertTrue(restored.items[0] instanceof Second::Item);
+        assertTrue(restored.lookup.item instanceof Second::Item);
+        assertFalse(restored.lookup.item instanceof First::Item);
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { restored.items += wrongType(); });
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { restored.lookup.bad = wrongType(); });
+    }
+    private nestedTest() {
+        list<Second::Item> empty();
+        hash<string, list<Second::Item>> nested = {"empty": empty, "populated": (new Second::Item(),)};
+        hash<SerializationInfo> state = Serializable::serializeToData(nested);
+        hash<string, list<Second::Item>> restored = Serializable::deserialize(state);
+        assertEq((), restored.empty);
+        assertRegex("Second::Item", Serializable::serializeToData(restored.empty)._index."0"._list);
+        assertEq(42, restored.populated[0].count);
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { restored.empty += wrongType(); });
+        hash<string, First::Item> first = {"one": new First::Item()};
+        auto result = Serializable::deserialize(Serializable::serializeToData(first));
+        assertTrue(result.one instanceof First::Item);
+        assertEq("first", result.one.name);
+    }
+}

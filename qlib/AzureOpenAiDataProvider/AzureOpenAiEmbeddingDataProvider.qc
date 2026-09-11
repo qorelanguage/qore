@@ -67,7 +67,7 @@ public class AzureOpenAiEmbeddingDataProvider inherits AzureOpenAiDataProviderCo
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
         string deployment = remove req.deployment;
         string path = getDeploymentPath(deployment, "embeddings");
-        return rest.restPost(path, req, getAuthHeader()).body;
+        return rest.restPost(path, req).body;
     }
 }
 }

@@ -67,7 +67,7 @@ public class AzureOpenAiChatCompletionDataProvider inherits AzureOpenAiDataProvi
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
         string deployment = remove req.deployment;
         string path = getDeploymentPath(deployment, "chat/completions");
-        hash<auto> body = rest.restPost(path, req, getAuthHeader()).body;
+        hash<auto> body = rest.restPost(path, req).body;
         # Convert Azure's Unix-seconds `created` field to a real Qore date
         # so the typed output matches the DateOrNothingType in the response
         # schema (per design/data-provider-development-guide.md)

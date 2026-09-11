@@ -42,14 +42,14 @@ public class AzureOpenAiDataProviderCommon inherits DataProvider::AbstractDataPr
                     "`https://my-resource.openai.azure.com`",
             },
             "azure_api_version": <DataProviderOptionInfo>{
-                "display_name": "API Version",
+                "display_name": "Legacy API Version",
                 "short_desc": "Azure OpenAI REST API version",
                 "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Azure OpenAI REST API version (e.g. `2024-10-21`)",
+                "desc": "Dated version for legacy deployment routes. Generated actions use their own v1 API version.",
                 "default_value": DefaultApiVersion,
             },
             "azure_auth_mode": <DataProviderOptionInfo>{
-                "display_name": "Auth Mode",
+                "display_name": "Authentication",
                 "short_desc": "Authentication mode",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Authentication mode: "
@@ -87,6 +87,12 @@ public class AzureOpenAiDataProviderCommon inherits DataProvider::AbstractDataPr
                 "desc": "Entra app client ID for client_credentials, or "
                     "optional user-assigned managed-identity client ID",
             },
+            "azure_managed_identity_client_id": <DataProviderOptionInfo>{
+                "display_name": "Managed Identity Client ID",
+                "short_desc": "Optional user-assigned managed identity",
+                "type": AbstractDataProviderTypeMap."*string",
+                "desc": "Client ID of a user-assigned managed identity. Omit it to use the system-assigned identity.",
+            },
             "azure_client_secret": <DataProviderOptionInfo>{
                 "display_name": "Entra Client Secret",
                 "short_desc": "Entra app client secret",
@@ -120,25 +126,22 @@ public class AzureOpenAiDataProviderCommon inherits DataProvider::AbstractDataPr
         *RestClientIo::RestClientIo rest;
         string base_url;
         string api_version = DefaultApiVersion;
-        string auth_mode = "api_key";
-        *string api_key;
-        *string tenant_id;
-        *string client_id;
-        *string client_secret;
-        string entra_scope = "https://cognitiveservices.azure.com/.default";
     }
 
     #! Creates the object from a pre-built RestClientIo
     constructor(RestClientIo::RestClientIo rest) {
-        self.rest = rest;
+        self.rest = cast<RestClientIo::RestClientIo>(rest.copyWithUrl(rest.getUrl()));
+        self.rest.clearConnectionPath();
         base_url = rest.getUrl();
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
+        api_version = copts.azure_api_version ?? DefaultApiVersion;
         if (copts.restclient) {
-            rest = copts.restclient;
+            rest = cast<RestClientIo::RestClientIo>(copts.restclient.copyWithUrl(copts.restclient.getUrl()));
+            rest.clearConnectionPath();
             base_url = rest.getUrl();
             return;
         }
@@ -147,27 +150,7 @@ public class AzureOpenAiDataProviderCommon inherits DataProvider::AbstractDataPr
                 "AzureOpenAiDataProvider requires 'url' when no 'restclient' is supplied";
         }
         base_url = copts.url;
-        api_version = copts.azure_api_version ?? DefaultApiVersion;
-        auth_mode = copts.azure_auth_mode ?? "api_key";
-        api_key = copts.api_key;
-        tenant_id = copts.azure_tenant_id;
-        client_id = copts.azure_client_id;
-        client_secret = copts.azure_client_secret;
-        entra_scope = copts.azure_entra_scope
-            ?? "https://cognitiveservices.azure.com/.default";
-
-        if (auth_mode == "api_key" && !api_key.val()) {
-            throw "CONSTRUCTOR-ERROR",
-                "AzureOpenAiDataProvider auth_mode='api_key' requires 'api_key'";
-        }
-        if (auth_mode == "entra_client_credentials"
-                && (!tenant_id.val() || !client_id.val() || !client_secret.val())) {
-            throw "CONSTRUCTOR-ERROR",
-                "AzureOpenAiDataProvider auth_mode='entra_client_credentials' "
-                "requires azure_tenant_id, azure_client_id, azure_client_secret";
-        }
-
-        rest = new RestClientIo::RestClientIo({"url": base_url, "data": "json"});
+        rest = new AzureOpenAiRestClient::AzureOpenAiRestClientIo(copts);
     }
 
     #! Returns the REST client object
@@ -177,29 +160,6 @@ public class AzureOpenAiDataProviderCommon inherits DataProvider::AbstractDataPr
 
     setLogger(*LoggerInterface logger) {
         LoggerWrapper::setLogger(logger);
-    }
-
-    #! Returns the auth header for the configured mode (refreshes Entra tokens automatically)
-    private hash<auto> getAuthHeader() {
-        switch (auth_mode) {
-            case "api_key":
-                return {"api-key": api_key};
-            case "entra_client_credentials": {
-                string token = AzureAuth::getEntraTokenClientCredentials(
-                    tenant_id, client_id, client_secret, entra_scope);
-                return {"Authorization": "Bearer " + token};
-            }
-            case "entra_managed_identity": {
-                string resource = entra_scope;
-                resource =~ s/\/\.default$//;
-                string token = AzureAuth::getEntraTokenManagedIdentity(
-                    resource, client_id);
-                return {"Authorization": "Bearer " + token};
-            }
-            default:
-                throw "AZURE-OPENAI-AUTH-ERROR",
-                    sprintf("unknown azure_auth_mode %y", auth_mode);
-        }
     }
 
     #! Returns the deployment URL path for the given deployment + suffix
