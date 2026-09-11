@@ -1,0 +1,222 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../../qlib"
+%requires ../../../../../qlib/QUnit.qm
+%exec-class FailedObjectGraphsTest
+
+class FailedGraphNode inherits Serializable {
+    public {
+        static list<FailedGraphNode> escaped();
+        static int destroyed = 0;
+        static int constructed = 0;
+        string label;
+        bool reject = False;
+        *FailedGraphNode next;
+        list<FailedGraphNode> links();
+        hash<string, FailedGraphNode> named();
+    }
+    constructor(string label) {
+        self.label = label;
+        ++constructed;
+    }
+    destructor() {
+        ++destroyed;
+    }
+    string getLabel() {
+        return label;
+    }
+    private:internal deserializeMembers(hash<auto> members) {
+        self += members;
+        if (reject) {
+            push escaped, self;
+            throw "GRAPH-RESTORE-ERROR", "rejected graph", label;
+        }
+    }
+}
+
+
+class FailedGraphDerived inherits FailedGraphNode {
+    public { int code = 19; }
+    constructor() : FailedGraphNode("derived") {
+        next = self;
+    }
+    private:internal deserializeMembers(hash<auto> members) {
+        code = members.code;
+        next = self;
+        if (code < 0) {
+            push FailedGraphNode::escaped, self;
+            throw "DERIVED-GRAPH-ERROR", "rejected derived data";
+        }
+    }
+}
+
+class PlainFailedGraph inherits Serializable {
+    public {
+        *PlainFailedGraph next;
+        int count = 17;
+    }
+}
+
+class FailedObjectGraphsTest inherits QUnit::Test {
+    constructor() : Test("Failed object graph deserialization", "1.0") {
+        addTestCase("Failed cyclic graphs are invalidated without user destructors", \failures());
+        addTestCase("Successful graphs preserve shared references and cycles", \successes());
+        addTestCase("Later failures clean already restored peers and native members", \lateFailures());
+        addTestCase("Automatic member rejection cleans partially restored cycles", \memberFailure());
+        addTestCase("Cancellation unwinds graphs and allows subsequent restoration", \cancellation());
+        addTestCase("Inherited hooks clean partial state and retain successful members", \inheritance());
+        set_return_value(main());
+    }
+    private FailedGraphNode graph(string shape) {
+        FailedGraphNode root("root");
+        FailedGraphNode peer("peer");
+        if (shape == "self") {
+            root.next = root;
+        } else if (shape == "mutual") {
+            root.next = peer;
+            peer.next = root;
+        } else if (shape == "list") {
+            root.links = (peer, peer);
+            peer.links = (root,);
+        } else if (shape == "hash") {
+            root.named = {"left":peer, "right":peer};
+            peer.named = {"owner":root};
+        }
+        return root;
+    }
+    private failures() {
+        on_exit FailedGraphNode::escaped = ();
+        foreach string shape in ("acyclic", "self", "mutual", "list", "hash") {
+            FailedGraphNode original = graph(shape);
+            hash<SerializationInfo> state = original.serializeToData();
+            state._index."0"._class_data."FailedGraphNode".reject = True;
+            int destroyed = FailedGraphNode::destroyed;
+            int constructed = FailedGraphNode::constructed;
+            try {
+                auto value = Serializable::deserialize(state);
+                fail("expected graph restore failure: " + string(value));
+            } catch (hash<ExceptionInfo> error) {
+                assertEq("GRAPH-RESTORE-ERROR", error.err);
+                assertEq("rejected graph", error.desc);
+                assertEq("root", error.arg);
+            }
+            assertEq(constructed, FailedGraphNode::constructed);
+            assertEq(destroyed, FailedGraphNode::destroyed);
+            assertEq(1, FailedGraphNode::escaped.size());
+            FailedGraphNode escaped = FailedGraphNode::escaped[0];
+            assertThrows("OBJECT-ALREADY-DELETED", \escaped.getLabel());
+            FailedGraphNode::escaped = ();
+            assertEq("root", original.getLabel());
+            assertEq(False, original.reject);
+        }
+    }
+    private successes() {
+        foreach string shape in ("self", "mutual", "list", "hash") {
+            FailedGraphNode original = graph(shape);
+            FailedGraphNode restored = Serializable::deserialize(original.serializeToData());
+            assertTrue(original !== restored);
+            assertEq("root", restored.getLabel());
+            if (shape == "self") {
+                assertTrue(restored === restored.next);
+            } else if (shape == "mutual") {
+                assertTrue(restored === restored.next.next);
+                assertEq("peer", restored.next.getLabel());
+            } else if (shape == "list") {
+                assertTrue(restored.links[0] === restored.links[1]);
+                assertTrue(restored === restored.links[0].links[0]);
+            } else {
+                assertTrue(restored.named.left === restored.named.right);
+                assertTrue(restored === restored.named.left.named.owner);
+            }
+        }
+    }
+    private lateFailures() {
+        on_exit FailedGraphNode::escaped = ();
+        foreach string shape in ("mutual", "list", "hash") {
+            FailedGraphNode original = graph(shape);
+            # Index a native Serializable object before the rejected user object.
+            list<auto> value = (new TimeZone(3600), original);
+            hash<SerializationInfo> state = Serializable::serializeToData(value);
+            bool found = False;
+            foreach string index in (keys state._index) {
+                hash<auto> info = state._index{index};
+                if (info.hasKey("_class_data") && info._class_data.hasKey("FailedGraphNode")
+                        && info._class_data."FailedGraphNode".label == "peer") {
+                    state._index{index}._class_data."FailedGraphNode".reject = True;
+                    found = True;
+                }
+            }
+            assertTrue(found);
+            int destroyed = FailedGraphNode::destroyed;
+            assertThrows("GRAPH-RESTORE-ERROR", \Serializable::deserialize(), (state,));
+            assertEq(destroyed, FailedGraphNode::destroyed);
+            assertEq(1, FailedGraphNode::escaped.size());
+            FailedGraphNode escaped = FailedGraphNode::escaped[0];
+            assertThrows("OBJECT-ALREADY-DELETED", \escaped.getLabel());
+            FailedGraphNode::escaped = ();
+            auto restored = Serializable::deserialize(Serializable::serializeToData(value));
+            assertEq(3600, restored[0].UTCOffset());
+            assertEq("root", restored[1].getLabel());
+        }
+    }
+    private memberFailure() {
+        PlainFailedGraph original();
+        original.next = original;
+        hash<SerializationInfo> good = original.serializeToData();
+        hash<SerializationInfo> bad = good;
+        bad._index."0"._class_data."PlainFailedGraph".count = "invalid";
+        assertThrows("RUNTIME-TYPE-ERROR", \Serializable::deserialize(), (bad,));
+        PlainFailedGraph restored = Serializable::deserialize(good);
+        assertEq(17, restored.count);
+        assertTrue(restored === restored.next);
+        assertTrue(original !== restored);
+    }
+    private cancellation() {
+        Program program();
+        program.parse("%modern\n"
+            "class InterruptedGraph inherits Serializable {\n"
+            "  public { static *SandboxManager manager; static bool cancel; *InterruptedGraph next; }\n"
+            "  constructor() { next = self; }\n"
+            "  private:internal deserializeMembers(hash<auto> members) {\n"
+            "    next = members.next;\n"
+            "    if (cancel) { manager.requestInterrupt(); }\n"
+            "  }\n"
+            "}\n"
+            "bool sub restore(SandboxManager manager, bool cancel) {\n"
+            "  InterruptedGraph::manager = manager; InterruptedGraph::cancel = cancel;\n"
+            "  InterruptedGraph original();\n"
+            "  InterruptedGraph value = Serializable::deserialize(original.serializeToData());\n"
+            "  return value === value.next;\n"
+            "}\n", "failed-graph-interruption.qr");
+        SandboxManager manager();
+        program.setSandboxManager(manager);
+        on_exit manager.clearInterrupt();
+        try {
+            program.callFunction("restore", manager, True);
+            fail("expected interruption");
+        } catch (hash<ExceptionInfo> error) {
+            assertTrue(error.err == "PROGRAM-INTERRUPTED" || error.err == "THREAD-CANCELLED", error.err);
+        }
+        manager.clearInterrupt();
+        assertTrue(program.callFunction("restore", manager, False));
+    }
+    private inheritance() {
+        on_exit FailedGraphNode::escaped = ();
+        FailedGraphDerived original();
+        hash<SerializationInfo> good = original.serializeToData();
+        hash<SerializationInfo> bad = good;
+        bad._index."0"._class_data."FailedGraphDerived".code = -1;
+        int destroyed = FailedGraphNode::destroyed;
+        assertThrows("DERIVED-GRAPH-ERROR", \Serializable::deserialize(), (bad,));
+        assertEq(destroyed, FailedGraphNode::destroyed);
+        assertEq(1, FailedGraphNode::escaped.size());
+        FailedGraphNode escaped = FailedGraphNode::escaped[0];
+        assertThrows("OBJECT-ALREADY-DELETED", \escaped.getLabel());
+        FailedGraphNode::escaped = ();
+        FailedGraphDerived restored = Serializable::deserialize(good);
+        assertEq(19, restored.code);
+        assertEq("derived", restored.getLabel());
+        assertTrue(restored === restored.next);
+    }
+}

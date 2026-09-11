@@ -448,6 +448,13 @@ public:
 
     DLLLOCAL void cleanup(ExceptionSink* xsink, QoreHashNode* td, cdmap_t* cdm);
 
+    //! Invalidate an incomplete object while its owner keeps its reference alive.
+    /** Clears member and native storage without calling user destructors or
+        consuming the caller's reference. Failed graph deserialization uses this
+        before releasing any indexed owners, so cycles cannot retain partial objects.
+    */
+    DLLLOCAL void obliterateMembers(ExceptionSink* xsink);
+
     // this method is called when there is an exception in a constructor and the object should be deleted
     DLLLOCAL void obliterate(ExceptionSink* xsink) {
         printd(5, "qore_object_private::obliterate() obj: %p class: %s %d->%d\n", obj, theclass->getName(),
@@ -460,38 +467,12 @@ public:
 
         {
             AutoLocker slr(rlck);
-            if (--obj->references)
-                return;
-        }
-
-        {
-            QoreSafeVarRWWriteLocker sl(rml);
-
-            if (in_destructor || status != OS_OK) {
-                printd(5, "qore_object_private::obliterate() obj: %p data: %p in_destructor: %d status: %d\n", obj,
-                    data, in_destructor, status);
-                //printd(5, "Object lock %p unlocked (safe)\n", &rml);
-                sl.unlock();
-                tDeref();
+            if (--obj->references) {
                 return;
             }
-
-            //printd(5, "Object lock %p locked   (safe)\n", &rml);
-            printd(5, "qore_object_private::obliterate() obj: %p class: %s\n", obj, theclass->getName());
-
-            status = OS_DELETED;
-            cdmap_t* cdm = cdmap;
-            cdmap = nullptr;
-            QoreHashNode* td = data;
-            data = nullptr;
-
-            removeInvalidateRSetIntern();
-
-            //printd(5, "Object lock %p unlocked (safe)\n", &rml);
-            sl.unlock();
-
-            cleanup(xsink, td, cdm);
         }
+
+        obliterateMembers(xsink);
         tDeref();
     }
 

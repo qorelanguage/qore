@@ -79,13 +79,17 @@ constexpr bool code_is_string(qore_stream_type t) {
 }
 
 ObjectIndexMap::~ObjectIndexMap() {
-    for (auto& i : *this) {
-        // in case of an exception, we need to obliterate the object before dereferencing
-        if (*xs && (i.second.getType() == NT_OBJECT)) {
-            qore_object_private::get(*i.second.get<QoreObject>())->obliterate(xs);
-            continue;
+    if (*xs) {
+        // Keep every indexed owner until all incomplete objects are invalidated.
+        // A plain obliterate() can leave cycles alive when it drops only one ref.
+        // This is exception cleanup and must finish even if cancellation is pending.
+        for (auto& i : *this) {
+            if (i.second.getType() == NT_OBJECT) {
+                qore_object_private::get(*i.second.get<QoreObject>())->obliterateMembers(xs);
+            }
         }
-        // otherwise we just need to dereference
+    }
+    for (auto& i : *this) {
         i.second.discard(xs);
     }
 }
@@ -791,6 +795,9 @@ imap_t::iterator QoreSerializable::serializeListToIndexIntern(const QoreListNode
 
 QoreValue QoreSerializable::deserialize(ExceptionSink* xsink, const QoreHashNode& h, int64 flags) {
     assert(hashdeclSerializationInfo->equal(h.getHashDecl()));
+    if (qore_check_cancel(xsink, "object deserialization")) {
+        return QoreValue();
+    }
 
     QoreInternalDeserializationContext context(xsink, flags);
 
@@ -984,7 +991,7 @@ QoreValue QoreSerializable::deserialize(ExceptionSink* xsink, const QoreHashNode
                     RuntimeConfig& rc = rc_get_current_ref();
 
                     deserializer(*obj, cmh, reinterpret_cast<QoreDeserializationContext&>(context), rc, xsink);
-                    if (*xsink) {
+                    if (*xsink || qore_check_cancel(xsink, "object deserialization")) {
                         return QoreValue();
                     }
                 } else {
@@ -1020,7 +1027,7 @@ QoreValue QoreSerializable::deserialize(ExceptionSink* xsink, const QoreHashNode
                         call_args->push(dmh.release(), xsink);
                         ObjectSubstitutionHelper osh(obj, qore_class_private::get(mcls));
                         ValueHolder val(obj->evalMethod(*deserializeMembers, *call_args, xsink), xsink);
-                        if (*xsink) {
+                        if (*xsink || qore_check_cancel(xsink, "object deserialization")) {
                             return QoreValue();
                         }
                     } else {

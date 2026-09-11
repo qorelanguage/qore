@@ -1534,6 +1534,12 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
     deserialization error without freeing a container still owned by the index. Valid shared
     references and subsequent deserialization calls retain their existing behavior.
 
+    Failed object graph deserialization now invalidates incomplete objects before releasing
+    indexed references, reclaiming self-references and mutual references through objects,
+    hashes and lists. User destructors do not run for rejected incomplete objects. References
+    exposed by a failing custom hook report \c OBJECT-ALREADY-DELETED; the original error and
+    successful shared-reference behavior are preserved, including after cancellation.
+
     @subsection qore_3_0_0_deprecated Deprecated Features
     - <b>Deprecated command-line options</b>: The following command-line options have been deprecated and now
       produce a warning when used, as the underlying parse options were never enforced:

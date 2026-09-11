@@ -210,6 +210,24 @@ qore_object_private::~qore_object_private() {
     }
 }
 
+void qore_object_private::obliterateMembers(ExceptionSink* xsink) {
+    QoreSafeVarRWWriteLocker sl(rml);
+    if (in_destructor || status != OS_OK) {
+        return;
+    }
+
+    // The caller retains ownership while recursive member references are released.
+    status = OS_DELETED;
+    cdmap_t* cdm = cdmap;
+    cdmap = nullptr;
+    QoreHashNode* td = data;
+    data = nullptr;
+    removeInvalidateRSetIntern();
+    sl.unlock();
+
+    cleanup(xsink, td, cdm);
+}
+
 void qore_object_private::cleanup(ExceptionSink* xsink, QoreHashNode* td, cdmap_t* cdm) {
     if (privateData) {
         printd(5, "qore_object_private::cleanup() this: %p privateData: %p\n", this, privateData);

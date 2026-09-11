@@ -27,3 +27,31 @@ invalidating the index's reference, and a subsequent valid deserialization succe
 hash member errors, early unknown-member rejection, partial generic hash/list
 initialization, empty lists, recovery and shared object identity. The existing
 `Serializable.qtest` covers the broader serialization interfaces and reference graph.
+
+
+Failed object graphs are invalidated before index references are released.
+`ObjectIndexMap` first calls `obliterateMembers()` for every indexed object when
+an exception is pending, while retaining all index-owned references. This marks
+each incomplete object deleted, detaches member/native storage under the object
+lock and releases that storage after unlocking. It neither consumes the index's
+reference nor invokes the object's user destructor. A second pass discards the
+index references. Self-references, mutual references and references through
+indexed hashes/lists therefore cannot keep rejected objects alive.
+
+The retained index ownership also prevents a peer from disappearing while the
+first pass is visiting the graph. A custom hook that has exposed a rejected
+object receives a deleted object; later method calls report
+`OBJECT-ALREADY-DELETED`. Successful deserialization retains its existing
+identity and lifecycle behavior. The original exception remains available.
+Deserialization checks pending interruption on entry and after native or custom
+member hooks return. Cancellation follows the same failed-graph cleanup path.
+Cleanup runs to completion when cancellation is pending, because abandoning its
+remaining owners would leak the graph. Ordinary constructor-failure cleanup
+shares the member invalidation primitive and preserves its reference semantics.
+
+For example, a custom `deserializeMembers()` hook can restore `next` to the
+object itself and then reject another member. Previously dropping the index's
+one reference left that rejected cycle alive. The cleanup now detaches `next`
+before releasing ownership. `FailedObjectGraphs.qtest` covers this case, mutual
+and container links, escaped rejected objects, native members, inheritance,
+automatic member rejection, cancellation and successful identity preservation.
