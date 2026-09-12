@@ -56,6 +56,25 @@ class SyncJinaConnection inherits JinaRestClient::JinaRestConnection {
     }
 }
 
+#! Records when a polling operation releases its originating connection
+class LifetimeJinaConnection inherits JinaRestClient::JinaRestConnection {
+    private {
+        *Counter destroyed;
+    }
+
+    constructor(string url, Counter destroyed)
+            : JinaRestConnection("lifetime-test", "test", url, {},
+                {"apikey": "trial-key", "http_version": "1.1"}) {
+        self.destroyed = destroyed;
+    }
+
+    destructor() {
+        if (destroyed) {
+            destroyed.dec();
+        }
+    }
+}
+
 public class JinaRestClientTest inherits QUnit::Test {
     public {
         #! command-line options; use -c/--connection to run the live tests
@@ -89,6 +108,7 @@ public class JinaRestClientTest inherits QUnit::Test {
         addTestCase("live: ping + embed + rerank with the connection's models",
             \liveConnectionTest());
         addTestCase("ping verifies keys on all transports", \pingTest());
+        addTestCase("polling pings retain their originating connection", \pollLifetimeTest());
         addTestCase("ping rejects malformed responses and HTTP errors", \pingFailureTest());
         addTestCase("stored connection migration and required secrets", \connectionMigrationTest());
         if (ENV.JINAAI_APIKEY) {
@@ -310,6 +330,55 @@ public class JinaRestClientTest inherits QUnit::Test {
         }
     }
 
+    #! The caller receives only the operation; the connection leaves this scope.
+    private AbstractPollOperation makeLifetimePing(bool async, Counter destroyed) {
+        LifetimeJinaConnection conn(sprintf("http://127.0.0.1:%d", port), destroyed);
+        if (async) {
+            return conn.startPollConnect();
+        }
+        return new RestClient::RestPingPollOperation(conn, conn.get(False), conn.getRealOptions());
+    }
+
+    private pollLifetimeTest() {
+        foreach bool async in (False, True) {
+            # Exercise success, an HTTP authentication error, and early abort.
+            for (int outcome = 0; outcome < 3; ++outcome) {
+                key_handler.setResponse("[]", outcome == 1 ? 401 : 200);
+                Counter destroyed(1);
+                *AbstractPollOperation op = makeLifetimePing(async, destroyed);
+                on_exit {
+                    if (op) {
+                        op.abort();
+                        delete op;
+                    }
+                }
+                string case_info = sprintf("async=%y outcome=%d", async, outcome);
+                assertEq(1, destroyed.getCount(), case_info + ": operation retains the connection");
+                if (outcome == 0) {
+                    drivePing(op);
+                    assertTrue(op.goalReached(), case_info + ": ping completed");
+                } else if (outcome == 1) {
+                    *hash<ExceptionInfo> error;
+                    try {
+                        drivePing(op);
+                    } catch (hash<ExceptionInfo> ex) {
+                        error = ex;
+                    }
+                    assertTrue(exists error, case_info + ": HTTP error propagated");
+                    assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|HTTP-CLIENT-RECEIVE-ERROR)$",
+                        error.err, sprintf("%s: %Y", case_info, error));
+                } else {
+                    op.abort();
+                    assertFalse(op.goalReached(), case_info + ": aborted ping did not succeed");
+                }
+                assertEq(1, destroyed.getCount(), case_info + ": connection lives until operation disposal");
+                delete op;
+                assertEq(0, destroyed.waitForZero(5s), case_info + ": disposing operation releases connection");
+            }
+        }
+        key_handler.setResponse("[]");
+    }
+
     private pingTest() {
         key_handler.setResponse("[]");
         for (int transport = 0; transport < 4; ++transport) {
@@ -333,7 +402,8 @@ public class JinaRestClientTest inherits QUnit::Test {
                     error = ex;
                 }
                 assertTrue(exists error, "invalid ping must fail");
-                assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|DESERIALIZATION-ERROR|JSON-PARSE-ERROR)$", error.err);
+                assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|DESERIALIZATION-ERROR|JSON-PARSE-ERROR)$", error.err,
+                    sprintf("response %y transport %d: %Y", response, transport, error));
             }
         }
         foreach int status in (401, 429, 500) {
@@ -346,7 +416,8 @@ public class JinaRestClientTest inherits QUnit::Test {
                     error = ex;
                 }
                 assertTrue(exists error, "invalid ping must fail");
-                assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|HTTP-CLIENT-RECEIVE-ERROR)$", error.err);
+                assertRegex("^(REST-PING-ERROR|REST-RESPONSE-ERROR|HTTP-CLIENT-RECEIVE-ERROR)$", error.err,
+                    sprintf("HTTP %d transport %d: %Y", status, transport, error));
             }
         }
         key_handler.setResponse("[]");

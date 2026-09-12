@@ -145,6 +145,8 @@ printf("%Y\n", ans.body);
     @section restclientrelnotes Release Notes
 
     @subsection restclientv2_7 RestClient v2.7
+    - polling pings retain their originating connection for the operation lifetime, so a temporary
+      connection remains available for authentication updates and response validation
     - OAuth consent URLs encode extra authorization argument names and values, state, client IDs, and PKCE
       values, preserving optional scopes and callback state containing reserved characters; missing values and
       empty optional scope lists serialize as empty query values
@@ -5569,7 +5571,7 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation<auto> {
     }
 
     private {
-        #! The REST connection
+        #! Strong reference to the connection for the lifetime of this polling operation
         RestConnection conn;
 
         #! The RestClient object to use for polling I/O
@@ -5610,8 +5612,12 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation<auto> {
     }
 
     #! Creates the poller with the REST client and option hash
+    /** @param conn the connection, retained until the polling operation is destroyed
+        @param rc the REST client to use for polling I/O
+        @param real_opts the connection options
+    */
     constructor(RestConnection conn, RestClient rc, hash<auto> real_opts) {
-        self.conn := conn;
+        self.conn = conn;
         self.rc = rc;
         self.real_opts = real_opts;
         method = real_opts.ping_method ?? "GET";

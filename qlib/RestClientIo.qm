@@ -142,6 +142,8 @@ resp = rc.restGet("/api/data");
     @section restclientio_relnotes Release Notes
 
     @subsection restclientio_v1_0 Version 1.0
+    - Polling pings retain their originating connection for the operation lifetime, preserving
+      authentication and validation errors when the caller uses a temporary connection
     - Renews expiring client-credentials tokens without requiring a refresh token
     - Fixed @ref RestClientIo::RestClientIo::copyWithUrl() "copyWithUrl()" children losing their
       shared connection manager when the originating client was destroyed; internally created
@@ -5295,7 +5297,7 @@ public class RestClientIoPingPollOperation inherits Qore::AbstractPollOperation<
     }
 
     private {
-        #! REST connection (weak reference)
+        #! Strong reference to the connection for the lifetime of this polling operation
         RestClient::RestConnection conn;
 
         #! Ping options
@@ -5420,13 +5422,13 @@ public class RestClientIoPingPollOperation inherits Qore::AbstractPollOperation<
     }
 
     #! Creates the poll operation and submits the first ping (or queues a token refresh)
-    /** @param conn the REST connection to ping
+    /** @param conn the REST connection to ping, retained until the polling operation is destroyed
         @param ping_opts ping options (ping_method, ping_path, ping_body, ping_headers,
             openapi3, swagger, oauth2_auto_refresh, etc.)
         @param logger optional logger
     */
     constructor(RestClient::RestConnection conn, hash<auto> ping_opts, *Logger::LoggerInterface logger) {
-        self.conn := conn;
+        self.conn = conn;
         self.ping_opts = ping_opts;
         self.logger = logger;
 
