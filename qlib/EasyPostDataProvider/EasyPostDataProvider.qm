@@ -1230,3 +1230,27 @@ module EasyPostDataProvider {
         });
     };
 }
+
+/** @mainpage EasyPostDataProvider Module
+
+    @tableofcontents
+
+    @section easypostdataproviderintro EasyPostDataProvider Introduction
+
+    The %EasyPostDataProvider module provides a data provider API for
+    <a href="https://www.easypost.com/">EasyPost</a> multi-carrier shipping and logistics services
+    through the EasyPost REST API.
+
+    Addresses, parcels, shipments, trackers, insurance records, pickups, orders, customs information,
+    refunds, batches, and carrier accounts are exposed as data providers and actions, along with
+    event triggers for tracker, batch, insurance, refund, payment, and scan-form webhook events.
+
+    To use this module, use \c "%requires EasyPostDataProvider" in your code.
+
+    All the public symbols in the module are defined in the EasyPostDataProvider namespace.
+
+    @section easypostdataproviderrelnotes Release Notes
+
+    @subsection easypostdataproviderv1_0 EasyPostDataProvider v1.0
+    - the initial version of the %EasyPostDataProvider module
+*/

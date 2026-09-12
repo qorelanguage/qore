@@ -663,3 +663,27 @@ module TableauDataProvider {
         });
     };
 }
+
+/** @mainpage TableauDataProvider Module
+
+    @tableofcontents
+
+    @section tableaudataproviderintro TableauDataProvider Introduction
+
+    The %TableauDataProvider module provides a data provider API for
+    <a href="https://www.tableau.com/">Tableau</a> analytics and content management through the
+    Tableau REST API.
+
+    Datasources, projects, users, and extract refresh tasks are exposed as data providers and
+    actions, along with event triggers for datasource creation, update, deletion, and refresh
+    events, and watch triggers for new datasources and projects.
+
+    To use this module, use \c "%requires TableauDataProvider" in your code.
+
+    All the public symbols in the module are defined in the TableauDataProvider namespace.
+
+    @section tableaudataproviderrelnotes Release Notes
+
+    @subsection tableaudataproviderv1_0 TableauDataProvider v1.0
+    - the initial version of the %TableauDataProvider module
+*/

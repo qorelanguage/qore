@@ -1492,7 +1492,7 @@ public class FileHandler inherits public HttpServer::AbstractUrlHandler, private
         @param stat_hash the file's stat information
         @param suffix an optional suffix to distinguish different representations (e.g. encoding)
 
-        @return the ETag string in the format \c "\"<hex-size>-<hex-mtime-epoch>[-suffix]\""
+        @return the ETag string in the format <tt>&quot;&lt;hex-size&gt;-&lt;hex-mtime-epoch&gt;[-suffix]&quot;</tt>
 
         @since WebUtil 1.8
     */

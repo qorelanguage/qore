@@ -2796,7 +2796,7 @@ AbstractPollOperation<auto> Socket::startPollSendHttpResponseAndReadHeader(int s
     @param content_length the total number of bytes to stream from the InputStream
     @param idle_timeout idle timeout for waiting for the next request
 
-    @return an @ref AbstractPollOperation object; when goal is reached:
+    @return an @ref Qore::AbstractPollOperation object; when goal is reached:
     - If \c getState() returns \c "stream-complete": \c getOutput() returns a hash with \c "hdr" and \c "info" keys
     - If \c getState() returns \c "timeout": the idle timeout expired
 
@@ -2895,7 +2895,7 @@ AbstractPollOperation<auto> Socket::startPollSendHttpResponseWithStreamAndReadHe
     @param body the InputStream to read the response body from; EOF signals end of chunks
     @param idle_timeout keep-alive idle timeout after the response is sent
 
-    @return an @ref AbstractPollOperation object
+    @return an @ref Qore::AbstractPollOperation object
 
     @since %Qore 3.0
 */
@@ -2985,7 +2985,7 @@ AbstractPollOperation<auto> Socket::startPollSendHttpChunkedResponseAndReadHeade
     @param body the InputStream to read the response body from
     @param content_length the total number of bytes to stream from the InputStream
 
-    @return an @ref AbstractPollOperation object; when goal is reached, getState() returns "stream-complete"
+    @return an @ref Qore::AbstractPollOperation object; when goal is reached, getState() returns "stream-complete"
 
     @throw SOCKET-STARTPOLLSENDHTTPRESPONSEWITHSTREAM-ERROR invalid status code
     @throw HTTP-STREAM-ERROR raised during polling if the InputStream provides fewer bytes than
@@ -3074,7 +3074,7 @@ AbstractPollOperation<auto> Socket::startPollSendHttpResponseWithStream(int stat
     @param headers optional HTTP headers to include in the response
     @param body the InputStream to read the response body from
 
-    @return an @ref AbstractPollOperation object; when goal is reached, getState() returns "stream-complete"
+    @return an @ref Qore::AbstractPollOperation object; when goal is reached, getState() returns "stream-complete"
 
     @throw SOCKET-STARTPOLLSENDHTTPCHUNKEDRESPONSEWITHSTREAM-ERROR invalid status code or non-I/O-safe InputStream
 
@@ -6910,7 +6910,7 @@ AbstractPollOperation<auto> Socket::startPollSendHttp2Response(int stream_id, in
     @param body the InputStream to read the response body from
     @param chunk_size the size of chunks to read from the stream (default: 16384)
 
-    @return an @ref AbstractPollOperation object for the streaming send
+    @return an @ref Qore::AbstractPollOperation object for the streaming send
 
     @throw SOCKET-NOT-OPEN The socket is not connected
     @throw HTTP2-ERROR if no HTTP/2 session is available

@@ -699,7 +699,7 @@ AbstractIterator<string> <string>::splitLinesRegex(string separator_pattern, int
 //! Splits a string into a list of components based on a separator string and a quote character
 /** The quote character can appear as the first part of a field, in which case it is assumed to designate the entire
     field. If instances of the quote character are found in the field preceded by a backquote character
-    (<tt>"&#92;"</tt>), then these quote characters are included as part of the field's text and not treated as quote
+    (<tt>\\</tt>), then these quote characters are included as part of the field's text and not treated as quote
     characters.
     Also the separator character can appear as a part of a field with this variant.
     This variant is useful for parsing CSV files, for example.

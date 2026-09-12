@@ -73,7 +73,7 @@ abstract string AbstractLineIterator::getValue();
 /** Retrieves additional lines if the last is quoted and is not terimated; this way fields can contain multiple lines
 
     The quote character can appear as the first part of a field, in which case it is assumed to designate the entire
-    field.  If instances of the quote character are found in the field preceded by a backquote character (\c "\"),
+    field.  If instances of the quote character are found in the field preceded by a backslash character (<tt>\\</tt>),
     then these quote characters are included as part of the field's text and not treated as quote characters.\n
     Also the separator character can appear as a part of a field with this variant.\n
     This variant is useful for parsing CSV files, for example.

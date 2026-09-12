@@ -188,6 +188,10 @@ set(DF_CPP_SRC
 # (std::span); this branch already compiles everything with -std=c++20, so no
 # per-file override is needed here.
 
+set(QORE_DOX_DF_TMPL_SRC
+    docs/mainpage.dox.tmpl
+)
+
 # Process QPP files
 qore_wrap_qpp_value(DF_QPP_SOURCES DOXLIST _dox_src METALIST DF_QPP_META_SRC ${DF_QPP_SRC})
 add_custom_target(DF_QPP_GENERATED_FILES DEPENDS qpp ${DF_QPP_SOURCES})
@@ -201,5 +205,14 @@ target_link_libraries(${df_module_name} ${QORE_ARROW_TARGETS})
 target_include_directories(${df_module_name} PRIVATE ${LLVM_INCLUDE_DIRS})
 add_dependencies(${df_module_name} libqore DF_QPP_GENERATED_FILES)
 
+# the module mainpage carries @section dataframeintro, which the lang docs reference; without it in
+# the doxygen input the module's tag file has no intro anchor and every cross-reference to it is lost
+set(MODULE_DOX_INPUT ${CMAKE_BINARY_DIR}/modules/dataframe/mainpage.dox ${_dox_src})
 qore_binary_module_qore(${df_module_name} "${VERSION}" "/${VERSION}")
 qore_install_qpp_metadata(${df_module_name} ${DF_QPP_META_SRC})
+
+if (DOXYGEN_FOUND)
+    qore_wrap_dox(QORE_DOX_DF_SRC ${QORE_DOX_DF_TMPL_SRC})
+    add_custom_target(QORE_DF_MOD_DOX_FILES DEPENDS ${QORE_DOX_DF_SRC})
+    add_dependencies(docs-dataframe QORE_DF_MOD_DOX_FILES)
+endif()

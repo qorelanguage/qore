@@ -67,7 +67,7 @@ module Qdx {
     - added formatted astparser diagnostics for tooling that consumes Qore source
 
     @subsection qdx_1_1_1 Qdx v1.1.1
-    - fixed stripping the final \c "\" character in multi-line entries in tables
+    - fixed stripping the final <tt>\\</tt> character in multi-line entries in tables
       (<a href="https://github.com/qoretechnologies/qore/issues/4195>issue 4195</a>)
 
     @subsection qdx_1_1 Qdx v1.1
@@ -1296,7 +1296,7 @@ printf("open_parens: %d, close_parens: %d\n", counts.open_parens, counts.close_p
 
             @param source the name of the source being iterated; used in table format warning text
 
-            @note table cell docs may span multiple lines as long as the lines end in a \c "\" character
+            @note table cell docs may span multiple lines as long as the lines end in a <tt>\\</tt> character
         */
         constructor(Qore::InputStream is, *string encoding, *string eol, bool do_trim = True,
                     *string source)
@@ -1325,11 +1325,11 @@ printf("open_parens: %d, close_parens: %d\n", counts.open_parens, counts.close_p
             @throw ITERATOR-ERROR the iterator is not pointing at a valid element
             @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than
             the thread that created the object
-            @throw LINE-CONTINUATION-ERROR thrown if the last line ends in a line continuation character (\c "\")
+            @throw LINE-CONTINUATION-ERROR thrown if the last line ends in a line continuation character (<tt>\\</tt>)
 
             @see getValue()
 
-            @note table cell docs may span multiple lines as long as the lines end in a \c "\" character
+            @note table cell docs may span multiple lines as long as the lines end in a <tt>\\</tt> character
         */
         string getLine() {
             return getValue();
@@ -1346,11 +1346,11 @@ printf("open_parens: %d, close_parens: %d\n", counts.open_parens, counts.close_p
             @throw ITERATOR-ERROR the iterator is not pointing at a valid element
             @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than
             the thread that created the object
-            @throw LINE-CONTINUATION-ERROR thrown if the last line ends in a line continuation character (\c "\")
+            @throw LINE-CONTINUATION-ERROR thrown if the last line ends in a line continuation character (<tt>\\</tt>)
 
             @see getLine()
 
-            @note table cell docs may span multiple lines as long as the lines end in a \c "\" character
+            @note table cell docs may span multiple lines as long as the lines end in a <tt>\\</tt> character
         */
         string getValue() {
             int lineno = index();

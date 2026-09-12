@@ -39,8 +39,10 @@ module DataProviderDataFrame {
     };
 }
 
-#! @mainpage DataProviderDataFrame Module
-/**
+/** @mainpage DataProviderDataFrame Module
+
+    @tableofcontents
+
     @section dataproviderdataframeintro DataProviderDataFrame Module Introduction
 
     Provides DataProvider integration for the @ref dataframe "dataframe" binary module,
