@@ -501,6 +501,10 @@ public:
         delete obj;
     }
 
+    DLLLOCAL virtual void releaseCycleReference(ExceptionSink* xsink) {
+        customDeref(xsink, false);
+    }
+
     DLLLOCAL virtual bool isValidImpl() const {
         if (status != OS_OK || in_destructor) {
             printd(QRO_LVL, "qore_object_intern::isValidImpl() this: %p cannot delete graph obj status: %d "
@@ -525,36 +529,18 @@ public:
             return false;
         }
 
-        {
-            AutoLocker al(rlck);
-            if (deferred_scan) {
-                if (!rrefs && scan_now) {
-                    deferred_scan = false;
-                    return true;
-                }
-                return false;
-            }
-            if (!rrefs) {
-                return true;
-            }
-            deferred_scan = true;
-            // if there is no rset, our job is done
-            if (!rset && !scan_private_data) {
-                return false;
-            }
-            // if we have an rset, then we need to invalidate it and ensure that
-            // rrefs does not go to zero until this is done
-            rref_wait = true;
-        }
-
-        removeInvalidateRSetIntern();
+        // Starting a scan at an object with real references is still deferred by checkDeferScan().
+        // Once a scan has reached this object, however, its outgoing edges are needed to establish the
+        // complete cycle. Skipping them can omit a live owner of a shared container from the rset,
+        // allowing the objects behind that container to be collected while the owner is still in use.
+        // The r-section protects the member walk; real references remain external to the resulting rset.
         AutoLocker al(rlck);
-        rref_wait = false;
-        if (rref_waiting) {
-            rcond.broadcast();
+        if (rrefs) {
+            deferred_scan = true;
+        } else if (scan_now) {
+            deferred_scan = false;
         }
-
-        return false;
+        return true;
     }
 
     DLLLOCAL void mergeDataToHash(QoreHashNode* hash, SafeDerefHelper& sdh, ExceptionSink* xsink) const;

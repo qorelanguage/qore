@@ -446,24 +446,9 @@ int qore_object_private::checkMemberAccess(const char* mem, const qore_class_pri
 bool qore_object_private::scanMembersIntern(RSetHelper& rsh, QoreHashNode* odata) {
     assert(rml.checkRSectionExclusive());
 
-    // we should never perform a scan while the object has "real references", such scans must be deferred until the
-    // last "real reference" has been removed
-    if (rrefs) {
-        bool invalidate = false;
-        {
-            AutoLocker al(rlck);
-            if (rrefs) {
-                invalidate = true;
-                if (!deferred_scan) {
-                    deferred_scan = true;
-                }
-            }
-        }
-        if (invalidate) {
-            removeInvalidateRSetIntern();
-            return false;
-        }
-    }
+    // A scan initiated elsewhere must follow this object's edges even if it has real references.
+    // Otherwise a shared container can hide its live owner from the cycle. The r-section protects the
+    // traversal and the owner's external references prevent collection of the completed recursive set.
 
     HashIterator hi(odata);
     while (hi.next()) {
@@ -1285,6 +1270,7 @@ void qore_object_private::unsetRealReference() {
 
 void qore_object_private::customDeref(ExceptionSink* xsink, bool real) {
     assert(qore_var_rwlock_priv::get(rml)->write_tid >= -1);
+    RSetDerefHelper cycle_cleanup(xsink);
 
     {
         //printd(5, "qore_object_private::customDeref() this: %p '%s' references: %d->%d (trefs: %d) status: %d\n",
@@ -1344,7 +1330,7 @@ void qore_object_private::customDeref(ExceptionSink* xsink, bool real) {
                             }
                         }
                     } else {
-                        rc = rs->canDelete(ref_copy, rcount, scan_refs);
+                        rc = rs->canDelete(ref_copy, rcount, scan_refs, *this, cycle_cleanup);
                     }
 
                     if (!rc) {

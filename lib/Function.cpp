@@ -5016,11 +5016,13 @@ void UserVariantBase::setCachedIR(QoreIRFunction* ir, bool promote_to_ir) const 
         }
 
         // Keep deserialized cached IR aligned with source-lowered IR metadata:
-        // IR-only body locals are owned by the LLVM/IR frame and must not be
-        // treated as pre-instantiated runtime-stack locals.
+        // IR-only and closure-use body locals are owned by the LLVM/IR frame,
+        // not pre-instantiated by evalTiered() or execJITWithDeopt(). In particular,
+        // an entry load of a captured local can lazily push it before its lexical
+        // scope and break the cvstack's declaration/pop order during recursion.
         for (LocalVar* lv : ir->all_body_locals) {
             const void* key = reinterpret_cast<const void*>(lv);
-            if (ir->ir_only_locals.count(key)) {
+            if (lv->closureUse() || ir->ir_only_locals.count(key)) {
                 ir->pre_instantiated_locals.erase(key);
                 ir->pre_instantiated_cache.erase(lv);
             } else {
@@ -5641,12 +5643,14 @@ QoreIRFunction* UserVariantBase::lowerIRFunction(const char* name, const std::st
     }
 
     // Keep the compile-time pre-instantiated set aligned with evalTiered().
-    // IR-only body locals are deliberately not pushed on the TLS local stack;
-    // LLVM lowering must allocate/cache them locally instead of emitting
-    // qore_rt_load_local() entry loads.
+    // IR-only body locals are not pushed on the TLS local stack, and captured
+    // body locals are instantiated at their lexical scope. Neither may receive
+    // qore_rt_load_local() entry loads: a captured local's lazy entry load can
+    // create its CVV below a later outer-scope local and make inner cleanup pop
+    // the wrong variable. Signature locals remain pre-instantiated by the caller.
     for (LocalVar* lv : func->all_body_locals) {
         const void* key = reinterpret_cast<const void*>(lv);
-        if (func->ir_only_locals.count(key)) {
+        if (lv->closureUse() || func->ir_only_locals.count(key)) {
             func->pre_instantiated_locals.erase(key);
             func->pre_instantiated_cache.erase(lv);
         }

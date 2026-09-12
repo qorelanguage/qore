@@ -57,3 +57,15 @@ the background compiler's queue at fixed call-graph stages before repeating
 the assertions, avoiding timing-based warmup. The global completion barrier
 finishes submitted work; the per-Program teardown overload cancels queued work
 and is unsuitable for proving that a test reaches native code.
+
+The pre-instantiated-local metadata excludes closure-use body locals in both
+fresh lowering and restored IR. Signature captures remain pre-instantiated.
+This matches the frame wrapper's actual allocation policy. Native entry code
+must not load a captured body local before its lexical scope begins: lookup
+can find the caller's binding or instantiate an inner binding before an outer
+one, reversing the closure-stack order used by scope cleanup.
+
+`examples/test/qore/closures/recursive-captured-scopes.qtest` exercises nested
+captures behind a skipped inner scope, recursive calls, escaped closures,
+exception unwinding, and early returns. It runs AST, IR, synchronous JIT,
+tiered execution, and an AOT module. Each run checks 6,000 captured values.

@@ -898,7 +898,13 @@ int TopLevelStatementBlock::execImpl(RuntimeConfig& rc, QoreValue& return_value,
                     collectAllStatementLocals(this, func->all_body_locals);
                     removeBlockLocalsFromBodyLocals(this, func->all_body_locals);
                     for (LocalVar* lv : func->all_body_locals) {
-                        func->pre_instantiated_locals.insert(reinterpret_cast<const void*>(lv));
+                        // Match the runtime wrapper below: nested captured locals are
+                        // instantiated at their lexical scope, not at native entry.
+                        // An entry load can create an inner CVV below its loop counter
+                        // and make the body's cleanup pop the counter on every iteration.
+                        if (!lv->closureUse()) {
+                            func->pre_instantiated_locals.insert(reinterpret_cast<const void*>(lv));
+                        }
                         func->reserveLocalSlot(lv);
                     }
                     if (const LVList* top_lvars = getLVList()) {

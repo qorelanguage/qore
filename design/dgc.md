@@ -19,7 +19,7 @@ Every `QoreObject` (via `RObject` in `include/qore/intern/RSet.h`) carries these
 | Field | Meaning |
 |---|---|
 | `references` | Standard refcount (managed by `ref()`/`deref()`). When it reaches 0, the object is destroyed. |
-| `rrefs` | "Real" refs: references known *not* to be part of a cycle (set by `realRef()`, e.g., method-call helpers, background thread ownership). If `rrefs > 0` the object is still in active use, and cycle scanning is **deferred**. |
+| `rrefs` | "Real" refs: references known *not* to be part of a cycle (set by `realRef()`, e.g., method-call helpers, background thread ownership). If `rrefs > 0`, starting a scan at that object is **deferred**; scans initiated elsewhere still follow its edges. |
 | `rcount` | Number of unique cyclic references pointing *at* this object, computed by the scanner. `rcount == references` ⇒ every ref to this object comes from inside the rset. |
 | `rset` | Pointer to the `RSet` the object belongs to (a group of objects in one detected cycle). |
 | `rml` | Read/write lock with a special "r-section" mode used during scans. |
@@ -52,18 +52,14 @@ Any reference stored as a `QoreValue` in either place is visible. Raw C++ pointe
 
 ### The rrefs deferral
 
-If `rrefs > 0`, `scanMembersIntern` returns immediately after setting `deferred_scan = true` and invalidating the current rset:
+If `rrefs > 0`, `RObject::checkDeferScan()` defers starting a scan at that object. Scans are retried after the
+last `realDeref()` drops `rrefs` to 0. If a `realRef()` is leaked, the external reference keeps the object alive.
 
-```cpp
-if (rrefs) {
-    ...
-    if (!deferred_scan) { deferred_scan = true; }
-    removeInvalidateRSetIntern();
-    return false;
-}
-```
-
-Scans are retried after the last `realDeref()` drops `rrefs` to 0. If a `realRef()` is leaked (never dereferenced), cycle collection for that object never runs.
+A scan initiated at another object still traverses a reachable object's members under its r-section lock,
+including when that object has real references. Skipping those edges can omit a live owner of a shared
+container from a recursive set: the container's one physical reference to an object behind it can then look
+entirely internal, and the smaller set would be collected prematurely. Including the owner completes the
+cycle, and its real references keep `references > rcount`, preventing collection.
 
 ### Shared containers: the scan follows edges, not nodes
 
@@ -72,10 +68,10 @@ distinct edge in the object graph, and the scanner must follow **every** one of 
 (`ovec`) built along an edge is what establishes cycle membership for the objects behind the container, and each
 edge is what contributes to their `rcount`.
 
-`RSetHelper::checkIntern()` therefore memoizes on the *edge* — `(referring node, container)` — in `hset` / `lset`,
-not on the container node alone. `RObject::scanCheck()` supplies the owning `RObject*` as the referring node for
-an object member; a nested container supplies the enclosing container node. Every edge is still walked exactly
-once, so the scan stays linear in the number of graph edges.
+`RSetHelper::checkIntern()` memoizes `(owning RObject, container)` in `hset` / `lset`. The owning object is
+preserved through every nested container. Each owner therefore reaches a shared container's objects even
+when two owners share the same outer container. Memoizing the immediately enclosing container would lose
+the second owner's path through that shared outer container. A container is walked at most once per owner.
 
 Memoizing on the container node alone is a cycle leak (fixed 2026-09-12). It drops every edge into a container
 but the first one the DFS happens to reach, and the outcome then depends on traversal order:
@@ -98,6 +94,32 @@ RSet::canDelete() cannot delete graph obj <its target> rcount: 1 refs: 2
 ```
 
 Regression coverage: `examples/test/qore/misc/shared-container-cycles.qtest`.
+
+Traversal and reference counting use separate identities. Each physical container slot gets a stable scan-local
+reference ID, including when a recursive walk reaches a later slot before the original iterator does. Direct
+object members and closure captures get their own IDs. `orefs` records the incoming reference ID for each DFS
+chain entry; the scan root has no incoming reference. A cycle-closing edge counts its own reference, and a
+later merge counts a forward edge only if that reference has not already been counted.
+
+This avoids both double-counting a shared slot when its original owner joins a cycle later, and counting an
+external holder's reference as though it belonged to a different slot that closed the cycle. Separate slots
+pointing at the same object retain their multiplicity. `shared-container-forward-edges.qtest` covers these
+cases, nested shared containers, and both traversal orders.
+
+### Completing collection through shared containers
+
+Deleting one cycle member does not necessarily release an object reference. If that member only held a
+shared container, another cycle member can keep the container and all its slots alive. Merely invalidating
+the rset and deleting the initiating object would then strand the remaining cycle without a dereference
+that could trigger another scan.
+
+For scans which encountered shared containers, `RSet::canDelete()` retains temporary strong references to the other
+members in `RSetDerefHelper` before invalidating a collectable set. The initiating object is torn down normally. The helper then releases every
+retained reference outside the r-section and rset locks, giving remaining cycles their own collection
+opportunity. Ordinary reference-count checks preserve members retained by a user destructor. Cleanup also
+runs when a destructor raises a Qore exception. Graphs with unshared containers retain the ordinary cascading
+dereference path. Mandatory reference release cannot be cancelled partway
+through. This applies to both objects and closure-bound variables.
 
 ### `rcount` is a snapshot: `scan_refs` and stale verdicts
 

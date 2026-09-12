@@ -1,0 +1,100 @@
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+
+module RecursiveCapturedScopes {
+    version = "1.0";
+    desc = "Recursive captured-local lifetime test fixture";
+    author = "Qore Technologies, s.r.o.";
+}
+
+public namespace RecursiveCapturedScopes {
+public class ScopeChecks {
+    private static consume(code<list<string>()> callback, list<string> expected) {
+        @assert(callback() == expected);
+    }
+
+    # Recursion reaches a native fast call while an inner captured local has
+    # never been initialized. Entry loads must not create that inner binding
+    # below the current loop's binding and make its cleanup pop the wrong CVV.
+    private static traverse(int depth, list<string> path, bool visit_inner,
+            reference<list<code<list<string>()>>> captures,
+            reference<list<list<string>>> expected, reference<int> visits) {
+        if (!depth) {
+            return;
+        }
+        foreach int i in (0..1) {
+            list<string> nested_path = path + (sprintf("%d.%d", depth, i),);
+            consume(list<string> sub () { return nested_path; }, nested_path);
+            push captures, list<string> sub () { return nested_path; };
+            push expected, nested_path;
+            foreach int j in (0..1) {
+                if (!visit_inner) {
+                    continue;
+                }
+                list<string> inner_path = nested_path + (sprintf("inner.%d", j),);
+                consume(list<string> sub () { return inner_path; }, inner_path);
+                push captures, list<string> sub () { return inner_path; };
+                push expected, inner_path;
+            }
+            traverse(depth - 1, nested_path, visit_inner, \captures, \expected, \visits);
+            @assert(nested_path == path + (sprintf("%d.%d", depth, i),));
+            ++visits;
+        }
+    }
+
+    private static unwind(bool fail, reference<list<code<list<string>()>>> captures) {
+        list<string> outer = ("outer",);
+        push captures, list<string> sub () { return outer; };
+        try {
+            list<string> inner = outer + ("inner",);
+            push captures, list<string> sub () { return inner; };
+            if (fail) {
+                throw "EXPECTED-SCOPE-ERROR", "exercise captured-local exception cleanup";
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            @assert(ex.err == "EXPECTED-SCOPE-ERROR");
+            @assert(outer == ("outer",));
+            rethrow;
+        }
+        @assert(outer == ("outer",));
+    }
+
+    static int run() {
+        int checked = 0;
+        # Enough calls to exercise default tiered promotion as well as forced JIT.
+        for (int repeat = 0; repeat < 100; ++repeat) {
+            foreach bool visit_inner in (False, True) {
+                list<code<list<string>()>> captures = ();
+                list<list<string>> expected = ();
+                int visits = 0;
+                traverse(0, ("root",), visit_inner, \captures, \expected, \visits);
+                @assert(visits == 0 && !captures && !expected);
+                traverse(3, ("root",), visit_inner, \captures, \expected, \visits);
+                @assert(visits == 14);
+                @assert(captures.size() == (visit_inner ? 42 : 14));
+                @assert(captures.size() == expected.size());
+                for (int i = 0; i < captures.size(); ++i) {
+                    @assert(captures[i]() == expected[i]);
+                    ++checked;
+                }
+            }
+            foreach bool fail in (False, True) {
+                list<code<list<string>()>> captures = ();
+                bool caught = False;
+                try {
+                    unwind(fail, \captures);
+                } catch (hash<ExceptionInfo> ex) {
+                    @assert(ex.err == "EXPECTED-SCOPE-ERROR");
+                    caught = True;
+                }
+                @assert(caught == fail);
+                @assert(captures.size() == 2);
+                @assert(captures[0]() == ("outer",));
+                @assert(captures[1]() == ("outer", "inner"));
+                checked += 2;
+            }
+        }
+        return checked;
+    }
+}
+}

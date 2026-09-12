@@ -545,7 +545,8 @@ val = "string";      # OK
       @ref exec_mode_jit "JIT" and @ref exec_mode_aot "AOT" execution, and common type inference retains
       optional types in either operand order and across repeated @ref nothing "NOTHING" values
     - @ref exec_mode_jit "JIT" execution preserves each recursive call's own reference-backed and
-      closure-captured local variables, including tree traversals, exception cleanup, and escaped references
+      closure-captured local variables, including tree traversals, exception cleanup, and escaped references;
+      lexical instantiation metadata also keeps captured top-level loop counters advancing correctly
     - binding a @ref lvalue_references "reference" argument applies the reference's type restriction to the
       variable, and when that leaves the value untouched no recursive-reference scan is made, since the set
       of reachable objects cannot have changed
@@ -3001,6 +3002,11 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
       container while still counting each container's contents exactly once, and a scan that restarts after
       lock contention resets its container and closure bookkeeping instead of re-walking objects while skipping
       containers the abandoned attempt had already seen.
+    - Fixed shared-container cycle merges double-counting a physical reference or counting a live holder's
+      reference as internal. The scanner tracks individual slots, preserves their object owner through nested
+      containers, and includes reachable objects with real references when establishing a complete cycle.
+      Teardown also releases remaining subcycles when a shared container survives the initiating object's
+      destruction, including when a destructor raises an exception or retains another object.
     - Fixed reference cycles never being collected after the references that blocked them went away. The
       reference counts computed for a cycle are a snapshot taken when it was detected, and they were trusted
       indefinitely; a container in the cycle losing its last holder outside it, or an object in another cycle

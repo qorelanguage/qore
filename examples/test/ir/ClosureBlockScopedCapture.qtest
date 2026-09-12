@@ -24,32 +24,15 @@
 %modern
 %no-child-restrictions
 
-%requires QUnit
 %prepend-module-path "${SCRIPT_DIR}/../../../qlib"
-%requires FsUtil
+%requires ../../../qlib/QUnit.qm
+%requires ../../../qlib/FsUtil.qm
 
 %exec-class ClosureBlockScopedCaptureTest
 
 class ClosureBlockScopedCaptureTest inherits QUnit::Test {
     # every execution mode must agree; the bug hit "ir" and (in release builds) "tiered"
     const Modes = ("ast", "ir", "jit", "tiered");
-
-    # Modes for the top-level-loop case.  "jit" is excluded because of a SEPARATE, pre-existing
-    # bug in the LLVM lowering (QoreIRToLLVM), not in the CVV instantiation fixed here: when a
-    # top-level "for" loop has BOTH a closure-captured loop variable AND a closure-captured
-    # block-scoped body local, the JIT-compiled loop never advances its counter and spins
-    # forever.  Minimal repro (hangs under --exec-mode=jit, correct under ast/ir/tiered):
-    #
-    #   for (int i = 0; i < 3; ++i) {
-    #       string s = "init";
-    #       code<nothing()> c = sub() { s = sprintf("x%d", i); };
-    #       c();
-    #       printf("%s\n", s);
-    #   }
-    #
-    # Dropping either capture makes it pass, and the same shape inside a sub is fine.  Re-add
-    # "jit" here once that is fixed.
-    const LoopModes = ("ast", "ir", "tiered");
 
     constructor() : QUnit::Test("ClosureBlockScopedCaptureTest", "1.0", \ARGV) {
         addTestCase("uninitialized block-scoped local read by closure", \testUninitializedRead());
@@ -75,7 +58,7 @@ class ClosureBlockScopedCaptureTest inherits QUnit::Test {
 
         TmpFile out();
         TmpFile err();
-        string cmd = sprintf("%s --exec-mode=%s %s > %s 2> %s",
+        string cmd = sprintf("QORE_JIT_SYNC_COMPILE=1 %s -b --enable-debug --exec-mode=%s %s > %s 2> %s",
             qore_bin, mode, script.path, out.path, err.path);
         int rc = system(cmd);
         if (rc != 0) {
@@ -88,6 +71,7 @@ class ClosureBlockScopedCaptureTest inherits QUnit::Test {
             # the exit status rather than an unexplained empty-string mismatch
             assertEq(0, rc, sprintf("%s: qore exited %d: %s", mode, rc, err_output));
         }
+        assertEq("", ReadOnlyFile::readTextFile(err.path) ?? "", "no warnings or errors: " + mode);
         return ReadOnlyFile::readTextFile(out.path) ?? "";
     }
 
@@ -139,14 +123,18 @@ class ClosureBlockScopedCaptureTest inherits QUnit::Test {
         # each iteration must instantiate a fresh CVV: the loop body's UninstantiateLocal pops
         # the previous one, so the next iteration cannot rely on a pre-instantiated entry
         string code = "
+int iterations = 0;
 for (int i = 0; i < 3; ++i) {
+    if (++iterations > 3) {
+        throw \"LOOP-REGRESSION\", \"captured counter did not advance\";
+    }
     string s;
     code<nothing()> c = sub() { s = sprintf(\"x%d\", i); };
     c();
     printf(\"%s\\n\", s);
 }
 ";
-        assertSameInAllModes(code, "x0\nx1\nx2\n", "uninitialized capture per loop iteration", LoopModes);
+        assertSameInAllModes(code, "x0\nx1\nx2\n", "uninitialized capture per loop iteration");
     }
 
     testMultipleCaptures() {

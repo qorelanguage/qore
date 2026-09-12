@@ -36,11 +36,20 @@ RObject::~RObject() {
    assert(!rset);
 }
 
+RSetDerefHelper::~RSetDerefHelper() {
+    // Releasing a shared container does not necessarily release its objects. Dereferencing every retained
+    // member gives any surviving subcycle its own collection opportunity after the initiator is destroyed.
+    // These normal dereferences also preserve objects resurrected by a user destructor.
+    for (RObject* obj : objects) {
+        obj->releaseCycleReference(xsink);
+    }
+}
+
 bool RObject::scanCheck(RSetHelper& rsh, AbstractQoreNode* n) {
 #ifdef _QORE_CYCLE_CHECK
     rsh.setScanContext(this);
 #endif
-    return rsh.checkIntern(n, this, true);
+    return rsh.checkIntern(n, rsh.newReference());
 }
 
 void RObject::setRSet(RSet* rs, int rcnt) {
@@ -201,7 +210,7 @@ void RSet::dbg() {
 #endif
 
 // if we return 1, the rset has been invalidated already
-int RSet::canDelete(int ref_copy, int rcount, int scan_refs) {
+int RSet::canDelete(int ref_copy, int rcount, int scan_refs, RObject& initiator, RSetDerefHelper& cleanup) {
     printd(QRO_LVL, "RSet::canDelete() this: %p valid: %d\n", this, valid);
 
     if (q_disable_gc)
@@ -283,6 +292,16 @@ int RSet::canDelete(int ref_copy, int rcount, int scan_refs) {
     if (!valid)
         return -1;
 
+    // Retain members before dropping the set's weak references. The initiating object is already protected
+    // by its dereference helper. Cleanup runs outside the r-section and rset locks, after its destructor.
+    if (needs_member_release) {
+        cleanup.reserve(set.size());
+        for (RObject* member : set) {
+            if (member != &initiator) {
+                cleanup.add(member);
+            }
+        }
+    }
     invalidateIntern();
 
     printd(QRO_LVL, "RSet::canDelete() this: %p can delete all objects in graph\n", this);
@@ -351,7 +370,7 @@ public:
     }
 };
 
-bool RSetHelper::checkIntern(AbstractQoreNode* n, const void* parent, bool count) {
+bool RSetHelper::checkIntern(AbstractQoreNode* n, size_t ref) {
     if (!needs_scan(n)) {
         return false;
     }
@@ -365,25 +384,28 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n, const void* parent, bool count
     switch (get_node_type(n)) {
         case NT_OBJECT: {
             QoreObject* obj = reinterpret_cast<QoreObject*>(n);
-            return checkIntern(*qore_object_private::get(*obj), count);
+            return checkIntern(*qore_object_private::get(*obj), ref);
         }
 
         case NT_LIST: {
             QoreListNode* l = reinterpret_cast<QoreListNode*>(n);
             // check if this edge into the list has already been scanned
-            lset_t::value_type edge(parent, l);
+            lset_t::value_type edge(ovec.empty() ? nullptr : ovec.back()->first, l);
             lset_t::iterator lmi = lset.lower_bound(edge);
             if (lmi != lset.end() && *lmi == edge) {
                 return false;
             }
             lset.insert(lmi, edge);
 
-            // only the first walk of this list counts its slots towards the rcounts of the objects in them
-            bool count_slots = counted_containers.insert(l).second;
+            auto container = container_refs.try_emplace(l);
+            has_shared_containers |= !container.second;
+            refvec_t& refs = container.first->second;
+            size_t index = 0;
 
             ListIterator li(l);
             while (li.next()) {
-                if (li.getValue().hasNode() && checkIntern(li.getValue().getInternalNode(), l, count_slots)) {
+                size_t slot_ref = containerReference(refs, index++);
+                if (li.getValue().hasNode() && checkIntern(li.getValue().getInternalNode(), slot_ref)) {
                     return true;
                 }
             }
@@ -393,20 +415,23 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n, const void* parent, bool count
         case NT_HASH: {
             QoreHashNode* h = reinterpret_cast<QoreHashNode*>(n);
             // check if this edge into the hash has already been scanned
-            hset_t::value_type edge(parent, h);
+            hset_t::value_type edge(ovec.empty() ? nullptr : ovec.back()->first, h);
             hset_t::iterator hmi = hset.lower_bound(edge);
             if (hmi != hset.end() && *hmi == edge) {
                 return false;
             }
             hset.insert(hmi, edge);
 
-            // only the first walk of this hash counts its slots towards the rcounts of the objects in them
-            bool count_slots = counted_containers.insert(h).second;
+            auto container = container_refs.try_emplace(h);
+            has_shared_containers |= !container.second;
+            refvec_t& refs = container.first->second;
+            size_t index = 0;
 
             HashIterator hi(h);
             while (hi.next()) {
                 assert(hi.get().getInternalNode() != h);
-                if (hi.get().hasNode() && checkIntern(hi.get().getInternalNode(), h, count_slots)) {
+                size_t slot_ref = containerReference(refs, index++);
+                if (hi.get().hasNode() && checkIntern(hi.get().getInternalNode(), slot_ref)) {
                     return true;
                 }
             }
@@ -450,7 +475,7 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n, const void* parent, bool count
                 unsigned csize = size();
 #endif
 
-                if (checkIntern(*i->second, true)) {
+                if (checkIntern(*i->second, newReference())) {
                     return true;
                 }
 
@@ -534,7 +559,7 @@ bool RSetHelper::removeInvalidate(RSet* ors, int tid) {
     return false;
 }
 
-bool RSetHelper::addToRSet(omap_t::iterator oi, RSet* rset, int tid, bool count) {
+bool RSetHelper::addToRSet(omap_t::iterator oi, RSet* rset, int tid, size_t ref) {
     // ensure that the current object is not in the rset
     assert(rset->find(oi->first) == rset->end());
 
@@ -565,7 +590,7 @@ bool RSetHelper::addToRSet(omap_t::iterator oi, RSet* rset, int tid, bool count)
         oi->first->getName(), oi->second.rset, oi->second.in_cycle, oi->second.ok, oi->second.rcount,
         oi->second.rcount + 1, scan_context);
 #endif
-    countRef(oi, count);
+    countRef(oi, ref);
     return false;
 }
 
@@ -605,7 +630,7 @@ void RSetHelper::mergeRSetIntern(RSet*& rset, RSet* old_rset) {
     delete old_rset;
 }
 
-bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid, bool count) {
+bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid, size_t ref) {
     for (++i; i < (int)ovec.size(); ++i) {
 #ifdef _QORE_CYCLE_CHECK
         RSetScanContextHelper rsc(*this, i == 0 ? scan_context : ovec[i - 1]->first);
@@ -613,11 +638,11 @@ bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid, bool count) {
         if (!ovec[i]->second.rset) {
             printd(QRO_LVL, " + %p '%s': adding parent to rset\n", ovec[i]->first, ovec[i]->first->getName());
             // add the object to the rset and increment rcount
-            if (addToRSet(ovec[i], fi->second.rset, tid, ocount[i])) {
+            if (addToRSet(ovec[i], fi->second.rset, tid, orefs[i])) {
                 return true;
             }
         } else if (!fi->second.rset) {
-            if (addToRSet(fi, ovec[i]->second.rset, tid, count)) {
+            if (addToRSet(fi, ovec[i]->second.rset, tid, ref)) {
                 return true;
             }
         } else if (ovec[i]->second.rset != fi->second.rset) {
@@ -638,7 +663,7 @@ bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid, bool count) {
             ovec.back()->first, ovec.back()->first->getName(),
             fi->first, fi->first->getName(),
             fi->second.rcount, fi->second.rcount + 1);
-        countRef(fi, count);
+        countRef(fi, ref);
     }
 
     return false;
@@ -654,7 +679,7 @@ void RSetHelper::setObjectScanContext(RObject& obj, int rcount) {
 #endif
 
 // XXX RSectionScanHelper
-bool RSetHelper::checkIntern(RObject& obj, bool count) {
+bool RSetHelper::checkIntern(RObject& obj, size_t ref) {
 #ifdef DEBUG
     bool hl = obj.rml.hasRSectionLock();
 #endif
@@ -684,8 +709,7 @@ bool RSetHelper::checkIntern(RObject& obj, bool count) {
         printd(QRO_LVL, "RSetHelper::checkIntern() + found obj %p '%s' rcount: %d in_cycle: %d ok: %d\n", &obj,
             obj.getName(), fi->second.rcount, fi->second.in_cycle, fi->second.ok);
 
-        // the object's position in the current scan chain, if any; the reference that put it there is the one a
-        // walk-back finalizes, so it decides whether that finalization may be counted
+        // The object's position in the current scan chain, if any
         const int fi_idx = currentSetIndex(fi);
 
         if (fi->second.ok) {
@@ -705,7 +729,7 @@ bool RSetHelper::checkIntern(RObject& obj, bool count) {
                     "(rcount: %d -> %d) <- %p\n", &obj, obj.getName(), fi->second.rcount, fi->second.rcount + 1,
                     scan_context);
 #endif
-                countRef(fi, count);
+                countRef(fi, ref);
                 // rcount can never be more than real references for the target object
                 assert(fi->first->references >= fi->second.rcount);
             } else if (!ovec.empty()) {
@@ -716,7 +740,7 @@ bool RSetHelper::checkIntern(RObject& obj, bool count) {
                         obj.getName(), ovec.back()->first, ovec.back()->first->getName(), fi->second.rcount,
                         fi->second.rcount + 1, scan_context);
 #endif
-                    countRef(fi, count);
+                    countRef(fi, ref);
                     // rcount can never be more than real references for the target object
                     assert(fi->first->references >= fi->second.rcount);
                     return false;
@@ -728,7 +752,7 @@ bool RSetHelper::checkIntern(RObject& obj, bool count) {
                     if (fi->second.rset == ovec[i]->second.rset) {
                         printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in "
                             "current cycle\n", &obj, obj.getName(), ovec[i]->first, ovec[i]->first->getName());
-                        return makeChain(i, fi, tid, count);
+                        return makeChain(i, fi, tid, ref);
                     }
                 }
 
@@ -738,7 +762,7 @@ bool RSetHelper::checkIntern(RObject& obj, bool count) {
                     if (fi->second.rset->find((ovec[i])->first) != fi->second.rset->end()) {
                         printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in "
                             "current cycle\n", &obj, obj.getName(), ovec[i]->first, ovec[i]->first->getName());
-                        return makeChain(i, fi, tid, count);
+                        return makeChain(i, fi, tid, ref);
                     }
                 }
 
@@ -791,12 +815,12 @@ bool RSetHelper::checkIntern(RObject& obj, bool count) {
                         oi->first->getName(), obj.rcycle, oi->second.rset, rset);
                 }
 
-                if (addToRSet(oi, rset, tid, ocount[i])) {
+                if (addToRSet(oi, rset, tid, oi == fi ? ref : orefs[i])) {
                     return true;
                 }
             } else if (!rset) {
                 rset = oi->second.rset;
-                if (addToRSet(fi, rset, tid, chainCount(fi_idx, count))) {
+                if (addToRSet(fi, rset, tid, ref)) {
                     return true;
                 }
             } else if (oi->second.rset != rset) {
@@ -846,7 +870,7 @@ bool RSetHelper::checkIntern(RObject& obj, bool count) {
                     curr_oi->first, curr_oi->first->getName(),
                     next_oi->first, next_oi->first->getName(),
                     next_oi->second.rcount, next_oi->second.rcount + 1);
-                countRef(next_oi, ocount[j + 1]);
+                countRef(next_oi, orefs[j + 1]);
             }
         }
 
@@ -873,7 +897,7 @@ bool RSetHelper::checkIntern(RObject& obj, bool count) {
 
     // push on current vector chain
     ovec.push_back(fi);
-    ocount.push_back(count ? 1 : 0);
+    orefs.push_back(ref);
 
     // remove from invalidation set if present
     tr_out.erase(&obj);
@@ -888,7 +912,7 @@ bool RSetHelper::checkIntern(RObject& obj, bool count) {
 
     // remove from current vector chain
     ovec.pop_back();
-    ocount.pop_back();
+    orefs.pop_back();
 
     return false;
 }
@@ -940,7 +964,7 @@ RSetHelper::RSetHelper(RObject& obj) {
     RScanHelper rsh(obj);
 
     while (true) {
-        if (checkIntern(obj, true)) {
+        if (checkIntern(obj, 0)) {
             rollback();
             // wait for foreign transaction to finish if necessary
             notifier.wait();
@@ -971,6 +995,16 @@ void RSetHelper::commit(RObject& obj) {
 #endif
 
     assert(obj.rml.checkRSectionExclusive());
+
+    // Unshared containers release all their slots when an owning object is destroyed, so the usual
+    // cascading dereference is sufficient. Shared containers may leave a subcycle without such a trigger.
+    if (has_shared_containers) {
+        for (const auto& entry : fomap) {
+            if (entry.second.rset) {
+                entry.second.rset->enableCycleCleanup();
+            }
+        }
+    }
 
     // invalidate rsets
     for (rs_set_t::iterator i = tr_invalidate.begin(), e = tr_invalidate.end(); i != e; ++i) {
@@ -1060,14 +1094,17 @@ void RSetHelper::rollback() {
 
     fomap.clear();
     ovec.clear();
-    ocount.clear();
+    orefs.clear();
     // the scan starts over from scratch, so the container, closure and reference-counting memos must be reset
     // as well; leaving them populated makes the retry skip every container and closure the aborted attempt
     // already walked, which drops those edges from the graph exactly as a per-node container memo would
     hset.clear();
     lset.clear();
     closure_set.clear();
-    counted_containers.clear();
+    container_refs.clear();
+    counted_refs.clear();
+    next_ref = 0;
+    has_shared_containers = false;
     tr_out.clear();
     tr_invalidate.clear();
 

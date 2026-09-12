@@ -3207,6 +3207,7 @@ void ClosureVarValue::ref() const {
 }
 
 void ClosureVarValue::deref(ExceptionSink* xsink) {
+    RSetDerefHelper cycle_cleanup(xsink);
     // NOTE: do not access val here without holding rml; val may be modified concurrently
     // by another thread that holds a reference to this ClosureVarValue
     printd(QORE_DEBUG_OBJ_REFS, "ClosureVarValue::deref() this: %p refs: %d -> %d rcount: %d rset: %p\n", this, references.load(), references.load() - 1, rcount, rset);
@@ -3232,7 +3233,7 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
                         break;
                     }
                     if (!qodh.deferredScan()) {
-                        int rc = rset->canDelete(ref_copy, rcount, scan_refs);
+                        int rc = rset->canDelete(ref_copy, rcount, scan_refs, *this, cycle_cleanup);
                         if (rc == 1) {
                             printd(QORE_DEBUG_OBJ_REFS, "ClosureVarValue::deref() this: %p found recursive reference; deleting value\n", this);
                             do_del = true;

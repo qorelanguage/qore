@@ -1,0 +1,142 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%exec-class SharedForwardEdgesTest
+
+class CycleNode {
+    public {
+        auto first;
+        auto second;
+        auto third;
+        auto fourth;
+        bool throw_on_delete = False;
+        bool rescue = False;
+        static int destroyed = 0;
+        static *CycleNode rescued;
+    }
+    destructor() {
+        ++CycleNode::destroyed;
+        if (rescue) {
+            CycleNode::rescued = first.field;
+        }
+        if (throw_on_delete) {
+            throw "CYCLE-DESTRUCTOR-ERROR", "destructor regression";
+        }
+    }
+}
+
+class SharedForwardEdgesTest inherits QUnit::Test {
+    constructor() : Test("shared container references during cycle merges", "1.0", \ARGV) {
+        addTestCase("shared hash slot is counted once across cycle merges", sub () { mergeTest(False); });
+        addTestCase("shared list slots retain multiplicity across cycle merges", sub () { mergeTest(True); });
+        addTestCase("real references preserve cycles reached through shared containers", \realHolderTest());
+        addTestCase("remaining cycles are released when a destructor throws", \exceptionTest());
+        addTestCase("a destructor may retain another cycle member", \resurrectionTest());
+        addTestCase("shared slots do not count the external holder as cyclic", \sharedRootsTest());
+        set_return_value(main());
+    }
+
+    /** root -> shared[field] -> optional -> schema -> mandatory -> shared[field]
+        schema also points to optional, field, and root, in that order. The optional/schema cycle is found
+        first. Reaching field through mandatory then makes field cyclic using the original shared slot.
+        The final edge back to root merges the remaining chain and must not count that shared slot again.
+    */
+    private CycleNode graph(bool list_slots, bool wrapper) {
+        CycleNode root();
+        CycleNode holder();
+        CycleNode field();
+        CycleNode optional();
+        CycleNode schema();
+        CycleNode mandatory();
+        auto shared = list_slots ? (field, field) : {"field": field};
+        root.first = shared;
+        field.first = optional;
+        optional.first = schema;
+        schema.first = optional;
+        schema.second = mandatory;
+        mandatory.first = shared;
+        schema.third = field;
+        schema.fourth = root;
+        if (wrapper) {
+            # Keep the cycle alive while builder locals still carry real references; return an external
+            # holder so root's final local dereference actually starts a scan at root.
+            root.second = schema;
+            holder.first = root;
+            return holder;
+        }
+        return root;
+    }
+
+    private mergeTest(bool list_slots) {
+        CycleNode::destroyed = 0;
+        {
+            CycleNode holder = graph(list_slots, True);
+            assertEq(0, CycleNode::destroyed, "every node remains alive behind the external holder");
+            assertEq(holder.first, holder.first.first.typeCode() == NT_LIST
+                ? holder.first.first[0].first.first.fourth : holder.first.first.field.first.first.fourth);
+        }
+        assertEq(6, CycleNode::destroyed, "all nodes are reclaimed after dropping the holder");
+    }
+
+    private realHolderTest() {
+        CycleNode::destroyed = 0;
+        {
+            CycleNode root = graph(False, False);
+            assertEq(1, CycleNode::destroyed, "only the unused holder is destroyed");
+            assertEq(root, root.first.field.first.first.fourth, "the cycle remains accessible through its live root");
+        }
+        assertEq(6, CycleNode::destroyed, "the complete cycle is reclaimed after its last real reference");
+    }
+
+    private exceptionTest() {
+        CycleNode::destroyed = 0;
+        assertThrows("CYCLE-DESTRUCTOR-ERROR", sub () {
+            CycleNode root = graph(False, False);
+            root.throw_on_delete = True;
+        });
+        assertEq(6, CycleNode::destroyed, "destructor errors do not strand other cycle members");
+    }
+
+    private resurrectionTest() {
+        CycleNode::destroyed = 0;
+        {
+            CycleNode root = graph(False, False);
+            root.rescue = True;
+        }
+        assertEq(2, CycleNode::destroyed, "only the root and unused holder have been destroyed");
+        assertTrue(CycleNode::rescued.first instanceof CycleNode, "the retained member is still usable");
+        remove CycleNode::rescued;
+        assertEq(6, CycleNode::destroyed, "the retained cycle is reclaimed when its new owner releases it");
+    }
+
+    private CycleNode sharedRoots(bool reverse, bool nested) {
+        CycleNode root();
+        CycleNode holder();
+        CycleNode next();
+        auto shared = reverse ? (root, next) : (next, root);
+        if (nested) {
+            shared = {"nested": shared};
+        }
+        root.first = shared;
+        next.first = shared;
+        holder.first = root;
+        return holder;
+    }
+
+    private sharedRootsTest() {
+        foreach bool reverse in (False, True) {
+            foreach bool nested in (False, True) {
+                CycleNode::destroyed = 0;
+                {
+                    CycleNode holder = sharedRoots(reverse, nested);
+                    assertEq(0, CycleNode::destroyed, "the holder's reference remains external");
+                    auto shared = nested ? holder.first.first.nested : holder.first.first;
+                    assertEq(holder.first, shared[reverse ? 0 : 1]);
+                }
+                assertEq(3, CycleNode::destroyed, "both shared-container owners are reclaimed");
+            }
+        }
+    }
+}

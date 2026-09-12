@@ -492,6 +492,10 @@ public:
         delete this;
     }
 
+    DLLLOCAL virtual void releaseCycleReference(ExceptionSink* xsink) {
+        deref(xsink);
+    }
+
     // returns the name of the object
     DLLLOCAL virtual const char* getName() const {
         return id;
