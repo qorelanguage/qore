@@ -112,7 +112,7 @@ module AsyncSocketIo {
       handler-thread @c Socket::poll() pattern used to wait on an
       @ref Qore::EventNotifier "EventNotifier".  The fd wait runs on the I/O
       thread; the caller blocks on the submit Queue via condition variable.
-      Used by @ref HttpClientIo "HttpClientIo" happy-eyeballs connection
+      Used by <a href="../../HttpClientIo/html/index.html">HttpClientIo</a> happy-eyeballs connection
       racing to eliminate the last remaining handler-thread sync I/O in that
       module.
     - thread scaling: the I/O thread count adapts automatically to the host CPU count and can

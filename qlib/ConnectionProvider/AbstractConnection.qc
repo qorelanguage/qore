@@ -423,7 +423,7 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
 
         @throw FILE-LOCATION-UNSUPPORTED this connection does not provide a native file location handler
 
-        @note The return type is declared as @ref Qore::object "object" rather than as the concrete handler class
+        @note The return type is declared as @ref object_type "object" rather than as the concrete handler class
         deliberately.  Declaring the real type would introduce a hard dependency from this module on the
         \c FileLocationHandler module; \c FileLocationHandler is a leaf utility whose only dependency is \c Util and
         which sits below this module in the dependency graph (\c RestClient requires both, and

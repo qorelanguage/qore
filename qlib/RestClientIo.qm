@@ -1247,7 +1247,7 @@ RestClientIo rest2({"url": "https://api.example.com", "data": "xml"}, shared_mgr
             leased connection is excluded from the pool reuse rotation, so other traffic on this
             client keeps using separate pooled connections concurrently.
 
-            @param non_blocking retained plumbing only (see @ref HttpClientConnectionManager::acquireStream())
+            @param non_blocking retained plumbing only (see @ref HttpClientIo::HttpClientConnectionManager::acquireStream())
 
             @return a persistent-session handle bound to one leased connection
 
@@ -1471,7 +1471,7 @@ RestClientIo rest2({"url": "https://api.example.com", "data": "xml"}, shared_mgr
             When more than one connection to the target host is pooled (for
             example after an Alt-Svc upgrade leaves both an older and a newer
             connection alive), a connection in the
-            @ref HttpClientIo::HttpClientConnectionState::Ready state is preferred;
+            @ref HttpClientIo::Ready state is preferred;
             use @ref getConnectionInfo() for the full per-connection picture.
 
             @return the negotiated HTTP version string (\c "1.1", \c "2.0", or

@@ -204,6 +204,7 @@ public class Http3ClientStreamHandle inherits HttpClientStreamHandle {
         @param body one-shot request body (optional)
         @param notifier optional EventNotifier signaled when raw response
         items are available to @ref readData()
+        @param sse_install_eligible permits installing the SSE parser for a qualifying response
 
         @return the stream ID
 

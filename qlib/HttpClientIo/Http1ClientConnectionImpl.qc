@@ -152,6 +152,7 @@ public class Http1ClientConnection inherits HttpClientConnection {
         @param streaming if \c True, enable streaming mode (incremental body delivery)
         @param body_streaming if \c True, request body data will be sent incrementally
         @param notifier optional EventNotifier signaled after channel updates
+        @param sse_install_eligible permits installing the SSE parser for a qualifying response
 
         @return the stream ID
 

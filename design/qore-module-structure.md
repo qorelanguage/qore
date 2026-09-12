@@ -125,7 +125,14 @@ Rules:
 
 ## Documentation and Dependencies
 
-- If a module references another module in docs, keep doc tags in sync.
+- Documentation tag inputs follow the complete reachable `%requires` graph, including in-tree binary modules.
+  A tag file does not reexport the symbols of its own dependencies, so direct dependency tags alone are insufficient.
+  The configure pass memoizes each module dependency list and visits shared/cyclic dependencies once per consumer.
+- Keep generated documentation links relocatable. Tag input files can use absolute build paths, but their HTML
+  destinations must be relative to the consumer. References to optional modules or downstream consumers use explicit
+  links to their module pages; do not add a runtime dependency solely to resolve a documentation link.
+- Use code formatting for implementation-only symbols and parameter values, and qualify public symbol references
+  with their actual namespace. The native library docs intentionally exclude `include/qore/intern`.
 - Keep dependencies visible in the module `.qm` file:
   - Use `%requires` for hard deps.
   - Use `%try-module` only for optional deps.

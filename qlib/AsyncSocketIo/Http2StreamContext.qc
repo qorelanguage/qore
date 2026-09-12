@@ -39,7 +39,7 @@ public class Http2StreamContext inherits AbstractStreamContext {
         int stream_id;
         #! Queue for receiving data from the I/O controller
         /** @ref readData() reads from this Queue (non-blocking). The I/O controller's
-            @ref HttpServerAsyncIo::Http2PollOperation "Http2PollOperation" drains data
+            @c Http2PollOperation drains data
             from the per-stream buffer to this Queue after each poll cycle.
         */
         Queue data_queue;
@@ -91,7 +91,7 @@ public class Http2StreamContext inherits AbstractStreamContext {
     #! Drains one pre-decoded WebSocket frame hash from the frame queue (non-blocking)
     /** Only valid when @ref usesFrameState() is True.  The returned hash has
         the shape @c {type: string, data: binary, [code: int, reason: string]}
-        — see @ref WebSocketStreamFrameState for semantics.
+        — see @c WebSocketStreamFrameState for semantics.
 
         Returns @ref nothing when the queue is drained.  If a NOTHING sentinel
         is pulled, the context is marked closed and @ref isOpen() returns False.
@@ -179,8 +179,7 @@ public class Http2StreamContext inherits AbstractStreamContext {
 
     #! Read data from this HTTP/2 stream.
     /** Reads from the Queue non-blockingly. The I/O controller populates the Queue via
-        @ref HttpServerAsyncIo::Http2PollOperation::drainStreamQueues()
-        "Http2PollOperation::drainStreamQueues()".
+        @c Http2PollOperation::drainStreamQueues().
 
         @param max_bytes
         ignored; present for API compatibility

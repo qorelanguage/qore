@@ -856,7 +856,7 @@ public:
         @param level the optimization level to use: 0 (no optimization) to 3 (most aggressive), or
         -1 to clear the override and fall back to the process-wide default
 
-        @return 0 if the level was set, -1 if @ref level is out of range (the level is unchanged)
+        @return 0 if the level was set, -1 if @a level is out of range (the level is unchanged)
 
         @note The level is read when a function is compiled, so changing it affects functions
         compiled afterwards; already-compiled functions keep the code they were compiled with.

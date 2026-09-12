@@ -1667,7 +1667,9 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
     }
 
     #! Internal: gets or creates a connection for the given URL info
-    /** @param non_blocking retained plumbing only (see @ref acquireStream());
+    /** @param url_info parsed target URL, including host and port
+        @param from_pool set to True when an existing connection is reused
+        @param non_blocking retained plumbing only (see @ref acquireStream());
         no longer alters connection establishment — the cancelable non-blocking
         happy-eyeballs path is @ref acquireConnectionAsync().
     */
@@ -1993,7 +1995,7 @@ foreach hash<HttpClientConnectionInfo> info in (manager.getConnectionInfo()) {
         @ref NOTHING if neither connection is ready yet.
 
         @note Pure: reads only the authoritative C++ connection state
-        (@ref AbstractHttpPollConnection::isReady()).  It performs no logging,
+        (@c AbstractHttpPollConnection::isReady()).  It performs no logging,
         caching, closing, or pool mutation — the caller commits the result via
         @ref heCommitWinner().  Shared by the synchronous happy-eyeballs race
         and the async race coordinator so winner semantics are identical.

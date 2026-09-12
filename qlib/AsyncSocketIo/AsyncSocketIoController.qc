@@ -197,8 +197,8 @@ public class AsyncSocketIoController inherits LoggerWrapper {
     }
 
     #! Waits for an @ref Qore::EventNotifier "EventNotifier" to be signaled via the I/O thread
-    /** Async replacement for the pattern @c Socket::poll((<SocketPollInfo>{events:
-        SOCK_POLLIN, socket: notifier},), timeout), which blocked the caller thread on a
+    /** Async replacement for the pattern <tt>Socket::poll((&lt;SocketPollInfo&gt;{events:
+        SOCK_POLLIN, socket: notifier},), timeout)</tt>, which blocked the caller thread on a
         raw @ref Qore::Socket::poll() "Socket::poll()" syscall.  This method submits a
         @ref NotifierPollOperation to the I/O controller and blocks on the returned
         @ref Qore::Thread::Queue "Queue" — the I/O thread does the fd wait, and the
@@ -213,7 +213,7 @@ public class AsyncSocketIoController inherits LoggerWrapper {
         @param to the maximum time to wait; a negative value means wait indefinitely
         @param queue_safety_timeout an @b explicit, opt-in upper bound on the
         Queue wait itself, independent of the controller's per-operation timeout
-        \a to.  Normally @ref nothing: the controller is the authority on timing
+        \a to.  Normally @ref nothing "nothing": the controller is the authority on timing
         and pushes the completion on goal-reached, timeout, cancellation, or
         error, so a Queue-level timeout would only race with it.  Callers on
         critical, must-not-block paths (e.g. system startup) may pass a positive
@@ -405,7 +405,7 @@ public class AsyncSocketIoController inherits LoggerWrapper {
     }
 
     #! Adds an owner-tagged timer that fires at the given deadline
-    /** Identical to @ref addTimer(date, code) but tags the timer's callback dispatch with \a owner so a
+    /** Identical to @ref addTimer "addTimer(date, code)" but tags the timer's callback dispatch with \a owner so a
         teardown path can deterministically drain a fired-but-not-yet-run callback via
         @ref flushCallbacksByOwner() (in addition to cancelling not-yet-fired timers with
         @ref cancelTimer()).  Use this for watchdog/heartbeat timers whose callback closes over an object

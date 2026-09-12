@@ -99,7 +99,7 @@ public class Http3StreamContext inherits AbstractStreamContext {
     #! Drains one pre-decoded WebSocket frame hash from the frame queue (non-blocking)
     /** Only valid when @ref usesFrameState() is True.  The returned hash has
         the shape @c {type: string, data: binary, [code: int, reason: string]}
-        — see @ref WebSocketStreamFrameState for semantics.
+        — see @c WebSocketStreamFrameState for semantics.
 
         Returns @ref nothing when the queue is drained.  If a NOTHING sentinel
         is pulled, the context is marked closed and @ref isOpen() returns False.
@@ -170,9 +170,7 @@ public class Http3StreamContext inherits AbstractStreamContext {
     }
 
     #! Flush pending HTTP/3 writes for this session through the async I/O controller
-    /** @return nothing
-
-        @throw QUIC-ERROR if no QUIC session with the context's session ID is active
+    /** @throw QUIC-ERROR if no QUIC session with the context's session ID is active
         @throw QUIC-SEND-ERROR if the UDP send fails
     */
     flushPendingData() {

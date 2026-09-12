@@ -117,6 +117,7 @@ public class Http2ClientStreamHandle inherits HttpClientStreamHandle {
         streaming begins
         @param notifier optional EventNotifier signaled when raw response
         items are available to @ref readData()
+        @param sse_install_eligible permits installing the SSE parser for a qualifying response
 
         @return the stream ID
 

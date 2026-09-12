@@ -91,7 +91,7 @@ public class HttpClientConnection inherits HttpClientConnectionBase {
 
         #! Connection creation time on the monotonic clock, in microseconds
         /** Set once in the constructor; never updated.  See @ref last_activity_mono_us for
-            why @ref max_age is enforced against the monotonic clock and not @ref created_us.
+            why @ref HttpClientConnectionManagerOptions::max_age is enforced against the monotonic clock and not @ref created_us.
         */
         int created_mono_us;
 

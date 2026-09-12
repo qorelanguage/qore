@@ -90,8 +90,6 @@ public class AbstractStreamContext {
     #! Flushes pending transport data if the protocol has an explicit flush path
     /** Default implementation is a no-op. HTTP/3 overrides this to force a
         QUIC write cycle after startup data is enqueued from a handler thread.
-
-        @return nothing
     */
     flushPendingData() {
     }

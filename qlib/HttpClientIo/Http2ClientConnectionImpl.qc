@@ -214,6 +214,7 @@ public class Http2ClientConnection inherits HttpClientConnection {
         @param channel Channel for incremental response delivery
         @param streaming if True, enable streaming mode
         @param notifier optional EventNotifier signaled after channel updates
+        @param sse_install_eligible permits installing the SSE parser for a qualifying response
 
         @return the stream ID
 

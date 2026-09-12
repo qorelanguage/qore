@@ -54,8 +54,8 @@ module HttpClientStreamingIo {
       @ref HttpClientStreamingIo::StreamDecompressor "StreamDecompressor", and
       @ref HttpClientStreamingIo::SseObservable "SseObservable" class for push-based SSE
       event delivery using I/O-thread parsing via C++ SseAction
-    - SSE event constants: @ref EVENT_SSE_DATA, @ref EVENT_SSE_CLOSED, @ref EVENT_SSE_CONNECTED,
-      @ref EVENT_SSE_HEARTBEAT
+    - SSE event constants: @ref HttpClientStreamingIo::EVENT_SSE_DATA, @ref HttpClientStreamingIo::EVENT_SSE_CLOSED, @ref HttpClientStreamingIo::EVENT_SSE_CONNECTED,
+      @ref HttpClientStreamingIo::EVENT_SSE_HEARTBEAT
     - @ref HttpClientStreamingIo::SseObservable "SseObservable" gains \c idle_timeout and
       \c emit_heartbeat options for dead-connection detection and heartbeat delivery
     - @ref HttpClientStreamingIo::SseStreamReader "SseStreamReader" consumes

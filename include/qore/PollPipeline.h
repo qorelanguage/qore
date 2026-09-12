@@ -126,9 +126,8 @@ public:
     using TransformFn = std::function<void(Context&, ExceptionSink*)>;
 
     //! Frame size detection function for RECV_FRAMED
-    /** @param data pointer to buffer start
-        @param len buffer length in bytes
-        @return frame size in bytes if a complete frame is available, or 0 if incomplete
+    /** The callback receives a pointer to the buffer start and its length in bytes.
+        It returns the frame size in bytes if a complete frame is available, or 0 if incomplete.
     */
     using FrameSizeFunc = std::function<size_t(const void* data, size_t len)>;
 
@@ -308,7 +307,7 @@ public:
 
     //! Builds a POP3 APOP command from the last response line if it contains an APOP challenge
     /** Extracts a trailing <...> challenge from ctx.last_output and stores
-        APOP <user> md5(challenge + password) in ctx.extra[command_key]. Also
+        <tt>APOP &lt;user&gt; md5(challenge + password)</tt> in ctx.extra[command_key]. Also
         stores a bool in ctx.extra[present_key] indicating whether a challenge
         was present.
     */

@@ -2876,36 +2876,15 @@ MACRO (QORE_USER_MODULE _module_file)
         # prepare needed vars
         set(MOD_DOXYFILE "${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}")
 
-        # Derive the doxygen TAGFILES cross-references from the module's own %requires
-        # directives -- the same single source of truth used for build-order edges in
-        # QORE_FINALIZE_USER_MODULE_DEPENDENCIES().  This restores a value that was
-        # dropped when the hand-maintained per-call dependency lists were removed: the
-        # loop below survived but its input variable did not, so every module's TAGFILES
-        # held only qore.tag and no @ref into a sibling module's symbols resolved.
-        #
-        # Eligibility is decided from the source tree rather than with if(TARGET
-        # docs-<dep>) because the targets do not all exist yet at macro time -- a module
-        # may %requires a sibling registered later in CMakeLists.txt.  Only in-tree qlib
-        # modules generate a <dep>.tag to point at; binary modules (json, reflection, ...)
-        # and modules from other repos are filtered out, since referencing their
-        # nonexistent tag files would make every doc build noisy.
-        _qore_parse_module_requires(${f} _mod_requires)
-        set(_effective_mod_deps "")
-        foreach(_dep ${_mod_requires})
-            if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${_dep}
-                    OR EXISTS ${CMAKE_SOURCE_DIR}/qlib/${_dep}.qm)
-                list(APPEND _effective_mod_deps ${_dep})
-            endif()
-        endforeach()
-        unset(_mod_requires)
-
+        # A dependency's tag file does not reexport its imported symbols. Include the
+        # reachable module tags, including in-tree binary modules, so references to
+        # types such as Logger's native interfaces resolve in downstream modules too.
+        _qore_collect_module_doc_tags(${f} _module_doc_tags)
         unset(MOD_DEPS)
-        foreach(i ${_effective_mod_deps})
-            # we must use relative directories for tags; using absolute paths for tags will break the documentation
-            # when used on any system except the one where it's generated
-            get_filename_component(f0 ${i} NAME)
-            SET(MOD_DEPS ${MOD_DEPS} -t${i}.tag=../../${f0}/html)
-        endforeach(i)
+        foreach(_tag ${_module_doc_tags})
+            # qdx substitutes tag values into a Doxyfile; retain quotes for paths containing spaces.
+            list(APPEND MOD_DEPS "-t\"${_tag}\"")
+        endforeach()
 
         SET(EXTRA_FILES)
         foreach(i ${_extra_files})
@@ -3148,6 +3127,44 @@ function(_QORE_PARSE_MODULE_REQUIRES _mod _out_var)
         list(REMOVE_DUPLICATES _reqs)
     endif()
     set(${_out_var} "${_reqs}" PARENT_SCOPE)
+endfunction()
+
+function(_QORE_DOC_MODULE_REQUIRES _mod _out_var)
+    # Source dependencies are immutable within one configure pass. Shared modules
+    # must not be reread for every downstream documentation target.
+    get_property(_cached GLOBAL PROPERTY QORE_DOC_REQUIRES_${_mod} SET)
+    if (NOT _cached)
+        _qore_parse_module_requires(${_mod} _requires)
+        set_property(GLOBAL PROPERTY QORE_DOC_REQUIRES_${_mod} "${_requires}")
+    endif()
+    get_property(_requires GLOBAL PROPERTY QORE_DOC_REQUIRES_${_mod})
+    set(${_out_var} "${_requires}" PARENT_SCOPE)
+endfunction()
+
+function(_QORE_COLLECT_MODULE_DOC_TAGS _mod _out_var)
+    _qore_doc_module_requires(${_mod} _pending)
+    set(_seen "${_mod}")
+    set(_tags "")
+    while(_pending)
+        list(GET _pending 0 _dep)
+        list(REMOVE_AT _pending 0)
+        if (_dep IN_LIST _seen)
+            continue()
+        endif()
+        list(APPEND _seen "${_dep}")
+        if (IS_DIRECTORY "${CMAKE_SOURCE_DIR}/qlib/${_dep}"
+                OR EXISTS "${CMAKE_SOURCE_DIR}/qlib/${_dep}.qm")
+            # Source eligibility also handles user modules whose targets are registered later.
+            list(APPEND _tags "${_dep}.tag=../../${_dep}/html")
+            _qore_doc_module_requires(${_dep} _children)
+            list(APPEND _pending ${_children})
+        elseif (IS_DIRECTORY "${CMAKE_SOURCE_DIR}/modules/${_dep}" AND TARGET docs-${_dep})
+            get_target_property(_binary_dir docs-${_dep} BINARY_DIR)
+            # Input tag paths may be absolute; generated HTML links must remain relocatable.
+            list(APPEND _tags "${_binary_dir}/${_dep}.tag=../../${_dep}/html")
+        endif()
+    endwhile()
+    set(${_out_var} "${_tags}" PARENT_SCOPE)
 endfunction()
 
 function(QORE_FINALIZE_USER_MODULE_DEPENDENCIES)

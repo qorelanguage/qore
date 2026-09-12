@@ -38,8 +38,8 @@ public namespace AsyncSocketIo {
     Construction requires:
     - the HTTP/2 Socket that carries the stream,
     - the stream ID received via the async request-dispatch path
-      (e.g. @ref HttpServerAsyncIo::Http2PollOperation),
-    - a @ref Qore::Queue populated with inbound DATA payloads by the I/O
+      (e.g. @c Http2PollOperation),
+    - a @ref Qore::Thread::Queue populated with inbound DATA payloads by the I/O
       controller; a NOTHING sentinel enqueued by the I/O thread signals END_STREAM.
 
     The lifecycle is linear:

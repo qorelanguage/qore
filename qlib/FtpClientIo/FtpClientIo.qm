@@ -42,7 +42,7 @@ module FtpClientIo {
     @section ftpclientiointro Introduction
 
     The %FtpClientIo module provides async FTP client I/O via poll operations
-    suitable for use with the @ref Qore::Thread::AsyncIoController.
+    suitable for use with the @ref Qore::AsyncIoController.
 
     Features:
     - Non-blocking FTP control channel (connect, login, command execution)

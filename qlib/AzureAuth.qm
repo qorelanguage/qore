@@ -113,7 +113,7 @@ hashdecl AzureTokenCacheEntry {
 }
 
 #! Cache of issued tokens keyed by request parameters
-/** Thread-safe; guarded by @ref token_cache_lock.
+/** Thread-safe; guarded by @c token_cache_lock.
 */
 class TokenCache {
     public {

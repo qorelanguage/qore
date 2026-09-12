@@ -699,7 +699,7 @@ public:
     DLLEXPORT QoreHashNode* readHTTPChunkedBodyBinaryConnMgr(int timeout_ms, ExceptionSink* xsink);
 
     //! Returns true if a conn_mgr streaming channel is currently held by this client
-    /** When true, @ref readHTTPChunk / @ref readServerSentEvent / @ref readHTTPChunkedBody
+    /** When true, @ref readHTTPChunkConnMgr / @ref readServerSentEventConnMgr / @ref readHTTPChunkedBodyConnMgr
         read from the conn_mgr channel instead of the raw socket, and
         @ref isDataAvailable waits on the channel instead of probing the
         legacy socket.

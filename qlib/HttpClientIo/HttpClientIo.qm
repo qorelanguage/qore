@@ -142,10 +142,10 @@ auto mgr_h3 = new HttpClientConnectionManager({"protocol": "h3"});
       deadlocks
     - Protocol auto-selection for HTTPS via an HTTP/3-preferred happy-eyeballs
       race.  The synchronous request path runs the race inline; poll-operation
-      callers use @ref HttpClientConnectionManager::acquireConnectionAsync()
+      callers use @ref HttpClientIo::HttpClientConnectionManager::acquireConnectionAsync()
       for a fully non-blocking, immediately cancelable happy-eyeballs race
       (winner / error / protocol-cache semantics identical to the synchronous
-      path) and @ref HttpClientConnectionManager::abandonAsyncHEForUrl() to
+      path) and @ref HttpClientIo::HttpClientConnectionManager::abandonAsyncHEForUrl() to
       tear an in-flight race down with no leaked socket or stagger timer.
       When both legs lose and HTTP/2 was refused via ALPN, the endpoint speaks
       neither HTTP/3 nor HTTP/2 and the race falls back to HTTP/1.1 instead of

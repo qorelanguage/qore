@@ -2632,6 +2632,10 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         <a href="https://www.iata.org/en/programs/cargo/e/one-record/">IATA ONE Record</a> server handler
         for use with the @ref httpserverintro "HttpServer" module
 
+    - @ref qdxintro "Qdx" module
+      - preserves nested generic and callable declarations so Doxygen indexes typed callback fields correctly
+      - module documentation resolves transitive user and bundled native dependency symbols
+
     - @ref openapi3intro "OpenApi3" module
       - preserves composed field types and supports multipart file-or-URL inputs, including named file arrays
       - derives response types from every declared media representation and validates the selected Content-Type

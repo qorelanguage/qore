@@ -54,7 +54,7 @@ extern "C" {
 /** must be called after the @c sshutil module has been loaded and initialized
     (declare a dependency on @c sshutil and call this from module init)
 
-    @return the class pointer, or @ref nullptr if @c sshutil is not yet initialized
+    @return the class pointer, or @c nullptr if @c sshutil is not yet initialized
 
     @since %Qore 3.0
 */

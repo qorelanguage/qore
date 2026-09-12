@@ -723,6 +723,7 @@ public:
         @param observer the callback to invoke; must not be nullptr
         @param event_mask the bitmask of event classes to deliver; see \c SQL_MUTATION_MASK_*
         @param arg an argument reported unchanged in every event
+        @param xsink receives exceptions raised while invoking or releasing the observer
 
         @since %Qore 3.0
     */
@@ -777,6 +778,7 @@ public:
 
         @param declared_bytes the declared size of the stream in bytes; if <= 0 then the
         \c "max_growth_bytes" value of the current declaration is used, if any
+        @param xsink receives exceptions raised while invoking or releasing the observer
 
         @return 0 to continue; -1 if the observer rejected the stream or raised an exception, in
         which case an exception has been raised in \a xsink and the caller must abort the stream
@@ -787,6 +789,7 @@ public:
 
     //! reports bounded stream progress to the mutation observer
     /** @param consumed_bytes the total number of bytes consumed by the stream so far
+        @param xsink receives exceptions raised while invoking or releasing the observer
 
         @return 0 to continue; -1 if the observer rejected further streaming or raised an exception,
         in which case an exception has been raised in \a xsink and the caller must abort the stream
@@ -798,6 +801,7 @@ public:
     //! reports the end of a bounded stream to the mutation observer
     /** @param consumed_bytes the total number of bytes consumed by the stream
         @param ok false if the stream failed
+        @param xsink receives exceptions raised while invoking or releasing the observer
 
         @return 0; stream end is a notification and cannot be rejected
 

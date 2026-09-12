@@ -205,7 +205,7 @@ DLLEXPORT int qore_aot_script_end_batch(QoreProgram* tpgm);
     invokes it with @a args (which may be NULL for a zero-arg call).
     The function's return value is discarded.  Any exception raised
     during execution is reported to stderr via the standard
-    `ExceptionSink::handleExceptions()` path.
+    @ref ExceptionSink::handleExceptions "ExceptionSink::handleExceptions()" path.
 
     This is the minimum useful callable to drive a loaded
     `.qoa`-backed program — sufficient for the typical host pattern
@@ -229,7 +229,7 @@ DLLEXPORT int qore_run_callable(QoreProgram* pgm, const char* fn_name,
         const QoreListNode* args);
 
 //! Parse a Qore source file into a program.
-/** Thin C wrapper around `QoreProgram::parse(FILE*, label, xsink)`.
+/** Thin C wrapper around @ref QoreProgram::parse "QoreProgram::parse(FILE*, label, xsink)".
     The file is read and parsed but not committed — call
     `qore_parse_commit` when the final source has been staged.
     Multiple `qore_parse_source_*` calls may be chained before a
@@ -245,7 +245,7 @@ DLLEXPORT int qore_parse_source_file(QoreProgram* pgm, const char* path,
         const char* label);
 
 //! Parse a Qore source buffer into a program.
-/** Thin C wrapper around `QoreProgram::parse(source, label, xsink)`.
+/** Thin C wrapper around @ref QoreProgram::parse "QoreProgram::parse(source, label, xsink)".
     Use when the host already has source in memory (embedded scripts,
     REPL input, etc.).  Same staging semantics as
     `qore_parse_source_file`: multiple parses can be chained before

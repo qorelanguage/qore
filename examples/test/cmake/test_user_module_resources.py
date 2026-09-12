@@ -15,6 +15,40 @@ CMAKE = os.environ.get("CMAKE_EXECUTABLE", "cmake")
 
 
 class UserModuleResourcesTest(unittest.TestCase):
+    def test_transitive_documentation_tags(self):
+        with tempfile.TemporaryDirectory(prefix="qore-module-doc-tags-") as directory:
+            root = Path(directory)
+            source = root / "source with spaces"
+            modules = source / "qlib"
+            modules.mkdir(parents=True)
+            # Shared/cyclic dependencies must be visited once. Optional and unavailable
+            # external modules must not introduce nonexistent tag-file inputs.
+            (modules / "App.qm").write_text("%modern\n%requires Shared\n%requires Leaf\n")
+            (modules / "Shared.qm").write_text(
+                "%modern\n%requires(reexport) native\n%requires Leaf\n%requires external\n"
+                "%try-module optional\n%requires unbuilt\n")
+            (modules / "Leaf.qm").write_text("%modern\n%requires Shared\n%requires App\n")
+            for name in ("native", "unbuilt"):
+                (source / "modules" / name).mkdir(parents=True)
+            (source / "modules/native/CMakeLists.txt").write_text("add_custom_target(docs-native)\n")
+            (source / "CMakeLists.txt").write_text(f'''cmake_minimum_required(VERSION 3.14...3.31)
+project(ModuleDocTags NONE)
+include("{ROOT.as_posix()}/cmake/QoreMacros.cmake")
+add_subdirectory(modules/native)
+_qore_collect_module_doc_tags(App tags)
+string(REPLACE ";" "\\n" lines "${{tags}}")
+file(WRITE "${{CMAKE_BINARY_DIR}}/tags.txt" "${{lines}}\\n")
+''')
+            build = root / "build with spaces"
+            result = subprocess.run([CMAKE, "-S", str(source), "-B", str(build)],
+                                    capture_output=True, text=True, timeout=30)
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            self.assertNotIn("Warning", result.stderr)
+            self.assertEqual([
+                "Shared.tag=../../Shared/html", "Leaf.tag=../../Leaf/html",
+                f"{build}/modules/native/native.tag=../../native/html",
+            ], (build / "tags.txt").read_text().splitlines())
+
     def test_external_documentation_inputs(self):
         for separated in (False, True):
             with self.subTest(separated=separated), tempfile.TemporaryDirectory(

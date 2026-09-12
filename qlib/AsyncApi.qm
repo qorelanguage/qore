@@ -223,7 +223,7 @@ wsc.setAsyncApiValidator(asyncapi, "myChannel");
 
     Multiple \@subscribe and \@publish blocks can be defined per channel to support
     different message types. The parser extracts all message schemas into the
-    \c subscribe_schemas and \c publish_schemas lists in @ref ChannelSchemaInfo.
+    \c subscribe_schemas and \c publish_schemas lists in @ref AsyncApi::ChannelSchemaInfo.
 
     @verbatim
     /** @WEBSOCKET /api
@@ -2234,6 +2234,8 @@ public class AsyncApiSchemaTokenizer {
     #! Parse all \@subscribe or \@publish message blocks from a channel block
     /** @param block the channel block text
         @param msg_type "subscribe" or "publish"
+        @param protocol optional transport protocol for protocol-specific message metadata
+        @param action optional send/receive direction for protocol-specific message metadata
         @return list of message schema hashes, each with "name" and "schema" keys
     */
     private static list<hash<auto>> parseAllMessageBlocks(string block, string msg_type, *string protocol,

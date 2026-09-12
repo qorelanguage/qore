@@ -362,7 +362,7 @@ public:
     //! Returns the number of distinct modules that contributed to this namespace
     /** Returns 0 for namespaces not produced by any module (system / parse-declared
         without a current module context), 1 for single-module namespaces, and >1
-        for namespaces that span multiple modules (e.g. Qorus's ::OMQ namespace
+        for namespaces that span multiple modules (e.g. Qorus's @c OMQ namespace
         contributed to by QorusVersion + QorusClientBase + QorusClientCore + ...).
         Callers can use this to distinguish "module-owned" namespaces from shared
         ones — useful for policy decisions like whether to allow access via the

@@ -1407,7 +1407,7 @@ public class AbstractAuthenticator {
     #! returns the response body for a 401 response with the given message and content type
     /** Default behaviour: returns \a msg as-is for
         @ref Mime::MimeTypeHtml "MimeTypeHtml"; returns a JSON envelope
-        \c {"err": "AUTH-REQUIRED", "desc": <msg>} when the content type is
+        <tt>{"err": "AUTH-REQUIRED", "desc": &lt;msg&gt;}</tt> when the content type is
         @ref Mime::MimeTypeJson "MimeTypeJson", so API clients that expect
         JSON deserialisation get a parseable response.
 
@@ -1809,7 +1809,7 @@ public class AbstractStreamRequest {
         sends.
 
         The default implementation is a no-op.  Subclasses that wrap a user-overridable stream
-        handler (e.g. @ref RestHandler::RestStreamRequest "RestStreamRequest") should override to
+        handler (e.g. <a href="../../RestHandler/html/index.html">RestStreamRequest</a>) should override to
         forward the callback to the stream handler so application code can register it (e.g. with
         a service-stop hook).
 

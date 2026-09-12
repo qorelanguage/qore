@@ -337,6 +337,7 @@ public class Http3ClientConnection inherits HttpClientConnection {
         @param streaming if True, enable bidirectional streaming mode
         @param notifier optional EventNotifier signaled after channel updates
         @return the stream ID
+        @param sse_install_eligible permits installing the SSE parser for a qualifying response
     */
     int submitRequestStreamingWithChannel(string method, string path, *hash<auto> headers,
             *data body, Channel channel, bool streaming = False,

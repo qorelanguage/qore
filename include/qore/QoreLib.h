@@ -886,7 +886,7 @@ DLLEXPORT int q_env_subst(QoreString& str);
     forms accepted by \c strtod() are accepted here as well.  The decimal point is always \c '.'
     regardless of any locale an embedding application or module has installed.
 
-    @param str the string to convert; may be @ref nullptr, which converts to 0.0
+    @param str the string to convert; may be @c nullptr, which converts to 0.0
 
     @return the converted value, or 0.0 if no conversion could be performed
 

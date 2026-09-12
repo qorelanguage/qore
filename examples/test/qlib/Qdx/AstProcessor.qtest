@@ -26,9 +26,10 @@
 %exec-class AstProcessorTests
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Qdx
+%requires ../../../../qlib/Qdx.qm
 %requires astparser
-%requires QUnit
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/FsUtil.qm
 
 public class AstProcessorTests inherits QUnit::Test {
     constructor() : Test("AstProcessorTests", "1.0") {
@@ -41,6 +42,7 @@ public class AstProcessorTests inherits QUnit::Test {
         addTestCase("Doc comment conversion", \testDocCommentConversion());
         addTestCase("Block comment handling", \testBlockComments());
         addTestCase("Soft type formatting", \testSoftTypeFormatting());
+        addTestCase("Doxygen indexes nested callable field types", \testCallableTypes());
         addTestCase("Nested namespaces", \testNestedNamespaces());
         addTestCase("Access modifiers", \testAccessModifiers());
         addTestCase("Class with members", \testClassWithMembers());
@@ -172,9 +174,47 @@ class Demo {
         string output = processCode(code);
 
         # Doxygen output uses __7_ placeholder for * (nullable) prefix
-        # and escapes angle brackets with backslashes
+        # while preserving template delimiters in declarations.
         assertTrue(output =~ /__7_ string name/, "nullable string param in doxygen format");
-        assertTrue(output =~ /__7_ hash\\<auto\\> opts/, "nullable hash param in doxygen format");
+        assertTrue(output =~ /__7_ hash<auto> opts/, "nullable hash param in doxygen format");
+    }
+
+    testCallableTypes() {
+        if (system("command -v doxygen >/dev/null 2>&1")) {
+            testSkip("doxygen is required for generated declaration integration tests");
+        }
+        string output = processCode("/** Callback options. */\nhashdecl CallbackOptions {\n"
+            "    /** Dispatch an API request. */\n"
+            "    *code<hash<auto>(string, string, hash<auto>)> api_callback;\n"
+            "    /** Decide whether to accept an item. */\n"
+            "    code<bool(int)> accept_item;\n}\n");
+        TmpDir dir();
+        string input = dir.path + "/callbacks.h";
+        string config = dir.path + "/Doxyfile";
+        string tag = dir.path + "/callbacks.tag";
+        string log = dir.path + "/doxygen.log";
+        {
+            File f();
+            f.open2(input, O_CREAT | O_WRONLY | O_TRUNC);
+            f.write(output);
+        }
+        {
+            File f();
+            f.open2(config, O_CREAT | O_WRONLY | O_TRUNC);
+            f.write(sprintf("INPUT = \"%s\"\nOUTPUT_DIRECTORY = \"%s\"\nGENERATE_TAGFILE = \"%s\"\n"
+                "GENERATE_HTML = NO\nGENERATE_LATEX = NO\nQUIET = YES\nEXTRACT_ALL = YES\n", input, dir.path, tag));
+        }
+        int rc = system("doxygen " + shellQuote(config) + " >" + shellQuote(log) + " 2>&1");
+        string diagnostics = ReadOnlyFile::readTextFile(log);
+        assertEq(0, rc, diagnostics);
+        assertEq("", diagnostics, "Doxygen parses complete callable declarations without warnings");
+        string indexed = ReadOnlyFile::readTextFile(tag);
+        assertTrue(indexed.find("<name>api_callback</name>") >= 0, "the nullable nested callback is indexed");
+        assertTrue(indexed.find("<name>accept_item</name>") >= 0, "the scalar callback is indexed");
+    }
+
+    private static string shellQuote(string value) {
+        return "'" + replace(value, "'", "'\\''") + "'";
     }
 
     testNestedNamespaces() {

@@ -136,7 +136,7 @@ public:
     /** Idempotent — safe to call multiple times.  On the first transition
         from CONNECTING/READY to CLOSED, fires @ref onClosedHook() exactly
         once after all internal locks are released and after all
-        @ref ready_notifiers have been signaled.  Subsequent calls are
+        @c ready_notifiers have been signaled.  Subsequent calls are
         no-ops with respect to the hook (notifiers and the broadcast still
         run for backwards compatibility).
     */
@@ -167,6 +167,7 @@ public:
 
     // --- Lock-free accessors ---
 
+    //! Returns true when the connection is ready to accept requests
     DLLEXPORT bool isReady() const {
         return state.load(std::memory_order_acquire) == READY;
     }
@@ -183,10 +184,12 @@ public:
         return was_ready.load(std::memory_order_acquire);
     }
 
+    //! Returns true when the connection is closed
     DLLEXPORT bool isClosed() const {
         return state.load(std::memory_order_acquire) == CLOSED;
     }
 
+    //! Returns true when existing requests may finish but no new requests are accepted
     DLLEXPORT bool isDraining() const {
         return state.load(std::memory_order_acquire) == DRAINING;
     }

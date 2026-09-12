@@ -65,8 +65,8 @@ class QoreSSLPrivateKey;
 
     @par Lifetime contract
     The destructor calls @ref closeAll, which:
-    1. Drains the pool into a local vector under @ref pool_lock
-    2. Releases @ref pool_lock
+    1. Drains the pool into a local vector under @c pool_lock
+    2. Releases @c pool_lock
     3. For each drained connection: calls @c setManager(nullptr) on the
        connection (per the per-connection @c onclose_lock), then closes
        and derefs it.
@@ -124,7 +124,7 @@ public:
             @ref HttpClientConnectionBase::getCreatedUs) reaches this value
             is evicted at the next pool checkout — closed and dropped from
             the pool via the close-after-lock-drop machinery in
-            @ref evictDeadLocked.
+            @c evictDeadLocked.
 
             Skipped for connections with active streams (an in-flight
             request is not a candidate for max-age eviction; the next
@@ -433,19 +433,19 @@ public:
     //! when its state first transitions to CLOSED.
     /** Queues a closed-connection notification for an application thread
         to remove from the pool and deref.  The callback deliberately never
-        takes @ref pool_lock_: protocol close paths can still be unwinding a
+        takes @c pool_lock_: protocol close paths can still be unwinding a
         connection method while a concurrent pool checkout holds the pool
         lock and waits for that method to finish.
 
         Overrides must preserve this nonblocking contract: they must not take
-        @ref pool_lock_, enter a connection method, or perform destruction.
+        @c pool_lock_, enter a connection method, or perform destruction.
         A connection holds its callback-lifetime lock until this method
         returns.
 
         Called from any thread (typically the async I/O thread when an
         idle timeout fires or the peer closes).  Bounded latency: copies the
         connection's already-stable pool key under @ref closed_lock_, signals
-        @ref create_cond_, and returns.
+        @c create_cond_, and returns.
 
         @param conn the connection that has been closed
     */
@@ -468,7 +468,7 @@ protected:
         connections (so the same target reached through different proxies
         gets distinct pool entries).
 
-        Protected by @ref pool_lock_.
+        Protected by @c pool_lock_.
     */
     std::unordered_map<std::string, std::vector<HttpClientConnectionBase*>> pool_;
 
@@ -485,8 +485,8 @@ protected:
     //! @c create_cond / @c creating in the existing Qore manager).
     /** Without this, N threads racing to create a connection on a cold
         pool key would each create a connection — N handshakes when 1
-        suffices.  The first thread sets @ref creating_, others wait on
-        @ref create_cond_.  Wait is bounded by @c connect_timeout_ms;
+        suffices.  The first thread sets @c creating_, others wait on
+        @c create_cond_.  Wait is bounded by @c connect_timeout_ms;
         on timeout, the waiter takes over creation.
     */
     std::mutex create_lock_;
@@ -506,7 +506,7 @@ protected:
         without dereferencing a stale pointer if another path already removed
         and destroyed the connection.
 
-        This queue has a lock independent of @ref pool_lock_ so the global
+        This queue has a lock independent of @c pool_lock_ so the global
         async I/O thread never waits behind connection checkout while
         dispatching @ref onConnectionClosed.
     */
@@ -529,7 +529,7 @@ protected:
     */
     DLLLOCAL void processClosedConnections(ExceptionSink* xsink);
 
-    //! Creates a new connection (must be called outside @ref pool_lock_
+    //! Creates a new connection (must be called outside @c pool_lock_
     //! since the connection constructor blocks on the controller submit).
     /** @param key the pool key for the connection
         @param host target host

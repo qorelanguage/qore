@@ -151,7 +151,7 @@ public:
         currently reserved (e.g., double-release).
 
         @param streaming_send true when releasing a reservation created
-            with @ref tryReserveStream(true)
+            with @ref tryReserveStream "tryReserveStream(true)"
 
         @since %Qore 3.0
     */
@@ -171,7 +171,7 @@ public:
     //! Releases the active streaming-send slot after end-of-request-body.
     /** This does not touch active response streams; it only makes the
         connection eligible for another incremental request body after
-        @ref pushSendData(nullptr, 0) has closed the previous one.
+        @ref pushSendData "pushSendData(nullptr, 0)" has closed the previous one.
 
         @since %Qore 3.0
     */
@@ -248,7 +248,7 @@ public:
         ExceptionSink* xsink);
 
     //! Submits a streaming request with Channel-based response delivery
-    /** Like @ref submitRequest but uses a @ref QoreChannel for incremental
+    /** Like @ref submitRequest but uses a @c QoreChannel for incremental
         response delivery (headers, body chunks, end_stream sentinel).
 
         @param method HTTP method (GET, POST, etc.)
@@ -334,7 +334,7 @@ public:
     DLLEXPORT virtual void setTrailers(const QoreHashNode* trailers, ExceptionSink* xsink);
 
     //! Close the connection and release controller resources
-    /** After this call, @ref isClosed returns true and no further requests
+    /** After this call, @ref AbstractHttpPollConnectionPriv::isClosed returns true and no further requests
         can be submitted.  Any in-flight request is rejected with
         @c HTTP1-ABORT (or protocol equivalent).
 
@@ -449,7 +449,7 @@ public:
             @ref markInvalidated, when the connection is being destroyed
             or @ref closeConnection is called.  Sticky — once set, never
             clears.
-          - Bits 0..30 (@ref IN_FLIGHT_MASK): count of @ref MethodGuard
+          - Bits 0..30 (@c IN_FLIGHT_MASK): count of @ref MethodGuard
             instances currently in the @em acquired state.
 
         @par Methods
@@ -531,7 +531,7 @@ public:
         the destructor) before @ref drainInFlight.
 
         @return the prior @c lifetime_state_ value; the caller can mask
-            with @ref IN_FLIGHT_MASK to observe how many calls were
+            with @c IN_FLIGHT_MASK to observe how many calls were
             in flight at the moment of invalidation.
         @since %Qore 3.0
     */
@@ -549,7 +549,7 @@ public:
     //! Returns the connection creation timestamp (epoch microseconds).
     /** Set once in the protected constructor; never updated.  Used by
         @ref HttpClientConnectionManagerBase to enforce
-        @ref Options::max_age_ms at pool checkout.  Pure stored-state
+        @ref HttpClientConnectionManagerBase::Options::max_age_ms at pool checkout.  Pure stored-state
         read — no syscall, no I/O thread coupling.
     */
     DLLEXPORT int64_t getCreatedUs() const {

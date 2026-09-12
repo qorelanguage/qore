@@ -3150,6 +3150,8 @@ if (DOXYGEN_FOUND)
         VERBATIM
     )
     add_dependencies(docs-lang qore)
+    # C++ API documentation links to core language types and execution-mode sections.
+    add_dependencies(docs-lib docs-lang)
     # docs will depend on docs-lang-final, not docs-lang (added after modules are defined)
 endif (DOXYGEN_FOUND)
 

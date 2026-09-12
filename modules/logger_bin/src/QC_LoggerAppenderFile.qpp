@@ -135,7 +135,9 @@ bool LoggerAppenderFile::lifecycleMarkersEnabled() [flags=CONSTANT] {
     closed, reopened, or rotated. Disabled by default for backwards compatibility with existing log parsers.
 
     The marker line has the form:
-    @verbatim # YYYY-MM-DDTHH:mm:SS.xx logger=<name> action=<action> file=<path>[ <detail>]@endverbatim
+    @verbatim
+# YYYY-MM-DDTHH:mm:SS.xx logger=<name> action=<action> file=<path>[ <detail>]
+    @endverbatim
 
     Note that the close marker is best-effort: it is written from the destructor / explicit close path and is not
     emitted if the process is terminated abnormally (e.g. \c SIGKILL).

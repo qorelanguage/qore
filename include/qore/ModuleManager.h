@@ -243,7 +243,7 @@ public:
     //! Register a statically-linked AOT-compiled module into a target program without dlopen
     /** Intended for AOT `.qo` object files that have been linked directly into the host
         image. The caller provides a pointer to the module's descriptor function (emitted
-        by qcc as `<name>_qore_module_desc`); the descriptor is invoked, validated and
+        by qcc as <tt>&lt;name&gt;_qore_module_desc</tt>); the descriptor is invoked, validated and
         routed through the standard module registration path, skipping the filesystem
         search and dlopen that the normal loader uses.
         @param xsink if any errors occur, a Qore-language "LOAD-MODULE-ERROR" exception is raised here

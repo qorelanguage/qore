@@ -93,7 +93,7 @@ class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
         @return an I/O poller to retrieve the file's data
 
         @throw UNIMPLEMENTED the \c ssh2 module available does not support non-blocking SFTP reads;
-        @ref Qore::SSH2::SFTPClient::startPollGetFile() "SFTPClient::startPollGetFile()" was added in
+        @c SFTPClient::startPollGetFile() was added in
         \c ssh2 2.0
 
         @note the remote path is used as given; unlike the blocking methods, the remote working

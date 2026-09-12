@@ -374,6 +374,7 @@ public class Http3ClientPollOperation inherits Http3ClientPollOperationBase, Htt
         @param streaming if True, bidirectional streaming mode
         @param notifier optional EventNotifier signaled after channel updates
         @return the stream ID
+        @param sse_install_eligible permits installing the SSE parser for a qualifying response
     */
     int submitRequestWithChannel(string method, string path, *hash<auto> headers, *data body,
             Channel channel, int max_streams, bool streaming = False,

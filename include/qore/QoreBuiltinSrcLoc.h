@@ -37,8 +37,8 @@
 //! stash it on the variant.  `qpp` emits one of these around each
 //! `addBuiltinVariant` / `addMethod` / `addConstructor` / `addCopy` /
 //! `addStaticMethod` / `addAbstractMethod` call it generates, so that
-//! reflection (`FunctionVariant::getSourceLocation()`) can report the
-//! declaring `.qpp` file and line instead of the generic `<builtin>`
+//! reflection (<tt>FunctionVariant::getSourceLocation()</tt>) can report the
+//! declaring `.qpp` file and line instead of the generic <tt>&lt;builtin&gt;</tt>
 //! sentinel.
 /**
     Usage (hand-written code — normally only `qpp` emits these):
