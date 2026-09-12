@@ -32,7 +32,7 @@
 %requires ../../../../qlib/FsUtil.qm
 
 public class AstProcessorTests inherits QUnit::Test {
-    constructor() : Test("AstProcessorTests", "1.0") {
+    constructor() : Test("AstProcessorTests", "1.0", ARGV) {
         addTestCase("Basic namespace processing", \testNamespaceBasic());
         addTestCase("Class processing", \testClassBasic());
         addTestCase("Class with inheritance", \testClassInheritance());
@@ -43,6 +43,7 @@ public class AstProcessorTests inherits QUnit::Test {
         addTestCase("Block comment handling", \testBlockComments());
         addTestCase("Soft type formatting", \testSoftTypeFormatting());
         addTestCase("Doxygen indexes nested callable field types", \testCallableTypes());
+        addTestCase("Abstract method parameter declarations", \testAbstractMethodParameters());
         addTestCase("Nested namespaces", \testNestedNamespaces());
         addTestCase("Access modifiers", \testAccessModifiers());
         addTestCase("Class with members", \testClassWithMembers());
@@ -179,6 +180,17 @@ class Demo {
         assertTrue(output =~ /__7_ hash<auto> opts/, "nullable hash param in doxygen format");
     }
 
+    testAbstractMethodParameters() {
+        string output = processCode("class Transport {\n"
+            "    abstract sendClose(int code = 1000, string reason = \"\");\n"
+            "    abstract bool accepts(string value);\n"
+            "    abstract shutdown();\n}\n");
+        assertTrue(output =~ /sendClose\(int code, string reason\)/,
+            "defaulted abstract method parameters retain their types and names");
+        assertTrue(output =~ /accepts\(string value\)/, "required abstract parameter is retained");
+        assertTrue(output =~ /shutdown\(\)/, "empty abstract parameter list remains empty");
+    }
+
     testCallableTypes() {
         if (system("command -v doxygen >/dev/null 2>&1")) {
             testSkip("doxygen is required for generated declaration integration tests");
@@ -187,7 +199,10 @@ class Demo {
             "    /** Dispatch an API request. */\n"
             "    *code<hash<auto>(string, string, hash<auto>)> api_callback;\n"
             "    /** Decide whether to accept an item. */\n"
-            "    code<bool(int)> accept_item;\n}\n");
+            "    code<bool(int)> accept_item;\n}\n"
+            "/** A transport accepting multipart/* media. */\nclass Transport {\n"
+            "    /** Close a transport. @param code close status @param reason explanation */\n"
+            "    abstract sendClose(int code = 1000, string reason = \"\");\n}\n");
         TmpDir dir();
         string input = dir.path + "/callbacks.h";
         string config = dir.path + "/Doxyfile";
@@ -211,6 +226,8 @@ class Demo {
         string indexed = ReadOnlyFile::readTextFile(tag);
         assertTrue(indexed.find("<name>api_callback</name>") >= 0, "the nullable nested callback is indexed");
         assertTrue(indexed.find("<name>accept_item</name>") >= 0, "the scalar callback is indexed");
+        assertTrue(indexed.find("<arglist>(int code, string reason)</arglist>") >= 0,
+            "Doxygen indexes abstract parameters without losing declarations after MIME prose");
     }
 
     private static string shellQuote(string value) {

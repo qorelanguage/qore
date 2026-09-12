@@ -141,6 +141,13 @@ it. Members whose reference count is unchanged still return 0 immediately, so th
 ordinary "something outside still holds it" case, and after a rescan `scan_refs` matches again, so it cannot
 loop.
 
+A dereference also saves its triggering reference count as `ref_copy`. Another thread can change the live
+count while that dereference waits for a scan. `RSet::canDelete()` rejects superseded snapshots before
+examining the set: comparing an old `ref_copy` with each fresh `scan_refs` could otherwise request the same
+rescan indefinitely and block every callback worker using that object. A newer reference keeps the object
+alive or provides its own collection opportunity when released. This applies to object and captured-variable
+dereferences alike.
+
 ## When a scan is triggered — and when it may be skipped
 
 `LValueHelper::~LValueHelper` (`lib/Variable.cpp`) runs a scan whenever it holds an lvalue inside an `RObject`

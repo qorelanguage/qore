@@ -264,13 +264,13 @@ public class HttpAsyncSocketIoController {
         If the controller was created internally, it is stopped.
     */
     #! Pushes a \c close sentinel to every registered persistent-mux queue
-    /** Called from both @ref stop() and @ref HttpServer::stopNoWait() so that
-        dedicated persistent-handler threads blocked in @ref Queue::get() on the
+    /** Called from both @ref stop() and \c HttpServer::stopNoWait()() so that
+        dedicated persistent-handler threads blocked in @ref Qore::Thread::Queue::get() on the
         queue's idle TTL (default 75 s) exit promptly on shutdown.
 
         Without this, a \c stopNoWait() shutdown path (the one Qorus uses) would
         wait up to the full TTL for each dedicated handler before
-        @ref HttpListener::stop()'s connection-thread WaitGroup drains — making
+        \c HttpListener::stop()'s connection-thread WaitGroup drains — making
         server shutdown visibly sluggish even though all I/O is async.
 
         Safe to call multiple times.
@@ -562,7 +562,7 @@ public class HttpAsyncSocketIoController {
     /** All controller dispatches that may run user code (regular request handling,
         SSE disconnect notification, WebSocket close notification, WebSocket frame
         dispatch) MUST go through this method rather than calling
-        @ref handler_pool.submit() directly.  This guarantees that
+        @ref Qore::Thread::ThreadPool::submit() directly.  This guarantees that
         @ref HttpAsyncTarget::saveDispatchContext() runs immediately before the
         user-code body and that @ref HttpAsyncTarget::restoreDispatchContext()
         runs immediately after, on the same handler-pool thread, so that
@@ -620,6 +620,7 @@ public class HttpAsyncSocketIoController {
 
         @param key the socket unique hash identifying the connection
         @param q the Queue to receive subsequent request hashes
+        @param filter optional predicate selecting requests for this persistent session
 
     */
     registerPersistentQueue(string key, Queue q, *code<bool(hash<auto>)> filter) {
@@ -632,11 +633,16 @@ public class HttpAsyncSocketIoController {
     /** Called when the dedicated handler pool thread exits its persistent loop.
 
         @param key the socket unique hash identifying the connection
+        @param expected_queue if given, remove only this queue; delayed cleanup from an earlier session
+            must not remove a replacement session registered on the same connection
 
     */
-    deregisterPersistentQueue(string key) {
+    deregisterPersistentQueue(string key, *Queue expected_queue) {
         persistent_queue_mutex.lock();
         on_exit persistent_queue_mutex.unlock();
+        if (expected_queue && persistent_queues{key}.queue !== expected_queue) {
+            return;
+        }
         remove persistent_queues{key};
     }
 
@@ -685,8 +691,8 @@ public class HttpAsyncSocketIoController {
                 *code<bool(hash<auto>)> filter) {
             self.registerPersistentQueue(key, q, filter);
         };
-        header_info.deregister_persistent_queue = sub (string key) {
-            self.deregisterPersistentQueue(key);
+        header_info.deregister_persistent_queue = sub (string key, *Queue expected_queue) {
+            self.deregisterPersistentQueue(key, expected_queue);
         };
         return header_info;
     }
@@ -711,7 +717,7 @@ public class HttpAsyncSocketIoController {
         threads blocked on Queue::get() are unblocked and can exit cleanly.
 
         Also callable from outside the framework (e.g. from
-        @ref HttpServer::HttpListener::signalPersistentSessionClose())
+        \c HttpServer::HttpListener::signalPersistentSessionClose())
         when a cooperative-abort path needs to terminate a specific
         persistent session immediately rather than wait for socket close
         or idle TTL.  Safe to call from any thread and idempotent: a
@@ -821,6 +827,10 @@ public class HttpAsyncSocketIoController {
         @param target the target to receive HTTP events
         @param cert SSL certificate for QUIC TLS handshake
         @param key SSL private key for QUIC TLS handshake
+        @param http_listener the HTTP listener associated with this UDP listener
+        @param ssl_verify_flags SSL peer certificate verification flags
+        @param ssl_accept_all_certs whether to accept untrusted peer certificates
+        @param get_remote_certs whether to capture peer certificates
 
         @note QUIC uses UDP and handles TLS 1.3 as part of the QUIC handshake.
         The socket must already be bound to a UDP port before calling this method.
@@ -958,26 +968,6 @@ public class HttpAsyncSocketIoController {
         log(LoggerLevel::INFO, "Removed listener %y", lhash);
     }
 
-    #! Updates the SSL certificate and private key for an already-registered listener
-    /** Used by HttpServer::reloadCertificate(): swaps the cert/key references the
-        controller hands to every subsequently-submitted accept poll operation, and
-        also pushes the new cert/key onto the listener Socket itself (a no-op for TCP
-        listeners — HttpListener::reloadCertificate has already done it via the
-        Socket inheritance — but required for the QUIC paired listener whose udp_sock
-        is owned by the controller and is the actual TLS endpoint for HTTP/3).
-
-        In-flight TCP accept ops keep their current cert/key (each accept op owns its
-        own ref); the next replenish picks up the new values via submitAcceptOp().
-
-        @param listener the listener socket to update (must already be registered)
-        @param cert the new SSL certificate (SSLCertificate or PEM/DER data)
-        @param key the new SSL private key (SSLPrivateKey or PEM/DER data)
-
-        @throw CONTROLLER-RELOAD-CERT-ERROR listener is not registered, was not
-        registered with SSL, or controller has been stopped
-
-        @since Qore 3.0.0
-    */
     #! Updates the SSL certificate and private key for the QUIC paired listener
     #! whose async controller registration was made with the given
     #! HttpListenerInterface as the \c http_listener field.
@@ -1048,6 +1038,26 @@ public class HttpAsyncSocketIoController {
         return True;
     }
 
+    #! Updates the SSL certificate and private key for an already-registered listener
+    /** Used by HttpServer::reloadCertificate(): swaps the cert/key references the
+        controller hands to every subsequently-submitted accept poll operation, and
+        also pushes the new cert/key onto the listener Socket itself (a no-op for TCP
+        listeners — HttpListener::reloadCertificate has already done it via the
+        Socket inheritance — but required for the QUIC paired listener whose udp_sock
+        is owned by the controller and is the actual TLS endpoint for HTTP/3).
+
+        In-flight TCP accept ops keep their current cert/key (each accept op owns its
+        own ref); the next replenish picks up the new values via submitAcceptOp().
+
+        @param listener the listener socket to update (must already be registered)
+        @param cert the new SSL certificate (SSLCertificate or PEM/DER data)
+        @param key the new SSL private key (SSLPrivateKey or PEM/DER data)
+
+        @throw CONTROLLER-RELOAD-CERT-ERROR listener is not registered, was not
+        registered with SSL, or controller has been stopped
+
+        @since Qore 3.0.0
+    */
     reloadListenerCertificate(Socket listener, auto cert, auto key) {
         @assert(listener, "listener socket cannot be null");
         @assert(cert && key, "cert and key cannot be null");

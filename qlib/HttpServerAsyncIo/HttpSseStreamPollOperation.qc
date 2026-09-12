@@ -129,7 +129,7 @@ public class HttpSseStreamPollOperation inherits HttpConnectionPollOperationBase
     }
 
     #! Sets the wake callback used to notify the I/O controller after queuing data
-    /** The HTTP server framework calls this after @ref ServerSentEventHandler::setupAsyncSseConnection()
+    /** The HTTP server framework calls this after \c ServerSentEventHandler::setupAsyncSseConnection()
         returns.  Wakeups are now provided by the EventNotifier registered in
         @ref continuePoll(); this method is retained for source compatibility.
 

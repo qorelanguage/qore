@@ -114,7 +114,7 @@ module HttpServer {
       QUIC counterpart
 
     @par Configuration
-    - \c enable_h3: set to \c True in @ref HttpListenerOptionInfo to enable HTTP/3 for a
+    - \c enable_h3: set to \c True in @ref HttpServer::HttpListenerOptionInfo to enable HTTP/3 for a
       listener (defaults to \c True for TLS listeners when QUIC support is available)
     - \c alt_svc_max_age: the \c max-age value for the \c Alt-Svc header in seconds
       (default: 86400)
@@ -179,8 +179,10 @@ log("started listener on %s", lh.desc);
     @section http_relnotes HttpServer Module Release Notes
 
     @subsection http1_7 HttpServer 1.7
+    - ending an HTTP/1 persistent session preserves a replacement session on the same connection, even
+      when cleanup of the earlier session finishes after the replacement has registered its request queue
     - buffered HTTP/1 request text retains its declared charset, matching direct socket reads;
-      Latin-1 and UTF-16 bodies no longer acquire a UTF-8 encoding label.  A \c multipart/* body is
+      Latin-1 and UTF-16 bodies no longer acquire a UTF-8 encoding label.  A multipart body is
       delivered to the handler as binary data, since the request charset describes neither the
       container nor the parts inside it, each of which carries its own encoding
     - response compression honors Accept-Encoding quality values, exclusions, aliases, wildcard preferences,
@@ -589,7 +591,7 @@ public hashdecl HttpServerOptionInfo {
         Set to \c False to disable automatic QUIC listener creation server-wide.
 
         @note Individual listeners can override this via the \c enable_h3 field in
-        @ref HttpListenerOptionInfo.
+        @ref HttpServer::HttpListenerOptionInfo.
 
         @since HttpServer 1.6
     */
@@ -5697,8 +5699,11 @@ public class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterfa
             Queue pq();
             code<nothing(string, Queue)> register_fn =
                 header_info.register_persistent_queue;
-            code<nothing(string)> deregister_fn =
-                header_info.deregister_persistent_queue;
+            # Both explicit session termination and exception cleanup can deregister this queue. Bind
+            # cleanup to its identity so a delayed exit cannot remove a new session on the same socket.
+            code<nothing(string)> deregister_fn = sub (string key) {
+                header_info.deregister_persistent_queue(key, pq);
+            };
             register_fn(sock_key, pq);
             on_exit deregister_fn(sock_key);
             if (!cx.close && s.isOpen()) {
@@ -6543,6 +6548,7 @@ public class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterfa
         @param cx_listener the listener context template
         @param phi the persistent handler info (persistence already cleared)
         @param info peer info for logging
+        @param close_ack receives the completion queue from an orphaned close request
     */
     private drainOrphanedPersistentRequests(RequestHelper request_helper, Queue pq,
             Socket s, reference<hash<auto>> cx, hash<auto> cx_listener,
@@ -7025,7 +7031,7 @@ class HttpServerCallbackAppender inherits LoggerAppenderWithLayout {
 #! Native async target implementing HttpAsyncTarget for the callback-based HttpAsyncSocketIoController
 /** Request dispatch uses a two-path model:
     -# @ref tryInlineRequest() runs on an async callback dispatcher worker for lightweight requests
-       (HTTP/1.x only, no body, handler opts in via @ref AbstractHttpRequestHandler::canHandleInline()
+       (HTTP/1.x only, no body, handler opts in via @ref HttpServer::AbstractHttpRequestHandler::canHandleInline()
        "canHandleInline()"); returns the response immediately without a thread hop
     -# If @ref tryInlineRequest() returns @ref nothing, the request is dispatched to the
        handler thread pool via @ref onHttpRequest() which calls

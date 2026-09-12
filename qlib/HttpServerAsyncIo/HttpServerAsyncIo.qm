@@ -51,7 +51,7 @@ module HttpServerAsyncIo {
     enabling high-performance non-blocking I/O for HTTP, SSE, and WebSocket connections.
 
     This module leverages the @ref Qore::AbstractPollOperation pattern and integrates with
-    @ref AsyncSocketIoController for efficient multiplexed I/O handling.
+    @ref AsyncSocketIo::AsyncSocketIoController for efficient multiplexed I/O handling.
 
     @section httpserverasyncio_components Components
 
@@ -79,6 +79,8 @@ module HttpServerAsyncIo {
     @section httpserverasyncio_relnotes Release Notes
 
     @subsection httpserverasyncio_v1_0 Version 1.0
+    - persistent queue deregistration can be restricted to the expected queue, preserving replacement
+      sessions when delayed cleanup runs for an earlier session on the same connection
     - added @ref HttpServerAsyncIo::SseStreamCloseNotifier "SseStreamCloseNotifier" and
       @ref HttpServerAsyncIo::AbstractSseConnection::setPeerCloseCallback() "AbstractSseConnection::setPeerCloseCallback()"
       so that an SSE response stream on a multiplexed transport (HTTP/2, HTTP/3) is torn down when the peer resets
@@ -226,7 +228,7 @@ public namespace HttpServerAsyncIo {
         - \c http2: \c True for HTTP/2 requests
         - \c stream_id: The HTTP/2 stream ID (needed for sending response)
         - \c body_streaming: \c True when the client sent HEADERS without END_STREAM (request body
-          not yet complete); the handler registers a @ref Queue "Queue" via
+          not yet complete); the handler registers a @ref Qore::Thread::Queue "Queue" via
           \c register_body_queue to receive inbound DATA chunks (NOTHING sentinel = END_STREAM)
           and writes outgoing DATA via \c Socket::sendHttp2StreamData(), which
           delegates enqueue/wake handling to the async I/O controller
@@ -234,7 +236,7 @@ public namespace HttpServerAsyncIo {
           no body); when \c True, \c body_streaming is \c False and there is no body to read
         - \c io_wake: a code closure to call after queuing outgoing data to wake the I/O thread
         - \c register_body_queue: only present in \c body_streaming mode — a closure that takes an
-          unlimited @ref Queue "Queue" and connects it to the I/O thread's stream reader
+          unlimited @ref Qore::Thread::Queue "Queue" and connects it to the I/O thread's stream reader
 
         For HTTP/3 connections, \c header_info contains:
         - \c http3: \c True for HTTP/3 requests

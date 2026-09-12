@@ -47,11 +47,11 @@ public class Http3SseStream inherits AbstractSseConnection {
         int stream_id;
 
         #! Optional callback to wake the I/O thread after submitting data
-        /** Called after each @ref submitQuicStreamData() call so the I/O thread
+        /** Called after each @ref Qore::Socket::submitQuicStreamData() call so the I/O thread
             processes the queued data immediately rather than waiting for the next
             timer or socket event.
 
-            @see @ref AsyncSocketIo::AsyncSocketIoController::wake()
+            @see @ref AsyncSocketIo::AsyncSocketIoController::wakeSocket()
         */
         *code<nothing()> wake_callback;
 

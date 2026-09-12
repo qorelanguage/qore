@@ -1,10 +1,11 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../../qlib"
-%requires QUnit
+%requires ../../../../../qlib/QUnit.qm
 
 %exec-class Test
 
@@ -29,13 +30,16 @@ class ResolveAddrInfoWorkerPollOperation inherits Qore::AbstractPollOperation<au
 }
 
 class Test inherits QUnit::Test {
-    constructor() : QUnit::Test("Socket resolveAddrInfo", "1.0") {
+    constructor() : QUnit::Test("Socket resolveAddrInfo", "1.0", ARGV) {
         addTestCase("numeric host", \testNumericHost());
         addTestCase("global getaddrinfo", \testGlobalGetaddrinfo());
         addTestCase("global getaddrinfo async", \testGlobalGetaddrinfoAsync());
         addTestCase("global getnameinfo async", \testGlobalGetnameinfoAsync());
         addTestCase("passive wildcard", \testPassiveWildcard());
         addTestCase("numeric host error", \testNumericHostError());
+        addTestCase("numeric restrictions reject resolvable names", \testNumericRestrictions());
+        addTestCase("numeric service boundaries", \testNumericServiceBoundaries());
+        addTestCase("canonical numeric address", \testCanonicalNumericAddress());
         addTestCase("sync resolution rejected from async worker",
             \testSyncResolutionRejectedFromAsyncWorker());
         set_return_value(main());
@@ -109,6 +113,40 @@ class Test inherits QUnit::Test {
         hash<SocketPollResultInfo> result = result_queue.get(10s);
         assertEq("SOCKET-SYNC-ON-IO-THREAD-ERROR", result.ex.err);
         assertEq("reject-sync-resolve-addrinfo", result.spop.getGoal());
+    }
+
+    testNumericRestrictions() {
+        assertThrows("QOREADDRINFO-GETINFO-ERROR", \Socket::resolveAddrInfo(),
+            ("localhost", "80", AF_INET, AI_NUMERICHOST));
+        assertThrows("QOREADDRINFO-GETINFO-ERROR", \Socket::resolveAddrInfo(),
+            ("127.0.0.1", "http", AF_INET, AI_NUMERICSERV));
+
+        foreach hash<auto> args in ((
+                {"host": "localhost", "service": "80", "flags": AI_NUMERICHOST},
+                {"host": "127.0.0.1", "service": "http", "flags": AI_NUMERICSERV})) {
+            Future f = getaddrinfo_async(args.host, args.service, AF_INET, args.flags);
+            assertThrows("QOREADDRINFO-GETINFO-ERROR", \f.get(), (10s,));
+        }
+    }
+
+    testNumericServiceBoundaries() {
+        foreach string service in (("0", "80", "65535")) {
+            list<hash<auto>> addrs = Socket::resolveAddrInfo("127.0.0.1", service, AF_INET);
+            assertGt(0, addrs.size());
+            assertEq(int(service), addrs[0].port, "numeric ports retain their value without explicit hints");
+        }
+        foreach string service in (("65536", "999999999999999999999999", "-1", "80http")) {
+            assertThrows("QOREADDRINFO-GETINFO-ERROR", \Socket::resolveAddrInfo(),
+                ("127.0.0.1", service, AF_INET, AI_NUMERICSERV));
+        }
+    }
+
+    testCanonicalNumericAddress() {
+        list<hash<auto>> addrs = Socket::resolveAddrInfo("127.0.0.1", "80", AF_INET,
+            AI_NUMERICHOST | AI_NUMERICSERV | AI_CANONNAME);
+        assertGt(0, addrs.size());
+        assertEq("127.0.0.1", addrs[0].canonname);
+        assertEq(80, addrs[0].port);
     }
 
     private assertAddressInfo(hash<auto> h, bool expect_port) {

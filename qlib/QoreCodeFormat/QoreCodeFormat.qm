@@ -167,6 +167,7 @@ hash<auto> ast_node = QoreCodeFormat::CSTTranslator::translate(cst_node);
     @section qorecodeformatrelnotes Release Notes
 
     @subsection qorecodeformat_v1_0 v1.0
+    - retain abstract method parameter declarations and defaults in translated ASTs
     - initial release providing canonical %Qore code formatting using tree-sitter CST
     - 4-space indentation, same-line opening braces, mandatory braces for control flow
     - space around binary operators, after keywords, no trailing whitespace

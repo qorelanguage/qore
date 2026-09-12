@@ -35,12 +35,12 @@
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Mime
-%requires Logger
-%requires HttpServerUtil
-%requires HttpServer
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/HttpServer.qm
 
 %exec-class Http3BidiStreamingTest
 
@@ -195,7 +195,7 @@ l50Xb2GWQesIt9k5jF5IOw==
 -----END PRIVATE KEY-----";
     }
 
-    constructor() : Test("Http3BidiStreamingTest", "1.0") {
+    constructor() : Test("Http3BidiStreamingTest", "1.0", ARGV) {
         addTestCase("sendHttp3Connect + bidi echo", \testBidiEcho());
         addTestCase("bidi echo large payload", \testBidiEchoLargePayload());
         addTestCase("stream close during body send", \testStreamCloseDuringBodySend());
@@ -367,6 +367,17 @@ l50Xb2GWQesIt9k5jF5IOw==
         binary resp_data = readAllStreamData(client, stream_id, 10s);
         assertTrue(got_stream_end || resp_data.size() > 0,
             "client should detect stream end or receive server response");
+
+        # Finishing the early-close handler releases references while queued data callbacks still run.
+        # A stale collector snapshot used to trap these workers in repeated scans and stall the next
+        # connection. Verify a complete independent exchange before this test returns.
+        HTTPClient next_client = getClient();
+        hash<auto> next_resp = next_client.sendHttp3Connect("/bidi", NOTHING, "bidi-stream");
+        assertEq(200, next_resp.status_code, "new connection progresses after early stream close");
+        binary payload = binary("request after early close");
+        next_client.sendHttp3StreamData(next_resp.stream_id, payload, True);
+        assertEq(payload, readAllStreamData(next_client, next_resp.stream_id),
+            "callback workers deliver the next stream's response");
     }
 
     # ---- Flow control under backpressure ----

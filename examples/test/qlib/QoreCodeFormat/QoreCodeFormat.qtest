@@ -1,18 +1,20 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
 %prepend-module-path "${SCRIPT_DIR}/../../../../build/modules/astparser"
-%requires QUnit
-%requires QoreCodeFormat
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/QoreCodeFormat
 
 %exec-class QoreCodeFormatTest
 
 class QoreCodeFormatTest inherits QUnit::Test {
-    constructor() : Test("QoreCodeFormatTest", "1.0") {
+    constructor() : Test("QoreCodeFormatTest", "1.0", ARGV) {
         addTestCase("basic formatting", \testBasicFormatting());
+        addTestCase("abstract parameters", \testAbstractParameters());
         addTestCase("parse directives", \testParseDirectives());
         addTestCase("class formatting", \testClassFormatting());
         addTestCase("generic declarations", \testGenericDeclarations());
@@ -60,6 +62,14 @@ class QoreCodeFormatTest inherits QUnit::Test {
         addTestCase("find modifiers", \testFindModifiers());
 
         set_return_value(main());
+    }
+
+    testAbstractParameters() {
+        QoreCodeFormat::CodeFormatter fmt();
+        string source = "class Transport { abstract sendClose(int code = 1000, string reason = \"\"); }";
+        string result = fmt.format(source);
+        assertRegex("abstract parameters and defaults", "sendClose\\(int code = 1000, string reason = \"\"\\)", result);
+        assertEq(result, fmt.format(result), "abstract declaration formatting is idempotent");
     }
 
     testBasicFormatting() {

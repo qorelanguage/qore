@@ -34,18 +34,18 @@
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Mime
-%requires Logger
-%requires HttpServerUtil
-%requires AsyncSocketIo
-%requires HttpServerAsyncIo
-%requires HttpServer
-%requires ServerSentEventHandler
-%requires HttpClientIo
-%requires HttpClientStreamingIo
-%requires RestClientIo
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/AsyncSocketIo
+%requires ../../../../qlib/HttpServerAsyncIo
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/ServerSentEventHandler
+%requires ../../../../qlib/HttpClientIo
+%requires ../../../../qlib/HttpClientStreamingIo
+%requires ../../../../qlib/RestClientIo.qm
 
 %exec-class SseAllProtocolsTest
 
@@ -81,6 +81,12 @@ class RecordingSseHandler inherits ServerSentEventHandler::ServerSentEventHandle
     }
 
     reset() {
+        # Client cancellation and server deregistration complete on different threads. Preserve this
+        # session's completion counter until its close hook has run, otherwise a late close can decrement
+        # the next test's counter and leave an earlier connection in its registration assertions.
+        if (last_conn && deregistered.waitForZero(SseTestTimeout)) {
+            throw "SSE-TEST-CLEANUP-TIMEOUT", "previous SSE session did not finish deregistering";
+        }
         registered = new Counter(1);
         deregistered = new Counter(1);
         last_conn = NOTHING;
@@ -567,7 +573,7 @@ l50Xb2GWQesIt9k5jF5IOw==
 -----END PRIVATE KEY-----";
     }
 
-    constructor() : Test("SseAllProtocolsTest", "1.0") {
+    constructor() : Test("SseAllProtocolsTest", "1.0", ARGV) {
         addTestCase("H1 SSE events flow end-to-end", \testHttp1Sse());
         addTestCase("H2 SSE events flow end-to-end", \testHttp2Sse());
         addTestCase("H3 SSE events flow end-to-end", \testHttp3Sse());

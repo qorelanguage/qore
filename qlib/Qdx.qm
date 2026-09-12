@@ -61,6 +61,7 @@ module Qdx {
     @section qdxrelnotes Release Notes
 
     @subsection qdx_1_1_3 Qdx v1.1.3
+    - preserve MIME wildcard text in generated comments without starting nested Doxygen comments
     - respect conditional parse directives during documentation builds using QORE_DOC_DEFINES
     - preserve generic and callable type syntax in generated declarations so Doxygen indexes typed callback fields
 
@@ -2467,6 +2468,14 @@ string doxygen_output = proc.process();
                 string line = src[i];
                 # Convert #! to //! (line doc comments)
                 line =~ s/^(\s*)#!/$1\/\/!/;
+                # Doxygen treats an interior /* as a nested C++ comment even in prose such as
+                # multipart/*. Keep the actual doc opener and encode interior stars for rendering.
+                int content_start = 0;
+                if (line =~ /^\s*\/\*\*/) {
+                    content_start = line.find("/**") + 3;
+                }
+                line = line.substr(0, content_start)
+                    + replace(line.substr(content_start), "/*", "/&#42;");
                 # Drop @cond/@endcond so Doxygen does not hide all members
                 if (line =~ /@cond\b/ || line =~ /@endcond\b/) {
                     continue;

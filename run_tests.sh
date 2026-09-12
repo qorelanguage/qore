@@ -1,4 +1,5 @@
 #!/bin/sh
+# Copyright (C) 2026 Qore Technologies, s.r.o.
 
 print_usage () {
   echo "Usage: run_tests.sh [OPTIONS]"
@@ -444,8 +445,10 @@ for test in $TESTS; do
     else
         FAILED_TEST_COUNT=`expr $FAILED_TEST_COUNT + 1`
         FAILED_TESTS="$FAILED_TESTS $test"
-        # If the test was killed by a signal (exit code > 128), try to capture diagnostics
-        if [ $test_exit -gt 128 ]; then
+        # BusyBox reports its deliberate timeout termination as SIGTERM (143). It is already
+        # recorded above; rerunning that hung test under gdb would lose the timeout entirely.
+        # Capture crash diagnostics only for unexpected signals.
+        if [ $test_exit -gt 128 ] && [ $test_exit -ne 143 ]; then
             SIG_NUM=`expr $test_exit - 128`
             echo "*** CRASH: test killed by signal $SIG_NUM (exit code $test_exit) ***"
             # Check for core dump in known locations

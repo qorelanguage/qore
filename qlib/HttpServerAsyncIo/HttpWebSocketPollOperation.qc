@@ -72,9 +72,9 @@ public class HttpWebSocketPollOperation inherits HttpWebSocketPollOperationBase,
         Mutex dispatch_mutex();
 
         #! Counter tracking handler-pool drainers in flight
-        /** onComplete() blocks on @ref Counter::waitForZero() so that no
+        /** onComplete() blocks on @ref Qore::Thread::Counter::waitForZero() so that no
             handler-pool drainer is still running when it finally clears
-            @ref wsc/@ref handler.
+            @ref wsc and @ref handler.
         */
         Counter active_dispatches();
 
@@ -143,7 +143,7 @@ public class HttpWebSocketPollOperation inherits HttpWebSocketPollOperationBase,
 
     #! Idempotently completes the operation so the handler thread's done Counter
     #! is released during teardown without depending on the async wake path
-    /** Called from @ref WebSocketHandler::WebSocketConnection::stop() ->
+    /** Called from \c WebSocketHandler::WebSocketConnection::stop() ->
         signalTransportClose() on the async HTTP/1.1 path.  A server-initiated
         close relies on a \c wakeSocket() re-driving \c continuePoll(), which can be
         lost when the socket hash the controller routes on has gone stale during
@@ -171,7 +171,7 @@ public class HttpWebSocketPollOperation inherits HttpWebSocketPollOperationBase,
     #! Called by the AsyncSocketIo controller when frames have been pushed
     /** Hops frame processing from the AsyncSocketIo callback dispatcher worker
         onto a handler-pool thread via
-        @ref HttpAsyncSocketIoController::submitForConnection() so that user
+        @ref HttpAsyncSocketIoController::submitToHandlerPool() so that user
         code (\c WebSocketConnection::gotMessage(),
         \c WebSocketConnection::gotRawMessage(), and any per-dispatch hooks
         installed by the target) never runs on the AsyncSocketIo callback

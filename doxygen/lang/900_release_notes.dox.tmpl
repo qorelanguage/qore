@@ -2987,6 +2987,17 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
 
     @subsection qore_3_0_0_bug_fixes Bug Fixes in Qore
 
+    - Fixed the test runner treating Alpine timeout termination as a crash and rerunning the hung test
+      under a debugger. Timeouts remain failed tests and the runner proceeds to the next test.
+    - Fixed parallel binary-module documentation builds reading unfinished core tags, abstract-method
+      parameters disappearing from generated documentation, and MIME wildcards opening nested comments.
+
+    - Fixed concurrent dereferences repeatedly rescanning a cycle with an obsolete reference-count snapshot,
+      which could stall HTTP streaming callback workers and prevent subsequent requests from completing.
+    - Fixed address-resolution hint flags being interpreted as unrelated c-ares flags. Numeric-only host and
+      service requests reject names, canonical numeric addresses retain their canonical name, and decimal
+      ports (including ephemeral port zero) bypass the system service-name lookup.
+
     - Initialize forward-referenced runtime constants once and share their value with aliases and nested
       metadata. Source modules now preserve the same object identity as compiled modules, including recursive
       provider types updated during module initialization; dependency initialization errors propagate normally.

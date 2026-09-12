@@ -1,12 +1,13 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires QUnit
-%requires AsyncSocketIo
-%requires HttpServerAsyncIo
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/AsyncSocketIo
+%requires ../../../../qlib/HttpServerAsyncIo
 
 %exec-class HttpServerAsyncIoTest
 
@@ -278,7 +279,7 @@ Do+Sl1gfqlpgpszQaOMjR4M=
 -----END PRIVATE KEY-----";
     }
 
-    constructor() : QUnit::Test("HttpServerAsyncIo Test", "1.0") {
+    constructor() : QUnit::Test("HttpServerAsyncIo Test", "1.0", ARGV) {
         addTestCase("Constants test", \constantsTest());
         addTestCase("Hashdecl test", \hashdeclTest());
         addTestCase("Target class test", \targetClassTest());
@@ -291,6 +292,8 @@ Do+Sl1gfqlpgpszQaOMjR4M=
         addTestCase("Controller start/stop test", \controllerStartStopTest());
         addTestCase("persistent queue close completion signal",
             \persistentQueueCloseCompletionTest());
+        addTestCase("persistent queue replacement survives delayed cleanup",
+            \persistentQueueReplacementTest());
         addTestCase("HttpAcceptPollOperation HTTP/2 mode test", \acceptPollHttp2ModeTest());
         # Binary search: comment out tests to find the hanging one
         addTestCase("concurrent addListener/removeListener", \concurrentListenerTest());
@@ -662,6 +665,38 @@ Do+Sl1gfqlpgpszQaOMjR4M=
         assertFalse(ctrl.signalPersistentQueuesForConnection(
             "unknown-persistent-close-test", close_ack),
             "unknown persistent queue is reported without blocking");
+    }
+
+    persistentQueueReplacementTest() {
+        AsyncSocketIoController io_ctrl(False);
+        HttpAsyncSocketIoController ctrl(io_ctrl);
+        string key = "persistent-replacement-test";
+        Queue first();
+        Queue second();
+        on_exit ctrl.deregisterPersistentQueue(key);
+
+        ctrl.registerPersistentQueue(key, first, NOTHING);
+        ctrl.deregisterPersistentQueue(key, first);
+        assertFalse(ctrl.pushPersistentQueue(key, {}, {"body": "ended"}, NOTHING),
+            "ended session no longer receives requests");
+
+        ctrl.registerPersistentQueue(key, second, NOTHING);
+        ctrl.deregisterPersistentQueue(key, first);
+        assertTrue(ctrl.pushPersistentQueue(key, {}, {"body": "new session"}, NOTHING),
+            "late cleanup of the first session preserves the replacement");
+        assertEq("new session", second.get(1s).body,
+            "the next request reaches the replacement queue");
+        assertEq(0, first.size(), "old session receives no replacement requests");
+
+        ctrl.deregisterPersistentQueue(key, second);
+        ctrl.deregisterPersistentQueue(key, second);
+        assertFalse(ctrl.pushPersistentQueue(key, {}, {"body": "ended again"}, NOTHING),
+            "matching cleanup removes the replacement and is idempotent");
+
+        ctrl.registerPersistentQueue(key, first, NOTHING);
+        ctrl.deregisterPersistentQueue(key);
+        assertFalse(ctrl.signalPersistentQueuesForConnection(key),
+            "legacy key-only cleanup still removes the current session");
     }
 
     acceptPollHttp2ModeTest() {

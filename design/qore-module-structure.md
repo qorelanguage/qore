@@ -67,6 +67,19 @@ Rules:
   helpers) also in `cmake/QoreMacros.cmake` — documented under "AOT Module-Build Macros"
   in the CMake API guide (`doxygen/lib/90_cmake.doxygen`).
 
+### Documentation generation order and source translation
+
+In the Qore build, both bundled binary module and user module documentation depend on `docs-lang`.
+This initial pass writes the core tag file before any module reads it; `docs-lang-final` then imports
+completed module tags. These dependencies apply to individual module documentation targets as well as
+full builds, so parallel generation cannot read a stale or partially rewritten core tag file.
+
+Qdx retains parameter declarations when an abstract method is represented by the tree-sitter grammar
+as a member declaration with constructor arguments. The CST translator normalizes these arguments to
+ordinary parameter nodes, including their defaults, for both code formatting and documentation.
+Interior comment openers in documentation prose (for example MIME wildcards) are HTML-encoded on
+output so Doxygen renders their text without interpreting them as nested C++ comments.
+
 ### Source-Owned Native Catalogs
 
 Provider presentation catalogs belong to the module that registers the app or

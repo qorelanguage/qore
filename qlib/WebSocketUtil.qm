@@ -267,6 +267,7 @@ hash<WsMsgInfo> h = ws_read_message(sock);
 
         @param sock the @ref Qore::Socket "Socket" object to receive the message
         @param to an optional read timeout
+        @param max_frame_size maximum allowed payload size in bytes; non-positive or omitted means unlimited
 
         @return a hash with the following keys:
         - \c op: the operation code (one of @ref opcodes)

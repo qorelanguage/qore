@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%modern
-
 #! Main QoreCodeFormat namespace
 public namespace QoreCodeFormat {
 
@@ -755,6 +753,27 @@ public class CSTTranslator {
                 result.returnType = {"nodetype": ANT_Expression, "kind": AEK_Name,
                     "name": {"name": extractText(typeNode)}, "loc": typeNode.loc};
             }
+            # The grammar represents this declaration's parameters as constructor arguments.
+            # Normalize their field names before applying the regular parameter translator, retaining
+            # both declarations and defaults for the formatter and documentation generator.
+            list<hash<auto>> params;
+            foreach hash<auto> arg in (argList.children) {
+                while (arg.type == "primary_expression" && arg.children.size() == 1) {
+                    arg = arg.children[0];
+                }
+                hash<auto> param = arg;
+                list<hash<auto>> children;
+                foreach hash<auto> child in (arg.children) {
+                    if (child.field == "value") {
+                        child.field = "default";
+                    }
+                    children += child;
+                }
+                param.children = children;
+                params += translateParameter(param);
+            }
+            result.params = {"nodetype": ANT_Expression, "kind": AEK_List,
+                "elements": params, "loc": argList.loc};
             # Abstract methods have no body — formatter uses !exists node.body to emit ";"
             return result;
         }

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -215,6 +215,14 @@ int RSet::canDelete(int ref_copy, int rcount, int scan_refs, RObject& initiator,
 
     if (q_disable_gc)
         return 0;
+
+    // Another reference operation superseded this dereference's snapshot. A rescan records the current
+    // reference count, so comparing it with the old ref_copy would request the same rescan forever.
+    // The newer reference either keeps the object alive or supplies its own collection opportunity when
+    // released. Only a dereference whose snapshot is still current may decide to collect the cycle.
+    if (ref_copy != initiator.refs()) {
+        return 0;
+    }
 
     if (!valid)
         return -1;

@@ -368,7 +368,7 @@ if (push) {
 
         @param stream_id the HTTP/2 stream ID
         @param queue the unlimited Queue for data delivery
-        @param notifier optional EventNotifier for cross-thread wake-up after data is
+        @param notify optional callback for cross-thread wake-up after data is
         drained to the Queue
 
         @note Must be called on the I/O controller thread before the handler starts reading.

@@ -40,7 +40,7 @@ public class AbstractSseConnection {
         #! Callback run once when the transport reports that the peer is gone
         *code<nothing()> peer_close_callback;
 
-        #! Set when @ref firePeerCloseCallback() has already run the callback
+        #! Set when @ref notifyPeerClosed() has already run the callback
         bool peer_close_fired = False;
 
         #! Protects the peer-close callback slot
@@ -108,8 +108,8 @@ public class AbstractSseConnection {
 
     #! Queues a pre-formatted SSE text frame for sending
     /** The string must already be formatted per the SSE spec (e.g., from
-        @ref ServerSentEventHandler::encodeMessage()).  Used by
-        @ref ServerSentEventConnection::sendEncoded() to deliver events across
+        \c ServerSentEventHandler::encodeMessage()).  Used by
+        \c ServerSentEventConnection::sendEncoded() to deliver events across
         all HTTP protocol versions through a uniform write path.
 
         @param data the pre-formatted SSE frame text

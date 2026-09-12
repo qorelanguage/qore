@@ -6370,6 +6370,17 @@ int QoreCaresAddrInfoResolver::getPollTimeoutMs() const {
 }
 
 int QoreCaresAddrInfoResolver::start(ExceptionSink* xsink) {
+    // c-ares defines ARES_AI_NUMERICHOST but does not enforce it in ares_getaddrinfo(). Do not let a
+    // numeric-only request fall through to /etc/hosts or DNS, including a resolvable name such as localhost.
+    if (has_host && (flags & AI_NUMERICHOST)) {
+        struct in6_addr addr;
+        if (ares_inet_pton(AF_INET, host.c_str(), &addr) != 1
+                && ares_inet_pton(AF_INET6, host.c_str(), &addr) != 1) {
+            started = done = true;
+            status = ARES_ENONAME;
+            return raiseError(xsink);
+        }
+    }
     if (qore_cares_library_init(xsink)) {
         return -1;
     }
@@ -6386,7 +6397,32 @@ int QoreCaresAddrInfoResolver::start(ExceptionSink* xsink) {
     }
 
     struct ares_addrinfo_hints hints = {};
-    hints.ai_flags = flags;
+    // POSIX AI_* and c-ares ARES_AI_* flags have different values, including across operating systems.
+    // Translate their meanings rather than passing the platform bitmask to c-ares unchanged.
+    static constexpr std::pair<int, int> flag_map[] = {
+        {AI_PASSIVE, ARES_AI_PASSIVE},
+        {AI_CANONNAME, ARES_AI_CANONNAME},
+        {AI_NUMERICHOST, ARES_AI_NUMERICHOST},
+        {AI_NUMERICSERV, ARES_AI_NUMERICSERV},
+#ifdef AI_V4MAPPED
+        {AI_V4MAPPED, ARES_AI_V4MAPPED},
+#endif
+#ifdef AI_ALL
+        {AI_ALL, ARES_AI_ALL},
+#endif
+#ifdef AI_ADDRCONFIG
+        {AI_ADDRCONFIG, ARES_AI_ADDRCONFIG},
+#endif
+    };
+    for (const auto& [native_flag, cares_flag] : flag_map) {
+        if (flags & native_flag) {
+            hints.ai_flags |= cares_flag;
+        }
+    }
+    if (has_service && !service.empty() && service.find_first_not_of("0123456789") == std::string::npos) {
+        // Numeric ports, including ephemeral port zero, never need a potentially blocking NSS lookup.
+        hints.ai_flags |= ARES_AI_NUMERICSERV;
+    }
     hints.ai_family = family;
     hints.ai_socktype = type;
     hints.ai_protocol = protocol;
