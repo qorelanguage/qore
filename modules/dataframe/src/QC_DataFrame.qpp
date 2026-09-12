@@ -229,12 +229,6 @@ static int qdfCallObjectMethod(QoreObject* obj, const char* method,
     return *xsink ? -1 : 0;
 }
 
-static int qdfCallObjectMethod(QoreObject* obj, const char* method,
-        ExceptionSink* xsink) {
-    ValueHolder rv(obj->evalMethod(method, nullptr, xsink), xsink);
-    return *xsink ? -1 : 0;
-}
-
 static int qdfCallObjectBoolMethod(QoreObject* obj, const char* method,
         bool& result, ExceptionSink* xsink) {
     ValueHolder rv(obj->evalMethod(method, nullptr, xsink), xsink);

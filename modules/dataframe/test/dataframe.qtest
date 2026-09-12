@@ -6,22 +6,17 @@
 */
 
 %modern
+%prepend-module-path "${SCRIPT_DIR}/../../../qlib"
 
-%prepend-module-path "${SCRIPT_DIR}/../../../build/modules/dataframe"
-%prepend-module-path "${SCRIPT_DIR}/../../../build/modules/reflection"
 
 %requires ../../../qlib/Util.qm
 %requires ../../../qlib/QUnit.qm
 %requires ../../../qlib/DataProvider
 %requires reflection
 
-%try-module dataframe
-%define NoDataFrame
-%endtry
+%requires dataframe
 
-%try-module ../../../qlib/DataProviderDataFrame
-%define NoDataProviderDataFrame
-%endtry
+%requires ../../../qlib/DataProviderDataFrame
 
 %exec-class DataFrameTest
 
@@ -65,7 +60,7 @@ class MockDataFrameDatasource {
 }
 
 class DataFrameTest inherits QUnit::Test {
-    constructor() : Test("DataFrameTest", "1.0") {
+    constructor() : Test("DataFrameTest", "1.0", \ARGV) {
         addTestCase("constructionTest", \constructionTest());
         addTestCase("typedApiMetadataTest", \typedApiMetadataTest());
         addTestCase("typeInferenceTest", \typeInferenceTest());
@@ -110,9 +105,6 @@ class DataFrameTest inherits QUnit::Test {
     }
 
     constructionTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         # Empty constructor
         DataFrame::DataFrame empty();
         assertEq(0, empty.numRows(), "empty DataFrame has 0 rows");
@@ -132,9 +124,6 @@ class DataFrameTest inherits QUnit::Test {
     }
 
     typedApiMetadataTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         Program p(PO_NEW_STYLE);
         p.parse("
 %requires dataframe
@@ -167,7 +156,6 @@ sub typed_dataframe_api() {
 }
 ", "dataframe typed API");
 
-%ifndef NoDataProviderDataFrame
         Program p3(PO_NEW_STYLE);
         p3.parse("
 %requires DataProviderDataFrame
@@ -179,7 +167,6 @@ sub typed_dataframe_provider() {
     hash<auto> rec = iter.getValue();
 }
 ", "dataframe provider typed API");
-%endif
 
         Program p2(PO_NEW_STYLE);
         assertThrows("PARSE-TYPE-ERROR", \p2.parse(), ("
@@ -193,9 +180,6 @@ sub invalid_dataframe_api() {
     }
 
     typeInferenceTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"int_col": 42, "float_col": 3.14, "str_col": "hello",
               "bool_col": True},));
@@ -212,9 +196,6 @@ sub invalid_dataframe_api() {
     }
 
     metadataTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"name": "Alice", "age": 30},
              {"name": "Bob",   "age": 25}));
@@ -228,9 +209,6 @@ sub invalid_dataframe_api() {
     }
 
     accessTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"a": 10, "b": "x"},
              {"a": 20, "b": "y"},
@@ -247,9 +225,6 @@ sub invalid_dataframe_api() {
     }
 
     pluginDescriptorRegistryTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         PluginRegistry process_registry = PluginRegistry::getProcessRegistry();
         PluginRegistry program_registry = PluginRegistry::get();
 
@@ -338,9 +313,6 @@ sub invalid_dataframe_api() {
     }
 
     pluginOperatorTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"id": 1, "name": "Alice", "score": 95.5},
              {"id": 2, "name": "Bob",   "score": 88.0},
@@ -418,9 +390,6 @@ sub invalid_dataframe_api() {
     }
 
     denseBufferColumnTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         buffer<int64> ids = new buffer<int64>((1001, 1002, 1003));
         buffer<float64> scores = new buffer<float64>((95.5, 88.0, 92.0));
         buffer<*string> names = new buffer<*string>(("Alice", "Bob", "Carol"));
@@ -460,9 +429,6 @@ sub invalid_dataframe_api() {
     }
 
     roundTripTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         list<hash<auto>> original = (
             {"x": 1, "y": "a"},
             {"x": 2, "y": "b"},
@@ -483,9 +449,6 @@ sub invalid_dataframe_api() {
     }
 
     mutationTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(({"a": 1}, {"a": 2}));
 
         # addColumn
@@ -511,9 +474,6 @@ sub invalid_dataframe_api() {
     }
 
     describeTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"val": 10.0, "name": "a"},
              {"val": 20.0, "name": "b"},
@@ -541,9 +501,6 @@ sub invalid_dataframe_api() {
     }
 
     headTailSliceTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"v": 1}, {"v": 2}, {"v": 3}, {"v": 4}, {"v": 5}));
 
@@ -571,9 +528,6 @@ sub invalid_dataframe_api() {
     }
 
     nullHandlingTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"a": 1, "b": "x"},
              {"a": NOTHING, "b": "y"},
@@ -598,9 +552,6 @@ sub invalid_dataframe_api() {
     }
 
     selectTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"a": 1, "b": "x", "c": 10.0},
              {"a": 2, "b": "y", "c": 20.0},
@@ -614,9 +565,6 @@ sub invalid_dataframe_api() {
     }
 
     filterTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"name": "Alice", "age": 30, "score": 95.5},
              {"name": "Bob",   "age": 25, "score": 88.0},
@@ -666,9 +614,6 @@ sub invalid_dataframe_api() {
     }
 
     sortByTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"name": "Carol", "age": 35},
              {"name": "Alice", "age": 30},
@@ -690,9 +635,6 @@ sub invalid_dataframe_api() {
     }
 
     horizontalConcatTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame left({"id": new buffer<int64>((1, 2, 3)), "name": ("Ada", "Bo", "Cy")});
         DataFrame::DataFrame right({"score": new buffer<float64>((90.0, 80.0, 70.0)), "active": (True, False, True)});
 
@@ -719,9 +661,6 @@ sub invalid_dataframe_api() {
     }
 
     columnarResultFilterTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df({
             "id": new buffer<int64>((1, 2, 3, 4)),
             "segment": new buffer<int64>((1, 1, 2, 2)),
@@ -765,9 +704,6 @@ sub invalid_dataframe_api() {
     }
 
     takeRowsTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df({
             "id": new buffer<int64>((1, 2, 3, 4)),
             "amount": new buffer<float64>((90.0, 220.0, 180.0, 125.0)),
@@ -797,9 +733,6 @@ sub invalid_dataframe_api() {
     }
 
     fillnaDropnaTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"a": 1,       "b": "x"},
              {"a": NOTHING, "b": "y"},
@@ -819,9 +752,6 @@ sub invalid_dataframe_api() {
     }
 
     valueCountsTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df({
             "region": ("north", "south", "north", "west", "south", "south", NOTHING),
             "score": (10.0, 20.0, 10.0, 30.0, 20.0, 20.0, NOTHING),
@@ -862,9 +792,6 @@ sub invalid_dataframe_api() {
     }
 
     errorCasesTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(({"a": 1}, {"a": 2}));
 
         # Column not found
@@ -895,9 +822,6 @@ sub invalid_dataframe_api() {
     }
 
     csvReadTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         string csv_path = get_script_dir() + "/data/test_basic.csv";
         auto df = DataFrame::DataFrame::readCSV(csv_path);
 
@@ -917,9 +841,6 @@ sub invalid_dataframe_api() {
     }
 
     csvWriteRoundTripTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"x": 1, "y": "hello"},
              {"x": 2, "y": "world"}));
@@ -938,9 +859,6 @@ sub invalid_dataframe_api() {
     }
 
     groupByTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"dept": "sales",  "name": "Alice", "salary": 50000},
              {"dept": "sales",  "name": "Bob",   "salary": 60000},
@@ -973,9 +891,6 @@ sub invalid_dataframe_api() {
     }
 
     groupByAggTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"cat": "A", "val": 10, "score": 1.0},
              {"cat": "A", "val": 20, "score": 2.0},
@@ -1001,9 +916,6 @@ sub invalid_dataframe_api() {
     }
 
     pivotMeltTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         # Pivot: long → wide
         DataFrame::DataFrame long_df(
             ({"name": "Alice", "metric": "score", "value": 95},
@@ -1035,9 +947,6 @@ sub invalid_dataframe_api() {
     }
 
     windowFunctionsTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"dept": "A", "name": "Alice", "salary": 50000},
              {"dept": "A", "name": "Bob",   "salary": 60000},
@@ -1081,9 +990,6 @@ sub invalid_dataframe_api() {
     }
 
     joinTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame orders(
             ({"order_id": 1, "cust_id": 10, "amount": 99.0},
              {"order_id": 2, "cust_id": 20, "amount": 50.0},
@@ -1136,12 +1042,6 @@ sub invalid_dataframe_api() {
     }
 
     dataProviderTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
-%ifdef NoDataProviderDataFrame
-        testSkip("DataProviderDataFrame module not available");
-%endif
         DataFrame::DataFrame df(
             ({"name": "Alice", "age": 30, "score": 95.5},
              {"name": "Bob",   "age": 25, "score": 88.0},
@@ -1196,12 +1096,6 @@ sub invalid_dataframe_api() {
     }
 
     dataProviderPipelineShapeTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
-%ifdef NoDataProviderDataFrame
-        testSkip("DataProviderDataFrame module not available");
-%endif
         DataFrame::DataFrame df(
             ({"name": "Alice", "status": "active", "amount": 90},
              {"name": "Bob", "status": "inactive", "amount": 220},
@@ -1625,12 +1519,6 @@ sub invalid_dataframe_api() {
     }
 
     dataProviderDpqlShapeTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
-%ifdef NoDataProviderDataFrame
-        testSkip("DataProviderDataFrame module not available");
-%endif
         DataFrame::DataFrame df({
             "id": new buffer<int64>((1, 2, 3, 4)),
             "status": ("active", "inactive", "active", "active"),
@@ -1844,12 +1732,6 @@ sub invalid_dataframe_api() {
     }
 
     bufferColumnsPipelineShapeTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
-%ifdef NoDataProviderDataFrame
-        testSkip("DataProviderDataFrame module not available");
-%endif
         DataFrame::DataFrame df({
             "id": new buffer<int64>((1, 2, 3, 4)),
             "segment": new buffer<int64>((1, 1, 2, 2)),
@@ -2377,9 +2259,6 @@ sub invalid_dataframe_api() {
     }
 
     parquetTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         # Test Parquet read/write round-trip
         DataFrame::DataFrame df(
             ({"id": 1, "name": "Alice", "score": 95.5},
@@ -2693,9 +2572,6 @@ sub invalid_dataframe_api() {
     }
 
     arrowIpcTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"id": 1, "name": "Alice", "score": 95.5, "active": True},
              {"id": 2, "name": "Bob",   "score": 88.0, "active": False},
@@ -2888,9 +2764,6 @@ sub invalid_dataframe_api() {
     }
 
     mlIntegrationTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         DataFrame::DataFrame df(
             ({"x1": 1.0, "x2": 2.0, "y": 10.0, "label": "a"},
              {"x1": 3.0, "x2": 4.0, "y": 20.0, "label": "b"},
@@ -2939,9 +2812,6 @@ sub invalid_dataframe_api() {
     }
 
     dbQueryTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         # Skip if no database connection available
         *string connstr = ENV.QORE_DB_CONNSTR_PGSQL;
         if (!connstr) {
@@ -2983,9 +2853,6 @@ sub invalid_dataframe_api() {
     }
 
     dbQueryDispatchTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         MockDataFrameDatasource fallback(False);
         DataFrame::DataFrame fallback_df = DataFrame::DataFrame::fromQuery(fallback, "select test");
         assertEq(1, fallback.selectCalls(), "fromQuery uses select() when native columnar support is absent");
@@ -3003,9 +2870,6 @@ sub invalid_dataframe_api() {
     }
 
     csvMissingValuesTest() {
-%ifdef NoDataFrame
-        testSkip("dataframe module not available");
-%endif
         string csv_path = get_script_dir() + "/data/test_missing.csv";
         auto df = DataFrame::DataFrame::readCSV(csv_path);
 

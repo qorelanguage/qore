@@ -17,7 +17,6 @@
 #include <qore/QorePluginType.h>
 
 #include <array>
-#include <cstring>
 #include <vector>
 
 using namespace QoreDataFrameNS;
@@ -56,15 +55,13 @@ constexpr uint16_t DATAFRAME_OP_ROW_MASK_NOT = 7;
 constexpr int DATAFRAME_LLVM_EXTENSION_COUNT = 1;
 
 QoreValue dataframeValueFromBits(uint64_t bits) {
-    QoreValue value;
-    std::memcpy(&value, &bits, sizeof(value));
-    return value;
+    QoreSimpleValue value;
+    value.setRawBits(bits);
+    return QoreValue(value);
 }
 
 uint64_t dataframeBitsFromValue(const QoreValue& value) {
-    uint64_t bits = 0;
-    std::memcpy(&bits, &value, sizeof(bits));
-    return bits;
+    return value.rawBits();
 }
 
 void dataframeIncref(uint64_t value_bits) noexcept {

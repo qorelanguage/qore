@@ -54,6 +54,13 @@ Vendor `modules/json/third-party/jsoncons/{include,LICENSE,README.md}` — 3.8 M
 at **v1.8.1** (2026-06-09, newest stable). `doc/`, `test/`, `examples/`, `examples_boost/` and
 `fuzzers/` are not vendored (~14 MB dropped). No git submodule: the Qore tree has none today.
 
+The vendored bigint copy constructor delegates to its allocator-taking overload. With an empty
+allocator base, GCC 16 at `-Og` otherwise aliases the destination allocator reference with the
+uninitialized union storage and reports `-Wmaybe-uninitialized`. Delegation takes the allocator from
+the already-constructed source and shares one initialization path for inline and allocated storage.
+The `qore-json-bigint-test` target checks both storage forms, signs, independent copies, stateful
+allocator ownership, and allocation failure; build and run it in `build-debug/`, including under Valgrind.
+
 **Why not FetchContent.** Every FetchContent user in this tree is either optional or backs a
 library distros actually ship (nghttp2, c-ares, tree-sitter). jsoncons is packaged only on
 Debian unstable / Ubuntu (`libjsoncons-dev`); it is absent from Fedora, Alpine, Homebrew and

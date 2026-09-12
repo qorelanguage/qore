@@ -296,16 +296,8 @@ public:
     }
 
     bigint_storage(const bigint_storage& other)
-        : word_allocator_type(other.get_allocator())
+        : bigint_storage(other, other.get_allocator())
     {
-        if (!other.is_allocated())
-        {
-            ::new (&inlined_) inlined_storage(other.inlined_);
-        }
-        else
-        {
-            ::new (&allocated_) allocated_storage(other.allocated_, get_allocator());
-        }
     }
 
     bigint_storage(const bigint_storage& other, const Allocator& alloc)

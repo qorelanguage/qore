@@ -28,13 +28,11 @@
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../qlib"
-%prepend-module-path "${SCRIPT_DIR}/../../../build/modules/protobuf"
-%prepend-module-path "${SCRIPT_DIR}/../../../build/modules/ml"
 
-%requires QUnit
-%requires FsUtil
+%requires ../../../qlib/QUnit.qm
+%requires ../../../qlib/FsUtil.qm
 %requires ml
-%requires QoreOnnxExport
+%requires ../../../qlib/QoreOnnxExport
 
 %exec-class MlTest
 

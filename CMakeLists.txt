@@ -2743,6 +2743,14 @@ target_include_directories(qore-json-cpp-api-smoke PRIVATE
     ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(qore-json-cpp-api-smoke PRIVATE libqore)
 
+# Vendored bigint copy regression; independent of libqore and safe to run under Valgrind.
+add_executable(qore-json-bigint-test EXCLUDE_FROM_ALL examples/test/json/jsoncons_bigint.cpp)
+target_include_directories(qore-json-bigint-test PRIVATE
+    ${CMAKE_SOURCE_DIR}/modules/json/third-party/jsoncons/include)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(qore-json-bigint-test PRIVATE -Werror=maybe-uninitialized)
+endif()
+
 add_executable(qore-ir-plugin-registry-smoke EXCLUDE_FROM_ALL
     examples/test/ir/plugin_registry_smoke.cpp
     ${QORE_IR_PHASE0_SMOKE_RUNTIME_SRC})

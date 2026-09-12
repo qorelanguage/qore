@@ -1257,6 +1257,8 @@ ml_save_model(km, "/tmp/model.qml");
     @throw FILE-ERROR if the file cannot be written
 */
 nothing ml_save_model(AbstractMLModel[QoreMLModel] model, string path, *hash<auto> options) [dom=FILESYSTEM] {
+    // Reserved in the public signature; the current native format has no configurable options.
+    static_cast<void>(options);
     if (!model->isFitted()) {
         xsink->raiseException("ML-SERIALIZE-ERROR",
             "model has not been fitted: call fit() before saving");
