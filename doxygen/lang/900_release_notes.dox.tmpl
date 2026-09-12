@@ -2990,6 +2990,24 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
     - Fixed static-file cache revalidation and large-file compression in @ref webutilintro "WebUtil" 1.8.1. Conditional
       responses preserve the selected cache policy, and large files are compressed with bounded memory.
       Content encoding negotiation honors client preferences and exclusions across HTTP/1, HTTP/2, and HTTP/3.
+    - Fixed reference cycles never being collected when a hash or list inside the cycle is also referenced from
+      an object outside it. The recursive-reference scanner recorded containers it had walked by container, so
+      only the first reference into a shared container was followed; when that first reference came from outside
+      the cycle, the objects behind the container were left out of the recursive set, the reference counts of
+      anything they referenced came out short, and the cycle was stranded for the life of the process along with
+      everything it held, including the program of a user module implementing the classes involved. Which
+      reference survived depended on traversal order, so the same graph could also be judged collectable while
+      an object outside the cycle still reached into it. The scanner now follows every reference into a
+      container while still counting each container's contents exactly once, and a scan that restarts after
+      lock contention resets its container and closure bookkeeping instead of re-walking objects while skipping
+      containers the abandoned attempt had already seen.
+    - Fixed reference cycles never being collected after the references that blocked them went away. The
+      reference counts computed for a cycle are a snapshot taken when it was detected, and they were trusted
+      indefinitely; a container in the cycle losing its last holder outside it, or an object in another cycle
+      being collected, left the snapshot describing a graph that no longer existed, and the stale verdict was
+      never revisited, because dropping a reference to an object already known to be uncollectable does not
+      start a new scan. Cycles are now re-examined when a member has lost references since the snapshot was
+      taken, which is the only case in which the outcome can have changed.
     - Fixed Zstandard compression streams producing an endless sequence of empty frames after end of input.
     - Build
       - fixed \c QORE_CATALOG_DIR being empty in a from-scratch build; it was defined after the two places that

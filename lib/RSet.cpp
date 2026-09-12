@@ -40,7 +40,7 @@ bool RObject::scanCheck(RSetHelper& rsh, AbstractQoreNode* n) {
 #ifdef _QORE_CYCLE_CHECK
     rsh.setScanContext(this);
 #endif
-    return rsh.checkIntern(n);
+    return rsh.checkIntern(n, this, true);
 }
 
 void RObject::setRSet(RSet* rs, int rcnt) {
@@ -52,6 +52,9 @@ void RObject::setRSet(RSet* rs, int rcnt) {
     }
     rset = rs;
     rcount = rcnt;
+    // record the reference count the scan saw, so a later canDelete() can tell a stale snapshot from a genuine
+    // external reference
+    scan_refs = references;
 #ifdef DEBUG
     if (rcount > references) {
         printd(0, "RObject::setRSet() this: %p '%s' cannot set rcount %d > references %d\n", this, getName(), rcount,
@@ -198,7 +201,7 @@ void RSet::dbg() {
 #endif
 
 // if we return 1, the rset has been invalidated already
-int RSet::canDelete(int ref_copy, int rcount) {
+int RSet::canDelete(int ref_copy, int rcount, int scan_refs) {
     printd(QRO_LVL, "RSet::canDelete() this: %p valid: %d\n", this, valid);
 
     if (q_disable_gc)
@@ -223,9 +226,14 @@ int RSet::canDelete(int ref_copy, int rcount) {
         if (ref_copy < rcount) {
             need_rescan = true;
         } else if (ref_copy != rcount) {
-            // ref_copy > rcount: the triggering object has live external refs
-            // outside the cycle — can't delete from this thread.
-            return 0;
+            // ref_copy > rcount: the triggering object has live external refs outside the cycle -- unless its
+            // own rcount is a stale snapshot.  See the member loop below: a reference the scan counted can be
+            // dropped afterwards without invalidating the rset, and nothing would ever re-examine the verdict.
+            if (scan_refs >= 0 && ref_copy < scan_refs) {
+                need_rescan = true;
+            } else {
+                return 0;
+            }
         } else {
             for (rset_t::iterator i = begin(), e = end(); i != e; ++i) {
                 // no locking needed: if there are no external references, no external changes can be made
@@ -239,7 +247,20 @@ int RSet::canDelete(int ref_copy, int rcount) {
                 }
                 if ((*i)->rcount != r) {
                     printd(QRO_LVL, "RSet::canDelete() this: %p cannot delete graph obj %p '%s' rcount: %d "
-                        "refs: %d\n", this, *i, (*i)->getName(), (*i)->rcount, r);
+                        "refs: %d (scan_refs: %d)\n", this, *i, (*i)->getName(), (*i)->rcount, r,
+                        (*i)->scan_refs);
+                    // rcount < refs normally means a live reference from outside the rset.  But rcount is a
+                    // snapshot taken when the rset was built, and a reference the scan DID count can be dropped
+                    // afterwards without invalidating the rset -- a container holding the object can lose its
+                    // last other holder, or an object in another rset can be collected.  The verdict cached here
+                    // would then be wrong forever, because a plain deref of an object whose rset says "cannot
+                    // delete" never triggers another scan.  Whenever a member has lost references since the
+                    // scan, the snapshot no longer describes the graph: rescan instead of trusting it.  After
+                    // the rescan scan_refs matches again, so this cannot loop.
+                    if ((*i)->scan_refs >= 0 && r < (*i)->scan_refs) {
+                        need_rescan = true;
+                        break;
+                    }
                     return 0;
                 }
                 printd(QRO_LVL, "RSet::canDelete() this: %p can delete graph obj %p '%s' rcount: %d refs: %d\n",
@@ -330,7 +351,7 @@ public:
     }
 };
 
-bool RSetHelper::checkIntern(AbstractQoreNode* n) {
+bool RSetHelper::checkIntern(AbstractQoreNode* n, const void* parent, bool count) {
     if (!needs_scan(n)) {
         return false;
     }
@@ -344,21 +365,25 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
     switch (get_node_type(n)) {
         case NT_OBJECT: {
             QoreObject* obj = reinterpret_cast<QoreObject*>(n);
-            return checkIntern(*qore_object_private::get(*obj));
+            return checkIntern(*qore_object_private::get(*obj), count);
         }
 
         case NT_LIST: {
             QoreListNode* l = reinterpret_cast<QoreListNode*>(n);
-            // check if the list has already been scanned
-            lset_t::iterator lmi = lset.lower_bound(l);
-            if (lmi != lset.end() && *lmi == l) {
+            // check if this edge into the list has already been scanned
+            lset_t::value_type edge(parent, l);
+            lset_t::iterator lmi = lset.lower_bound(edge);
+            if (lmi != lset.end() && *lmi == edge) {
                 return false;
             }
-            lset.insert(lmi, l);
+            lset.insert(lmi, edge);
+
+            // only the first walk of this list counts its slots towards the rcounts of the objects in them
+            bool count_slots = counted_containers.insert(l).second;
 
             ListIterator li(l);
             while (li.next()) {
-                if (li.getValue().hasNode() && checkIntern(li.getValue().getInternalNode())) {
+                if (li.getValue().hasNode() && checkIntern(li.getValue().getInternalNode(), l, count_slots)) {
                     return true;
                 }
             }
@@ -367,17 +392,21 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
 
         case NT_HASH: {
             QoreHashNode* h = reinterpret_cast<QoreHashNode*>(n);
-            // check if the hash has already been scanned
-            hset_t::iterator hmi = hset.lower_bound(h);
-            if (hmi != hset.end() && *hmi == h) {
+            // check if this edge into the hash has already been scanned
+            hset_t::value_type edge(parent, h);
+            hset_t::iterator hmi = hset.lower_bound(edge);
+            if (hmi != hset.end() && *hmi == edge) {
                 return false;
             }
-            hset.insert(hmi, h);
+            hset.insert(hmi, edge);
+
+            // only the first walk of this hash counts its slots towards the rcounts of the objects in them
+            bool count_slots = counted_containers.insert(h).second;
 
             HashIterator hi(h);
             while (hi.next()) {
                 assert(hi.get().getInternalNode() != h);
-                if (hi.get().hasNode() && checkIntern(hi.get().getInternalNode())) {
+                if (hi.get().hasNode() && checkIntern(hi.get().getInternalNode(), h, count_slots)) {
                     return true;
                 }
             }
@@ -421,7 +450,7 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
                 unsigned csize = size();
 #endif
 
-                if (checkIntern(*i->second)) {
+                if (checkIntern(*i->second, true)) {
                     return true;
                 }
 
@@ -505,7 +534,7 @@ bool RSetHelper::removeInvalidate(RSet* ors, int tid) {
     return false;
 }
 
-bool RSetHelper::addToRSet(omap_t::iterator oi, RSet* rset, int tid) {
+bool RSetHelper::addToRSet(omap_t::iterator oi, RSet* rset, int tid, bool count) {
     // ensure that the current object is not in the rset
     assert(rset->find(oi->first) == rset->end());
 
@@ -536,10 +565,7 @@ bool RSetHelper::addToRSet(omap_t::iterator oi, RSet* rset, int tid) {
         oi->first->getName(), oi->second.rset, oi->second.in_cycle, oi->second.ok, oi->second.rcount,
         oi->second.rcount + 1, scan_context);
 #endif
-    ++oi->second.rcount;
-#ifdef _QORE_CYCLE_CHECK
-    setObjectScanContext(*oi->first, oi->second.rcount);
-#endif
+    countRef(oi, count);
     return false;
 }
 
@@ -579,7 +605,7 @@ void RSetHelper::mergeRSetIntern(RSet*& rset, RSet* old_rset) {
     delete old_rset;
 }
 
-bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid) {
+bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid, bool count) {
     for (++i; i < (int)ovec.size(); ++i) {
 #ifdef _QORE_CYCLE_CHECK
         RSetScanContextHelper rsc(*this, i == 0 ? scan_context : ovec[i - 1]->first);
@@ -587,11 +613,11 @@ bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid) {
         if (!ovec[i]->second.rset) {
             printd(QRO_LVL, " + %p '%s': adding parent to rset\n", ovec[i]->first, ovec[i]->first->getName());
             // add the object to the rset and increment rcount
-            if (addToRSet(ovec[i], fi->second.rset, tid)) {
+            if (addToRSet(ovec[i], fi->second.rset, tid, ocount[i])) {
                 return true;
             }
         } else if (!fi->second.rset) {
-            if (addToRSet(fi, ovec[i]->second.rset, tid)) {
+            if (addToRSet(fi, ovec[i]->second.rset, tid, count)) {
                 return true;
             }
         } else if (ovec[i]->second.rset != fi->second.rset) {
@@ -612,10 +638,7 @@ bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid) {
             ovec.back()->first, ovec.back()->first->getName(),
             fi->first, fi->first->getName(),
             fi->second.rcount, fi->second.rcount + 1);
-        ++fi->second.rcount;
-#ifdef _QORE_CYCLE_CHECK
-        setObjectScanContext(*fi->first, fi->second.rcount);
-#endif
+        countRef(fi, count);
     }
 
     return false;
@@ -631,7 +654,7 @@ void RSetHelper::setObjectScanContext(RObject& obj, int rcount) {
 #endif
 
 // XXX RSectionScanHelper
-bool RSetHelper::checkIntern(RObject& obj) {
+bool RSetHelper::checkIntern(RObject& obj, bool count) {
 #ifdef DEBUG
     bool hl = obj.rml.hasRSectionLock();
 #endif
@@ -661,6 +684,10 @@ bool RSetHelper::checkIntern(RObject& obj) {
         printd(QRO_LVL, "RSetHelper::checkIntern() + found obj %p '%s' rcount: %d in_cycle: %d ok: %d\n", &obj,
             obj.getName(), fi->second.rcount, fi->second.in_cycle, fi->second.ok);
 
+        // the object's position in the current scan chain, if any; the reference that put it there is the one a
+        // walk-back finalizes, so it decides whether that finalization may be counted
+        const int fi_idx = currentSetIndex(fi);
+
         if (fi->second.ok) {
             assert(!fi->second.in_cycle);
             printd(QRO_LVL, " + %p '%s' already scanned and ok\n", &obj, obj.getName());
@@ -672,16 +699,13 @@ bool RSetHelper::checkIntern(RObject& obj) {
             // check if this object is part of the current cycle already - if
             // 1) it's already in the current scan vector, or
             // 2) the parent object of the current object is already a part of the recursive set
-            if (inCurrentSet(fi)) {
+            if (fi_idx >= 0) {
 #ifdef _QORE_CYCLE_CHECK
                 printd(QRO_LVL, " + recursive obj %p '%s' already finalized and in current cycle "
                     "(rcount: %d -> %d) <- %p\n", &obj, obj.getName(), fi->second.rcount, fi->second.rcount + 1,
                     scan_context);
 #endif
-                ++fi->second.rcount;
-#ifdef _QORE_CYCLE_CHECK
-                setObjectScanContext(obj, fi->second.rcount);
-#endif
+                countRef(fi, count);
                 // rcount can never be more than real references for the target object
                 assert(fi->first->references >= fi->second.rcount);
             } else if (!ovec.empty()) {
@@ -692,10 +716,7 @@ bool RSetHelper::checkIntern(RObject& obj) {
                         obj.getName(), ovec.back()->first, ovec.back()->first->getName(), fi->second.rcount,
                         fi->second.rcount + 1, scan_context);
 #endif
-                    ++fi->second.rcount;
-#ifdef _QORE_CYCLE_CHECK
-                    setObjectScanContext(obj, fi->second.rcount);
-#endif
+                    countRef(fi, count);
                     // rcount can never be more than real references for the target object
                     assert(fi->first->references >= fi->second.rcount);
                     return false;
@@ -707,7 +728,7 @@ bool RSetHelper::checkIntern(RObject& obj) {
                     if (fi->second.rset == ovec[i]->second.rset) {
                         printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in "
                             "current cycle\n", &obj, obj.getName(), ovec[i]->first, ovec[i]->first->getName());
-                        return makeChain(i, fi, tid);
+                        return makeChain(i, fi, tid, count);
                     }
                 }
 
@@ -717,7 +738,7 @@ bool RSetHelper::checkIntern(RObject& obj) {
                     if (fi->second.rset->find((ovec[i])->first) != fi->second.rset->end()) {
                         printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in "
                             "current cycle\n", &obj, obj.getName(), ovec[i]->first, ovec[i]->first->getName());
-                        return makeChain(i, fi, tid);
+                        return makeChain(i, fi, tid, count);
                     }
                 }
 
@@ -726,7 +747,7 @@ bool RSetHelper::checkIntern(RObject& obj) {
                 return false;
             }
         } else {
-            if (!inCurrentSet(fi)) {
+            if (fi_idx < 0) {
                 printd(QRO_LVL, " + recursive obj %p '%s' not in current cycle\n", &obj, obj.getName());
                 return false;
             }
@@ -770,12 +791,12 @@ bool RSetHelper::checkIntern(RObject& obj) {
                         oi->first->getName(), obj.rcycle, oi->second.rset, rset);
                 }
 
-                if (addToRSet(oi, rset, tid)) {
+                if (addToRSet(oi, rset, tid, ocount[i])) {
                     return true;
                 }
             } else if (!rset) {
                 rset = oi->second.rset;
-                if (addToRSet(fi, rset, tid)) {
+                if (addToRSet(fi, rset, tid, chainCount(fi_idx, count))) {
                     return true;
                 }
             } else if (oi->second.rset != rset) {
@@ -825,10 +846,7 @@ bool RSetHelper::checkIntern(RObject& obj) {
                     curr_oi->first, curr_oi->first->getName(),
                     next_oi->first, next_oi->first->getName(),
                     next_oi->second.rcount, next_oi->second.rcount + 1);
-                ++next_oi->second.rcount;
-#ifdef _QORE_CYCLE_CHECK
-                setObjectScanContext(*next_oi->first, next_oi->second.rcount);
-#endif
+                countRef(next_oi, ocount[j + 1]);
             }
         }
 
@@ -855,6 +873,7 @@ bool RSetHelper::checkIntern(RObject& obj) {
 
     // push on current vector chain
     ovec.push_back(fi);
+    ocount.push_back(count ? 1 : 0);
 
     // remove from invalidation set if present
     tr_out.erase(&obj);
@@ -869,6 +888,7 @@ bool RSetHelper::checkIntern(RObject& obj) {
 
     // remove from current vector chain
     ovec.pop_back();
+    ocount.pop_back();
 
     return false;
 }
@@ -920,7 +940,7 @@ RSetHelper::RSetHelper(RObject& obj) {
     RScanHelper rsh(obj);
 
     while (true) {
-        if (checkIntern(obj)) {
+        if (checkIntern(obj, true)) {
             rollback();
             // wait for foreign transaction to finish if necessary
             notifier.wait();
@@ -1040,6 +1060,14 @@ void RSetHelper::rollback() {
 
     fomap.clear();
     ovec.clear();
+    ocount.clear();
+    // the scan starts over from scratch, so the container, closure and reference-counting memos must be reset
+    // as well; leaving them populated makes the retry skip every container and closure the aborted attempt
+    // already walked, which drops those edges from the graph exactly as a per-node container memo would
+    hset.clear();
+    lset.clear();
+    closure_set.clear();
+    counted_containers.clear();
     tr_out.clear();
     tr_invalidate.clear();
 

@@ -59,6 +59,7 @@ public:
 
     int rscan = 0,          // TID flag for starting a recursive scan
         rcount = 0,         // the number of unique recursive references to this object
+        scan_refs = -1,     // "references" as observed when rcount was assigned; -1 = never scanned
         rwaiting = 0,       // the number of threads waiting for a scan of this object
         rcycle = 0,         // the recursive cycle/transaction number to see if the object has been scanned since a transaction restart
         ref_inprogress = 0, // the number of dereference actions in progress
@@ -254,7 +255,7 @@ public:
         0: cannot delete
         1: the rset has been invalidated already, the object can be deleted
     */
-    DLLLOCAL int canDelete(int ref_copy, int rcount);
+    DLLLOCAL int canDelete(int ref_copy, int rcount, int scan_refs);
 
 #ifdef DEBUG
     DLLLOCAL void dbg();
@@ -362,6 +363,7 @@ public:
 
     DLLLOCAL ~RSetHelper() {
         assert(ovec.empty());
+        assert(ocount.empty());
         assert(!lcnt);
     }
 
@@ -379,12 +381,12 @@ public:
 
     // returns true if a lock error has occurred, false if otherwise
     DLLLOCAL bool checkNode(AbstractQoreNode* n) {
-        return checkIntern(n);
+        return checkIntern(n, nullptr, true);
     }
 
     // returns true if a lock error has occurred, false if otherwise
     DLLLOCAL bool checkNode(RObject& robj) {
-        return checkIntern(robj);
+        return checkIntern(robj, true);
     }
 
 #ifdef _QORE_CYCLE_CHECK
@@ -400,17 +402,35 @@ protected:
     // map of all objects scanned to rset (rset = finalized, 0 = not finalized, in current list)
     omap_t fomap;
 
-    // map scanned hashes to ensure they are only scanned once
-    typedef std::set<QoreHashNode*> hset_t;
+    // Scanned container EDGES, not container nodes: the key is (referring node, container).  A container node can
+    // be referenced by more than one object or container, and every one of those references is a distinct edge in
+    // the object graph that the scan must follow in order to compute rcount and cycle membership correctly.
+    // Memoizing on the container alone drops every edge into it but the first, which leaves objects behind the
+    // container out of the recursive set and undercounts rcount for anything they reference; RSet::canDelete()
+    // then reads rcount < references as an external reference and strands the cycle permanently.  Keying on the
+    // edge still visits each edge exactly once, so the scan stays linear in the number of graph edges.
+    typedef std::set<std::pair<const void*, QoreHashNode*>> hset_t;
     hset_t hset;
 
-    // map scanned lists to ensure they are only scanned once
-    typedef std::set<QoreListNode*> lset_t;
+    typedef std::set<std::pair<const void*, QoreListNode*>> lset_t;
     lset_t lset;
+
+    // Containers whose contents have already been counted towards rcount in this scan.  A container's slots are
+    // references to the objects in them whatever number of objects reference the container itself, so the scan
+    // must count those slots exactly once -- with multiplicity, since one container can hold the same object in
+    // several slots -- while still following every edge into the container for cycle membership.  The first walk
+    // of a container counts; later walks of the same container establish membership only.
+    typedef std::set<const void*> counted_containers_t;
+    counted_containers_t counted_containers;
 
     typedef std::vector<omap_t::iterator> ovec_t;
     // current objects being scanned, used to establish a cycle
     ovec_t ovec;
+
+    // whether the edge that reached each ovec entry may be counted towards its rcount; false when the entry was
+    // reached through a container whose contents another walk has already counted
+    typedef std::vector<char> ocount_t;
+    ocount_t ocount;
 
     // list of RSet objects to be invalidated when the transaction is committed
     rs_set_t tr_invalidate;
@@ -443,31 +463,57 @@ protected:
     // commit transaction
     DLLLOCAL void commit(RObject& obj);
 
-    // returns true if a lock error has occurred, false if otherwise
-    DLLLOCAL bool checkIntern(RObject& obj);
-    // returns true if a lock error has occurred, false if otherwise
-    DLLLOCAL bool checkIntern(AbstractQoreNode* n);
+    // returns true if a lock error has occurred, false if otherwise; "count" is false when the object was
+    // reached through a container whose contents have already been counted by an earlier walk
+    DLLLOCAL bool checkIntern(RObject& obj, bool count);
+    // returns true if a lock error has occurred, false if otherwise; "parent" is the referring node, which is the
+    // memo key for the edge into a container; "count" applies to an object found directly under this node
+    DLLLOCAL bool checkIntern(AbstractQoreNode* n, const void* parent, bool count);
+
+    //! Counts one reference to the object unless another walk of the same container already counted it
+    DLLLOCAL void countRef(omap_t::iterator oi, bool count) {
+        if (!count) {
+            printd(QRO_LVL, " + %p '%s': container contents already counted (rcount: %d)\n", oi->first,
+                oi->first->getName(), oi->second.rcount);
+            return;
+        }
+        ++oi->second.rcount;
+#ifdef _QORE_CYCLE_CHECK
+        setObjectScanContext(*oi->first, oi->second.rcount);
+#endif
+    }
 
     // queues nodes not scanned to tr_invalidate and tr_out
     DLLLOCAL bool removeInvalidate(RSet* ors, int tid = q_gettid());
 
-    DLLLOCAL bool inCurrentSet(omap_t::iterator fi) {
-        for (size_t i = 0; i < ovec.size(); ++i) {
+    //! Returns the object's position in the current scan chain, or -1 if it is not in it
+    DLLLOCAL int currentSetIndex(omap_t::iterator fi) {
+        for (size_t i = 0, e = ovec.size(); i < e; ++i) {
             if (ovec[i] == fi) {
-                return true;
+                return static_cast<int>(i);
             }
         }
-        return false;
+        return -1;
+    }
+
+    /** Returns whether the reference that put the object on the current scan chain may be counted towards its
+        rcount.  When the object is already on the chain (\a idx >= 0), that reference is the one the walk-back
+        finalizes, and it belongs to the walk that pushed the object there -- which may be an earlier walk of a
+        container than the one being followed now.  Otherwise the reference being counted is the one currently
+        being followed.
+    */
+    DLLLOCAL bool chainCount(int idx, bool count) const {
+        return idx >= 0 ? ocount[idx] != 0 : count;
     }
 
     // returns true if there is a lock failure
-    DLLLOCAL bool addToRSet(omap_t::iterator oi, RSet* rset, int tid);
+    DLLLOCAL bool addToRSet(omap_t::iterator oi, RSet* rset, int tid, bool count);
 
     DLLLOCAL void mergeRSet(int i, RSet*& rset);
 
     DLLLOCAL void mergeRSetIntern(RSet*& rset, RSet* old_rset);
 
-    DLLLOCAL bool makeChain(int i, omap_t::iterator fi, int tid);
+    DLLLOCAL bool makeChain(int i, omap_t::iterator fi, int tid, bool count);
 
 #ifdef _QORE_CYCLE_CHECK
     DLLLOCAL void setObjectScanContext(RObject& obj, int rcount);

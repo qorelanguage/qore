@@ -65,6 +65,60 @@ if (rrefs) {
 
 Scans are retried after the last `realDeref()` drops `rrefs` to 0. If a `realRef()` is leaked (never dereferenced), cycle collection for that object never runs.
 
+### Shared containers: the scan follows edges, not nodes
+
+A `QoreHashNode` or `QoreListNode` can be referenced by more than one object. Each of those references is a
+distinct edge in the object graph, and the scanner must follow **every** one of them: the traversal chain
+(`ovec`) built along an edge is what establishes cycle membership for the objects behind the container, and each
+edge is what contributes to their `rcount`.
+
+`RSetHelper::checkIntern()` therefore memoizes on the *edge* — `(referring node, container)` — in `hset` / `lset`,
+not on the container node alone. `RObject::scanCheck()` supplies the owning `RObject*` as the referring node for
+an object member; a nested container supplies the enclosing container node. Every edge is still walked exactly
+once, so the scan stays linear in the number of graph edges.
+
+Memoizing on the container node alone is a cycle leak (fixed 2026-09-12). It drops every edge into a container
+but the first one the DFS happens to reach, and the outcome then depends on traversal order:
+
+- If the surviving edge comes from outside the candidate cycle, the objects behind the container never enter the
+  rset, and anything they reference is left with `rcount < references`. `RSet::canDelete()` reads that as a live
+  external reference, returns 0, and — because the rset stays valid — caches that verdict forever. Nothing
+  re-evaluates it afterwards, because what later makes the graph collectable is a *container's* reference count
+  dropping, which is invisible to the rset validity model. The cycle is stranded permanently.
+- If the surviving edge comes from inside the cycle, the objects behind the container are placed in the rset with
+  `rcount == references` even while an object outside the rset still reaches them through the same container.
+
+The symptom of the first case, from `qore -d1` on a debug build:
+
+```
+scanMembersIntern() search <outside obj> key 'declared' 0x390a5600 (hash)   <- walked
+scanMembersIntern() search <in-cycle obj> key 'attrs'   0x390a5600 (hash)   <- same node, nothing follows
+setRSet() <obj behind the container>  rs: (nil)      rcnt: 0
+RSet::canDelete() cannot delete graph obj <its target> rcount: 1 refs: 2
+```
+
+Regression coverage: `examples/test/qore/misc/shared-container-cycles.qtest`.
+
+### `rcount` is a snapshot: `scan_refs` and stale verdicts
+
+`rcount` is computed once, when the rset is built, and `RSet::canDelete()` then compares it against the object's
+*live* `references` on every deref. That comparison self-corrects only for references the scan never counted: when
+a genuinely external reference goes away, `references` falls to `rcount` and the cycle collects.
+
+It does not self-correct when the graph changes in a way that would make the scan count *more* than it did —
+a container in the cycle losing its last holder outside the rset, or an object in a different rset being
+collected. Nothing invalidates the rset in those cases, `canDelete()` keeps reading `rcount < references` as a
+live external reference, and it returns 0 forever: a plain deref of an object whose rset says "cannot delete"
+never triggers another scan (`RObject::deref()` only sets `do_scan` when `rrefs` is 0 and only requests a rescan
+when `deferred_scan` was set). The cycle is then stranded for the life of the process.
+
+`RObject::scan_refs` records what `references` was when `rcount` was assigned (`RObject::setRSet()`). When
+`canDelete()` finds a member with `rcount != references` *and* that member has lost references since the scan,
+the snapshot no longer describes the graph, so it invalidates the rset and asks for a rescan instead of trusting
+it. Members whose reference count is unchanged still return 0 immediately, so this costs no extra scans in the
+ordinary "something outside still holds it" case, and after a rescan `scan_refs` matches again, so it cannot
+loop.
+
 ## When a scan is triggered — and when it may be skipped
 
 `LValueHelper::~LValueHelper` (`lib/Variable.cpp`) runs a scan whenever it holds an lvalue inside an `RObject`
@@ -197,7 +251,8 @@ Do not use `realRef()` for references stored in C++ state that outlives a single
 
 ## Related files
 
-- `include/qore/intern/RSet.h` — `RObject`, `RSet`, field declarations.
+- `include/qore/intern/RSet.h` — `RObject`, `RSet`, field declarations, `scan_refs`, the container-edge and
+  per-container counting memos.
 - `include/qore/intern/RSection.h` — r-section lock semantics.
 - `lib/RSet.cpp` — `canDelete`, `deref`, `checkDeferScan`, invalidation, and the scanner proper
   (`RSetHelper::checkIntern`: cycle traversal + `rcount` assignment).
@@ -212,3 +267,5 @@ Do not use `realRef()` for references stored in C++ state that outlives a single
 - `lib/QoreTypeInfo.cpp` — `QoreTypeSpec::acceptInput`, the only `suppressObjectScan()` caller.
 - `examples/test/qore/misc/reference-arg-binding.qtest` — cycle-collection and scan-cost regression tests for
   reference argument binding.
+- `examples/test/qore/misc/shared-container-cycles.qtest` — cycles reached through a container
+  shared with an object outside the recursive set.

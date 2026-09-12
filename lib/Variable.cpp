@@ -3232,7 +3232,7 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
                         break;
                     }
                     if (!qodh.deferredScan()) {
-                        int rc = rset->canDelete(ref_copy, rcount);
+                        int rc = rset->canDelete(ref_copy, rcount, scan_refs);
                         if (rc == 1) {
                             printd(QORE_DEBUG_OBJ_REFS, "ClosureVarValue::deref() this: %p found recursive reference; deleting value\n", this);
                             do_del = true;

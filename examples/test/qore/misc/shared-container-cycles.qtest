@@ -1,0 +1,300 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires QUnit
+
+%exec-class SharedContainerCycleTest
+
+#! Counts destructor calls for every class participating in the graphs below
+class Counted {
+    public {
+        static int dc = 0;
+    }
+
+    destructor() {
+        ++Counted::dc;
+    }
+
+    static reset() {
+        Counted::dc = 0;
+    }
+}
+
+#  The graphs below all have the same shape as the object graph that exposed the defect: a reference cycle,
+#  plus a container that is referenced both by an object inside the cycle and by an object outside it, with an
+#  object behind that container referencing a second cycle member.
+#
+#  The recursive-reference scanner must follow *every* reference into a container, not just the first one it
+#  reaches.  Memoizing on the container node alone drops all but one edge into it; if the surviving edge comes
+#  from outside the cycle, the objects behind the container never enter the recursive set and anything they
+#  reference is left with rcount < references.  RSet::canDelete() then reads that as a live external reference
+#  and caches the verdict in a still-valid rset, so the cycle is never collected.
+#
+#  Local variables are declared so that the last object destroyed on the way out of the builder -- and so the
+#  root of the last scan before teardown -- is the object outside the cycle.  That is the ordering the scanner
+#  got wrong; with the container reached from inside the cycle first the graph collected either way.
+
+class Leaf inherits Counted {
+    public { Hub hub; }
+}
+
+class Held inherits Counted {
+    public { Leaf leaf; }
+}
+
+class Member inherits Counted {
+    public {
+        Hub hub;
+        auto held;
+    }
+}
+
+class Link inherits Counted {
+    public { auto member; }
+}
+
+#! Two members of one cycle holding the same container node
+class Twin inherits Counted {
+    public {
+        Hub hub;
+        auto shared;
+    }
+}
+
+class Registry inherits Counted {
+    public {
+        hash<string, Link> links();
+        auto shared;
+    }
+}
+
+class Hub inherits Counted {
+    public {
+        Registry registry;
+        hash<string, Leaf> leaves();
+    }
+}
+
+#! Outside the cycle; "shared" is declared before "hub" so a scan rooted here reaches the shared container first
+class Outside inherits Counted {
+    public {
+        auto shared;
+        Hub hub;
+    }
+}
+
+#! Holds the outside object so that dropping it does not itself re-root the scan inside the cycle
+class Wrapper inherits Counted {
+    public { Outside child; }
+}
+
+#! A second, independent cycle that references into the first one and shares its container
+class Context inherits Counted {
+    public {
+        auto shared;
+        hash<string, Definition> definitions();
+    }
+}
+
+class Definition inherits Counted {
+    public {
+        auto declared;
+        Context owner;
+    }
+}
+
+class SharedContainerCycleTest inherits QUnit::Test {
+    public {
+        #! Hub, Registry, Link, Member, Held, Leaf, Outside, Wrapper
+        const GraphSize = 8;
+    }
+
+    constructor() : Test("shared container cycle collection", "1.0", \ARGV) {
+        addTestCase("cycle through a shared hash is collected", \sharedHashTest());
+        addTestCase("cycle through a shared list is collected", \sharedListTest());
+        addTestCase("cycle through a nested shared container is collected", \nestedContainerTest());
+        addTestCase("a container shared inside one cycle is counted once", \sharedInsideCycleTest());
+        addTestCase("a cycle blocked by another cycle is collected once that one goes", \blockingCycleTest());
+        addTestCase("an external holder still blocks collection", \externalHolderTest());
+        set_return_value(main());
+    }
+
+    #! Builds the graph with a hash shared between an in-cycle object and an out-of-cycle object
+    private Wrapper makeSharedHash() {
+        Outside o();
+        Wrapper w();
+        Hub hub(); Registry reg(); Link link(); Member member(); Held held(); Leaf leaf();
+
+        hub.registry = reg;
+        reg.links{"x"} = link;
+        link.member = member;
+        member.hub = hub;
+        leaf.hub = hub;
+        held.leaf = leaf;
+        hub.leaves{"leaf"} = leaf;
+
+        hash<string, Held> shared = {"held": held};
+        member.held = shared;
+
+        o.hub = hub;
+        o.shared = shared;
+        w.child = o;
+        return w;
+    }
+
+    private sharedHashTest() {
+        Counted::reset();
+        {
+            Wrapper w = makeSharedHash();
+            assertEq(0, Counted::dc, "nothing is destroyed while the graph is held");
+        }
+        assertEq(GraphSize, Counted::dc, "the whole cycle is reclaimed once the last reference is dropped");
+    }
+
+    #! The same shape with a list instead of a hash; lists carry the same per-node scan memo
+    private Wrapper makeSharedList() {
+        Outside o();
+        Wrapper w();
+        Hub hub(); Registry reg(); Link link(); Member member(); Held held(); Leaf leaf();
+
+        hub.registry = reg;
+        reg.links{"x"} = link;
+        link.member = member;
+        member.hub = hub;
+        leaf.hub = hub;
+        held.leaf = leaf;
+        hub.leaves{"leaf"} = leaf;
+
+        list<Held> shared = (held,);
+        member.held = shared;
+
+        o.hub = hub;
+        o.shared = shared;
+        w.child = o;
+        return w;
+    }
+
+    private sharedListTest() {
+        Counted::reset();
+        {
+            Wrapper w = makeSharedList();
+        }
+        assertEq(GraphSize, Counted::dc, "the whole cycle is reclaimed once the last reference is dropped");
+    }
+
+    #! The shared node is a list nested inside a hash, so the dropped edge is container-to-container
+    private Wrapper makeNested() {
+        Outside o();
+        Wrapper w();
+        Hub hub(); Registry reg(); Link link(); Member member(); Held held(); Leaf leaf();
+
+        hub.registry = reg;
+        reg.links{"x"} = link;
+        link.member = member;
+        member.hub = hub;
+        leaf.hub = hub;
+        held.leaf = leaf;
+        hub.leaves{"leaf"} = leaf;
+
+        # the same list node is reached through two different hashes: the dropped edge is container-to-container
+        list<Held> inner = (held,);
+        member.held = {"inner": inner};
+
+        o.hub = hub;
+        o.shared = {"other": inner};
+        w.child = o;
+        return w;
+    }
+
+    private nestedContainerTest() {
+        Counted::reset();
+        {
+            Wrapper w = makeNested();
+        }
+        assertEq(GraphSize, Counted::dc, "the whole cycle is reclaimed once the last reference is dropped");
+    }
+
+    #! A container holds one reference per contained object however many cycle members reference the container;
+    #! counting it once per edge pushes rcount past references, which asserts in debug builds
+    private sharedInsideCycleTest() {
+        Counted::reset();
+        {
+            Hub hub(); Twin one(); Twin two(); Held held(); Leaf leaf();
+            hub.registry = new Registry();
+            leaf.hub = hub;
+            held.leaf = leaf;
+            hub.leaves{"leaf"} = leaf;
+            one.hub = hub;
+            two.hub = hub;
+            hash<string, Held> shared = {"held": held};
+            one.shared = shared;
+            two.shared = shared;
+            hub.registry.links{"one"} = new Link();
+            hub.registry.links."one".member = one;
+            hub.registry.links{"two"} = new Link();
+            hub.registry.links."two".member = two;
+        }
+        # Hub, Registry, 2 x Link, 2 x Twin, Held, Leaf
+        assertEq(8, Counted::dc, "the cycle is reclaimed and the shared container is counted once");
+    }
+
+    /** The reference counts recorded for a cycle are a snapshot taken when it was detected.  Here a second
+        cycle references into the first one and shares its container, so the first one's members carry
+        references the scan correctly judged external.  When the second cycle is collected those references go
+        away, and nothing invalidates the first one's snapshot: dropping a reference to an object whose
+        recursive set already said "cannot delete" does not start a new scan, so the stale verdict would stand
+        for the life of the process.
+
+        The declaration order matters: the blocking cycle is declared first so it is destroyed last, which is
+        what leaves the first cycle holding a snapshot that no longer describes the graph.
+    */
+    private blockingCycleTest() {
+        Counted::reset();
+        {
+            Context ctx();
+            Definition one();
+            Definition two();
+            Hub hub(); Registry reg(); Link link(); Member member(); Held held(); Leaf leaf();
+
+            hub.registry = reg;
+            reg.links{"x"} = link;
+            link.member = member;
+            member.hub = hub;
+            leaf.hub = hub;
+            held.leaf = leaf;
+            hub.leaves{"leaf"} = leaf;
+            member.held = {"held": held};
+
+            # one container node shared between the two cycles
+            hash<auto> shared = {"leaf": leaf, "member": member};
+            reg.shared = shared;
+            ctx.shared = shared;
+
+            one.owner = ctx;
+            one.declared = leaf;
+            two.owner = ctx;
+            two.declared = member;
+            ctx.definitions{"one"} = one;
+            ctx.definitions{"two"} = two;
+        }
+        # Hub, Registry, Link, Member, Held, Leaf, Context, 2 x Definition
+        assertEq(9, Counted::dc, "both cycles are reclaimed");
+    }
+
+    #! Negative case: a reference that outlives the graph must still keep the cycle alive
+    private externalHolderTest() {
+        Counted::reset();
+        Wrapper keep;
+        {
+            Wrapper w = makeSharedHash();
+            keep = w;
+        }
+        assertEq(0, Counted::dc, "a surviving reference keeps the whole graph alive");
+        delete keep;
+        assertEq(GraphSize, Counted::dc, "the graph is reclaimed once the surviving reference is deleted");
+    }
+}

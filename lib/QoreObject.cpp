@@ -1344,7 +1344,7 @@ void qore_object_private::customDeref(ExceptionSink* xsink, bool real) {
                             }
                         }
                     } else {
-                        rc = rs->canDelete(ref_copy, rcount);
+                        rc = rs->canDelete(ref_copy, rcount, scan_refs);
                     }
 
                     if (!rc) {
