@@ -1,0 +1,157 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires json
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/AzureOpenAiDataProvider
+%requires ../../../../qlib/RestSchemaActions
+%exec-class AzureOpenAiMediaTest
+
+#! Optional live tests; every request uses the configured resource and incurs Azure inference charges
+/** Set AZURE_MEDIA_ENDPOINT and AZURE_MEDIA_API_KEY, then the deployment names needed by each case:
+    AZURE_MEDIA_SPEECH_DEPLOYMENT (TTS), AZURE_MEDIA_WHISPER_DEPLOYMENT (Whisper),
+    AZURE_MEDIA_TRANSCRIBE_DEPLOYMENT (GPT transcription), AZURE_MEDIA_IMAGE_DEPLOYMENT (GPT image).
+    AZURE_MEDIA_TRANSCRIPTION_FORMATS optionally selects up to two comma-separated Whisper formats;
+    the default is verbose_json,text. Use srt,vtt in a separate run for subtitle checks. Each run uses
+    at most three Whisper requests to fit the default 3 RPM quota. Invalid audio uses the GPT deployment.
+    Tests generate a short audio clip and edit a small PNG. No remote files or videos are retained.
+*/
+class AzureOpenAiMediaTest inherits QUnit::Test {
+    private {
+        *AbstractDataProvider provider;
+        *binary wav;
+    }
+    constructor() : Test("Azure OpenAI live media", "1.0", \ARGV) {
+        addTestCase("speech formats return decodable audio bytes", \speechFormats());
+        addTestCase("Whisper response formats and word timestamps", \whisperFormats());
+        addTestCase("GPT transcription uses its deployment-based route", \gptTranscription());
+        addTestCase("audio translation returns English text", \translation());
+        addTestCase("one and two named image inputs reach the image edit API", \imageEdits());
+        addTestCase("invalid audio bytes are rejected by Azure", \invalidAudio());
+        set_return_value(main());
+    }
+
+    private AbstractDataProvider getProvider(*string deployment) {
+        if (!ENV.AZURE_MEDIA_ENDPOINT.val() || !ENV.AZURE_MEDIA_API_KEY.val() || !deployment.val()) {
+            testSkip("configure AZURE_MEDIA_ENDPOINT, AZURE_MEDIA_API_KEY, and this test's deployment");
+        }
+        if (!provider) {
+            AzureOpenAiRestConnection conn({"name": "azure-media-test", "url": ENV.AZURE_MEDIA_ENDPOINT,
+                "opts": {"api_key": ENV.AZURE_MEDIA_API_KEY, "timeout": 180000}});
+            provider = conn.getDataProvider();
+        }
+        return provider;
+    }
+
+    private auto request(string action, hash<auto> input) {
+        auto result;
+        try {
+            result = getProvider(input.model).getChildProvider(action).doRequest(input);
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "TEST-SKIPPED-EXCEPTION") {
+                rethrow;
+            }
+            # HTTP exception arguments contain request headers and audio bytes. Keep test reports concise
+            # and credential-free while retaining the action, service message, and status code.
+            throw ex.err, sprintf("%s: %s%s", action, ex.desc,
+                exists ex.arg.status_code ? sprintf(" (HTTP %d)", ex.arg.status_code) : "");
+        }
+        # Actual API output must also satisfy the published output contract.
+        RestSchemaActionOperation op = AzureOpenAiSchema::getOperationEx(action);
+        op.getResponseType().acceptsValue(result);
+        return result;
+    }
+
+    private hash<auto> audioFile() {
+        if (!wav) {
+            wav = request("create-speech", {"model": ENV.AZURE_MEDIA_SPEECH_DEPLOYMENT,
+                "input": "The blue box is on the table.", "voice": "alloy", "response_format": "wav"});
+            assertEq("RIFF", wav.substr(0, 4).toString());
+        }
+        return {"name": "test-speech.wav", "content": wav, "mime_type": "audio/wav"};
+    }
+
+    private speechFormats() {
+        foreach string format in ("mp3", "opus", "aac", "flac", "wav", "pcm") {
+            auto audio = request("create-speech", {"model": ENV.AZURE_MEDIA_SPEECH_DEPLOYMENT,
+                "input": "The blue box is on the table.", "voice": "alloy", "response_format": format});
+            assertEq(NT_BINARY, audio.typeCode(), format);
+            assertTrue(audio.size() > 40, format);
+            if (format == "wav") {
+                wav = audio;
+                assertEq("RIFF", wav.substr(0, 4).toString());
+            } else if (format == "flac") {
+                assertEq("fLaC", audio.substr(0, 4).toString());
+            } else if (format == "opus") {
+                assertEq("OggS", audio.substr(0, 4).toString());
+            }
+        }
+    }
+
+    private whisperFormats() {
+        getProvider(ENV.AZURE_MEDIA_WHISPER_DEPLOYMENT);
+        list<string> formats = split(",", ENV.AZURE_MEDIA_TRANSCRIPTION_FORMATS ?? "verbose_json,text");
+        assertTrue(formats.size() > 0 && formats.size() <= 2, "select at most two Whisper formats per run");
+        foreach string format in (formats) {
+            hash<auto> input = {"model": ENV.AZURE_MEDIA_WHISPER_DEPLOYMENT, "file": audioFile(),
+                "response_format": format, "temperature": 0};
+            if (format == "verbose_json") {
+                input.timestamp_granularities = ("word", "segment");
+            }
+            auto result = request("create-transcription", input);
+            string transcript = result.typeCode() == NT_HASH ? result.text : result;
+            assertTrue(transcript.lwr().find("blue box") >= 0, format);
+            if (format == "verbose_json") {
+                assertTrue(result.words.size() > 0 && result.segments.size() > 0);
+                assertTrue(result.duration > 0);
+            } else if (format == "srt" || format == "vtt") {
+                assertTrue(transcript.find("-->") >= 0, "subtitle timing markers: " + format);
+            }
+        }
+    }
+
+    private gptTranscription() {
+        getProvider(ENV.AZURE_MEDIA_TRANSCRIBE_DEPLOYMENT);
+        auto result = request("create-transcription", {"model": ENV.AZURE_MEDIA_TRANSCRIBE_DEPLOYMENT,
+            "file": audioFile(), "response_format": "json"});
+        assertTrue(result.text.lwr().find("blue box") >= 0);
+    }
+
+    private translation() {
+        getProvider(ENV.AZURE_MEDIA_WHISPER_DEPLOYMENT);
+        auto result = request("create-translation", {"model": ENV.AZURE_MEDIA_WHISPER_DEPLOYMENT,
+            "file": audioFile(), "response_format": "json", "temperature": 0});
+        assertTrue(result.text.lwr().find("blue box") >= 0);
+    }
+
+    private imageEdits() {
+        getProvider(ENV.AZURE_MEDIA_IMAGE_DEPLOYMENT);
+        hash<auto> file = {"name": "blue-square.png", "mime_type": "image/png",
+            "content": File::readBinaryFile(get_script_dir() + "/media-test.png")};
+        foreach int count in (1, 2) {
+            list<hash<auto>> files = count == 1 ? (file,) : (file, file + {"name": "reference.png"});
+            auto result = request("create-image-edit", {"model": ENV.AZURE_MEDIA_IMAGE_DEPLOYMENT,
+                "image": files, "prompt": "Change the blue square to red. Keep the plain white background.",
+                "n": 1, "size": "1024x1024", "quality": "low", "output_format": "png"});
+            assertEq(1, result.data.size());
+            binary png = parse_base64_string(result.data[0].b64_json);
+            assertEq(<89504e470d0a1a0a>, png.substr(0, 8));
+        }
+    }
+
+    private invalidAudio() {
+        AbstractDataProvider root = getProvider(ENV.AZURE_MEDIA_TRANSCRIBE_DEPLOYMENT);
+        *hash<ExceptionInfo> failure;
+        try {
+            root.getChildProvider("create-transcription").doRequest({"model": ENV.AZURE_MEDIA_TRANSCRIBE_DEPLOYMENT,
+                "file": {"name": "invalid.wav", "content": binary("not an audio file"), "mime_type": "audio/wav"}});
+        } catch (hash<ExceptionInfo> ex) {
+            failure = ex;
+        }
+        assertTrue(exists failure, "Azure rejects malformed audio");
+        assertEq("REST-RESPONSE-ERROR", failure.err);
+        assertEq(400, failure.arg.status_code, "a rate limit or missing deployment is not an invalid-audio result");
+    }
+}

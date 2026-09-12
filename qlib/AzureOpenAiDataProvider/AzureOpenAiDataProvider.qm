@@ -44,7 +44,7 @@ module AzureOpenAiDataProvider {
                 return (<DataProviderDiscoveryExpectedIdentityInfo>{"app": AzureOpenAiDataProvider::AppName},)
                     + (map <DataProviderDiscoveryExpectedIdentityInfo>{
                         "app": AzureOpenAiDataProvider::AppName, "action": $1.action,
-                    }, AzureOpenAiManifest::Manifest)
+                    }, AzureOpenAiManifest::Manifest + AzureOpenAiAudioManifest::Manifest)
                     + (<DataProviderDiscoveryExpectedIdentityInfo>{
                         "app": AzureOpenAiDataProvider::AppName, "action": "make-api-call",
                     },);
@@ -64,8 +64,9 @@ module AzureOpenAiDataProvider {
                 "- Upload files, run batches, and organize retrieval with vector stores\n"
                 "- Manage conversations, fine-tuning, evaluations, and realtime calls\n\n"
                 "**Deployment names:** Copy names from Models and endpoints in the Azure Foundry portal. "
-                "They can differ from catalog model IDs. Media operations use the v1 preview API; "
+                "They can differ from catalog model IDs. Audio uploads use the deployment-based API. Other media operations use the v1 preview API; "
                 "availability depends on regional API rollout and your resource's deployments, permissions, and quota.\n\n"
+                "**Conversations:** Use a Foundry project endpoint and Microsoft Entra authentication.\n\n"
                 "[Azure OpenAI documentation](https://learn.microsoft.com/en-us/azure/foundry/openai/)",
             "scheme": "azure-openai",
             "logo": AzureLogo,
@@ -74,12 +75,14 @@ module AzureOpenAiDataProvider {
             "groups": (DataProvider::AppGroup::AiLlm,),
         });
 
-        foreach hash<DataProviderActionInfo> action in (
-                AzureOpenAiSchema::getActionSet().getActionInfoList(AzureOpenAiDataProvider::AppName)) {
-            if (action.action == "embedding") {
-                action.mutates_state = False;
+        foreach RestSchemaActionSet actions in (AzureOpenAiSchema::getActionSets()) {
+            foreach hash<DataProviderActionInfo> action in (
+                    actions.getActionInfoList(AzureOpenAiDataProvider::AppName)) {
+                if (action.action == "embedding") {
+                    action.mutates_state = False;
+                }
+                DataProviderActionCatalog::registerAction(action);
             }
-            DataProviderActionCatalog::registerAction(action);
         }
     };
 }
@@ -91,17 +94,22 @@ module AzureOpenAiDataProvider {
     @section azureopenaidataproviderintro Introduction to the AzureOpenAiDataProvider Module
 
     The %AzureOpenAiDataProvider module exposes 99 reviewed Azure OpenAI API operations plus the
-    generic API-call action. Its pinned Microsoft v1 description supplies typed request and response
+    generic API-call action. Its pinned Microsoft v1 and deployment-based audio descriptions supply typed request and response
     contracts, finite choices, and nested options. The manifest supplies stable action identities,
     user-facing presentation, deployment guidance, and resource dropdowns.
 
     @par Action families
     Chat Completions, Responses, embeddings, audio, images, videos, files, batches, conversations,
     containers, evaluations, fine-tuning, realtime calls, and vector stores. Retired Assistants threads
-    and DALL-E 2 image variations are excluded. Media operations select the v1 preview API.
-    Availability depends on the Azure resource and regional rollout. For example, the documented Conversations
-    endpoint returned HTTP 404 with both `v1` and `preview` on the development resource during qualification;
-    Responses remained available. Resource updates can also become visible to reads asynchronously.
+    and DALL-E 2 image variations are excluded. Speech, image, and video generation select the v1 preview API.
+    Transcription and translation use deployment-based audio paths and default to `2025-04-01-preview`.
+    Whisper supports JSON, verbose JSON, plain text, SRT, and VTT; GPT transcription deployments support
+    JSON output. Word and segment timestamps require Whisper and `verbose_json`. Audio actions accept a
+    named file with its extension, binary content, and optional MIME type.
+    Conversations require a Foundry project endpoint such as
+    `https://my-resource.services.ai.azure.com/api/projects/my-project` with Microsoft Entra authentication.
+    Resource-only Azure OpenAI endpoints do not provide the project Conversations API. Other operation availability
+    depends on the resource and regional rollout. Resource updates can become visible to reads asynchronously.
 
     @par Compatibility
     The original `chat-completion` and `embedding` action IDs and their `deployment` option remain
@@ -119,6 +127,29 @@ auto answer = app.getChildProvider("create-response").doRequest({
 });
     @endcode
 
+    @par Audio example
+    @code{.py}
+auto transcript = app.getChildProvider("create-transcription").doRequest({
+    "model": "my-whisper-deployment",
+    "file": {"name": "customer-call.wav", "content": File::readBinaryFile("customer-call.wav"),
+        "mime_type": "audio/wav"},
+    "response_format": "verbose_json", "timestamp_granularities": ("word", "segment"),
+});
+    @endcode
+
+    @par Live media tests
+    `examples/test/qlib/AzureOpenAiDataProvider/AzureOpenAiMedia.qtest` uses the explicitly configured
+    `AZURE_MEDIA_ENDPOINT`, `AZURE_MEDIA_API_KEY`, and deployment variables described in the test.
+    It makes short billable inference requests. Normal CI uses the offline request and response fixtures.
+
+    @par Live conversation tests
+    `AzureOpenAiConversations.qtest` uses `AZURE_FOUNDRY_ENDPOINT` and `AZURE_FOUNDRY_ACCESS_TOKEN`.
+    Obtain a short-lived development token with `az account get-access-token --resource https://ai.azure.com`;
+    the signed-in user needs the Foundry User role on the project. Production connections use the existing
+    Entra client-credentials or managed-identity modes; the token scope defaults to `https://ai.azure.com/.default`
+    for project endpoints. Conversation actions omit `api-version`, which the Foundry v1 path rejects.
+    The test deletes the temporary conversation and its items.
+
     @par Factory
 
     The factory name is <b><tt>azure-openai</tt></b>; resolve a connected
@@ -131,8 +162,11 @@ AbstractDataProvider p = DataProvider::getFactoryObjectFromString(
     @section azureopenaidataproviderrelnotes Release Notes
 
     @subsection azureopenaidataprovider_v1_0 AzureOpenAiDataProvider v1.0
-    - initial release: 99 reviewed Azure OpenAI v1 operations plus the generic API-call action, registered
+    - initial release: 99 reviewed Azure OpenAI operations plus the generic API-call action, registered
       under the \c azure-openai app + scheme, with resource dropdowns and media uploads
+    - deployment-based transcription and translation with typed JSON, text, and subtitle responses
+    - Foundry project paths remain intact through actions, copied clients, and connection pings
+    - explicit speech formats and named image arrays retain their wire values and upload metadata
     - authenticated connection clients preserve credentials across copies and raw requests
     - pinned, pruned schema imports include checked repairs for documented upstream contract defects
     - recursive presentation catalogs, exact discovery inventory, and value/serialization regressions

@@ -3,13 +3,14 @@
 
 %modern
 
-# try importing JSON and YAML modules
-%requires json
+
+# YAML is an optional external binary module
 %try-module yaml
 %define NoYaml
 %endtry
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires json
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/QUnit.qm
@@ -431,6 +432,9 @@ public class OpenApi3Test inherits QUnit::Test {
         addTestCase("Test a description that contains the other", \testContainedFieldDescription());
 
         addTestCase("Test multipart file or URL unions", \testMultipartFileOrUrl());
+        addTestCase("Multipart arrays retain named files and union constraints", \testMultipartArrayUnions());
+        addTestCase("Response contracts preserve distinct media representations", \testResponseMediaSchemas());
+        addTestCase("Path parameters validate decoded and falsy values", \testPathParameterValues());
 
         addTestCase("Test direction-specific required properties", \testDirectionRequired());
         addTestCase("Test empty object request bodies", \testEmptyObjectRequestBodies());
@@ -5917,6 +5921,173 @@ public class OpenApi3Test inherits QUnit::Test {
         assertEq(<00017fff>, type.acceptsValue(<00017fff>));
         assertEq("https://example.test/audio.wav", type.acceptsValue("https://example.test/audio.wav"));
         assertThrows("RUNTIME-TYPE-ERROR", sub () { type.acceptsValue(("invalid",)); });
+    }
+
+    testMultipartArrayUnions() {
+        hash<auto> binary_schema = {"type": "string", "format": "binary"};
+        hash<auto> array_schema = {"type": "array", "minItems": 1, "maxItems": 2,
+            "items": binary_schema};
+        hash<auto> spec = {"openapi": "3.0.0", "info": ValidInfoObject,
+            "paths": {"/edit": {"post": {
+                "requestBody": {"required": True, "content": {"multipart/form-data": {"schema": {
+                    "type": "object", "required": ("image",), "properties": {
+                        "image": {"oneOf": (binary_schema, array_schema)}
+                    }
+                }}}}, "responses": {"200": {"description": "Success"}}
+            }}}};
+        OpenApi3Schema schema("", spec);
+        OpenApi3::PathItemObject path = schema.paths.match("/edit");
+        OpenApi3::OperationObject op = path.getOperation("post", "/edit");
+        AbstractDataField field = op.getRequestBodyField(path).getType().getFields().image;
+        hash<auto> file = {"name": "invoice.png", "mime_type": "image/png", "content": <00017fff>};
+        foreach AbstractDataProviderType type in (field.getType(), field.getType().getSoftType(),
+                field.getType().getOrNothingType().getMandatoryType(),
+                Serializable::deserialize(field.getType().serialize())) {
+            foreach auto input in (<00017fff>, file, (file,), (file, file), (<00017fff>, <00017fff>)) {
+                auto accepted = type.acceptsValue(input);
+                hash<RestRequestClientInfo> req = schema.processRequest("POST", "/edit", {"image": accepted});
+                auto parts = MultiPartFormDataMessage::parseMessage(req.content, req.body.toString());
+                string name = input.typeCode() == NT_LIST ? "image[]" : "image";
+                assertEq(<00017fff>, binary(parts{name}.body));
+                bool named = input.typeCode() == NT_HASH
+                    || (input.typeCode() == NT_LIST && input[0].typeCode() == NT_HASH);
+                if (named) {
+                    assertEq("invoice.png", parts{name}.filename);
+                    assertEq("image/png", parts{name}.hdr."Content-Type" ?? parts{name}.hdr."content-type");
+                }
+            }
+            foreach auto invalid in ((), (file, file, file), ({"invalid": "file"},),
+                    ("https://example.test/image.png",), ({"name": "", "content": <00>},)) {
+                assertThrows("RUNTIME-TYPE-ERROR", sub () { type.acceptsValue(invalid); });
+            }
+        }
+        # Two identical array branches must still fail oneOf after file metadata is adapted.
+        spec.paths."/edit".post.requestBody.content."multipart/form-data".schema.properties.image.oneOf
+            = (array_schema, array_schema);
+        OpenApi3Schema ambiguous("", spec);
+        path = ambiguous.paths.match("/edit");
+        field = path.getOperation("post", "/edit").getRequestBodyField(path).getType().getFields().image;
+        assertThrows("RUNTIME-TYPE-ERROR", "multiple oneOf", sub () { field.acceptsValue((file,)); });
+    }
+
+    testPathParameterValues() {
+        hash<auto> paths = {};
+        foreach hash<auto> entry in (("names": {"type": "string", "minLength": 1, "pattern": "\\S"},
+                "numbers": {"type": "integer", "minimum": 1},
+                "flags": {"type": "boolean", "enum": (True,)}).pairIterator()) {
+            paths{"/" + entry.key + "/{value}"} = {"get": {
+                "parameters": ({"name": "value", "in": "path", "required": True, "schema": entry.value},),
+                "responses": {"204": {"description": "No content"}}}};
+        }
+        OpenApi3Schema schema("", {"openapi": "3.0.0", "info": ValidInfoObject, "paths": paths});
+        foreach hash<auto> entry in (("names": "", "numbers": 0, "flags": False).pairIterator()) {
+            string path = "/" + entry.key + "/{value}";
+            PathItemObject pio = schema.paths.match(path);
+            OperationObject op = pio.getOperation("get", path);
+            ParameterObject parameter = op.parameters.value;
+            assertThrows("SCHEMA-VALIDATION-ERROR", sub () {
+                auto value = entry.value;
+                parameter.check(False, True, path, "GET", "value", \value);
+            });
+            assertThrows("SCHEMA-VALIDATION-ERROR", sub () {
+                hash<UriQueryInfo> request = parse_uri_query("/" + entry.key + "/" + entry.value.toString());
+                hash<auto> headers = {};
+                auto body;
+                hash<string, bool> mime_types;
+                op.validateRequest(True, pio, \request, \body, \headers, \mime_types);
+            });
+        }
+        foreach string value in ("%20%20", "%09") {
+            assertThrows("SCHEMA-VALIDATION-ERROR", sub () {
+                schema.processRequest("GET", "/names/" + value);
+            });
+        }
+        foreach string value in ("release/1.0", "a b.txt", "a+b", "50%done") {
+            hash<auto> headers = {};
+            assertEq(value, schema.parseRequest("GET", "/names/" + encode_url(value, True), NOTHING,
+                \headers).path_args.value);
+        }
+        assertEq("/numbers/1", schema.processRequest("GET", "/numbers/1").uri_path);
+        assertEq("/flags/true", schema.processRequest("GET", "/flags/true").uri_path);
+        foreach bool allowed in (False, True) {
+            SchemaObject flag = SchemaObject::newSchemaObject("flag", {"type": "boolean", "enum": (allowed,)},
+                schema);
+            assertEq(allowed, flag.getExampleValue(), "boolean enum examples retain their declared value");
+            auto value = allowed;
+            flag.check(False, True, "/", "POST", "flag", \value);
+            assertEq(allowed, value);
+            assertThrows("SCHEMA-VALIDATION-ERROR", sub () {
+                auto other = !allowed;
+                flag.check(False, True, "/", "POST", "flag", \other);
+            });
+        }
+    }
+
+    testResponseMediaSchemas() {
+        hash<auto> object_schema = {"type": "object", "required": ("text",),
+            "properties": {"text": {"type": "string"}}};
+        hash<auto> text_schema = {"type": "string", "minLength": 1};
+        hash<auto> spec = {"openapi": "3.0.0", "info": ValidInfoObject,
+            "paths": {"/audio": {"get": {"responses": {"200": {
+                "description": "Text or JSON result", "content": {
+                    "application/json": {"schema": object_schema},
+                    "text/plain": {"schema": text_schema},
+                    "application/octet-stream": {"schema": {"type": "string", "format": "binary"}}
+                }
+            }}}}}};
+        OpenApi3Schema schema("", spec);
+        auto response = schema.paths.match("/audio").getOperation("get", "/audio").responses.responses."200";
+        AbstractDataProviderType type = response.getSchema().getDataType();
+        foreach AbstractDataProviderType copy in (type, Serializable::deserialize(type.serialize())) {
+            assertEq({"text": "Hello"}, copy.acceptsValue({"text": "Hello"}));
+            assertEq("Hello", copy.acceptsValue("Hello"));
+            assertEq(<00017fff>, copy.acceptsValue(<00017fff>));
+            assertThrows("RUNTIME-TYPE-ERROR", sub () { copy.acceptsValue({"wrong": "value"}); });
+        }
+        assertEq({"text": "Hello"}, schema.parseResponse("GET", "/audio", 200,
+            "{\"text\":\"Hello\"}", {"Content-Type": "application/json; charset=utf-8"}).body);
+        assertEq("Hello", schema.parseResponse("GET", "/audio", 200,
+            "Hello", {"Content-Type": "text/plain; charset=utf-8"}).body);
+        # JSON cannot use the text representation to evade its object schema.
+        assertThrows("SCHEMA-VALIDATION-ERROR", sub () {
+            schema.parseResponse("GET", "/audio", 200, "\"Hello\"", {"Content-Type": "application/json"});
+        });
+        assertThrows("SCHEMA-VALIDATION-ERROR", sub () {
+            schema.parseResponse("GET", "/audio", 200, "", {"Content-Type": "text/plain"});
+        });
+        assertThrows("DESERIALIZATION-ERROR", sub () {
+            schema.parseResponse("GET", "/audio", 200, "Hello", {"Content-Type": "image/svg+xml"});
+        });
+        assertEq("Hello", schema.processResponse("GET", "/audio", 200, "Hello", NOTHING, "text/plain").body);
+        assertThrows("ACCEPT-ERROR", sub () {
+            schema.processResponse("GET", "/audio", 200, "Hello", NOTHING, "application/json");
+        });
+        assertThrows("SCHEMA-VALIDATION-ERROR", sub () {
+            schema.processResponse("GET", "/audio", 200, "Hello", {"Content-Type": "application/json"});
+        });
+        # Identical declarations under different content types retain a single presentation identity.
+        spec.paths."/audio".get.responses."200".content = {
+            "application/json": {"schema": object_schema}, "application/yaml": {"schema": object_schema}};
+        OpenApi3Schema same("", spec);
+        response = same.paths.match("/audio").getOperation("get", "/audio").responses.responses."200";
+        assertTrue(response.getSchema().getDataType().getMandatoryType() instanceof HashDataType);
+
+        # Negotiation must not select a bodyless representation for a value accepted by another schema.
+        spec.paths."/audio".get.responses."200".content = {
+            "application/json": {"schema": text_schema}, "text/plain": {}};
+        OpenApi3Schema absent("", spec);
+        assertThrows("ACCEPT-ERROR", sub () {
+            absent.processResponse("GET", "/audio", 200, "Hello", NOTHING, "text/plain");
+        });
+        assertThrows("SCHEMA-VALIDATION-ERROR", sub () {
+            absent.parseResponse("GET", "/audio", 200, "Hello", {"Content-Type": "text/plain"});
+        });
+        # An explicitly empty schema remains unrestricted, unlike an absent schema.
+        spec.paths."/audio".get.responses."200".content."text/plain".schema = {};
+        OpenApi3Schema unrestricted("", spec);
+        assertEq("Hello", unrestricted.processResponse("GET", "/audio", 200, "Hello", NOTHING, "text/plain").body);
+        assertEq("Hello", unrestricted.parseResponse("GET", "/audio", 200, "Hello",
+            {"Content-Type": "text/plain"}).body);
     }
 
     testGeneratorNullableNestedNamedHashBodyParams() {

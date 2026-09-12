@@ -12,7 +12,7 @@
   {
     "action": "create-transcription",
     "method": "POST",
-    "path": "/audio/transcriptions",
+    "path": "/deployments/{deployment-id}/audio/transcriptions",
     "request": {
       "file": {
         "name": "fixture.txt",
@@ -25,7 +25,7 @@
   {
     "action": "create-translation",
     "method": "POST",
-    "path": "/audio/translations",
+    "path": "/deployments/{deployment-id}/audio/translations",
     "request": {
       "file": {
         "name": "fixture.txt",

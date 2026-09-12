@@ -1,0 +1,126 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires json
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/AzureOpenAiDataProvider
+%requires ../../../../qlib/RestSchemaActions
+%exec-class AzureOpenAiConversationsTest
+
+class FoundryTestState {
+    public {
+        *string conversation_id;
+    }
+}
+
+#! Retains a newly created ID before schema validation so a contract failure still permits cleanup
+class FoundryTestClient inherits RestClientIo::RestClientIo {
+    private {
+        FoundryTestState state;
+    }
+    constructor(hash<auto> options, FoundryTestState state) : RestClientIo(options) {
+        self.state = state;
+    }
+    private RestClient::AbstractRestClient copySelf(hash<auto> options) {
+        return new FoundryTestClient(options, state);
+    }
+    hash<RestClient::RestResponseInfo> restDoRawRequest(string method, string path, *data body, *hash<auto> hdr) {
+        hash<RestClient::RestResponseInfo> result = RestClientIo::restDoRawRequest(method, path, body, hdr);
+        if (method == "POST" && path =~ /\/conversations(?:\?|$)/ && result.body.id.val()) {
+            state.conversation_id = result.body.id;
+        }
+        return result;
+    }
+}
+
+#! Optional Foundry project integration test; its temporary conversation is always deleted
+/** Set AZURE_FOUNDRY_ENDPOINT to https://<resource>.services.ai.azure.com/api/projects/<project> and
+    AZURE_FOUNDRY_ACCESS_TOKEN to a current Entra token for https://ai.azure.com. The identity needs
+    the Foundry User role on the project. This test stores and removes text; it does not invoke a model.
+*/
+class AzureOpenAiConversationsTest inherits QUnit::Test {
+    private {
+        *AbstractDataProvider provider;
+    }
+
+    constructor() : Test("Azure OpenAI Foundry conversations", "1.0", \ARGV) {
+        addTestCase("conversation and item lifecycle preserve their typed values", \lifecycleTest());
+        set_return_value(main());
+    }
+
+    private auto request(string action, hash<auto> input) {
+        auto result;
+        try {
+            result = provider.getChildProvider(action).doRequest(input);
+        } catch (hash<ExceptionInfo> ex) {
+            # Keep authentication headers out of failure reports, retaining the HTTP status for assertions.
+            throw ex.err, sprintf("%s: %s", action, ex.desc), {
+                "status_code": ex.arg.status_code, "service_error": ex.arg.body.error,
+            };
+        }
+        RestSchemaActionOperation operation = AzureOpenAiSchema::getOperationEx(action);
+        operation.getResponseType().acceptsValue(result);
+        return result;
+    }
+
+    private lifecycleTest() {
+        if (!ENV.AZURE_FOUNDRY_ENDPOINT.val() || !ENV.AZURE_FOUNDRY_ACCESS_TOKEN.val()) {
+            testSkip("configure AZURE_FOUNDRY_ENDPOINT and AZURE_FOUNDRY_ACCESS_TOKEN for a Foundry project");
+        }
+        FoundryTestState state();
+        FoundryTestClient rest({"url": ENV.AZURE_FOUNDRY_ENDPOINT, "data": "json",
+            "headers": {"authorization": "Bearer " + ENV.AZURE_FOUNDRY_ACCESS_TOKEN}}, state);
+        provider = new AzureOpenAiDataProvider::AzureOpenAiDataProvider(rest);
+        bool deleted = False;
+        on_exit {
+            if (!deleted && state.conversation_id.val()) {
+                auto cleanup = request("delete-conversation", {"conversation_id": state.conversation_id});
+                assertTrue(cleanup.deleted, "temporary conversation cleanup");
+            }
+        }
+        auto conversation = request("create-conversation", {"metadata": {"purpose": "qore-5425"}});
+        string id = conversation.id;
+        assertTrue(id.startsWith("conv_"));
+        assertEq("conversation", conversation.object);
+        assertEq(NT_DATE, conversation.created_at.typeCode());
+        auto fetched = request("get-conversation", {"conversation_id": id});
+        assertEq(id, fetched.id);
+        assertEq(conversation.created_at, fetched.created_at);
+        assertEq("qore-5425", fetched.metadata.purpose);
+        auto updated = request("update-conversation", {"conversation_id": id,
+            "metadata": {"purpose": "updated"}});
+        assertEq(id, updated.id);
+        assertEq("updated", updated.metadata.purpose);
+        auto added = request("create-conversation-items", {"conversation_id": id,
+            "items": ({"type": "message", "role": "user", "content": "Remember the blue box."},)});
+        assertEq(1, added.data.size());
+        string item_id = added.data[0].id;
+        assertTrue(item_id.val());
+        auto listed = request("list-conversation-items", {"conversation_id": id, "order": "asc"});
+        assertEq(1, listed.data.size());
+        assertEq(item_id, listed.data[0].id);
+        assertFalse(listed.has_more);
+        auto item = request("get-conversation-item", {"conversation_id": id, "item_id": item_id});
+        assertEq(item_id, item.id);
+        assertEq("user", item.role);
+        assertEq("Remember the blue box.", item.content[0].text);
+        auto removed = request("delete-conversation-item", {"conversation_id": id, "item_id": item_id});
+        assertEq(id, removed.id);
+        assertEq(NT_DATE, removed.created_at.typeCode());
+        assertEq((), request("list-conversation-items", {"conversation_id": id}).data);
+        auto result = request("delete-conversation", {"conversation_id": id});
+        deleted = True;
+        assertEq(id, result.id);
+        assertTrue(result.deleted);
+        *hash<ExceptionInfo> missing;
+        try {
+            request("get-conversation", {"conversation_id": id});
+        } catch (hash<ExceptionInfo> ex) {
+            missing = ex;
+        }
+        assertTrue(exists missing);
+        assertEq("REST-RESPONSE-ERROR", missing.err);
+        assertEq(404, missing.arg.status_code);
+    }
+}

@@ -7,6 +7,22 @@ documents:
   provenance: AzureOpenAiSchema.qc
   json: true
   normalize:
+  - reason: Foundry conversation item lists omit first_id and last_id when data is empty, as verified with
+      an empty conversation on 2026-09-12. These pagination IDs cannot exist without items. Preserve their
+      string types when present and retain the required list envelope. See
+      https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/aiproject
+    replace_required:
+    - pointer: '#/components/schemas/OpenAI.ConversationItemList'
+      expected:
+      - object
+      - data
+      - has_more
+      - first_id
+      - last_id
+      replacement:
+      - object
+      - data
+      - has_more
   - reason: The Azure Files API accepts named multipart file bytes and optional expires_after[anchor]/expires_after[seconds]
       form fields. The generated document omits the file type, incorrectly requires expiration, and omits its encoding
       and Azure bounds. Live verification on 2026-09-11 accepted an upload without expiration, ignored a JSON expiration
@@ -54,263 +70,6 @@ documents:
       defaults. Sources: https://learn.microsoft.com/en-us/azure/foundry/openai/reference-preview-latest and https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/video-generation
       . Array option names retain the documented multipart [] spelling.'
     replace_values:
-    - pointer: '#/paths/~1audio~1transcriptions/post/requestBody/content'
-      expected:
-        application/json:
-          schema:
-            type: object
-            properties:
-              file:
-                type: object
-                description: 'The audio file object (not file name) to transcribe, in one of these formats: flac,
-                  mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.'
-                x-oaiTypeLabel: file
-              model:
-                type: string
-                description: The model to use for this transcription request.
-                x-oaiTypeLabel: string
-              language:
-                type: object
-                description: The language of the input audio. Supplying the input language in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
-                  (e.g. `en`) format will improve accuracy and latency.
-              prompt:
-                type: object
-                description: An optional text to guide the model's style or continue a previous audio segment. The
-                  [prompt](/docs/guides/speech-to-text#prompting) should match the audio language. This field is
-                  not supported when using `gpt-4o-transcribe-diarize`.
-              response_format:
-                type: object
-              temperature:
-                type: object
-                description: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output
-                  more random, while lower values like 0.2 will make it more focused and deterministic. If set to
-                  0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically
-                  increase the temperature until certain thresholds are hit.
-              include:
-                type: object
-                description: "Additional information to include in the transcription response.\n  `logprobs` will\
-                  \ return the log probabilities of the tokens in the\n  response to understand the model's confidence\
-                  \ in the transcription.\n  `logprobs` only works with response_format set to `json` and only with\n\
-                  \  the models `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`.\
-                  \ This field is not supported when using `gpt-4o-transcribe-diarize`."
-              timestamp_granularities:
-                type: object
-                description: "The timestamp granularities to populate for this transcription. `response_format`\
-                  \ must be set `verbose_json` to use timestamp granularities. Either or both of these options are\
-                  \ supported: `word`, or `segment`. Note: There is no additional latency for segment timestamps,\
-                  \ but generating word timestamps incurs additional latency.\n  This option is not available for\
-                  \ `gpt-4o-transcribe-diarize`."
-              stream:
-                type: object
-              chunking_strategy:
-                type: object
-              known_speaker_names:
-                type: object
-              known_speaker_references:
-                type: object
-              filename:
-                type: string
-                description: The optional filename or descriptive identifier to associate with with the audio data.
-            required:
-            - file
-            - model
-      replacement:
-        multipart/form-data:
-          schema:
-            type: object
-            properties:
-              file:
-                description: 'The audio file object (not file name) to transcribe, in one of these formats: flac,
-                  mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.'
-                x-oaiTypeLabel: file
-                type: string
-                format: binary
-              model:
-                type: string
-                description: The model to use for this transcription request.
-                x-oaiTypeLabel: string
-              language:
-                description: The language of the input audio. Supplying the input language in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
-                  (e.g. `en`) format will improve accuracy and latency.
-                type: string
-              prompt:
-                description: An optional text to guide the model's style or continue a previous audio segment. The
-                  [prompt](/docs/guides/speech-to-text#prompting) should match the audio language. This field is
-                  not supported when using `gpt-4o-transcribe-diarize`.
-                type: string
-              response_format:
-                type: string
-                enum:
-                - json
-                - text
-                - srt
-                - verbose_json
-                - vtt
-                - diarized_json
-              temperature:
-                description: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output
-                  more random, while lower values like 0.2 will make it more focused and deterministic. If set to
-                  0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically
-                  increase the temperature until certain thresholds are hit.
-                type: number
-                minimum: 0
-                maximum: 1
-              stream:
-                type: boolean
-              chunking_strategy:
-                anyOf:
-                - type: string
-                  enum:
-                  - auto
-                - type: object
-                  required:
-                  - type
-                  properties:
-                    type:
-                      type: string
-                      enum:
-                      - server_vad
-                    prefix_padding_ms:
-                      type: integer
-                      minimum: 0
-                    silence_duration_ms:
-                      type: integer
-                      minimum: 0
-                    threshold:
-                      type: number
-                      minimum: 0
-                      maximum: 1
-              filename:
-                type: string
-                description: The optional filename or descriptive identifier to associate with with the audio data.
-              include[]:
-                description: "Additional information to include in the transcription response.\n  `logprobs` will\
-                  \ return the log probabilities of the tokens in the\n  response to understand the model's confidence\
-                  \ in the transcription.\n  `logprobs` only works with response_format set to `json` and only with\n\
-                  \  the models `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`.\
-                  \ This field is not supported when using `gpt-4o-transcribe-diarize`."
-                type: array
-                items:
-                  type: string
-                  enum:
-                  - logprobs
-              timestamp_granularities[]:
-                description: "The timestamp granularities to populate for this transcription. `response_format`\
-                  \ must be set `verbose_json` to use timestamp granularities. Either or both of these options are\
-                  \ supported: `word`, or `segment`. Note: There is no additional latency for segment timestamps,\
-                  \ but generating word timestamps incurs additional latency.\n  This option is not available for\
-                  \ `gpt-4o-transcribe-diarize`."
-                type: array
-                items:
-                  type: string
-                  enum:
-                  - word
-                  - segment
-              known_speaker_names[]:
-                type: array
-                items:
-                  type: string
-              known_speaker_references[]:
-                type: array
-                items:
-                  type: string
-            required:
-            - file
-            - model
-          encoding:
-            chunking_strategy:
-              contentType: application/json
-            include[]:
-              style: form
-              explode: true
-            timestamp_granularities[]:
-              style: form
-              explode: true
-            known_speaker_names[]:
-              style: form
-              explode: true
-            known_speaker_references[]:
-              style: form
-              explode: true
-    - pointer: '#/paths/~1audio~1translations/post/requestBody/content'
-      expected:
-        application/json:
-          schema:
-            type: object
-            properties:
-              file:
-                type: object
-                description: 'The audio file object (not file name) translate, in one of these formats: flac, mp3,
-                  mp4, mpeg, mpga, m4a, ogg, wav, or webm.'
-                x-oaiTypeLabel: file
-              model:
-                type: string
-                description: The model to use for this transcription request.
-                x-oaiTypeLabel: string
-              prompt:
-                type: object
-                description: An optional text to guide the model's style or continue a previous audio segment. The
-                  [prompt](/docs/guides/speech-to-text#prompting) should be in English.
-              response_format:
-                type: object
-                description: 'The format of the output, in one of these options: `json`, `text`, `srt`, `verbose_json`,
-                  or `vtt`.'
-              temperature:
-                type: object
-                description: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output
-                  more random, while lower values like 0.2 will make it more focused and deterministic. If set to
-                  0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically
-                  increase the temperature until certain thresholds are hit.
-              filename:
-                type: string
-                description: The optional filename or descriptive identifier to associate with with the audio data
-            required:
-            - file
-            - model
-      replacement:
-        multipart/form-data:
-          schema:
-            type: object
-            properties:
-              file:
-                description: 'The audio file object (not file name) translate, in one of these formats: flac, mp3,
-                  mp4, mpeg, mpga, m4a, ogg, wav, or webm.'
-                x-oaiTypeLabel: file
-                type: string
-                format: binary
-              model:
-                type: string
-                description: The model to use for this transcription request.
-                x-oaiTypeLabel: string
-              prompt:
-                description: An optional text to guide the model's style or continue a previous audio segment. The
-                  [prompt](/docs/guides/speech-to-text#prompting) should be in English.
-                type: string
-              response_format:
-                description: 'The format of the output, in one of these options: `json`, `text`, `srt`, `verbose_json`,
-                  or `vtt`.'
-                type: string
-                enum:
-                - json
-                - text
-                - srt
-                - verbose_json
-                - vtt
-              temperature:
-                description: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output
-                  more random, while lower values like 0.2 will make it more focused and deterministic. If set to
-                  0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically
-                  increase the temperature until certain thresholds are hit.
-                type: number
-                minimum: 0
-                maximum: 1
-              filename:
-                type: string
-                description: The optional filename or descriptive identifier to associate with with the audio data
-            required:
-            - file
-            - model
-          encoding: {}
     - pointer: '#/components/schemas/OpenAI.CreateImageEditRequest'
       expected:
         type: object
@@ -1203,28 +962,6 @@ documents:
         x-oaiTypeLabel: string
         minLength: 1
         pattern: \S
-    - pointer: '#/paths/~1audio~1transcriptions/post/requestBody/content/multipart~1form-data/schema/properties/model'
-      expected:
-        type: string
-        description: The model to use for this transcription request.
-        x-oaiTypeLabel: string
-      replacement:
-        type: string
-        description: The model to use for this transcription request.
-        x-oaiTypeLabel: string
-        minLength: 1
-        pattern: \S
-    - pointer: '#/paths/~1audio~1translations/post/requestBody/content/multipart~1form-data/schema/properties/model'
-      expected:
-        type: string
-        description: The model to use for this transcription request.
-        x-oaiTypeLabel: string
-      replacement:
-        type: string
-        description: The model to use for this transcription request.
-        x-oaiTypeLabel: string
-        minLength: 1
-        pattern: \S
     - pointer: '#/paths/~1chat~1completions/post/requestBody/content/application~1json/schema/properties/model'
       expected:
         type: string
@@ -1400,3 +1137,374 @@ documents:
         - integer
         - 'null'
         format: unixtime
+  - reason: The speech response-format enum overlaps its unrestricted string alternative. Azure accepts all six
+      named formats (live verified 2026-09-12); anyOf preserves those choices and forward-compatible formats without
+      weakening oneOf validation elsewhere.
+    replace_values:
+    - pointer: '#/components/schemas/SpeechGenerationResponseFormat'
+      expected:
+        oneOf:
+        - type: string
+        - type: string
+          enum:
+          - mp3
+          - opus
+          - aac
+          - flac
+          - wav
+          - pcm
+        description: The supported audio output formats for text-to-speech.
+      replacement:
+        description: The supported audio output formats for text-to-speech.
+        anyOf:
+        - type: string
+        - type: string
+          enum:
+          - mp3
+          - opus
+          - aac
+          - flac
+          - wav
+          - pcm
+  - reason: GPT image deployments return image data without the optional Azure content-filter annotations. Verified
+      against gpt-image-2 on 2026-09-12; the upstream ImagesResponse example also omits both fields. Preserve their
+      types when present without requiring them in every image.
+    replace_required:
+    - pointer: '#/components/schemas/OpenAI.Image'
+      expected:
+      - prompt_filter_results
+      - content_filter_results
+      replacement: []
+  - reason: 'Conversations are served by the Foundry project OpenAI v1 endpoint. Unlike the resource-level models
+      endpoint, it rejects any api-version query parameter with HTTP 400 (api-version query parameter is not allowed
+      when using /v1 path). The project REST reference declares these operations without that query parameter. Remove
+      the generated resource API version from these eight conversation operations. Verified live on 2026-09-12.
+      Source: https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/aiproject#conversations'
+    replace_values:
+    - pointer: '#/paths/~1conversations/post/parameters'
+      expected:
+      - name: api-version
+        in: query
+        required: false
+        description: 'The explicit Azure AI Foundry Models API version to use for this request.
+
+          `v1` if not otherwise specified.'
+        schema:
+          $ref: '#/components/schemas/AzureAIFoundryModelsApiVersion'
+          default: v1
+      replacement: []
+    - pointer: '#/paths/~1conversations~1{conversation_id}/get/parameters'
+      expected:
+      - name: api-version
+        in: query
+        required: false
+        description: 'The explicit Azure AI Foundry Models API version to use for this request.
+
+          `v1` if not otherwise specified.'
+        schema:
+          $ref: '#/components/schemas/AzureAIFoundryModelsApiVersion'
+          default: v1
+      - &id002
+        name: conversation_id
+        in: path
+        required: true
+        description: The ID of the conversation to retrieve.
+        schema:
+          type: string
+      replacement:
+      - *id002
+    - pointer: '#/paths/~1conversations~1{conversation_id}/post/parameters'
+      expected:
+      - name: api-version
+        in: query
+        required: false
+        description: 'The explicit Azure AI Foundry Models API version to use for this request.
+
+          `v1` if not otherwise specified.'
+        schema:
+          $ref: '#/components/schemas/AzureAIFoundryModelsApiVersion'
+          default: v1
+      - &id003
+        name: conversation_id
+        in: path
+        required: true
+        description: The ID of the conversation to update.
+        schema:
+          type: string
+      replacement:
+      - *id003
+    - pointer: '#/paths/~1conversations~1{conversation_id}/delete/parameters'
+      expected:
+      - name: api-version
+        in: query
+        required: false
+        description: 'The explicit Azure AI Foundry Models API version to use for this request.
+
+          `v1` if not otherwise specified.'
+        schema:
+          $ref: '#/components/schemas/AzureAIFoundryModelsApiVersion'
+          default: v1
+      - &id004
+        name: conversation_id
+        in: path
+        required: true
+        description: The ID of the conversation to delete.
+        schema:
+          type: string
+      replacement:
+      - *id004
+    - pointer: '#/paths/~1conversations~1{conversation_id}~1items/get/parameters'
+      expected:
+      - name: api-version
+        in: query
+        required: false
+        description: 'The explicit Azure AI Foundry Models API version to use for this request.
+
+          `v1` if not otherwise specified.'
+        schema:
+          $ref: '#/components/schemas/AzureAIFoundryModelsApiVersion'
+          default: v1
+      - &id005
+        name: conversation_id
+        in: path
+        required: true
+        description: The ID of the conversation to list items for.
+        schema:
+          type: string
+      - &id006
+        name: limit
+        in: query
+        required: false
+        description: A limit on the number of objects to be returned. Limit can range between 1 and 100, and the
+          default is 20.
+        schema:
+          type: integer
+          format: int32
+          default: 20
+        explode: false
+      - &id007
+        name: order
+        in: query
+        required: false
+        description: The order to return the input items in. Default is `desc`.
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
+        explode: false
+      - &id008
+        name: after
+        in: query
+        required: false
+        description: An item ID to list items after, used in pagination.
+        schema:
+          type: string
+        explode: false
+      - &id009
+        name: include
+        in: query
+        required: false
+        description: Specify additional output data to include in the model response.
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpenAI.IncludeEnum'
+        explode: false
+      replacement:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+    - pointer: '#/paths/~1conversations~1{conversation_id}~1items/post/parameters'
+      expected:
+      - name: api-version
+        in: query
+        required: false
+        description: 'The explicit Azure AI Foundry Models API version to use for this request.
+
+          `v1` if not otherwise specified.'
+        schema:
+          $ref: '#/components/schemas/AzureAIFoundryModelsApiVersion'
+          default: v1
+      - &id010
+        name: conversation_id
+        in: path
+        required: true
+        description: The ID of the conversation to add the item to.
+        schema:
+          type: string
+      - &id011
+        name: include
+        in: query
+        required: false
+        description: Additional fields to include in the response.
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpenAI.IncludeEnum'
+        explode: false
+      replacement:
+      - *id010
+      - *id011
+    - pointer: '#/paths/~1conversations~1{conversation_id}~1items~1{item_id}/get/parameters'
+      expected:
+      - name: api-version
+        in: query
+        required: false
+        description: 'The explicit Azure AI Foundry Models API version to use for this request.
+
+          `v1` if not otherwise specified.'
+        schema:
+          $ref: '#/components/schemas/AzureAIFoundryModelsApiVersion'
+          default: v1
+      - &id012
+        name: conversation_id
+        in: path
+        required: true
+        description: The ID of the conversation that contains the item.
+        schema:
+          type: string
+      - &id013
+        name: item_id
+        in: path
+        required: true
+        description: The ID of the item to retrieve.
+        schema:
+          type: string
+      - &id014
+        name: include
+        in: query
+        required: false
+        description: Additional fields to include in the response.
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpenAI.IncludeEnum'
+        explode: false
+      replacement:
+      - *id012
+      - *id013
+      - *id014
+    - pointer: '#/paths/~1conversations~1{conversation_id}~1items~1{item_id}/delete/parameters'
+      expected:
+      - name: api-version
+        in: query
+        required: false
+        description: 'The explicit Azure AI Foundry Models API version to use for this request.
+
+          `v1` if not otherwise specified.'
+        schema:
+          $ref: '#/components/schemas/AzureAIFoundryModelsApiVersion'
+          default: v1
+      - &id015
+        name: conversation_id
+        in: path
+        required: true
+        description: The ID of the conversation that contains the item.
+        schema:
+          type: string
+      - &id016
+        name: item_id
+        in: path
+        required: true
+        description: The ID of the item to delete.
+        schema:
+          type: string
+      replacement:
+      - *id015
+      - *id016
+- name: AzureOpenAiAudio
+  source: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/a6943a926f76b3a2f90371b3466157eddf760e25/specification/cognitiveservices/data-plane/AzureOpenAI/inference/preview/2025-04-01-preview/inference.json
+  output: azure-openai-audio.json
+  manifest: AzureOpenAiDataProvider:AzureOpenAiAudioManifest::Manifest
+  provenance: AzureOpenAiSchema.qc
+  const: AudioProvenance
+  json: true
+  normalize:
+  - reason: The documented simple and verbose JSON audio responses both require only text, so their alternatives
+      overlap. Use anyOf; retain each response schema and the separate text/plain representation. Add the documented
+      temperature bounds. See https://learn.microsoft.com/en-us/azure/foundry/openai/reference-preview ; live Whisper
+      and GPT transcription verified 2026-09-12. Encode timestamp granularities as repeated multipart fields using
+      the documented [] name.
+    replace_values:
+    - pointer: '#/paths/~1deployments~1{deployment-id}~1audio~1transcriptions/post/responses/200/content/application~1json/schema'
+      expected:
+        oneOf: &id017
+        - $ref: '#/components/schemas/audioResponse'
+        - $ref: '#/components/schemas/audioVerboseResponse'
+      replacement:
+        anyOf: *id017
+    - pointer: '#/paths/~1deployments~1{deployment-id}~1audio~1translations/post/responses/200/content/application~1json/schema'
+      expected:
+        oneOf: &id018
+        - $ref: '#/components/schemas/audioResponse'
+        - $ref: '#/components/schemas/audioVerboseResponse'
+      replacement:
+        anyOf: *id018
+    - pointer: '#/components/schemas/createTranscriptionRequest/properties/temperature'
+      expected:
+        type: number
+        default: 0
+        description: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more
+          random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model
+          will use log probability to automatically increase the temperature until certain thresholds are hit.
+      replacement:
+        type: number
+        default: 0
+        description: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more
+          random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model
+          will use log probability to automatically increase the temperature until certain thresholds are hit.
+        minimum: 0
+        maximum: 1
+    - pointer: '#/components/schemas/createTranslationRequest/properties/temperature'
+      expected:
+        type: number
+        default: 0
+        description: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more
+          random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model
+          will use log probability to automatically increase the temperature until certain thresholds are hit.
+      replacement:
+        type: number
+        default: 0
+        description: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more
+          random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model
+          will use log probability to automatically increase the temperature until certain thresholds are hit.
+        minimum: 0
+        maximum: 1
+    - pointer: '#/paths/~1deployments~1{deployment-id}~1audio~1transcriptions/post/requestBody/content/multipart~1form-data'
+      expected:
+        schema: &id019
+          $ref: '#/components/schemas/createTranscriptionRequest'
+      replacement:
+        schema: *id019
+        encoding:
+          timestamp_granularities[]:
+            style: form
+            explode: true
+  - reason: Azure deployment path parameters must name a nonempty deployment. Enforce that contract in the schema
+      so missing, empty, and whitespace-only names fail before transport, independently of GUI validation.
+    replace_values:
+    - pointer: '#/paths/~1deployments~1{deployment-id}~1audio~1transcriptions/post/parameters/0/schema'
+      expected:
+        type: string
+        example: whisper
+        description: Deployment id of the whisper model.
+      replacement:
+        type: string
+        example: whisper
+        description: Deployment id of the whisper model.
+        minLength: 1
+        pattern: \S
+    - pointer: '#/paths/~1deployments~1{deployment-id}~1audio~1translations/post/parameters/0/schema'
+      expected:
+        type: string
+        example: whisper
+        description: Deployment id of the whisper model which was deployed.
+      replacement:
+        type: string
+        example: whisper
+        description: Deployment id of the whisper model which was deployed.
+        minLength: 1
+        pattern: \S

@@ -17,6 +17,14 @@
 
 %exec-class AzureOpenAiTest
 
+class AzureScopeProbe inherits AzureOpenAiRestClientBase {
+    constructor(hash<auto> options) : AzureOpenAiRestClientBase(options) {
+    }
+    string scope() {
+        return getEntraScope();
+    }
+}
+
 public class AzureOpenAiTest inherits QUnit::Test {
     constructor() : Test("AzureOpenAi Test", "1.0") {
         addTestCase("factory registered + lazy-loadable", \factoryTest());
@@ -28,6 +36,7 @@ public class AzureOpenAiTest inherits QUnit::Test {
         addTestCase("getChatCompletionsPath uses deployment + api-version",
             \chatPathTest());
         addTestCase("unknown auth mode is rejected", \unknownAuthModeTest());
+        addTestCase("Entra scope follows the endpoint and preserves explicit overrides", \scopeTest());
         addTestCase("missing api_key with api_key mode throws",
             \missingApiKeyTest());
         addTestCase("missing deployment throws", \missingDeploymentTest());
@@ -144,6 +153,23 @@ public class AzureOpenAiTest inherits QUnit::Test {
             "provider_options": {"azure_deployment": "dep"},
         });
         assertEq(AzureOpenAiRestClient::DefaultAzureApiVersion, p2.getApiVersion());
+    }
+
+    private scopeTest() {
+        foreach string suffix in ("", "/openai/v1", "/api/projects/test", "/api/projects/test/openai/v1/") {
+            hash<auto> options = {"url": "https://resource.example.com" + suffix};
+            AzureScopeProbe probe(options);
+            assertEq(suffix.startsWith("/api/projects/") ? DefaultFoundryEntraScope : DefaultEntraScope,
+                probe.scope());
+            options.azure_entra_scope = "https://custom.example.com/.default";
+            AzureScopeProbe explicit_scope(options);
+            assertEq(options.azure_entra_scope, explicit_scope.scope());
+            options.azure_entra_scope = "";
+            AzureScopeProbe empty_scope(options);
+            assertEq(probe.scope(), empty_scope.scope());
+        }
+        assertFalse(exists AzureOpenAiRestConnection::ConnectionScheme.options.azure_entra_scope.default_value,
+            "a static connection default must not mask endpoint selection");
     }
 
     private unknownAuthModeTest() {

@@ -228,421 +228,6 @@
         }
       }
     },
-    "/audio/transcriptions": {
-      "post": {
-        "operationId": "createTranscription",
-        "summary": "Transcribes audio into the input language.",
-        "parameters": [
-          {
-            "name": "api-version",
-            "in": "query",
-            "required": false,
-            "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
-            "schema": {
-              "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
-              "default": "v1"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The request has succeeded.",
-            "headers": {
-              "apim-request-id": {
-                "required": false,
-                "description": "A request ID used for troubleshooting purposes.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AzureAudioTranscriptionResponse"
-                }
-              },
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "headers": {
-              "apim-request-id": {
-                "required": false,
-                "description": "A request ID used for troubleshooting purposes.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "param": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "type": {
-                      "type": "string"
-                    },
-                    "inner_error": {}
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Audio"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "description": "The audio file object (not file name) to transcribe, in one of these formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.",
-                    "x-oaiTypeLabel": "file",
-                    "type": "string",
-                    "format": "binary"
-                  },
-                  "model": {
-                    "type": "string",
-                    "description": "The model to use for this transcription request.",
-                    "x-oaiTypeLabel": "string",
-                    "minLength": 1,
-                    "pattern": "\\S"
-                  },
-                  "language": {
-                    "description": "The language of the input audio. Supplying the input language in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`) format will improve accuracy and latency.",
-                    "type": "string"
-                  },
-                  "prompt": {
-                    "description": "An optional text to guide the model's style or continue a previous audio segment. The [prompt](/docs/guides/speech-to-text#prompting) should match the audio language. This field is not supported when using `gpt-4o-transcribe-diarize`.",
-                    "type": "string"
-                  },
-                  "response_format": {
-                    "type": "string",
-                    "enum": [
-                      "json",
-                      "text",
-                      "srt",
-                      "verbose_json",
-                      "vtt",
-                      "diarized_json"
-                    ]
-                  },
-                  "temperature": {
-                    "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit.",
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 1
-                  },
-                  "stream": {
-                    "type": "boolean"
-                  },
-                  "chunking_strategy": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "enum": [
-                          "auto"
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "required": [
-                          "type"
-                        ],
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "server_vad"
-                            ]
-                          },
-                          "prefix_padding_ms": {
-                            "type": "integer",
-                            "minimum": 0
-                          },
-                          "silence_duration_ms": {
-                            "type": "integer",
-                            "minimum": 0
-                          },
-                          "threshold": {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        }
-                      }
-                    ]
-                  },
-                  "filename": {
-                    "type": "string",
-                    "description": "The optional filename or descriptive identifier to associate with with the audio data."
-                  },
-                  "include[]": {
-                    "description": "Additional information to include in the transcription response.\n  `logprobs` will return the log probabilities of the tokens in the\n  response to understand the model's confidence in the transcription.\n  `logprobs` only works with response_format set to `json` and only with\n  the models `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is not supported when using `gpt-4o-transcribe-diarize`.",
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": [
-                        "logprobs"
-                      ]
-                    }
-                  },
-                  "timestamp_granularities[]": {
-                    "description": "The timestamp granularities to populate for this transcription. `response_format` must be set `verbose_json` to use timestamp granularities. Either or both of these options are supported: `word`, or `segment`. Note: There is no additional latency for segment timestamps, but generating word timestamps incurs additional latency.\n  This option is not available for `gpt-4o-transcribe-diarize`.",
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": [
-                        "word",
-                        "segment"
-                      ]
-                    }
-                  },
-                  "known_speaker_names[]": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "known_speaker_references[]": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "required": [
-                  "file",
-                  "model"
-                ]
-              },
-              "encoding": {
-                "chunking_strategy": {
-                  "contentType": "application/json"
-                },
-                "include[]": {
-                  "style": "form",
-                  "explode": true
-                },
-                "timestamp_granularities[]": {
-                  "style": "form",
-                  "explode": true
-                },
-                "known_speaker_names[]": {
-                  "style": "form",
-                  "explode": true
-                },
-                "known_speaker_references[]": {
-                  "style": "form",
-                  "explode": true
-                }
-              }
-            }
-          }
-        },
-        "x-ms-examples": {
-          "Create a transcription request": {
-            "$ref": "./examples/audio_transcription.yaml"
-          }
-        }
-      }
-    },
-    "/audio/translations": {
-      "post": {
-        "operationId": "createTranslation",
-        "summary": "Gets English language transcribed text and associated metadata from provided spoken audio data.",
-        "parameters": [
-          {
-            "name": "api-version",
-            "in": "query",
-            "required": false,
-            "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
-            "schema": {
-              "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
-              "default": "v1"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The request has succeeded.",
-            "headers": {
-              "apim-request-id": {
-                "required": false,
-                "description": "A request ID used for troubleshooting purposes.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AzureAudioTranslationResponse"
-                }
-              },
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "headers": {
-              "apim-request-id": {
-                "required": false,
-                "description": "A request ID used for troubleshooting purposes.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "param": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "type": {
-                      "type": "string"
-                    },
-                    "inner_error": {}
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Audio"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "description": "The audio file object (not file name) translate, in one of these formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.",
-                    "x-oaiTypeLabel": "file",
-                    "type": "string",
-                    "format": "binary"
-                  },
-                  "model": {
-                    "type": "string",
-                    "description": "The model to use for this transcription request.",
-                    "x-oaiTypeLabel": "string",
-                    "minLength": 1,
-                    "pattern": "\\S"
-                  },
-                  "prompt": {
-                    "description": "An optional text to guide the model's style or continue a previous audio segment. The [prompt](/docs/guides/speech-to-text#prompting) should be in English.",
-                    "type": "string"
-                  },
-                  "response_format": {
-                    "description": "The format of the output, in one of these options: `json`, `text`, `srt`, `verbose_json`, or `vtt`.",
-                    "type": "string",
-                    "enum": [
-                      "json",
-                      "text",
-                      "srt",
-                      "verbose_json",
-                      "vtt"
-                    ]
-                  },
-                  "temperature": {
-                    "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit.",
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 1
-                  },
-                  "filename": {
-                    "type": "string",
-                    "description": "The optional filename or descriptive identifier to associate with with the audio data"
-                  }
-                },
-                "required": [
-                  "file",
-                  "model"
-                ]
-              },
-              "encoding": {}
-            }
-          }
-        },
-        "x-ms-examples": {
-          "Create an audio translation request": {
-            "$ref": "./examples/audio_translation.yaml"
-          }
-        }
-      }
-    },
     "/batches": {
       "post": {
         "operationId": "createBatch",
@@ -3693,18 +3278,7 @@
     "/conversations": {
       "post": {
         "operationId": "createConversation",
-        "parameters": [
-          {
-            "name": "api-version",
-            "in": "query",
-            "required": false,
-            "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
-            "schema": {
-              "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
-              "default": "v1"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "The request has succeeded.",
@@ -3798,16 +3372,6 @@
         "operationId": "retrieveConversation",
         "parameters": [
           {
-            "name": "api-version",
-            "in": "query",
-            "required": false,
-            "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
-            "schema": {
-              "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
-              "default": "v1"
-            }
-          },
-          {
             "name": "conversation_id",
             "in": "path",
             "required": true,
@@ -3897,16 +3461,6 @@
       "post": {
         "operationId": "updateConversation",
         "parameters": [
-          {
-            "name": "api-version",
-            "in": "query",
-            "required": false,
-            "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
-            "schema": {
-              "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
-              "default": "v1"
-            }
-          },
           {
             "name": "conversation_id",
             "in": "path",
@@ -4008,16 +3562,6 @@
         "operationId": "deleteConversation",
         "parameters": [
           {
-            "name": "api-version",
-            "in": "query",
-            "required": false,
-            "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
-            "schema": {
-              "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
-              "default": "v1"
-            }
-          },
-          {
             "name": "conversation_id",
             "in": "path",
             "required": true,
@@ -4109,16 +3653,6 @@
       "get": {
         "operationId": "listConversationItems",
         "parameters": [
-          {
-            "name": "api-version",
-            "in": "query",
-            "required": false,
-            "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
-            "schema": {
-              "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
-              "default": "v1"
-            }
-          },
           {
             "name": "conversation_id",
             "in": "path",
@@ -4259,16 +3793,6 @@
         "operationId": "createConversationItems",
         "parameters": [
           {
-            "name": "api-version",
-            "in": "query",
-            "required": false,
-            "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
-            "schema": {
-              "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
-              "default": "v1"
-            }
-          },
-          {
             "name": "conversation_id",
             "in": "path",
             "required": true,
@@ -4384,16 +3908,6 @@
         "operationId": "retrieveConversationItem",
         "parameters": [
           {
-            "name": "api-version",
-            "in": "query",
-            "required": false,
-            "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
-            "schema": {
-              "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
-              "default": "v1"
-            }
-          },
-          {
             "name": "conversation_id",
             "in": "path",
             "required": true,
@@ -4505,16 +4019,6 @@
       "delete": {
         "operationId": "deleteConversationItem",
         "parameters": [
-          {
-            "name": "api-version",
-            "in": "query",
-            "required": false,
-            "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
-            "schema": {
-              "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
-              "default": "v1"
-            }
-          },
           {
             "name": "conversation_id",
             "in": "path",
@@ -14438,178 +13942,12 @@
       }
     },
     "schemas": {
-      "AudioTaskLabel": {
-        "anyOf": [
-          {
-            "type": "string"
-          },
-          {
-            "type": "string",
-            "enum": [
-              "transcribe",
-              "translate"
-            ]
-          }
-        ],
-        "description": "Defines the possible descriptors for available audio operation responses."
-      },
-      "AudioTranslationSegment": {
-        "type": "object",
-        "required": [
-          "id",
-          "start",
-          "end",
-          "text",
-          "temperature",
-          "avg_logprob",
-          "compression_ratio",
-          "no_speech_prob",
-          "tokens",
-          "seek"
-        ],
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32",
-            "description": "The 0-based index of this segment within a translation."
-          },
-          "start": {
-            "type": "number",
-            "format": "float",
-            "description": "The time at which this segment started relative to the beginning of the translated audio."
-          },
-          "end": {
-            "type": "number",
-            "format": "float",
-            "description": "The time at which this segment ended relative to the beginning of the translated audio."
-          },
-          "text": {
-            "type": "string",
-            "description": "The translated text that was part of this audio segment."
-          },
-          "temperature": {
-            "type": "number",
-            "format": "float",
-            "description": "The temperature score associated with this audio segment."
-          },
-          "avg_logprob": {
-            "type": "number",
-            "format": "float",
-            "description": "The average log probability associated with this audio segment."
-          },
-          "compression_ratio": {
-            "type": "number",
-            "format": "float",
-            "description": "The compression ratio of this audio segment."
-          },
-          "no_speech_prob": {
-            "type": "number",
-            "format": "float",
-            "description": "The probability of no speech detection within this audio segment."
-          },
-          "tokens": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            },
-            "description": "The token IDs matching the translated text in this audio segment."
-          },
-          "seek": {
-            "type": "integer",
-            "format": "int32",
-            "description": "The seek position associated with the processing of this audio segment.\nSeek positions are expressed as hundredths of seconds.\nThe model may process several segments from a single seek position, so while the seek position will never represent\na later time than the segment's start, the segment's start may represent a significantly later time than the\nsegment's associated seek position."
-          }
-        },
-        "description": "Extended information about a single segment of translated audio data.\nSegments generally represent roughly 5-10 seconds of speech. Segment boundaries typically occur between words but not\nnecessarily sentences."
-      },
       "AzureAIFoundryModelsApiVersion": {
         "type": "string",
         "enum": [
           "v1",
           "preview"
         ]
-      },
-      "AzureAudioTranscriptionResponse": {
-        "type": "object",
-        "required": [
-          "text"
-        ],
-        "properties": {
-          "text": {
-            "type": "string",
-            "description": "The transcribed text for the provided audio data."
-          },
-          "task": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AudioTaskLabel"
-              }
-            ],
-            "description": "The label that describes which operation type generated the accompanying response data."
-          },
-          "language": {
-            "type": "string",
-            "description": "The spoken language that was detected in the transcribed audio data.\nThis is expressed as a two-letter ISO-639-1 language code like 'en' or 'fr'."
-          },
-          "duration": {
-            "type": "number",
-            "format": "float",
-            "description": "The total duration of the audio processed to produce accompanying transcription information."
-          },
-          "segments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OpenAI.TranscriptionSegment"
-            },
-            "description": "A collection of information about the timing, probabilities, and other detail of each processed audio segment."
-          },
-          "words": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OpenAI.TranscriptionWord"
-            },
-            "description": "A collection of information about the timing of each processed word."
-          }
-        },
-        "description": "Result information for an operation that transcribed spoken audio into written text."
-      },
-      "AzureAudioTranslationResponse": {
-        "type": "object",
-        "required": [
-          "text"
-        ],
-        "properties": {
-          "text": {
-            "type": "string",
-            "description": "The translated text for the provided audio data."
-          },
-          "task": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AudioTaskLabel"
-              }
-            ],
-            "description": "The label that describes which operation type generated the accompanying response data."
-          },
-          "language": {
-            "type": "string",
-            "description": "The spoken language that was detected in the translated audio data.\nThis is expressed as a two-letter ISO-639-1 language code like 'en' or 'fr'."
-          },
-          "duration": {
-            "type": "number",
-            "format": "float",
-            "description": "The total duration of the audio processed to produce accompanying translation information."
-          },
-          "segments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AudioTranslationSegment"
-            },
-            "description": "A collection of information about the timing, probabilities, and other detail of each processed audio segment."
-          }
-        },
-        "description": "Result information for an operation that translated spoken audio into written text."
       },
       "AzureCompletionsSamplingParams": {
         "type": "object",
@@ -20029,9 +19367,7 @@
         "required": [
           "object",
           "data",
-          "has_more",
-          "first_id",
-          "last_id"
+          "has_more"
         ],
         "properties": {
           "object": {
@@ -27112,10 +26448,6 @@
       },
       "OpenAI.Image": {
         "type": "object",
-        "required": [
-          "prompt_filter_results",
-          "content_filter_results"
-        ],
         "properties": {
           "b64_json": {
             "type": "string",
@@ -40361,100 +39693,6 @@
         "description": "The top log probability of a token.",
         "title": "Top log probability"
       },
-      "OpenAI.TranscriptionSegment": {
-        "type": "object",
-        "required": [
-          "id",
-          "seek",
-          "start",
-          "end",
-          "text",
-          "tokens",
-          "temperature",
-          "avg_logprob",
-          "compression_ratio",
-          "no_speech_prob"
-        ],
-        "properties": {
-          "id": {
-            "type": "integer",
-            "description": "Unique identifier of the segment."
-          },
-          "seek": {
-            "type": "integer",
-            "description": "Seek offset of the segment."
-          },
-          "start": {
-            "type": "integer",
-            "format": "int64",
-            "description": "Start time of the segment in seconds.",
-            "x-ms-duration": "seconds"
-          },
-          "end": {
-            "type": "integer",
-            "format": "int64",
-            "description": "End time of the segment in seconds.",
-            "x-ms-duration": "seconds"
-          },
-          "text": {
-            "type": "string",
-            "description": "Text content of the segment."
-          },
-          "tokens": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            },
-            "description": "Array of token IDs for the text content."
-          },
-          "temperature": {
-            "type": "number",
-            "format": "float",
-            "description": "Temperature parameter used for generating the segment."
-          },
-          "avg_logprob": {
-            "type": "number",
-            "format": "float",
-            "description": "Average logprob of the segment. If the value is lower than -1, consider the logprobs failed."
-          },
-          "compression_ratio": {
-            "type": "number",
-            "format": "float",
-            "description": "Compression ratio of the segment. If the value is greater than 2.4, consider the compression failed."
-          },
-          "no_speech_prob": {
-            "type": "number",
-            "format": "float",
-            "description": "Probability of no speech in the segment. If the value is higher than 1.0 and the `avg_logprob` is below -1, consider this segment silent."
-          }
-        }
-      },
-      "OpenAI.TranscriptionWord": {
-        "type": "object",
-        "required": [
-          "word",
-          "start",
-          "end"
-        ],
-        "properties": {
-          "word": {
-            "type": "string",
-            "description": "The text content of the word."
-          },
-          "start": {
-            "type": "integer",
-            "format": "int64",
-            "description": "Start time of the word in seconds.",
-            "x-ms-duration": "seconds"
-          },
-          "end": {
-            "type": "integer",
-            "format": "int64",
-            "description": "End time of the word in seconds.",
-            "x-ms-duration": "seconds"
-          }
-        }
-      },
       "OpenAI.TypeParam": {
         "type": "object",
         "required": [
@@ -41564,7 +40802,8 @@
         }
       },
       "SpeechGenerationResponseFormat": {
-        "oneOf": [
+        "description": "The supported audio output formats for text-to-speech.",
+        "anyOf": [
           {
             "type": "string"
           },
@@ -41579,8 +40818,7 @@
               "pcm"
             ]
           }
-        ],
-        "description": "The supported audio output formats for text-to-speech."
+        ]
       },
       "SpeechVoice": {
         "anyOf": [
@@ -41826,6 +41064,31 @@
   ],
   "x-qore-normalized": [
     {
+      "reason": "Foundry conversation item lists omit first_id and last_id when data is empty, as verified with an empty conversation on 2026-09-12. These pagination IDs cannot exist without items. Preserve their string types when present and retain the required list envelope. See https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/aiproject",
+      "operations": [],
+      "add_parameters": [],
+      "replace_parameters": [],
+      "relax_oneof": [],
+      "replace_required": [
+        {
+          "pointer": "#/components/schemas/OpenAI.ConversationItemList",
+          "expected": [
+            "object",
+            "data",
+            "has_more",
+            "first_id",
+            "last_id"
+          ],
+          "replacement": [
+            "object",
+            "data",
+            "has_more"
+          ]
+        }
+      ],
+      "rename_paths": {}
+    },
+    {
       "reason": "The Azure Files API accepts named multipart file bytes and optional expires_after[anchor]/expires_after[seconds] form fields. The generated document omits the file type, incorrectly requires expiration, and omits its encoding and Azure bounds. Live verification on 2026-09-11 accepted an upload without expiration, ignored a JSON expiration part, and required seconds between 259200 and 2592000 for bracket fields. See https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/azureopenai/files",
       "operations": [],
       "add_parameters": [],
@@ -41901,310 +41164,6 @@
       "replace_required": [],
       "rename_paths": {},
       "replace_values": [
-        {
-          "pointer": "#/paths/~1audio~1transcriptions/post/requestBody/content",
-          "expected": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "object",
-                    "description": "The audio file object (not file name) to transcribe, in one of these formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.",
-                    "x-oaiTypeLabel": "file"
-                  },
-                  "model": {
-                    "type": "string",
-                    "description": "The model to use for this transcription request.",
-                    "x-oaiTypeLabel": "string"
-                  },
-                  "language": {
-                    "type": "object",
-                    "description": "The language of the input audio. Supplying the input language in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`) format will improve accuracy and latency."
-                  },
-                  "prompt": {
-                    "type": "object",
-                    "description": "An optional text to guide the model's style or continue a previous audio segment. The [prompt](/docs/guides/speech-to-text#prompting) should match the audio language. This field is not supported when using `gpt-4o-transcribe-diarize`."
-                  },
-                  "response_format": {
-                    "type": "object"
-                  },
-                  "temperature": {
-                    "type": "object",
-                    "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit."
-                  },
-                  "include": {
-                    "type": "object",
-                    "description": "Additional information to include in the transcription response.\n  `logprobs` will return the log probabilities of the tokens in the\n  response to understand the model's confidence in the transcription.\n  `logprobs` only works with response_format set to `json` and only with\n  the models `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is not supported when using `gpt-4o-transcribe-diarize`."
-                  },
-                  "timestamp_granularities": {
-                    "type": "object",
-                    "description": "The timestamp granularities to populate for this transcription. `response_format` must be set `verbose_json` to use timestamp granularities. Either or both of these options are supported: `word`, or `segment`. Note: There is no additional latency for segment timestamps, but generating word timestamps incurs additional latency.\n  This option is not available for `gpt-4o-transcribe-diarize`."
-                  },
-                  "stream": {
-                    "type": "object"
-                  },
-                  "chunking_strategy": {
-                    "type": "object"
-                  },
-                  "known_speaker_names": {
-                    "type": "object"
-                  },
-                  "known_speaker_references": {
-                    "type": "object"
-                  },
-                  "filename": {
-                    "type": "string",
-                    "description": "The optional filename or descriptive identifier to associate with with the audio data."
-                  }
-                },
-                "required": [
-                  "file",
-                  "model"
-                ]
-              }
-            }
-          },
-          "replacement": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "description": "The audio file object (not file name) to transcribe, in one of these formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.",
-                    "x-oaiTypeLabel": "file",
-                    "type": "string",
-                    "format": "binary"
-                  },
-                  "model": {
-                    "type": "string",
-                    "description": "The model to use for this transcription request.",
-                    "x-oaiTypeLabel": "string"
-                  },
-                  "language": {
-                    "description": "The language of the input audio. Supplying the input language in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`) format will improve accuracy and latency.",
-                    "type": "string"
-                  },
-                  "prompt": {
-                    "description": "An optional text to guide the model's style or continue a previous audio segment. The [prompt](/docs/guides/speech-to-text#prompting) should match the audio language. This field is not supported when using `gpt-4o-transcribe-diarize`.",
-                    "type": "string"
-                  },
-                  "response_format": {
-                    "type": "string",
-                    "enum": [
-                      "json",
-                      "text",
-                      "srt",
-                      "verbose_json",
-                      "vtt",
-                      "diarized_json"
-                    ]
-                  },
-                  "temperature": {
-                    "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit.",
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 1
-                  },
-                  "stream": {
-                    "type": "boolean"
-                  },
-                  "chunking_strategy": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "enum": [
-                          "auto"
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "required": [
-                          "type"
-                        ],
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "server_vad"
-                            ]
-                          },
-                          "prefix_padding_ms": {
-                            "type": "integer",
-                            "minimum": 0
-                          },
-                          "silence_duration_ms": {
-                            "type": "integer",
-                            "minimum": 0
-                          },
-                          "threshold": {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        }
-                      }
-                    ]
-                  },
-                  "filename": {
-                    "type": "string",
-                    "description": "The optional filename or descriptive identifier to associate with with the audio data."
-                  },
-                  "include[]": {
-                    "description": "Additional information to include in the transcription response.\n  `logprobs` will return the log probabilities of the tokens in the\n  response to understand the model's confidence in the transcription.\n  `logprobs` only works with response_format set to `json` and only with\n  the models `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is not supported when using `gpt-4o-transcribe-diarize`.",
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": [
-                        "logprobs"
-                      ]
-                    }
-                  },
-                  "timestamp_granularities[]": {
-                    "description": "The timestamp granularities to populate for this transcription. `response_format` must be set `verbose_json` to use timestamp granularities. Either or both of these options are supported: `word`, or `segment`. Note: There is no additional latency for segment timestamps, but generating word timestamps incurs additional latency.\n  This option is not available for `gpt-4o-transcribe-diarize`.",
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": [
-                        "word",
-                        "segment"
-                      ]
-                    }
-                  },
-                  "known_speaker_names[]": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "known_speaker_references[]": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "required": [
-                  "file",
-                  "model"
-                ]
-              },
-              "encoding": {
-                "chunking_strategy": {
-                  "contentType": "application/json"
-                },
-                "include[]": {
-                  "style": "form",
-                  "explode": true
-                },
-                "timestamp_granularities[]": {
-                  "style": "form",
-                  "explode": true
-                },
-                "known_speaker_names[]": {
-                  "style": "form",
-                  "explode": true
-                },
-                "known_speaker_references[]": {
-                  "style": "form",
-                  "explode": true
-                }
-              }
-            }
-          }
-        },
-        {
-          "pointer": "#/paths/~1audio~1translations/post/requestBody/content",
-          "expected": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "object",
-                    "description": "The audio file object (not file name) translate, in one of these formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.",
-                    "x-oaiTypeLabel": "file"
-                  },
-                  "model": {
-                    "type": "string",
-                    "description": "The model to use for this transcription request.",
-                    "x-oaiTypeLabel": "string"
-                  },
-                  "prompt": {
-                    "type": "object",
-                    "description": "An optional text to guide the model's style or continue a previous audio segment. The [prompt](/docs/guides/speech-to-text#prompting) should be in English."
-                  },
-                  "response_format": {
-                    "type": "object",
-                    "description": "The format of the output, in one of these options: `json`, `text`, `srt`, `verbose_json`, or `vtt`."
-                  },
-                  "temperature": {
-                    "type": "object",
-                    "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit."
-                  },
-                  "filename": {
-                    "type": "string",
-                    "description": "The optional filename or descriptive identifier to associate with with the audio data"
-                  }
-                },
-                "required": [
-                  "file",
-                  "model"
-                ]
-              }
-            }
-          },
-          "replacement": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "description": "The audio file object (not file name) translate, in one of these formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.",
-                    "x-oaiTypeLabel": "file",
-                    "type": "string",
-                    "format": "binary"
-                  },
-                  "model": {
-                    "type": "string",
-                    "description": "The model to use for this transcription request.",
-                    "x-oaiTypeLabel": "string"
-                  },
-                  "prompt": {
-                    "description": "An optional text to guide the model's style or continue a previous audio segment. The [prompt](/docs/guides/speech-to-text#prompting) should be in English.",
-                    "type": "string"
-                  },
-                  "response_format": {
-                    "description": "The format of the output, in one of these options: `json`, `text`, `srt`, `verbose_json`, or `vtt`.",
-                    "type": "string",
-                    "enum": [
-                      "json",
-                      "text",
-                      "srt",
-                      "verbose_json",
-                      "vtt"
-                    ]
-                  },
-                  "temperature": {
-                    "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit.",
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 1
-                  },
-                  "filename": {
-                    "type": "string",
-                    "description": "The optional filename or descriptive identifier to associate with with the audio data"
-                  }
-                },
-                "required": [
-                  "file",
-                  "model"
-                ]
-              },
-              "encoding": {}
-            }
-          }
-        },
         {
           "pointer": "#/components/schemas/OpenAI.CreateImageEditRequest",
           "expected": {
@@ -43373,36 +42332,6 @@
           }
         },
         {
-          "pointer": "#/paths/~1audio~1transcriptions/post/requestBody/content/multipart~1form-data/schema/properties/model",
-          "expected": {
-            "type": "string",
-            "description": "The model to use for this transcription request.",
-            "x-oaiTypeLabel": "string"
-          },
-          "replacement": {
-            "type": "string",
-            "description": "The model to use for this transcription request.",
-            "x-oaiTypeLabel": "string",
-            "minLength": 1,
-            "pattern": "\\S"
-          }
-        },
-        {
-          "pointer": "#/paths/~1audio~1translations/post/requestBody/content/multipart~1form-data/schema/properties/model",
-          "expected": {
-            "type": "string",
-            "description": "The model to use for this transcription request.",
-            "x-oaiTypeLabel": "string"
-          },
-          "replacement": {
-            "type": "string",
-            "description": "The model to use for this transcription request.",
-            "x-oaiTypeLabel": "string",
-            "minLength": 1,
-            "pattern": "\\S"
-          }
-        },
-        {
           "pointer": "#/paths/~1chat~1completions/post/requestBody/content/application~1json/schema/properties/model",
           "expected": {
             "type": "string",
@@ -43652,6 +42581,534 @@
             ],
             "format": "unixtime"
           }
+        }
+      ]
+    },
+    {
+      "reason": "The speech response-format enum overlaps its unrestricted string alternative. Azure accepts all six named formats (live verified 2026-09-12); anyOf preserves those choices and forward-compatible formats without weakening oneOf validation elsewhere.",
+      "operations": [],
+      "add_parameters": [],
+      "replace_parameters": [],
+      "relax_oneof": [],
+      "replace_required": [],
+      "rename_paths": {},
+      "replace_values": [
+        {
+          "pointer": "#/components/schemas/SpeechGenerationResponseFormat",
+          "expected": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "mp3",
+                  "opus",
+                  "aac",
+                  "flac",
+                  "wav",
+                  "pcm"
+                ]
+              }
+            ],
+            "description": "The supported audio output formats for text-to-speech."
+          },
+          "replacement": {
+            "description": "The supported audio output formats for text-to-speech.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "mp3",
+                  "opus",
+                  "aac",
+                  "flac",
+                  "wav",
+                  "pcm"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "reason": "GPT image deployments return image data without the optional Azure content-filter annotations. Verified against gpt-image-2 on 2026-09-12; the upstream ImagesResponse example also omits both fields. Preserve their types when present without requiring them in every image.",
+      "operations": [],
+      "add_parameters": [],
+      "replace_parameters": [],
+      "relax_oneof": [],
+      "replace_required": [
+        {
+          "pointer": "#/components/schemas/OpenAI.Image",
+          "expected": [
+            "prompt_filter_results",
+            "content_filter_results"
+          ],
+          "replacement": []
+        }
+      ],
+      "rename_paths": {}
+    },
+    {
+      "reason": "Conversations are served by the Foundry project OpenAI v1 endpoint. Unlike the resource-level models endpoint, it rejects any api-version query parameter with HTTP 400 (api-version query parameter is not allowed when using /v1 path). The project REST reference declares these operations without that query parameter. Remove the generated resource API version from these eight conversation operations. Verified live on 2026-09-12. Source: https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/aiproject#conversations",
+      "operations": [],
+      "add_parameters": [],
+      "replace_parameters": [],
+      "relax_oneof": [],
+      "replace_required": [],
+      "rename_paths": {},
+      "replace_values": [
+        {
+          "pointer": "#/paths/~1conversations/post/parameters",
+          "expected": [
+            {
+              "name": "api-version",
+              "in": "query",
+              "required": false,
+              "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
+              "schema": {
+                "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
+                "default": "v1"
+              }
+            }
+          ],
+          "replacement": []
+        },
+        {
+          "pointer": "#/paths/~1conversations~1{conversation_id}/get/parameters",
+          "expected": [
+            {
+              "name": "api-version",
+              "in": "query",
+              "required": false,
+              "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
+              "schema": {
+                "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
+                "default": "v1"
+              }
+            },
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation to retrieve.",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "replacement": [
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation to retrieve.",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        {
+          "pointer": "#/paths/~1conversations~1{conversation_id}/post/parameters",
+          "expected": [
+            {
+              "name": "api-version",
+              "in": "query",
+              "required": false,
+              "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
+              "schema": {
+                "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
+                "default": "v1"
+              }
+            },
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation to update.",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "replacement": [
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation to update.",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        {
+          "pointer": "#/paths/~1conversations~1{conversation_id}/delete/parameters",
+          "expected": [
+            {
+              "name": "api-version",
+              "in": "query",
+              "required": false,
+              "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
+              "schema": {
+                "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
+                "default": "v1"
+              }
+            },
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation to delete.",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "replacement": [
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation to delete.",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        {
+          "pointer": "#/paths/~1conversations~1{conversation_id}~1items/get/parameters",
+          "expected": [
+            {
+              "name": "api-version",
+              "in": "query",
+              "required": false,
+              "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
+              "schema": {
+                "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
+                "default": "v1"
+              }
+            },
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation to list items for.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "limit",
+              "in": "query",
+              "required": false,
+              "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 20.",
+              "schema": {
+                "type": "integer",
+                "format": "int32",
+                "default": 20
+              },
+              "explode": false
+            },
+            {
+              "name": "order",
+              "in": "query",
+              "required": false,
+              "description": "The order to return the input items in. Default is `desc`.",
+              "schema": {
+                "type": "string",
+                "enum": [
+                  "asc",
+                  "desc"
+                ]
+              },
+              "explode": false
+            },
+            {
+              "name": "after",
+              "in": "query",
+              "required": false,
+              "description": "An item ID to list items after, used in pagination.",
+              "schema": {
+                "type": "string"
+              },
+              "explode": false
+            },
+            {
+              "name": "include",
+              "in": "query",
+              "required": false,
+              "description": "Specify additional output data to include in the model response.",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OpenAI.IncludeEnum"
+                }
+              },
+              "explode": false
+            }
+          ],
+          "replacement": [
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation to list items for.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "limit",
+              "in": "query",
+              "required": false,
+              "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 20.",
+              "schema": {
+                "type": "integer",
+                "format": "int32",
+                "default": 20
+              },
+              "explode": false
+            },
+            {
+              "name": "order",
+              "in": "query",
+              "required": false,
+              "description": "The order to return the input items in. Default is `desc`.",
+              "schema": {
+                "type": "string",
+                "enum": [
+                  "asc",
+                  "desc"
+                ]
+              },
+              "explode": false
+            },
+            {
+              "name": "after",
+              "in": "query",
+              "required": false,
+              "description": "An item ID to list items after, used in pagination.",
+              "schema": {
+                "type": "string"
+              },
+              "explode": false
+            },
+            {
+              "name": "include",
+              "in": "query",
+              "required": false,
+              "description": "Specify additional output data to include in the model response.",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OpenAI.IncludeEnum"
+                }
+              },
+              "explode": false
+            }
+          ]
+        },
+        {
+          "pointer": "#/paths/~1conversations~1{conversation_id}~1items/post/parameters",
+          "expected": [
+            {
+              "name": "api-version",
+              "in": "query",
+              "required": false,
+              "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
+              "schema": {
+                "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
+                "default": "v1"
+              }
+            },
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation to add the item to.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "include",
+              "in": "query",
+              "required": false,
+              "description": "Additional fields to include in the response.",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OpenAI.IncludeEnum"
+                }
+              },
+              "explode": false
+            }
+          ],
+          "replacement": [
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation to add the item to.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "include",
+              "in": "query",
+              "required": false,
+              "description": "Additional fields to include in the response.",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OpenAI.IncludeEnum"
+                }
+              },
+              "explode": false
+            }
+          ]
+        },
+        {
+          "pointer": "#/paths/~1conversations~1{conversation_id}~1items~1{item_id}/get/parameters",
+          "expected": [
+            {
+              "name": "api-version",
+              "in": "query",
+              "required": false,
+              "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
+              "schema": {
+                "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
+                "default": "v1"
+              }
+            },
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation that contains the item.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "item_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the item to retrieve.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "include",
+              "in": "query",
+              "required": false,
+              "description": "Additional fields to include in the response.",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OpenAI.IncludeEnum"
+                }
+              },
+              "explode": false
+            }
+          ],
+          "replacement": [
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation that contains the item.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "item_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the item to retrieve.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "include",
+              "in": "query",
+              "required": false,
+              "description": "Additional fields to include in the response.",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OpenAI.IncludeEnum"
+                }
+              },
+              "explode": false
+            }
+          ]
+        },
+        {
+          "pointer": "#/paths/~1conversations~1{conversation_id}~1items~1{item_id}/delete/parameters",
+          "expected": [
+            {
+              "name": "api-version",
+              "in": "query",
+              "required": false,
+              "description": "The explicit Azure AI Foundry Models API version to use for this request.\n`v1` if not otherwise specified.",
+              "schema": {
+                "$ref": "#/components/schemas/AzureAIFoundryModelsApiVersion",
+                "default": "v1"
+              }
+            },
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation that contains the item.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "item_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the item to delete.",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "replacement": [
+            {
+              "name": "conversation_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the conversation that contains the item.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "item_id",
+              "in": "path",
+              "required": true,
+              "description": "The ID of the item to delete.",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ]
         }
       ]
     }

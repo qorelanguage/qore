@@ -89,6 +89,13 @@ module AzureOpenAiRestClient {
     - For \c entra_managed_identity: optional \c azure_managed_identity_client_id (for
       user-assigned identities); legacy \c azure_client_id remains supported
 
+    Foundry Conversations use a project URL such as
+    `https://my-resource.services.ai.azure.com/api/projects/my-project`, with Microsoft Entra authentication.
+    The default token scope follows the endpoint: `https://ai.azure.com/.default` for projects and
+    `https://cognitiveservices.azure.com/.default` for resources. `azure_entra_scope` can override it.
+    The project path is preserved when clients
+    are copied; the default ping lists one conversation from that project.
+
     @par REST example
     @code{.py}
 %requires AzureOpenAiRestClient
@@ -130,6 +137,7 @@ hash<ChatResponse> r = p.chat((<ChatMessage>{"role": "user", "content": "hi"},))
       and client copies, with api-key + Entra client_credentials + managed-identity auth modes and the
       LLM provider registered under mode \c "azure-openai"
     - connections expose the Azure OpenAI app and verify credentials with the v1 model listing
+    - Foundry project endpoints preserve their resource path and use the project conversation listing for pings
     - conditional required credentials and a dedicated optional managed-identity client ID clarify setup
     - the dated API version remains scoped to the legacy deployment-routed LLM interface
 */
@@ -150,6 +158,9 @@ public const AuthModeEntraManagedIdentity = "entra_managed_identity";
 */
 public const DefaultEntraScope = "https://cognitiveservices.azure.com/.default";
 
+#! Microsoft Entra scope for Foundry project APIs
+public const DefaultFoundryEntraScope = "https://ai.azure.com/.default";
+
 #! Shared configuration and request authentication for Azure OpenAI clients
 /** Authentication configuration is immutable after construction. Entra tokens are obtained through
     AzureAuth's synchronized cache for each request, so copied clients retain automatic token refresh.
@@ -165,12 +176,17 @@ public class AzureOpenAiRestClientBase {
     private {
         #! Immutable authentication and deployment configuration
         hash<auto> azure_options;
+
+        #! Default audience for this client's endpoint; recalculated when a client is copied to another URL
+        string default_entra_scope;
     }
 
     #! Captures the Azure configuration for authentication and transport copies
     /** @param options Azure client options */
     constructor(hash<auto> options) {
         azure_options = options{AzureOptions};
+        default_entra_scope = options.url.val() && AzureOpenAiRestClientBase::getProjectPath(options.url).val()
+            ? DefaultFoundryEntraScope : DefaultEntraScope;
     }
 
     #! Validates the credentials required by the selected authentication mode
@@ -199,6 +215,17 @@ public class AzureOpenAiRestClientBase {
         }
     }
 
+    #! Returns the resource-addressing prefix of a Foundry project endpoint
+    /** @param url the resource or project endpoint, optionally ending in /openai/v1
+        @return the project path without an API suffix, or nothing for a resource endpoint
+        @throw PARSE-URL-ERROR the URL cannot be parsed
+    */
+    static *string getProjectPath(string url) {
+        *list<string> parts = regex_extract(parse_url(url).path ?? "",
+            "^(/api/projects/[^/]+)(?:/openai(?:/v1)?)?/?$");
+        return parts ? parts[0] : NOTHING;
+    }
+
     #! Returns generic transport options with explicit JSON serialization
     /** @param options Azure client options
         @return options understood by RestClient or RestClientIo
@@ -225,7 +252,7 @@ public class AzureOpenAiRestClientBase {
         if (mode == AuthModeApiKey) {
             return {"api-key": azure_options.api_key};
         }
-        string scope = azure_options.azure_entra_scope ?? DefaultEntraScope;
+        string scope = getEntraScope();
         string token;
         if (mode == AuthModeEntraClientCredentials) {
             token = AzureAuth::getEntraTokenClientCredentials(azure_options.azure_tenant_id,
@@ -237,6 +264,11 @@ public class AzureOpenAiRestClientBase {
                 azure_options.azure_managed_identity_client_id ?? azure_options.azure_client_id);
         }
         return {"authorization": "Bearer " + token};
+    }
+
+    #! Returns an explicit audience override or the default for this endpoint
+    private string getEntraScope() {
+        return azure_options.azure_entra_scope.val() ? azure_options.azure_entra_scope : default_entra_scope;
     }
 }
 
@@ -252,6 +284,10 @@ public class AzureOpenAiRestClient inherits RestClient::RestClient, AzureOpenAiR
     constructor(hash<auto> options, *softbool do_not_connect)
             : RestClient(AzureOpenAiRestClientBase::getOptions(options), True),
                 AzureOpenAiRestClientBase(options) {
+        *string project = AzureOpenAiRestClientBase::getProjectPath(getUrl());
+        if (project) {
+            setConnectionPath(project);
+        }
         if (!do_not_connect) {
             connect();
         }
@@ -278,6 +314,10 @@ public class AzureOpenAiRestClientIo inherits RestClientIo::RestClientIo, AzureO
     constructor(hash<auto> options, *HttpClientIo::HttpClientConnectionManager shared_mgr)
             : RestClientIo(AzureOpenAiRestClientBase::getOptions(options)
                 - keys AbstractRestClient::Http1OnlyOptions, shared_mgr), AzureOpenAiRestClientBase(options) {
+        *string project = AzureOpenAiRestClientBase::getProjectPath(getUrl());
+        if (project) {
+            setConnectionPath(project);
+        }
     }
 
     private hash<auto> prepareRequestIntern(string method, reference<string> path, auto body,
@@ -383,8 +423,9 @@ public class AzureOpenAiRestConnection inherits RestClient::RestConnection {
                     "display_name": "Entra Scope",
                     "short_desc": "OAuth2 scope to request",
                     "type": "string",
-                    "desc": "OAuth2 scope for the Azure resource. Keep the default for Azure OpenAI.",
-                    "default_value": DefaultEntraScope,
+                    "desc": "Leave empty to select the token scope for this endpoint automatically. "
+                        "Foundry projects use `https://ai.azure.com/.default`; Azure OpenAI resources use "
+                        "`https://cognitiveservices.azure.com/.default`.",
                 },
                 "azure_managed_identity_client_id": <ConnectionOptionInfo>{
                     "display_name": "Managed Identity Client ID",
@@ -420,6 +461,16 @@ public class AzureOpenAiRestConnection inherits RestClient::RestConnection {
     /** @return the Azure OpenAI app identity */
     *string getAppName() {
         return "AzureOpenAI";
+    }
+
+    #! Checks the project conversation endpoint when the connection addresses a Foundry project
+    private *string getPingPath() {
+        *string path = RestConnection::getPingPath();
+        *string project = AzureOpenAiRestClientBase::getProjectPath(getUrl());
+        if (project && path == "/openai/v1/models") {
+            return project + "/openai/v1/conversations?limit=1";
+        }
+        return path;
     }
 
     #! Returns the Azure OpenAI action provider with this connection's authenticated transport

@@ -12,8 +12,8 @@
           "message": "Usługa Microsoft Azure OpenAI"
         },
         "app.QXp1cmVPcGVuQUk.desc": {
-          "source": "**Azure OpenAI** connects business workflows to models deployed in your Azure resource. Use one connection to work with multiple deployments and manage their supporting data.\n\n- Generate answers, structured results, and tool calls with Chat Completions and Responses\n- Create embeddings for search and matching\n- Generate speech, images, and videos, or transcribe and translate audio\n- Upload files, run batches, and organize retrieval with vector stores\n- Manage conversations, fine-tuning, evaluations, and realtime calls\n\n**Deployment names:** Copy names from Models and endpoints in the Azure Foundry portal. They can differ from catalog model IDs. Media operations use the v1 preview API; availability depends on regional API rollout and your resource's deployments, permissions, and quota.\n\n[Azure OpenAI documentation](https://learn.microsoft.com/en-us/azure/foundry/openai/)",
-          "message": "**Azure OpenAI** łączy przepływy pracy biznesowej z modelami wdrożonymi w Twoim zasobie Azure. Użyj jednego połączenia, aby pracować z wieloma wdrożeniami i zarządzać ich wspierającymi danymi.\n\n- Generuj odpowiedzi, wyniki strukturalne i wywołania narzędzi za pomocą Chat Completions i Responses\n- Twórz osadzenia do wyszukiwania i dopasowywania\n- Generuj mowę, obrazy i filmy lub transkrybuj i tłumacz dźwięk\n- Przesyłaj pliki, uruchamiaj partie i organizuj wyszukiwanie za pomocą magazynów wektorowych\n- Zarządzaj rozmowami, dostrajaniem, ocenami i wywołaniami w czasie rzeczywistym\n\n**Nazwy wdrożeń:** Skopiuj nazwy z modeli i punktów końcowych w portalu Azure Foundry. Mogą się różnić od identyfikatorów modeli w katalogu. Operacje multimedialne korzystają z API w wersji zapoznawczej v1; dostępność zależy od regionalnego wdrożenia API oraz wdrożeń, uprawnień i limitów Twojego zasobu.\n\n[Dokumentacja Azure OpenAI](https://learn.microsoft.com/en-us/azure/foundry/openai/)"
+          "source": "**Azure OpenAI** connects business workflows to models deployed in your Azure resource. Use one connection to work with multiple deployments and manage their supporting data.\n\n- Generate answers, structured results, and tool calls with Chat Completions and Responses\n- Create embeddings for search and matching\n- Generate speech, images, and videos, or transcribe and translate audio\n- Upload files, run batches, and organize retrieval with vector stores\n- Manage conversations, fine-tuning, evaluations, and realtime calls\n\n**Deployment names:** Copy names from Models and endpoints in the Azure Foundry portal. They can differ from catalog model IDs. Audio uploads use the deployment-based API. Other media operations use the v1 preview API; availability depends on regional API rollout and your resource's deployments, permissions, and quota.\n\n**Conversations:** Use a Foundry project endpoint and Microsoft Entra authentication.\n\n[Azure OpenAI documentation](https://learn.microsoft.com/en-us/azure/foundry/openai/)",
+          "message": "**Azure OpenAI** łączy przepływy pracy biznesowej z modelami wdrożonymi w Twoim zasobie Azure. Użyj jednego połączenia, aby pracować z wieloma wdrożeniami i zarządzać ich danymi wspierającymi.\n\n- Generuj odpowiedzi, wyniki strukturalne i wywołania narzędzi za pomocą Chat Completions i Responses\n- Twórz osadzenia do wyszukiwania i dopasowywania\n- Generuj mowę, obrazy i filmy lub transkrybuj i tłumacz dźwięk\n- Przesyłaj pliki, uruchamiaj partie i organizuj wyszukiwanie za pomocą magazynów wektorowych\n- Zarządzaj rozmowami, dostrajaniem, ocenami i wywołaniami w czasie rzeczywistym\n\n**Nazwy wdrożeń:** Kopiuj nazwy z modeli i punktów końcowych w portalu Azure Foundry. Mogą się różnić od identyfikatorów modeli w katalogu. Przesyłanie dźwięku korzysta z API opartego na wdrożeniu. Inne operacje na mediach korzystają z API w wersji zapoznawczej v1; dostępność zależy od regionalnego wdrożenia API oraz wdrożeń, uprawnień i limitów Twojego zasobu.\n\n**Rozmowy:** Używaj punktu końcowego projektu Foundry i uwierzytelniania Microsoft Entra.\n\n[Dokumentacja Azure OpenAI](https://learn.microsoft.com/en-us/azure/foundry/openai/)"
         },
         "app.QXp1cmVPcGVuQUk.action.bWFrZS1hcGktY2FsbA.display_name": {
           "source": "Make an API call",
@@ -464,558 +464,6 @@
           "message": "v1"
         },
         "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXNwZWVjaA.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnByZXZpZXc.display_name": {
-          "source": "preview",
-          "message": "podgląd"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.display_name": {
-          "source": "Create Transcription",
-          "message": "Utwórz transkrypcję"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.short_desc": {
-          "source": "Transcribes audio into the input language",
-          "message": "Transkrybuje dźwięk na język wejściowy"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.desc": {
-          "source": "Transcribes audio into the input language. This operation uses the Azure v1 preview API and requires an enabled deployment for generation.",
-          "message": "Transkrybuje dźwięk na język wejściowy. Operacja korzysta z podglądowego API Azure v1 i wymaga włączonego wdrożenia do generowania."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.display_name": {
-          "source": "Audio File",
-          "message": "Plik audio"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.short_desc": {
-          "source": "The audio file object (not file name) to transcribe, in one of these formats:…",
-          "message": "Obiekt pliku audio (nie nazwa pliku) do transkrypcji, w jednym z tych formatów:…"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.desc": {
-          "source": "Audio to transcribe or translate. Supply a named file, keeping an extension such as `.wav` or `.mp3`.",
-          "message": "Dźwięk do transkrypcji lub tłumaczenia. Dostarcz plik z nazwą, zachowując rozszerzenie takie jak `.wav` lub `.mp3`."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.Y29udGVudA.display_name": {
-          "source": "File Data",
-          "message": "Dane pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.Y29udGVudA.short_desc": {
-          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
-          "message": "Dane pliku zakodowane w formacie Base64 lub dane surowe do zakodowania w formacie Base64"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.Y29udGVudA.desc": {
-          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
-          "message": "Dane pliku zakodowane w formacie Base64 lub dane surowe do zakodowania w formacie Base64"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.display_name": {
-          "source": "MIME Type",
-          "message": "Typ MIME"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.short_desc": {
-          "source": "The MIME type string for the file",
-          "message": "Ciąg typu MIME pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.desc": {
-          "source": "The MIME type string for the file",
-          "message": "Ciąg typu MIME pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
-          "source": "Autodetect",
-          "message": "Wykrywanie automatyczne"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
-          "source": "Autodetect from the file name; valid only on input",
-          "message": "Wykrywanie automatyczne na podstawie nazwy pliku; ważne tylko dla danych wejściowych"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
-          "source": "Autodetect from the file name; valid only on input",
-          "message": "Wykrywanie automatyczne na podstawie nazwy pliku; ważne tylko dla danych wejściowych"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
-          "source": "text/plain",
-          "message": "text/plain"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
-          "source": "Plain text",
-          "message": "Zwykły tekst"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
-          "source": "Plain text",
-          "message": "Zwykły tekst"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
-          "source": "text/html",
-          "message": "text/html"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
-          "source": "HTML text",
-          "message": "Tekst HTML"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
-          "source": "HTML text",
-          "message": "Tekst HTML"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
-          "source": "application/pdf",
-          "message": "application/pdf"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
-          "source": "PDF file",
-          "message": "Plik PDF"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
-          "source": "PDF file",
-          "message": "Plik PDF"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
-          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
-          "source": "MS Word docx document",
-          "message": "Dokument MS Word docx"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
-          "source": "MS Word `docx` document",
-          "message": "Dokument MS Word `docx`"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
-          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
-          "source": "MS PowerPoint pptx document",
-          "message": "Dokument MS PowerPoint pptx"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
-          "source": "MS PowerPoint `pptx` document",
-          "message": "Dokument MS PowerPoint `pptx`"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
-          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
-          "source": "MS Excel xlsx document",
-          "message": "Dokument MS Excel xlsx"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
-          "source": "MS Excel `xlsx` document",
-          "message": "Dokument MS Excel `xlsx`"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bmFtZQ.display_name": {
-          "source": "Filename",
-          "message": "Nazwa pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bmFtZQ.short_desc": {
-          "source": "The filename",
-          "message": "Nazwa pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bmFtZQ.desc": {
-          "source": "The filename",
-          "message": "Nazwa pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.bW9kZWw.display_name": {
-          "source": "Model Deployment",
-          "message": "Wdrożenie modelu"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.bW9kZWw.short_desc": {
-          "source": "The model to use for this transcription request",
-          "message": "Model do użycia w tym żądaniu transkrypcji"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.bW9kZWw.desc": {
-          "source": "Name of a model deployment in this Azure resource. In the Azure Foundry portal, open Models and endpoints and copy the deployment name. It can differ from the model ID.",
-          "message": "Nazwa wdrożenia modelu w tym zasobie Azure. W portalu Azure Foundry otwórz Modele i punkty końcowe i skopiuj nazwę wdrożenia. Może się różnić od identyfikatora modelu."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.bGFuZ3VhZ2U.display_name": {
-          "source": "Language",
-          "message": "Język"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.bGFuZ3VhZ2U.short_desc": {
-          "source": "The language of the input audio",
-          "message": "Język wejściowego dźwięku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.bGFuZ3VhZ2U.desc": {
-          "source": "The language of the input audio. Supplying the input language in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`) format will improve accuracy and latency.",
-          "message": "Język wejściowego dźwięku. Podanie języka wejściowego w formacie [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (np. `en`) poprawi dokładność i czas reakcji."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cHJvbXB0.display_name": {
-          "source": "Prompt",
-          "message": "Prompt"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cHJvbXB0.short_desc": {
-          "source": "An optional text to guide the model's style or continue a previous audio segment",
-          "message": "Opcjonalny tekst służący do nakierowania stylu modelu lub kontynuacji poprzedniego segmentu audio"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cHJvbXB0.desc": {
-          "source": "An optional text to guide the model's style or continue a previous audio segment. The [prompt](/docs/guides/speech-to-text#prompting) should match the audio language. This field is not supported when using `gpt-4o-transcribe-diarize`.",
-          "message": "Opcjonalny tekst służący do nakierowania stylu modelu lub kontynuacji poprzedniego segmentu audio. [Prompt](/docs/guides/speech-to-text#prompting) powinien odpowiadać językowi nagrania. To pole nie jest obsługiwane podczas używania `gpt-4o-transcribe-diarize`."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.display_name": {
-          "source": "Response Format",
-          "message": "Format odpowiedzi"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOmpzb24.display_name": {
-          "source": "json",
-          "message": "json"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnRleHQ.display_name": {
-          "source": "text",
-          "message": "tekst"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnNydA.display_name": {
-          "source": "srt",
-          "message": "srt"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnZlcmJvc2VfanNvbg.display_name": {
-          "source": "verbose_json",
-          "message": "szczegółowy_json"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnZ0dA.display_name": {
-          "source": "vtt",
-          "message": "vtt"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOmRpYXJpemVkX2pzb24.display_name": {
-          "source": "diarized_json",
-          "message": "json_z_diarizacją"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.dGVtcGVyYXR1cmU.display_name": {
-          "source": "Temperature",
-          "message": "Temperatura"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.dGVtcGVyYXR1cmU.short_desc": {
-          "source": "The sampling temperature, between 0 and 1",
-          "message": "Temperatura pobierania próbek w zakresie od 0 do 1"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.dGVtcGVyYXR1cmU.desc": {
-          "source": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit.",
-          "message": "Temperatura próbkowania, od 0 do 1. Wyższe wartości, takie jak 0.8, sprawią, że wynik będzie bardziej losowy, podczas gdy niższe, takie jak 0.2, uczynią go bardziej skupionym i deterministycznym. Jeśli ustawiona na 0, model użyje [logarytmicznego prawdopodobieństwa](https://en.wikipedia.org/wiki/Log_probability), aby automatycznie zwiększyć temperaturę aż do osiągnięcia określonych progów."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.Y2h1bmtpbmdfc3RyYXRlZ3k.display_name": {
-          "source": "Chunking Strategy",
-          "message": "Strategia dzielenia na fragmenty"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.Y2h1bmtpbmdfc3RyYXRlZ3k.union.SGFzaERhdGFUeXBlOipjaHVua2luZ19zdHJhdGVneUFueU9mI2U3MTA5ODM5MDYzYzgzNWFlNjcyNGVjMDJkYWIxOGQwMTA4ZDlhMDViNzM0MzA0NTFmNTlmOTUyYzZjN2Q0NzU.field.cHJlZml4X3BhZGRpbmdfbXM.display_name": {
-          "source": "Prefix Padding Ms",
-          "message": "Prefiksowe wypełnienie w ms"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.Y2h1bmtpbmdfc3RyYXRlZ3k.union.SGFzaERhdGFUeXBlOipjaHVua2luZ19zdHJhdGVneUFueU9mI2U3MTA5ODM5MDYzYzgzNWFlNjcyNGVjMDJkYWIxOGQwMTA4ZDlhMDViNzM0MzA0NTFmNTlmOTUyYzZjN2Q0NzU.field.c2lsZW5jZV9kdXJhdGlvbl9tcw.display_name": {
-          "source": "Silence Duration Ms",
-          "message": "Czas trwania ciszy w ms"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.Y2h1bmtpbmdfc3RyYXRlZ3k.union.SGFzaERhdGFUeXBlOipjaHVua2luZ19zdHJhdGVneUFueU9mI2U3MTA5ODM5MDYzYzgzNWFlNjcyNGVjMDJkYWIxOGQwMTA4ZDlhMDViNzM0MzA0NTFmNTlmOTUyYzZjN2Q0NzU.field.dGhyZXNob2xk.display_name": {
-          "source": "Threshold",
-          "message": "Próg"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.Y2h1bmtpbmdfc3RyYXRlZ3k.union.SGFzaERhdGFUeXBlOipjaHVua2luZ19zdHJhdGVneUFueU9mI2U3MTA5ODM5MDYzYzgzNWFlNjcyNGVjMDJkYWIxOGQwMTA4ZDlhMDViNzM0MzA0NTFmNTlmOTUyYzZjN2Q0NzU.field.dHlwZQ.display_name": {
-          "source": "Type",
-          "message": "Typ"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.Y2h1bmtpbmdfc3RyYXRlZ3k.union.SGFzaERhdGFUeXBlOipjaHVua2luZ19zdHJhdGVneUFueU9mI2U3MTA5ODM5MDYzYzgzNWFlNjcyNGVjMDJkYWIxOGQwMTA4ZDlhMDViNzM0MzA0NTFmNTlmOTUyYzZjN2Q0NzU.field.dHlwZQ.allowed-value.c3RyaW5nOnNlcnZlcl92YWQ.display_name": {
-          "source": "server_vad",
-          "message": "server_vad"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZW5hbWU.display_name": {
-          "source": "Filename",
-          "message": "Nazwa pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZW5hbWU.short_desc": {
-          "source": "The optional filename or descriptive identifier to associate with with the…",
-          "message": "Opcjonalna nazwa pliku lub opisowy identyfikator powiązany z…"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZW5hbWU.desc": {
-          "source": "The optional filename or descriptive identifier to associate with with the audio data.",
-          "message": "Opcjonalna nazwa pliku lub opisowy identyfikator powiązany z danymi audio."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.aW5jbHVkZQ.display_name": {
-          "source": "Include",
-          "message": "Include"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.aW5jbHVkZQ.short_desc": {
-          "source": "Additional information to include in the transcription response",
-          "message": "Dodatkowe informacje do uwzględnienia w odpowiedzi transkrypcji"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.aW5jbHVkZQ.desc": {
-          "source": "Additional information to include in the transcription response.\n  `logprobs` will return the log probabilities of the tokens in the\n  response to understand the model's confidence in the transcription.\n  `logprobs` only works with response_format set to `json` and only with\n  the models `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is not supported when using `gpt-4o-transcribe-diarize`.",
-          "message": "Dodatkowe informacje do uwzględnienia w odpowiedzi transkrypcji.\n  `logprobs` zwróci logarytmy prawdopodobieństw tokenów w\n  odpowiedzi, aby zrozumieć pewność modelu co do transkrypcji.\n  `logprobs` działa tylko z ustawionym response_format na `json` i tylko z\n  modelami `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` oraz `gpt-4o-mini-transcribe-2025-12-15`. To pole nie jest obsługiwane przy użyciu `gpt-4o-transcribe-diarize`."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.dGltZXN0YW1wX2dyYW51bGFyaXRpZXM.display_name": {
-          "source": "Timestamp Granularities",
-          "message": "Granularność timestampów"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.dGltZXN0YW1wX2dyYW51bGFyaXRpZXM.short_desc": {
-          "source": "The timestamp granularities to populate for this transcription",
-          "message": "Szczegółowość znaczników czasowych do wypełnienia dla tej transkrypcji"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.dGltZXN0YW1wX2dyYW51bGFyaXRpZXM.desc": {
-          "source": "The timestamp granularities to populate for this transcription. `response_format` must be set `verbose_json` to use timestamp granularities. Either or both of these options are supported: `word`, or `segment`. Note: There is no additional latency for segment timestamps, but generating word timestamps incurs additional latency.\n  This option is not available for `gpt-4o-transcribe-diarize`.",
-          "message": "Szczegółowość znaczników czasowych do wypełnienia dla tej transkrypcji. `response_format` musi być ustawiony na `verbose_json`, aby używać szczegółowości znaczników czasowych. Obsługiwane są jedna lub obie z tych opcji: `word` lub `segment`. Uwaga: Nie ma dodatkowego opóźnienia dla znaczników segmentów, ale generowanie znaczników słów powoduje dodatkowe opóźnienie.\n  Ta opcja nie jest dostępna dla `gpt-4o-transcribe-diarize`."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.a25vd25fc3BlYWtlcl9uYW1lcw.display_name": {
-          "source": "Known Speaker Names",
-          "message": "Znane nazwy mówców"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.a25vd25fc3BlYWtlcl9yZWZlcmVuY2Vz.display_name": {
-          "source": "Known Speaker References",
-          "message": "Znane referencje mówców"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.YXBpLXZlcnNpb24.display_name": {
-          "source": "API Version",
-          "message": "Wersja API"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.YXBpLXZlcnNpb24.short_desc": {
-          "source": "The explicit Azure AI Foundry Models API version to use for this request",
-          "message": "Jawna wersja API Azure AI Foundry Models do użycia dla tego żądania"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.YXBpLXZlcnNpb24.desc": {
-          "source": "Azure v1 API version. Use preview for audio, image, and video operations. This is independent of the dated version used by the legacy LLM client.",
-          "message": "Wersja API Azure v1. Używaj wersji podglądowej dla operacji audio, obrazu i wideo. Jest to niezależne od datowanej wersji używanej przez starszego klienta LLM."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnYx.display_name": {
-          "source": "v1",
-          "message": "v1"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnByZXZpZXc.display_name": {
-          "source": "preview",
-          "message": "podgląd"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.display_name": {
-          "source": "Create Translation",
-          "message": "Utwórz tłumaczenie"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.short_desc": {
-          "source": "Create Translation",
-          "message": "Utwórz tłumaczenie"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.desc": {
-          "source": "Gets English language transcribed text and associated metadata from provided spoken audio data. This operation uses the Azure v1 preview API and requires an enabled deployment for generation.",
-          "message": "Pobiera transkrypcję tekstową w języku angielskim oraz powiązane metadane z dostarczonych danych audio mowy. Operacja korzysta z podglądowego API Azure v1 i wymaga włączonego wdrożenia do generacji."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.display_name": {
-          "source": "Audio File",
-          "message": "Plik audio"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.short_desc": {
-          "source": "The audio file object (not file name) translate, in one of these formats:…",
-          "message": "Obiekt pliku audio (nie nazwa pliku) do tłumaczenia, w jednym z tych formatów:…"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.desc": {
-          "source": "Audio to transcribe or translate. Supply a named file, keeping an extension such as `.wav` or `.mp3`.",
-          "message": "Dźwięk do transkrypcji lub tłumaczenia. Dostarcz plik z nazwą, zachowując rozszerzenie takie jak `.wav` lub `.mp3`."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.Y29udGVudA.display_name": {
-          "source": "File Data",
-          "message": "Dane pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.Y29udGVudA.short_desc": {
-          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
-          "message": "Dane pliku zakodowane w formacie Base64 lub dane surowe do zakodowania w formacie Base64"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.Y29udGVudA.desc": {
-          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
-          "message": "Dane pliku zakodowane w formacie Base64 lub dane surowe do zakodowania w formacie Base64"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.display_name": {
-          "source": "MIME Type",
-          "message": "Typ MIME"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.short_desc": {
-          "source": "The MIME type string for the file",
-          "message": "Ciąg typu MIME pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.desc": {
-          "source": "The MIME type string for the file",
-          "message": "Ciąg typu MIME pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
-          "source": "Autodetect",
-          "message": "Wykrywanie automatyczne"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
-          "source": "Autodetect from the file name; valid only on input",
-          "message": "Wykrywanie automatyczne na podstawie nazwy pliku; ważne tylko dla danych wejściowych"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
-          "source": "Autodetect from the file name; valid only on input",
-          "message": "Wykrywanie automatyczne na podstawie nazwy pliku; ważne tylko dla danych wejściowych"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
-          "source": "text/plain",
-          "message": "text/plain"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
-          "source": "Plain text",
-          "message": "Zwykły tekst"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
-          "source": "Plain text",
-          "message": "Zwykły tekst"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
-          "source": "text/html",
-          "message": "text/html"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
-          "source": "HTML text",
-          "message": "Tekst HTML"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
-          "source": "HTML text",
-          "message": "Tekst HTML"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
-          "source": "application/pdf",
-          "message": "application/pdf"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
-          "source": "PDF file",
-          "message": "Plik PDF"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
-          "source": "PDF file",
-          "message": "Plik PDF"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
-          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
-          "source": "MS Word docx document",
-          "message": "Dokument MS Word docx"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
-          "source": "MS Word `docx` document",
-          "message": "Dokument MS Word `docx`"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
-          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
-          "source": "MS PowerPoint pptx document",
-          "message": "Dokument MS PowerPoint pptx"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
-          "source": "MS PowerPoint `pptx` document",
-          "message": "Dokument MS PowerPoint `pptx`"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
-          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
-          "source": "MS Excel xlsx document",
-          "message": "Dokument MS Excel xlsx"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
-          "source": "MS Excel `xlsx` document",
-          "message": "Dokument MS Excel `xlsx`"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bmFtZQ.display_name": {
-          "source": "Filename",
-          "message": "Nazwa pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bmFtZQ.short_desc": {
-          "source": "The filename",
-          "message": "Nazwa pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bmFtZQ.desc": {
-          "source": "The filename",
-          "message": "Nazwa pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.bW9kZWw.display_name": {
-          "source": "Model Deployment",
-          "message": "Wdrożenie modelu"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.bW9kZWw.short_desc": {
-          "source": "The model to use for this transcription request",
-          "message": "Model do użycia w tym żądaniu transkrypcji"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.bW9kZWw.desc": {
-          "source": "Name of a model deployment in this Azure resource. In the Azure Foundry portal, open Models and endpoints and copy the deployment name. It can differ from the model ID.",
-          "message": "Nazwa wdrożenia modelu w tym zasobie Azure. W portalu Azure Foundry otwórz Modele i punkty końcowe i skopiuj nazwę wdrożenia. Może się różnić od identyfikatora modelu."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cHJvbXB0.display_name": {
-          "source": "Prompt",
-          "message": "Prompt"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cHJvbXB0.short_desc": {
-          "source": "An optional text to guide the model's style or continue a previous audio segment",
-          "message": "Opcjonalny tekst służący do nakierowania stylu modelu lub kontynuacji poprzedniego segmentu audio"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cHJvbXB0.desc": {
-          "source": "An optional text to guide the model's style or continue a previous audio segment. The [prompt](/docs/guides/speech-to-text#prompting) should be in English.",
-          "message": "Opcjonalny tekst służący do nakierowania stylu modelu lub kontynuacji poprzedniego segmentu audio. [Prompt](/docs/guides/speech-to-text#prompting) powinien być w języku angielskim."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.display_name": {
-          "source": "Response Format",
-          "message": "Format odpowiedzi"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.short_desc": {
-          "source": "The format of the output, in one of these options: 'json', 'text', 'srt',…",
-          "message": "Format wyjścia, w jednej z tych opcji: 'json', 'text', 'srt',…"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.desc": {
-          "source": "The format of the output, in one of these options: `json`, `text`, `srt`, `verbose_json`, or `vtt`.",
-          "message": "Format wyjścia, w jednej z tych opcji: `json`, `text`, `srt`, `verbose_json` lub `vtt`."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOmpzb24.display_name": {
-          "source": "json",
-          "message": "json"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnRleHQ.display_name": {
-          "source": "text",
-          "message": "tekst"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnNydA.display_name": {
-          "source": "srt",
-          "message": "srt"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnZlcmJvc2VfanNvbg.display_name": {
-          "source": "verbose_json",
-          "message": "szczegółowy_json"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnZ0dA.display_name": {
-          "source": "vtt",
-          "message": "vtt"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.dGVtcGVyYXR1cmU.display_name": {
-          "source": "Temperature",
-          "message": "Temperatura"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.dGVtcGVyYXR1cmU.short_desc": {
-          "source": "The sampling temperature, between 0 and 1",
-          "message": "Temperatura pobierania próbek w zakresie od 0 do 1"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.dGVtcGVyYXR1cmU.desc": {
-          "source": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit.",
-          "message": "Temperatura próbkowania, od 0 do 1. Wyższe wartości, takie jak 0.8, sprawią, że wynik będzie bardziej losowy, podczas gdy niższe, takie jak 0.2, uczynią go bardziej skupionym i deterministycznym. Jeśli ustawiona na 0, model użyje [logarytmicznego prawdopodobieństwa](https://en.wikipedia.org/wiki/Log_probability), aby automatycznie zwiększyć temperaturę aż do osiągnięcia określonych progów."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZW5hbWU.display_name": {
-          "source": "Filename",
-          "message": "Nazwa pliku"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZW5hbWU.short_desc": {
-          "source": "The optional filename or descriptive identifier to associate with with the…",
-          "message": "Opcjonalna nazwa pliku lub opisowy identyfikator powiązany z…"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZW5hbWU.desc": {
-          "source": "The optional filename or descriptive identifier to associate with with the audio data",
-          "message": "Opcjonalna nazwa pliku lub opisowy identyfikator powiązany z danymi audio"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.YXBpLXZlcnNpb24.display_name": {
-          "source": "API Version",
-          "message": "Wersja API"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.YXBpLXZlcnNpb24.short_desc": {
-          "source": "The explicit Azure AI Foundry Models API version to use for this request",
-          "message": "Jawna wersja API Azure AI Foundry Models do użycia dla tego żądania"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.YXBpLXZlcnNpb24.desc": {
-          "source": "Azure v1 API version. Use preview for audio, image, and video operations. This is independent of the dated version used by the legacy LLM client.",
-          "message": "Wersja API Azure v1. Używaj wersji podglądowej dla operacji audio, obrazu i wideo. Jest to niezależne od datowanej wersji używanej przez starszego klienta LLM."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnYx.display_name": {
-          "source": "v1",
-          "message": "v1"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnByZXZpZXc.display_name": {
           "source": "preview",
           "message": "podgląd"
         },
@@ -3928,8 +3376,8 @@
           "message": "Zachowaj stan rozmowy między odpowiedziami"
         },
         "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbg.desc": {
-          "source": "Create a conversation that can be referenced by Responses requests. Add initial items or start with an empty conversation.",
-          "message": "Utwórz konwersację, do której można odwoływać się w żądaniach Responses. Dodaj początkowe elementy lub rozpocznij od pustej konwersacji."
+          "source": "Create a conversation that can be referenced by Responses requests. Add initial items or start with an empty conversation. **Connection:** Use a Foundry project endpoint with Microsoft Entra authentication.",
+          "message": "Utwórz rozmowę, do której można odwoływać się w żądaniach Responses. Dodaj początkowe elementy lub rozpocznij od pustej rozmowy. **Połączenie:** Użyj punktu końcowego projektu Foundry z uwierzytelnianiem Microsoft Entra."
         },
         "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbg.option.bWV0YWRhdGE.display_name": {
           "source": "Metadata",
@@ -9507,26 +8955,6 @@
           "source": "tool_approval_response",
           "message": "odpowiedź_na_zatwierdzenie_narzędzia"
         },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.display_name": {
-          "source": "API Version",
-          "message": "Wersja API"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.short_desc": {
-          "source": "The explicit Azure AI Foundry Models API version to use for this request",
-          "message": "Jawna wersja API Azure AI Foundry Models do użycia dla tego żądania"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.desc": {
-          "source": "Azure v1 API version. Use preview for audio, image, and video operations. This is independent of the dated version used by the legacy LLM client.",
-          "message": "Wersja API Azure v1. Używaj wersji podglądowej dla operacji audio, obrazu i wideo. Jest to niezależne od datowanej wersji używanej przez starszego klienta LLM."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnYx.display_name": {
-          "source": "v1",
-          "message": "v1"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnByZXZpZXc.display_name": {
-          "source": "preview",
-          "message": "podgląd"
-        },
         "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbg.display_name": {
           "source": "Get Conversation",
           "message": "Pobierz konwersację"
@@ -9536,8 +8964,8 @@
           "message": "Pobierz konwersację"
         },
         "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbg.desc": {
-          "source": "Get Conversation.",
-          "message": "Pobierz rozmowę."
+          "source": "Get Conversation. **Connection:** Use a Foundry project endpoint with Microsoft Entra authentication.",
+          "message": "Pobierz rozmowę. **Połączenie:** Użyj punktu końcowego projektu Foundry z uwierzytelnianiem Microsoft Entra."
         },
         "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbg.option.Y29udmVyc2F0aW9uX2lk.display_name": {
           "source": "Conversation ID",
@@ -9551,26 +8979,6 @@
           "source": "The ID of the conversation to retrieve.",
           "message": "Identyfikator rozmowy do pobrania."
         },
-        "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.display_name": {
-          "source": "API Version",
-          "message": "Wersja API"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.short_desc": {
-          "source": "The explicit Azure AI Foundry Models API version to use for this request",
-          "message": "Jawna wersja API Azure AI Foundry Models do użycia dla tego żądania"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.desc": {
-          "source": "Azure v1 API version. Use preview for audio, image, and video operations. This is independent of the dated version used by the legacy LLM client.",
-          "message": "Wersja API Azure v1. Używaj wersji podglądowej dla operacji audio, obrazu i wideo. Jest to niezależne od datowanej wersji używanej przez starszego klienta LLM."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnYx.display_name": {
-          "source": "v1",
-          "message": "v1"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnByZXZpZXc.display_name": {
-          "source": "preview",
-          "message": "podgląd"
-        },
         "app.QXp1cmVPcGVuQUk.action.dXBkYXRlLWNvbnZlcnNhdGlvbg.display_name": {
           "source": "Update Conversation",
           "message": "Aktualizuj rozmowę"
@@ -9580,8 +8988,8 @@
           "message": "Aktualizuj rozmowę"
         },
         "app.QXp1cmVPcGVuQUk.action.dXBkYXRlLWNvbnZlcnNhdGlvbg.desc": {
-          "source": "Update Conversation.",
-          "message": "Aktualizuj rozmowę."
+          "source": "Update Conversation. **Connection:** Use a Foundry project endpoint with Microsoft Entra authentication.",
+          "message": "Aktualizuj rozmowę. **Połączenie:** Użyj punktu końcowego projektu Foundry z uwierzytelnianiem Microsoft Entra."
         },
         "app.QXp1cmVPcGVuQUk.action.dXBkYXRlLWNvbnZlcnNhdGlvbg.option.Y29udmVyc2F0aW9uX2lk.display_name": {
           "source": "Conversation ID",
@@ -9607,26 +9015,6 @@
           "source": "Set of 16 key-value pairs that can be attached to an object. This can be         useful for storing additional information about the object in a structured         format, and querying for objects via API or the dashboard.\n  Keys are strings with a maximum length of 64 characters. Values are strings         with a maximum length of 512 characters.",
           "message": "Zestaw 16 par klucz-wartość, które można dołączyć do obiektu. Może to być         przydatne do przechowywania dodatkowych informacji o obiekcie w ustrukturyzowanym         formacie oraz do zapytań o obiekty przez API lub panel.\n  Klucze to ciągi znaków o maksymalnej długości 64 znaków. Wartości to ciągi         znaków o maksymalnej długości 512 znaków."
         },
-        "app.QXp1cmVPcGVuQUk.action.dXBkYXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.display_name": {
-          "source": "API Version",
-          "message": "Wersja API"
-        },
-        "app.QXp1cmVPcGVuQUk.action.dXBkYXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.short_desc": {
-          "source": "The explicit Azure AI Foundry Models API version to use for this request",
-          "message": "Jawna wersja API Azure AI Foundry Models do użycia dla tego żądania"
-        },
-        "app.QXp1cmVPcGVuQUk.action.dXBkYXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.desc": {
-          "source": "Azure v1 API version. Use preview for audio, image, and video operations. This is independent of the dated version used by the legacy LLM client.",
-          "message": "Wersja API Azure v1. Używaj wersji podglądowej dla operacji audio, obrazu i wideo. Jest to niezależne od datowanej wersji używanej przez starszego klienta LLM."
-        },
-        "app.QXp1cmVPcGVuQUk.action.dXBkYXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnYx.display_name": {
-          "source": "v1",
-          "message": "v1"
-        },
-        "app.QXp1cmVPcGVuQUk.action.dXBkYXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnByZXZpZXc.display_name": {
-          "source": "preview",
-          "message": "podgląd"
-        },
         "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbg.display_name": {
           "source": "Delete Conversation",
           "message": "Usuń Rozmowę"
@@ -9636,8 +9024,8 @@
           "message": "Usuń Rozmowę"
         },
         "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbg.desc": {
-          "source": "Delete Conversation.",
-          "message": "Usuń konwersację."
+          "source": "Delete Conversation. **Connection:** Use a Foundry project endpoint with Microsoft Entra authentication.",
+          "message": "Usuń rozmowę. **Połączenie:** Użyj punktu końcowego projektu Foundry z uwierzytelnianiem Microsoft Entra."
         },
         "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbg.option.Y29udmVyc2F0aW9uX2lk.display_name": {
           "source": "Conversation ID",
@@ -9651,26 +9039,6 @@
           "source": "The ID of the conversation to delete.",
           "message": "Identyfikator rozmowy do usunięcia."
         },
-        "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.display_name": {
-          "source": "API Version",
-          "message": "Wersja API"
-        },
-        "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.short_desc": {
-          "source": "The explicit Azure AI Foundry Models API version to use for this request",
-          "message": "Jawna wersja API Azure AI Foundry Models do użycia dla tego żądania"
-        },
-        "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.desc": {
-          "source": "Azure v1 API version. Use preview for audio, image, and video operations. This is independent of the dated version used by the legacy LLM client.",
-          "message": "Wersja API Azure v1. Używaj wersji podglądowej dla operacji audio, obrazu i wideo. Jest to niezależne od datowanej wersji używanej przez starszego klienta LLM."
-        },
-        "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnYx.display_name": {
-          "source": "v1",
-          "message": "v1"
-        },
-        "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbg.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnByZXZpZXc.display_name": {
-          "source": "preview",
-          "message": "podgląd"
-        },
         "app.QXp1cmVPcGVuQUk.action.bGlzdC1jb252ZXJzYXRpb24taXRlbXM.display_name": {
           "source": "List Conversation Items",
           "message": "Wyświetl listę elementów konwersacji"
@@ -9680,8 +9048,8 @@
           "message": "Wyświetl listę elementów konwersacji"
         },
         "app.QXp1cmVPcGVuQUk.action.bGlzdC1jb252ZXJzYXRpb24taXRlbXM.desc": {
-          "source": "List Conversation Items.",
-          "message": "Lista elementów rozmowy."
+          "source": "List Conversation Items. **Connection:** Use a Foundry project endpoint with Microsoft Entra authentication.",
+          "message": "Wyświetl listę elementów rozmowy. **Połączenie:** Użyj punktu końcowego projektu Foundry z uwierzytelnianiem Microsoft Entra."
         },
         "app.QXp1cmVPcGVuQUk.action.bGlzdC1jb252ZXJzYXRpb24taXRlbXM.option.Y29udmVyc2F0aW9uX2lk.display_name": {
           "source": "Conversation ID",
@@ -9694,26 +9062,6 @@
         "app.QXp1cmVPcGVuQUk.action.bGlzdC1jb252ZXJzYXRpb24taXRlbXM.option.Y29udmVyc2F0aW9uX2lk.desc": {
           "source": "The ID of the conversation to list items for.",
           "message": "Identyfikator rozmowy, dla której mają być wylistowane elementy."
-        },
-        "app.QXp1cmVPcGVuQUk.action.bGlzdC1jb252ZXJzYXRpb24taXRlbXM.option.YXBpLXZlcnNpb24.display_name": {
-          "source": "API Version",
-          "message": "Wersja API"
-        },
-        "app.QXp1cmVPcGVuQUk.action.bGlzdC1jb252ZXJzYXRpb24taXRlbXM.option.YXBpLXZlcnNpb24.short_desc": {
-          "source": "The explicit Azure AI Foundry Models API version to use for this request",
-          "message": "Jawna wersja API Azure AI Foundry Models do użycia dla tego żądania"
-        },
-        "app.QXp1cmVPcGVuQUk.action.bGlzdC1jb252ZXJzYXRpb24taXRlbXM.option.YXBpLXZlcnNpb24.desc": {
-          "source": "Azure v1 API version. Use preview for audio, image, and video operations. This is independent of the dated version used by the legacy LLM client.",
-          "message": "Wersja API Azure v1. Używaj wersji podglądowej dla operacji audio, obrazu i wideo. Jest to niezależne od datowanej wersji używanej przez starszego klienta LLM."
-        },
-        "app.QXp1cmVPcGVuQUk.action.bGlzdC1jb252ZXJzYXRpb24taXRlbXM.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnYx.display_name": {
-          "source": "v1",
-          "message": "v1"
-        },
-        "app.QXp1cmVPcGVuQUk.action.bGlzdC1jb252ZXJzYXRpb24taXRlbXM.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnByZXZpZXc.display_name": {
-          "source": "preview",
-          "message": "podgląd"
         },
         "app.QXp1cmVPcGVuQUk.action.bGlzdC1jb252ZXJzYXRpb24taXRlbXM.option.bGltaXQ.display_name": {
           "source": "Limit",
@@ -9780,8 +9128,8 @@
           "message": "Utwórz elementy konwersacji"
         },
         "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbi1pdGVtcw.desc": {
-          "source": "Create Conversation Items.",
-          "message": "Utwórz elementy konwersacji."
+          "source": "Create Conversation Items. **Connection:** Use a Foundry project endpoint with Microsoft Entra authentication.",
+          "message": "Utwórz elementy rozmowy. **Połączenie:** Użyj punktu końcowego projektu Foundry z uwierzytelnianiem Microsoft Entra."
         },
         "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbi1pdGVtcw.option.Y29udmVyc2F0aW9uX2lk.display_name": {
           "source": "Conversation ID",
@@ -15359,26 +14707,6 @@
           "source": "tool_approval_response",
           "message": "odpowiedź_na_zatwierdzenie_narzędzia"
         },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbi1pdGVtcw.option.YXBpLXZlcnNpb24.display_name": {
-          "source": "API Version",
-          "message": "Wersja API"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbi1pdGVtcw.option.YXBpLXZlcnNpb24.short_desc": {
-          "source": "The explicit Azure AI Foundry Models API version to use for this request",
-          "message": "Jawna wersja API Azure AI Foundry Models do użycia dla tego żądania"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbi1pdGVtcw.option.YXBpLXZlcnNpb24.desc": {
-          "source": "Azure v1 API version. Use preview for audio, image, and video operations. This is independent of the dated version used by the legacy LLM client.",
-          "message": "Wersja API Azure v1. Używaj wersji podglądowej dla operacji audio, obrazu i wideo. Jest to niezależne od datowanej wersji używanej przez starszego klienta LLM."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbi1pdGVtcw.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnYx.display_name": {
-          "source": "v1",
-          "message": "v1"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbi1pdGVtcw.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnByZXZpZXc.display_name": {
-          "source": "preview",
-          "message": "podgląd"
-        },
         "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLWNvbnZlcnNhdGlvbi1pdGVtcw.option.aW5jbHVkZQ.display_name": {
           "source": "Include",
           "message": "Include"
@@ -15400,8 +14728,8 @@
           "message": "Pobierz element rozmowy"
         },
         "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbi1pdGVt.desc": {
-          "source": "Get Conversation Item.",
-          "message": "Pobierz element rozmowy."
+          "source": "Get Conversation Item. **Connection:** Use a Foundry project endpoint with Microsoft Entra authentication.",
+          "message": "Pobierz element rozmowy. **Połączenie:** Użyj punktu końcowego projektu Foundry z uwierzytelnianiem Microsoft Entra."
         },
         "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbi1pdGVt.option.Y29udmVyc2F0aW9uX2lk.display_name": {
           "source": "Conversation ID",
@@ -15427,26 +14755,6 @@
           "source": "The ID of the item to retrieve.",
           "message": "ID elementu do pobrania."
         },
-        "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbi1pdGVt.option.YXBpLXZlcnNpb24.display_name": {
-          "source": "API Version",
-          "message": "Wersja API"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbi1pdGVt.option.YXBpLXZlcnNpb24.short_desc": {
-          "source": "The explicit Azure AI Foundry Models API version to use for this request",
-          "message": "Jawna wersja API Azure AI Foundry Models do użycia dla tego żądania"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbi1pdGVt.option.YXBpLXZlcnNpb24.desc": {
-          "source": "Azure v1 API version. Use preview for audio, image, and video operations. This is independent of the dated version used by the legacy LLM client.",
-          "message": "Wersja API Azure v1. Używaj wersji podglądowej dla operacji audio, obrazu i wideo. Jest to niezależne od datowanej wersji używanej przez starszego klienta LLM."
-        },
-        "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbi1pdGVt.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnYx.display_name": {
-          "source": "v1",
-          "message": "v1"
-        },
-        "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbi1pdGVt.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnByZXZpZXc.display_name": {
-          "source": "preview",
-          "message": "podgląd"
-        },
         "app.QXp1cmVPcGVuQUk.action.Z2V0LWNvbnZlcnNhdGlvbi1pdGVt.option.aW5jbHVkZQ.display_name": {
           "source": "Include",
           "message": "Include"
@@ -15468,8 +14776,8 @@
           "message": "Usuń element konwersacji"
         },
         "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbi1pdGVt.desc": {
-          "source": "Delete Conversation Item.",
-          "message": "Usuń element konwersacji."
+          "source": "Delete Conversation Item. **Connection:** Use a Foundry project endpoint with Microsoft Entra authentication.",
+          "message": "Usuń element rozmowy. **Połączenie:** Użyj punktu końcowego projektu Foundry z uwierzytelnianiem Microsoft Entra."
         },
         "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbi1pdGVt.option.Y29udmVyc2F0aW9uX2lk.display_name": {
           "source": "Conversation ID",
@@ -15494,26 +14802,6 @@
         "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbi1pdGVt.option.aXRlbV9pZA.desc": {
           "source": "The ID of the item to delete.",
           "message": "ID elementu do usunięcia."
-        },
-        "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbi1pdGVt.option.YXBpLXZlcnNpb24.display_name": {
-          "source": "API Version",
-          "message": "Wersja API"
-        },
-        "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbi1pdGVt.option.YXBpLXZlcnNpb24.short_desc": {
-          "source": "The explicit Azure AI Foundry Models API version to use for this request",
-          "message": "Jawna wersja API Azure AI Foundry Models do użycia dla tego żądania"
-        },
-        "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbi1pdGVt.option.YXBpLXZlcnNpb24.desc": {
-          "source": "Azure v1 API version. Use preview for audio, image, and video operations. This is independent of the dated version used by the legacy LLM client.",
-          "message": "Wersja API Azure v1. Używaj wersji podglądowej dla operacji audio, obrazu i wideo. Jest to niezależne od datowanej wersji używanej przez starszego klienta LLM."
-        },
-        "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbi1pdGVt.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnYx.display_name": {
-          "source": "v1",
-          "message": "v1"
-        },
-        "app.QXp1cmVPcGVuQUk.action.ZGVsZXRlLWNvbnZlcnNhdGlvbi1pdGVt.option.YXBpLXZlcnNpb24.allowed-value.c3RyaW5nOnByZXZpZXc.display_name": {
-          "source": "preview",
-          "message": "podgląd"
         },
         "app.QXp1cmVPcGVuQUk.action.ZW1iZWRkaW5n.display_name": {
           "source": "Create Embeddings",
@@ -38018,6 +37306,478 @@
         "app.QXp1cmVPcGVuQUk.action.cmVtaXgtdmlkZW8.option.cHJvbXB0.display_name": {
           "source": "Prompt",
           "message": "Prompt"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.display_name": {
+          "source": "Create Transcription",
+          "message": "Utwórz transkrypcję"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.short_desc": {
+          "source": "Transcribes audio into the input language",
+          "message": "Transkrybuje dźwięk na język wejściowy"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.desc": {
+          "source": "Convert a recording into searchable text in its original language. Use a Whisper deployment for subtitles or word and segment timestamps. GPT transcription deployments support `json` output. Choose `verbose_json` when requesting timestamps.",
+          "message": "Konwertuj nagranie na przeszukiwalny tekst w oryginalnym języku. Użyj wdrożenia Whisper do napisów lub znaczników czasowych słów i segmentów. Wdrożenia transkrypcji GPT obsługują wyjście `json`. Wybierz `verbose_json`, gdy wymagane są znaczniki czasowe."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.bW9kZWw.display_name": {
+          "source": "Model Deployment",
+          "message": "Wdrożenie modelu"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.bW9kZWw.short_desc": {
+          "source": "Azure model deployment to use",
+          "message": "Wdrożenie modelu Azure do użycia"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.bW9kZWw.desc": {
+          "source": "Name of a model deployment in this Azure resource. In the Azure Foundry portal, open Models and endpoints and copy the deployment name. It can differ from the model ID.",
+          "message": "Nazwa wdrożenia modelu w tym zasobie Azure. W portalu Azure Foundry otwórz Modele i punkty końcowe i skopiuj nazwę wdrożenia. Może się różnić od identyfikatora modelu."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.display_name": {
+          "source": "Audio File",
+          "message": "Plik audio"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.short_desc": {
+          "source": "Named audio file to transcribe or translate",
+          "message": "Nazwany plik audio do transkrypcji lub tłumaczenia"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.desc": {
+          "source": "Audio to transcribe or translate. Supply a named file, keeping an extension such as `.wav` or `.mp3`.",
+          "message": "Dźwięk do transkrypcji lub tłumaczenia. Dostarcz plik z nazwą, zachowując rozszerzenie takie jak `.wav` lub `.mp3`."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "Dane pliku"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Dane pliku zakodowane w formacie Base64 lub dane surowe do zakodowania w formacie Base64"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Dane pliku zakodowane w formacie Base64 lub dane surowe do zakodowania w formacie Base64"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "Typ MIME"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "Ciąg typu MIME pliku"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "Ciąg typu MIME pliku"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "Wykrywanie automatyczne"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Wykrywanie automatyczne na podstawie nazwy pliku; ważne tylko dla danych wejściowych"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Wykrywanie automatyczne na podstawie nazwy pliku; ważne tylko dla danych wejściowych"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "Zwykły tekst"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "Zwykły tekst"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "Tekst HTML"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "Tekst HTML"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "Plik PDF"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "Plik PDF"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "Dokument MS Word docx"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "Dokument MS Word `docx`"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "Dokument MS PowerPoint pptx"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "Dokument MS PowerPoint `pptx`"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "Dokument MS Excel xlsx"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "Dokument MS Excel `xlsx`"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "Nazwa pliku"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "Nazwa pliku"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "Nazwa pliku"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cHJvbXB0.display_name": {
+          "source": "Prompt",
+          "message": "Prompt"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cHJvbXB0.short_desc": {
+          "source": "An optional text to guide the model's style or continue a previous audio segment",
+          "message": "Opcjonalny tekst służący do nakierowania stylu modelu lub kontynuacji poprzedniego segmentu audio"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cHJvbXB0.desc": {
+          "source": "An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio language.",
+          "message": "Opcjonalny tekst do nakierowania stylu modelu lub kontynuacji poprzedniego segmentu audio. Prompt powinien odpowiadać językowi audio."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.display_name": {
+          "source": "Response Format",
+          "message": "Format odpowiedzi"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.short_desc": {
+          "source": "Defines the format of the output",
+          "message": "Definiuje format wyjścia"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.desc": {
+          "source": "Choose `json` for text in an object or `verbose_json` for metadata. Whisper also supports `text`, `srt`, and `vtt`; GPT transcription deployments support `json`.",
+          "message": "Wybierz `json` dla tekstu w obiekcie lub `verbose_json` dla metadanych. Whisper obsługuje także `text`, `srt` i `vtt`; wdrożenia transkrypcji GPT obsługują `json`."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "json",
+          "message": "json"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "text",
+          "message": "tekst"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnNydA.display_name": {
+          "source": "srt",
+          "message": "srt"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnZlcmJvc2VfanNvbg.display_name": {
+          "source": "verbose_json",
+          "message": "szczegółowy_json"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnZ0dA.display_name": {
+          "source": "vtt",
+          "message": "vtt"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "Temperatura"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "The sampling temperature, between 0 and 1",
+          "message": "Temperatura pobierania próbek w zakresie od 0 do 1"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.dGVtcGVyYXR1cmU.desc": {
+          "source": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.",
+          "message": "Temperatura próbkowania, od 0 do 1. Wyższe wartości, takie jak 0.8, sprawią, że wynik będzie bardziej losowy, podczas gdy niższe, jak 0.2, uczynią go bardziej skupionym i deterministycznym. Jeśli ustawiona na 0, model automatycznie zwiększy temperaturę na podstawie logarytmicznego prawdopodobieństwa, aż do osiągnięcia określonych progów."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.bGFuZ3VhZ2U.display_name": {
+          "source": "Language",
+          "message": "Język"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.bGFuZ3VhZ2U.short_desc": {
+          "source": "The language of the input audio",
+          "message": "Język wejściowego dźwięku"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.bGFuZ3VhZ2U.desc": {
+          "source": "The language of the input audio. Supplying the input language in ISO-639-1 format will improve accuracy and latency.",
+          "message": "Język wejściowego audio. Podanie języka wejściowego w formacie ISO-639-1 poprawi dokładność i opóźnienie."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.dGltZXN0YW1wX2dyYW51bGFyaXRpZXM.display_name": {
+          "source": "Timestamp Granularities",
+          "message": "Granularność timestampów"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.dGltZXN0YW1wX2dyYW51bGFyaXRpZXM.short_desc": {
+          "source": "The timestamp granularities to populate for this transcription",
+          "message": "Szczegółowość znaczników czasowych do wypełnienia dla tej transkrypcji"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.dGltZXN0YW1wX2dyYW51bGFyaXRpZXM.desc": {
+          "source": "The timestamp granularities to populate for this transcription. `response_format` must be set `verbose_json` to use timestamp granularities. Either or both of these options are supported: `word`, or `segment`. Note: There is no additional latency for segment timestamps, but generating word timestamps incurs additional latency.",
+          "message": "Ziarnistość znaczników czasowych do uwzględnienia w tej transkrypcji. `response_format` musi być ustawiony na `verbose_json`, aby używać ziarnistości znaczników czasowych. Obsługiwane są jedna lub obie z tych opcji: `word` lub `segment`. Uwaga: nie ma dodatkowego opóźnienia dla znaczników segmentów, ale generowanie znaczników słów powoduje dodatkowe opóźnienie."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.YXBpLXZlcnNpb24.display_name": {
+          "source": "API Version",
+          "message": "Wersja API"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.YXBpLXZlcnNpb24.short_desc": {
+          "source": "Azure audio API version",
+          "message": "Wersja API audio Azure"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zY3JpcHRpb24.option.YXBpLXZlcnNpb24.desc": {
+          "source": "Version of the deployment-based Azure audio API. The default supports Whisper and GPT transcription deployments.",
+          "message": "Wersja opartego na wdrożeniu API audio Azure. Domyślnie obsługuje wdrożenia Whisper i transkrypcji GPT."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.display_name": {
+          "source": "Create Translation",
+          "message": "Utwórz tłumaczenie"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.short_desc": {
+          "source": "Translate spoken audio into English",
+          "message": "Tłumacz mówione audio na angielski"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.desc": {
+          "source": "Translate a spoken recording into English text or subtitles. Select a Whisper deployment and keep the filename extension when uploading the audio. Use `json` for text in an object, `text` for plain text, or `srt` and `vtt` for subtitles.",
+          "message": "Przetłumacz nagranie mówione na tekst lub napisy w języku angielskim. Wybierz wdrożenie Whisper i zachowaj rozszerzenie nazwy pliku podczas przesyłania audio. Użyj `json` dla tekstu w obiekcie, `text` dla zwykłego tekstu lub `srt` i `vtt` dla napisów."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.bW9kZWw.display_name": {
+          "source": "Model Deployment",
+          "message": "Wdrożenie modelu"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.bW9kZWw.short_desc": {
+          "source": "Azure model deployment to use",
+          "message": "Wdrożenie modelu Azure do użycia"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.bW9kZWw.desc": {
+          "source": "Name of a model deployment in this Azure resource. In the Azure Foundry portal, open Models and endpoints and copy the deployment name. It can differ from the model ID.",
+          "message": "Nazwa wdrożenia modelu w tym zasobie Azure. W portalu Azure Foundry otwórz Modele i punkty końcowe i skopiuj nazwę wdrożenia. Może się różnić od identyfikatora modelu."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.display_name": {
+          "source": "Audio File",
+          "message": "Plik audio"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.short_desc": {
+          "source": "Named audio file to transcribe or translate",
+          "message": "Nazwany plik audio do transkrypcji lub tłumaczenia"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.desc": {
+          "source": "Audio to transcribe or translate. Supply a named file, keeping an extension such as `.wav` or `.mp3`.",
+          "message": "Dźwięk do transkrypcji lub tłumaczenia. Dostarcz plik z nazwą, zachowując rozszerzenie takie jak `.wav` lub `.mp3`."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.Y29udGVudA.display_name": {
+          "source": "File Data",
+          "message": "Dane pliku"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.Y29udGVudA.short_desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Dane pliku zakodowane w formacie Base64 lub dane surowe do zakodowania w formacie Base64"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.Y29udGVudA.desc": {
+          "source": "Base64-encoded file data or raw data to be encoded with base64 encoding",
+          "message": "Dane pliku zakodowane w formacie Base64 lub dane surowe do zakodowania w formacie Base64"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.display_name": {
+          "source": "MIME Type",
+          "message": "Typ MIME"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.short_desc": {
+          "source": "The MIME type string for the file",
+          "message": "Ciąg typu MIME pliku"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.desc": {
+          "source": "The MIME type string for the file",
+          "message": "Ciąg typu MIME pliku"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.display_name": {
+          "source": "Autodetect",
+          "message": "Wykrywanie automatyczne"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.short_desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Wykrywanie automatyczne na podstawie nazwy pliku; ważne tylko dla danych wejściowych"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmF1dG8.desc": {
+          "source": "Autodetect from the file name; valid only on input",
+          "message": "Wykrywanie automatyczne na podstawie nazwy pliku; ważne tylko dla danych wejściowych"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.display_name": {
+          "source": "text/plain",
+          "message": "text/plain"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.short_desc": {
+          "source": "Plain text",
+          "message": "Zwykły tekst"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvcGxhaW4.desc": {
+          "source": "Plain text",
+          "message": "Zwykły tekst"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.display_name": {
+          "source": "text/html",
+          "message": "text/html"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.short_desc": {
+          "source": "HTML text",
+          "message": "Tekst HTML"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOnRleHQvaHRtbA.desc": {
+          "source": "HTML text",
+          "message": "Tekst HTML"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.display_name": {
+          "source": "application/pdf",
+          "message": "application/pdf"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.short_desc": {
+          "source": "PDF file",
+          "message": "Plik PDF"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3BkZg.desc": {
+          "source": "PDF file",
+          "message": "Plik PDF"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "message": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.short_desc": {
+          "source": "MS Word docx document",
+          "message": "Dokument MS Word docx"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC53b3JkcHJvY2Vzc2luZ21sLmRvY3VtZW50.desc": {
+          "source": "MS Word `docx` document",
+          "message": "Dokument MS Word `docx`"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "message": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.short_desc": {
+          "source": "MS PowerPoint pptx document",
+          "message": "Dokument MS PowerPoint pptx"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5wcmVzZW50YXRpb25tbC5wcmVzZW50YXRpb24.desc": {
+          "source": "MS PowerPoint `pptx` document",
+          "message": "Dokument MS PowerPoint `pptx`"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.display_name": {
+          "source": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "message": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.short_desc": {
+          "source": "MS Excel xlsx document",
+          "message": "Dokument MS Excel xlsx"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bWltZV90eXBl.allowed-value.c3RyaW5nOmFwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0.desc": {
+          "source": "MS Excel `xlsx` document",
+          "message": "Dokument MS Excel `xlsx`"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bmFtZQ.display_name": {
+          "source": "Filename",
+          "message": "Nazwa pliku"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bmFtZQ.short_desc": {
+          "source": "The filename",
+          "message": "Nazwa pliku"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.ZmlsZQ.union.RmlsZURhdGFUeXBlOmZpbGUjZDY3YWQ5M2RhZTlkNjJhOWRmN2JiY2UxOWE4MjE1ZTRiYTg3ZjEwMGRjZjUyYjRhNWVhMWE2ZmM4ZDU2M2M1Mg.field.bmFtZQ.desc": {
+          "source": "The filename",
+          "message": "Nazwa pliku"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cHJvbXB0.display_name": {
+          "source": "Prompt",
+          "message": "Prompt"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cHJvbXB0.short_desc": {
+          "source": "An optional text to guide the model's style or continue a previous audio segment",
+          "message": "Opcjonalny tekst służący do nakierowania stylu modelu lub kontynuacji poprzedniego segmentu audio"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cHJvbXB0.desc": {
+          "source": "An optional text to guide the model's style or continue a previous audio segment. The prompt should be in English.",
+          "message": "Opcjonalny tekst do nakierowania stylu modelu lub kontynuacji poprzedniego segmentu audio. Prompt powinien być w języku angielskim."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.display_name": {
+          "source": "Response Format",
+          "message": "Format odpowiedzi"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.short_desc": {
+          "source": "Defines the format of the output",
+          "message": "Definiuje format wyjścia"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.desc": {
+          "source": "Choose `json` for text in an object or `verbose_json` for metadata. Whisper also supports `text`, `srt`, and `vtt`; GPT transcription deployments support `json`.",
+          "message": "Wybierz `json` dla tekstu w obiekcie lub `verbose_json` dla metadanych. Whisper obsługuje także `text`, `srt` i `vtt`; wdrożenia transkrypcji GPT obsługują `json`."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOmpzb24.display_name": {
+          "source": "json",
+          "message": "json"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "text",
+          "message": "tekst"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnNydA.display_name": {
+          "source": "srt",
+          "message": "srt"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnZlcmJvc2VfanNvbg.display_name": {
+          "source": "verbose_json",
+          "message": "szczegółowy_json"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.cmVzcG9uc2VfZm9ybWF0.allowed-value.c3RyaW5nOnZ0dA.display_name": {
+          "source": "vtt",
+          "message": "vtt"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.dGVtcGVyYXR1cmU.display_name": {
+          "source": "Temperature",
+          "message": "Temperatura"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.dGVtcGVyYXR1cmU.short_desc": {
+          "source": "The sampling temperature, between 0 and 1",
+          "message": "Temperatura pobierania próbek w zakresie od 0 do 1"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.dGVtcGVyYXR1cmU.desc": {
+          "source": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.",
+          "message": "Temperatura próbkowania, od 0 do 1. Wyższe wartości, takie jak 0.8, sprawią, że wynik będzie bardziej losowy, podczas gdy niższe, jak 0.2, uczynią go bardziej skupionym i deterministycznym. Jeśli ustawiona na 0, model automatycznie zwiększy temperaturę na podstawie logarytmicznego prawdopodobieństwa, aż do osiągnięcia określonych progów."
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.YXBpLXZlcnNpb24.display_name": {
+          "source": "API Version",
+          "message": "Wersja API"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.YXBpLXZlcnNpb24.short_desc": {
+          "source": "Azure audio API version",
+          "message": "Wersja API audio Azure"
+        },
+        "app.QXp1cmVPcGVuQUk.action.Y3JlYXRlLXRyYW5zbGF0aW9u.option.YXBpLXZlcnNpb24.desc": {
+          "source": "Version of the deployment-based Azure audio API. The default supports Whisper and GPT transcription deployments.",
+          "message": "Wersja opartego na wdrożeniu API audio Azure. Domyślnie obsługuje wdrożenia Whisper i transkrypcji GPT."
         }
       }
     }

@@ -105,9 +105,9 @@ public class AzureOpenAiDataProviderCommon inherits DataProvider::AbstractDataPr
                 "display_name": "Entra Scope",
                 "short_desc": "OAuth2 scope",
                 "type": AbstractDataProviderTypeMap."*string",
-                "desc": "OAuth2 scope; default "
-                    "`https://cognitiveservices.azure.com/.default`",
-                "default_value": "https://cognitiveservices.azure.com/.default",
+                "desc": "Leave empty to select the token scope for this endpoint automatically. "
+                    "Foundry projects use `https://ai.azure.com/.default`; Azure OpenAI resources use "
+                    "`https://cognitiveservices.azure.com/.default`.",
             },
             "restclient": <DataProviderOptionInfo>{
                 "display_name": "REST Client",
@@ -131,7 +131,7 @@ public class AzureOpenAiDataProviderCommon inherits DataProvider::AbstractDataPr
     #! Creates the object from a pre-built RestClientIo
     constructor(RestClientIo::RestClientIo rest) {
         self.rest = cast<RestClientIo::RestClientIo>(rest.copyWithUrl(rest.getUrl()));
-        self.rest.clearConnectionPath();
+        self.rest.setConnectionPath(AzureOpenAiRestClientBase::getProjectPath(rest.getUrl()));
         base_url = rest.getUrl();
     }
 
@@ -141,7 +141,7 @@ public class AzureOpenAiDataProviderCommon inherits DataProvider::AbstractDataPr
         api_version = copts.azure_api_version ?? DefaultApiVersion;
         if (copts.restclient) {
             rest = cast<RestClientIo::RestClientIo>(copts.restclient.copyWithUrl(copts.restclient.getUrl()));
-            rest.clearConnectionPath();
+            rest.setConnectionPath(AzureOpenAiRestClientBase::getProjectPath(rest.getUrl()));
             base_url = rest.getUrl();
             return;
         }
@@ -151,6 +151,7 @@ public class AzureOpenAiDataProviderCommon inherits DataProvider::AbstractDataPr
         }
         base_url = copts.url;
         rest = new AzureOpenAiRestClient::AzureOpenAiRestClientIo(copts);
+        rest.setConnectionPath(AzureOpenAiRestClientBase::getProjectPath(rest.getUrl()));
     }
 
     #! Returns the REST client object

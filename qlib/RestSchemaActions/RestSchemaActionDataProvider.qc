@@ -177,6 +177,12 @@ public class RestSchemaActionDataProvider inherits AbstractDataProvider {
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
         hash<auto> wire = op.unflatten(req);
         wire.req = addConnectionHeaders(wire.req);
+        if (op.getInfo().response_content_type.val()) {
+            # Transport headers do not belong in a closed schema request envelope that may expose only a body.
+            request_options = (request_options ?? {}) + {
+                "hdr": (request_options.hdr ?? {}) + {"Accept": op.getInfo().response_content_type},
+            };
+        }
         # path variables travel as a request option, not as part of the request body
         *hash<auto> resp = req_dp.doRequest(wire.req, request_options + {
             "path_vars": wire.path_vars,

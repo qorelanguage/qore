@@ -1,12 +1,13 @@
 #!/usr/bin/env qore
 # Copyright 2026 Qore Technologies, s.r.o.
 %modern
+
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires json
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/AzureOpenAiDataProvider
 %requires ../../../../qlib/RestSchemaActions
 %requires ../../../../qlib/Mime.qm
-%requires json
 %exec-class AzureActionsTest
 
 class AzureActionFixtureClient inherits RestClientIo::RestClientIo {
@@ -57,6 +58,8 @@ class AzureActionsTest inherits QUnit::Test {
         addTestCase("resource references retain IDs and display names", \referenceTest());
         addTestCase("resource timestamps are dates, including null and epoch zero", \timestampTest());
         addTestCase("multipart media and file expiration preserve bytes and structure", \multipartTest());
+        addTestCase("audio media choices and typed responses match Azure's contract", \audioFormatsTest());
+        addTestCase("empty conversation item lists retain the required envelope", \conversationItemsTest());
         addTestCase("fresh recursive catalogs match all twelve locales", \translationTest());
         set_return_value(main());
     }
@@ -65,7 +68,7 @@ class AzureActionsTest inherits QUnit::Test {
         assertEq(100, expected.size());
         foreach int pass in (0..1) {
             if (pass) {
-                foreach hash<DataProviderActionInfo> action in (actions.getActionInfoList("AzureOpenAI")) {
+                foreach hash<DataProviderActionInfo> action in (actionInfoList("AzureOpenAI")) {
                     if (action.action == "embedding") {
                         action.mutates_state = False;
                     }
@@ -83,7 +86,7 @@ class AzureActionsTest inherits QUnit::Test {
                 if (action.action == AbstractDataProvider::GenericApiCallActionName) {
                     continue;
                 }
-                RestSchemaActionOperation operation = actions.getOperationEx(action.action);
+                RestSchemaActionOperation operation = AzureOpenAiSchema::getOperationEx(action.action);
                 assertEq(sort(keys operation.getRequestFields()), sort(keys action.options), action.action);
                 assertEq(exists operation.getResponseType(), exists action.output_type, action.action);
             }
@@ -96,7 +99,7 @@ class AzureActionsTest inherits QUnit::Test {
         app.dynamic = True;
         DataProviderActionCatalog::registerPendingApp(alias, sub () {
             DataProviderActionCatalog::registerApp(app);
-            foreach hash<DataProviderActionInfo> action in (actions.getActionInfoList(alias)) {
+            foreach hash<DataProviderActionInfo> action in (actionInfoList(alias)) {
                 hash<DataProviderActionInfo> deferred = action;
                 DataProviderActionCatalog::registerPendingAppAction(alias, action.action, sub () {
                     DataProviderActionCatalog::registerAction(deferred);
@@ -117,9 +120,21 @@ class AzureActionsTest inherits QUnit::Test {
         assertEq((), result.getReport().failures);
     }
 
+    private static list<hash<DataProviderActionInfo>> actionInfoList(string app) {
+        list<hash<DataProviderActionInfo>> result = ();
+        foreach RestSchemaActionSet set in (AzureOpenAiSchema::getActionSets()) {
+            result += set.getActionInfoList(app);
+        }
+        return result;
+    }
+
     private driftTest() {
         assertEq((), RestSchemaDrift::compare(actions, AzureOpenAiSchema::getSchema()));
         assertEq("/openai/v1", AzureOpenAiSchema::getSchema().getBasePath());
+        assertEq((), RestSchemaDrift::compare(AzureOpenAiSchema::getActionSets()[1],
+            AzureOpenAiSchema::getAudioSchema()));
+        assertEq("/openai", AzureOpenAiSchema::getAudioSchema().getBasePath());
+        assertEq("2025-04-01-preview", AzureOpenAiSchema::AudioProvenance.api_version);
         assertEq(118, AzureOpenAiSchema::Provenance.source_operations);
         assertRegex("^[a-f0-9]{64}$", AzureOpenAiSchema::Provenance.source_sha256);
     }
@@ -129,15 +144,21 @@ class AzureActionsTest inherits QUnit::Test {
         root.getChildProvider(fixture.action).doRequest(fixture.request);
         assertEq(1, fake.requests, fixture.action);
         assertEq(fixture.method, fake.method, fixture.action);
-        string path = "/openai/v1" + fixture.path;
+        string path = (fixture.action == "create-transcription" || fixture.action == "create-translation"
+            ? "/openai" : "/openai/v1") + fixture.path;
         foreach string name in ((path =~ x/\{([^}]+)\}/g)) {
             # Path placeholder names are wire names; video_id is the curated action name.
-            path = replace(path, "{" + name + "}", fixture.request{name == "video-id" ? "video_id" : name});
+            path = replace(path, "{" + name + "}", fixture.request{name == "video-id" ? "video_id" : (name == "deployment-id" ? "model" : name)});
         }
         assertEq(path, fake.path.split("?")[0], fixture.action);
+        if (fixture.path.startsWith("/conversations")) {
+            assertFalse(fake.path.find("api-version=") >= 0, "Foundry v1 forbids this query parameter");
+            assertFalse(exists AzureOpenAiSchema::getOperationEx(fixture.action).getRequestFields()."api-version",
+                "unsupported API version options are not offered for conversations");
+        }
     }
     private valuesTest() {
-        AbstractDataProviderType original = actions.getOperationEx("create-response").getRequestType();
+        AbstractDataProviderType original = AzureOpenAiSchema::getOperationEx("create-response").getRequestType();
         AbstractDataProviderType restored = Serializable::deserialize(original.serialize());
         foreach AbstractDataProviderType type in (original, restored) {
             hash<auto> options = {"model": "fixture", "input": "", "store": False, "temperature": 0,
@@ -188,24 +209,24 @@ class AzureActionsTest inherits QUnit::Test {
         assertTrue(fake.path.startsWith("/openai/v1/files"));
     }
     private timestampTest() {
-        auto file = actions.getOperationEx("get-file").processResponse({"created_at": 0, "expires_at": 1});
+        auto file = AzureOpenAiSchema::getOperationEx("get-file").processResponse({"created_at": 0, "expires_at": 1});
         assertEq(1970-01-01Z, file.created_at);
         assertEq(1970-01-01T00:00:01Z, file.expires_at);
-        auto job = actions.getOperationEx("get-fine-tuning-job").processResponse({
+        auto job = AzureOpenAiSchema::getOperationEx("get-fine-tuning-job").processResponse({
             "created_at": 0, "finished_at": 1, "estimated_finish": NOTHING});
         assertEq(1970-01-01T00:00:01Z, job.finished_at);
         assertNothing(job.estimated_finish);
-        assertEq(NT_DATE, actions.getOperationEx("get-fine-tuning-job").getResponseType()
+        assertEq(NT_DATE, AzureOpenAiSchema::getOperationEx("get-fine-tuning-job").getResponseType()
             .getFields().finished_at.getType().getBaseTypeCode());
         hash<auto> wire = {"data": ({"created_at": 0, "expires_at": NOTHING, "last_active_at": 1},)};
-        auto stores = actions.getOperationEx("list-vector-stores").processResponse(wire);
+        auto stores = AzureOpenAiSchema::getOperationEx("list-vector-stores").processResponse(wire);
         assertEq(1970-01-01Z, stores.data[0].created_at);
         assertNothing(stores.data[0].expires_at);
         assertEq(1970-01-01T00:00:01Z, stores.data[0].last_active_at);
         assertEq(0, wire.data[0].created_at, "response conversion preserves the caller's wire hash");
-        auto absent = actions.getOperationEx("get-file").processResponse({"created_at": 0});
+        auto absent = AzureOpenAiSchema::getOperationEx("get-file").processResponse({"created_at": 0});
         assertFalse(exists absent.expires_at);
-        auto session = actions.getOperationEx("create-realtime-transcription-session").processResponse({
+        auto session = AzureOpenAiSchema::getOperationEx("create-realtime-transcription-session").processResponse({
             "client_secret": {"expires_at": 0}});
         assertEq(1970-01-01Z, session.client_secret.expires_at);
     }
@@ -238,6 +259,85 @@ class AzureActionsTest inherits QUnit::Test {
         }
     }
 
+    private audioFormatsTest() {
+        AzureActionFixtureClient fake();
+        AzureOpenAiDataProvider::AzureOpenAiDataProvider root(fake);
+        foreach string format in ("mp3", "opus", "aac", "flac", "wav", "pcm") {
+            root.getChildProvider("create-speech").doRequest({"model": "tts-deployment", "voice": "alloy",
+                "input": "Your invoice is ready.", "response_format": format});
+            assertEq(format, parse_json(fake.raw.toString()).response_format);
+        }
+        foreach string action in ("create-image", "create-image-edit") {
+            auto image_type = AzureOpenAiSchema::getOperationEx(action).getResponseType();
+            auto accepted = image_type.acceptsValue({"created": 1970-01-01Z,
+                "data": ({"b64_json": "AQID"},)});
+            assertEq("AQID", accepted.data[0].b64_json);
+            assertFalse(exists accepted.data[0].prompt_filter_results);
+            assertFalse(exists accepted.data[0].content_filter_results);
+        }
+        foreach string action in ("create-transcription", "create-translation") {
+            auto op = AzureOpenAiSchema::getOperationEx(action);
+            foreach AbstractDataProviderType type in (op.getResponseType(),
+                    Serializable::deserialize(op.getResponseType().serialize())) {
+                assertEq({"text": "Hello"}, type.acceptsValue({"text": "Hello"}));
+                assertEq("Hello", type.acceptsValue("Hello"));
+                hash<auto> verbose = {"text": "Hello", "task": "transcribe", "language": "english",
+                    "duration": 1.5, "segments": (), "words": ()};
+                auto accepted = type.acceptsValue(verbose);
+                assertEq(sort(keys verbose), sort(keys accepted));
+                assertEq("Hello", accepted.text);
+                assertEq("transcribe", accepted.task);
+                assertEq("english", accepted.language);
+                assertEq(1.5, accepted.duration.toFloat());
+                assertEq((), accepted.segments);
+                assertEq((), accepted.words);
+                assertThrows("RUNTIME-TYPE-ERROR", sub () { type.acceptsValue({"wrong": "field"}); });
+            }
+            foreach string format in ("json", "text", "srt", "verbose_json", "vtt") {
+                root.getChildProvider(action).doRequest({"model": "whisper-deployment",
+                    "file": {"name": "invoice.wav", "content": <52494646>}, "response_format": format});
+                assertTrue(fake.path.startsWith("/openai/deployments/whisper-deployment/audio/"));
+                auto parts = MultiPartFormDataMessage::parseMessage(fake.last_headers."Content-Type", fake.raw.toString());
+                assertEq(format, parts.response_format.body);
+                assertFalse(exists parts.model, "Azure selects the deployment from the path");
+            }
+            foreach hash<auto> invalid in ({"model": ""}, {"model": "  "}, {"temperature": -0.01},
+                    {"temperature": 1.01}, {"response_format": "invalid"}, {"file": NOTHING}) {
+                int sent = fake.requests;
+                *hash<ExceptionInfo> error;
+                try {
+                    root.getChildProvider(action).doRequest({"model": "whisper-deployment",
+                        "file": {"name": "invoice.wav", "content": <52494646>}} + invalid);
+                } catch (hash<ExceptionInfo> ex) {
+                    error = ex;
+                }
+                assertTrue(exists error, sprintf("%s: %y", action, invalid));
+                assertEq(sent, fake.requests, "invalid audio inputs fail before transport");
+            }
+        }
+    }
+
+    private conversationItemsTest() {
+        AbstractDataProviderType original = AzureOpenAiSchema::getOperationEx("list-conversation-items")
+            .getResponseType();
+        foreach AbstractDataProviderType type in (original, Serializable::deserialize(original.serialize())) {
+            hash<auto> empty = {"object": "list", "data": (), "has_more": False};
+            assertEq(empty, type.acceptsValue(empty));
+            foreach string name in ("object", "data", "has_more") {
+                hash<auto> missing = empty;
+                remove missing{name};
+                assertThrows("MISSING-VALUE-ERROR", sub () { type.acceptsValue(missing); });
+            }
+            foreach string name in ("first_id", "last_id") {
+                hash<auto> invalid = empty;
+                invalid{name} = {};
+                assertThrows("RUNTIME-TYPE-ERROR", sub () { type.acceptsValue(invalid); });
+                invalid{name} = "item-1";
+                assertEq("item-1", type.acceptsValue(invalid){name});
+            }
+        }
+    }
+
     private multipartTest() {
         AzureActionFixtureClient fake();
         AzureOpenAiDataProvider::AzureOpenAiDataProvider root(fake);
@@ -251,8 +351,8 @@ class AzureActionsTest inherits QUnit::Test {
         root.getChildProvider("create-transcription").doRequest({"model": "speech-deployment",
             "file": {"name": "invoice.wav", "content": binary("RIFF")}, "temperature": 0,
             "timestamp_granularities": ("word", "segment"), "response_format": "verbose_json"});
-        assertTrue(fake.path.startsWith("/openai/v1/audio/transcriptions"));
-        assertTrue(fake.path.find("api-version=preview") >= 0);
+        assertTrue(fake.path.startsWith("/openai/deployments/speech-deployment/audio/transcriptions"));
+        assertTrue(fake.path.find("api-version=2025-04-01-preview") >= 0);
         parts = MultiPartFormDataMessage::parseMessage(fake.last_headers."Content-Type", fake.raw.toString());
         assertEq("invoice.wav", parts.file.filename);
         assertEq("segment", parts."timestamp_granularities[]".body);

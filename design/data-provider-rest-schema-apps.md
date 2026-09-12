@@ -238,6 +238,27 @@ serializer. Ordinary fields have no filename and precede file parts; raw binary 
 field name as their legacy filename. APIs that determine format from an extension require a named
 file, for example `invoice.wav` for Cohere transcription or `invoices.jsonl` for a dataset.
 
+Array elements use the same named-file representation. Rebuilt OpenAPI unions retain their original
+wire alternatives: composition matching checks decoded bytes while the accepted input keeps the
+filename and MIME type. Array bounds, binary element shapes, and exact `oneOf` matching still apply,
+including after optional/mandatory/soft conversion and serialization.
+
+## Response media representations
+
+An OpenAPI response can declare different schemas for JSON, text, and binary content. The response
+object retains every declared media schema. Its published output type combines distinct schemas with
+`anyOf`, because media alternatives may overlap; identical declarations retain a single type. Client
+validation selects the schema by Content-Type, including equivalent vendor types and media wildcards.
+Server content negotiation considers only representations whose schema accepts the response value.
+The legacy direct response schema keeps precedence for Swagger-compatible documents.
+
+An action that selects one representation declares `response_content_type` in its manifest. That exact
+declared media schema supplies its output type, and requests send its media type in the `Accept` header.
+Missing media types or schemas fail registration. Mistral's complete-response actions select JSON while
+the underlying operations also describe streamed events; their date conversions therefore apply to the
+selected JSON contract. Actions such as Azure transcription leave the selection unset because their
+response-format option supports both JSON and text. Branch-specific union codecs remain rejected.
+
 ## Per-application test conventions
 
 Beyond the drift-agreement test, each application's `.qtest` should cover:
@@ -1296,11 +1317,29 @@ the displayed label still comes from `display_field`.
 
 ## Azure OpenAI v1 contracts and media uploads
 
-Azure OpenAI pins the vendor's v1 preview description and exports 99 reviewed operations. Ordinary
-operations use `api-version=v1`; audio, images, and video use `preview`. The original chat and embedding
+Azure OpenAI exports 99 reviewed operations from two pinned vendor descriptions. Ordinary v1
+operations use `api-version=v1`; speech, images, and video use `preview`. Transcription and translation
+use the deployment-based audio contract with `api-version=2025-04-01-preview` and the resource's
+`/openai/deployments/{deployment-id}` prefix. Their existing `model` option selects that deployment.
+Both action sets are validated before publication, and discovery inventories cover both partitions. The original chat and embedding
 action identities retain `deployment`, mapped to the v1 `model` field. Deployment names are entered
 explicitly because the resource's data-plane model catalog does not enumerate Azure deployments.
 Retired Assistants threads and DALL-E 2 image variations are excluded.
+
+Conversations use a Foundry project endpoint with Microsoft Entra authentication. Its
+`/api/projects/<project>` path identifies the resource and must survive client copies and action creation.
+The connection and provider normalize optional `/openai` or `/openai/v1` endpoint suffixes while retaining
+the project prefix; schema paths then append their own API prefix once. Resource-only URLs still use the
+schema path directly. The default project connection ping lists one conversation, since model-listing
+availability differs between the resource and project endpoints. Live lifecycle tests retain a newly
+created conversation ID before schema validation so a contract failure cannot bypass cleanup.
+Project endpoints default to the `https://ai.azure.com/.default` token audience. Explicit scope overrides
+remain intact, and copies recompute an implicit scope for their new endpoint. The import removes the
+resource-only `api-version` query parameter from conversation operations: Foundry rejects any such query
+parameter on its `/v1` path, so it must not be offered as an action option or injected as a default.
+Empty conversation item lists omit `first_id` and `last_id`; the checked import makes only these
+pagination IDs optional, preserving their string types and the required `object`, `data`, and
+`has_more` envelope. Published and serialized response types are tested against this live response.
 
 The checked import spec repairs specific generated contract errors: multipart files and media fields,
 optional file expiration with Azure's three-to-thirty-day bounds, video reference images, evaluation

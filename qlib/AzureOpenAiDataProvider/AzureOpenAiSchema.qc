@@ -82,7 +82,7 @@ public class AzureOpenAiSchema {
             "source_url": "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/a6943a926f76b3a2f90371b3466157eddf760e25/specification/ai/data-plane/OpenAI.v1/azure-v1-preview-generated.json",
             "source_sha256": "8d7298e942f1bc5a6ce4c2462a762e2c548861425034dff71b38ded8447f2cde",
             "source_size": 1539952,
-            "imported": 2026-09-11,
+            "imported": 2026-09-12,
             "source_paths": 81,
             "source_operations": 118,
             "source_schemas": 862,
@@ -90,59 +90,113 @@ public class AzureOpenAiSchema {
             "api_version": "preview",
         };
 
+        #! Provenance of the deployment-based audio API description
+        const AudioProvenance = <AzureOpenAiSchemaProvenanceInfo>{
+            "source_url": "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/a6943a926f76b3a2f90371b3466157eddf760e25/specification/cognitiveservices/data-plane/AzureOpenAI/inference/preview/2025-04-01-preview/inference.json",
+            "source_sha256": "431bd065fda5fcd73f0e08eec37b3790a1dd266dcac2ebe1c0e5141a9fad4190",
+            "source_size": 620264,
+            "imported": 2026-09-12,
+            "source_paths": 36,
+            "source_operations": 52,
+            "source_schemas": 342,
+            "source_webhooks": 0,
+            "api_version": "2025-04-01-preview",
+        };
+
         #! The name of the vendored schema file, which lives beside this module
         const SchemaFileName = "azure-openai-v1.json";
     }
 
     private {
-        #! The parsed schema
-        static *OpenApi3::OpenApi3Schema schema;
-
-        #! The action set built from the schema and the manifest
-        static *RestSchemaActions::RestSchemaActionSet action_set;
-
-        #! Serializes construction of the schema and the action set
+        static list<OpenApi3::OpenApi3Schema> schemas;
+        static list<RestSchemaActions::RestSchemaActionSet> action_sets;
         static Mutex lck();
     }
 
-    #! Returns the parsed vendored schema, parsing it on first use
-    /** @return the shared schema
-        @throw EMPTY-SCHEMA-FILE the vendored resource is empty
-        @throw YAML-MODULE-MISSING the YAML parser is unavailable
+    #! Returns the parsed v1 schema
+    /** @return the shared v1 schema
+        @throw EMPTY-SCHEMA-FILE a vendored resource is empty
+        @throw REST-SCHEMA-ACTION-ERROR a manifest and schema disagree
     */
     static OpenApi3::OpenApi3Schema getSchema() {
         AutoLock al(lck);
-        return AzureOpenAiSchema::getSchemaIntern();
+        initIntern();
+        return schemas[0];
     }
 
-    #! Returns the action set for the generated actions, building it on first use
-    /** @return the shared, validated action set
-        @throw REST-SCHEMA-ACTION-ERROR the manifest and schema disagree
+    #! Returns the parsed deployment-based audio schema
+    /** @return the shared audio schema
+        @throw REST-SCHEMA-ACTION-ERROR a manifest and schema disagree
     */
-    static RestSchemaActions::RestSchemaActionSet getActionSet() {
+    static OpenApi3::OpenApi3Schema getAudioSchema() {
         AutoLock al(lck);
-        if (!action_set) {
-            action_set = new RestSchemaActions::RestSchemaActionSet(AzureOpenAiSchema::getSchemaIntern(),
-                AzureOpenAiManifest::Manifest, AzureOpenAiManifest::ReferenceData);
-        }
-        return action_set;
+        initIntern();
+        return schemas[1];
     }
 
-    #! Returns the path to the vendored schema file
-    /** @return the schema resource path beside this module */
+    #! Returns the primary v1 action set
+    /** @return the shared v1 actions */
+    static RestSchemaActions::RestSchemaActionSet getActionSet() {
+        return getActionSets()[0];
+    }
+
+    #! Returns the v1 and deployment-based audio action sets
+    /** @return both shared, validated action sets
+        @throw REST-SCHEMA-ACTION-ERROR a manifest and schema disagree
+    */
+    static list<RestSchemaActions::RestSchemaActionSet> getActionSets() {
+        AutoLock al(lck);
+        initIntern();
+        return action_sets;
+    }
+
+    #! Finds the action set owning a stable action ID
+    /** @param action the action ID
+        @return its action set, or nothing if it is unknown
+    */
+    static *RestSchemaActions::RestSchemaActionSet findActionSet(string action) {
+        foreach RestSchemaActions::RestSchemaActionSet set in (getActionSets()) {
+            if (set.getOperation(action)) {
+                return set;
+            }
+        }
+        return;
+    }
+
+    #! Returns an action contract from either API
+    /** @param action the stable action ID
+        @return its operation
+        @throw AZURE-OPENAI-ACTION-ERROR the action is unknown
+    */
+    static RestSchemaActions::RestSchemaActionOperation getOperationEx(string action) {
+        *RestSchemaActions::RestSchemaActionSet set = findActionSet(action);
+        if (!set) {
+            throw "AZURE-OPENAI-ACTION-ERROR", sprintf("unknown Azure OpenAI action %y", action);
+        }
+        return set.getOperationEx(action);
+    }
+
+    #! Returns the path to the primary v1 resource
+    /** @return the v1 schema resource path beside this module */
     static string getSchemaPath() {
         return Priv::AzureOpenAiModuleDir + DirSep + SchemaFileName;
     }
 
-    #! Returns the parsed schema; the lock must be held
-    private static OpenApi3::OpenApi3Schema getSchemaIntern() {
-        if (!schema) {
-            string path = AzureOpenAiSchema::getSchemaPath();
-            on_error rethrow $1.err, sprintf("%s (while loading the vendored Azure OpenAI v1 API "
-                "description %y)", $1.desc, path);
-            schema = OpenApi3::OpenApi3Loader::fromFile(path);
+    #! Constructs both partitions under the lock and publishes only fully validated action sets
+    private static initIntern() {
+        if (action_sets) {
+            return;
         }
-        return schema;
+        list<OpenApi3::OpenApi3Schema> parsed = (
+            OpenApi3::OpenApi3Loader::fromFile(getSchemaPath()),
+            OpenApi3::OpenApi3Loader::fromFile(Priv::AzureOpenAiModuleDir + "/azure-openai-audio.json"),
+        );
+        RestSchemaActions::RestSchemaActionSet primary(parsed[0], AzureOpenAiManifest::Manifest,
+            AzureOpenAiManifest::ReferenceData);
+        RestSchemaActions::RestSchemaActionSet audio(parsed[1], AzureOpenAiAudioManifest::Manifest,
+            NOTHING, (primary,));
+        schemas = parsed;
+        action_sets = (primary, audio);
     }
 }
 }

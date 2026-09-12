@@ -24,7 +24,9 @@
 
 %modern
 
+
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires json
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/DataProvider
@@ -32,7 +34,6 @@
 %requires ../../../../qlib/RestClientIo.qm
 %requires ../../../../qlib/HttpClientIo.qm
 
-%requires json
 
 %exec-class RestSchemaActionSetTest
 
@@ -293,6 +294,7 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
         addTestCase("optional body relaxes requiredness", \optionalBodyTest());
         addTestCase("no output type", \noOutputTypeTest());
         addTestCase("ambiguous output contract", \ambiguousResponseTest());
+        addTestCase("selected response representation retains its schema and Accept header", \responseMediaTest());
         addTestCase("response unwrapping", \responseUnwrapTest());
         addTestCase("collision detection", \collisionTest());
         addTestCase("round trip", \roundTripTest());
@@ -601,6 +603,61 @@ public class RestSchemaActionSetTest inherits QUnit::Test {
         # ... as is one that declares no body
         assertThrows("REST-SCHEMA-ACTION-ERROR", "declares no response body", \makeOp(),
             entry("delete-widget", "DELETE", "/widgets/{widget_id}", {"response_code": "204"}));
+    }
+
+    responseMediaTest() {
+        hash<auto> doc = {"openapi": "3.0.0", "info": {"title": "Media results", "version": "1"},
+            "paths": {"/result": {"get": {"responses": {"200": {
+                "description": "A complete response or streamed events", "content": {
+                    "application/json": {"schema": {"type": "object", "required": ("created",),
+                        "properties": {"created": {"type": "integer"}}}},
+                    "text/event-stream": {"schema": {"type": "object", "required": ("data",),
+                        "properties": {"data": {"type": "string"}}}},
+                    "application/octet-stream": {},
+                }}}}}}};
+        OpenApi3::OpenApi3Schema schema("", doc);
+        hash<RestSchemaActionInfo> info = <RestSchemaActionInfo>{"action": "result", "method": "GET",
+            "path": "/result", "display_name": "Result", "short_desc": "Get a complete response",
+            "desc": "Get a complete response.", "response_content_type": "application/json",
+            "response_fields": {"created": <RestSchemaFieldOverlayInfo>{
+                "codec": RestSchemaActionCodecs::UnixSeconds}}};
+        RestSchemaActionSet actions(schema, (info,));
+        RestSchemaActionOperation op = actions.getOperationEx("result");
+        foreach AbstractDataProviderType type in (op.getResponseType(),
+                Serializable::deserialize(op.getResponseType().serialize())) {
+            assertEq({"created": 1970-01-01Z}, type.acceptsValue({"created": 1970-01-01Z}));
+            assertThrows("MISSING-VALUE-ERROR", sub () { type.acceptsValue({"data": "event"}); });
+        }
+        FakeRestClient fake();
+        fake.default_response = {"body": {"created": 0}, "headers": {"Content-Type": "application/json"}};
+        RestSchemaActionDataProvider provider(actions, op, fake);
+        assertEq({"created": 1970-01-01Z}, provider.doRequest({}));
+        assertEq("application/json", fake.last().headers.Accept);
+        # A body-only operation has a closed envelope with no schema-declared header fields.
+        OpenApi3::OpenApi3Schema post_schema("", {"openapi": "3.0.0", "info": doc.info,
+            "paths": {"/result": {"post": {"responses": doc.paths."/result".get.responses,
+                "requestBody": {"required": True, "content": {"application/json": {"schema": {
+                    "type": "object", "required": ("message",),
+                    "properties": {"message": {"type": "string"}}, "additionalProperties": False,
+                }}}}}}}});
+        hash<RestSchemaActionInfo> post_info = info;
+        post_info.method = "POST";
+        post_info.flatten_body = True;
+        RestSchemaActionSet post_actions(post_schema, (post_info,));
+        RestSchemaActionDataProvider post_provider(post_actions, post_actions.getOperationEx("result"), fake);
+        assertEq({"created": 1970-01-01Z}, post_provider.doRequest({"message": "Hello"}));
+        assertEq("application/json", fake.last().headers.Accept);
+        foreach string invalid in ("text/plain", "application/octet-stream") {
+            info.response_content_type = invalid;
+            assertThrows("REST-SCHEMA-ACTION-ERROR", sub () { new RestSchemaActionOperation(schema, info); });
+        }
+        remove info.response_content_type;
+        assertThrows("REST-SCHEMA-ACTION-ERROR", sub () { new RestSchemaActionOperation(schema, info); },
+            NOTHING, "a media selection does not weaken ambiguous union codec validation");
+        remove info.response_fields;
+        RestSchemaActionOperation all(schema, info);
+        assertEq({"created": 0}, all.getResponseType().acceptsValue({"created": 0}));
+        assertEq({"data": "event"}, all.getResponseType().acceptsValue({"data": "event"}));
     }
 
     responseUnwrapTest() {

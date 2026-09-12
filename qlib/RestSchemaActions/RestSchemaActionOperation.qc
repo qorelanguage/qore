@@ -1226,8 +1226,23 @@ public class RestSchemaActionOperation {
             return;
         }
 
+        RestSchemaValidator::AbstractSchemaObject response_schema = resp.getSchema();
+        if (info.response_content_type.val()) {
+            if (!(resp instanceof OpenApi3::ResponseObject)
+                    || !cast<OpenApi3::ResponseObject>(resp).contentTypes{info.response_content_type}) {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("the manifest selects response media type %y, "
+                    "which response %y does not declare", info.response_content_type, response_code);
+            }
+            *OpenApi3::SchemaObject selected = cast<OpenApi3::ResponseObject>(resp)
+                .getContentSchema(info.response_content_type);
+            if (!selected) {
+                throw "REST-SCHEMA-ACTION-ERROR", sprintf("response media type %y declares no schema",
+                    info.response_content_type);
+            }
+            response_schema = selected;
+        }
         AbstractDataField body_field = schema.getFieldFromSchema("body", "REST response body argument",
-            resp.getSchema());
+            response_schema);
         AbstractDataProviderType type = body_field.getType();
 
         foreach string name in (info.response_unwrap) {

@@ -540,6 +540,13 @@ public hashdecl RestSchemaActionInfo {
     */
     *string response_code;
 
+    #! The declared response media type selected by this action
+    /** Use when an action deliberately selects one representation, such as a complete JSON response from an
+        operation that also declares streamed events. The selected schema supplies the output contract and
+        the request sends the corresponding \c Accept header. Omit to publish all declared representations.
+    */
+    *string response_content_type;
+
     #! A path of field names to unwrap from the success response body
     /** Publishes a value nested inside the response body as the action output.  Use only when the enclosing
         object carries nothing a caller needs.

@@ -47,16 +47,19 @@ public class AzureOpenAiDataProvider inherits AzureOpenAiDataProviderCommon {
     }
 
     private *list<string> getChildProviderNamesImpl() {
-        return AzureOpenAiSchema::getActionSet().getActionNames();
+        list<string> names = ();
+        foreach RestSchemaActionSet actions in (AzureOpenAiSchema::getActionSets()) {
+            names += actions.getActionNames();
+        }
+        return names;
     }
 
     private *AbstractDataProvider getChildProviderImpl(string name) {
-        RestSchemaActionSet actions = AzureOpenAiSchema::getActionSet();
-        *RestSchemaActionOperation op = actions.getOperation(name);
-        if (!op) {
+        *RestSchemaActionSet actions = AzureOpenAiSchema::findActionSet(name);
+        if (!actions) {
             return;
         }
-        return new RestSchemaActionDataProvider(actions, op, rest);
+        return new RestSchemaActionDataProvider(actions, actions.getOperationEx(name), rest);
     }
 
     private hash<DataProviderInfo> getStaticInfoImpl() {

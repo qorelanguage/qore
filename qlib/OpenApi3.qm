@@ -309,7 +309,9 @@ excluded from the union and make it @ref RestSchemaValidator::AbstractSchemaObje
     - accept empty `required` arrays in OpenAPI 3.1 and later
     - serialize structured multipart fields using their Encoding Objects and preserve repeated file arrays
     - respect request/response direction for required read-only and write-only properties
-    - support named uploads and URLs in multipart file-or-URL unions
+    - support named uploads and URLs in multipart file-or-URL unions, including arrays without losing
+      composition constraints, filenames, or media types
+    - expose distinct JSON, text, and binary response representations and validate the selected media schema
     - preserve composed allOf types when they are used as required or optional object fields
     - retain explicit null alternatives when generating nullable composition data types
     - parse parameter \c content schemas and serialize JSON query, path and header parameters
@@ -1586,7 +1588,7 @@ public class OpenApi3Schema inherits ObjectBase, AbstractRestSchemaValidator {
         }
 
         hash<string, bool> mime_types = {};
-        op.validateResponse(method, path, pio, code, \rv.body, \mime_types, False);
+        op.validateResponse(method, path, pio, code, \rv.body, \mime_types, False, content);
 
         if (content && !mime_types{content} && !mime_check_equivalent_type(content, mime_types)) {
             throw "DESERIALIZATION-ERROR", sprintf("%s %s: content type %y is not accepted by this operation; "
@@ -2121,7 +2123,11 @@ public class OpenApi3Schema inherits ObjectBase, AbstractRestSchemaValidator {
 
         # perform validation
         hash<string, bool> mime_types = {};
-        op.validateResponse(method, path, pio, code, \response_body, \mime_types);
+        *string selected_content = headers."content-type" ?? headers."Content-Type";
+        if (selected_content) {
+            selected_content =~ s/[;,].*$//;
+        }
+        op.validateResponse(method, path, pio, code, \response_body, \mime_types, True, selected_content);
 
         hash<HttpResponseInfo> rv((
             "code": code,
@@ -3070,9 +3076,12 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
     #! Transforms array elements without altering scalar alternatives or union semantics
     private static AbstractDataProviderType getMultipartArrayInputType(AbstractDataProviderType type) {
         if (type instanceof QoreUnionDataType) {
-            return cast<QoreUnionDataType>(type).copyWithUnionTypes(
-                map OperationObject::getMultipartArrayInputType($1),
-                cast<QoreUnionDataType>(type).getUnionTypes());
+            list<AbstractDataProviderType> branches = map OperationObject::getMultipartArrayInputType($1),
+                cast<QoreUnionDataType>(type).getUnionTypes();
+            if (type instanceof OpenApi3UnionDataType) {
+                return cast<OpenApi3UnionDataType>(type).copyForMultipart(branches);
+            }
+            return cast<QoreUnionDataType>(type).copyWithUnionTypes(branches);
         }
         if (type.getBaseTypeCode() == NT_LIST) {
             return cast<ListDataType>(type).copyWithElementType(
@@ -3130,7 +3139,8 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
             foreach string name in (keys getMultipartFileProperties(param)) {
                 if (checked{name}.typeCode() == NT_HASH || checked{name}.typeCode() == NT_LIST) {
                     files{name} = checked{name};
-                    checked{name} = OperationObject::getMultipartWireValue(name, checked{name});
+                    checked{name} = OperationObject::getMultipartWireValue(name, checked{name},
+                        param.schema.properties{name}.getDataType());
                 }
             }
         }
@@ -3138,12 +3148,32 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         value = files ? checked + files : checked;
     }
 
-    #! Decodes named files for schema validation while retaining raw binary and URL alternatives
-    private static auto getMultipartWireValue(string name, auto value) {
-        if (value.typeCode() == NT_LIST) {
-            return map OperationObject::getMultipartWireValue(name, $1), value;
+    #! Decodes named files only at declared binary positions
+    /** @param name field name used in validation errors
+        @param value the multipart input, including optional upload metadata
+        @param type the original wire type
+        @return the value used to validate the wire contract
+        @throw SCHEMA-VALIDATION-ERROR a named file has an empty filename
+        @throw RUNTIME-TYPE-ERROR the file metadata is invalid
+        @throw BASE64-PARSE-ERROR the encoded file content is invalid
+    */
+    static auto getMultipartWireValue(string name, auto value, AbstractDataProviderType type) {
+        if (type instanceof QoreUnionDataType) {
+            foreach AbstractDataProviderType branch in (cast<QoreUnionDataType>(type).getUnionTypes()) {
+                try {
+                    auto wire = OperationObject::getMultipartWireValue(name, value, branch);
+                    branch.acceptsValue(wire);
+                    return wire;
+                } catch (hash<ExceptionInfo> ex) {
+                    # The full union validation reports a mismatch if no alternative accepts the value.
+                }
+            }
+            return value;
         }
-        if (value.typeCode() == NT_HASH) {
+        if (value.typeCode() == NT_LIST && type.getBaseTypeCode() == NT_LIST) {
+            return map OperationObject::getMultipartWireValue(name, $1, type.getElementType()), value;
+        }
+        if (value.typeCode() == NT_HASH && type.getBaseTypeCode() == NT_BINARY) {
             hash<auto> file = FileDataType.acceptsValue(value);
             if (!file.name.val()) {
                 throw "SCHEMA-VALIDATION-ERROR", sprintf("multipart file %y requires a non-empty filename", name);
@@ -3515,6 +3545,10 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
         if (path_names) {
             string actual_path = h.method.startsWith("/") ? h.method : "/" + h.method;
             path_values = regex_extract(actual_path, PathComponent::getTemplatePattern(path, True));
+            if (path_values.size() != path_names.size()) {
+                error("SCHEMA-VALIDATION-ERROR", "Request path %y does not match path template %y",
+                    actual_path, path);
+            }
         }
         foreach string param in (path_names) {
             *ParameterObject po = parameters{param} ?? real_pio.parameters{param};
@@ -3523,12 +3557,10 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
                     "known parameters: %y", param, keys (parameters + real_pio.parameters));
             }
 
-            auto val = path_values[$#];
+            auto val = decode_url(path_values[$#]);
 
             # convert string to actual type
-            if (po.content) {
-                val = decode_url(val);
-            } else {
+            if (!po.content) {
                 switch (po.schema.type) {
                     case "integer":
                         val = val.toInt();
@@ -3592,10 +3624,15 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
 
     #! validates a response against the response definition, if any
     validateResponse(string method, string path, PathItemObject pio, int http_code, reference<auto> response_body,
-            reference<hash<string, bool>> mime_types, bool deserialize = True) {
+            reference<hash<string, bool>> mime_types, bool deserialize = True, *string content_type) {
         *ResponseObject res = getResponse(http_code);
-        if (res.schema) {
-            res.schema.check(deserialize, False, path, method, "response body", \response_body);
+        *hash<string, bool> matching_content;
+        if (res && deserialize && !content_type) {
+            matching_content = res.getMatchingContentTypes(response_body, path, method);
+        }
+        *SchemaObject response_schema = res ? res.getContentSchema(content_type) : NOTHING;
+        if (response_schema) {
+            response_schema.check(deserialize, False, path, method, "response body", \response_body);
         } else if (exists res && exists response_body) {
             error("SCHEMA-VALIDATION-ERROR", "Response code %y to %s %y should not have any body", http_code, method,
                 path);
@@ -3605,7 +3642,7 @@ public class OperationObject inherits ObjectBase, ParameterGroup, RestSchemaVali
             mime_types = produces;
         } else if (res.contentTypes) {
             # OpenAPI 3.0: use content types from response
-            mime_types = res.contentTypes;
+            mime_types = matching_content ?? res.contentTypes;
         } else {
             # Neither produces nor contentTypes defined - use defaults
             mime_types = map {$1: True}, MimeContentTypes;
@@ -4173,7 +4210,7 @@ public class ParameterObject inherits ParameterBase {
         } else if (inLoc == "query") {
             value = RestSchemaValidator::AbstractParameterObject::convertQueryArg(schema.type, schema.format,
                 schema.items, path, method, name, value);
-        } else if (inLoc == "path" && !value && path) {
+        } else if (inLoc == "path" && !exists value && path) {
             # if we have a path and a missing value then ignore the missing value
             return;
         }
@@ -4298,6 +4335,11 @@ public class ResponseObject inherits ObjectBase, RestSchemaValidator::AbstractRe
         *hash<string, bool> contentTypes;
     }
 
+    private {
+        #! Schemas keyed by media type, including distinct JSON, text, and binary representations
+        hash<string, SchemaObject> content_schemas;
+    }
+
     #! private constructor; use newResponse() instead
     /**
         @param key the response code for error reporting
@@ -4317,13 +4359,24 @@ public class ResponseObject inherits ObjectBase, RestSchemaValidator::AbstractRe
             schema = SchemaObject::newSchemaObject("response_" + key, schemaObj, openapi3);
         }
         if (oh.content) {
-            # OpenAPI 3.0 style: extract content types and schema from content.{mediaType}
+            list<hash<auto>> alternatives = ();
+            bool legacy_schema = exists schema;
             foreach hash<auto> item in (oh.content.pairIterator()) {
                 contentTypes{item.key} = True;
-                # Use "exists" to handle empty schema objects {} which are falsy but valid (means "any type")
-                if (exists item.value.schema && !schema) {
-                    schema = SchemaObject::newSchemaObject("response_" + key, item.value.schema, openapi3);
+                # Retain the legacy direct schema when present; an absent schema is distinct from {}.
+                if (legacy_schema || !exists item.value.schema) {
+                    continue;
                 }
+                hash<auto> raw = item.value.schema;
+                content_schemas{item.key} = SchemaObject::newSchemaObject("response_" + key, raw, openapi3);
+                if (!(map True, alternatives, $1 == raw)) {
+                    push alternatives, raw;
+                }
+            }
+            # Content alternatives are selected by media type, so overlapping schemas are valid.
+            if (alternatives) {
+                schema = SchemaObject::newSchemaObject("response_" + key,
+                    alternatives.size() == 1 ? alternatives[0] : {"anyOf": alternatives}, openapi3);
             }
         }
 
@@ -4353,6 +4406,59 @@ public class ResponseObject inherits ObjectBase, RestSchemaValidator::AbstractRe
         if (oh.hasKey("$ref"))
             return openapi3.resolveResponse(key, oh."$ref", oh);
         return new ResponseObject(key, oh, openapi3);
+    }
+
+    #! Returns the schema for the selected response representation
+    /** @param content_type media type without parameters, or nothing before content negotiation
+        @return the matching schema; the combined contract when no media type is selected
+    */
+    *SchemaObject getContentSchema(*string content_type) {
+        if (!content_type || !content_schemas) {
+            return schema;
+        }
+        if (contentTypes{content_type}) {
+            return content_schemas{content_type};
+        }
+        # Prefer a subtype wildcard over a catch-all, then allow equivalent vendor media types.
+        string family = split("/", content_type)[0] + "/*";
+        if (content_schemas{family} || content_schemas{"*/*"}) {
+            return content_schemas{family} ?? content_schemas{"*/*"};
+        }
+        foreach string declared in (keys content_schemas) {
+            if (mime_check_equivalent_type(content_type, {declared: True})) {
+                return content_schemas{declared};
+            }
+        }
+        return schema;
+    }
+
+    #! Returns response representations whose schemas accept the value before serialization
+    /** @param value the unencoded response value
+        @param path operation path for validation errors
+        @param method HTTP method
+        @return matching media types, or nothing for legacy single-schema responses
+    */
+    *hash<string, bool> getMatchingContentTypes(auto value, string path, string method) {
+        if (!content_schemas) {
+            return;
+        }
+        hash<string, bool> matches = {};
+        foreach string content in (keys contentTypes) {
+            try {
+                auto checked = value;
+                if (content_schemas{content}) {
+                    content_schemas{content}.check(True, False, path, method, "response body", \checked);
+                } else if (exists value) {
+                    # Match explicit-media validation: an absent schema does not declare a response body.
+                    # An explicitly empty schema is retained above and accepts unrestricted values.
+                    continue;
+                }
+                matches{content} = True;
+            } catch (hash<ExceptionInfo> ex) {
+                # Other representations may accept the value; aggregate validation reports an invalid body.
+            }
+        }
+        return matches;
     }
 
     #! Returns the response schema, if any
@@ -4811,17 +4917,23 @@ public class OpenApi3UnionDataType inherits QoreUnionDataType {
 
         #! OpenAPI schema alternatives in declaration order, if available
         *list<SchemaObject> schemas;
+
+        #! Original wire alternatives when the input accepts named multipart files
+        *list<AbstractDataProviderType> multipart_wire_types;
     }
 
     #! Creates the type with OpenAPI composition semantics
     /** @param types the alternative data provider types, in schema declaration order
         @param composition_keyword \c oneOf or \c anyOf
         @param schemas OpenAPI schema alternatives in declaration order, if available
+        @param multipart_wire_types original alternatives used to validate multipart file contents
     */
-    constructor(list<AbstractDataProviderType> types, string composition_keyword, *list<SchemaObject> schemas)
+    constructor(list<AbstractDataProviderType> types, string composition_keyword, *list<SchemaObject> schemas,
+            *list<AbstractDataProviderType> multipart_wire_types)
             : QoreUnionDataType(types) {
         self.composition_keyword = composition_keyword;
         self.schemas = schemas;
+        self.multipart_wire_types = multipart_wire_types;
     }
 
     #! Returns a union of the same kind over the given alternatives
@@ -4833,7 +4945,16 @@ public class OpenApi3UnionDataType inherits QoreUnionDataType {
         @return an %OpenAPI union over \a types with this type's composition semantics
     */
     QoreUnionDataType copyWithUnionTypes(list<AbstractDataProviderType> types) {
-        return new OpenApi3UnionDataType(types, composition_keyword, schemas);
+        return new OpenApi3UnionDataType(types, composition_keyword, schemas, multipart_wire_types);
+    }
+
+    #! Copies the union for named multipart inputs without changing its wire contract
+    /** @param types alternatives accepting upload metadata at their binary positions
+        @return the multipart union with the same composition matching rule
+    */
+    OpenApi3UnionDataType copyForMultipart(list<AbstractDataProviderType> types) {
+        return new OpenApi3UnionDataType(types, composition_keyword, schemas,
+            multipart_wire_types ?? getUnionTypes());
     }
 
     #! Returns the type's short description
@@ -4864,15 +4985,17 @@ public class OpenApi3UnionDataType inherits QoreUnionDataType {
         *hash<ExceptionInfo> last_exception;
         list<AbstractDataProviderType> types = getUnionTypes();
         for (int i = 0; i < types.size(); ++i) {
-            if (schemas && !OpenApi3UnionDataType::branchMatchesShape(schemas[i], value)) {
-                continue;
-            }
             try {
-                auto accepted = value;
+                auto accepted = multipart_wire_types
+                    ? OperationObject::getMultipartWireValue("file", value, multipart_wire_types[i]) : value;
+                if (schemas && !OpenApi3UnionDataType::branchMatchesShape(schemas[i], accepted)) {
+                    continue;
+                }
                 if (schemas) {
                     schemas[i].check(False, True, "/", "POST", schemas[i].name, \accepted);
                 }
-                accepted = types[i].acceptsValue(accepted);
+                # Validate the wire representation, then retain names and media types in the accepted input.
+                accepted = types[i].acceptsValue(multipart_wire_types ? value : accepted);
                 ++matches;
                 if (!have_first) {
                     first_value = accepted;
@@ -4933,7 +5056,17 @@ public class OpenApi3UnionDataType inherits QoreUnionDataType {
         int tc = value.typeCode();
         switch (s.type) {
             case "array":
-                return tc == NT_LIST;
+                if (tc != NT_LIST) {
+                    return False;
+                }
+                if (s.items) {
+                    foreach auto element in (value) {
+                        if (!OpenApi3UnionDataType::branchMatchesShape(s.items, element)) {
+                            return False;
+                        }
+                    }
+                }
+                return True;
             case "object":
                 return tc == NT_HASH;
             case "string":
@@ -4954,7 +5087,7 @@ public class OpenApi3UnionDataType inherits QoreUnionDataType {
 
     #! Returns a "soft" type equivalent to the current type
     AbstractDataProviderType getSoftType() {
-        return new OpenApi3UnionDataType((map $1.getSoftType(), getUnionTypes()), composition_keyword, schemas);
+        return new OpenApi3UnionDataType((map $1.getSoftType(), getUnionTypes()), composition_keyword, schemas, multipart_wire_types);
     }
 
     #! Returns an "or nothing" type equivalent to the current type
@@ -4962,7 +5095,7 @@ public class OpenApi3UnionDataType inherits QoreUnionDataType {
         if (isOrNothingType()) {
             return self;
         }
-        return new OpenApi3UnionDataType((map $1.getOrNothingType(), getUnionTypes()), composition_keyword, schemas);
+        return new OpenApi3UnionDataType((map $1.getOrNothingType(), getUnionTypes()), composition_keyword, schemas, multipart_wire_types);
     }
 
     #! Returns a mandatory type equivalent to the current type
@@ -4970,7 +5103,7 @@ public class OpenApi3UnionDataType inherits QoreUnionDataType {
         if (!isOrNothingType()) {
             return self;
         }
-        return new OpenApi3UnionDataType((map $1.getMandatoryType(), getUnionTypes()), composition_keyword, schemas);
+        return new OpenApi3UnionDataType((map $1.getMandatoryType(), getUnionTypes()), composition_keyword, schemas, multipart_wire_types);
     }
 }
 

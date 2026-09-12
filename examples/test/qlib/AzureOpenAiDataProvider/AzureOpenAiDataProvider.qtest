@@ -4,7 +4,9 @@
 
 %modern
 
+
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires json
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Logger.qm
@@ -19,8 +21,6 @@
 %requires ../../../../qlib/OpenAiRestClient.qm
 %requires ../../../../qlib/AzureOpenAiRestClient.qm
 %requires ../../../../qlib/AzureOpenAiDataProvider
-
-%requires json
 
 %exec-class AzureOpenAiDataProviderTest
 
@@ -42,9 +42,13 @@ class FakeAzureHandler inherits AbstractHttpRequestHandler {
             return makeResponse({"Content-Type": MimeTypeJson}, 401,
                 make_json({"error": {"code": "Unauthorized", "message": "Invalid API key"}}));
         }
-        if (last_path == "/openai/v1/models") {
+        if (last_path == "/openai/v1/models" || last_path == "/api/projects/qore-tests/openai/v1/models") {
             return makeResponse({"Content-Type": MimeTypeJson}, 200,
                 make_json({"object": "list", "data": ({"id": "gpt-4.1-mini", "object": "model"},)}));
+        }
+        if (last_path == "/api/projects/qore-tests/openai/v1/conversations?limit=1") {
+            return makeResponse({"Content-Type": MimeTypeJson}, 200,
+                make_json({"object": "list", "data": (), "has_more": False}));
         }
         if (last_path =~ /\/chat\/completions/) {
             return makeResponse({"Content-Type": MimeTypeJson}, 200, make_json({
@@ -103,6 +107,7 @@ public class AzureOpenAiDataProviderTest inherits QUnit::Test {
         addTestCase("child providers discoverable",       \childrenTest());
         addTestCase("root children preserve authentication and deployment names", \childRequestTest());
         addTestCase("connections expose Azure actions and authenticated pings", \connectionTest());
+        addTestCase("Foundry project paths survive constructors, copies, and pings", \projectPathTest());
         addTestCase("sync, async, and copied transports preserve authentication", \transportTest());
         addTestCase("connection authentication validates mode-specific credentials", \connectionValidationTest());
 
@@ -347,6 +352,46 @@ public class AzureOpenAiDataProviderTest inherits QUnit::Test {
         assertFalse(handler.last_body.hasKey("deployment"));
         AzureOpenAiRestConnection invalid(connectionConfig("invalid-key"));
         assertThrows("REST-RESPONSE-ERROR", sub () { invalid.ping(True); });
+    }
+
+    private projectPathTest() {
+        string project = "/api/projects/qore-tests";
+        foreach string suffix in ("", "/", "/openai", "/openai/v1", "/openai/v1/") {
+            hash<auto> config = connectionConfig();
+            config.url += project + suffix;
+            AzureOpenAiRestConnection conn(config);
+            assertTrue(conn.ping(True).ok);
+            assertEq(project + "/openai/v1/conversations?limit=1", handler.last_path);
+            RestClientIo::RestClientIo original({"url": config.url,
+                "headers": {"api-key": "test-azure-key"}, "data": "json"});
+            *string original_path = original.getConnectionPath();
+            list<AbstractDataProvider> roots = (
+                new AzureOpenAiDataProvider::AzureOpenAiDataProvider(original),
+                new AzureOpenAiDataProvider::AzureOpenAiDataProvider({"restclient": original}),
+                new AzureOpenAiDataProvider::AzureOpenAiDataProvider({"url": config.url,
+                    "api_key": "test-azure-key"}),
+                conn.getDataProvider(),
+            );
+            foreach AbstractDataProvider root in (roots) {
+                auto response = root.getChildProvider("chat-completion").doRequest({
+                    "deployment": "test", "messages": ({"role": "user", "content": "hello"},)});
+                assertEq("Hello from Azure OpenAI", response.choices[0].message.content);
+                assertEq(project + "/openai/v1/chat/completions?api-version=v1", handler.last_path);
+            }
+            assertEq(original_path, original.getConnectionPath(), "provider copies preserve the caller's client");
+            foreach AbstractRestClient client in (conn.get(), conn.getAsync()) {
+                assertEq(project, client.getConnectionPath());
+                assertEq(200, client.restGet("/openai/v1/models").status_code);
+                assertEq(project + "/openai/v1/models", handler.last_path);
+                AbstractRestClient copy = client.copyWithUrl(config.url);
+                assertEq(project, copy.getConnectionPath());
+                assertEq(200, copy.restGet("/openai/v1/models").status_code);
+                assertEq(project + "/openai/v1/models", handler.last_path);
+            }
+        }
+        foreach string path in ("", "/", "/openai/v1", "/api/projects", "/api/projects/name/unrelated") {
+            assertFalse(exists AzureOpenAiRestClientBase::getProjectPath("https://example.com" + path));
+        }
     }
 
     private transportTest() {

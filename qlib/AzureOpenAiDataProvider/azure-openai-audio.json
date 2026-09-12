@@ -1,0 +1,570 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Azure OpenAI Service API",
+    "description": "Azure OpenAI APIs for completions and search",
+    "version": "2025-04-01-preview"
+  },
+  "servers": [
+    {
+      "url": "https://{endpoint}/openai",
+      "variables": {
+        "endpoint": {
+          "default": "your-resource-name.openai.azure.com"
+        }
+      }
+    }
+  ],
+  "security": [
+    {
+      "bearer": [
+        "api.read"
+      ]
+    },
+    {
+      "apiKey": []
+    }
+  ],
+  "paths": {
+    "/deployments/{deployment-id}/audio/transcriptions": {
+      "post": {
+        "summary": "Transcribes audio into the input language.",
+        "operationId": "Transcriptions_Create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deployment-id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "whisper",
+              "description": "Deployment id of the whisper model.",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          {
+            "in": "query",
+            "name": "api-version",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "2025-04-01-preview",
+              "description": "api version"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/createTranscriptionRequest"
+              },
+              "encoding": {
+                "timestamp_granularities[]": {
+                  "style": "form",
+                  "explode": true
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/audioResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/audioVerboseResponse"
+                    }
+                  ]
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "description": "Transcribed text in the output format (when response_format was one of text, vtt or srt)."
+                }
+              }
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Create an audio transcription with json response format.": {
+            "$ref": "./examples/audio_transcription_object.json"
+          },
+          "Create an audio transcription with text response format.": {
+            "$ref": "./examples/audio_transcription_text.json"
+          }
+        }
+      }
+    },
+    "/deployments/{deployment-id}/audio/translations": {
+      "post": {
+        "summary": "Transcribes and translates input audio into English text.",
+        "operationId": "Translations_Create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deployment-id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "whisper",
+              "description": "Deployment id of the whisper model which was deployed.",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          {
+            "in": "query",
+            "name": "api-version",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "2025-04-01-preview",
+              "description": "api version"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/createTranslationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/audioResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/audioVerboseResponse"
+                    }
+                  ]
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "description": "Transcribed text in the output format (when response_format was one of text, vtt or srt)."
+                }
+              }
+            }
+          }
+        },
+        "x-ms-examples": {
+          "Create an audio translation with json response format.": {
+            "$ref": "./examples/audio_translation_object.json"
+          },
+          "Create an audio translation with text response format.": {
+            "$ref": "./examples/audio_translation_text.json"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "createTranslationRequest": {
+        "type": "object",
+        "description": "Translation request.",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "The audio file to translate.",
+            "format": "binary"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "An optional text to guide the model's style or continue a previous audio segment. The prompt should be in English."
+          },
+          "response_format": {
+            "$ref": "#/components/schemas/audioResponseFormat"
+          },
+          "temperature": {
+            "type": "number",
+            "default": 0,
+            "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "required": [
+          "file"
+        ]
+      },
+      "audioResponse": {
+        "description": "Translation or transcription response when response_format was json",
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Translated or transcribed text."
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "audioVerboseResponse": {
+        "description": "Translation or transcription response when response_format was verbose_json",
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/audioResponse"
+          },
+          {
+            "properties": {
+              "task": {
+                "type": "string",
+                "description": "Type of audio task.",
+                "enum": [
+                  "transcribe",
+                  "translate"
+                ],
+                "x-ms-enum": {
+                  "modelAsString": true
+                }
+              },
+              "language": {
+                "type": "string",
+                "description": "Language."
+              },
+              "duration": {
+                "type": "number",
+                "description": "Duration."
+              },
+              "segments": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/audioSegment"
+                }
+              },
+              "words": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/audioWord"
+                }
+              }
+            }
+          }
+        ],
+        "required": [
+          "text"
+        ]
+      },
+      "audioResponseFormat": {
+        "title": "AudioResponseFormat",
+        "description": "Defines the format of the output.",
+        "enum": [
+          "json",
+          "text",
+          "srt",
+          "verbose_json",
+          "vtt"
+        ],
+        "type": "string",
+        "x-ms-enum": {
+          "modelAsString": true
+        }
+      },
+      "createTranscriptionRequest": {
+        "type": "object",
+        "description": "Transcription request.",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "The audio file object to transcribe.",
+            "format": "binary"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio language."
+          },
+          "response_format": {
+            "$ref": "#/components/schemas/audioResponseFormat"
+          },
+          "temperature": {
+            "type": "number",
+            "default": 0,
+            "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "language": {
+            "type": "string",
+            "description": "The language of the input audio. Supplying the input language in ISO-639-1 format will improve accuracy and latency."
+          },
+          "timestamp_granularities[]": {
+            "type": "array",
+            "description": "The timestamp granularities to populate for this transcription. `response_format` must be set `verbose_json` to use timestamp granularities. Either or both of these options are supported: `word`, or `segment`. Note: There is no additional latency for segment timestamps, but generating word timestamps incurs additional latency.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "word",
+                "segment"
+              ]
+            },
+            "default": [
+              "segment"
+            ]
+          }
+        },
+        "required": [
+          "file"
+        ]
+      },
+      "audioSegment": {
+        "type": "object",
+        "description": "Transcription or translation segment.",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Segment identifier."
+          },
+          "seek": {
+            "type": "number",
+            "description": "Offset of the segment."
+          },
+          "start": {
+            "type": "number",
+            "description": "Segment start offset."
+          },
+          "end": {
+            "type": "number",
+            "description": "Segment end offset."
+          },
+          "text": {
+            "type": "string",
+            "description": "Segment text."
+          },
+          "tokens": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "nullable": false
+            },
+            "description": "Tokens of the text."
+          },
+          "temperature": {
+            "type": "number",
+            "description": "Temperature."
+          },
+          "avg_logprob": {
+            "type": "number",
+            "description": "Average log probability."
+          },
+          "compression_ratio": {
+            "type": "number",
+            "description": "Compression ratio."
+          },
+          "no_speech_prob": {
+            "type": "number",
+            "description": "Probability of 'no speech'."
+          }
+        }
+      },
+      "audioWord": {
+        "type": "object",
+        "description": "Transcription or translation word.",
+        "properties": {
+          "word": {
+            "type": "string",
+            "description": "Word"
+          },
+          "start": {
+            "type": "number",
+            "description": "Word start offset."
+          },
+          "end": {
+            "type": "number",
+            "description": "Word end offset."
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "type": "oauth2",
+        "flows": {
+          "implicit": {
+            "authorizationUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+            "scopes": {}
+          }
+        },
+        "x-tokenInfoFunc": "api.middleware.auth.bearer_auth",
+        "x-scopeValidateFunc": "api.middleware.auth.validate_scopes"
+      },
+      "apiKey": {
+        "type": "apiKey",
+        "name": "api-key",
+        "in": "header"
+      }
+    }
+  },
+  "x-qore-normalized": [
+    {
+      "reason": "The documented simple and verbose JSON audio responses both require only text, so their alternatives overlap. Use anyOf; retain each response schema and the separate text/plain representation. Add the documented temperature bounds. See https://learn.microsoft.com/en-us/azure/foundry/openai/reference-preview ; live Whisper and GPT transcription verified 2026-09-12. Encode timestamp granularities as repeated multipart fields using the documented [] name.",
+      "operations": [],
+      "add_parameters": [],
+      "replace_parameters": [],
+      "relax_oneof": [],
+      "replace_required": [],
+      "rename_paths": {},
+      "replace_values": [
+        {
+          "pointer": "#/paths/~1deployments~1{deployment-id}~1audio~1transcriptions/post/responses/200/content/application~1json/schema",
+          "expected": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/audioResponse"
+              },
+              {
+                "$ref": "#/components/schemas/audioVerboseResponse"
+              }
+            ]
+          },
+          "replacement": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/audioResponse"
+              },
+              {
+                "$ref": "#/components/schemas/audioVerboseResponse"
+              }
+            ]
+          }
+        },
+        {
+          "pointer": "#/paths/~1deployments~1{deployment-id}~1audio~1translations/post/responses/200/content/application~1json/schema",
+          "expected": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/audioResponse"
+              },
+              {
+                "$ref": "#/components/schemas/audioVerboseResponse"
+              }
+            ]
+          },
+          "replacement": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/audioResponse"
+              },
+              {
+                "$ref": "#/components/schemas/audioVerboseResponse"
+              }
+            ]
+          }
+        },
+        {
+          "pointer": "#/components/schemas/createTranscriptionRequest/properties/temperature",
+          "expected": {
+            "type": "number",
+            "default": 0,
+            "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit."
+          },
+          "replacement": {
+            "type": "number",
+            "default": 0,
+            "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        {
+          "pointer": "#/components/schemas/createTranslationRequest/properties/temperature",
+          "expected": {
+            "type": "number",
+            "default": 0,
+            "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit."
+          },
+          "replacement": {
+            "type": "number",
+            "default": 0,
+            "description": "The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        {
+          "pointer": "#/paths/~1deployments~1{deployment-id}~1audio~1transcriptions/post/requestBody/content/multipart~1form-data",
+          "expected": {
+            "schema": {
+              "$ref": "#/components/schemas/createTranscriptionRequest"
+            }
+          },
+          "replacement": {
+            "schema": {
+              "$ref": "#/components/schemas/createTranscriptionRequest"
+            },
+            "encoding": {
+              "timestamp_granularities[]": {
+                "style": "form",
+                "explode": true
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "reason": "Azure deployment path parameters must name a nonempty deployment. Enforce that contract in the schema so missing, empty, and whitespace-only names fail before transport, independently of GUI validation.",
+      "operations": [],
+      "add_parameters": [],
+      "replace_parameters": [],
+      "relax_oneof": [],
+      "replace_required": [],
+      "rename_paths": {},
+      "replace_values": [
+        {
+          "pointer": "#/paths/~1deployments~1{deployment-id}~1audio~1transcriptions/post/parameters/0/schema",
+          "expected": {
+            "type": "string",
+            "example": "whisper",
+            "description": "Deployment id of the whisper model."
+          },
+          "replacement": {
+            "type": "string",
+            "example": "whisper",
+            "description": "Deployment id of the whisper model.",
+            "minLength": 1,
+            "pattern": "\\S"
+          }
+        },
+        {
+          "pointer": "#/paths/~1deployments~1{deployment-id}~1audio~1translations/post/parameters/0/schema",
+          "expected": {
+            "type": "string",
+            "example": "whisper",
+            "description": "Deployment id of the whisper model which was deployed."
+          },
+          "replacement": {
+            "type": "string",
+            "example": "whisper",
+            "description": "Deployment id of the whisper model which was deployed.",
+            "minLength": 1,
+            "pattern": "\\S"
+          }
+        }
+      ]
+    }
+  ]
+}
