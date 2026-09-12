@@ -6,15 +6,15 @@
 %requires json
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Mime
-%requires Logger
-%requires HttpServerUtil
-%requires HttpServer
-%requires HttpServerAsyncIo
-%requires WebSocketClient
-%requires WebSocketHandler
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/HttpServerAsyncIo
+%requires ../../../../qlib/WebSocketClient.qm
+%requires ../../../../qlib/WebSocketHandler.qm
 
 %exec-class Http2Test
 
@@ -1923,7 +1923,7 @@ public class Http2Test inherits QUnit::Test {
         string bin_path = tmp_location() + DirSep + "nghttp2-ws-client-" + getpid();
         string log_path = tmp_location() + DirSep + "nghttp2-ws-client-" + getpid() + ".log";
         string pkg_path = tmp_location() + DirSep + "nghttp2-ws-client-" + getpid() + ".pkg";
-        string pkg_cmd = sprintf("%s --cflags --libs libnghttp2 > %s 2>/dev/null",
+        string pkg_cmd = sprintf("%s --cflags --libs libnghttp2 openssl > %s 2>/dev/null",
             pkg_config_bin, pkg_path);
         int pkg_rc = system(pkg_cmd);
         string pkg_flags = (pkg_rc == 0 && is_file(pkg_path)) ? trim(ReadOnlyFile::readTextFile(pkg_path)) : "";
@@ -1931,10 +1931,10 @@ public class Http2Test inherits QUnit::Test {
             unlink(pkg_path);
         }
         if (pkg_rc != 0 || !pkg_flags) {
-            return {"ok": False, "skip": True, "error": "libnghttp2 pkg-config not available"};
+            return {"ok": False, "skip": True, "error": "libnghttp2 or OpenSSL pkg-config metadata not available"};
         }
 
-        string build_cmd = sprintf("%s -std=c++17 -O2 -Wall -Wextra -o %s %s %s -lssl -lcrypto > %s 2>&1",
+        string build_cmd = sprintf("%s -std=c++17 -O2 -Wall -Wextra -o %s %s %s > %s 2>&1",
             cxx_bin, bin_path, src_path, pkg_flags, log_path);
         int build_rc = system(build_cmd);
         if (build_rc != 0) {

@@ -30,17 +30,17 @@
 %modern
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires Util
-%requires QUnit
-%requires Mime
-%requires Logger
-%requires HttpServerUtil
-%requires HttpServerAsyncIo
-%requires HttpServer
-%requires RestClient
-%requires WebSocketUtil
-%requires WebSocketHandler
-%requires WebSocketClient
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/HttpServerAsyncIo
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/WebSocketUtil.qm
+%requires ../../../../qlib/WebSocketHandler.qm
+%requires ../../../../qlib/WebSocketClient.qm
 
 %requires json
 
@@ -260,7 +260,7 @@ Do+Sl1gfqlpgpszQaOMjR4M=
 -----END PRIVATE KEY-----";
     }
 
-    constructor() : Test("HttpServerAsyncHttp2MultiplexedTest", "1.0") {
+    constructor() : Test("HttpServerAsyncHttp2MultiplexedTest", "1.0", \ARGV) {
         addTestCase("WebSocket + concurrent HTTP/2 requests", \testWsConcurrentHttp2());
         addTestCase("InputStream streaming + concurrent HTTP/2 requests",
             \testStreamingConcurrentHttp2());
@@ -1483,10 +1483,10 @@ Do+Sl1gfqlpgpszQaOMjR4M=
             testSkip("pkg-config not found - cannot build nghttp2-ws-client");
         }
 
-        # Check for libnghttp2
-        int nghttp2_check = system(pkg_config + " --exists libnghttp2 2>/dev/null");
+        # Check for both direct native dependencies
+        int nghttp2_check = system(pkg_config + " --exists libnghttp2 openssl 2>/dev/null");
         if (nghttp2_check != 0) {
-            testSkip("libnghttp2-dev not found - cannot build nghttp2-ws-client");
+            testSkip("libnghttp2 or OpenSSL development files not found - cannot build nghttp2-ws-client");
         }
 
         # Path to source (relative from HttpServer test dir to Http2 test dir)
@@ -1512,18 +1512,18 @@ Do+Sl1gfqlpgpszQaOMjR4M=
             }
         }
 
-        # Get pkg-config flags
-        string pkg_cmd = sprintf("%s --cflags --libs libnghttp2 > %s 2>/dev/null",
+        # Get include and link flags for both nghttp2 and OpenSSL
+        string pkg_cmd = sprintf("%s --cflags --libs libnghttp2 openssl > %s 2>/dev/null",
             pkg_config, pkg_path);
         int pkg_rc = system(pkg_cmd);
         string pkg_flags = (pkg_rc == 0 && is_file(pkg_path))
             ? trim(ReadOnlyFile::readTextFile(pkg_path)) : "";
         if (pkg_rc != 0 || !pkg_flags) {
-            testSkip("libnghttp2 pkg-config not available");
+            testSkip("libnghttp2 or OpenSSL pkg-config metadata not available");
         }
 
         # Build the client
-        string build_cmd = sprintf("%s -std=c++17 -O2 -Wall -Wextra -o %s %s %s -lssl -lcrypto > %s 2>&1",
+        string build_cmd = sprintf("%s -std=c++17 -O2 -Wall -Wextra -o %s %s %s > %s 2>&1",
             gpp_path, bin_path, src_path, pkg_flags, log_path);
 
         if (m_options.verbose > 1) {
@@ -1536,7 +1536,7 @@ Do+Sl1gfqlpgpszQaOMjR4M=
             if (m_options.verbose) {
                 printf("Build failed: %s\n", err);
             }
-            testSkip("failed to build nghttp2-ws-client: " + err);
+            fail("failed to build nghttp2-ws-client: " + err);
         }
 
         # Run the client with -get-path and -stream-path for same-connection test
@@ -1562,7 +1562,7 @@ Do+Sl1gfqlpgpszQaOMjR4M=
             printf("nghttp2-ws-client output: %s\n", run_output ?? "");
         }
 
-        assertTrue(True, "nghttp2-ws-client same-connection multiplexing test passed");
+        assertEq(0, run_rc, "nghttp2-ws-client verified same-connection multiplexing");
     }
 
     #! Test: graceful H2 server shutdown with multiple in-flight requests
