@@ -1,22 +1,23 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
 %allow-injection
 
 %prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
-%requires QUnit
-%requires Mime
-%requires Logger
-%requires HttpServerUtil
-%requires DataProvider
-%requires ConnectionProvider
-%requires RestSchemaValidator
-%requires Swagger
-%requires RestClient
-%requires HttpServerAsyncIo
-%requires HttpServer
-%requires AsyncSocketIo
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/RestSchemaValidator.qm
+%requires ../../../../qlib/Swagger.qm
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/HttpServerAsyncIo
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/AsyncSocketIo
 
 %exec-class AsyncSocketIoTest
 
@@ -192,7 +193,7 @@ public class AsyncSocketIoTest inherits QUnit::Test {
         return rv;
     }
 
-    constructor() : Test("AsyncSocketIoTest Test", "1.0") {
+    constructor() : Test("AsyncSocketIoTest Test", "1.0", ARGV) {
         addTestCase("main", \mainTest());
         addTestCase("owner required", \ownerRequiredTest());
         addTestCase("cancel by owner", \cancelByOwnerTest());
@@ -219,6 +220,8 @@ public class AsyncSocketIoTest inherits QUnit::Test {
         addTestCase("cancel by key", \cancelByKeyTest());
         addTestCase("cancel and close by socket", \cancelAndCloseBySocketTest());
         addTestCase("concurrent cancel by key UAF", \concurrentCancelByKeyUafTest());
+        addTestCase("handler release and rearm", \handlerReleaseAndRearmTest());
+        addTestCase("handler cancellation cleanup", \handlerCancellationCleanupTest());
         addTestCase("callback mode concurrent", \callbackConcurrentTest());
         addTestCase("shared socket custom keys", \sharedSocketCustomKeysTest());
         addTestCase("callback exception safety", \callbackExceptionSafetyTest());
@@ -231,6 +234,7 @@ public class AsyncSocketIoTest inherits QUnit::Test {
         addTestCase("cancel then resubmit same socket accepted", \cancelThenResubmitSameSocketTest());
         addTestCase("cancelByOwner cascades into nested continuePoll op", \nestedContinuePollInheritedCancelTest());
         addTestCase("flushCallbacks ignores in-flight continuePoll", \flushCallbacksIgnoresBlockedContinuePollTest());
+        addTestCase("blocked continuePoll exception cleanup", \blockedContinuePollExceptionCleanupTest());
         @debug {
             set_signal_handler(SIGUSR1, sub (int sig) {
                 printf("%Y\n", get_all_thread_call_stacks());
@@ -242,11 +246,8 @@ public class AsyncSocketIoTest inherits QUnit::Test {
     }
 
     setUp() {
-        # Clear any pending interrupt window from a previous test's tearDown() so that
-        # interruptibleSleep() will actually block in this test (otherwise a 2-second
-        # window from a prior interruptSleep(False) can cause Wait-Forever handlers to
-        # return immediately, leading to flaky cancel-by-owner assertions)
-        SimpleStringHandler::resetInterruptWindow();
+        # Re-arm the fixture only after the previous server has drained all handlers.
+        SimpleStringHandler::resetInterrupt();
 
         LoggerLevel lvl = m_options.verbose > 3 ? LoggerLevel::LevelDebug : LoggerLevel::LevelInfo;
         logger = new Logger("test", lvl);
@@ -313,10 +314,8 @@ public class AsyncSocketIoTest inherits QUnit::Test {
         SimpleStringHandler::interruptSleep(False);
 
         # test cancellation
-        # clear the 2-second interrupt window left by the interruptSleep(False) above: otherwise the next
-        # Wait-Forever request returns a 200 immediately (interruptibleSleep() short-circuits inside the window)
-        # and the operation can complete normally before cancel() reaches it, leaving info.canceled unset
-        SimpleStringHandler::resetInterruptWindow();
+        # Re-arm the fixture so the next request blocks until canceled.
+        SimpleStringHandler::resetInterrupt();
         spop = rest.startPollSendRecv("GET", "/api_text", NOTHING, {"Wait-Forever": 1});
         Queue q = io_controller.submit(<SocketPollOperationInfo>{
             "sock": rest,
@@ -780,7 +779,7 @@ public class AsyncSocketIoTest inherits QUnit::Test {
         AsyncSocketIoController io_controller(logger);
         on_exit delete io_controller;
 
-        SimpleStringHandler::resetInterruptWindow();
+        SimpleStringHandler::resetInterrupt();
 
         RestClient rest({"url": "http://127.0.0.1:" + port});
         AbstractPollOperation spop = rest.startPollSendRecv("GET", "/api_text", NOTHING, {"Wait-Forever": 1});
@@ -1058,11 +1057,17 @@ public class AsyncSocketIoTest inherits QUnit::Test {
     #! Fix: flushCallbacks() must return without waiting for an in-flight
     #! (possibly forever-blocked) continuePoll() — the qorus-core
     #! HttpServer::stop()->flushCallbacks() shutdown-deadlock scenario.
-    flushCallbacksIgnoresBlockedContinuePollTest() {
+    blockedContinuePollExceptionCleanupTest() {
+        assertThrows("TEST-CLEANUP", \flushCallbacksIgnoresBlockedContinuePollTest(), (True,));
+    }
+
+    flushCallbacksIgnoresBlockedContinuePollTest(bool fail_after_entry = False) {
         AsyncSocketIoController io_controller(logger);
         on_exit delete io_controller;
 
         FlushBlockingContinuePollOp op();
+        # Release before deleting the controller even if an assertion throws.
+        on_exit op.release.push(True);
         EventNotifier never();
         Queue q = io_controller.submit(<SocketPollOperationInfo>{
             "sock": never,
@@ -1072,7 +1077,10 @@ public class AsyncSocketIoTest inherits QUnit::Test {
         });
         # continuePoll() is now in-flight and blocked (holds the process-global
         # qore_continue_poll_lock); active_processing > 0 indefinitely
-        op.entered.waitForZero();
+        assertEq(0, op.entered.waitForZero(5s), "continuePoll entered the blocking wait");
+        if (fail_after_entry) {
+            throw "TEST-CLEANUP", "exercise exception cleanup while continuePoll is blocked";
+        }
 
         Queue fq();
         int t0 = clock_get_monotonic_us();
@@ -1280,7 +1288,6 @@ public class AsyncSocketIoTest inherits QUnit::Test {
             }
             SimpleStringHandler::interruptSleep(False);
         }
-        assertTrue(True, "concurrent cancel completed without deadlock");
     }
 
     #! Tests cancelByKey for operations with custom keys
@@ -1413,7 +1420,7 @@ public class AsyncSocketIoTest inherits QUnit::Test {
             done.dec();
         }();
 
-        done.waitForZero(60s);
+        assertEq(0, done.waitForZero(60s), "both cancellation workers completed");
         SimpleStringHandler::interruptSleep(False);
 
         {
@@ -1421,6 +1428,63 @@ public class AsyncSocketIoTest inherits QUnit::Test {
             assertEq(0, errors.size(),
                 sprintf("no exceptions expected; got: %y", errors));
         }
+    }
+
+    #! A release covers current and late handlers until an explicit reset.
+    handlerReleaseAndRearmTest() {
+        on_exit SimpleStringHandler::interruptSleep(False);
+        for (int generation = 0; generation < 3; ++generation) {
+            SimpleStringHandler::resetInterrupt();
+            Counter entered(4);
+            Counter done(4);
+            for (int i = 0; i < 4; ++i) {
+                background sub () {
+                    on_exit done.dec();
+                    SimpleStringHandler::interruptibleSleep(entered);
+                }();
+            }
+            assertEq(0, entered.waitForZero(5s), "all handlers entered the blocking wait");
+            assertEq(4, done.getCount(), "re-armed handlers remain blocked before release");
+            SimpleStringHandler::interruptSleep();
+            assertEq(0, done.waitForZero(5s), "release drains all current handlers");
+
+            # Start these only after release has completed, as queued HTTP requests
+            # can reach the handler after the cancellation workers and teardown.
+            Counter late_done(4);
+            for (int i = 0; i < 4; ++i) {
+                background sub () {
+                    on_exit late_done.dec();
+                    SimpleStringHandler::interruptibleSleep();
+                }();
+            }
+            assertEq(0, late_done.waitForZero(5s), "late handlers observe the retained release");
+            SimpleStringHandler::interruptSleep();
+        }
+    }
+
+    #! Cancellation must retire a sleeper so release cannot wait on a departed thread.
+    handlerCancellationCleanupTest() {
+        on_exit SimpleStringHandler::interruptSleep(False);
+        Counter entered(1);
+        Queue tids();
+        Queue result();
+        background sub () {
+            tids.push(gettid());
+            try {
+                SimpleStringHandler::interruptibleSleep(entered);
+                result.push("completed");
+            } catch (hash<ExceptionInfo> ex) {
+                clear_thread_cancel();
+                result.push(ex.err);
+            }
+        }();
+        int tid = tids.get(5s);
+        assertEq(0, entered.waitForZero(5s), "handler entered the blocking wait");
+        assertTrue(cancel_thread(tid), "cancellation reached the blocked handler");
+        assertEq("THREAD-CANCELLED", result.get(5s), "handler unwound through cancellation");
+        SimpleStringHandler::interruptSleep();
+        # The next generation must remain usable after exceptional cleanup.
+        handlerReleaseAndRearmTest();
     }
 
     #! Tests callback mode with multiple concurrent completions
@@ -1777,7 +1841,8 @@ class SimpleStringHandler inherits AbstractHttpRequestHandler {
         static Condition c();
         static int interrupt_gen = 0;
         static hash<string, int> sleeping_by_gen;
-        static *date pending_interrupt_until;
+        # Release applies to late arrivals until the fixture is explicitly re-armed.
+        static bool interrupted = False;
     }
 
     constructor(string mime, *string str) {
@@ -1799,63 +1864,49 @@ class SimpleStringHandler inherits AbstractHttpRequestHandler {
         }
     }
 
-    static interruptibleSleep() {
+    static interruptibleSleep(*Counter entered = NOTHING) {
         AutoLock al(m);
-        if (pending_interrupt_until && now_us() < pending_interrupt_until) {
+        if (interrupted) {
             return;
         }
         int gen = interrupt_gen;
         string gen_key = string(gen);
         sleeping_by_gen{gen_key} = (sleeping_by_gen{gen_key} ?? 0) + 1;
-        c.broadcast();  # Signal that we're now sleeping
-        while (interrupt_gen == gen) {
-            c.wait(m, 99999999);
-        }
-        int remaining = (sleeping_by_gen{gen_key} ?? 1) - 1;
-        if (remaining > 0) {
-            sleeping_by_gen{gen_key} = remaining;
-        } else {
-            remove sleeping_by_gen{gen_key};
-            c.broadcast();
-        }
-    }
-
-    static interruptSleep(*bool wait_for_exit = True) {
-        AutoLock al(m);
-        pending_interrupt_until = now_us() + 2s;
-        int current_gen = interrupt_gen;
-        string current_key = string(current_gen);
-        if (!wait_for_exit) {
-            interrupt_gen++;
-            c.broadcast();
-            return;
-        }
-        # Wait until handler has entered interruptibleSleep to avoid race condition
-        # Use a timeout to avoid deadlock if the handler never received the request
-        int max_attempts = 50;  # 5 seconds max (50 * 100ms)
-        while (!(sleeping_by_gen{string(interrupt_gen)} ?? 0) && max_attempts-- > 0) {
-            c.wait(m, 100ms);
-        }
-        # Only signal if the handler is actually sleeping
-        if (sleeping_by_gen{current_key} ?? 0) {
-            interrupt_gen++;
-            c.broadcast();
-            while (sleeping_by_gen{current_key} ?? 0) {
-                c.wait(m, 100ms);
+        on_exit {
+            # Condition::wait() can throw on cancellation; always retire this sleeper.
+            int remaining = sleeping_by_gen{gen_key} - 1;
+            if (remaining) {
+                sleeping_by_gen{gen_key} = remaining;
+            } else {
+                remove sleeping_by_gen{gen_key};
+                c.broadcast();
             }
-        } else {
-            interrupt_gen++;
-            c.broadcast();
+        }
+        if (entered) {
+            entered.dec();
+        }
+        while (interrupt_gen == gen) {
+            c.wait(m);
         }
     }
 
-    static resetInterruptWindow() {
+    static interruptSleep(bool wait_for_exit = True) {
         AutoLock al(m);
-        pending_interrupt_until = NOTHING;
-        # Wake any sleepers deterministically
-        if (sleeping_by_gen{string(interrupt_gen)} ?? 0) {
-            ++interrupt_gen;
-            c.broadcast();
+        interrupted = True;
+        string current_key = string(interrupt_gen++);
+        c.broadcast();
+        if (wait_for_exit) {
+            while (sleeping_by_gen{current_key} ?? 0) {
+                c.wait(m);
+            }
         }
+    }
+
+    static resetInterrupt() {
+        AutoLock al(m);
+        interrupted = False;
+        # Wake existing sleepers without letting them join the new generation.
+        ++interrupt_gen;
+        c.broadcast();
     }
 }
