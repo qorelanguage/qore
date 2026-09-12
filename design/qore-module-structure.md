@@ -123,6 +123,21 @@ Rules:
   update, and dependencies are derived from the module's own `%requires`
   directives rather than declared in `CMakeLists.txt`.
 
+## Runtime Constant Identity
+
+A forward read commits a delayed source constant before returning its value, including a read from another
+constant's initializer. The normal constant initialization pass then reuses the committed value. Aliases, class metadata,
+and objects stored inside constant containers therefore share the same instance regardless of declaration
+order. This matches compiled modules and allows module initialization to finish recursive type definitions
+without leaving consumers attached to a separate placeholder object.
+
+`RuntimeConstantRefNode` commits a delayed dependency through `ConstantEntry::parseCommitRuntimeInit()` before
+returning its value. The existing in-progress guard rejects indirect value cycles; dependency exceptions are
+returned to the enclosing initializer's exception sink. The original initializer expression remains available
+for AOT compilation, so load-dependent constants still initialize separately when a compiled module is loaded.
+`runtime-constant-identity.qtest` covers aliases, nested containers, class metadata, helper-function reads,
+initialization failures, and indirect cycles.
+
 ## Documentation and Dependencies
 
 - Documentation tag inputs follow the complete reachable `%requires` graph, including in-tree binary modules.

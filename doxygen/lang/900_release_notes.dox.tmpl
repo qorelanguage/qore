@@ -2987,6 +2987,10 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
 
     @subsection qore_3_0_0_bug_fixes Bug Fixes in Qore
 
+    - Initialize forward-referenced runtime constants once and share their value with aliases and nested
+      metadata. Source modules now preserve the same object identity as compiled modules, including recursive
+      provider types updated during module initialization; dependency initialization errors propagate normally.
+
     - Fixed AOT constructor calls losing their lexical class access during dynamic overload resolution;
       static factories retain private constructor access when called from another class, while global
       and unrelated class callers remain denied, including after constructor exceptions.

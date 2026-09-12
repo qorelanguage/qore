@@ -308,7 +308,8 @@ public:
 
     DLLLOCAL int parseInit(ClassNs ptr);
 
-    DLLLOCAL int parseCommitRuntimeInit();
+    //! Initializes a delayed value once, optionally returning errors to a dependent constant's evaluation
+    DLLLOCAL int parseCommitRuntimeInit(ExceptionSink* runtime_xsink = nullptr);
 
     DLLLOCAL QoreValue get(const QoreProgramLocation* loc, const QoreTypeInfo*& constantTypeInfo, ClassNs ptr) {
         if (in_init) {
@@ -670,6 +671,12 @@ protected:
     }
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+        // A forward read must commit the dependency's value before returning it. Evaluating its saved
+        // expression inline would construct a second object when the normal constant sweep reaches it,
+        // leaving aliases and containing constants attached to a different object.
+        if (ce->delayed_eval && ce->parseCommitRuntimeInit(xsink)) {
+            return QoreValue();
+        }
         // For constants still undergoing delayed init (parseCommitRuntimeInit
         // path), ce->saved_val holds the committed value. For normal/builtin
         // constants (e.g. Reflection::IntType), only ce->val is populated and
@@ -681,9 +688,8 @@ protected:
             // ConstantEntry::parseCommitRuntimeInit) and its computation references itself, typically via a
             // function/method body that reads the constant.  The parse-time detector cannot see such indirect
             // back-edges, so detect them here and report deterministically instead of recursing until the stack
-            // overflows.  (When the referenced constant is deferred but not yet committed, ce->saved_val still
-            // holds its initializer expression, which is evaluated inline here - correct and order-independent
-            // for the pure expressions constants must be.)
+            // overflows. A not-yet-committed dependency is initialized above; its saved value is shared by
+            // every later read, including aliases and references stored inside other constants.
             if (ce->rt_in_init) {
                 xsink->raiseException("RECURSIVE-CONSTANT-REFERENCE", "recursive reference detected while "
                     "initializing the runtime value of constant '%s'", ce->getName());

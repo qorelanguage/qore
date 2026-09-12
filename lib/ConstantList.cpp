@@ -446,7 +446,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
     return err;
 }
 
-int ConstantEntry::parseCommitRuntimeInit() {
+int ConstantEntry::parseCommitRuntimeInit(ExceptionSink* runtime_xsink) {
     if (!delayed_eval) {
         return 0;
     }
@@ -532,9 +532,19 @@ int ConstantEntry::parseCommitRuntimeInit() {
     }
 
     if (xsink.isEvent()) {
+        // The failed expression is preserved separately for AOT lowering. Do not leave it as the
+        // constant's runtime value: a later read during parse error recovery would execute it again
+        // without the initialization guard, potentially recursing or reentering IR lowering.
+        saved_val.discard(&xsink);
+        saved_val = QoreValue();
+        saved_val_set = true;
         // Enrich exception with constant name for better debugging
         xsink.appendLastDescription(" (while initializing constant '%s')", name.c_str());
-        qore_program_private::addParseException(getProgram(), xsink, loc);
+        if (runtime_xsink) {
+            runtime_xsink->assimilate(xsink);
+        } else {
+            qore_program_private::addParseException(getProgram(), xsink, loc);
+        }
         if (!err) {
             err = -1;
         }

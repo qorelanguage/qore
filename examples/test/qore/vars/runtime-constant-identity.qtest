@@ -1,0 +1,102 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+
+%modern
+%no-child-restrictions
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class RuntimeConstantIdentityTest
+
+class RuntimeConstantIdentityTest inherits QUnit::Test {
+    constructor() : Test("Runtime constant identity", "1.0", \ARGV) {
+        foreach enum<ExecMode> mode in ((EM_AST, EM_IR, EM_JIT, EM_TIERED)) {
+            addTestCase(sprintf("forward object aliases initialize once (%d)", mode), \forwardAliasTest(mode), (mode,));
+            addTestCase(sprintf("class metadata retains a forward object (%d)", mode), \classMetadataTest(mode), (mode,));
+            addTestCase(sprintf("function reads initialize a dependency once (%d)", mode), \functionReadTest(mode), (mode,));
+            addTestCase(sprintf("forward initializer failures propagate (%d)", mode), \failureTest(mode), (mode,));
+            addTestCase(sprintf("indirect value cycles fail deterministically (%d)", mode), \cycleTest(mode), (mode,));
+        }
+        set_return_value(main());
+    }
+
+    private string boxSource() {
+        return "%modern\nclass Box {\n"
+            "    public { int value; static int constructed; }\n"
+            "    constructor() { ++constructed; }\n"
+            "    setValue(int next) { value = next; }\n"
+            "}\n";
+    }
+
+    private forwardAliasTest(enum<ExecMode> mode) {
+        Program program(PO_NEW_STYLE);
+        program.setExecMode(mode);
+        program.parse(boxSource()
+            + "const Holder = {\"box\": Alias, \"list\": (Item,)};\n"
+            "const Alias = Item;\n"
+            "const Item = new Box();\n"
+            "list<auto> sub inspect() {\n"
+            "    Item.setValue(42);\n"
+            "    return (Holder.box == Item, Holder.list[0] == Item, Alias == Item,\n"
+            "        Holder.box.value, Box::constructed);\n"
+            "}\n", "forward object aliases");
+        assertEq((True, True, True, 42, 1), program.callFunction("inspect"));
+        assertEq((True, True, True, 42, 1), program.callFunction("inspect"),
+            "subsequent reads retain the same initialized value");
+    }
+
+    private classMetadataTest(enum<ExecMode> mode) {
+        Program program(PO_NEW_STYLE);
+        program.setExecMode(mode);
+        program.parse(boxSource()
+            + "class Metadata { public { const Fields = {\"type\": Item}; } }\n"
+            "const Item = new Box();\n"
+            "list<auto> sub inspect() {\n"
+            "    Item.setValue(17);\n"
+            "    return (Metadata::Fields.type == Item, Metadata::Fields.type.value, Box::constructed);\n"
+            "}\n", "class metadata object identity");
+        assertEq((True, 17, 1), program.callFunction("inspect"),
+            "module initialization updates the same object held in field metadata");
+    }
+
+    private functionReadTest(enum<ExecMode> mode) {
+        Program program(PO_NEW_STYLE);
+        program.setExecMode(mode);
+        program.parse(boxSource()
+            + "const Holder = makeHolder();\n"
+            "const Item = new Box();\n"
+            "hash<auto> sub makeHolder() { return {\"box\": Item}; }\n"
+            "list<auto> sub inspect() { return (Holder.box == Item, Box::constructed); }\n",
+            "constant dependency read through a function");
+        assertEq((True, 1), program.callFunction("inspect"));
+    }
+
+    private failureTest(enum<ExecMode> mode) {
+        Program program(PO_NEW_STYLE);
+        program.setExecMode(mode);
+        assertThrows("CONSTANT-INIT-TEST-ERROR", \program.parse(), (
+            "%modern\nconst Holder = {\"value\": Item};\n"
+            "const Item = fail();\n"
+            "int sub fail() { throw \"CONSTANT-INIT-TEST-ERROR\", \"dependency initialization failed\"; }\n",
+            "forward initializer exception"));
+
+        Program partial(PO_NEW_STYLE);
+        partial.setExecMode(mode);
+        assertThrows("CONSTANT-INIT-TEST-ERROR", \partial.parse(), (
+            boxSource() + "const Holder = {\"value\": Item};\n"
+            "const Item = new Broken();\n"
+            "class Broken {\n"
+            "    private { list<Box> members = (new Box(),); }\n"
+            "    constructor() { throw \"CONSTANT-INIT-TEST-ERROR\", \"constructor failed\"; }\n"
+            "}\n", "partially initialized object cleanup"));
+    }
+
+    private cycleTest(enum<ExecMode> mode) {
+        Program program(PO_NEW_STYLE);
+        program.setExecMode(mode);
+        assertThrows("RECURSIVE-CONSTANT-REFERENCE", \program.parse(), (
+            "%modern\nconst First = first();\nconst Second = second();\n"
+            "int sub first() { return Second; }\nint sub second() { return First; }\n",
+            "indirect constant value cycle"));
+    }
+}
