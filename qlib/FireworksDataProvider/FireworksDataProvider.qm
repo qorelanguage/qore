@@ -98,7 +98,7 @@ module FireworksDataProvider {
             "output_type": FireworksEmbeddingDataProvider::ResponseType,
         });
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "app": AppName, "path": "/rerank", "action": "rerank", "display_name": "Rerank Documents",
+            "app": FireworksDataProvider::AppName, "path": "/rerank", "action": "rerank", "display_name": "Rerank Documents",
             "short_desc": "Rank documents by relevance to a search query",
             "desc": "Improve search results by scoring candidate documents against a query. "
                 "Use `top_n` to keep the most relevant results. **Inference is billed by Fireworks.**",
@@ -132,6 +132,7 @@ module FireworksDataProvider {
     @section FireworksDataProviderRelnotes Release Notes
 
     @subsection FireworksDataProviderv1_1 FireworksDataProvider v1.1
+    - keep reranking registered under Fireworks AI when other providers have already loaded
     - add pinned schema actions for models, deployments, datasets, batch inference, fine-tuning,
       evaluations, billing, text completions, Responses, and Anthropic-compatible messages
     - add account and resource dropdowns with custom ID support

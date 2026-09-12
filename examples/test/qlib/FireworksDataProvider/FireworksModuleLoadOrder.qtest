@@ -1,0 +1,55 @@
+#!/usr/bin/env qore
+# Copyright 2026 Qore Technologies, s.r.o.
+
+%modern
+%no-child-restrictions
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/FsUtil.qm
+# Exa loads GenericRest's public AppName before Fireworks is parsed.
+%requires ../../../../qlib/ExaDataProvider
+
+%exec-class FireworksModuleLoadOrderTest
+
+class FireworksModuleLoadOrderTest inherits QUnit::Test {
+    constructor() : Test("Fireworks module load order", "1.0", \ARGV) {
+        addTestCase("reranking retains its app and module owner", \registrationTest());
+        set_return_value(main());
+    }
+
+    private registrationTest() {
+        # Compile the actual module sources in the contaminated namespace. A qmod built in
+        # isolation would hide this regression by resolving AppName before Exa is loaded.
+        TmpDir tmp("qore-fireworks-load-order-");
+        string source = get_script_dir() + "/../../../../qlib/FireworksDataProvider";
+        string module_dir = tmp.path + "/FireworksDataProvider";
+        mkdir(module_dir);
+        Dir dir();
+        dir.chdir(source);
+        foreach string name in (dir.listFiles()) {
+            if (name !~ /\.qmod$/) {
+                copy_file(source + "/" + name, module_dir + "/" + name, True);
+            }
+        }
+        Program program(PO_NEW_STYLE);
+        program.loadModule(module_dir);
+        list<hash<DataProviderActionInfo>> actions =
+            program.callStaticMethod("DataProviderActionCatalog", "getActions", "FireworksAi", False);
+        list<hash<DataProviderActionInfo>> rerank = select actions, $1.action == "rerank";
+        assertEq(1, rerank.size(), "Fireworks registers its reranking action after unrelated providers load");
+        assertEq("FireworksAi", rerank[0].app);
+        assertEq("/rerank", rerank[0].path);
+
+        list<hash<auto>> owners =
+            program.callStaticMethod("DataProviderActionCatalog", "getPresentationContributionsForModule",
+                "FireworksDataProvider");
+        assertEq(1, owners.size(), "all Fireworks presentation belongs to its own app");
+        assertEq("FireworksAi", owners[0].app.name);
+        assertEq(actions.size(), owners[0].actions.size(), "every registered action has a module owner");
+        assertTrue(inlist("rerank", map $1.action, owners[0].actions));
+
+        list<hash<DataProviderActionInfo>> generic =
+            program.callStaticMethod("DataProviderActionCatalog", "getActions", "GenericRest", False);
+        assertFalse(inlist("rerank", map $1.action, generic), "Generic REST does not inherit Fireworks actions");
+    }
+}
