@@ -3,7 +3,7 @@
 
 Name: qore
 Version: 3.0.0
-Release: 4%{?dist}
+Release: 5%{?dist}
 Summary: Multithreaded Programming Language
 
 # see https://github.com/qorelanguage/qore/blob/develop/README-LICENSE for license info
@@ -35,6 +35,11 @@ BuildRequires: pkgconfig(krb5-gssapi)
 BuildRequires: rust
 BuildRequires: cargo
 BuildRequires: doxygen
+BuildRequires: llvm-devel
+BuildRequires: pkgconfig(icu-uc)
+BuildRequires: pkgconfig(icu-i18n)
+BuildRequires: pkgconfig(eigen3)
+BuildRequires: pkgconfig(protobuf)
 
 %description
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -249,6 +254,10 @@ export QORE_MODULE_DIR=../qlib:modules/reflection:${RPM_BUILD_ROOT}%{module_dir}
 %{_mandir}/man1/qdbg-vsc-adapter.1.*
 
 %changelog
+* Sat Sep 12 2026 David Nichols <david@qore.org> 3.0.0-5
+- added required build dependencies: llvm-devel, icu, eigen3, protobuf
+  (CMakeLists.txt requires all four; the build failed at configure time without them)
+
 * Thu May 14 2026 David Nichols <david@qore.org> 3.0.0-4
 - tightened libnghttp2 BuildRequires to >= 1.68.1 (CVE-2026-27135)
 - added qdiff and qpatch to misc-tools package (were installed but unpackaged)

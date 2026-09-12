@@ -62,6 +62,11 @@ BuildRequires: pkgconfig(liblz4)
 BuildRequires: krb5-devel
 BuildRequires: rust
 BuildRequires: cargo
+BuildRequires: llvm-devel
+BuildRequires: pkgconfig(icu-uc)
+BuildRequires: pkgconfig(icu-i18n)
+BuildRequires: pkgconfig(eigen3)
+BuildRequires: pkgconfig(protobuf)
 %if 0%{?suse_version}
 BuildRequires: pkg-config
 BuildRequires: fdupes
@@ -351,6 +356,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Sat Sep 12 2026 David Nichols <david@qore.org> 3.0.0
+- added required build dependencies: llvm-devel, icu, eigen3, protobuf
+
 * Fri Feb 6 2026 David Nichols <david@qore.org> 3.0.0
 - updated module-abi to 2.0 (Binary Module API 2.0)
 - added required build dependencies: nghttp2, brotli, zstd, lz4

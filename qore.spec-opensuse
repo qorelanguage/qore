@@ -48,6 +48,11 @@ BuildRequires:  pkgconfig(liblz4)
 BuildRequires:  krb5-devel
 BuildRequires:  rust
 BuildRequires:  cargo
+BuildRequires:  llvm-devel
+BuildRequires:  pkgconfig(icu-uc)
+BuildRequires:  pkgconfig(icu-i18n)
+BuildRequires:  pkgconfig(eigen3)
+BuildRequires:  pkgconfig(protobuf)
 Requires:       %{_bindir}/env
 Requires(post):    shared-mime-info
 Requires(postun):  shared-mime-info
@@ -252,3 +257,6 @@ export QORE_MODULE_DIR=qlib:modules/reflection:${RPM_BUILD_ROOT}%{module_dir}/%{
 %{_mandir}/man1/qdbg-vsc-adapter.1.*
 
 %changelog
+* Sat Sep 12 2026 David Nichols <david@qore.org> 3.0.0
+- added required build dependencies: llvm-devel, icu, eigen3, protobuf
+
