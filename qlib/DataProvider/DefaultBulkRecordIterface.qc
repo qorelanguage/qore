@@ -65,7 +65,11 @@ public class DefaultBulkRecordInterface inherits AbstractDataProviderBulkRecordI
                 # issue #4457: make sure lists are "list<auto>" type
                 rv = map {$1: ()}, keys rec;
             }
-            map rv{$1.key} += $1.value, rec.pairIterator();
+            # issue #542: append each value as a single column cell; "+=" concatenates the elements of a
+            # list value into the column and drops NOTHING entirely, either of which misaligns the block
+            foreach hash<auto> field in (rec.pairIterator()) {
+                push rv{field.key}, field.value;
+            }
             if (++cnt == block_size) {
                 break;
             }

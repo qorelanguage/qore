@@ -1354,6 +1354,10 @@ fetch
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v3_8 DataProvider v3.8
+    - the default bulk record adapter appends each field value as one column cell; a list-valued field
+      previously had its elements concatenated into the column, so a block of records with nested lists
+      reported more column values than records and was rejected as malformed
+      (<a href="https://github.com/qoretechnologies/qorus/issues/542">Qorus issue 542</a>)
     - optional @ref DataProvider::SoftListDataType "soft lists" preserve absent collections as NOTHING;
       collection defaults are validated item by item, while explicit NULL and missing-valued list items
       retain their element-type validation

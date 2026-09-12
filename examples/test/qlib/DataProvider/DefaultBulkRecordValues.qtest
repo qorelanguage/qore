@@ -1,0 +1,143 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+
+%prepend-module-path "${SCRIPT_DIR}/../../../../qlib"
+%requires DataProvider
+%requires QUnit
+
+%exec-class DefaultBulkRecordValuesTest
+
+#! An iterator over a fixed list of records, using the default bulk adapter
+class ListRecordIterator inherits DataProvider::AbstractDataProviderRecordIterator {
+    private {
+        list<auto> records;
+        int pos = -1;
+    }
+
+    constructor(list<auto> records) {
+        self.records = records;
+    }
+
+    private bool nextImpl() {
+        return ++pos < records.size();
+    }
+
+    bool valid() {
+        return pos >= 0 && pos < records.size();
+    }
+
+    hash<auto> getValue() {
+        if (!valid()) {
+            throw "INVALID-ITERATOR", "the iterator is not pointing at a valid element";
+        }
+        return records[pos];
+    }
+
+    *hash<string, DataProvider::AbstractDataField> getRecordType() {
+    }
+}
+
+class DefaultBulkRecordValuesTest inherits QUnit::Test {
+    constructor() : Test("DefaultBulkRecordInterface column values", "1.0", \ARGV) {
+        addTestCase("list fields become one cell per record", \listFieldsTest());
+        addTestCase("absent and null fields keep columns aligned", \sparseFieldsTest());
+        addTestCase("block size and limit bound each block", \blockBoundaryTest());
+        addTestCase("heterogeneous scalar fields are unchanged", \scalarFieldsTest());
+        set_return_value(main());
+    }
+
+    #! Returns one bulk block for the given records
+    private *hash<string, list<auto>> block(list<auto> records, int block_size = 100, *int limit) {
+        ListRecordIterator i(records);
+        return cast<*hash<string, list<auto>>>(
+            new DefaultBulkRecordInterface(block_size, i, NOTHING, NOTHING, limit).getValue());
+    }
+
+    private listFieldsTest() {
+        # issue #542: "+=" concatenated a list value's elements into the column, so a block of two
+        # records with two nested entries each produced a four-element column for one logical field
+        list<auto> records = (
+            {"order_id": "O1", "lines": ({"line_id": "L11"}, {"line_id": "L12"})},
+            {"order_id": "O2", "lines": ({"line_id": "L21"}, {"line_id": "L22"})},
+        );
+        *hash<string, list<auto>> b = block(records);
+        assertEq(("lines", "order_id"), sort(keys b));
+        assertEq(("O1", "O2"), b.order_id);
+        assertEq(2, b.lines.size(), "one cell per record, not one per nested element");
+        assertEq(({"line_id": "L11"}, {"line_id": "L12"}), b.lines[0]);
+        assertEq(({"line_id": "L21"}, {"line_id": "L22"}), b.lines[1]);
+        assertEq(2, AbstractDataProcessor::shapeRecordCount(b));
+        # the shared helper and the default bulk adapter agree
+        assertEq(AbstractDataProcessor::recordsToHashList(records), b);
+
+        # empty and single-element lists keep their own identity
+        list<auto> edge = ({"id": 1, "vals": ()}, {"id": 2, "vals": (7,)}, {"id": 3, "vals": (8, 9)});
+        *hash<string, list<auto>> eb = block(edge);
+        assertEq(3, eb.vals.size());
+        assertEq((), eb.vals[0]);
+        assertEq((7,), eb.vals[1]);
+        assertEq((8, 9), eb.vals[2]);
+        assertEq(3, AbstractDataProcessor::shapeRecordCount(eb));
+
+        # a list of lists is preserved at both levels
+        *hash<string, list<auto>> nb = block(({"m": ((1, 2), (3,))}, {"m": ((4,),)}));
+        assertEq(2, nb.m.size());
+        assertEq(((1, 2), (3,)), nb.m[0]);
+        assertEq(((4,),), nb.m[1]);
+    }
+
+    private sparseFieldsTest() {
+        # a null value must occupy its cell; "+=" discarded NOTHING and shortened the column
+        *hash<string, list<auto>> b = block(({"id": 1, "opt": "x"}, {"id": 2, "opt": NOTHING},
+            {"id": 3, "opt": NULL}));
+        assertEq(3, b.opt.size(), "a value-less field still occupies its cell");
+        assertEq("x", b.opt[0]);
+        assertNothing(b.opt[1]);
+        assertEq(3, AbstractDataProcessor::shapeRecordCount(b));
+        # the third record's NULL arrives as NOTHING because a hash literal mixing NULL with another
+        # value type infers an or-nothing value type when assigned to an auto-typed hash; the two are
+        # equivalent at the SQL boundary (NOTHING binds as SQL NULL), and either way the cell is
+        # occupied, which is what block alignment depends on
+        assertFalse(b.opt[2].val());
+        assertEq((1, 2, 3), b.id);
+    }
+
+    private blockBoundaryTest() {
+        list<auto> records = map ("id": $1, "vals": ($1, $1 + 1)), xrange(0, 5);
+        ListRecordIterator i(records);
+        DefaultBulkRecordInterface bulk(2, i);
+        *hash<string, list<auto>> first = cast<*hash<string, list<auto>>>(bulk.getValue());
+        assertEq(2, AbstractDataProcessor::shapeRecordCount(first));
+        assertEq((0, 1), first.id);
+        assertEq((0, 1), first.vals[0]);
+        *hash<string, list<auto>> second = cast<*hash<string, list<auto>>>(bulk.getValue());
+        assertEq(2, AbstractDataProcessor::shapeRecordCount(second));
+        assertEq((2, 3), second.id);
+        assertEq((3, 4), second.vals[1]);
+        *hash<string, list<auto>> third = cast<*hash<string, list<auto>>>(bulk.getValue());
+        assertEq(1, AbstractDataProcessor::shapeRecordCount(third));
+        assertEq((4,), third.id);
+        assertNothing(bulk.getValue());
+
+        # a limit bounds the records returned without flattening the list field
+        *hash<string, list<auto>> limited = block(records, 100, 3);
+        assertEq(3, AbstractDataProcessor::shapeRecordCount(limited));
+        assertEq((0, 1, 2), limited.id);
+        assertEq((2, 3), limited.vals[2]);
+    }
+
+    private scalarFieldsTest() {
+        *hash<string, list<auto>> b = block(({"i": 1, "s": "a", "b": True, "d": 2026-09-12Z},
+            {"i": 2, "s": "b", "b": False, "d": 2026-09-13Z}));
+        assertEq((1, 2), b.i);
+        assertEq(("a", "b"), b.s);
+        assertEq((True, False), b.b);
+        assertEq((2026-09-12Z, 2026-09-13Z), b.d);
+        assertEq(2, AbstractDataProcessor::shapeRecordCount(b));
+        # a string value is still one cell, not one cell per character
+        assertEq(2, b.s.size());
+    }
+}
