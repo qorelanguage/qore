@@ -395,6 +395,30 @@ cmake -S . -B build -DQORE_BUILD_AOT_MODULES=OFF
     Outside a jobserver-aware make (a bare \c qcc invocation), \c --jobs / \c QCC_JOBS
     apply directly.
 
+    @subsection aot_builds Incremental and Parallel Object Builds
+
+    A <tt>.qo</tt> fragment carries declarations rather than executable bodies.  Preloading sibling
+    fragments with \c -L therefore has to publish exactly the declarations a whole-group parse would,
+    including the values of compile-time constants: a constant's initializer is what narrows its
+    declared type to its value's type, and a declaration shell cannot run one.  The producing parse
+    records the computed value in the shell and the consuming parse reads it.  The recorded value is
+    for compile-time use only - a runtime module load ignores it, and a constant's initializer
+    function remains the only source of its value there.
+
+    What a rebuild covers is decided by contracts rather than by source bytes.  A consumer that folds
+    a provider's compile-time constant leaves no trace of it in the emitted object, so the build
+    records a dependency on that provider's <b>declaration contract</b>, which is identical whether the
+    provider was compiled in a whole-group parse or standalone.  A consumer that bakes a provider's
+    <b>body contract</b> - which a declaration contract deliberately does not describe - records that
+    contract separately, so narrowing what the build watches cannot let a provider's optimised bodies
+    move underneath an object that linked against them.  A component is not stale merely because its
+    own compile changed which providers it records.
+
+    Group parses and component compiles serialize with an exclusive advisory lock held by the
+    \c qore-qo-lock helper rather than by a lock file.  The kernel releases the lock when its holder
+    exits, however it exits, so a waiter starts as soon as the holder finishes and a killed builder
+    blocks nothing.
+
     @subsection aot_inspection Inspecting AOT Artifacts
 
     Use \c qcc \c --dump-info to inspect AOT metadata in executables, \c .qmod

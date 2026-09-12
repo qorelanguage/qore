@@ -33,7 +33,7 @@
     - native fast-path dispatch for the @ref map "map", @ref select "select", and
       @ref foldl "foldl" functional operators (over lists, hashes, and objects) bypasses
       per-element virtual calls for built-in iterators
-    - new dense \c buffer<T> values store primitive arrays without per-element boxing and
+    - new dense @ref buffer "buffer<T>" values store primitive arrays without per-element boxing and
       new typed DBI select APIs can return numeric, boolean, and string result columns as buffers
     - copy-on-write @ref string_views "string view" layer makes
       @ref <string>::substr() "<string>::substr()" and
@@ -124,7 +124,7 @@
       @ref asyncsocketiointro "AsyncSocketIo", @ref ftpclientiointro "FtpClientIo", and
       @ref httpserverasynciointro "HttpServerAsyncIo" modules, so a single thread can service many
       concurrent connections
-    - WebSocket-over-HTTP/2 (RFC 8441) and WebSocket-over-HTTP/3 (RFC 9220), Server-Sent Events
+    - WebSocket-over-HTTP/2 (<a href="https://datatracker.ietf.org/doc/html/rfc8441">RFC 8441</a>) and WebSocket-over-HTTP/3 (<a href="https://datatracker.ietf.org/doc/html/rfc9220">RFC 9220</a>), <a href="https://html.spec.whatwg.org/multipage/server-sent-events.html">Server-Sent Events</a>
       over all three HTTP versions
     - @ref Qore::HTTPClient "HTTPClient" automatically uses HTTP/2 via
       <a href="https://datatracker.ietf.org/doc/html/rfc7301">ALPN</a> and HTTP/3 via
@@ -132,7 +132,7 @@
       process-wide mode controls (@ref Qore::HTTPClient::setHttp2Mode() "setHttp2Mode()",
       @ref Qore::HTTPClient::setHttp3Mode() "setHttp3Mode()",
       @ref Qore::set_global_http2_mode() "set_global_http2_mode()")
-    - <a href="https://datatracker.ietf.org/doc/html/rfc9000#section-9">QUIC connection migration</a>
+    - <a href="https://en.wikipedia.org/wiki/QUIC">QUIC</a> <a href="https://datatracker.ietf.org/doc/html/rfc9000#section-9">connection migration</a>
       and QUIC <a href="https://en.wikipedia.org/wiki/Mutual_authentication#mTLS">mTLS</a>
     - <a href="https://datatracker.ietf.org/doc/html/rfc8305">Happy Eyeballs</a> dual-stack
       connection racing (RFC 8305) for all TCP and QUIC connections
@@ -151,8 +151,10 @@
       @ref Qore::SQL::Datasource::selectRowsTyped() "Datasource::selectRowsTyped()" and the
       corresponding @ref Qore::SQL::DatasourcePool "DatasourcePool" methods expose typed DBI
       result values with runtime hashdecls and dense buffers where possible
-    - C++ modules can exchange @ref Qore::SQL::ColumnarResult "ColumnarResult" values with Arrow, Flight,
-      JDBC, and other binary modules through the Arrow C Data Interface, using zero-copy \c buffer<T>
+    - C++ modules can exchange @ref Qore::SQL::ColumnarResult "ColumnarResult" values with <a href="https://arrow.apache.org/">Arrow</a>,
+      <a href="https://arrow.apache.org/docs/format/Flight.html">Arrow Flight</a>,
+      <a href="https://en.wikipedia.org/wiki/Java_Database_Connectivity">JDBC</a>, and other binary modules through the
+      <a href="https://arrow.apache.org/docs/format/CDataInterface.html">Arrow C Data Interface</a>, using zero-copy @ref buffer "buffer<T>"
       storage for compatible fixed-width, boolean, \c decimal128, and microsecond temporal columns
     - @ref dataproviderintro "DataProvider", @ref dbdataproviderintro "DbDataProvider",
       @ref bulksqlutilintro "BulkSqlUtil", and @ref mapperintro "Mapper" support shaped columnar bulk
@@ -195,7 +197,7 @@
       case conversion in replacement strings
     - @ref qore_regex_brace_delimiters "brace-delimited regular expressions"
       (\c m{pattern}flags etc.)
-    - Unicode-aware case conversion (1-to-many uppercase mappings, fixed UTF-8 corruption bug)
+    - <a href="https://home.unicode.org/">Unicode</a>-aware case conversion (1-to-many uppercase mappings, fixed UTF-8 corruption bug)
 
     <i>Modules and integrations:</i>
     - new builtin modules: @ref avrointro "avro", @ref dataframeintro "dataframe",
@@ -207,7 +209,7 @@
     - dozens of new user modules covering AI/LLM (@ref anthropicrestclientintro "Anthropic",
       @ref huggingfacerestclientintro "HuggingFace", @ref voyagerestclientintro "Voyage",
       @ref sglangrestclientintro "SGLang"), e-commerce, CRM, ERP, observability, ML/DataFrame,
-      Parquet, ONNX, and <a href="https://grpc.io/">gRPC</a>/Protobuf integrations — see
+      <a href="https://parquet.apache.org/">Parquet</a>, <a href="https://onnx.ai/">ONNX</a>, and <a href="https://grpc.io/">gRPC</a>/<a href="https://protobuf.dev/">Protobuf</a> integrations — see
       @ref qore_3_0_0_new_user_modules "New User Modules"
     - @ref qoremodelregistryintro "QoreModelRegistry" and @ref dataprovidermlintro "DataProviderML" now support versioned AI model packages
       with named artifacts, safe <a href="https://huggingface.co/">HuggingFace</a>/<a href="https://pytorch.org/">PyTorch</a> metadata inspection,
@@ -313,7 +315,7 @@ val = "string";      # OK
 
     This feature was originally intended to prepare for @ref exec_mode_jit "JIT" compilation by enforcing
     stricter typing and automatically initializing typed variables with default values.  The NaN-boxing
-    optimization for \c QoreValue addressed those requirements more effectively without requiring
+    optimization for @ref QoreValue "QoreValue" addressed those requirements more effectively without requiring
     behavioral changes.
 
     The @ref loose-types "%loose-types" parse directive is also removed (it was only used to disable
@@ -454,7 +456,7 @@ val = "string";      # OK
     @anchor qore_3_0_0_regex_errors
     @par Regular Expression Resource Limits Now Raise an Exception
     @parblock
-    When PCRE2 abandons a match because the pattern requires more backtracking than its limits allow, it reports
+    When <a href="https://www.pcre.org/">PCRE2</a> abandons a match because the pattern requires more backtracking than its limits allow, it reports
     that it could not decide the match rather than that the subject did not match. %Qore previously treated this
     as an ordinary "no match", so a pattern that was too expensive to evaluate silently produced a wrong answer.
 
@@ -520,65 +522,28 @@ val = "string";      # OK
     enum and the @ref Qore::Program::setExecMode() "Program::setExecMode()" /
     @ref Qore::Program::getExecMode() "Program::getExecMode()" methods.
 
-    JIT native code generation now defaults to optimization level 3, matching the \c qcc AOT
-    compiler, so a function generates the same code whether it is compiled by the JIT or ahead of
-    time.  The @ref jit_optimization_level "JIT optimization level" is configurable as well, per %Program
-    with @ref Qore::Program::setJitOptimizationLevel() "Program::setJitOptimizationLevel()" /
-    @ref Qore::Program::getJitOptimizationLevel() "Program::getJitOptimizationLevel()" (both also
-    available as static methods acting on the current %Program), and process-wide with the
-    \c QORE_JIT_OPT_LEVEL environment variable.
+    JIT native code generation defaults to optimization level 3, matching the @ref qcc_tool "qcc" AOT
+    compiler, so a function generates the same code whether it is compiled by the JIT or ahead of time;
+    the @ref jit_optimization_level "JIT optimization level" is configurable per %Program and
+    process-wide.
 
-    A damaged binary module is reported rather than fatal when
-    \c QORE_VERIFY_MODULE_SIGNATURES is set: the module loader verifies that a module file is
-    intact before mapping it and raises a \c LOAD-MODULE-ERROR naming the file if it is not.
-    It is off by default because the check hashes the whole file; it is worth enabling when a
-    module load fails inexplicably, since on macOS/Apple Silicon the kernel terminates a
-    process that maps a page whose code signature no longer validates, so a \c .qmod damaged
-    on disk otherwise kills the loading process with no diagnostic at all.  See
-    @ref environment_variables "Environment Variables".
+    Setting \c QORE_VERIFY_MODULE_SIGNATURES makes a damaged binary module a reported
+    \c LOAD-MODULE-ERROR rather than a fatal one; it is off by default because the check hashes the
+    whole module file.  On macOS/Apple Silicon the kernel terminates a process that maps a page whose
+    code signature no longer validates, so without it a damaged <tt>.qmod</tt> kills the loading
+    process with no diagnostic at all.
 
-    Compiling a source in a whole-group parse and compiling it against preloaded <tt>.qo</tt>
-    declaration shells now publish the same declarations.  A <tt>.qo</tt> carries declarations
-    rather than executable bodies, so a <tt>qcc -c -L</tt> parse could not run a preloaded
-    provider's constant initializer where a whole-group parse could, and evaluating a constant
-    is what narrows its declared type to its value's type; the shell now records the value the
-    producing parse computed (AOT binary format 15) and the consuming parse reads it.  The
-    value is recorded for compile-time use only: a runtime module load ignores it, and a
-    constant's initializer function remains the only source of its value there.  Three
-    normalization defects went with it -- a constant's value hash depended on whether its
-    strings were stored inline or on the heap, \c callref and \c closure did not read back as
-    themselves from a serialized type path, and an object whose metadata length did not fall on
-    the emitter's alignment boundary listed every symbol of its compile contract twice.
-
-    The first incremental build after a full build no longer rebuilds the whole consumer closure
-    of whatever was edited.  A consumer that folds a provider's compile-time constant leaves no
-    trace of it in the emitted object, so the build has to record a dependency on the provider
-    for it; that dependency was recorded at source-byte granularity, and the scheduler's own
-    staleness token watched the provider's compile contract, which legitimately differs between a
-    whole-group parse and a standalone one because it also describes how the code was lowered.
-    Both now watch the provider's declaration contract, which is what such a reference actually
-    consumes and which is identical in both modes.  A component is also no longer reported stale
-    because its own compile changed which providers it records, which a build could previously
-    read as a plan that would not converge.  Measured on an 875-source application, appending one
-    comment to a source with a 13-component consumer closure: 23 compiler invocations and 5m05
-    becomes 1 invocation and 1m46, and the build after that is a no-op.  A consumer that baked a
-    provider's body contract, which a declaration contract deliberately does not describe, records
-    that contract as a dependency of its own, so narrowing what the build watches does not let a
-    provider's optimised bodies move underneath an object that linked against them.
-
-    %Qore object-group builds no longer poll for their locks.  Both the whole-group parse and each
-    component's compile took a lock by creating a hard link and retrying once a second; a hard link
-    outlives the process that made it, so every waiter also had to decide whether an existing lock
-    had been abandoned by a builder that died, read its owner out of a record, and remove it -- a
-    decision no waiter could make exclusively.  They now run their critical section under an
-    exclusive advisory lock held by the new \c qore-qo-lock helper, which the kernel releases when
-    its holder exits however it exits: a waiter starts the instant the holder finishes, a killed
-    builder blocks nothing, and there is no reclaim path to get wrong.
+    Object builds are incremental and no longer poll for locks.  Compiling a source against preloaded
+    <tt>.qo</tt> declaration shells now publishes the same declarations as a whole-group parse, and a
+    rebuild covers only what actually consumes a changed declaration: measured on an 875-source
+    application, appending one comment to a source with a 13-component consumer closure went from 23
+    compiler invocations and 5m05 to one invocation and 1m46, with the following build a no-op.  See
+    @ref aot_builds "Incremental and Parallel Object Builds".
 
     Type and value fidelity across the execution modes:
     - generic hash-field maps retain their actual result element type in @ref exec_mode_ir "IR",
       @ref exec_mode_jit "JIT" and @ref exec_mode_aot "AOT" execution, and common type inference retains
-      optional types in either operand order and across repeated \c NOTHING values
+      optional types in either operand order and across repeated @ref nothing "NOTHING" values
     - @ref exec_mode_jit "JIT" execution preserves each recursive call's own reference-backed and
       closure-captured local variables, including tree traversals, exception cleanup, and escaped references
     - binding a @ref lvalue_references "reference" argument applies the reference's type restriction to the
@@ -606,7 +571,7 @@ val = "string";      # OK
     faster builds and distro security updates, but is not required.
 
     The following libraries are also required system build dependencies for %Qore and cannot be disabled at build time:
-    - <b>Brotli, Zstd, LZ4:</b> Compression formats are always available
+    - <b><a href="https://github.com/google/brotli">Brotli</a>, <a href="https://facebook.github.io/zstd/">Zstd</a>, <a href="https://lz4.org/">LZ4</a>:</b> Compression formats are always available
     - <b><a href="https://eigen.tuxfamily.org/">Eigen3</a></b> (>= 3.4, including Eigen 5.x):
       used by the new @ref mlintro "ml" binary module for linear algebra operations.
       On macOS, CMake now automatically detects MacPorts (\c /opt/local) and Homebrew prefixes for
@@ -617,7 +582,7 @@ val = "string";      # OK
     - <b><a href="https://protobuf.dev/">libprotobuf</a></b>: provides the \c protobuf
       built-in module for dynamic Protocol Buffer schema loading, encoding, and decoding
     - <b>Kerberos 5 / GSSAPI</b>: provides the @ref krb5intro "krb5" built-in module
-      for Kerberos credential, keytab, GSSAPI, SPNEGO, and HTTP Negotiate primitives
+      for <a href="https://web.mit.edu/kerberos/">Kerberos</a> credential, keytab, <a href="https://datatracker.ietf.org/doc/html/rfc2743">GSSAPI</a>, <a href="https://datatracker.ietf.org/doc/html/rfc4178">SPNEGO</a>, and <a href="https://datatracker.ietf.org/doc/html/rfc4559">HTTP Negotiate</a> primitives
 
     Systems that previously built %Qore without these libraries will need to install the
     development packages:
@@ -851,7 +816,7 @@ dsp.setMutationObserver(*hash<SqlMutationDecisionInfo> sub (hash<SqlMutationEven
       <a href="https://datatracker.ietf.org/doc/html/rfc7301">ALPN</a> negotiation) and HTTP/3 over
       <a href="https://datatracker.ietf.org/doc/html/rfc9000">QUIC</a>, both backed by an async I/O controller
       driving non-blocking poll operations across HTTP/1.x, HTTP/2, and HTTP/3: TCP connect, TLS and QUIC
-      handshakes, request/response framing, streaming bodies, WebSocket upgrade
+      handshakes, request/response framing, streaming bodies, <a href="https://datatracker.ietf.org/doc/html/rfc6455">WebSocket</a> upgrade
       (<a href="https://datatracker.ietf.org/doc/html/rfc8441">RFC 8441</a> over HTTP/2,
       <a href="https://datatracker.ietf.org/doc/html/rfc9220">RFC 9220</a> over HTTP/3), Server-Sent Events
       over all three versions, <a href="https://datatracker.ietf.org/doc/html/rfc9000#section-9">QUIC
@@ -927,7 +892,7 @@ dsp.setMutationObserver(*hash<SqlMutationDecisionInfo> sub (hash<SqlMutationEven
         (parse directive: @ref no-constant-defs "%no-constant-defs")
       - @ref Qore::PO_NO_NAMESPACE_DEFS "PO_NO_NAMESPACE_DEFS": prevents namespace definitions
         (parse directive: @ref no-namespace-defs "%no-namespace-defs")
-      - @ref Qore::PO_NO_NEW "PO_NO_NEW": prevents use of the \c new operator
+      - @ref Qore::PO_NO_NEW "PO_NO_NEW": prevents use of the @ref new "new" operator
         (parse directive: @ref no-new "%no-new")
     - updated module ABI and the @ref Qore::Program "Program" container to allow for better sandboxing
     - <b>ReadOnlyFile short reads</b>
@@ -1036,7 +1001,7 @@ dsp.setMutationObserver(*hash<SqlMutationDecisionInfo> sub (hash<SqlMutationEven
         aliases; use these functions instead of @ref Qore::sprintf() "sprintf()" and
         @ref Qore::vsprintf() "vsprintf()" when formatting values that can be arbitrarily large, such as when
         logging values that reach live internal data structures
-      - @ref Qore::deflate_raw() "deflate_raw()": raw DEFLATE compression (RFC 1951) without zlib/gzip headers
+      - @ref Qore::deflate_raw() "deflate_raw()": raw DEFLATE compression (<a href="https://datatracker.ietf.org/doc/html/rfc1951">RFC 1951</a>) without zlib/gzip headers
         (<a href="https://github.com/qoretechnologies/qore/issues/5065">issue 5065</a>)
       - @ref Qore::getaddrinfo_async() "getaddrinfo_async()": Future-returning async DNS address lookup backed by
         the global async I/O controller and c-ares
@@ -1071,9 +1036,9 @@ dsp.setMutationObserver(*hash<SqlMutationDecisionInfo> sub (hash<SqlMutationEven
     - Added @ref negative-offsets "%negative-offsets" for Python-style from-end list, string,
       binary, and buffer indexes and slice endpoints; this option is implied by @ref modern "%modern",
       and @ref no-negative-offsets "%no-negative-offsets" restores legacy negative-index behavior
-    - Added @ref no-char-type "%no-char-type" for code that needs \c char available as a
+    - Added @ref no-char-type "%no-char-type" for code that needs @ref char "char" available as a
       legacy identifier or user-defined type name
-    - \c cast<hash<auto>>(...), \c cast<hash<string,\ auto>>(...), and
+    - @ref cast "cast"<hash<auto>>(...), \c cast<hash<string,\ auto>>(...), and
       \c cast<list<auto>>(...) are now parse-time errors because they do not coerce
       values and are misleading no-op casts; use \c cast<hash>(...) or
       \c cast<list>(...) for hard container assertions, and
@@ -1107,7 +1072,7 @@ dsp.setMutationObserver(*hash<SqlMutationDecisionInfo> sub (hash<SqlMutationEven
     - @ref Qore::Thread::Promise "Promise<T>"
     - @ref Qore::Thread::Future "Future<T>"
     - @ref Qore::TreeMap "TreeMap<V>" for typed path-prefix maps
-    - @ref mongodb::MongoCursor "MongoCursor<DocT>" for typed MongoDB
+    - @ref mongodb::MongoCursor "MongoCursor<DocT>" for typed <a href="https://www.mongodb.com/">MongoDB</a>
       document cursor iteration in the builtin mongodb module
     - @ref Qore::AbstractIterator "AbstractIterator<T>" and concrete list,
       hash, channel, and single-value iterators
@@ -1252,7 +1217,7 @@ int echoed = child.echo(value);
 
     <b>Callback-Based Substitution:</b>
     - New @ref Qore::RegexSubst::subst() "RegexSubst::subst(str, callback)" overload accepting a
-      \c code<string(hash<RegexMatchInfo>)> callback for dynamic replacement computation
+      @ref code_complex_type "code<string(hash<RegexMatchInfo>)>" callback for dynamic replacement computation
     - New @ref Qore::regex_subst() "regex_subst()" overload with callback parameter
 
     <b>New Utility Functions:</b>
@@ -1368,7 +1333,7 @@ int echoed = child.echo(value);
     @par Dense Buffers and Typed DBI Results
     @parblock
     The new @ref buffer "buffer<T>" type stores \c int8, \c int16, \c int32, \c int64, \c float32,
-    \c float64, \c bool, \c string, and \c decimal128 values without per-element boxing; \c buffer<*T>
+    \c float64, \c bool, \c string, and \c decimal128 values without per-element boxing; @ref buffer "buffer<*T>"
     adds a validity bitmap so SQL NULL / @ref nothing "NOTHING" survives as a null element.  Buffers
     support zero-copy views, elementwise arithmetic and comparisons (producing dense boolean masks), and
     dense reductions:
@@ -1444,11 +1409,11 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
     triggering a module load could invert the lock order and deadlock against a concurrent load.
 
     Binary modules can now participate in that hierarchy explicitly:
-    - \c QoreModuleLoadLockHelper acquires the module-load lock, which must be taken <i>before</i>
+    - @ref QoreModuleLoadLockHelper "QoreModuleLoadLockHelper" acquires the module-load lock, which must be taken <i>before</i>
       any module-private lock that is held across a call back into module loading &mdash; whether
       directly via \c ModuleManager::runTimeLoadModule(), or indirectly through a callback from a
       foreign runtime such as a JVM classloader
-    - \c QoreModuleInnerLockHelper marks a module-private lock as inner to the module-load lock;
+    - @ref QoreModuleInnerLockHelper "QoreModuleInnerLockHelper" marks a module-private lock as inner to the module-load lock;
       debug builds then assert that the order is respected rather than deadlocking in the field
 
     The lock is recursive, so nested module loads are safe.  It is intended for cold paths only:
@@ -1465,10 +1430,10 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
     @par RFC 7231 / RFC 2822 Date Parsing
     The @ref Qore::date(string) "date(string)" function and @ref Qore::TimeZone::date(string) "TimeZone::date(string)"
     method now support parsing HTTP and email date formats in addition to ISO-8601:
-    - <b>RFC 7231 IMF-fixdate</b> (preferred HTTP format): \c "Sun, 06 Nov 1994 08:49:37 GMT"
-    - <b>RFC 7231 RFC 850</b> (obsolete HTTP format): \c "Sunday, 06-Nov-94 08:49:37 GMT"
+    - <b><a href="https://datatracker.ietf.org/doc/html/rfc7231">RFC 7231</a> IMF-fixdate</b> (preferred HTTP format): \c "Sun, 06 Nov 1994 08:49:37 GMT"
+    - <b><a href="https://datatracker.ietf.org/doc/html/rfc7231">RFC 7231</a> <a href="https://datatracker.ietf.org/doc/html/rfc850">RFC 850</a></b> (obsolete HTTP format): \c "Sunday, 06-Nov-94 08:49:37 GMT"
     - <b>RFC 7231 asctime</b> (obsolete HTTP format): \c "Sun Nov  6 08:49:37 1994"
-    - <b>RFC 2822</b> (email dates with numeric timezone offset): \c "Sun, 06 Nov 1994 08:49:37 +0500"
+    - <b><a href="https://datatracker.ietf.org/doc/html/rfc2822">RFC 2822</a></b> (email dates with numeric timezone offset): \c "Sun, 06 Nov 1994 08:49:37 +0500"
 
     RFC 7231 dates (with \c GMT or \c UTC timezone) are always returned as UTC. RFC 2822 numeric
     offsets (e.g. \c +0530) are converted to UTC.
@@ -1481,7 +1446,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
     @ref Qore::TimeZone::date(string) "TimeZone::date(string)" now propagates \c INVALID-DATE
     errors from the date parser instead of silently returning a fallback or normalized date for invalid input.
     Strings without an explicit zone still use the object's time zone, including its daylight saving rules.
-    The C++ API adds a \c DateTimeNode(zone,string,xsink) constructor for the same checked conversion.
+    The C++ API adds a @ref DateTimeNode "DateTimeNode"(zone,string,xsink) constructor for the same checked conversion.
 
     @par Extended Calendar Years
     Absolute date strings accept separated years with at least four digits, including negative years and
@@ -1678,13 +1643,13 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         ordering, free-text search, and paging) instead of through a hand-written generic API call
 
     - @ref googledataproviderintro "GoogleDataProvider" module
-      - date values in query arguments are serialized as RFC 3339 timestamps, as Google APIs require
+      - date values in query arguments are serialized as <a href="https://datatracker.ietf.org/doc/html/rfc3339">RFC 3339</a> timestamps, as Google APIs require
         (ex: \c timeMin / \c timeMax in Calendar \c events.list), instead of an unparseable digit string
 
     - @ref grokrestclientintro "GrokRestClient" module
       - registers @ref QoreLlmUtils::LlmProviderRegistry "LlmProviderRegistry" mode
         \c grok via @ref GrokRestClient::GrokLlmProvider "GrokLlmProvider" — thin
-        subclass of \c OpenAiLlmProvider with the xAI default URL applied
+        subclass of @ref OpenAiRestClient::OpenAiLlmProvider "OpenAiLlmProvider" with the xAI default URL applied
       - new \c chat-model connection option, so the model used when the connection is
         selected for chat can be configured on the connection; defaults to \c "grok-3"
 
@@ -1705,14 +1670,14 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
 
     - @ref httpserverutilintro "HttpServerUtil" module
       - cookie-setting support and a refactored, more extensible authentication design
-      - new \c http_version option in \c HttpListenerOptionInfo for HTTP/2 and HTTP/3 mode control
-      - new \c StreamResponseProducer worker-thread response-body streamer for non-I/O-thread-safe
+      - new \c http_version option in @ref HttpServer::HttpListenerOptionInfo "HttpListenerOptionInfo" for HTTP/2 and HTTP/3 mode control
+      - new @ref HttpServer::StreamResponseProducer "StreamResponseProducer" worker-thread response-body streamer for non-I/O-thread-safe
         @ref Qore::InputStream "InputStream" bodies on HTTP/2 and HTTP/3
 
     - @ref loggerintro "Logger" module
-      - added memory-based backpressure to \c LoggerAppenderQueue to prevent unbounded memory growth when
+      - added memory-based backpressure to @ref Qore::Logger::LoggerAppenderQueue "LoggerAppenderQueue" to prevent unbounded memory growth when
         producers outpace consumers — configurable memory limit, push timeout/drop control, and monitoring
-      - added a \c max_bytes parameter to \c LoggerAppenderQueueThreadPool for memory-limited pool logging
+      - added a \c max_bytes parameter to @ref Logger::LoggerAppenderQueueThreadPool "LoggerAppenderQueueThreadPool" for memory-limited pool logging
 
     - @ref openaidataproviderintro "OpenAiDataProvider" module
       - added the \c transcribe-audio action (the \c /v1/audio/transcriptions API), which uploads an audio
@@ -1826,7 +1791,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
     - @ref schemareverseintro "SchemaReverse" module
       - added \c toYaml() and \c toJson() methods on @ref SchemaReverse::AbstractReverseObject "AbstractReverseObject" and @ref SchemaReverse::SchemaReverse "SchemaReverse"
         for exporting database schemas to \c .ysm/\c .jsm format
-      - added @ref SchemaReverse::SchemaReverse::toQore() "SchemaReverse::toQore()" for structured hash output compatible with \c DataSchema
+      - added @ref SchemaReverse::SchemaReverse::toQore() "SchemaReverse::toQore()" for structured hash output compatible with @ref Schema::DataSchema "DataSchema"
       - fixed numeric scale extraction and trigger accumulation bugs
 
     - @ref serversenteventclientintro "ServerSentEventClient" module
@@ -1886,7 +1851,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         \c truncation, \c max_chunks_per_doc, and \c return_documents to Voyage
 
     - @ref websocketclientintro "WebSocketClient" module
-      - added HTTP/3 WebSocket support (RFC 9220) and the \c "3.0" \c http_version option
+      - added HTTP/3 WebSocket support (<a href="https://datatracker.ietf.org/doc/html/rfc9220">RFC 9220</a>) and the \c "3.0" \c http_version option
       - added WebSocket extension support with permessage-deflate compression
         (<a href="https://github.com/qoretechnologies/qore/issues/5065">issue 5065</a>)
       - added optional AsyncAPI 3.0 message validation, including validation of deserialized
@@ -1939,7 +1904,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         string, bool, date) and null/missing-value support
       - SQL-like query, groupBy/aggregation, join, reshape (pivot/melt), and window operations,
         plus native plugin operators for column/row/range access and mask-based filtering
-      - dense columnar interop with \c buffer<T> columns and @ref Qore::SQL::ColumnarResult "ColumnarResult",
+      - dense columnar interop with @ref buffer "buffer<T>" columns and @ref Qore::SQL::ColumnarResult "ColumnarResult",
         Eigen3-backed float64 columns, and zero-overhead ML matrix/vector feeding
       - streaming CSV, Parquet/Arrow, and DBI columnar I/O aimed at production ETL and analytics workloads
 
@@ -2340,7 +2305,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
 
     - @ref geminibodyshapeintro "GeminiBodyShape" module
       - new shared module for the Gemini \c generateContent wire format: request/response shapers plus the \
-        common \c AbstractGeminiModelProvider base used by both @ref geminirestclientintro "GeminiRestClient" \
+        common @ref GeminiBodyShape::AbstractGeminiModelProvider "AbstractGeminiModelProvider" base used by both @ref geminirestclientintro "GeminiRestClient" \
         and @ref vertexairestclientintro "VertexAiRestClient" so the two cannot drift on tool/option/response handling
 
     - @ref generatordataproviderintro "GeneratorDataProvider" module
@@ -3069,7 +3034,7 @@ DataFrame::DataFrame df = DataFrame::DataFrame::fromColumnarResult(selected);
         (<a href="https://github.com/qoretechnologies/qore/issues/5383">issue 5383</a>)
       - rebuilding a provider index now includes inventories introduced by lazily loaded integrations, avoiding
         false stale-inventory errors while still preserving the previous index if qualification fails
-      - added \c ProviderIndexUtil::getIndexReadError() so that callers can distinguish an unreadable or corrupt
+      - added @ref ProviderIndexUtil::ProviderIndexUtil::getIndexReadError() "ProviderIndexUtil::getIndexReadError()" so that callers can distinguish an unreadable or corrupt
         index from a system where no index has been created yet, and therefore avoid silently degrading to a
         partial app catalog
         (<a href="https://github.com/qoretechnologies/qore/issues/5383">issue 5383</a>)
